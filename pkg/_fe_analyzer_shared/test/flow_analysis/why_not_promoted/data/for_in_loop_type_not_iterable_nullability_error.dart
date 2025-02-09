@@ -13,69 +13,85 @@ class C1 {
 
 forStatement(C1 c) {
   if (c.bad == null) return;
-  for (var x in c.
-      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: List<int>?))*/ bad) {}
+  for (var x
+      in c
+          .
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/ bad) {}
 }
 
 forElementInList(C1 c) {
   if (c.bad == null) return;
   [
-    for (var x in c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: List<int>?))*/ bad)
-      null
+    for (var x
+        in c
+            .
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/ bad)
+      null,
   ];
 }
 
 forElementInSet(C1 c) {
   if (c.bad == null) return;
   <dynamic>{
-    for (var x in c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: List<int>?))*/ bad)
-      null
+    for (var x
+        in c
+            .
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/ bad)
+      null,
   };
 }
 
 forElementInMap(C1 c) {
   if (c.bad == null) return;
   <dynamic, dynamic>{
-    for (var x in c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: List<int>?))*/ bad)
-      null: null
+    for (var x
+        in c
+            .
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/ bad)
+      null: null,
   };
 }
 
 forElementInAmbiguousSet_resolvableDuringParsing(C1 c) {
   if (c.bad == null) return;
   ({
-    for (var x in c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: List<int>?))*/ bad)
-      null
+    for (var x
+        in c
+            .
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/ bad)
+      null,
   });
 }
 
 forElementInAmbiguousMap_resolvableDuringParsing(C1 c) {
   if (c.bad == null) return;
   ({
-    for (var x in c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: List<int>?))*/ bad)
-      null: null
+    for (var x
+        in c
+            .
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/ bad)
+      null: null,
   });
 }
 
 forElementInAmbiguousSet_notResolvableDuringParsing(C1 c, List list) {
   if (c.bad == null) return;
   ({
-    for (var x in c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: List<int>?))*/ bad)
-      ...list
+    for (var x
+        in c
+            .
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/ bad)
+      ...list,
   });
 }
 
 forElementInAmbiguousMap_notResolvableDuringParsing(C1 c, Map map) {
   if (c.bad == null) return;
   ({
-    for (var x in c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: List<int>?))*/ bad)
-      ...map
+    for (var x
+        in c
+            .
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/ bad)
+      ...map,
   });
 }

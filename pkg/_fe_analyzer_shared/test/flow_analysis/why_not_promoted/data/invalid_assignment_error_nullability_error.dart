@@ -13,6 +13,7 @@ class C1 {
 
 test(C1 c) sync* {
   if (c.bad == null) return;
-  yield* c.
-      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: List<int>?))*/ bad;
+  yield* c
+      .
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/ bad;
 }

@@ -42,7 +42,6 @@ import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import '../source/source_member_builder.dart';
 import '../testing/id_extractor.dart';
-import '../testing/id_testing_utils.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
@@ -232,11 +231,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           if (whyNotPromotedVisitor.propertyReference != null) {
             Id id = computeMemberId(whyNotPromotedVisitor.propertyReference!);
             args.add('target: $id');
-          }
-          if (whyNotPromotedVisitor.propertyType != null) {
-            String typeText = typeToText(whyNotPromotedVisitor.propertyType!,
-                TypeRepresentation.analyzerNonNullableByDefault);
-            args.add('type: $typeText');
           }
           if (args.isNotEmpty) {
             nonPromotionReasonText += '(${args.join(', ')})';
@@ -4371,12 +4365,10 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
 class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<List<LocatedMessage>, Node,
-            VariableDeclaration, SharedTypeView> {
+            VariableDeclaration> {
   final InferenceVisitorBase inferrer;
 
   Member? propertyReference;
-
-  DartType? propertyType;
 
   _WhyNotPromotedVisitor(this.inferrer);
 
@@ -4398,7 +4390,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitPropertyNotPromotedForNonInherentReason(
-      PropertyNotPromotedForNonInherentReason<SharedTypeView> reason) {
+      PropertyNotPromotedForNonInherentReason reason) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
@@ -4454,7 +4446,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitPropertyNotPromotedForInherentReason(
-      PropertyNotPromotedForInherentReason<SharedTypeView> reason) {
+      PropertyNotPromotedForInherentReason reason) {
     Object? member = reason.propertyMember;
     if (member is Member) {
       if (member case Procedure(:var stubTarget?)) {
@@ -4463,7 +4455,6 @@ class _WhyNotPromotedVisitor
         member = stubTarget;
       }
       propertyReference = member;
-      propertyType = reason.staticType.unwrapTypeView();
       Template<Message Function(String, String)> template =
           switch (reason.whyNotPromotable) {
         PropertyNonPromotabilityReason.isNotField =>
@@ -4501,8 +4492,7 @@ class _WhyNotPromotedVisitor
   }
 
   void _addFieldPromotionUnavailableMessage(
-      PropertyNotPromoted<SharedTypeView> reason,
-      List<LocatedMessage> messages) {
+      PropertyNotPromoted reason, List<LocatedMessage> messages) {
     Object? member = reason.propertyMember;
     if (member is Member) {
       messages.add(templateFieldNotPromotedBecauseNotEnabled
