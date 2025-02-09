@@ -78,7 +78,7 @@ class _ElementByNameOffsetVisitor extends GeneralizingElementVisitor<void> {
   }
 }
 
-/// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
+/// A [GeneralizingElementVisitor] adapter for [BoolElementProcessor].
 class _ElementVisitorAdapter extends GeneralizingElementVisitor<void> {
   final BoolElementProcessor processor;
 

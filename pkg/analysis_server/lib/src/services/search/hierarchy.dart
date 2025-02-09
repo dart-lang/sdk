@@ -87,12 +87,8 @@ List<Element2> getExtensionMembers(
   return members;
 }
 
-/// Return all implementations of the given [member], including in its
+/// Returns all implementations of the given [member], including in its
 /// superclasses and their subclasses.
-///
-/// If [includeParametersForFields] is true and [member] is a [FieldElement2],
-/// any [FieldFormalParameterElement2]s for the member will also be provided
-/// (otherwise, the parameter set will be empty in the result).
 Future<Set<Element2>> getHierarchyMembers(
   SearchEngine searchEngine,
   Element2 member, {
@@ -106,10 +102,10 @@ Future<Set<Element2>> getHierarchyMembers(
   return members;
 }
 
-/// Return all implementations of the given [member], including in its
+/// Returns all implementations of the given [member2], including in its
 /// superclasses and their subclasses.
 ///
-/// If [includeParametersForFields] is true and [member] is a [FieldElement2],
+/// If [includeParametersForFields] is true and [member2] is a [FieldElement2],
 /// any [FieldFormalParameterElement2]s for the member will also be provided
 /// (otherwise, the parameter set will be empty in the result).
 Future<(Set<Element2>, Set<FormalParameterElement>)>

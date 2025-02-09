@@ -107,7 +107,7 @@ typedef UserPromptSender =
     );
 
 /// Implementations of [AnalysisServer] implement a server that listens
-/// on a [CommunicationChannel] for analysis messages and process them.
+/// on an [AbstractNotificationManager] for analysis messages and process them.
 abstract class AnalysisServer {
   /// A flag indicating whether plugins are supported in this build.
   static final bool supportsPlugins = true;
@@ -418,7 +418,7 @@ abstract class AnalysisServer {
   ///
   /// Request handlers should be careful to use the correct clients capabilities
   /// if they are available to non-editor clients (such as over DTD). The
-  /// capabilities of the caller are available in [MessageInfo] and should
+  /// capabilities of the caller are available in [lsp.MessageInfo] and should
   /// usually be used when computing the results for requests, but if those
   /// requests additionally trigger requests to the editor, those requests to
   /// the editor should consider these capabilities.
@@ -437,7 +437,7 @@ abstract class AnalysisServer {
   /// A [Future] that completes when the LSP server moves into the initialized
   /// state and can handle normal LSP requests.
   ///
-  /// Completes with the [InitializedStateMessageHandler] that is active.
+  /// Completes with the [lsp.InitializedStateMessageHandler] that is active.
   ///
   /// When the server leaves the initialized state, [lspUninitialized] will
   /// complete.
@@ -493,8 +493,8 @@ abstract class AnalysisServer {
 
   void afterContextsDestroyed() {}
 
-  /// Broadcast a request built from the given [params] to all of the plugins
-  /// that are currently associated with the context root from the given
+  /// Broadcast a request built from the given [requestParams] to all of the
+  /// plugins that are currently associated with the context root from the given
   /// [driver]. Return a list containing futures that will complete when each of
   /// the plugins have sent a response, or an empty list if no [driver] is
   /// provided.

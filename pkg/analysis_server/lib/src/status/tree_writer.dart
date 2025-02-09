@@ -88,7 +88,7 @@ mixin TreeWriter {
     return null;
   }
 
-  /// Write the [value] of the property with the given [name].
+  /// Writes the [value] of the property.
   void _writePropertyValue(Object value, int baseIndent) {
     if (value is List<Object>) {
       if (value.isEmpty) {
