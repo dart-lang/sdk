@@ -34,9 +34,11 @@ class ImportAnalyzer {
   /// the set of imports used to reference those declarations.
   final Map<Element2, Set<LibraryImport>> stayingReferences = {};
 
-  /// Analyze the given library [result] to find the declarations and references
-  /// being moved and that are staying. The declarations being moved are in the
-  /// file at the given [path] in the given [range].
+  /// Analyzes the given library [result] to find the declarations and
+  /// references being moved and that are staying.
+  ///
+  /// The declarations being moved are in the file at the given [path] in the
+  /// given [ranges].
   ImportAnalyzer(this.result, String path, List<SourceRange> ranges) {
     for (var unit in result.units) {
       var finder = _ReferenceFinder(
@@ -92,7 +94,7 @@ class _ElementRecorder {
 
   /// Initialize a newly created recorder to use the [analyzer] to record
   /// declarations of and references to elements, based on whether the reference
-  /// is within the [range].
+  /// is within the [ranges].
   _ElementRecorder(this.analyzer, this.ranges);
 
   /// Record that the [declaredElement] is declared in the library.
@@ -174,7 +176,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   /// empty string is used for unprefixed imports.
   ///
   /// Library imports are ordered the same as they appear in the source file
-  /// (since this is a [LinkedHashSet]).
+  /// (since this is a `LinkedHashSet`).
   final _importsByPrefix = <String, Set<LibraryImport>>{};
 
   /// Initialize a newly created finder to send information to the [recorder].
