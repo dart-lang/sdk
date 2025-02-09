@@ -23,15 +23,18 @@ extension on int? {
 
 property_get_of_variable(int? i, int? j) {
   if (i == null) return;
-  /*cfe.update: explicitWrite*/ /*analyzer.explicitWrite*/ i = j;
+  /*cfe.update: explicitWrite*/ /*analyzer.explicitWrite*/
+  i = j;
   i. /*notPromoted(explicitWrite)*/ isEven;
 }
 
 extension_property_get_of_variable(int? i, int? j) {
   if (i == null) return;
-  /*cfe.update: explicitWrite*/ /*analyzer.explicitWrite*/ i = j;
+  /*cfe.update: explicitWrite*/ /*analyzer.explicitWrite*/
+  i = j;
   i.propertyOnNullableInt;
-  i.
+  i
+      .
       /*cfe.invoke: notPromoted(explicitWrite)*/
       /*analyzer.notPromoted(explicitWrite)*/
       propertyOnNonNullInt;
@@ -39,7 +42,7 @@ extension_property_get_of_variable(int? i, int? j) {
 
 property_get_of_expression(C c) {
   if (c.i == null) return;
-  c.i. /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/ isEven;
+  c.i. /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.i))*/ isEven;
 }
 
 extension_property_get_of_expression(C c) {
@@ -48,8 +51,8 @@ extension_property_get_of_expression(C c) {
   c
       .i
       .
-      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
-      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
+      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.i))*/
+      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.i))*/
       propertyOnNonNullInt;
 }
 
@@ -57,8 +60,8 @@ method_invocation(C c) {
   if (c.i == null) return;
   c.i
       .
-      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
-      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
+      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.i))*/
+      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.i))*/
       abs();
 }
 
@@ -67,8 +70,8 @@ extension_method_invocation(C c) {
   c.i.methodOnNullableInt();
   c.i
       .
-      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
-      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
+      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.i))*/
+      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.i))*/
       methodOnNonNullInt();
 }
 
@@ -76,7 +79,7 @@ call_invocation(C c) {
   if (c.f == null) return;
   c.f
       .
-      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.f, type: void Function()?))*/
-      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.f, type: void Function()?))*/
+      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.f))*/
+      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.f))*/
       call();
 }

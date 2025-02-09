@@ -52,9 +52,8 @@ class DemoteViaExplicitWrite<Variable extends Object>
   String get shortName => 'explicitWrite';
 
   @override
-  R accept<R, Node extends Object, Variable extends Object,
-              Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
+  R accept<R, Node extends Object, Variable extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable> visitor) =>
       visitor.visitDemoteViaExplicitWrite(
           this as DemoteViaExplicitWrite<Variable>);
 
@@ -2978,23 +2977,22 @@ abstract class NonPromotionReason {
   String get shortName;
 
   /// Implementation of the visitor pattern for non-promotion reasons.
-  R accept<R, Node extends Object, Variable extends Object,
-          Type extends Object>(
-      NonPromotionReasonVisitor<R, Node, Variable, Type> visitor);
+  R accept<R, Node extends Object, Variable extends Object>(
+      NonPromotionReasonVisitor<R, Node, Variable> visitor);
 }
 
 /// Implementation of the visitor pattern for non-promotion reasons.
 abstract class NonPromotionReasonVisitor<R, Node extends Object,
-    Variable extends Object, Type extends Object> {
+    Variable extends Object> {
   NonPromotionReasonVisitor._() : assert(false, 'Do not extend this class');
 
   R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable> reason);
 
   R visitPropertyNotPromotedForInherentReason(
-      PropertyNotPromotedForInherentReason<Type> reason);
+      PropertyNotPromotedForInherentReason reason);
 
   R visitPropertyNotPromotedForNonInherentReason(
-      PropertyNotPromotedForNonInherentReason<Type> reason);
+      PropertyNotPromotedForNonInherentReason reason);
 
   R visitThisNotPromoted(ThisNotPromoted reason);
 }
@@ -3624,8 +3622,7 @@ class PromotionModel<Type extends Object> {
 
 /// Non-promotion reason describing the situation where an expression was not
 /// promoted due to the fact that it's a property get.
-abstract base class PropertyNotPromoted<Type extends Object>
-    extends NonPromotionReason {
+abstract base class PropertyNotPromoted extends NonPromotionReason {
   /// The name of the property.
   final String propertyName;
 
@@ -3633,28 +3630,22 @@ abstract base class PropertyNotPromoted<Type extends Object>
   /// value that was passed to [FlowAnalysis.propertyGet].
   final Object? propertyMember;
 
-  /// The static type of the property at the time of the access.  This is the
-  /// type that was passed to [FlowAnalysis.whyNotPromoted]; it is provided to
-  /// the client as a convenience for ID testing.
-  final Type staticType;
-
   /// Whether field promotion is enabled for the current library.
   final bool fieldPromotionEnabled;
 
-  PropertyNotPromoted(this.propertyName, this.propertyMember, this.staticType,
+  PropertyNotPromoted(this.propertyName, this.propertyMember,
       {required this.fieldPromotionEnabled});
 }
 
 /// Non-promotion reason describing the situation where an expression was not
 /// promoted due to the fact that it's a property get, and the target of the
 /// property get is something inherently non-promotable.
-final class PropertyNotPromotedForInherentReason<Type extends Object>
-    extends PropertyNotPromoted<Type> {
+final class PropertyNotPromotedForInherentReason extends PropertyNotPromoted {
   /// The reason why the property isn't promotable.
   final PropertyNonPromotabilityReason whyNotPromotable;
 
-  PropertyNotPromotedForInherentReason(super.propertyName, super.propertyMember,
-      super.staticType, this.whyNotPromotable,
+  PropertyNotPromotedForInherentReason(
+      super.propertyName, super.propertyMember, this.whyNotPromotable,
       {required super.fieldPromotionEnabled});
 
   @override
@@ -3674,11 +3665,9 @@ final class PropertyNotPromotedForInherentReason<Type extends Object>
   String get shortName => 'propertyNotPromotedForInherentReason';
 
   @override
-  R accept<R, Node extends Object, Variable extends Object,
-              Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
-      visitor.visitPropertyNotPromotedForInherentReason(
-          this as PropertyNotPromotedForInherentReason<Type>);
+  R accept<R, Node extends Object, Variable extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable> visitor) =>
+      visitor.visitPropertyNotPromotedForInherentReason(this);
 }
 
 /// Non-promotion reason describing the situation where an expression was not
@@ -3698,10 +3687,10 @@ final class PropertyNotPromotedForInherentReason<Type extends Object>
 /// promotion being disabled. So this class is used for both scenarios; it is up
 /// to the client to determine the correct non-promotion reason to report to the
 /// user.
-final class PropertyNotPromotedForNonInherentReason<Type extends Object>
-    extends PropertyNotPromoted<Type> {
+final class PropertyNotPromotedForNonInherentReason
+    extends PropertyNotPromoted {
   PropertyNotPromotedForNonInherentReason(
-      super.propertyName, super.propertyMember, super.staticType,
+      super.propertyName, super.propertyMember,
       {required super.fieldPromotionEnabled});
 
   @override
@@ -3711,11 +3700,9 @@ final class PropertyNotPromotedForNonInherentReason<Type extends Object>
   String get shortName => 'PropertyNotPromotedForNonInherentReason';
 
   @override
-  R accept<R, Node extends Object, Variable extends Object,
-              Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
-      visitor.visitPropertyNotPromotedForNonInherentReason(
-          this as PropertyNotPromotedForNonInherentReason<Type>);
+  R accept<R, Node extends Object, Variable extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable> visitor) =>
+      visitor.visitPropertyNotPromotedForNonInherentReason(this);
 }
 
 /// Target for a property access that might undergo promotion.
@@ -4115,9 +4102,8 @@ class ThisNotPromoted extends NonPromotionReason {
   String get shortName => 'thisNotPromoted';
 
   @override
-  R accept<R, Node extends Object, Variable extends Object,
-              Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
+  R accept<R, Node extends Object, Variable extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable> visitor) =>
       visitor.visitThisNotPromoted(this);
 }
 
@@ -5924,12 +5910,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
               for (Type type in previouslyPromotedTypes) {
                 result[type] = whyNotPromotable == null
                     ? new PropertyNotPromotedForNonInherentReason(
-                        reference.propertyName, propertyMember, reference._type,
+                        reference.propertyName, propertyMember,
                         fieldPromotionEnabled: fieldPromotionEnabled)
                     : new PropertyNotPromotedForInherentReason(
                         reference.propertyName,
                         propertyMember,
-                        reference._type,
                         whyNotPromotable,
                         fieldPromotionEnabled: fieldPromotionEnabled);
               }

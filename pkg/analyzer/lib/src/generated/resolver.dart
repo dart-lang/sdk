@@ -749,11 +749,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               var id = computeMemberId(propertyReference.asElement2);
               args.add('target: $id');
             }
-            var propertyType = whyNotPromotedVisitor.propertyType;
-            if (propertyType != null) {
-              var propertyTypeStr = propertyType.getDisplayString();
-              args.add('type: $propertyTypeStr');
-            }
             if (args.isNotEmpty) {
               nonPromotionReasonText += '(${args.join(', ')})';
             }
@@ -5654,7 +5649,7 @@ class SwitchExhaustiveness {
 class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<List<DiagnosticMessage>, AstNode,
-            PromotableElement2, SharedTypeView> {
+            PromotableElement2> {
   final Source source;
 
   final SyntacticEntity _errorEntity;
@@ -5662,8 +5657,6 @@ class _WhyNotPromotedVisitor
   final FlowAnalysisDataForTesting? _dataForTesting;
 
   PropertyAccessorElement? propertyReference;
-
-  TypeImpl? propertyType;
 
   _WhyNotPromotedVisitor(this.source, this._errorEntity, this._dataForTesting);
 
@@ -5683,11 +5676,10 @@ class _WhyNotPromotedVisitor
 
   @override
   List<DiagnosticMessage> visitPropertyNotPromotedForInherentReason(
-      PropertyNotPromotedForInherentReason<SharedTypeView> reason) {
+      PropertyNotPromotedForInherentReason reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
-      propertyType = reason.staticType.unwrapTypeView();
       var propertyName = reason.propertyName;
       String message = switch (reason.whyNotPromotable) {
         shared.PropertyNonPromotabilityReason.isNotField =>
@@ -5721,11 +5713,10 @@ class _WhyNotPromotedVisitor
 
   @override
   List<DiagnosticMessage> visitPropertyNotPromotedForNonInherentReason(
-      PropertyNotPromotedForNonInherentReason<SharedTypeView> reason) {
+      PropertyNotPromotedForNonInherentReason reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
-      propertyType = reason.staticType.unwrapTypeView();
       var propertyName = reason.propertyName;
       var library = receiverElement.library as LibraryElementImpl;
       var fieldNonPromotabilityInfo = library.fieldNameNonPromotabilityInfo;

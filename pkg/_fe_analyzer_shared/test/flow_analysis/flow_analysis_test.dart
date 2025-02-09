@@ -11514,9 +11514,8 @@ class _MockNonPromotionReason extends NonPromotionReason {
   String get shortName => fail('Unexpected call to shortName');
 
   @override
-  R accept<R, Node extends Object, Variable extends Object,
-              Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
+  R accept<R, Node extends Object, Variable extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable> visitor) =>
       fail('Unexpected call to accept');
 }
 
