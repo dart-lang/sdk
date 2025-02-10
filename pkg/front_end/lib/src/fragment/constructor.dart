@@ -22,7 +22,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   final bool forAbstractClassOrMixin;
   Token? _beginInitializers;
 
-  AbstractSourceConstructorBuilder? _builder;
+  SourceConstructorBuilderImpl? _builder;
 
   ConstructorFragment(
       {required this.constructorName,
@@ -55,12 +55,12 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  AbstractSourceConstructorBuilder get builder {
+  SourceConstructorBuilderImpl get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
   }
 
-  void set builder(AbstractSourceConstructorBuilder value) {
+  void set builder(SourceConstructorBuilderImpl value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
@@ -91,8 +91,7 @@ class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
       //  constructor body. An error is reported by the parser but we skip
       //  the body here to avoid overwriting the already lowering const
       //  constructor.
-      !(_fragment.builder is SourceExtensionTypeConstructorBuilder &&
-          _fragment.modifiers.isConst);
+      !(_fragment.builder.isExtensionTypeMember && _fragment.modifiers.isConst);
 
   @override
   LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {

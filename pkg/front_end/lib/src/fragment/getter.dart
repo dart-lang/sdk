@@ -898,7 +898,7 @@ class _GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   TypeBuilder get returnType => _fragment.returnType;
 
   @override
-  void setBody(Statement body) {
+  void registerFunctionBody(Statement body) {
     function.body = body..parent = function;
   }
 

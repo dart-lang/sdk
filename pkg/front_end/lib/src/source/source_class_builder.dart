@@ -940,7 +940,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         SourceMemberBuilder constructor = constructorIterator.current;
         // Assumes the constructor isn't synthetic since
         // [installSyntheticConstructors] hasn't been called yet.
-        if (constructor is DeclaredSourceConstructorBuilder) {
+        if (constructor is SourceConstructorBuilderImpl) {
           // Report an error if a mixin class has a constructor with parameters,
           // is external, or is a redirecting constructor.
           if (constructor.isRedirecting ||

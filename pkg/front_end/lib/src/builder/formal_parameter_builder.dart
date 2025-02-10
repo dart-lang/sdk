@@ -225,7 +225,7 @@ class FormalParameterBuilder extends BuilderImpl
 
   void finalizeInitializingFormal(
       DeclarationBuilder declarationBuilder,
-      ConstructorDeclaration constructorDeclaration,
+      ConstructorDeclarationBuilder constructorDeclaration,
       ClassHierarchyBase hierarchy) {
     String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
     Builder? fieldBuilder = declarationBuilder.lookupLocalMember(fieldName);

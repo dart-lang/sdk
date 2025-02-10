@@ -151,7 +151,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   final TypeAnalyzerOptions options;
 
-  final ConstructorDeclaration? constructorDeclaration;
+  final ConstructorDeclarationBuilder? constructorDeclaration;
 
   @override
   late final SharedTypeAnalyzerErrors errors = new SharedTypeAnalyzerErrors(
