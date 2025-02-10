@@ -105,7 +105,7 @@ do() {
 
 ```yaml
   ...
-   - type: order
+   - type: relative_order
      predecessor: step1
      successor: step2
   ...
@@ -289,10 +289,10 @@ main() {
   - type: $COMBINER_TYPE
     name: s2
     nodes: [ s2a, s2b ]
-  - type: order
+  - type: relative_order
     predecessor: s1
     successor: s2
-  - type: order
+  - type: relative_order
     predecessor: s2
     successor: s3
 ```
