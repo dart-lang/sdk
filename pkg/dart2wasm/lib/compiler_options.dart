@@ -15,7 +15,6 @@ class WasmCompilerOptions {
   Uri mainUri;
   String outputFile;
   String? depFile;
-  String? outputJSRuntimeFile;
   Uri? dynamicModuleMainUri;
   Uri? dynamicInterfaceUri;
   Uri? dynamicModuleMetadataFile;

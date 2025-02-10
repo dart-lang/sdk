@@ -48,8 +48,9 @@ sealed class CompilationResult {}
 class CompilationSuccess extends CompilationResult {
   final Map<String, ({Uint8List moduleBytes, String? sourceMap})> wasmModules;
   final String jsRuntime;
+  final String supportJs;
 
-  CompilationSuccess(this.wasmModules, this.jsRuntime);
+  CompilationSuccess(this.wasmModules, this.jsRuntime, this.supportJs);
 }
 
 class CompilationError extends CompilationResult {}
@@ -238,11 +239,8 @@ Future<CompilationResult> compileToModule(
 
   String? depFile = options.depFile;
   if (depFile != null) {
-    writeDepfile(
-        compilerOptions.fileSystem,
-        component.uriToSource.keys,
-        options.outputFile,
-        depFile);
+    writeDepfile(compilerOptions.fileSystem, component.uriToSource.keys,
+        options.outputFile, depFile);
   }
 
   final generateSourceMaps = options.translatorOptions.generateSourceMaps;
@@ -262,7 +260,50 @@ Future<CompilationResult> compileToModule(
   String jsRuntime = jsRuntimeFinalizer.generate(
       translator.functions.translatedProcedures,
       translator.internalizedStringsForJSRuntime,
+      translator.options.requireJsStringBuiltin,
       mode);
 
-  return CompilationSuccess(wasmModules, jsRuntime);
+  final supportJs = _generateSupportJs(options.translatorOptions);
+  return CompilationSuccess(wasmModules, jsRuntime, supportJs);
+}
+
+String _generateSupportJs(TranslatorOptions options) {
+  // Copied from
+  // https://github.com/GoogleChromeLabs/wasm-feature-detect/blob/main/src/detectors/gc/index.js
+  //
+  // Uses WasmGC types and will only validate correctly if the engine supports
+  // WasmGC:
+  // ```
+  //     (module
+  //       (type $type0 (struct (field $field0 i8)))
+  //     )
+  // ```
+  //
+  // NOTE: Once we support more feature detections we may use
+  // `package:wasm_builder` to create the module instead of having a fixed one
+  // here.
+  const String supportsWasmGC =
+      'WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,95,1,120,0]))';
+
+  // Imports a `js-string` builtin spec function *with wrong signature*. An engine
+  //
+  //   * *without* knowledge about `js-string` builtin would accept such an import at
+  //     validation time.
+  //
+  //   * *with* knowledge about `js-string` would refuse it as the signature
+  //   used to import the `cast` function is not according to `js-string` spec
+  //
+  //  ```
+  //     (module
+  //     (func $wasm:js-string.cast (;0;) (import "wasm:js-string" "cast"))
+  //     )
+  // ```
+  const String supportsJsStringBuiltins =
+      '!WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,4,1,96,0,0,2,23,1,14,119,97,115,109,58,106,115,45,115,116,114,105,110,103,4,99,97,115,116,0,0]),{"builtins":["js-string"]})';
+
+  final requiredFeatures = [
+    supportsWasmGC,
+    if (options.requireJsStringBuiltin) supportsJsStringBuiltins
+  ];
+  return '(${requiredFeatures.join('&&')})';
 }
