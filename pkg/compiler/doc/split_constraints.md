@@ -61,7 +61,7 @@ For example:
 **foo.dart:**
 
 ```dart
-import ‘...’ deferred as baz;
+import '...' deferred as baz;
 ```
 
 **constraints.yaml:**
@@ -93,8 +93,8 @@ For example:
 **foo.dart:**
 
 ```dart
-import ‘...’ deferred as step1;
-import ‘...’ deferred as step2;
+import '...' deferred as step1;
+import '...' deferred as step2;
 
 do() {
   step1.loadLibrary().then((_) { step2.loadLibrary().then(...) } );
@@ -147,8 +147,8 @@ For example:
 **foo.dart**:
 
 ```dart
-import ‘...’ deferred as step1a;
-import ‘...’ deferred as step1b;
+import '...' deferred as step1a;
+import '...' deferred as step1b;
 
 do() {
   if (...) {
@@ -189,9 +189,9 @@ For example:
 
 **foo.dart:**
 
-```dart`
-import ‘...’ deferred as step1a;
-import ‘...’ deferred as step1b;
+```dart
+import '...' deferred as step1a;
+import '...' deferred as step1b;
 
 do() {
   if (...) {
@@ -224,8 +224,8 @@ For example:
 
 **foo.dart:**
 ```dart
-import ‘...’ deferred as step1a;
-import ‘...’ deferred as step1b;
+import '...' deferred as step1a;
+import '...' deferred as step1b;
 
 do() {
   ...
@@ -251,10 +251,10 @@ combinations of deferred imports.
 **foo.dart**:
 
 ```dart
-import ‘...’ as deferred S1;
-import ‘...’ as deferred S2a;
-import ‘...’ as deferred S2b;
-import ‘...’ as deferred S3;
+import '...' as deferred S1;
+import '...' as deferred S2a;
+import '...' as deferred S2b;
+import '...' as deferred S3;
 
 main() {
   S1.loadLibrary().then((_) {
