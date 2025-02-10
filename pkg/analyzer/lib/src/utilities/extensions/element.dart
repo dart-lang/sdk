@@ -515,6 +515,16 @@ extension MethodElementExtension on MethodElement {
   }
 }
 
+extension MethodElementOrMemberExtension on MethodElementOrMember {
+  MethodElement2OrMember get asElement2 {
+    return switch (this) {
+      MethodElementImpl(:var element) => element,
+      MethodMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
+  }
+}
+
 extension MixinElement2Extension on MixinElement2 {
   MixinElement get asElement {
     return firstFragment as MixinElement;
@@ -572,6 +582,17 @@ extension PropertyAccessorElementExtension on PropertyAccessorElement {
   PropertyAccessorElement2 get asElement2 {
     return switch (this) {
       PropertyAccessorFragment(:var element) => element,
+      PropertyAccessorMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
+  }
+}
+
+extension PropertyAccessorElementOrMemberExtension
+    on PropertyAccessorElementOrMember {
+  PropertyAccessorElement2OrMember get asElement2 {
+    return switch (this) {
+      PropertyAccessorElementImpl(:var element) => element,
       PropertyAccessorMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };

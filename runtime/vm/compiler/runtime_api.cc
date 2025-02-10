@@ -900,12 +900,12 @@ word Thread::stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
                   : stack_overflow_shared_without_fpu_regs_entry_point_offset();
 }
 
-uword Thread::full_safepoint_state_unacquired() {
-  return dart::Thread::full_safepoint_state_unacquired();
+uword Thread::native_safepoint_state_unacquired() {
+  return dart::Thread::native_safepoint_state_unacquired();
 }
 
-uword Thread::full_safepoint_state_acquired() {
-  return dart::Thread::full_safepoint_state_acquired();
+uword Thread::native_safepoint_state_acquired() {
+  return dart::Thread::native_safepoint_state_acquired();
 }
 
 uword Thread::generated_execution_state() {

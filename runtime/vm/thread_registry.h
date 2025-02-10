@@ -38,6 +38,7 @@ class ThreadRegistry {
   void AcquireMarkingStacks();
   void ReleaseMarkingStacks();
   void FlushMarkingStacks();
+  intptr_t StealActiveMutators();
 
   // Concurrent-approximate number of active isolates in the active_list
   intptr_t active_isolates_count() { return active_isolates_count_.load(); }

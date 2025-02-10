@@ -43,7 +43,7 @@ class InstantiatedExtensionWithMember {
     return ExecutableMember.from(getter, substitution);
   }
 
-  ExecutableElement2? get setter {
+  ExecutableElement2OrMember? get setter {
     var setter = candidate.setter;
     if (setter == null) {
       return null;

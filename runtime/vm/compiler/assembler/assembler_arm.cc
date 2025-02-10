@@ -590,10 +590,10 @@ void Assembler::EnterFullSafepoint(Register addr, Register state) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldrex(state, addr);
-  cmp(state, Operand(target::Thread::full_safepoint_state_unacquired()));
+  cmp(state, Operand(target::Thread::native_safepoint_state_unacquired()));
   b(&slow_path, NE);
 
-  mov(state, Operand(target::Thread::full_safepoint_state_acquired()));
+  mov(state, Operand(target::Thread::native_safepoint_state_acquired()));
   strex(TMP, state, addr);
   cmp(TMP, Operand(0));  // 0 means strex was successful.
   b(&done, EQ);
@@ -651,10 +651,10 @@ void Assembler::ExitFullSafepoint(Register tmp1,
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldrex(state, addr);
-  cmp(state, Operand(target::Thread::full_safepoint_state_acquired()));
+  cmp(state, Operand(target::Thread::native_safepoint_state_acquired()));
   b(&slow_path, NE);
 
-  mov(state, Operand(target::Thread::full_safepoint_state_unacquired()));
+  mov(state, Operand(target::Thread::native_safepoint_state_unacquired()));
   strex(TMP, state, addr);
   cmp(TMP, Operand(0));  // 0 means strex was successful.
   b(&done, EQ);
@@ -690,8 +690,8 @@ void Assembler::TransitionNativeToGenerated(Register addr,
     ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
-    ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
-    LoadImmediate(state, target::Thread::full_safepoint_state_acquired());
+    ASSERT(target::Thread::native_safepoint_state_acquired() != 0);
+    LoadImmediate(state, target::Thread::native_safepoint_state_acquired());
     ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
     ands(TMP, TMP, Operand(state));
     Label ok;

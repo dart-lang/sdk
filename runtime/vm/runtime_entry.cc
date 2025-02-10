@@ -4329,7 +4329,7 @@ extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
   ASSERT(thread->execution_state() == Thread::kThreadInNative);
-  thread->EnterSafepoint();
+  thread->EnterSafepointToNative();
   TRACE_RUNTIME_CALL("%s", "EnterSafepoint done");
 }
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(EnterSafepoint,
@@ -4355,7 +4355,7 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
         thread->isolate()->isolate_object_store()->preallocated_unwind_error();
     Exceptions::PropagateError(unwind_error);
   }
-  thread->ExitSafepoint();
+  thread->ExitSafepointFromNative();
 
   TRACE_RUNTIME_CALL("%s", "ExitSafepoint done");
 }
@@ -4379,7 +4379,7 @@ extern "C" void DFLRT_ExitSafepointIgnoreUnwindInProgress(
   // is_unwind_in_progress flag because this is called as part of JumpToFrame
   // exception handler - we want this transition to complete so that the next
   // safepoint check does error propagation.
-  thread->ExitSafepoint();
+  thread->ExitSafepointFromNative();
 
   TRACE_RUNTIME_CALL("%s", "ExitSafepointIgnoreUnwindInProgress done");
 }
@@ -4439,7 +4439,7 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
       if (current_thread->execution_state() != Thread::kThreadInNative) {
         FATAL("Cannot invoke native callback from a leaf call.");
       }
-      current_thread->ExitSafepoint();
+      current_thread->ExitSafepointFromNative();
       current_thread->set_execution_state(Thread::kThreadInVM);
     }
 
@@ -4494,7 +4494,7 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   // in native code anymore. See tests/ffi/function_gc_test.dart for example.
   current_thread->set_execution_state(Thread::kThreadInVM);
 
-  current_thread->ExitSafepoint();
+  current_thread->ExitSafepointFromNative();
 
   current_thread->set_unboxed_int64_runtime_arg(metadata.context());
 

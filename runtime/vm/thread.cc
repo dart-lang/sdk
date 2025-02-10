@@ -436,6 +436,8 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
 
   isolate->scheduled_mutator_thread_ = nullptr;
 
+  ASSERT(!ActiveMutatorStolenField::decode(thread->safepoint_state_.load()));
+
   // Right now we keep the [Thread] object across the isolate's lifetime. This
   // makes entering/exiting quite fast as it mainly boils down to safepoint
   // transitions. Though any operation that walks over all active threads will
@@ -1356,6 +1358,10 @@ void Thread::UnwindScopes(uword stack_marker) {
     delete scope;
     scope = api_top_scope_;
   }
+}
+
+void Thread::HandleStolen() {
+  isolate_group()->ReincreaseMutatorCount(this);
 }
 
 void Thread::EnterSafepointUsingLock() {

@@ -2495,12 +2495,12 @@ void Assembler::EnterFullSafepoint(Register scratch) {
   }
 
   pushl(EAX);
-  movl(EAX, Immediate(target::Thread::full_safepoint_state_unacquired()));
-  movl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
+  movl(EAX, Immediate(target::Thread::native_safepoint_state_unacquired()));
+  movl(scratch, Immediate(target::Thread::native_safepoint_state_acquired()));
   LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
   movl(scratch, EAX);
   popl(EAX);
-  cmpl(scratch, Immediate(target::Thread::full_safepoint_state_unacquired()));
+  cmpl(scratch, Immediate(target::Thread::native_safepoint_state_unacquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -2551,12 +2551,12 @@ void Assembler::ExitFullSafepoint(Register scratch,
   }
 
   pushl(EAX);
-  movl(EAX, Immediate(target::Thread::full_safepoint_state_acquired()));
-  movl(scratch, Immediate(target::Thread::full_safepoint_state_unacquired()));
+  movl(EAX, Immediate(target::Thread::native_safepoint_state_acquired()));
+  movl(scratch, Immediate(target::Thread::native_safepoint_state_unacquired()));
   LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
   movl(scratch, EAX);
   popl(EAX);
-  cmpl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
+  cmpl(scratch, Immediate(target::Thread::native_safepoint_state_acquired()));
 
   if (!FLAG_use_slow_path) {
     j(EQUAL, &done);
@@ -2589,7 +2589,7 @@ void Assembler::TransitionNativeToGenerated(Register scratch,
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movl(scratch, Address(THR, target::Thread::safepoint_state_offset()));
-    andl(scratch, Immediate(target::Thread::full_safepoint_state_acquired()));
+    andl(scratch, Immediate(target::Thread::native_safepoint_state_acquired()));
     Label ok;
     j(ZERO, &ok);
     Breakpoint();

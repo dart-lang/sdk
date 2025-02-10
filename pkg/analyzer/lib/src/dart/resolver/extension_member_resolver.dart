@@ -479,7 +479,7 @@ enum ExtensionResolutionError implements ExtensionResolutionResult {
   ExecutableElement2OrMember? get getter2 => null;
 
   @override
-  ExecutableElement2? get setter2 => null;
+  ExecutableElement2OrMember? get setter2 => null;
 }
 
 /// The result of attempting to resolve an identifier to elements, where the

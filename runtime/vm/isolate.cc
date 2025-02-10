@@ -95,7 +95,7 @@ DEFINE_FLAG_HANDLER(DeterministicModeHandler,
 
 DEFINE_FLAG(bool,
             disable_thread_pool_limit,
-            false,
+            true,
             "Disables the limit of the thread pool (simulates custom embedder "
             "with custom message handler on unlimited number of threads).");
 
@@ -581,6 +581,8 @@ void IsolateGroup::set_saved_unlinked_calls(const Array& saved_unlinked_calls) {
   saved_unlinked_calls_ = saved_unlinked_calls.ptr();
 }
 
+static constexpr intptr_t kActiveMutatorPreemptionTimeout = 120;
+
 void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
                                         bool is_nested_reenter) {
   ASSERT(mutator->group() == this);
@@ -602,10 +604,64 @@ void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
     ASSERT(active_mutators_ <= max_active_mutators_);
     while (active_mutators_ == max_active_mutators_) {
       waiting_mutators_++;
-      ml.Wait();
+      bool timed_out = false;
+      if (has_timeout_waiter_) {
+        ml.Wait();
+      } else {
+        has_timeout_waiter_ = true;
+        timed_out =
+            ml.Wait(kActiveMutatorPreemptionTimeout) == Monitor::kTimedOut;
+        has_timeout_waiter_ = false;
+      }
       waiting_mutators_--;
+
+      if (timed_out) {
+        active_mutators_ -= thread_registry()->StealActiveMutators();
+        ASSERT(active_mutators_ >= 0);
+      }
     }
     active_mutators_++;
+
+    // StealActiveMutators may cause multiple slots to become available, but
+    // does not do a NotifyAll to prevent the case of thousands of threads
+    // waking up to claim a ~dozen slots, so we keep notifying while there are
+    // both available slots and waiters.
+    if ((active_mutators_ != max_active_mutators_) && (waiting_mutators_ > 0)) {
+      ml.Notify();
+    }
+  }
+}
+
+void IsolateGroup::ReincreaseMutatorCount(Thread* thread) {
+  MonitorLocker ml(active_mutators_monitor_.get());
+  ASSERT(active_mutators_ <= max_active_mutators_);
+  while (active_mutators_ == max_active_mutators_) {
+    waiting_mutators_++;
+    bool timed_out = false;
+    if (has_timeout_waiter_) {
+      ml.WaitWithSafepointCheck(thread);
+    } else {
+      has_timeout_waiter_ = true;
+      timed_out =
+          ml.WaitWithSafepointCheck(thread, kActiveMutatorPreemptionTimeout) ==
+          Monitor::kTimedOut;
+      has_timeout_waiter_ = false;
+    }
+    waiting_mutators_--;
+
+    if (timed_out) {
+      active_mutators_ -= thread_registry()->StealActiveMutators();
+      ASSERT(active_mutators_ >= 0);
+    }
+  }
+  active_mutators_++;
+
+  // StealActiveMutators may cause multiple slots to become available, but
+  // does not do a NotifyAll to prevent the case of thousands of threads
+  // waking up to claim a ~dozen slots, so we keep notifying while there are
+  // both available slots and waiters.
+  if ((active_mutators_ != max_active_mutators_) && (waiting_mutators_ > 0)) {
+    ml.Notify();
   }
 }
 
@@ -626,6 +682,7 @@ void IsolateGroup::DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit) {
     // max_active_mutators) and only use monitors in the uncommon case.
     MonitorLocker ml(active_mutators_monitor_.get());
     ASSERT(active_mutators_ <= max_active_mutators_);
+    ASSERT(active_mutators_ > 0);
     active_mutators_--;
     if (waiting_mutators_ > 0) {
       ml.Notify();

@@ -115,6 +115,20 @@ void ThreadRegistry::FlushMarkingStacks() {
   }
 }
 
+intptr_t ThreadRegistry::StealActiveMutators() {
+  MonitorLocker ml(threads_lock());
+  intptr_t count = 0;
+  Thread* thread = active_list_;
+  while (thread != nullptr) {
+    if (thread->TryStealActiveMutator()) {
+      ASSERT(thread->IsDartMutatorThread());
+      count++;
+    }
+    thread = thread->next_;
+  }
+  return count;
+}
+
 void ThreadRegistry::AddToActiveListLocked(Thread* thread) {
   ASSERT(thread != nullptr);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());

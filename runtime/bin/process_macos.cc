@@ -826,8 +826,6 @@ bool Process::Wait(intptr_t pid,
 
   int alive = 3;
   while (alive > 0) {
-    LeaveIsolateScope leave_isolate;
-
     // Blocking call waiting for events from the child process.
     if (TEMP_FAILURE_RETRY(poll(fds, alive, -1)) <= 0) {
       return CloseProcessBuffers(fds, alive);
