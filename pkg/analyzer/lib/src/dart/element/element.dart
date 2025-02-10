@@ -6039,14 +6039,14 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   /// The getters are returned based on the depth of their defining class; if
   /// this class contains a definition of the getter it will occur first, if
   /// Object contains a definition of the getter it will occur last.
-  Iterable<PropertyAccessorElement> _implementationsOfGetter(
+  Iterable<PropertyAccessorElementOrMember> _implementationsOfGetter(
       String name) sync* {
     var visitedClasses = <AugmentedInstanceElement>{};
     AugmentedInstanceElement? augmented = this;
     while (augmented != null && visitedClasses.add(augmented)) {
       var getter = augmented.getGetter(name);
       if (getter != null) {
-        yield getter;
+        yield getter as PropertyAccessorElementOrMember;
       }
       if (augmented is! AugmentedInterfaceElement) {
         return;
@@ -6054,14 +6054,15 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       for (InterfaceType mixin in augmented.mixins.reversed) {
         getter = mixin.element.augmented.getGetter(name);
         if (getter != null) {
-          yield getter;
+          yield getter as PropertyAccessorElementOrMember;
         }
       }
       augmented = augmented.firstFragment.supertype?.element.augmented;
     }
   }
 
-  Iterable<PropertyAccessorElement2> _implementationsOfGetter2(String name) {
+  Iterable<PropertyAccessorElement2OrMember> _implementationsOfGetter2(
+      String name) {
     return _implementationsOfGetter(name).map((e) => e.asElement2);
   }
 
@@ -6076,13 +6077,13 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   /// The methods are returned based on the depth of their defining class; if
   /// this class contains a definition of the method it will occur first, if
   /// Object contains a definition of the method it will occur last.
-  Iterable<MethodElement> _implementationsOfMethod(String name) sync* {
+  Iterable<MethodElementOrMember> _implementationsOfMethod(String name) sync* {
     var visitedClasses = <AugmentedInstanceElement>{};
     AugmentedInstanceElement? augmented = this;
     while (augmented != null && visitedClasses.add(augmented)) {
       var method = augmented.getMethod(name);
       if (method != null) {
-        yield method;
+        yield method as MethodElementOrMember;
       }
       if (augmented is! AugmentedInterfaceElement) {
         return;
@@ -6090,14 +6091,14 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       for (InterfaceType mixin in augmented.mixins.reversed) {
         method = mixin.element.augmented.getMethod(name);
         if (method != null) {
-          yield method;
+          yield method as MethodElementOrMember;
         }
       }
       augmented = augmented.firstFragment.supertype?.element.augmented;
     }
   }
 
-  Iterable<MethodElement2> _implementationsOfMethod2(String name) {
+  Iterable<MethodElement2OrMember> _implementationsOfMethod2(String name) {
     return _implementationsOfMethod(name).map((e) => e.asElement2);
   }
 
@@ -6112,14 +6113,14 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   /// The setters are returned based on the depth of their defining class; if
   /// this class contains a definition of the setter it will occur first, if
   /// Object contains a definition of the setter it will occur last.
-  Iterable<PropertyAccessorElement> _implementationsOfSetter(
+  Iterable<PropertyAccessorElementOrMember> _implementationsOfSetter(
       String name) sync* {
     var visitedClasses = <AugmentedInstanceElement>{};
     AugmentedInstanceElement? augmented = this;
     while (augmented != null && visitedClasses.add(augmented)) {
       var setter = augmented.getSetter(name);
       if (setter != null) {
-        yield setter;
+        yield setter as PropertyAccessorElementOrMember;
       }
       if (augmented is! AugmentedInterfaceElement) {
         return;
@@ -6127,14 +6128,15 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       for (InterfaceType mixin in augmented.mixins.reversed) {
         setter = mixin.element.augmented.getSetter(name);
         if (setter != null) {
-          yield setter;
+          yield setter as PropertyAccessorElementOrMember;
         }
       }
       augmented = augmented.firstFragment.supertype?.element.augmented;
     }
   }
 
-  Iterable<PropertyAccessorElement2> _implementationsOfSetter2(String name) {
+  Iterable<PropertyAccessorElement2OrMember> _implementationsOfSetter2(
+      String name) {
     return _implementationsOfSetter(name).map((e) => e.asElement2);
   }
 
@@ -6811,6 +6813,39 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
           Name.forLibrary(library, methodName),
         )
         .ifTypeOrNull();
+  }
+
+  /// Return the static getter with the [name], accessible to the [library].
+  ///
+  /// This method should be used only for error recovery during analysis,
+  /// when instance access to a static class member, defined in this class,
+  /// or a superclass.
+  PropertyAccessorElement2OrMember? lookupStaticGetter(
+      String name, LibraryElement2 library) {
+    return _implementationsOfGetter2(name).firstWhereOrNull(
+        (element) => element.isStatic && element.isAccessibleIn2(library));
+  }
+
+  /// Return the static method with the [name], accessible to the [library].
+  ///
+  /// This method should be used only for error recovery during analysis,
+  /// when instance access to a static class member, defined in this class,
+  /// or a superclass.
+  MethodElement2OrMember? lookupStaticMethod(
+      String name, LibraryElement2 library) {
+    return _implementationsOfMethod2(name).firstWhereOrNull(
+        (element) => element.isStatic && element.isAccessibleIn2(library));
+  }
+
+  /// Return the static setter with the [name], accessible to the [library].
+  ///
+  /// This method should be used only for error recovery during analysis,
+  /// when instance access to a static class member, defined in this class,
+  /// or a superclass.
+  PropertyAccessorElement2OrMember? lookupStaticSetter(
+      String name, LibraryElement2 library) {
+    return _implementationsOfSetter2(name).firstWhereOrNull(
+        (element) => element.isStatic && element.isAccessibleIn2(library));
   }
 
   void resetCachedAllSupertypes() {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -56,7 +55,7 @@ class SimpleResolutionResult {
   final ExecutableElement2OrMember? getter2;
 
   /// Return the element that is invoked for writing.
-  final ExecutableElement2? setter2;
+  final ExecutableElement2OrMember? setter2;
 
   const SimpleResolutionResult({this.getter2, this.setter2});
 }
