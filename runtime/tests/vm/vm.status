@@ -56,6 +56,9 @@ dart/kernel_determinism_test: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 
 [ $compiler == app_jitk ]
+dart/isolates/many_isolates_blocked_at_ffi_test: Skip # App snapshot creation needs regular isolate shutdown
+dart/isolates/many_isolates_blocked_at_process_run_sync_test: Skip # App snapshot creation needs regular isolate shutdown
+dart/isolates/many_isolates_blocked_at_sleep_test: Skip # App snapshot creation needs regular isolate shutdown
 dart/snapshot_version_test: RuntimeError
 
 [ $compiler == dartk ]

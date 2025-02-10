@@ -4408,8 +4408,8 @@ void Assembler::TransitionNativeToGenerated(Register state,
     ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
-    ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
-    li(state, target::Thread::full_safepoint_state_acquired());
+    ASSERT(target::Thread::native_safepoint_state_acquired() != 0);
+    li(state, target::Thread::native_safepoint_state_acquired());
     lx(RA, Address(THR, target::Thread::safepoint_state_offset()));
     and_(RA, RA, state);
     Label ok;
@@ -4476,10 +4476,10 @@ void Assembler::EnterFullSafepoint(Register state) {
   addi(addr, THR, target::Thread::safepoint_state_offset());
   Bind(&retry);
   lr(state, Address(addr, 0));
-  subi(state, state, target::Thread::full_safepoint_state_unacquired());
+  subi(state, state, target::Thread::native_safepoint_state_unacquired());
   bnez(state, &slow_path, Assembler::kNearJump);
 
-  li(state, target::Thread::full_safepoint_state_acquired());
+  li(state, target::Thread::native_safepoint_state_acquired());
   sc(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
@@ -4512,10 +4512,10 @@ void Assembler::ExitFullSafepoint(Register state,
   addi(addr, THR, target::Thread::safepoint_state_offset());
   Bind(&retry);
   lr(state, Address(addr, 0));
-  subi(state, state, target::Thread::full_safepoint_state_acquired());
+  subi(state, state, target::Thread::native_safepoint_state_acquired());
   bnez(state, &slow_path, Assembler::kNearJump);
 
-  li(state, target::Thread::full_safepoint_state_unacquired());
+  li(state, target::Thread::native_safepoint_state_unacquired());
   sc(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 

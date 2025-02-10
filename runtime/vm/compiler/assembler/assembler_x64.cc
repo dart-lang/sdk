@@ -155,12 +155,12 @@ void Assembler::EnterFullSafepoint() {
   // Compare and swap the value at Thread::safepoint_state from
   // unacquired to acquired. If the CAS fails, go to a slow-path stub.
   pushq(RAX);
-  movq(RAX, Immediate(target::Thread::full_safepoint_state_unacquired()));
-  movq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
+  movq(RAX, Immediate(target::Thread::native_safepoint_state_unacquired()));
+  movq(TMP, Immediate(target::Thread::native_safepoint_state_acquired()));
   LockCmpxchgq(Address(THR, target::Thread::safepoint_state_offset()), TMP);
   movq(TMP, RAX);
   popq(RAX);
-  cmpq(TMP, Immediate(target::Thread::full_safepoint_state_unacquired()));
+  cmpq(TMP, Immediate(target::Thread::native_safepoint_state_unacquired()));
 
   if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {
     j(EQUAL, &done);
@@ -231,12 +231,12 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   // fallthrough.
 
   pushq(RAX);
-  movq(RAX, Immediate(target::Thread::full_safepoint_state_acquired()));
-  movq(TMP, Immediate(target::Thread::full_safepoint_state_unacquired()));
+  movq(RAX, Immediate(target::Thread::native_safepoint_state_acquired()));
+  movq(TMP, Immediate(target::Thread::native_safepoint_state_unacquired()));
   LockCmpxchgq(Address(THR, target::Thread::safepoint_state_offset()), TMP);
   movq(TMP, RAX);
   popq(RAX);
-  cmpq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
+  cmpq(TMP, Immediate(target::Thread::native_safepoint_state_acquired()));
 
   if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {
     j(EQUAL, &done);
@@ -272,7 +272,7 @@ void Assembler::TransitionNativeToGenerated(bool exit_safepoint,
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movq(TMP, Address(THR, target::Thread::safepoint_state_offset()));
-    andq(TMP, Immediate(target::Thread::full_safepoint_state_acquired()));
+    andq(TMP, Immediate(target::Thread::native_safepoint_state_acquired()));
     Label ok;
     j(ZERO, &ok);
     Breakpoint();

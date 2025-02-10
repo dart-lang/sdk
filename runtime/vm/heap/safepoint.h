@@ -336,14 +336,14 @@ class TransitionGeneratedToNative : public TransitionSafepointState {
     // accordingly.
     ASSERT(T->execution_state() == Thread::kThreadInGenerated);
     T->set_execution_state(Thread::kThreadInNative);
-    T->EnterSafepoint();
+    T->EnterSafepointToNative();
   }
 
   ~TransitionGeneratedToNative() {
     // We are returning to generated code and so we are not at a safepoint
     // anymore.
     ASSERT(thread()->execution_state() == Thread::kThreadInNative);
-    thread()->ExitSafepoint();
+    thread()->ExitSafepointFromNative();
     thread()->set_execution_state(Thread::kThreadInGenerated);
   }
 
@@ -392,7 +392,7 @@ class TransitionVMToNative : public TransitionSafepointState {
   ~TransitionVMToNative() {
     // We are returning to vm code and so we are not at a safepoint anymore.
     ASSERT(thread()->execution_state() == Thread::kThreadInNative);
-    thread()->ExitSafepoint();
+    thread()->ExitSafepointFromNative();
     thread()->set_execution_state(Thread::kThreadInVM);
   }
 
@@ -435,7 +435,7 @@ class TransitionNativeToVM : public TransitionSafepointState {
     // We are about to execute vm code and so we are not at a safepoint anymore.
     ASSERT(T->execution_state() == Thread::kThreadInNative);
     if (T->no_callback_scope_depth() == 0) {
-      T->ExitSafepoint();
+      T->ExitSafepointFromNative();
     }
     T->set_execution_state(Thread::kThreadInVM);
   }
@@ -445,7 +445,7 @@ class TransitionNativeToVM : public TransitionSafepointState {
     ASSERT(thread()->execution_state() == Thread::kThreadInVM);
     thread()->set_execution_state(Thread::kThreadInNative);
     if (thread()->no_callback_scope_depth() == 0) {
-      thread()->EnterSafepoint();
+      thread()->EnterSafepointToNative();
     }
   }
 
@@ -502,7 +502,7 @@ class TransitionToVM : public TransitionSafepointState {
     ASSERT((execution_state_ == Thread::kThreadInVM) ||
            (execution_state_ == Thread::kThreadInNative));
     if (execution_state_ == Thread::kThreadInNative) {
-      T->ExitSafepoint();
+      T->ExitSafepointFromNative();
       T->set_execution_state(Thread::kThreadInVM);
     }
     ASSERT(T->execution_state() == Thread::kThreadInVM);
@@ -534,7 +534,7 @@ class TransitionToNative : public TransitionSafepointState {
            (execution_state_ == Thread::kThreadInNative));
     if (execution_state_ == Thread::kThreadInVM) {
       T->set_execution_state(Thread::kThreadInNative);
-      T->EnterSafepoint();
+      T->EnterSafepointToNative();
     }
     ASSERT(T->execution_state() == Thread::kThreadInNative);
   }
@@ -542,7 +542,7 @@ class TransitionToNative : public TransitionSafepointState {
   ~TransitionToNative() {
     ASSERT(thread()->execution_state() == Thread::kThreadInNative);
     if (execution_state_ == Thread::kThreadInVM) {
-      thread()->ExitSafepoint();
+      thread()->ExitSafepointFromNative();
       thread()->set_execution_state(Thread::kThreadInVM);
     }
   }

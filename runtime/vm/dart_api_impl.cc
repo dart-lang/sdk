@@ -1422,7 +1422,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
   // scope objects as the original transition happened outside this scope in
   // Dart_EnterIsolate/Dart_CreateIsolateGroup.
   ASSERT(T->execution_state() == Thread::kThreadInNative);
-  T->ExitSafepoint();
+  T->ExitSafepointFromNative();
   T->set_execution_state(Thread::kThreadInVM);
 
   I->WaitForOutstandingSpawns();
@@ -1861,7 +1861,7 @@ DART_EXPORT void Dart_ExitIsolate() {
   // scope objects as the original transition happened outside this scope in
   // Dart_EnterIsolate/Dart_CreateIsolateGroup.
   ASSERT(T->execution_state() == Thread::kThreadInNative);
-  T->ExitSafepoint();
+  T->ExitSafepointFromNative();
   T->set_execution_state(Thread::kThreadInVM);
   Thread::ExitIsolate();
 }

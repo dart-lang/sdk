@@ -541,10 +541,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   void IncreaseMutatorCount(Isolate* mutator, bool is_nested_reenter);
   void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
-  intptr_t MutatorCount() const {
-    MonitorLocker ml(active_mutators_monitor_.get());
-    return active_mutators_;
-  }
+  void ReincreaseMutatorCount(Thread* thread);
+  NO_SANITIZE_THREAD
+  intptr_t MutatorCount() const { return active_mutators_; }
 
   bool HasTagHandler() const { return library_tag_handler() != nullptr; }
   ObjectPtr CallTagHandler(Dart_LibraryTag tag,
@@ -925,6 +924,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t active_mutators_ = 0;
   intptr_t waiting_mutators_ = 0;
   intptr_t max_active_mutators_ = 0;
+  bool has_timeout_waiter_ = false;
 
   NOT_IN_PRODUCT(GroupDebugger* debugger_ = nullptr);
 
