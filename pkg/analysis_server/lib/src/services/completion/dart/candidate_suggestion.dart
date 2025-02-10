@@ -328,17 +328,25 @@ final class FieldSuggestion extends CandidateSuggestion with MemberSuggestion {
   @override
   final InterfaceElement2? referencingInterface;
 
+  /// Indicates the context, whether the completion is in the body of the
+  /// declaration.
+  final bool isInDeclaration;
+
   /// Initialize a newly created candidate suggestion to suggest the [element].
   FieldSuggestion({
     required this.element,
     required super.matcherScore,
     required this.referencingInterface,
+    required this.isInDeclaration,
   });
 
   @override
   String get completion {
     if (element.isEnumConstant) {
       var constantName = element.name3;
+      if (isInDeclaration) {
+        return '$constantName';
+      }
       var enumName = element.enclosingElement2.displayName;
       return '$enumName.$constantName';
     }

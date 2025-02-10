@@ -15,7 +15,6 @@ void main() {
 
 @reflectiveTest
 class EnumTest extends AbstractCompletionDriverTest with EnumTestCases {
-  @failingTest
   Future<void> test_inside_implicitThis_constants() async {
     await computeSuggestions('''
 enum E {
