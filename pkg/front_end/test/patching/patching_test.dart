@@ -169,7 +169,7 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
     if (memberBuilder is SourcePropertyBuilder) {
       patchMembers = memberBuilder.augmentationsForTesting;
     }
-    if (memberBuilder is DeclaredSourceConstructorBuilder) {
+    if (memberBuilder is SourceConstructorBuilderImpl) {
       patchMembers = memberBuilder.augmentationsForTesting;
     }
     if (memberBuilder is SourceFactoryBuilder) {

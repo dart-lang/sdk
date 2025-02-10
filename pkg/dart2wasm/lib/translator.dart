@@ -55,6 +55,7 @@ class TranslatorOptions {
   bool enableMultiModuleStressTestMode = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
+  bool requireJsStringBuiltin = false;
   List<int> watchPoints = [];
 }
 
@@ -1601,11 +1602,39 @@ class Translator with KernelNodes {
     if (internalizedString != null) {
       return internalizedString;
     }
-    final i = internalizedStringsForJSRuntime.length;
-    internalizedString = module.globals.import('s', '$i',
-        w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
+    bool hasUnpairedSurrogate(String str) {
+      for (int i = 0; i < str.length; i++) {
+        int codeUnit = str.codeUnitAt(i);
+        if (codeUnit >= 0xD800 && codeUnit <= 0xDBFF) {
+          if (i + 1 >= str.length ||
+              str.codeUnitAt(i + 1) < 0xDC00 ||
+              str.codeUnitAt(i + 1) > 0xDFFF) {
+            return true;
+          } else {
+            i++;
+          }
+        } else if (codeUnit >= 0xDC00 && codeUnit <= 0xDFFF) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (!options.requireJsStringBuiltin || hasUnpairedSurrogate(s)) {
+      // Unpaired surrogates can't be encoded as UTF-8, import them from JS
+      // runtime.
+      final i = internalizedStringsForJSRuntime.length;
+      internalizedString = module.globals.import('s', '$i',
+          w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
+      internalizedStringsForJSRuntime.add(s);
+    } else {
+      internalizedString = module.globals.import(
+        'S',
+        s,
+        w.GlobalType(w.RefType.extern(nullable: true), mutable: false),
+      );
+    }
     _internalizedStringGlobals[(module, s)] = internalizedString;
-    internalizedStringsForJSRuntime.add(s);
     return internalizedString;
   }
 }

@@ -368,8 +368,13 @@ abstract class BodyBuilderContext {
   }
 
   /// Registers [body] as the result of the body building.
-  void setBody(Statement body) {
-    throw new UnsupportedError("${runtimeType}.setBody");
+  void registerFunctionBody(Statement body) {
+    throw new UnsupportedError("${runtimeType}.registerFunctionBody");
+  }
+
+  /// Registers that the constructor has no body.
+  void registerNoBodyConstructor() {
+    throw new UnsupportedError("${runtimeType}.registerNoBodyConstructor");
   }
 
   /// Returns the type of `this` in the body being built.
@@ -793,8 +798,8 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   }
 }
 
-mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
-    implements BodyBuilderContext {
+mixin _ConstructorBodyBuilderContextMixin<
+    T extends ConstructorDeclarationBuilder> implements BodyBuilderContext {
   T get _member;
 
   TreeNode get _initializerParent;
@@ -853,11 +858,11 @@ mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
 
 class ConstructorBodyBuilderContext extends BodyBuilderContext
     with
-        _FunctionBodyBuilderContextMixin<DeclaredSourceConstructorBuilder>,
-        _ConstructorBodyBuilderContextMixin<DeclaredSourceConstructorBuilder>,
-        _MemberBodyBuilderContext<DeclaredSourceConstructorBuilder> {
+        _FunctionBodyBuilderContextMixin<SourceConstructorBuilderImpl>,
+        _ConstructorBodyBuilderContextMixin<SourceConstructorBuilderImpl>,
+        _MemberBodyBuilderContext<SourceConstructorBuilderImpl> {
   @override
-  final DeclaredSourceConstructorBuilder _member;
+  final SourceConstructorBuilderImpl _member;
 
   @override
   final Member _builtMember;
@@ -872,8 +877,13 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
-  void setBody(Statement body) {
-    _member.body = body;
+  void registerFunctionBody(Statement body) {
+    _member.registerFunctionBody(body);
+  }
+
+  @override
+  void registerNoBodyConstructor() {
+    _member.registerNoBodyConstructor();
   }
 
   @override
@@ -883,42 +893,9 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
 
   @override
   bool needsImplicitSuperInitializer(CoreTypes coreTypes) {
-    return !_declarationContext.isObjectClass(coreTypes) &&
+    return _member.isClassMember &&
+        !_declarationContext.isObjectClass(coreTypes) &&
         !isExternalConstructor;
-  }
-
-  @override
-  TreeNode get _initializerParent => _member.invokeTarget;
-}
-
-class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
-    with
-        _FunctionBodyBuilderContextMixin<SourceExtensionTypeConstructorBuilder>,
-        _ConstructorBodyBuilderContextMixin<
-            SourceExtensionTypeConstructorBuilder>,
-        _MemberBodyBuilderContext<SourceExtensionTypeConstructorBuilder> {
-  @override
-  final SourceExtensionTypeConstructorBuilder _member;
-  @override
-  final Member _builtMember;
-
-  ExtensionTypeConstructorBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
-    return _member.computeFormalParameterInitializerScope(parent);
-  }
-
-  @override
-  void setBody(Statement body) {
-    _member.body = body;
-  }
-
-  @override
-  bool isConstructorCyclic(String name) {
-    return _declarationContext.isConstructorCyclic(_member.name, name);
   }
 
   @override

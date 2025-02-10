@@ -18,7 +18,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final bool forAbstractClassOrMixin;
   Token? _beginInitializers;
 
-  AbstractSourceConstructorBuilder? _builder;
+  SourceConstructorBuilderImpl? _builder;
 
   PrimaryConstructorFragment(
       {required this.constructorName,
@@ -47,12 +47,12 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  AbstractSourceConstructorBuilder get builder {
+  SourceConstructorBuilderImpl get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
   }
 
-  void set builder(AbstractSourceConstructorBuilder value) {
+  void set builder(SourceConstructorBuilderImpl value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }

@@ -12,7 +12,7 @@ import 'source_property_builder.dart';
 /// Common interface for builders for generative constructor declarations in
 /// source code, such as a generative constructor in a regular class or a
 /// generative constructor in an extension type declaration.
-abstract class ConstructorDeclaration implements SourceFunctionBuilder {
+abstract class ConstructorDeclarationBuilder implements SourceFunctionBuilder {
   /// Returns `true` if this constructor, including its augmentations, is
   /// external.
   ///

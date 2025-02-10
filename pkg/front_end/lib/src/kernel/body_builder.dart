@@ -1340,7 +1340,7 @@ class BodyBuilder extends StackListenerImpl
         ])
           ..fileOffset = body.fileOffset;
       }
-      _context.setBody(body);
+      _context.registerFunctionBody(body);
     }
 
     performBacklogComputations();
@@ -2114,7 +2114,7 @@ class BodyBuilder extends StackListenerImpl
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
-      function.body = new EmptyStatement()..parent = function;
+      _context.registerNoBodyConstructor();
     } else if (body != null && _context.isMixinClass && !_context.isFactory) {
       // Report an error if a mixin class has a non-factory constructor with a
       // body.

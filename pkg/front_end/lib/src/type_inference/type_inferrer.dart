@@ -52,8 +52,10 @@ abstract class TypeInferrer {
       DartType returnType, AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
-  InitializerInferenceResult inferInitializer(InferenceHelper helper,
-      ConstructorDeclaration constructorDeclaration, Initializer initializer);
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper,
+      ConstructorDeclarationBuilder constructorDeclaration,
+      Initializer initializer);
 
   /// Performs type inference on the given metadata annotations.
   void inferMetadata(
@@ -141,7 +143,7 @@ class TypeInferrerImpl implements TypeInferrer {
             typeCacheLegacy: engine.typeCacheLegacy);
 
   InferenceVisitorBase _createInferenceVisitor(InferenceHelper helper,
-      [ConstructorDeclaration? constructorDeclaration]) {
+      [ConstructorDeclarationBuilder? constructorDeclaration]) {
     // For full (non-top level) inference, we need access to the
     // InferenceHelper so that we can perform error reporting.
     return new InferenceVisitorImpl(
@@ -246,8 +248,10 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  InitializerInferenceResult inferInitializer(InferenceHelper helper,
-      ConstructorDeclaration constructorDeclaration, Initializer initializer) {
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper,
+      ConstructorDeclarationBuilder constructorDeclaration,
+      Initializer initializer) {
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
@@ -349,8 +353,10 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  InitializerInferenceResult inferInitializer(InferenceHelper helper,
-      ConstructorDeclaration constructorDeclaration, Initializer initializer) {
+  InitializerInferenceResult inferInitializer(
+      InferenceHelper helper,
+      ConstructorDeclarationBuilder constructorDeclaration,
+      Initializer initializer) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializer);
     InitializerInferenceResult result =
         impl.inferInitializer(helper, constructorDeclaration, initializer);

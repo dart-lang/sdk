@@ -102,6 +102,14 @@ class KernelTarget {
       const PredefinedTypeName("dynamic"), const NullabilityBuilder.inherent(),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
+  final NamedTypeBuilder intType = new NamedTypeBuilderImpl(
+      const PredefinedTypeName("int"), const NullabilityBuilder.omitted(),
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
+
+  final NamedTypeBuilder stringType = new NamedTypeBuilderImpl(
+      const PredefinedTypeName("String"), const NullabilityBuilder.omitted(),
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
+
   final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("Object"), const NullabilityBuilder.omitted(),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
@@ -1232,30 +1240,25 @@ class KernelTarget {
         enclosingClass.enclosingLibrary.nonNullable, typeParameterTypes);
   }
 
+  void _bindCoreType(NamedTypeBuilder typeBuilder, {bool isNullClass = false}) {
+    TypeDeclarationBuilder typeDeclarationBuilder = loader.coreLibrary
+            .lookupLocalMember(typeBuilder.typeName.name, required: true)
+        as TypeDeclarationBuilder;
+    typeBuilder.bind(loader.coreLibrary, typeDeclarationBuilder);
+    if (isNullClass) {
+      (typeDeclarationBuilder as ClassBuilder).isNullClass = true;
+    }
+  }
+
   void setupTopAndBottomTypes() {
-    objectType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("Object", required: true)
-            as TypeDeclarationBuilder);
-    dynamicType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("dynamic", required: true)
-            as TypeDeclarationBuilder);
-    ClassBuilder nullClassBuilder = loader.coreLibrary
-        .lookupLocalMember("Null", required: true) as ClassBuilder;
-    nullType.bind(loader.coreLibrary, nullClassBuilder..isNullClass = true);
-    bottomType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("Never", required: true)
-            as TypeDeclarationBuilder);
-    enumType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("Enum", required: true)
-            as TypeDeclarationBuilder);
-    underscoreEnumType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("_Enum", required: true)
-            as TypeDeclarationBuilder);
+    _bindCoreType(objectType);
+    _bindCoreType(stringType);
+    _bindCoreType(intType);
+    _bindCoreType(dynamicType);
+    _bindCoreType(nullType, isNullClass: true);
+    _bindCoreType(bottomType);
+    _bindCoreType(enumType);
+    _bindCoreType(underscoreEnumType);
   }
 
   void computeCoreTypes() {
@@ -1421,15 +1424,16 @@ class KernelTarget {
       }
     }
 
-    Map<ConstructorDeclaration, Set<SourcePropertyBuilder>>
+    Map<ConstructorDeclarationBuilder, Set<SourcePropertyBuilder>>
         constructorInitializedFields = new Map.identity();
     Set<SourcePropertyBuilder>? initializedFieldBuilders = null;
     Set<SourcePropertyBuilder>? uninitializedInstanceFields;
 
-    Iterator<ConstructorDeclaration> constructorIterator =
-        classDeclaration.fullConstructorIterator<ConstructorDeclaration>();
+    Iterator<ConstructorDeclarationBuilder> constructorIterator =
+        classDeclaration
+            .fullConstructorIterator<ConstructorDeclarationBuilder>();
     while (constructorIterator.moveNext()) {
-      ConstructorDeclaration constructor = constructorIterator.current;
+      ConstructorDeclarationBuilder constructor = constructorIterator.current;
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.addProblem(messageConstConstructorNonFinalField,
@@ -1514,9 +1518,10 @@ class KernelTarget {
 
     // Run through all fields that are initialized by some constructor, and
     // make sure that all other constructors also initialize them.
-    for (MapEntry<ConstructorDeclaration, Set<SourcePropertyBuilder>> entry
+    for (MapEntry<ConstructorDeclarationBuilder,
+            Set<SourcePropertyBuilder>> entry
         in constructorInitializedFields.entries) {
-      ConstructorDeclaration constructorBuilder = entry.key;
+      ConstructorDeclarationBuilder constructorBuilder = entry.key;
       Set<SourcePropertyBuilder> fieldBuilders = entry.value;
       for (SourcePropertyBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {

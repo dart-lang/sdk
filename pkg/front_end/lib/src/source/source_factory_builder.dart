@@ -515,7 +515,7 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void setBody(Statement body) {
+  void registerFunctionBody(Statement body) {
     _member.setBody(body);
   }
 
