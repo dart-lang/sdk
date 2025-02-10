@@ -415,6 +415,11 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 }
 
 IsolateGroup::~IsolateGroup() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  RELEASE_ASSERT(group_reload_context_ == nullptr);
+  RELEASE_ASSERT(program_reload_context_ == nullptr);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(old_marking_stack_ == nullptr);
@@ -1829,11 +1834,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 Isolate::~Isolate() {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  // TODO(32796): Re-enable assertion.
-  // RELEASE_ASSERT(program_reload_context_ == nullptr);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
 #if !defined(PRODUCT)
   delete debugger_;
   debugger_ = nullptr;
