@@ -286,7 +286,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     ClassElementImpl element = _elementWalker!.getClass();
     node.declaredElement = element;
-    _namedTypeResolver.enclosingClass = element;
+    _namedTypeResolver.enclosingClass = element.asElement2;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -328,7 +328,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     ClassElementImpl element = _elementWalker!.getClass();
     node.declaredElement = element;
-    _namedTypeResolver.enclosingClass = element;
+    _namedTypeResolver.enclosingClass = element.asElement2;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -519,7 +519,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     EnumElementImpl element = _elementWalker!.getEnum();
     node.declaredElement = element;
-    _namedTypeResolver.enclosingClass = element;
+    _namedTypeResolver.enclosingClass = element.asElement2;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -586,7 +586,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   ) {
     var element = _elementWalker!.getExtensionType();
     node.declaredElement = element;
-    _namedTypeResolver.enclosingClass = element;
+    _namedTypeResolver.enclosingClass = element.asElement2;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -1686,8 +1686,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var type = namedType.typeOrThrow;
 
     var enclosingElement = _namedTypeResolver.enclosingClass;
-    if (enclosingElement is ExtensionTypeElementImpl) {
-      _verifyExtensionElementImplements(enclosingElement, namedType, type);
+    if (enclosingElement is ExtensionTypeElementImpl2) {
+      _verifyExtensionElementImplements(
+          enclosingElement.asElement, namedType, type);
       return;
     }
 
