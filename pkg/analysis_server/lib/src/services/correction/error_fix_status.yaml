@@ -651,6 +651,10 @@ CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
   status: noFix
 CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT:
   status: hasFix
+CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
+  status: needsFix
+  notes: |-
+    Remove the field, or add `static`.
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
   status: hasFix
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE:
@@ -666,9 +670,9 @@ CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
 CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
   status: needsFix
   notes: |-
-    Remove it.
+    Remove the field, or add `static`.
 CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
-  status: noFix
+  status: needsFix
 CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
   status: hasFix
 CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
@@ -2771,10 +2775,6 @@ ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER:
     Provide an empty body for the member.
 ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR:
   status: hasFix
-ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
-  status: needsFix
-  notes: |-
-    Remove the field, or add `static`.
 ParserErrorCode.EXTENSION_TYPE_EXTENDS:
   status: needsEvaluation
 ParserErrorCode.EXTENSION_TYPE_WITH:

@@ -1907,7 +1907,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
         expressionStaticType: "D<int>?",
         checkTargetType: "E<int>",
         typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
     checkTypeShapeCheckSufficiency(
         expressionStaticType: "D<int>",
         checkTargetType: "E<num>?",
@@ -1917,7 +1917,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
         expressionStaticType: "D<int>?",
         checkTargetType: "E<num>",
         typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
     checkTypeShapeCheckSufficiency(
         expressionStaticType: "D<int>",
         checkTargetType: "E<dynamic>?",
@@ -1978,7 +1978,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
         expressionStaticType: "F<int>?",
         checkTargetType: "G<int, Object?>",
         typeParameters: "",
-        sufficiency: TypeShapeCheckSufficiency.insufficient);
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
     checkTypeShapeCheckSufficiency(
         expressionStaticType: "F<int>",
         checkTargetType: "G<num, Object?>?",
@@ -1987,6 +1987,11 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkTypeShapeCheckSufficiency(
         expressionStaticType: "F<int>?",
         checkTargetType: "G<num, Object?>",
+        typeParameters: "",
+        sufficiency: TypeShapeCheckSufficiency.interfaceShape);
+    checkTypeShapeCheckSufficiency(
+        expressionStaticType: "D<int?>",
+        checkTargetType: "E<int>",
         typeParameters: "",
         sufficiency: TypeShapeCheckSufficiency.insufficient);
   }

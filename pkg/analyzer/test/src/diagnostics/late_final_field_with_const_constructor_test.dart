@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -117,7 +116,7 @@ extension E on int {
   late final int i;
 }
 ''', [
-      error(ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 38, 1),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 38, 1),
     ]);
   }
 }

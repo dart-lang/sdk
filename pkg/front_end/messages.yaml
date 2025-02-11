@@ -9,9 +9,10 @@
 # to regenerate messages after having edited this file.
 #
 # If entries with 'analyzerCode', 'sharedName', or 'index' have been changed,
-# run
+# run both
 #
-#     dart run pkg/analyzer/tool/messages/generate.dart
+#     dart pkg/front_end/tool/cfe.dart generate-messages
+#     dart pkg/analyzer/tool/messages/generate.dart
 #
 # to regenerate analyzer messages.
 
@@ -62,6 +63,9 @@
 # (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND)
 # which will be used when generating code in Analyzer for translating
 # cfe error codes to Analyzer error codes.
+# If `index` is ever removed, then a new entry needs to be added at
+# `pkg\analyzer\messages.yaml` for that code and the biggest index can be replaced
+# by the removed one.
 # If `sharedName` is defined, the generated analyzer code will use this as the
 # user-facing analyzer code instead of `analyzerCode`. Multiple messages can share
 # the `sharedName`.
@@ -2764,42 +2768,16 @@ ExtensionDeclaresConstructor:
   hasPublishedDocs: true
 
 ExtensionDeclaresInstanceField:
-  index: 93
   problemMessage: "Extensions can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
-  analyzerCode: ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD
+  analyzerCode: EXTENSION_DECLARES_INSTANCE_FIELD
   script: |
     extension E on int {
       int? field;
     }
-  comment: No parameters.
-  documentation: |-
-    #### Description
-
-    The analyzer produces this diagnostic when an instance field declaration is
-    found in an extension. It isn't valid to define an instance field because
-    extensions can only add behavior, not state.
-
-    #### Example
-
-    The following code produces this diagnostic because `s` is an instance
-    field:
-
-    ```dart
-    %language=2.9
-    extension E on String {
-      String [!s!];
-    }
-    ```
-
-    #### Common fixes
-
-    Remove the field, make it a static field, or convert it to be a getter,
-    setter, or method.
-  hasPublishedDocs: true
 
 ExtensionAugmentationHasOnClause:
-  index: 179
+  index: 93
   problemMessage: "Extension augmentations can't have 'on' clauses."
   correctionMessage: "Try removing the 'on' clause."
   analyzerCode: ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE

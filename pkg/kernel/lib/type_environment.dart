@@ -406,7 +406,7 @@ abstract class TypeEnvironment extends Types {
       // `E1`. The first type argument of `E2<num, dynamic>` is the same in all
       // such types, and the second type argument is the default type for the
       // second parameter of `E2`, so condition (2*) is satisfied. We conclude
-      // that the shape check is sufficient in `e is E2<enum, dynamic>`.
+      // that the shape check is sufficient in `e is E2<num, dynamic>`.
 
       // First, we compute `B<Q1, ..., Qk>`, which is `A<T1, ..., Tn>` taken as
       // an instance of `B` in `e is/as A<T1, ..., Tn>`, where `B<S1, ..., Sk>`
@@ -469,7 +469,8 @@ abstract class TypeEnvironment extends Types {
           // Condition (2*) is satisfied. We need to check condition (1).
           return isSubtypeOf(
                   expressionStaticType,
-                  testedAgainstTypeAsOperandClass,
+                  testedAgainstTypeAsOperandClass
+                      .withDeclaredNullability(Nullability.nullable),
                   SubtypeCheckMode.withNullabilities)
               ? TypeShapeCheckSufficiency.interfaceShape
               : TypeShapeCheckSufficiency.insufficient;
