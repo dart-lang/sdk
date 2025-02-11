@@ -465,7 +465,11 @@ abstract class RenameRefactoring implements Refactoring {
       }
     }
     if (element is LibraryImportElement) {
-      return RenameImportRefactoringImpl(workspace, sessionHelper, element);
+      return RenameImportRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element.asElement2,
+      );
     }
     var enclosingElement = element.enclosingElement3;
     if (enclosingElement is CompilationUnitElement) {

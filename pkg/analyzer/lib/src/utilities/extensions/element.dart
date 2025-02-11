@@ -14,6 +14,22 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
+class MockLibraryImportElement implements Element2, PrefixFragment {
+  final LibraryImportElementImpl import;
+
+  MockLibraryImportElement(LibraryImport import)
+      : import = import as LibraryImportElementImpl;
+
+  @override
+  ElementKind get kind => ElementKind.IMPORT;
+
+  @override
+  LibraryFragment get libraryFragment => import.libraryFragment;
+
+  @override
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+}
+
 extension BindPatternVariableElementImpl2Extension
     on BindPatternVariableElementImpl2 {
   BindPatternVariableElementImpl get asElement {
@@ -204,6 +220,8 @@ extension Element2OrNullExtension on Element2? {
         return element2.asElement;
       case TypeDefiningElement2():
         return self.firstFragment as Element;
+      case MockLibraryImportElement():
+        return self.import;
       default:
         throw UnsupportedError('Unsupported type: $runtimeType');
     }
