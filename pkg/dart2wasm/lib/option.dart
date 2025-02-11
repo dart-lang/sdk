@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show resolveInputUri;
 
@@ -106,6 +104,6 @@ class UriMultiOption extends MultiValueOption<Uri> {
   UriMultiOption(
       name, void Function(WasmCompilerOptions o, List<Uri> v) applyToOptions,
       {Iterable<String>? defaultsTo})
-      : super(name, applyToOptions, (v) => Uri.file(Directory(v).absolute.path),
+      : super(name, applyToOptions, (v) => Uri.base.resolve(v),
             defaultsTo: defaultsTo);
 }

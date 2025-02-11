@@ -21,6 +21,15 @@ Component transformComponent(Target target, Component component,
   return component;
 }
 
+List<Library> transformLibraries(Target target, List<Library> libraries,
+    VMConstantEvaluator evaluator, bool enableAsserts) {
+  for (final library in libraries) {
+    SimpleUnreachableCodeElimination(evaluator, enableAsserts: enableAsserts)
+        .visitLibrary(library, null);
+  }
+  return libraries;
+}
+
 class SimpleUnreachableCodeElimination extends RemovingTransformer {
   final bool enableAsserts;
   final VMConstantEvaluator constantEvaluator;

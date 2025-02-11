@@ -65,6 +65,7 @@ class FunctionsBuilder with Builder<ir.Functions> {
   /// Declare [function] as a module element so it can be used in a constant
   /// context.
   void declare(ir.BaseFunction function) {
+    assert(function.enclosingModule == _module);
     _declaredFunctions.add(function);
   }
 

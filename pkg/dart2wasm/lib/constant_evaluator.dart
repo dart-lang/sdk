@@ -17,9 +17,11 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
     implements VMConstantEvaluator {
   final bool _checkBounds;
   final bool _minify;
+  final bool _hasDynamicModuleSupport;
 
   final Procedure _dartInternalCheckBoundsGetter;
   final Procedure _dartInternalMinifyGetter;
+  final Procedure _dartInternalHasDynamicModuleSupportGetter;
 
   ConstantEvaluator(
       WasmCompilerOptions options,
@@ -30,10 +32,14 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
       LibraryIndex libraryIndex)
       : _checkBounds = !options.translatorOptions.omitBoundsChecks,
         _minify = options.translatorOptions.minify,
+        _hasDynamicModuleSupport = options.dynamicModuleMainUri != null,
         _dartInternalCheckBoundsGetter = libraryIndex.getTopLevelProcedure(
             "dart:_internal", "get:checkBounds"),
         _dartInternalMinifyGetter =
             libraryIndex.getTopLevelProcedure("dart:_internal", "get:minify"),
+        _dartInternalHasDynamicModuleSupportGetter =
+            libraryIndex.getTopLevelProcedure(
+                "dart:_internal", "get:hasDynamicModuleSupport"),
         super(
           target.dartLibrarySupport,
           target.constantsBackend,
@@ -56,6 +62,9 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
     if (target == _dartInternalMinifyGetter) {
       return canonicalize(BoolConstant(_minify));
     }
+    if (target == _dartInternalHasDynamicModuleSupportGetter) {
+      return canonicalize(BoolConstant(_hasDynamicModuleSupport));
+    }
 
     return super.visitStaticGet(node);
   }
@@ -67,5 +76,6 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
   @override
   bool shouldEvaluateMember(Member node) =>
       node == _dartInternalCheckBoundsGetter ||
-      node == _dartInternalMinifyGetter;
+      node == _dartInternalMinifyGetter ||
+      node == _dartInternalHasDynamicModuleSupportGetter;
 }

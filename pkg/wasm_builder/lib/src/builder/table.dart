@@ -17,6 +17,7 @@ class TableBuilder extends ir.Table with IndexableBuilder<ir.DefinedTable> {
         "Elements are only supported for funcref tables");
     assert(maxSize == null || index < maxSize!,
         'Index $index greater than max table size $maxSize');
+    assert(function.enclosingModule == enclosingModule);
     if (index >= elements.length) {
       elements.length = index + 1;
     }

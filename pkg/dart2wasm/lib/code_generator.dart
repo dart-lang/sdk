@@ -1542,9 +1542,15 @@ abstract class AstCodeGenerator
   }
 
   Member _lookupSuperTarget(Member interfaceTarget, {required bool setter}) {
-    return translator.hierarchy.getDispatchTarget(
+    final staticTarget = translator.hierarchy.getDispatchTarget(
         enclosingMember.enclosingClass!.superclass!, interfaceTarget.name,
-        setter: setter)!;
+        setter: setter);
+    if (staticTarget != null) return staticTarget;
+
+    // During dynamic module compilation a mixin might include a super call to
+    // an abstract class with no implementations yet.
+    assert(translator.dynamicModuleSupportEnabled);
+    return interfaceTarget;
   }
 
   @override
@@ -1868,33 +1874,46 @@ abstract class AstCodeGenerator
 
     pushReceiver(selector.signature);
 
-    final targets = selector.targets(unchecked: useUncheckedEntry);
+    SelectorTargets targets;
 
-    if (targets.targetRanges.length == 1) {
-      // TODO(natebiggs): Ensure dynamic modules exclude this.
-
-      assert(targets.staticDispatchRanges.length == 1);
-      final target = targets.targetRanges.single.target;
-      final signature = translator.signatureForDirectCall(target);
-      final paramInfo = translator.paramInfoForDirectCall(target);
-      pushArguments(signature, paramInfo);
-      return translator.outputOrVoid(call(target));
+    if (!translator.dynamicModuleSupportEnabled ||
+        b.module == translator.mainModule) {
+      targets =
+          selector.targets(unchecked: useUncheckedEntry, dynamicModule: false);
+    } else {
+      targets =
+          selector.targets(unchecked: useUncheckedEntry, dynamicModule: true);
     }
 
-    if (targets.targetRanges.isEmpty) {
-      // TODO(natebiggs): Ensure dynamic modules exclude this.
-
-      // Unreachable call
-      b.comment("Virtual call of $name with no targets"
-          " at ${node.location}");
-      pushArguments(selector.signature, selector.paramInfo);
-      for (int i = 0; i < selector.signature.inputs.length; ++i) {
-        b.drop();
+    final isDynamicModuleOverrideable = selector.isDynamicModuleOverrideable;
+    if (!isDynamicModuleOverrideable) {
+      w.ValueType? checkRanges(List<({Range range, Reference target})> ranges) {
+        if (ranges.length == 1) {
+          final target = translator.getFunctionEntry(ranges[0].target,
+              uncheckedEntry: useUncheckedEntry);
+          final signature = translator.signatureForDirectCall(target);
+          final paramInfo = translator.paramInfoForDirectCall(target);
+          pushArguments(signature, paramInfo);
+          return translator.outputOrVoid(call(target));
+        }
+        if (ranges.isEmpty) {
+          // Unreachable call
+          b.comment("Virtual call of $name with no targets"
+              " at ${node.location}");
+          pushArguments(selector.signature, selector.paramInfo);
+          for (int i = 0; i < selector.signature.inputs.length; ++i) {
+            b.drop();
+          }
+          b.block(const [], selector.signature.outputs);
+          b.unreachable();
+          b.end();
+          return translator.outputOrVoid(selector.signature.outputs);
+        }
+        return null;
       }
-      b.block(const [], selector.signature.outputs);
-      b.unreachable();
-      b.end();
-      return translator.outputOrVoid(selector.signature.outputs);
+
+      final result = checkRanges(targets.targetRanges);
+      if (result != null) return result;
     }
 
     // Receiver is already on stack.
@@ -1904,8 +1923,7 @@ abstract class AstCodeGenerator
     pushArguments(selector.signature, selector.paramInfo);
 
     if (targets.staticDispatchRanges.isNotEmpty) {
-      // TODO(natebiggs): Ensure dynamic modules exclude this.
-
+      assert(!translator.dynamicModuleSupportEnabled);
       b.invoke(translator
           .getPolymorphicDispatchersForModule(b.module)
           .getPolymorphicDispatcher(selector,
@@ -1914,6 +1932,7 @@ abstract class AstCodeGenerator
       b.comment("Instance $kind of '$name'");
       b.local_get(receiverVar);
       translator.callDispatchTable(b, selector,
+          interfaceTarget: interfaceTarget,
           useUncheckedEntry: useUncheckedEntry);
     }
 
@@ -2020,7 +2039,7 @@ abstract class AstCodeGenerator
     if (target is Procedure && !target.isGetter) {
       // Super tear-off
       w.StructType closureStruct = _pushClosure(
-          translator.getTearOffClosure(target),
+          translator.getTearOffClosure(target, b.module),
           translator.getTearOffType(target),
           () => visitThis(w.RefType.struct(nullable: false)));
       return w.RefType.def(closureStruct, nullable: false);
@@ -2321,6 +2340,7 @@ abstract class AstCodeGenerator
     ClosureImplementation closure = translator.getClosure(
         functionNode,
         lambda.function,
+        b.module,
         ParameterInfo.fromLocalFunction(functionNode),
         "closure wrapper at ${functionNode.location}");
     return _pushClosure(
@@ -2336,7 +2356,7 @@ abstract class AstCodeGenerator
     ClassInfo info = translator.closureInfo;
     translator.functions.recordClassAllocation(info.classId);
 
-    b.pushObjectHeaderFields(info);
+    b.pushObjectHeaderFields(translator, info);
     pushContext();
     translator.globals.readGlobal(b, closure.vtable);
     types.makeType(this, functionType);
@@ -2947,7 +2967,7 @@ abstract class AstCodeGenerator
         translator.getRecordClassInfo(node.recordType);
     translator.functions.recordClassAllocation(recordClassInfo.classId);
 
-    b.pushObjectHeaderFields(recordClassInfo);
+    b.pushObjectHeaderFields(translator, recordClassInfo);
     for (Expression positional in node.positional) {
       translateExpression(positional, translator.topInfo.nullableType);
     }
@@ -3351,13 +3371,14 @@ class TearOffCodeGenerator extends AstCodeGenerator {
     _initializeThis(member.reference);
     Procedure procedure = member as Procedure;
     DartType functionType = translator.getTearOffType(procedure);
-    ClosureImplementation closure = translator.getTearOffClosure(procedure);
+    ClosureImplementation closure =
+        translator.getTearOffClosure(procedure, b.module);
     w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.closureInfo;
     translator.functions.recordClassAllocation(info.classId);
 
-    b.pushObjectHeaderFields(info);
+    b.pushObjectHeaderFields(translator, info);
     b.local_get(paramLocals[0]); // `this` as context
     // The closure requires a struct value so box `this` if necessary.
     translator.convertType(b, paramLocals[0].type,
@@ -3837,7 +3858,7 @@ class ConstructorAllocatorCodeGenerator extends AstCodeGenerator {
     }
 
     // Set field values
-    b.pushObjectHeaderFields(info);
+    b.pushObjectHeaderFields(translator, info);
 
     for (w.Local local in orderedFieldLocals.reversed) {
       b.local_get(local);
@@ -4400,6 +4421,80 @@ extension MacroAssembler on w.InstructionsBuilder {
     return outputs;
   }
 
+  void incrementingLoop(
+      {required void Function() pushStart,
+      required void Function() pushLimit,
+      required void Function(w.Local) genBody,
+      int step = 1}) {
+    final endLoop = block();
+    final limitVar = addLocal(w.NumType.i32);
+    final loopVar = addLocal(w.NumType.i32);
+    pushLimit();
+    local_set(limitVar);
+    pushStart();
+    local_set(loopVar);
+
+    final loopLabel = loop();
+    local_get(loopVar);
+    local_get(limitVar);
+    i32_ge_u();
+    br_if(endLoop);
+
+    genBody(loopVar);
+    local_get(loopVar);
+    i32_const(step);
+    i32_add();
+    local_set(loopVar);
+    br(loopLabel);
+    end();
+    end();
+  }
+
+  /// [ref Array] [ref Array] -> [ref Array]
+  ///
+  /// Takes the two arrays on the stack and concatenates them into a single
+  /// array. They both must have the same type provided as [arrayRefType].
+  /// Uses [pushDefaultElement] as the filler element that holds space in the
+  /// array until values are copied over.
+  void concatenateWasmArrays(w.ArrayType arrayType,
+      {required void Function(
+              w.InstructionsBuilder b, w.Local oldArray, w.Local newArray)
+          pushDefaultElement}) {
+    final arrayRefType = w.RefType(arrayType, nullable: false);
+    final newArray = addLocal(arrayRefType);
+    final oldArray = addLocal(arrayRefType);
+    final newArrayLen = addLocal(w.NumType.i32);
+    final oldArrayLen = addLocal(w.NumType.i32);
+    final joinedArray = addLocal(arrayRefType);
+
+    local_set(newArray);
+    local_set(oldArray);
+    pushDefaultElement(this, oldArray, newArray);
+    local_get(newArray);
+    array_len();
+    local_set(newArrayLen);
+    local_get(oldArray);
+    array_len();
+    local_tee(oldArrayLen);
+    local_get(newArrayLen);
+    i32_add();
+    array_new(arrayType);
+    local_tee(joinedArray);
+    i32_const(0);
+    local_get(oldArray);
+    i32_const(0);
+    local_get(oldArrayLen);
+    array_copy(arrayType, arrayType);
+    local_get(joinedArray);
+    local_get(oldArrayLen);
+    local_get(newArray);
+    i32_const(0);
+    local_get(newArrayLen);
+    array_copy(arrayType, arrayType);
+    local_get(joinedArray);
+    end();
+  }
+
   /// `[i32] -> [i32]`
   ///
   /// Consumes a `i32` class ID, leaves an `i32` as `bool` for whether
@@ -4733,10 +4828,20 @@ extension MacroAssembler on w.InstructionsBuilder {
   }
 
   /// Pushes fields common to all Dart objects (class id, id hash).
-  void pushObjectHeaderFields(ClassInfo classInfo) {
-    // TODO(natebiggs): Adjust class ID for dynamic module if appropriate.
-    i32_const(classInfo.classId);
+  void pushObjectHeaderFields(Translator translator, ClassInfo classInfo) {
+    pushClassIdToStack(translator, classInfo.classId);
     i32_const(initialIdentityHash);
+  }
+
+  void pushClassIdToStack(Translator translator, ClassId classId) {
+    switch (classId) {
+      case AbsoluteClassId():
+        i32_const(classId.value);
+      case RelativeClassId():
+        i32_const(classId.relativeValue);
+        translator.pushModuleId(this);
+        translator.callReference(translator.globalizeClassId.reference, this);
+    }
   }
 }
 
