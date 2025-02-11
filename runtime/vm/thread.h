@@ -720,10 +720,10 @@ class Thread : public ThreadState {
   // TLAB and end() is the chosen sampling boundary for the thread.
   //
   // When the heap sampling profiler is disabled, true_end() == end().
-  uword top() const { return top_; }
+  uword top() const { return top_.load(std::memory_order_relaxed); }
   uword end() const { return end_; }
   uword true_end() const { return true_end_; }
-  void set_top(uword top) { top_ = top; }
+  void set_top(uword top) { top_.store(top, std::memory_order_relaxed); }
   void set_end(uword end) { end_ = end; }
   void set_true_end(uword true_end) { true_end_ = true_end; }
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
@@ -1267,7 +1267,7 @@ class Thread : public ThreadState {
 #if defined(DART_COMPRESSED_POINTERS)
   uword heap_base_ = 0;
 #endif
-  uword top_ = 0;
+  std::atomic<uword> top_ = 0;
   uword end_ = 0;
   const uword* dispatch_table_array_ = nullptr;
   ObjectPtr* field_table_values_ = nullptr;
