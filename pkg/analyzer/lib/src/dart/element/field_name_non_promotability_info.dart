@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 /// Information about why a single private name in a library is non-promotable.
@@ -17,22 +15,23 @@ class FieldNameNonPromotabilityInfo {
   /// The set of fields in the library with the given private name that are
   /// inherently non-promotable. These fields conflict with promotability of the
   /// given private name.
-  final List<FieldElement> conflictingFields;
+  final List<FieldElement2> conflictingFields;
 
   /// The set of getters in the library with the given private name that are
   /// concrete. These getters conflict with promotability of the given private
   /// name.
-  final List<PropertyAccessorElement> conflictingGetters;
+  final List<PropertyAccessorElement2> conflictingGetters;
 
   /// The set of concrete classes in the library that contain a getter with the
   /// given private name in their interface but not explicitly in their
   /// implementation (and hence implicitly contain a `noSuchMethod` forwarder
   /// for the getter). These implicit `noSuchMethod` forwarders conflict with
   /// promotability of the given private name.
-  final List<InterfaceElement> conflictingNsmClasses;
+  final List<InterfaceElement2> conflictingNsmClasses;
 
-  FieldNameNonPromotabilityInfo(
-      {required this.conflictingFields,
-      required this.conflictingGetters,
-      required this.conflictingNsmClasses});
+  FieldNameNonPromotabilityInfo({
+    required this.conflictingFields,
+    required this.conflictingGetters,
+    required this.conflictingNsmClasses,
+  });
 }

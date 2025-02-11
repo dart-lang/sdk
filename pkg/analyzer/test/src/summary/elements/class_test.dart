@@ -12798,7 +12798,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingGetters
-        <testLibraryFragment>::@class::B::@getter::_foo
+        <testLibraryFragment>::@class::B::@getter::_foo#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -12849,7 +12849,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingGetters
-        <testLibraryFragment>::@class::B::@getter::_foo
+        <testLibraryFragment>::@class::B::@getter::_foo#element
 ''');
   }
 
@@ -12970,7 +12970,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingGetters
-        <testLibrary>::@fragment::package:test/a.dart::@class::B::@getter::_foo
+        <testLibrary>::@fragment::package:test/a.dart::@class::B::@getter::_foo#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -13026,7 +13026,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingGetters
-        <testLibrary>::@fragment::package:test/a.dart::@class::B::@getter::_foo
+        <testLibrary>::@fragment::package:test/a.dart::@class::B::@getter::_foo#element
 ''');
   }
 
@@ -13141,7 +13141,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingFields
-        <testLibraryFragment>::@class::B::@field::_foo
+        <testLibraryFragment>::@class::B::@field::_foo#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -13199,7 +13199,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingFields
-        <testLibraryFragment>::@class::B::@field::_foo
+        <testLibraryFragment>::@class::B::@field::_foo#element
 ''');
   }
 
@@ -13470,7 +13470,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@class::C
+        <testLibrary>::@class::C
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -13537,7 +13537,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@class::C
+        <testLibrary>::@class::C
 ''');
   }
 
@@ -13881,7 +13881,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@class::E
+        <testLibrary>::@class::E
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -13957,7 +13957,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@class::E
+        <testLibrary>::@class::E
 ''');
   }
 
@@ -14010,7 +14010,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@enum::E
+        <testLibrary>::@enum::E
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -14101,7 +14101,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@enum::E
+        <testLibrary>::@enum::E
 ''');
   }
 
@@ -14142,7 +14142,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@class::C
+        <testLibrary>::@class::C
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -14209,7 +14209,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@class::C
+        <testLibrary>::@class::C
 ''');
   }
 
@@ -14349,7 +14349,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@class::C
+        <testLibrary>::@class::C
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -14417,7 +14417,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@class::C
+        <testLibrary>::@class::C
 ''');
   }
 
@@ -14475,7 +14475,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@class::C
+        <testLibrary>::@class::C
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -14560,7 +14560,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
-        <testLibraryFragment>::@class::C
+        <testLibrary>::@class::C
 ''');
   }
 
@@ -14677,7 +14677,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingFields
-        <testLibraryFragment>::@class::A::@field::_foo
+        <testLibraryFragment>::@class::A::@field::_foo#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -14719,7 +14719,7 @@ library
   fieldNameNonPromotabilityInfo
     _foo
       conflictingFields
-        <testLibraryFragment>::@class::A::@field::_foo
+        <testLibraryFragment>::@class::A::@field::_foo#element
 ''');
   }
 

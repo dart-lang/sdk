@@ -436,6 +436,12 @@ extension FormalParameterElementImplExtension on FormalParameterElementImpl {
   }
 }
 
+extension InstanceElement2Extension on InstanceElement2 {
+  InstanceElement get asElement {
+    return firstFragment as InstanceElement;
+  }
+}
+
 extension InterfaceElement2Extension on InterfaceElement2 {
   InterfaceElement get asElement {
     return firstFragment as InterfaceElement;

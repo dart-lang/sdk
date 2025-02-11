@@ -26,6 +26,7 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class BundleWriter {
@@ -400,9 +401,9 @@ class BundleWriter {
           _resolutionSink._writeStringReference(key);
         },
         writeValue: (value) {
-          _resolutionSink._writeElementList(value.conflictingFields);
-          _resolutionSink._writeElementList(value.conflictingGetters);
-          _resolutionSink._writeElementList(value.conflictingNsmClasses);
+          _resolutionSink._writeElementList2(value.conflictingFields);
+          _resolutionSink._writeElementList2(value.conflictingGetters);
+          _resolutionSink._writeElementList2(value.conflictingNsmClasses);
         },
       );
     });
@@ -923,6 +924,11 @@ class ResolutionSink extends _SummaryDataWriter {
     for (var element in elements) {
       writeElement(element);
     }
+  }
+
+  void _writeElementList2(List<Element2> elements2) {
+    var elements = elements2.map((e) => e.asElement!).toList();
+    _writeElementList(elements);
   }
 
   void _writeFormalParameters(

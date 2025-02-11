@@ -176,15 +176,15 @@ abstract class _AbstractElementWriter {
       for (var entry in info.entries) {
         _sink.writelnWithIndent(entry.key);
         _sink.withIndent(() {
-          _elementPrinter.writeElementList(
+          _elementPrinter.writeElementList2(
             'conflictingFields',
             entry.value.conflictingFields,
           );
-          _elementPrinter.writeElementList(
+          _elementPrinter.writeElementList2(
             'conflictingGetters',
             entry.value.conflictingGetters,
           );
-          _elementPrinter.writeElementList(
+          _elementPrinter.writeElementList2(
             'conflictingNsmClasses',
             entry.value.conflictingNsmClasses,
           );

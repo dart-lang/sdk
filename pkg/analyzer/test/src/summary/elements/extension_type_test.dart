@@ -2128,9 +2128,9 @@ library
   fieldNameNonPromotabilityInfo
     _it
       conflictingFields
-        <testLibraryFragment>::@class::B::@field::_it
+        <testLibraryFragment>::@class::B::@field::_it#element
       conflictingGetters
-        <testLibraryFragment>::@class::C::@getter::_it
+        <testLibraryFragment>::@class::C::@getter::_it#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -2194,9 +2194,9 @@ library
   fieldNameNonPromotabilityInfo
     _it
       conflictingFields
-        <testLibraryFragment>::@class::B::@field::_it
+        <testLibraryFragment>::@class::B::@field::_it#element
       conflictingGetters
-        <testLibraryFragment>::@class::C::@getter::_it
+        <testLibraryFragment>::@class::C::@getter::_it#element
 ''');
   }
 

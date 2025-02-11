@@ -5724,47 +5724,55 @@ class _WhyNotPromotedVisitor
       var fieldNonPromotabilityInfo = library.fieldNameNonPromotabilityInfo;
       var fieldNameInfo = fieldNonPromotabilityInfo[reason.propertyName];
       var messages = <DiagnosticMessage>[];
-      void addConflictMessage(
-          {required Element conflictingElement,
-          required String kind,
-          required Element enclosingElement,
-          required NonPromotionDocumentationLink link}) {
+      void addConflictMessage({
+        required Element2 conflictingElement,
+        required String kind,
+        required Element2 enclosingElement,
+        required NonPromotionDocumentationLink link,
+      }) {
         var enclosingKindName = enclosingElement.kind.displayName;
-        var enclosingName = enclosingElement.name;
+        var enclosingName = enclosingElement.name3;
         var message = "'$propertyName' couldn't be promoted because there is a "
             "conflicting $kind in $enclosingKindName '$enclosingName'";
-        var nonSyntheticElement = conflictingElement.nonSynthetic;
-        messages.add(DiagnosticMessageImpl(
-            filePath: nonSyntheticElement.source!.fullName,
+        var nonSyntheticElement = conflictingElement.nonSynthetic2;
+        var nonSyntheticFragment = nonSyntheticElement.firstFragment;
+        var source = nonSyntheticFragment.libraryFragment?.source;
+        messages.add(
+          DiagnosticMessageImpl(
+            filePath: source!.fullName,
             message: message,
-            offset: nonSyntheticElement.nameOffset,
-            length: nonSyntheticElement.nameLength,
-            url: link.url));
+            offset: nonSyntheticFragment.nameOffset2!,
+            length: nonSyntheticElement.name3!.length,
+            url: link.url,
+          ),
+        );
       }
 
       if (fieldNameInfo != null) {
         for (var field in fieldNameInfo.conflictingFields) {
           addConflictMessage(
-              conflictingElement: field,
-              kind: 'non-promotable field',
-              enclosingElement: field.enclosingElement3,
-              link:
-                  NonPromotionDocumentationLink.conflictingNonPromotableField);
+            conflictingElement: field,
+            kind: 'non-promotable field',
+            enclosingElement: field.enclosingElement2,
+            link: NonPromotionDocumentationLink.conflictingNonPromotableField,
+          );
         }
         for (var getter in fieldNameInfo.conflictingGetters) {
           addConflictMessage(
-              conflictingElement: getter,
-              kind: 'getter',
-              enclosingElement: getter.enclosingElement3,
-              link: NonPromotionDocumentationLink.conflictingGetter);
+            conflictingElement: getter,
+            kind: 'getter',
+            enclosingElement: getter.enclosingElement2,
+            link: NonPromotionDocumentationLink.conflictingGetter,
+          );
         }
         for (var nsmClass in fieldNameInfo.conflictingNsmClasses) {
           addConflictMessage(
-              conflictingElement: nsmClass,
-              kind: 'noSuchMethod forwarder',
-              enclosingElement: nsmClass,
-              link: NonPromotionDocumentationLink
-                  .conflictingNoSuchMethodForwarder);
+            conflictingElement: nsmClass,
+            kind: 'noSuchMethod forwarder',
+            enclosingElement: nsmClass,
+            link:
+                NonPromotionDocumentationLink.conflictingNoSuchMethodForwarder,
+          );
         }
       }
       if (reason.fieldPromotionEnabled) {
