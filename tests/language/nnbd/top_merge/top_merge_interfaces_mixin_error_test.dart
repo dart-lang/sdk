@@ -18,14 +18,14 @@ class D0 extends A<dynamic> with M<Object?> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -33,14 +33,14 @@ class D1 extends A<Object?> with M<dynamic> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -48,14 +48,14 @@ class D2 extends A<void> with M<Object?> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -63,14 +63,14 @@ class D3 extends A<Object?> with M<void> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -78,14 +78,14 @@ class D4 extends A<void> with M<dynamic> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -93,14 +93,14 @@ class D5 extends A<dynamic> with M<void> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -108,17 +108,20 @@ class D6 extends A<void> with M<void> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5]
+    // [cfe] This expression has type 'void' and can't be used.
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    // [cfe] The getter 'foo' isn't defined for the class 'void'.
     x.toString; // Check that we do not implement A<Object?>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5]
+    // [cfe] This expression has type 'void' and can't be used.
+    //^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    // [cfe] This expression has type 'void' and can't be used.
   }
 }
 
@@ -135,14 +138,14 @@ class ND0 extends A<FutureOr<dynamic>> with M<Object?> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -150,14 +153,14 @@ class ND1 extends A<FutureOr<Object?>> with M<dynamic> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -165,14 +168,14 @@ class ND2 extends A<FutureOr<void>> with M<Object?> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -180,14 +183,14 @@ class ND3 extends A<FutureOr<Object?>> with M<void> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -195,14 +198,14 @@ class ND4 extends A<FutureOr<void>> with M<dynamic> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -210,14 +213,14 @@ class ND5 extends A<FutureOr<dynamic>> with M<void> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void>
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -225,17 +228,20 @@ class ND6 extends A<FutureOr<void>> with M<void> {
   void test() {
     var x = deconstruct(this);
     x.foo; // Check that we do not implement A<dynamic>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5]
+    // [cfe] This expression has type 'void' and can't be used.
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    // [cfe] The getter 'foo' isn't defined for the class 'void'.
     x.toString; // Check that we do not implement A<Object?>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5]
+    // [cfe] This expression has type 'void' and can't be used.
+    //^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
     takesObject(x); // Check that we do not implement A<Object>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    // [cfe] This expression has type 'void' and can't be used.
   }
 }
 
@@ -252,14 +258,14 @@ class DND0 extends A<FutureOr<dynamic> Function()> with M<Object? Function()> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -267,14 +273,14 @@ class DND1 extends A<FutureOr<Object?> Function()> with M<dynamic Function()> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -282,14 +288,14 @@ class DND2 extends A<FutureOr<void> Function()> with M<Object? Function()> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -297,14 +303,14 @@ class DND3 extends A<FutureOr<Object?> Function()> with M<void Function()> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -312,14 +318,14 @@ class DND4 extends A<FutureOr<void> Function()> with M<dynamic Function()> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -327,14 +333,14 @@ class DND5 extends A<FutureOr<dynamic> Function()> with M<void Function()> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -342,17 +348,20 @@ class DND6 extends A<FutureOr<void> Function()> with M<void Function()> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5]
+    // [cfe] This expression has type 'void' and can't be used.
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    // [cfe] The getter 'foo' isn't defined for the class 'void'.
     x.toString; // Check that we do not implement A<Object? Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5]
+    // [cfe] This expression has type 'void' and can't be used.
+    //^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    // [cfe] This expression has type 'void' and can't be used.
   }
 }
 
@@ -371,14 +380,14 @@ class WND0 extends A<Wrap<FutureOr<dynamic>>> with M<Wrap<Object?>> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -386,14 +395,14 @@ class WND1 extends A<Wrap<FutureOr<Object?>>> with M<Wrap<dynamic>> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -401,14 +410,14 @@ class WND2 extends A<Wrap<FutureOr<void>>> with M<Wrap<Object?>> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -416,14 +425,14 @@ class WND3 extends A<Wrap<FutureOr<Object?>>> with M<Wrap<void>> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -431,14 +440,14 @@ class WND4 extends A<Wrap<FutureOr<void>>> with M<Wrap<dynamic>> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -446,14 +455,14 @@ class WND5 extends A<Wrap<FutureOr<dynamic>>> with M<Wrap<void>> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+    // [cfe] The getter 'foo' isn't defined for the class 'Object?'.
     x.toString; // Check that we do not implement A<void Function()>
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'Object?' can't be assigned to the parameter type 'Object' because 'Object?' is nullable and 'Object' isn't.
   }
 }
 
@@ -461,17 +470,20 @@ class WND6 extends A<Wrap<FutureOr<void>>> with M<Wrap<void>> {
   void test() {
     var x = deconstruct(this)();
     x.foo; // Check that we do not implement A<dynamic Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5]
+    // [cfe] This expression has type 'void' and can't be used.
+    //^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    // [cfe] The getter 'foo' isn't defined for the class 'void'.
     x.toString; // Check that we do not implement A<Object? Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [error column 5]
+    // [cfe] This expression has type 'void' and can't be used.
+    //^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
     takesObject(x); // Check that we do not implement A<Object Function()>
-    //   ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //          ^
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+    // [cfe] This expression has type 'void' and can't be used.
   }
 }
 

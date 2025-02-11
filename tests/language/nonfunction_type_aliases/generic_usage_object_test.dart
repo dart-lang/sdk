@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 import 'dart:async';
 
 // Introduce an aliased type.
@@ -27,7 +26,7 @@ abstract class C {
   List<T<T>> v11 = [];
   final T<Null> v12;
 
-  C(): v12 = T();
+  C() : v12 = T();
   C.name1(this.v10, this.v12);
   factory C.name2(T<C> arg1, T<Null> arg2) = C1.name1;
 

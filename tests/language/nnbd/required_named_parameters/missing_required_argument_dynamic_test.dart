@@ -17,59 +17,60 @@ class A {
   F m2() => ({required String x}) => 'm2: $x';
 
   // Check a mix of required and optional.
-  int m3(
-          {required int p1,
-          int p2 = 2,
-          int p3 = 3,
-          int p4 = 4,
-          int p5 = 5,
-          required int p6,
-          int p7 = 7,
-          required int p8,
-          int p9 = 9,
-          int p10 = 10}) =>
-      p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10;
+  int m3({
+    required int p1,
+    int p2 = 2,
+    int p3 = 3,
+    int p4 = 4,
+    int p5 = 5,
+    required int p6,
+    int p7 = 7,
+    required int p8,
+    int p9 = 9,
+    int p10 = 10,
+  }) => p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10;
 
   // Check a case where at least one of the VM required flag packed entries
   // should be represented by the null Smi. (Need at least 32 optional
   // parameters on 64-bit architectures for this.)
-  int m4(
-          {int p1 = 1,
-          int p2 = 2,
-          int p3 = 3,
-          int p4 = 4,
-          int p5 = 5,
-          int p6 = 6,
-          int p7 = 7,
-          int p8 = 8,
-          int p9 = 9,
-          int p10 = 10,
-          int p11 = 11,
-          int p12 = 12,
-          int p13 = 13,
-          int p14 = 14,
-          int p15 = 15,
-          int p16 = 16,
-          int p17 = 17,
-          int p18 = 18,
-          int p19 = 19,
-          int p20 = 20,
-          int p21 = 21,
-          int p22 = 22,
-          int p23 = 23,
-          int p24 = 24,
-          int p25 = 25,
-          int p26 = 26,
-          int p27 = 27,
-          int p28 = 28,
-          int p29 = 29,
-          int p30 = 30,
-          int p31 = 31,
-          int p32 = 32,
-          int p33 = 33,
-          int p34 = 34,
-          int p35 = 35,
-          required int p36}) =>
+  int m4({
+    int p1 = 1,
+    int p2 = 2,
+    int p3 = 3,
+    int p4 = 4,
+    int p5 = 5,
+    int p6 = 6,
+    int p7 = 7,
+    int p8 = 8,
+    int p9 = 9,
+    int p10 = 10,
+    int p11 = 11,
+    int p12 = 12,
+    int p13 = 13,
+    int p14 = 14,
+    int p15 = 15,
+    int p16 = 16,
+    int p17 = 17,
+    int p18 = 18,
+    int p19 = 19,
+    int p20 = 20,
+    int p21 = 21,
+    int p22 = 22,
+    int p23 = 23,
+    int p24 = 24,
+    int p25 = 25,
+    int p26 = 26,
+    int p27 = 27,
+    int p28 = 28,
+    int p29 = 29,
+    int p30 = 30,
+    int p31 = 31,
+    int p32 = 32,
+    int p33 = 33,
+    int p34 = 34,
+    int p35 = 35,
+    required int p36,
+  }) =>
       p1 +
       p2 +
       p3 +
@@ -113,59 +114,60 @@ int f({required int a}) => 2;
 String Function({required int a}) g() => ({required int a}) => 'g';
 
 // Check a mix of required and optional.
-int h(
-        {required int p1,
-        int p2 = 2,
-        int p3 = 3,
-        int p4 = 4,
-        int p5 = 5,
-        int p6 = 6,
-        int p7 = 7,
-        required int p8,
-        int p9 = 9,
-        required int p10}) =>
-    p1 + p2 - p3 + p4 - p5 + p6 - p7 + p8 - p9 + p10;
+int h({
+  required int p1,
+  int p2 = 2,
+  int p3 = 3,
+  int p4 = 4,
+  int p5 = 5,
+  int p6 = 6,
+  int p7 = 7,
+  required int p8,
+  int p9 = 9,
+  required int p10,
+}) => p1 + p2 - p3 + p4 - p5 + p6 - p7 + p8 - p9 + p10;
 
 // Check a case where at least one of the VM required flag packed entries
 // should be represented by the null Smi. (Need at least 32 optional
 // parameters on 64-bit architectures for this.)
-int i(
-        {int p1 = 1,
-        int p2 = 2,
-        int p3 = 3,
-        int p4 = 4,
-        int p5 = 5,
-        int p6 = 6,
-        int p7 = 7,
-        int p8 = 8,
-        int p9 = 9,
-        int p10 = 10,
-        int p11 = 11,
-        int p12 = 12,
-        int p13 = 13,
-        int p14 = 14,
-        int p15 = 15,
-        int p16 = 16,
-        int p17 = 17,
-        int p18 = 18,
-        int p19 = 19,
-        int p20 = 20,
-        int p21 = 21,
-        int p22 = 22,
-        int p23 = 23,
-        int p24 = 24,
-        int p25 = 25,
-        int p26 = 26,
-        int p27 = 27,
-        int p28 = 28,
-        int p29 = 29,
-        int p30 = 30,
-        int p31 = 31,
-        int p32 = 32,
-        int p33 = 33,
-        required int p34,
-        int p35 = 35,
-        int p36 = 36}) =>
+int i({
+  int p1 = 1,
+  int p2 = 2,
+  int p3 = 3,
+  int p4 = 4,
+  int p5 = 5,
+  int p6 = 6,
+  int p7 = 7,
+  int p8 = 8,
+  int p9 = 9,
+  int p10 = 10,
+  int p11 = 11,
+  int p12 = 12,
+  int p13 = 13,
+  int p14 = 14,
+  int p15 = 15,
+  int p16 = 16,
+  int p17 = 17,
+  int p18 = 18,
+  int p19 = 19,
+  int p20 = 20,
+  int p21 = 21,
+  int p22 = 22,
+  int p23 = 23,
+  int p24 = 24,
+  int p25 = 25,
+  int p26 = 26,
+  int p27 = 27,
+  int p28 = 28,
+  int p29 = 29,
+  int p30 = 30,
+  int p31 = 31,
+  int p32 = 32,
+  int p33 = 33,
+  required int p34,
+  int p35 = 35,
+  int p36 = 36,
+}) =>
     p1 +
     p2 -
     p3 +
@@ -226,7 +228,8 @@ main() {
   Expect.throwsNoSuchMethodError(() => (h as dynamic)(p1: 1, p6: 6, p10: 10));
   Expect.equals(55, (a.m3 as dynamic)(p1: 1, p6: 6, p8: 8));
   Expect.throwsNoSuchMethodError(
-      () => (a.m3 as dynamic)(p1: 1, p8: 8, p10: 10));
+    () => (a.m3 as dynamic)(p1: 1, p8: 8, p10: 10),
+  );
   Expect.equals(55, b.m3(p1: 1, p6: 6, p8: 8));
   Expect.throwsNoSuchMethodError(() => b.m3(p1: 1, p8: 8, p10: 10));
 

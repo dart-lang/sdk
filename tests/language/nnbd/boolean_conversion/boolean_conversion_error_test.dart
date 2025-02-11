@@ -63,9 +63,9 @@ void main() {
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     nil ? 3 : 4;
-//  ^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
+    // [error column 5, length 3]
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     while (nil) {}
     //     ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
@@ -75,13 +75,13 @@ void main() {
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     nil || true;
-//  ^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
+    // [error column 5, length 3]
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     nil && true;
-//  ^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
+    // [error column 5, length 3]
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     true || nil;
     //      ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
@@ -110,9 +110,9 @@ void main() {
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     object ? 3 : 4;
-//  ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-// [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
+    // [error column 5, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
+    // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     while (object) {}
     //     ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
@@ -122,13 +122,13 @@ void main() {
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     object || true;
-//  ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
+    // [error column 5, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+    // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     object && true;
-//  ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
+    // [error column 5, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+    // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     true || object;
     //      ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
@@ -157,9 +157,9 @@ void main() {
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     objectOrNull ? 3 : 4;
-//  ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-// [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
+    // [error column 5, length 12]
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
+    // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     while (objectOrNull) {}
     //     ^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
@@ -169,13 +169,13 @@ void main() {
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     objectOrNull || true;
-//  ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
+    // [error column 5, length 12]
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+    // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     objectOrNull && true;
-//  ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
+    // [error column 5, length 12]
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
+    // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     true || objectOrNull;
     //      ^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND

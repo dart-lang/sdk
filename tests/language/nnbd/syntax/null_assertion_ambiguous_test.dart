@@ -6,8 +6,8 @@ import 'package:expect/expect.dart';
 import 'dart:async';
 
 class C {
-  C operator*(int? other) => this;
-  Object? operator-() => null;
+  C operator *(int? other) => this;
+  Object? operator -() => null;
 }
 
 // Test ambiguous cases of trailing "!" syntax.  Where possible, we verify that
@@ -18,10 +18,10 @@ main() async {
   // `throw a!` means `throw (a!)`, not `(throw a)!`.  Since it's a compile-time
   // error for a thrown expression to be potentially nullable, this is
   // sufficient to verify that the compiler has resolved the ambiguity
-  // correctly.  We check the runtime behavior by verifying that an error is 
+  // correctly.  We check the runtime behavior by verifying that an error is
   // thrown from the `a!`.
-  Expect.throws(() { 
-    throw a!; 
+  Expect.throws(() {
+    throw a!;
   });
 
   // `() => a!` means `() => (a!)`, not `(() => a)!`.  We check the compile-time
@@ -31,7 +31,7 @@ main() async {
   var x1 = () => a!;
   Object Function() x2 = x1;
   Expect.throws(() {
-      x1();
+    x1();
   });
 
   // `x = a!` means `x = (a!)`, not `(x = a)!`.  We check the compile-time
@@ -40,11 +40,11 @@ main() async {
   // assignment occurs.
   Object x3 = 0;
   Expect.throws(() {
-      x3 = a!;
+    x3 = a!;
   });
   var x4 = 0 as Object?;
   Expect.throws(() {
-      x4 = a!;
+    x4 = a!;
   });
   Expect.equals(x4, 0);
 
@@ -66,7 +66,7 @@ main() async {
   var x7 = new C();
   i = null;
   Expect.throws(() {
-      x7 * i!;
+    x7 * i!;
   });
 
   // `-x!` means `-(x!)`, not `(-x)!`.  We check the compile-time behavior by

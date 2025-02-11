@@ -13,19 +13,12 @@ main() {
 
   // Invalid: Subtype may not redeclare optional parameters as required.
   Expect.throwsTypeError(() {
-    Function(
-      String p0, {
-      required int p1,
-      String p2,
-    }) t2 = f;
+    Function(String p0, {required int p1, String p2}) t2 = f;
   });
 
   // Invalid: Subtype may not declare new required named parameters.
   Expect.throwsTypeError(() {
-    Function(
-      String p0, {
-      required int p1,
-    }) t3 = f;
+    Function(String p0, {required int p1}) t3 = f;
   });
 
   // Invalid: Invocation with explicit null required named argument.

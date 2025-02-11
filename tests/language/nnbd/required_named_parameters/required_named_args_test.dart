@@ -15,7 +15,7 @@ main() {
 
   // Valid: Subtype may redeclare required named parameters as optional.
   Function(String p0, {required int p1, required String p2, required bool p3})
-      t1 = f;
+  t1 = f;
 
   // Valid: Invocation with all arguments provided.
   f("", p1: 100, p2: "", p3: true);

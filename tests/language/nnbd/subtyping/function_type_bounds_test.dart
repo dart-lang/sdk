@@ -20,10 +20,14 @@ main() {
 
   // void fn<T extends Object?>() is! void Function<T extends Object>()
   // (except when using unsound null safety)
-  Expect.equals(hasUnsoundNullSafety,
-      fnWithNullableObjectBound is fnTypeWithNonNullObjectBound);
+  Expect.equals(
+    hasUnsoundNullSafety,
+    fnWithNullableObjectBound is fnTypeWithNonNullObjectBound,
+  );
   // void fn<T extends Object>() is! void Function<T extends Object?>()
   // (except when using unsound null safety)
-  Expect.equals(hasUnsoundNullSafety,
-      fnWithNonNullObjectBound is fnTypeWithNullableObjectBound);
+  Expect.equals(
+    hasUnsoundNullSafety,
+    fnWithNonNullObjectBound is fnTypeWithNullableObjectBound,
+  );
 }

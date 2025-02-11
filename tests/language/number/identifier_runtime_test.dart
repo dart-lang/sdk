@@ -28,10 +28,10 @@ main() {
   Expect.equals(1e+2, 1e+2 as double);
 
   // `1.e`, etc. are parsed as a property / method access on int.
-  Expect.equals(3, 1.e+2);
-  Expect.equals(3, 1.d+2);
-  Expect.equals(3, 1.D+2);
-  Expect.equals(3, 1._0e+2);
+  Expect.equals(3, 1.e + 2);
+  Expect.equals(3, 1.d + 2);
+  Expect.equals(3, 1.D + 2);
+  Expect.equals(3, 1._0e + 2);
 }
 
 extension on int {

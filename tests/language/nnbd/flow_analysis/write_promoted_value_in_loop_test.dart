@@ -7,7 +7,7 @@
 
 void forLoopWithoutDecl(Object x) {
   if (x is int) {
-    for (x = 0;;) {
+    for (x = 0; ;) {
       // The assignment to x does not de-promote x because it happens before the
       // top of the loop, and it assigns an int (which is compatible with the
       // promoted type).
@@ -20,7 +20,7 @@ void forLoopWithoutDecl(Object x) {
 void forLoopWithoutDeclAssignInRHS(Object x) {
   if (x is int) {
     int y;
-    for (y = (x = 0);;) {
+    for (y = (x = 0); ;) {
       // The assignment to x does not de-promote x because it happens before the
       // top of the loop, and it assigns an int (which is compatible with the
       // promoted type).
@@ -32,7 +32,7 @@ void forLoopWithoutDeclAssignInRHS(Object x) {
 
 void forLoopWithDeclAssignInRHS(Object x) {
   if (x is int) {
-    for (int y = (x = 0);;) {
+    for (int y = (x = 0); ;) {
       // The assignment to x does not de-promote x because it happens before the
       // top of the loop, and it assigns an int (which is compatible with the
       // promoted type).

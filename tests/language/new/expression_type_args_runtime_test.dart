@@ -9,17 +9,12 @@
 class A<T> {
   // Can't instantiate type parameter (within static or instance method).
 
-
-
   // OK when used within instance method, but not in static method.
   m3() => new A<T>();
-
 }
 
 main() {
   A a = new A();
 
-
   a.m3();
-
 }

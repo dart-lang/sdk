@@ -32,9 +32,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     final x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -42,9 +41,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     int x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE
     // [cfe] Non-nullable variable 'x' must be assigned before it can be used.
   }
 
@@ -58,9 +56,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     final int x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -68,9 +65,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     final int? x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -78,9 +74,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     final T x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -88,9 +83,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     late var x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
     // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
@@ -98,9 +92,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     late int x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
     // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
@@ -108,9 +101,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     late int? x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
     // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
@@ -118,9 +110,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     late T x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
     // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
@@ -128,9 +119,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     late final x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
     // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
@@ -138,9 +128,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     late final int x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
     // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
@@ -148,9 +137,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     late final int? x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
     // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 
@@ -158,9 +146,8 @@ void testDefinitelyUnassignedReads<T>() {
   {
     late final T x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
     // [cfe] Late variable 'x' without initializer is definitely unassigned.
   }
 }
@@ -190,9 +177,8 @@ void testPotentiallyUnassignedReads<T>(bool b, T t) {
       x = y;
     }
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -204,9 +190,8 @@ void testPotentiallyUnassignedReads<T>(bool b, T t) {
       x = y;
     }
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE
     // [cfe] Non-nullable variable 'x' must be assigned before it can be used.
   }
 
@@ -228,9 +213,8 @@ void testPotentiallyUnassignedReads<T>(bool b, T t) {
       x = y;
     }
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -242,9 +226,8 @@ void testPotentiallyUnassignedReads<T>(bool b, T t) {
       x = y;
     }
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -256,9 +239,8 @@ void testPotentiallyUnassignedReads<T>(bool b, T t) {
       x = y;
     }
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -463,216 +445,193 @@ void testDefinitelyUnassignedReadForms() {
   {
     final dynamic x;
     x;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x(use);
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x.foo;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x.foo();
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x.foo = 3;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x?.foo;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x..foo;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x[0];
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     ([3])[x];
-    // ^
-    // [analyzer] unspecified
     //    ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     (x as int);
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     (x is int);
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     (x == null);
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     (null == x);
-    // ^
-    // [analyzer] unspecified
     //       ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     (3 == x);
-    // ^
-    // [analyzer] unspecified
     //    ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     (x == 3);
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     (x == 3);
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x++;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     ++x;
     //^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
   }
 
   {
     final dynamic x;
     -x;
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x += 3;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x ??= 3;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     x ?? 3;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
     final dynamic x;
     3 ?? x;
-    // ^
-    // [analyzer] unspecified
     //   ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 }
@@ -692,10 +651,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -704,9 +662,8 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     use(x);
-    // ^
-    // [analyzer] unspecified
     //  ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -716,10 +673,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x(use);
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -728,10 +684,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x.foo;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -740,10 +695,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x.foo();
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -752,10 +706,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x.foo = 3;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -764,10 +717,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x?.foo;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -776,10 +728,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x..foo;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -788,10 +739,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x[0];
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -800,9 +750,8 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     ([3])[x];
-    // ^
-    // [analyzer] unspecified
     //    ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -812,10 +761,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (x as int);
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -824,10 +772,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (x is int);
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -836,10 +783,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (x == null);
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -848,9 +794,8 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (null == x);
-    // ^
-    // [analyzer] unspecified
     //       ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -860,9 +805,8 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (3 == x);
-    // ^
-    // [analyzer] unspecified
     //    ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
@@ -872,10 +816,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (x == 3);
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -884,10 +827,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     (x == 3);
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -896,11 +838,11 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x++;
-//  ^
-// [cfe] Final variable 'x' might already be assigned at this point.
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -910,10 +852,10 @@ void testPotentiallyUnassignedReadForms(bool b) {
     }
     ++x;
     //^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
     // [cfe] Final variable 'x' might already be assigned at this point.
     // [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
   }
 
   {
@@ -922,10 +864,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     -x;
-//   ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 6, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -934,11 +875,11 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x += 3;
-//  ^
-// [cfe] Final variable 'x' might already be assigned at this point.
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -947,11 +888,11 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x ??= 3;
-//  ^
-// [cfe] Final variable 'x' might already be assigned at this point.
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -960,10 +901,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     x ?? 3;
-//  ^
-// [cfe] Final variable 'x' must be assigned before it can be used.
-    // ^
-    // [analyzer] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 
   {
@@ -972,9 +912,9 @@ void testPotentiallyUnassignedReadForms(bool b) {
       x = 3;
     }
     3 ?? x;
-    // ^
-    // [analyzer] unspecified
     //   ^
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
     // [cfe] Final variable 'x' must be assigned before it can be used.
   }
 }
@@ -1092,18 +1032,18 @@ void testDefinitelyAssignedReadForms() {
     final dynamic x;
     x = 3;
     x++;
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Final variable 'x' might already be assigned at this point.
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
     final dynamic x;
     x = 3;
     ++x;
-//    ^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Final variable 'x' might already be assigned at this point.
+    //^
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
@@ -1116,18 +1056,18 @@ void testDefinitelyAssignedReadForms() {
     final dynamic x;
     x = 3;
     x += 3;
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Final variable 'x' might already be assigned at this point.
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
     final dynamic x;
     x = 3;
     x ??= 3;
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Final variable 'x' might already be assigned at this point.
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
@@ -1140,8 +1080,8 @@ void testDefinitelyAssignedReadForms() {
     final dynamic x;
     x = 3;
     3 ?? x;
-//       ^
-// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+    //   ^
+    // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   }
 }
 

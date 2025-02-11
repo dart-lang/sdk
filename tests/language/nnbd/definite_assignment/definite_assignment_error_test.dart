@@ -117,13 +117,13 @@ void testDefiniteUnassignment(bool b) {
     final int? x;
     late int? y;
     x ??= 3;
-//  ^
-// [analyzer] unspecified
-// [cfe] unspecified
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
+    // [cfe] Final variable 'x' must be assigned before it can be used.
     y ??= 3;
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-// [cfe] Late variable 'y' without initializer is definitely unassigned.
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   // A while loop which does no assignments does not change unassignment state.
@@ -308,12 +308,12 @@ void testDefiniteUnassignment(bool b) {
   if (b) {
     int x;
     late int y;
-    for (;; x) {}
-    //      ^
+    for (; ; x) {}
+    //       ^
     // [analyzer] COMPILE_TIME_ERROR.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE
     // [cfe] Non-nullable variable 'x' must be assigned before it can be used.
-    for (;; y) {}
-    //      ^
+    for (; ; y) {}
+    //       ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
     // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
@@ -323,12 +323,12 @@ void testDefiniteUnassignment(bool b) {
   if (b) {
     int x;
     late int y;
-    [for (;; x) 0];
-    //       ^
+    [for (; ; x) 0];
+    //        ^
     // [analyzer] COMPILE_TIME_ERROR.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE
     // [cfe] Non-nullable variable 'x' must be assigned before it can be used.
-    [for (;; y) 0];
-    //       ^
+    [for (; ; y) 0];
+    //        ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
     // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
@@ -723,9 +723,9 @@ void testPotentialUnassignment(bool b) {
     late int z3 = (x = 3) + (y = 3);
 
     late int z0 = x;
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //            ^
+    // [analyzer] COMPILE_TIME_ERROR.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE
+    // [cfe] Non-nullable variable 'x' must be assigned before it can be used.
     late int z1 = y;
   }
 
@@ -737,9 +737,9 @@ void testPotentialUnassignment(bool b) {
     late int z0 = x = 3;
     late int z1 = y = 3;
     use(x);
-    // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    //  ^
+    // [analyzer] COMPILE_TIME_ERROR.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE
+    // [cfe] Non-nullable variable 'x' must be assigned before it can be used.
     use(y);
   }
 
@@ -1003,7 +1003,7 @@ void testDefiniteAssignment(bool b) {
   // assigned.
   if (b) {
     int x;
-    for (;; x) {
+    for (; ; x) {
       x = 0;
     }
   }
@@ -1012,7 +1012,7 @@ void testDefiniteAssignment(bool b) {
   // definitely assigned.
   if (b) {
     int x;
-    [for (;; x) x = 0];
+    [for (; ; x) x = 0];
   }
 }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 import "package:expect/expect.dart";
 
 class C {
@@ -17,7 +16,9 @@ class D {
 }
 
 void test(C x) {
-  x..f()!.g()['Hi!']!..h()!.y = 2;
+  x
+    ..f()!.g()['Hi!']!
+    ..h()!.y = 2;
 }
 
 main() {

@@ -71,7 +71,7 @@ test(int? x, bool b1, E e) {
       if (b1)
         [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null]
       else
-        [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null]
+        [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null],
     ];
     if (b2) x.expectStaticType<Exactly<int?>>();
   }
@@ -81,7 +81,7 @@ test(int? x, bool b1, E e) {
       if (b1)
         [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null]
       else
-        [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null]
+        [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null],
     });
     if (b2) x.expectStaticType<Exactly<int?>>();
   }
@@ -91,7 +91,7 @@ test(int? x, bool b1, E e) {
       if (b1)
         [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null]: null
       else
-        [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null]: null
+        [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null]: null,
     });
     if (b2) x.expectStaticType<Exactly<int?>>();
   }
@@ -101,7 +101,7 @@ test(int? x, bool b1, E e) {
       if (b1)
         null: [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null]
       else
-        null: [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null]
+        null: [b2 = x != null, b2 ? x.expectStaticType<Exactly<int>>() : null],
     });
     if (b2) x.expectStaticType<Exactly<int?>>();
   }
@@ -161,7 +161,7 @@ test(int? x, bool b1, E e) {
   {
     try {
       bool b2;
-      for (;; _alwaysThrow(b2 ? x.expectStaticType<Exactly<int?>>() : null)) {
+      for (; ; _alwaysThrow(b2 ? x.expectStaticType<Exactly<int?>>() : null)) {
         if (b1) {
           b2 = x != null;
           if (b2) x.expectStaticType<Exactly<int>>();
