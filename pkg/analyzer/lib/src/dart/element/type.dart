@@ -1550,6 +1550,10 @@ abstract class TypeImpl implements DartType, SharedType {
   /// Initialize a newly created type.
   const TypeImpl({this.alias});
 
+  // TODO(scheglov): remove it after element model migration.
+  @override
+  Element? get element => element3?.asElement;
+
   @override
   TypeImpl get extensionTypeErasure {
     return const ExtensionTypeErasure().perform(this);
