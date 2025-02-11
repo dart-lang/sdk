@@ -832,7 +832,12 @@ abstract final class DartFixKind {
   static const IMPORT_LIBRARY_COMBINATOR = FixKind(
     'dart.fix.import.libraryCombinator',
     DartFixKindPriority.standard + 5,
-    "Update library '{0}' import",
+    "Import '{0}' from {1}",
+  );
+  static const IMPORT_LIBRARY_COMBINATOR_MULTIPLE = FixKind(
+    'dart.fix.import.libraryCombinatorMultiple',
+    DartFixKindPriority.standard + 5,
+    "Import '{0}' and {1} other{2} from {3}",
   );
   static const IMPORT_LIBRARY_HIDE = FixKind(
     'dart.fix.import.libraryHide',
