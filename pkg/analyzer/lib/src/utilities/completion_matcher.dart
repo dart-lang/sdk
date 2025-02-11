@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+library;
+
 /// A matcher that is used in completion to filter out suggestions. The criteria
 /// used to filter is specified in the implementations of the matchers.
 abstract class CompletionMatcher {
@@ -12,7 +15,7 @@ abstract class CompletionMatcher {
 }
 
 /// A [NoPrefixMatcher] will be used when there is no prefix specified in the
-/// [CompletionRequest].
+/// [DartCompletionRequest].
 final class NoPrefixMatcher extends CompletionMatcher {
   @override
   double score(String candidate) {

@@ -5,64 +5,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class A {
+abstract class A {}
 
+abstract class I {}
 
+abstract class J {}
 
-
-
-
-
-
-
-
-
-
-
-}
-
-abstract class I {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
-
-abstract class J {
-
-
-
-}
-
-class Class extends A implements I, J {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
+class Class extends A implements I, J {}
 
 main() {
   new Class();

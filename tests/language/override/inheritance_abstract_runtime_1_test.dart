@@ -7,61 +7,14 @@
 
 abstract class A {
   method1();
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
-abstract class I {
+abstract class I {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
-
-abstract class J {
-
-
-
-}
+abstract class J {}
 
 class Class extends A implements I, J {
   method1() {}
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 main() {

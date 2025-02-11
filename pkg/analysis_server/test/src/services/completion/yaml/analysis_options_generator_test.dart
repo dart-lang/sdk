@@ -98,6 +98,36 @@ analyzer:
     assertSuggestion('error');
   }
 
+  void test_analyzer_language_strictCasts() {
+    getCompletions('''
+analyzer:
+  language:
+    strict-casts: ^
+''');
+    assertSuggestion('false');
+    assertSuggestion('true');
+  }
+
+  void test_analyzer_language_strictInference() {
+    getCompletions('''
+analyzer:
+  language:
+    strict-inference: ^
+''');
+    assertSuggestion('false');
+    assertSuggestion('true');
+  }
+
+  void test_analyzer_language_strictRawTypes() {
+    getCompletions('''
+analyzer:
+  language:
+    strict-raw-types: ^
+''');
+    assertSuggestion('false');
+    assertSuggestion('true');
+  }
+
   void test_codeStyle() {
     getCompletions('''
 code-style:

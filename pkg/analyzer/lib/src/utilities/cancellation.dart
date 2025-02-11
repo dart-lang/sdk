@@ -39,9 +39,9 @@ class NotCancelableToken extends CancellationToken {
 /// A cancellable wrapper over another cancellation token.
 ///
 /// This token will be considered cancelled if either it is itself cancelled,
-/// or if [child] is cancelled.
+/// or if [_child] is cancelled.
 ///
-/// Cancelling this token will also cancel [child] if it is a cancelable
+/// Cancelling this token will also cancel [_child] if it is a cancelable
 /// token.
 class _WrappedCancelableToken extends CancelableToken {
   final CancellationToken _child;

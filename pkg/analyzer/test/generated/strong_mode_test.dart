@@ -3253,9 +3253,9 @@ class B<T2, U2> {
 
   /// Helper method for testing `FutureOr<T>`.
   ///
-  /// Validates that [code] produces [errors]. It should define a function
-  /// "test", whose body is an expression that invokes a method. Returns that
-  /// invocation.
+  /// Validates that [code] produces [expectedErrors]. It should define a
+  /// function "test", whose body is an expression that invokes a method.
+  /// Returns that invocation.
   Future<MethodInvocation> _testFutureOr(String code,
       {List<ExpectedError> expectedErrors = const []}) async {
     var fullCode = """

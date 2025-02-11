@@ -26,9 +26,9 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
       AnalysisOptionsFile.errors: _ErrorProducer(),
       AnalysisOptionsFile.exclude: EmptyProducer(),
       AnalysisOptionsFile.language: MapProducer({
-        AnalysisOptionsFile.strictCasts: EmptyProducer(),
-        AnalysisOptionsFile.strictInference: EmptyProducer(),
-        AnalysisOptionsFile.strictRawTypes: EmptyProducer(),
+        AnalysisOptionsFile.strictCasts: BooleanProducer(),
+        AnalysisOptionsFile.strictInference: BooleanProducer(),
+        AnalysisOptionsFile.strictRawTypes: BooleanProducer(),
       }),
       AnalysisOptionsFile.optionalChecks: MapProducer({
         AnalysisOptionsFile.chromeOsManifestChecks: EmptyProducer(),
