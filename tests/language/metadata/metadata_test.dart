@@ -50,10 +50,7 @@ main() {
   var a = new A();
   Expect.equals(0, a.foo(false, x: 0));
 
-  for (@Tag("loopvar")
-  int i = 0;
-      i < 10;
-      i++) {
+  for (@Tag("loopvar") int i = 0; i < 10; i++) {
     // Do something.
   }
 

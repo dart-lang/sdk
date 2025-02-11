@@ -8,12 +8,10 @@
 import 'package:expect/expect.dart';
 
 class Super<T extends num> {}
-class Malbounded1 implements Super
 
-  {}
-class Malbounded2 extends Super
+class Malbounded1 implements Super {}
 
-  {}
+class Malbounded2 extends Super {}
 
 main() {
   var m = new Malbounded1();
@@ -21,7 +19,5 @@ main() {
   var s = new Super<int>();
   Expect.throwsTypeError(() => s as Malbounded1);
   Expect.throwsTypeError(() => s as Malbounded2);
-  s as Super
-
-      ;
+  s as Super;
 }

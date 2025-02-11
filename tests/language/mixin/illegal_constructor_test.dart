@@ -51,32 +51,38 @@ class C6 = Object with M2, M0;
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
 
 class D0 extends Object with M0 {}
-class D1 extends Object with M1 { }
+
+class D1 extends Object with M1 {}
 //    ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 //                           ^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
-class D2 extends Object with M2 { }
+
+class D2 extends Object with M2 {}
 //    ^
 // [cfe] Can't use 'M2' as a mixin because it has constructors.
 //                           ^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
-class D3 extends Object with M0, M1 { }
+
+class D3 extends Object with M0, M1 {}
 //    ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 //                               ^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
-class D4 extends Object with M1, M0 { }
+
+class D4 extends Object with M1, M0 {}
 //    ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 //                           ^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
-class D5 extends Object with M0, M2 { }
+
+class D5 extends Object with M0, M2 {}
 //    ^
 // [cfe] Can't use 'M2' as a mixin because it has constructors.
 //                               ^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
-class D6 extends Object with M2, M0 { }
+
+class D6 extends Object with M2, M0 {}
 //    ^
 // [cfe] Can't use 'M2' as a mixin because it has constructors.
 //                           ^^
@@ -99,7 +105,7 @@ main() {
   new D5();
   new D6();
 
-  new C0(1,2,3);
+  new C0(1, 2, 3);
   //    ^
   // [cfe] Too many positional arguments: 0 allowed, but 3 found.
   //     ^
@@ -108,7 +114,7 @@ main() {
   //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
   // [cfe] Couldn't find constructor 'C0.named'.
-  new D0(1,2,3);
+  new D0(1, 2, 3);
   //    ^
   // [cfe] Too many positional arguments: 0 allowed, but 3 found.
   //     ^

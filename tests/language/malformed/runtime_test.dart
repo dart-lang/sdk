@@ -8,35 +8,13 @@
 import 'package:expect/expect.dart';
 import 'package:expect/expect.dart' as prefix; // Define 'prefix'.
 
-checkIsUnresolved(var v) {
+checkIsUnresolved(var v) {}
 
+checkIsListUnresolved(var v) {}
 
+checkAsUnresolved(var v) {}
 
-
-}
-
-checkIsListUnresolved(var v) {
-
-
-
-
-
-}
-
-checkAsUnresolved(var v) {
-
-
-
-
-}
-
-checkAsListUnresolved(var v) {
-
-
-
-
-
-}
+checkAsListUnresolved(var v) {}
 
 void main() {
   checkIsUnresolved('');
@@ -44,41 +22,23 @@ void main() {
   checkIsListUnresolved([]);
   checkAsListUnresolved([]);
 
-
-
+  try {
+    throw 'foo';
+  } catch (e) {}
 
   try {
     throw 'foo';
-  }
-
-    catch (e) {
-  }
+  } catch (e) {}
 
   try {
     throw 'foo';
-  }
-
-    catch (e) {
-  }
+  } catch (e) {}
 
   try {
     throw 'foo';
-  }
-
-    catch (e) {
-  }
+  } catch (e) {}
 
   try {
     throw 'foo';
-  }
-
-    catch (e) {
-  }
-
-  try {
-    throw 'foo';
-  }
-
-    catch (e) {
-  }
+  } catch (e) {}
 }

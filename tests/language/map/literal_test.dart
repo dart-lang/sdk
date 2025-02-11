@@ -60,9 +60,7 @@ class ConstInit {
   final map1;
   final map2;
 
-  ConstInit()
-      : this.map1 = {"a": 1, "b": 2},
-        this.map2 = {"1": 1, "2": 2} {}
+  ConstInit() : this.map1 = {"a": 1, "b": 2}, this.map2 = {"1": 1, "2": 2} {}
 
   test() {
     Expect.equals(1, map1["a"]);

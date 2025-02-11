@@ -15,33 +15,15 @@ class A {
 }
 
 class B extends A {
-  foo(
-      required1
-
-      ,
-      {named1 = 499}
-
-      ) {
+  foo(required1, {named1 = 499}) {
     return required1;
   }
 
-  bar(required1, required2,
-      {named1 = 13
-
-      ,
-      named2 = 17
-
-      }) {
+  bar(required1, required2, {named1 = 13, named2 = 17}) {
     return required1 + required2 * 3 + named1 * 5;
   }
 
-  gee(
-      {named2 = 11
-
-      ,
-      named1 = 31
-
-      }) {
+  gee({named2 = 11, named1 = 31}) {
     return named2 * 99;
   }
 }

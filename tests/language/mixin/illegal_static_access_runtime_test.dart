@@ -20,7 +20,4 @@ class C = S with M;
 main() {
   Expect.equals(42, S.foo());
   Expect.equals(87, M.bar());
-
-
-
 }

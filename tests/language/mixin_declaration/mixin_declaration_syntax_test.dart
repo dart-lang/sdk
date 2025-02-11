@@ -46,6 +46,7 @@ class BC extends C implements B {
 abstract class I {
   String methodI();
 }
+
 abstract class J {
   String methodJ();
 }
@@ -57,13 +58,11 @@ mixin M {
   String methodM() => "M:${this}.M";
 }
 
-
 // Mixin which uses the implicit "on Object" to do a super-invocation.
 mixin MO {
   String toString() => "${super.toString()}&MO";
   String methodMO() => "MO:${this}.MO";
 }
-
 
 // Mixin with "implements" clause.
 mixin MOiIJ implements I, J {
@@ -73,14 +72,12 @@ mixin MOiIJ implements I, J {
   String methodJ() => "MOiIJ:${this}.J";
 }
 
-
 // Mixin with single non-Object super-constraint.
 mixin MA on A {
   String toString() => "${super.toString()}&MA";
   String methodMA() => "MA:${this}.MA";
   String methodA() => "MA:${this}.A->${super.methodA()}";
 }
-
 
 // Mixin with super-restriction implementing other interfaces.
 mixin MAiBC on A implements B, C {
@@ -99,7 +96,6 @@ mixin MBiIJ on B implements I, J {
   String methodJ() => "MBiIJ:${this}.J";
 }
 
-
 // Mixin on more than one class.
 mixin MBC on B, C {
   String toString() => "${super.toString()}&MBC";
@@ -108,7 +104,6 @@ mixin MBC on B, C {
   String methodB() => "MBC:${this}.B->${super.methodB()}";
   String methodC() => "MBC:${this}.C->${super.methodC()}";
 }
-
 
 // One with everything.
 mixin MBCiIJ on B, C implements I, J {
@@ -121,12 +116,10 @@ mixin MBCiIJ on B, C implements I, J {
   String methodJ() => "MBCiIJ:${this}.J";
 }
 
-
 // Abstract mixin, doesn't implement its interface.
 mixin MiIJ implements I, J {
   String toString() => "${super.toString()}&MiIJ";
 }
-
 
 // Applications of the mixins.
 
@@ -208,6 +201,7 @@ class COaMiIJ_2 extends OaMiIJ_2 {
 
 // Test of `class C with M` syntax.
 class CwithM with M {}
+
 class CeOwithM extends Object with M {}
 
 // Test that the mixin applications behave as expected.
@@ -399,8 +393,10 @@ void main() {
     for (dynamic o in [COaMiIJ(), COaMiIJ_2()]) {
       Expect.type<O>(o);
       Expect.type<MiIJ>(o);
-      Expect.isTrue(o is OaMiIJ || o is OaMiIJ_2,
-          "`$o` should subtype OaMiIJ or OaMiIJ_2");
+      Expect.isTrue(
+        o is OaMiIJ || o is OaMiIJ_2,
+        "`$o` should subtype OaMiIJ or OaMiIJ_2",
+      );
       Expect.type<I>(o);
       Expect.type<J>(o);
       Expect.equals("O&MiIJ:COaMiIJ", "$o");
@@ -417,7 +413,6 @@ void main() {
     Expect.equals(42, c._foo);
   }
 }
-
 
 mixin PrivateFieldMixin {
   int _foo = 40;

@@ -7,10 +7,4 @@
 
 class Super<T extends num> {}
 
-
-
-main() {
-
-
-
-}
+main() {}

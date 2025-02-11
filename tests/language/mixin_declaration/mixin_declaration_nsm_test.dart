@@ -26,7 +26,9 @@ abstract class D {
 }
 
 class A1 extends Foo with M {}
+
 class A2 extends C with M implements Foo {}
+
 class A3 extends D with M implements Foo {}
 
 main() {

@@ -20,14 +20,8 @@ abstract class B implements A {
   SubThing get thing;
 }
 
-class C extends A //
-
-
-{}
+class C extends A {}
 
 main() {
-  new C()
-          .thing //
-
-      ;
+  new C().thing;
 }

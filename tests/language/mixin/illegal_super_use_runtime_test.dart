@@ -11,22 +11,10 @@ mixin M {}
 
 mixin P0 {
   foo() {
-
-
-
-
-    void inner() {
-
-
-
-    }
+    void inner() {}
     inner();
 
-    (() {
-
-
-
-    })();
+    (() {})();
 
     return 42;
   }
@@ -34,7 +22,6 @@ mixin P0 {
 
 mixin class P1 {
   bar() {
-
     return 87;
   }
 
@@ -54,7 +41,6 @@ mixin class P1 {
 
 mixin class P2 {
   baz() {
-
     return 99;
   }
 }

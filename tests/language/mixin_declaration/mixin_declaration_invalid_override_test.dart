@@ -22,6 +22,7 @@ class C3 implements UnaryNum {
   // C3.foo is a valid override of UnaryNum.foo
   num foo([num x = 17]) => x;
 }
+
 // M3.foo is not a valid override for C3.foo.
 class A3 extends C3 with M3 {}
 //    ^
@@ -34,6 +35,7 @@ class C4 implements UnaryNum {
   // C4.foo is a valid override of UnaryNum.foo
   int foo(num x) => x.toInt();
 }
+
 // M3.foo is not a valid override for C4.foo.
 class A4 extends C4 with M3 {}
 //    ^
@@ -47,12 +49,15 @@ abstract class C5 {
   num foo(num x);
   num bar(num x);
 }
+
 mixin M5 on C5 {
   num baz(num x) => super.foo(x);
 }
+
 abstract class C5Foo implements C5 {
   num foo(num x) => x;
 }
+
 abstract mixin class C5Bar implements C5 {
   num bar(num x) => x;
 }

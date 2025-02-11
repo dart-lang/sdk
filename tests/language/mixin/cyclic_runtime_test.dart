@@ -17,10 +17,8 @@ class C1 = S with M;
 
 class C3 = S with M implements A;
 
-
 void main() {
   new C1();
 
   new C3();
-
 }

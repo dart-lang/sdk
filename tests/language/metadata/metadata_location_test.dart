@@ -38,8 +38,14 @@ class C {
   covariant var u, v;
 
   @m
-  C(@m this.x, @m int this.y,
-      {@m this.z, @m int? this.w, @m this.u()?, @m int this.v()?});
+  C(
+    @m this.x,
+    @m int this.y, {
+    @m this.z,
+    @m int? this.w,
+    @m this.u()?,
+    @m int this.v()?,
+  });
 
   @m
   void f1(@m p1, @m int p2, [@m p3, @m int? p4]) {}
@@ -48,8 +54,12 @@ class C {
   void f2({@m p1, @m int? p2}) {}
 
   @m
-  void f3(@m covariant p1, @m covariant int p2,
-      [@m covariant p3, @m covariant int? p4]) {}
+  void f3(
+    @m covariant p1,
+    @m covariant int p2, [
+    @m covariant p3,
+    @m covariant int? p4,
+  ]) {}
 
   @m
   void f4({@m covariant p1, @m covariant int? p2}) {}
@@ -88,8 +98,12 @@ mixin M {
   void f2({@m p1, @m int p2 = 0}) {}
 
   @m
-  void f3(@m covariant p1, @m covariant int p2,
-      [@m covariant p3, @m covariant int p4 = 0]) {}
+  void f3(
+    @m covariant p1,
+    @m covariant int p2, [
+    @m covariant p3,
+    @m covariant int p4 = 0,
+  ]) {}
 
   @m
   void f4({@m covariant p1, @m covariant int p2 = 0}) {}
@@ -178,9 +192,6 @@ void main() {
   @m
   void f() {}
 
-  for (@m
-  int i = 0;
-      i < 1;
-      i++) {}
+  for (@m int i = 0; i < 1; i++) {}
   for (@m int i in []) {}
 }

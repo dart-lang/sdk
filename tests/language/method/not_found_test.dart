@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-//    ^
-// [cfe] The non-abstract class 'A' is missing implementations for these members:
+  //  ^
+  // [cfe] The non-abstract class 'A' is missing implementations for these members:
   B();
-//^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  // [error column 3, length 4]
+  // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   static const field = const B();
   //                   ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE

@@ -11,9 +11,7 @@ class A<T extends num> {}
 
 class B<T> {
   test() {
-    new A() is A
-
-        ;
+    new A() is A;
   }
 }
 
