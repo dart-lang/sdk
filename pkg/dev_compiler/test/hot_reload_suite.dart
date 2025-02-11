@@ -752,7 +752,7 @@ abstract class HotReloadSuiteRunner {
           return false;
         }
         final rejectionMessage = reloadReceipt.rejectionMessage;
-        if (rejectionMessage != null &&
+        if (rejectionMessage == null ||
             !rejectionMessage.contains(expectedError)) {
           _print(
               'Generation ${reloadReceipt.generation} was rejected but error '
