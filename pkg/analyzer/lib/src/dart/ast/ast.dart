@@ -10004,15 +10004,11 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   @experimental
   @override
   Element2? get element2 {
-    var element = this.element;
-    if (element case PrefixElementImpl element) {
-      return element.element2;
-    } else if (element case Fragment fragment) {
-      return fragment.element;
-    } else if (element case Element2 element) {
-      return element;
-    }
-    return null;
+    return element?.asElement2;
+  }
+
+  set element2(Element2? value) {
+    element = value?.asElement;
   }
 
   @override

@@ -254,7 +254,7 @@ enum DocDirectiveType {
   /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#inject-html---injected-html>.
   injectHtml.block('inject-html', 'end-inject-html'),
 
-  /// A [DocDirective] declaring amacro application.
+  /// A [DocDirective] declaring a macro application.
   ///
   /// This directive has one required argument: the name. For example:
   ///

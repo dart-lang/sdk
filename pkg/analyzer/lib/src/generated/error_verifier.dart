@@ -5182,7 +5182,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,
           nameToken: nameToken,
-          element: element,
+          element2: element.asElement2!,
         ),
       );
     }

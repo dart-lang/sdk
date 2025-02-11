@@ -43,24 +43,30 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     var nameObj = Name.forLibrary(classElement.library2, name);
     var overridden = InheritanceManager3().getInherited4(classElement, nameObj);
     if (overridden == null) return;
-    var overriddenParameters = overridden.formalParameters.map((p) => p.name3);
+    var overriddenNamedParameters = overridden.formalParameters
+        .where((p) => p.isNamed)
+        .map((p) => p.name3);
 
     var body = methodDeclaration.body;
     var parameters = methodDeclaration.parameters?.parameters;
-    var argumentList =
-        parameters
-            ?.map((p) {
-              var name = p.name?.lexeme;
-              if (overriddenParameters.contains(name)) {
-                return p.isNamed ? '$name: $name' : name;
-              }
-              return null;
-            })
-            .nonNulls
-            .join(', ') ??
-        '';
+    var arguments = <String>[];
+    if (parameters != null) {
+      for (var i = 0; i < parameters.length; i++) {
+        var p = parameters[i];
+        var name = p.name?.lexeme;
+        if (name == null) continue;
+        if (p.isPositional) {
+          if (i < overridden.formalParameters.length &&
+              overridden.formalParameters[i].isPositional) {
+            arguments.add(name);
+          }
+        } else if (overriddenNamedParameters.contains(name)) {
+          arguments.add(p.isNamed ? '$name: $name' : name);
+        }
+      }
+    }
 
-    _addition = '$name($argumentList)';
+    _addition = '$name(${arguments.join(', ')})';
 
     if (body is BlockFunctionBody) {
       await _block(builder, body.block);

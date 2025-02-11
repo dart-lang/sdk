@@ -359,6 +359,12 @@ extension ExtensionTypeElement2Extension on ExtensionTypeElement2 {
   }
 }
 
+extension ExtensionTypeElementImpl2Extension on ExtensionTypeElementImpl2 {
+  ExtensionTypeElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
 extension FieldElement2Extension on FieldElement2 {
   FieldElement get asElement {
     if (this case FieldMember member) {
@@ -626,6 +632,12 @@ extension TypeAliasElement2Extension on TypeAliasElement2 {
 extension TypeAliasElementExtension on TypeAliasElement {
   TypeAliasElement2 get asElement2 {
     return (this as TypeAliasElementImpl).element;
+  }
+}
+
+extension TypeAliasElementImpl2Extension on TypeAliasElementImpl2 {
+  TypeAliasElementImpl get asElement {
+    return firstFragment;
   }
 }
 

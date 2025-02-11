@@ -14,6 +14,7 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A factory used to create diagnostics.
 class DiagnosticFactory {
@@ -343,8 +344,9 @@ class DiagnosticFactory {
   AnalysisError referencedBeforeDeclaration(
     Source source, {
     required Token nameToken,
-    required Element element,
+    required Element2 element2,
   }) {
+    var element = element2.asElement!;
     String name = nameToken.lexeme;
     List<DiagnosticMessage>? contextMessages;
     int declarationOffset = element.nameOffset;

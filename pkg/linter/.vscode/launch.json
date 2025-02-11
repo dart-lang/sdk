@@ -2,6 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Current file",
+            "request": "launch",
+            "type": "dart",
+        },
+        {
             "name": "test: all",
             "request": "launch",
             "type": "dart",

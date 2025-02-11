@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -22,7 +20,6 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving types.
 ///
@@ -41,7 +38,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// If not `null`, the element of the [ClassDeclaration], or the
   /// [ClassTypeAlias] being resolved.
-  InterfaceElementImpl? enclosingClass;
+  InterfaceElementImpl2? enclosingClass;
 
   /// If not `null`, a direct child of an [ExtendsClause], [WithClause],
   /// or [ImplementsClause].
@@ -74,9 +71,9 @@ class NamedTypeResolver with ScopeHelpers {
   }) : typeSystem = libraryElement.typeSystem;
 
   bool get _genericMetadataIsEnabled =>
-      enclosingClass!.library.featureSet.isEnabled(Feature.generic_metadata);
+      enclosingClass!.library2.featureSet.isEnabled(Feature.generic_metadata);
 
-  bool get _inferenceUsingBoundsIsEnabled => enclosingClass!.library.featureSet
+  bool get _inferenceUsingBoundsIsEnabled => enclosingClass!.library2.featureSet
       .isEnabled(Feature.inference_using_bounds);
 
   /// Resolve the given [NamedType] - set its element and static type. Only the
@@ -92,16 +89,16 @@ class NamedTypeResolver with ScopeHelpers {
     if (importPrefix != null) {
       var prefixToken = importPrefix.name;
       var prefixName = prefixToken.lexeme;
-      var prefixElement = nameScope.lookup(prefixName).getter;
-      importPrefix.element = prefixElement;
+      var prefixElement = nameScope.lookup(prefixName).getter2;
+      importPrefix.element2 = prefixElement;
 
       if (prefixElement == null) {
         _resolveToElement(node, null, dataForTesting: dataForTesting);
         return;
       }
 
-      if (prefixElement is InterfaceElement ||
-          prefixElement is TypeAliasElement) {
+      if (prefixElement is InterfaceElement2 ||
+          prefixElement is TypeAliasElement2) {
         _rewriteToConstructorName(
           node: node,
           importPrefix: importPrefix,
@@ -111,7 +108,7 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      if (prefixElement is PrefixElement) {
+      if (prefixElement is PrefixElement2) {
         var nameToken = node.name2;
         var element = _lookupGetter(prefixElement.scope, nameToken);
         _resolveToElement(node, element, dataForTesting: dataForTesting);
@@ -171,13 +168,15 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// We are resolving the [NamedType] in a redirecting constructor of the
   /// [enclosingClass].
-  InterfaceTypeImpl _inferRedirectedConstructor(InterfaceElementImpl element,
-      {required TypeConstraintGenerationDataForTesting? dataForTesting,
-      required AstNodeImpl? nodeForTesting}) {
+  InterfaceTypeImpl _inferRedirectedConstructor(
+    InterfaceElementImpl2 element, {
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+    required AstNodeImpl? nodeForTesting,
+  }) {
     if (element == enclosingClass) {
       return element.thisType;
     } else {
-      var typeParameters = element.asElement2.typeParameters2;
+      var typeParameters = element.typeParameters2;
       if (typeParameters.isEmpty) {
         return element.thisType;
       } else {
@@ -202,27 +201,27 @@ class NamedTypeResolver with ScopeHelpers {
     }
   }
 
-  TypeImpl _instantiateElement(NamedTypeImpl node, Element element,
+  TypeImpl _instantiateElement(NamedTypeImpl node, Element2 element,
       {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
     var nullability = _getNullability(node);
 
     var argumentList = node.typeArguments;
     if (argumentList != null) {
-      if (element is InterfaceElementImpl) {
+      if (element is InterfaceElementImpl2) {
         var typeArguments = _buildTypeArguments(
           node,
           argumentList,
-          element.typeParameters.length,
+          element.typeParameters2.length,
         );
         return element.instantiate(
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
-      } else if (element is TypeAliasElementImpl) {
+      } else if (element is TypeAliasElementImpl2) {
         var typeArguments = _buildTypeArguments(
           node,
           argumentList,
-          element.typeParameters.length,
+          element.typeParameters2.length,
         );
         var type = element.instantiate(
           typeArguments: typeArguments,
@@ -232,13 +231,13 @@ class NamedTypeResolver with ScopeHelpers {
       } else if (_isInstanceCreation(node)) {
         _ErrorHelper(errorReporter).reportNewWithNonType(node);
         return InvalidTypeImpl.instance;
-      } else if (element is DynamicElementImpl) {
+      } else if (element is DynamicElementImpl2) {
         _buildTypeArguments(node, argumentList, 0);
         return DynamicTypeImpl.instance;
-      } else if (element is NeverElementImpl) {
+      } else if (element is NeverElementImpl2) {
         _buildTypeArguments(node, argumentList, 0);
         return _instantiateElementNever(nullability);
-      } else if (element is TypeParameterElementImpl) {
+      } else if (element is TypeParameterElementImpl2) {
         _buildTypeArguments(node, argumentList, 0);
         return element.instantiate(
           nullabilitySuffix: nullability,
@@ -249,10 +248,10 @@ class NamedTypeResolver with ScopeHelpers {
       }
     }
 
-    if (element is InterfaceElementImpl) {
+    if (element is InterfaceElementImpl2) {
       if (identical(node, withClause_namedType)) {
         for (var mixin in enclosingClass!.mixins) {
-          if (mixin.element == element) {
+          if (mixin.element3 == element) {
             return mixin;
           }
         }
@@ -264,11 +263,11 @@ class NamedTypeResolver with ScopeHelpers {
       }
 
       return typeSystem.instantiateInterfaceToBounds2(
-        element: element.asElement2,
+        element: element,
         nullabilitySuffix: nullability,
       );
-    } else if (element is TypeAliasElementImpl) {
-      var type = typeSystem.instantiateTypeAliasToBounds(
+    } else if (element is TypeAliasElementImpl2) {
+      var type = typeSystem.instantiateTypeAliasToBounds2(
         element: element,
         nullabilitySuffix: nullability,
       );
@@ -276,11 +275,11 @@ class NamedTypeResolver with ScopeHelpers {
     } else if (_isInstanceCreation(node)) {
       _ErrorHelper(errorReporter).reportNewWithNonType(node);
       return InvalidTypeImpl.instance;
-    } else if (element is DynamicElementImpl) {
+    } else if (element is DynamicElementImpl2) {
       return DynamicTypeImpl.instance;
-    } else if (element is NeverElementImpl) {
+    } else if (element is NeverElementImpl2) {
       return _instantiateElementNever(nullability);
-    } else if (element is TypeParameterElementImpl) {
+    } else if (element is TypeParameterElementImpl2) {
       return element.instantiate(
         nullabilitySuffix: nullability,
       );
@@ -294,18 +293,18 @@ class NamedTypeResolver with ScopeHelpers {
     return NeverTypeImpl.instance.withNullability(nullability);
   }
 
-  Element? _lookupGetter(Scope scope, Token nameToken) {
+  Element2? _lookupGetter(Scope scope, Token nameToken) {
     var scopeLookupResult = scope.lookup(nameToken.lexeme);
     reportDeprecatedExportUseGetter(
       scopeLookupResult: scopeLookupResult,
       nameToken: nameToken,
     );
-    return scopeLookupResult.getter;
+    return scopeLookupResult.getter2;
   }
 
-  void _resolveToElement(NamedTypeImpl node, Element? element,
+  void _resolveToElement(NamedTypeImpl node, Element2? element,
       {required TypeConstraintGenerationDataForTesting? dataForTesting}) {
-    node.element2 = element.asElement2;
+    node.element2 = element;
 
     if (element == null) {
       node.type = InvalidTypeImpl.instance;
@@ -315,7 +314,7 @@ class NamedTypeResolver with ScopeHelpers {
       return;
     }
 
-    if (element is MultiplyDefinedElement) {
+    if (element is MultiplyDefinedElement2) {
       node.type = InvalidTypeImpl.instance;
       return;
     }
@@ -327,12 +326,12 @@ class NamedTypeResolver with ScopeHelpers {
   }
 
   /// We parse `foo.bar` as `prefix.Name` with the expectation that `prefix`
-  /// will be a [PrefixElement]. But when we resolved the `prefix` it turned
-  /// out to be a [ClassElement], so it is probably a `Class.constructor`.
+  /// will be a [PrefixElement2]. But when we resolved the `prefix` it turned
+  /// out to be a [ClassElement2], so it is probably a `Class.constructor`.
   void _rewriteToConstructorName({
     required NamedTypeImpl node,
     required ImportPrefixReferenceImpl importPrefix,
-    required Element importPrefixElement,
+    required Element2 importPrefixElement,
     required Token nameToken,
   }) {
     var constructorName = node.parent;
@@ -356,7 +355,7 @@ class NamedTypeResolver with ScopeHelpers {
         name2: importPrefix.name,
         typeArguments: null,
         question: null,
-      )..element2 = importPrefixElement.asElement2;
+      )..element2 = importPrefixElement;
       if (identical(node, redirectedConstructor_namedType)) {
         redirectedConstructor_namedType = namedType;
       }
@@ -421,7 +420,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   TypeImpl _verifyTypeAliasForContext(
     NamedType node,
-    TypeAliasElement element,
+    TypeAliasElement2 element,
     TypeImpl type,
   ) {
     // If a type alias that expands to a type parameter.
@@ -517,7 +516,7 @@ class _ErrorHelper {
     return false;
   }
 
-  void reportNullOrNonTypeElement(NamedType node, Element? element) {
+  void reportNullOrNonTypeElement(NamedType node, Element2? element) {
     if (node.name2.isSynthetic) {
       return;
     }
@@ -610,14 +609,12 @@ class _ErrorHelper {
       return;
     }
 
-    if (element is LocalVariableElement ||
-        (element is FunctionElement &&
-            element.enclosingElement3 is ExecutableElement)) {
+    if (element is LocalVariableElement2 || element is LocalFunctionElement) {
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,
           nameToken: node.name2,
-          element: element!,
+          element2: element!,
         ),
       );
       return;
@@ -659,7 +656,7 @@ class _ErrorHelper {
     var firstToken = node.name2;
     var importPrefix = node.importPrefix;
     if (importPrefix != null) {
-      if (!skipImportPrefix || importPrefix.element is! PrefixElement) {
+      if (!skipImportPrefix || importPrefix.element2 is! PrefixElement2) {
         firstToken = importPrefix.name;
       }
     }
