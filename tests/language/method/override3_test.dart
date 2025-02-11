@@ -12,42 +12,24 @@ class A {
 }
 
 class B extends A {
-  foo(
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-// [cfe] The method 'B.foo' has fewer named arguments than those of overridden method 'A.foo'.
-      required1
-     /*
-      ,
-      {named1: 499}
-     */
-      ) {
+  foo(required1) {
+    // [error column 3, length 3]
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+    // [cfe] The method 'B.foo' has fewer named arguments than those of overridden method 'A.foo'.
     return required1;
   }
 
-  bar(required1, required2,
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-// [cfe] The method 'B.bar' has fewer named arguments than those of overridden method 'A.bar'.
-      {named1 = 13
-      /*
-      ,
-      named2: 17
-      */
-      }) {
+  bar(required1, required2, {named1 = 13}) {
+    // [error column 3, length 3]
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+    // [cfe] The method 'B.bar' has fewer named arguments than those of overridden method 'A.bar'.
     return required1 + required2 * 3 + named1 * 5;
   }
 
-  gee(
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-// [cfe] The method 'B.gee' doesn't have the named parameter 'named1' of overridden method 'A.gee'.
-      {named2 = 11
-      /*
-      ,
-      named1: 31
-      */
-      }) {
+  gee({named2 = 11}) {
+    // [error column 3, length 3]
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+    // [cfe] The method 'B.gee' doesn't have the named parameter 'named1' of overridden method 'A.gee'.
     return named2 * 99;
   }
 }

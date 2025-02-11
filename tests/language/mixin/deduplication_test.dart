@@ -14,15 +14,14 @@ class B {
   int bar() => 2;
 }
 
-abstract class C implements A, B {
-}
+abstract class C implements A, B {}
 
 mixin M1 on A, B {
   int sum() => foo() + bar();
 }
 
 mixin M2 on A, B, M1 {
-  int sumX2() => sum()*2;
+  int sumX2() => sum() * 2;
 }
 
 class X extends C with M1, M2 {

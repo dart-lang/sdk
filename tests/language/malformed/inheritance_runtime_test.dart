@@ -10,65 +10,29 @@
 
 class A<T> {}
 
-class C
+class C {}
 
-    {
-}
+class C1 {}
 
-class C1
+class C2 {}
 
-    {
-}
+class C3 {}
 
-class C2
+class C4 {}
 
-    {
-}
+class C5 {}
 
-class C3
+class C6<A> {}
 
-    {
-}
+class C7<A> {}
 
-class C4
+class C8<A> {}
 
-    {
-}
+class C9<A> {}
 
-class C5
+class C10<A> {}
 
-    {
-}
-
-class C6<A>
-
-    {
-}
-
-class C7<A>
-
-    {
-}
-
-class C8<A>
-
-    {
-}
-
-class C9<A>
-
-    {
-}
-
-class C10<A>
-
-    {
-}
-
-class C11<A>
-
-    {
-}
+class C11<A> {}
 
 void main() {
   new C();

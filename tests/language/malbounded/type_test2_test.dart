@@ -8,13 +8,11 @@ class A<T extends num> {}
 
 class B<T> {
   test() {
-    new A() is A
+    new A() is A<T>;
     //         ^
     // [cfe] Type argument 'T' doesn't conform to the bound 'num' of the type variable 'T' on 'A'.
-        <T>
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-        ;
+    //           ^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   }
 }
 

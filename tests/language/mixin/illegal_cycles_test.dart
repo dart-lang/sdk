@@ -3,16 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class M {}
-mixin class M0 extends Object with M0 { }
+
+mixin class M0 extends Object with M0 {}
 //          ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'M0' is a supertype of itself.
-//          ^
 // [cfe] 'Object with M0' is a supertype of itself.
 //                            ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT
 //                                 ^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
+
 mixin class M1 = Object with M1;
 //          ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
@@ -40,28 +41,27 @@ mixin class M6 = Object with M4;
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'M6' is a supertype of itself.
 
-mixin class M7 extends Object with M8 { }
+mixin class M7 extends Object with M8 {}
 //          ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'M7' is a supertype of itself.
-//          ^
 // [cfe] 'Object with M8' is a supertype of itself.
 //                            ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT
 //                                 ^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
-mixin class M8 extends Object with M7 { }
+
+mixin class M8 extends Object with M7 {}
 //          ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'M8' is a supertype of itself.
-//          ^
 // [cfe] 'Object with M7' is a supertype of itself.
 //                            ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT
 //                                 ^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
 
-class M9  = Object with M91;
+class M9 = Object with M91;
 //    ^
 // [cfe] 'M9' is a supertype of itself.
 mixin class M91 = Object with M92;

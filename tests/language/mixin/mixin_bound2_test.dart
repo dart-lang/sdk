@@ -18,8 +18,9 @@ mixin M<U, V, T extends Map<U, V>> {
   }
 }
 
-mixin class A<U, V extends Set<U>> =
-    Object with M<U, V, Map<U, V>> implements I<V>;
+mixin class A<U, V extends Set<U>> = Object
+    with M<U, V, Map<U, V>>
+    implements I<V>;
 
 mixin class B<T extends List<num>> = Object with A<T, Set<T>> implements J<T>;
 
@@ -34,5 +35,6 @@ main() {
   Expect.isTrue(c is S<Set<int>, int>);
   Expect.isTrue(c is A<List<int>, Set<List<int>>>);
   Expect.isTrue(
-      c is M<List<int>, Set<List<int>>, Map<List<int>, Set<List<int>>>>);
+    c is M<List<int>, Set<List<int>>, Map<List<int>, Set<List<int>>>>,
+  );
 }

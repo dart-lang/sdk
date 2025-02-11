@@ -29,6 +29,7 @@ mixin P0 {
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
       // [cfe] Superclass has no setter named 'bar'.
     }
+
     inner();
 
     (() {

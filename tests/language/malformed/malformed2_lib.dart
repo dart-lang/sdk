@@ -12,40 +12,33 @@ void testValue(var o) {
 
   try {
     o as Unresolved5;
-  } catch (e) {
-  }
+  } catch (e) {}
 
   try {
     o as List<Unresolved6>;
-  } catch (e) {
-  }
+  } catch (e) {}
 
-  try {
-  } on Unresolved7 catch (e) {
-  } catch (e) {
-  }
+  try {} on Unresolved7 catch (e) {
+  } catch (e) {}
 
   try {
     throw o;
   } on Unresolved8 catch (e) {
-  } catch (e) {
-  }
+  } catch (e) {}
 
   try {
     throw o;
   } on List<String> catch (e) {
   } on TypeError catch (e) {
   } on Unresolved9 catch (e) {
-  } catch (e) {
-  }
+  } catch (e) {}
 
   try {
     throw o;
   } on List<Unresolved10> catch (e) {
   } on TypeError catch (e) {
   } on Unresolved11 catch (e) {
-  } catch (e) {
-  }
+  } catch (e) {}
 
   Unresolved12? u = o;
 

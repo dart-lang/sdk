@@ -8,7 +8,5 @@
 // A type mismatch in a constant map literal is a compile-time error.
 
 main() {
-  var m = const
-
-    {"a": 0};
+  var m = const {"a": 0};
 }

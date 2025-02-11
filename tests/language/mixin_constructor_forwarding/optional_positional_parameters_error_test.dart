@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "optional_positional_parameters_test.dart" show Application;
+
 main() {
   // Only insert forwarders for generative constructors.
   new Application();

@@ -9,11 +9,10 @@
 
 class S {}
 
-class C0 extends S
+class C0 extends S with Object
 //    ^
 // [cfe] Can't use 'Object' as a mixin because it has constructors.
-with Object
-//   ^^^^^^
+//                      ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
 {}
 

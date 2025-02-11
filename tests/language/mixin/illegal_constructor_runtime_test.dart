@@ -20,39 +20,10 @@ class M2 {
 
 class C0 = Object with M0;
 
-
-
-
-
-
-
 class D0 extends Object with M0 {}
-
-
-
-
-
-
 
 main() {
   new C0();
 
-
-
-
-
-
-
   new D0();
-
-
-
-
-
-
-
-
-
-
-
 }

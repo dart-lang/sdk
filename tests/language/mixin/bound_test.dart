@@ -70,14 +70,16 @@ abstract mixin class ExpressionWithStringConversion {
 }
 
 abstract mixin class AdditionWithStringConversion<
-    E extends ExpressionWithStringConversion> {
+  E extends ExpressionWithStringConversion
+> {
   E get operand1;
   E get operand2;
   String toString() => '($operand1 + $operand2))';
 }
 
 abstract mixin class SubtractionWithStringConversion<
-    E extends ExpressionWithStringConversion> {
+  E extends ExpressionWithStringConversion
+> {
   E get operand1;
   E get operand2;
   String toString() => '($operand1 - $operand2)';
@@ -89,7 +91,8 @@ abstract mixin class NumberWithStringConversion {
 }
 
 abstract mixin class MultiplicationWithStringConversion<
-    E extends ExpressionWithStringConversion> {
+  E extends ExpressionWithStringConversion
+> {
   E get operand1;
   E get operand2;
   String toString() => '($operand1 * $operand2)';
@@ -127,7 +130,9 @@ class Multiplication = AbstractMultiplication<Expression>
     implements Expression;
 
 void main() {
-  Expression e = new Multiplication(new Addition(new Number(4), new Number(2)),
-      new Subtraction(new Number(10), new Number(7)));
+  Expression e = new Multiplication(
+    new Addition(new Number(4), new Number(2)),
+    new Subtraction(new Number(10), new Number(7)),
+  );
   Expect.equals('((4 + 2)) * (10 - 7)) = 18', '$e = ${e.eval}');
 }

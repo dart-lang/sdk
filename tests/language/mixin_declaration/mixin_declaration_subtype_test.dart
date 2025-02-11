@@ -8,8 +8,11 @@ import "package:expect/expect.dart";
 
 // A mixin with multiple super-types and implemented types.
 class A {}
+
 class B {}
+
 class I {}
+
 class J {}
 
 mixin M on A, B implements I, J {}
@@ -20,8 +23,11 @@ class D = C with M;
 
 // Same, with generics.
 class GA<T> {}
+
 class GB<T> {}
+
 class GI<T> {}
+
 class GJ<T> {}
 
 mixin GM<T> on GA<T>, GB<List<T>> implements GI<Iterable<T>>, GJ<Set<T>> {}

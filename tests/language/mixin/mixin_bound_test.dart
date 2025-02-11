@@ -16,8 +16,9 @@ mixin M<U, V, T extends Map<U, V>> {
   }
 }
 
-mixin class A<U, V extends List> =
-    Object with M<U, V, Map<U, V>> implements I<V>;
+mixin class A<U, V extends List> = Object
+    with M<U, V, Map<U, V>>
+    implements I<V>;
 
 class C<T, K> = S<Set<T>, T> with A<T, List<K>> implements J<K>;
 

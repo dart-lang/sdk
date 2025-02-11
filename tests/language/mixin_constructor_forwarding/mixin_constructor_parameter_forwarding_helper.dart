@@ -13,9 +13,7 @@ class _Private {
 class B2<T> implements B<T> {
   final T x;
   final Object y;
-  const B2(T x, [Object y = const _Private()])
-      : x = x,
-        y = y;
+  const B2(T x, [Object y = const _Private()]) : x = x, y = y;
 }
 
 // Leaking the constant value in a non-constant way which cannot be used

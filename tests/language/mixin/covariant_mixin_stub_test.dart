@@ -37,9 +37,7 @@ class ConstWrapper {
 class ClassWithGenericMixImpl extends ClassWithGenericMix<int, String, bool> {
   final ConstWrapper element;
 
-  const ClassWithGenericMixImpl({
-    required this.element,
-  });
+  const ClassWithGenericMixImpl({required this.element});
 }
 
 class ClassWithMix extends Object with Mix<String, int, bool> {}

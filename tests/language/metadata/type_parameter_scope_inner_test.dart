@@ -10,26 +10,26 @@ class Annotation {
 }
 
 class Class<@Annotation(foo) T> {
-//                      ^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Undefined name 'foo'.
+  //                    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'foo'.
   static void foo() {}
 }
 
 void function<@Annotation(foo) T>(dynamic foo) {
-//                        ^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Undefined name 'foo'.
+  //                      ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'foo'.
   dynamic foo;
 }
 
 extension Extension<@Annotation(foo) T> on Class<T> {
-//                              ^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Undefined name 'foo'.
+  //                            ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'foo'.
   static void foo() {}
 
   void extensionMethod<@Annotation(foo) T, @Annotation(bar) U>() {}
@@ -41,10 +41,10 @@ extension Extension<@Annotation(foo) T> on Class<T> {
 
 class C {
   void method<@Annotation(foo) T, @Annotation(bar) U>(dynamic foo) {
-  //                      ^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] Undefined name 'foo'.
+    //                    ^^^
+    // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] Undefined name 'foo'.
     dynamic foo;
   }
 
@@ -52,10 +52,10 @@ class C {
 }
 
 mixin Mixin<@Annotation(foo) T> {
-//                      ^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Undefined name 'foo'.
+  //                    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'foo'.
   static void foo() {}
 }
 
