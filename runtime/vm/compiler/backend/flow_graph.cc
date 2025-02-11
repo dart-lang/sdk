@@ -709,15 +709,16 @@ bool FlowGraph::VerifyRedefinitions() {
   return true;
 }
 
-LivenessAnalysis::LivenessAnalysis(
-    intptr_t variable_count,
-    const GrowableArray<BlockEntryInstr*>& postorder)
+LivenessAnalysis::LivenessAnalysis(const FlowGraph* flow_graph,
+                                   const intptr_t variable_count)
     : zone_(Thread::Current()->zone()),
+      flow_graph_(flow_graph),
       variable_count_(variable_count),
-      postorder_(postorder),
-      live_out_(postorder.length()),
-      kill_(postorder.length()),
-      live_in_(postorder.length()) {}
+      postorder_(flow_graph->postorder()),
+      live_out_(postorder_.length()),
+      kill_(postorder_.length()),
+      live_in_(postorder_.length()),
+      does_block_have_throw(zone_, postorder_.length()) {}
 
 bool LivenessAnalysis::UpdateLiveOut(const BlockEntryInstr& block) {
   BitVector* live_out = live_out_[block.postorder_number()];
@@ -731,14 +732,29 @@ bool LivenessAnalysis::UpdateLiveOut(const BlockEntryInstr& block) {
       changed = true;
     }
   }
-  return changed;
+  return changed || block.InsideTryBlock();
 }
 
 bool LivenessAnalysis::UpdateLiveIn(const BlockEntryInstr& block) {
   BitVector* live_out = live_out_[block.postorder_number()];
   BitVector* kill = kill_[block.postorder_number()];
   BitVector* live_in = live_in_[block.postorder_number()];
-  return live_in->KillAndAdd(kill, live_out);
+  bool changed = live_in->KillAndAdd(kill, live_out);
+
+  // if [block] contains [Throw] instruction, then make sure corresponding
+  // [catch_block] live_in is also part of this [block] live_in.
+  if (block.InsideTryBlock()) {
+    if (does_block_have_throw.Contains(block.postorder_number())) {
+      BitVector* live_in = live_in_[block.postorder_number()];
+      CatchBlockEntryInstr* catch_block =
+          flow_graph_->GetCatchBlockByTryIndex(block.try_index());
+      auto catch_live_in = live_in_[catch_block->postorder_number()];
+      if (live_in->AddAll(catch_live_in)) {
+        changed = true;
+      }
+    }
+  }
+  return changed;
 }
 
 void LivenessAnalysis::ComputeLiveInAndLiveOutSets() {
@@ -803,9 +819,8 @@ void LivenessAnalysis::Dump() {
 // Computes liveness information for local variables.
 class VariableLivenessAnalysis : public LivenessAnalysis {
  public:
-  explicit VariableLivenessAnalysis(FlowGraph* flow_graph)
-      : LivenessAnalysis(flow_graph->variable_count(), flow_graph->postorder()),
-        flow_graph_(flow_graph),
+  explicit VariableLivenessAnalysis(const FlowGraph* flow_graph)
+      : LivenessAnalysis(flow_graph, flow_graph->variable_count()),
         assigned_vars_() {}
 
   // For every block (in preorder) compute and return set of variables that
@@ -879,10 +894,7 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
 
  private:
   virtual void ComputeInitialSets();
-  virtual bool UpdateLiveOut(const BlockEntryInstr& block);
-  virtual bool UpdateLiveIn(const BlockEntryInstr& block);
 
-  const FlowGraph* flow_graph_;
   GrowableArray<BitVector*> assigned_vars_;
 };
 
@@ -901,6 +913,10 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
     // Iterate backwards starting at the last instruction.
     for (BackwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+
+      if (current->MayThrow()) {
+        does_block_have_throw.Add(i);
+      }
 
       LoadLocalInstr* load = current->AsLoadLocal();
       if (load != nullptr) {
@@ -963,24 +979,6 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
       }
     }
   }
-}
-
-bool VariableLivenessAnalysis::UpdateLiveIn(const BlockEntryInstr& block) {
-  bool changed = LivenessAnalysis::UpdateLiveIn(block);
-  if (block.InsideTryBlock()) {
-    BitVector* live_in = live_in_[block.postorder_number()];
-    CatchBlockEntryInstr* catch_block =
-        flow_graph_->GetCatchBlockByTryIndex(block.try_index());
-    auto catch_live_in = live_in_[catch_block->postorder_number()];
-    if (live_in->AddAll(catch_live_in)) {
-      changed = true;
-    }
-  }
-  return changed;
-}
-
-bool VariableLivenessAnalysis::UpdateLiveOut(const BlockEntryInstr& block) {
-  return LivenessAnalysis::UpdateLiveOut(block) || block.InsideTryBlock();
 }
 
 void FlowGraph::ComputeSSA(
