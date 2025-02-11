@@ -335,6 +335,31 @@ ASSEMBLER_TEST_RUN(AddExtReg, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(CmpExtReg, assembler) {
+  Label not_equal;
+  __ LoadImmediate(R0, 0x100000000);
+  __ cmp(R0, Operand(R0, SXTW, 0));
+  __ BranchIf(NOT_EQUAL, &not_equal);
+  __ LoadImmediate(R0, 1);
+  __ ret();
+  __ Bind(&not_equal);
+  __ LoadImmediate(R0, 2);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(CmpExtReg, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r0, 0x100000000\n"
+      "cmp r0, r0 sxtw\n"
+      "bne +12\n"
+      "movz r0, #0x1\n"
+      "ret\n"
+      "movz r0, #0x2\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
   __ LoadImmediate(R2, -1);
   __ LoadImmediate(R1, 1);

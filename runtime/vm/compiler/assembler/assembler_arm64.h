@@ -2342,7 +2342,11 @@ class Assembler : public AssemblerBase {
       EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
     } else {
       ASSERT(o.type() == Operand::Extended);
-      ASSERT((rd != ZR) && (rn != ZR));
+      if (set_flags) {
+        ASSERT((rd != CSP) && (rn != ZR));
+      } else {
+        ASSERT((rd != ZR) && (rn != ZR));
+      }
       EmitAddSubShiftExtOp(subtract ? SUB : ADD, crd, crn, o, os, set_flags);
     }
   }
