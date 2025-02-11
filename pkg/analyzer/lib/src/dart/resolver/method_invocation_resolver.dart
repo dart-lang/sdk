@@ -984,7 +984,7 @@ class MethodInvocationResolver with ScopeHelpers {
                         ? CascadePropertyTarget.singleton
                         : ThisPropertyTarget.singleton,
                     node.methodName.name,
-                    element,
+                    element.asElement2,
                     SharedTypeView(getterReturnType))
                 ?.unwrapTypeView() ??
             targetType;
@@ -1010,7 +1010,7 @@ class MethodInvocationResolver with ScopeHelpers {
                     functionExpression,
                     SuperPropertyTarget.singleton,
                     node.methodName.name,
-                    node.methodName.staticElement,
+                    node.methodName.element,
                     SharedTypeView(getterReturnType))
                 ?.unwrapTypeView() ??
             targetType;
@@ -1020,7 +1020,7 @@ class MethodInvocationResolver with ScopeHelpers {
                     functionExpression,
                     ExpressionPropertyTarget(target),
                     node.methodName.name,
-                    node.methodName.staticElement,
+                    node.methodName.element,
                     SharedTypeView(getterReturnType))
                 ?.unwrapTypeView() ??
             targetType;

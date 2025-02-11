@@ -272,8 +272,12 @@ class PropertyElementResolver with ScopeHelpers {
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
         getType = _resolver.flowAnalysis.flow
-                ?.propertyGet(node, ThisPropertyTarget.singleton, node.name,
-                    readElementRequested, SharedTypeView(unpromotedType))
+                ?.propertyGet(
+                    node,
+                    ThisPropertyTarget.singleton,
+                    node.name,
+                    readElementRequested.asElement2,
+                    SharedTypeView(unpromotedType))
                 ?.unwrapTypeView() ??
             unpromotedType;
       }
@@ -511,7 +515,7 @@ class PropertyElementResolver with ScopeHelpers {
                           as PropertyTarget<ExpressionImpl>
                       : ExpressionPropertyTarget(target),
                   propertyName.name,
-                  result.getter2?.asElement,
+                  result.getter2,
                   SharedTypeView(unpromotedType))
               ?.unwrapTypeView() ??
           unpromotedType;
@@ -849,7 +853,7 @@ class PropertyElementResolver with ScopeHelpers {
                     node,
                     SuperPropertyTarget.singleton,
                     propertyName.name,
-                    readElement,
+                    readElement.asElement2,
                     SharedTypeView(unpromotedType))
                 ?.unwrapTypeView() ??
             unpromotedType;

@@ -1604,7 +1604,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  (ExecutableElement?, SharedTypeView) resolveObjectPatternPropertyGet({
+  (ExecutableElement2?, SharedTypeView) resolveObjectPatternPropertyGet({
     required covariant ObjectPatternImpl objectPattern,
     required SharedTypeView receiverType,
     required covariant SharedPatternField field,
@@ -1636,9 +1636,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (getter != null) {
       fieldNode.element = getter;
       if (getter is PropertyAccessorElementOrMember) {
-        return (getter, SharedTypeView(getter.returnType));
+        return (getter.asElement2, SharedTypeView(getter.returnType));
       } else {
-        return (getter, SharedTypeView(getter.type));
+        return (getter.asElement2, SharedTypeView(getter.type));
       }
     }
 
@@ -5680,6 +5680,9 @@ class _WhyNotPromotedVisitor
   List<DiagnosticMessage> visitPropertyNotPromotedForInherentReason(
       PropertyNotPromotedForInherentReason reason) {
     var receiverElement = reason.propertyMember;
+    if (receiverElement is PropertyAccessorElement2) {
+      receiverElement = receiverElement.asElement;
+    }
     if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
       var propertyName = reason.propertyName;
@@ -5717,6 +5720,9 @@ class _WhyNotPromotedVisitor
   List<DiagnosticMessage> visitPropertyNotPromotedForNonInherentReason(
       PropertyNotPromotedForNonInherentReason reason) {
     var receiverElement = reason.propertyMember;
+    if (receiverElement is PropertyAccessorElement2) {
+      receiverElement = receiverElement.asElement;
+    }
     if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
       var propertyName = reason.propertyName;
