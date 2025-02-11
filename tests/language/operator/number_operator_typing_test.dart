@@ -521,7 +521,10 @@ void testPromotedVariables(Object i, Object d, Object n) {
 
 // Check the static type of operations on promoted variables.
 void testTypeVariables<I extends int, D extends double, N extends num>(
-    I i, D d, N n) {
+  I i,
+  D d,
+  N n,
+) {
   int ii = i; // Actual int type.
 
   (ii + i).expectStaticType<Exactly<int>>();
@@ -1004,8 +1007,13 @@ void testPromotedTypeVariables<T>(T i, T d, T n) {
 }
 
 /// Creative combinations of types.
-void testComplex<I extends int, D extends double, N extends num,
-    O extends Object, NN extends N>(I i, D d, N n, O o, NN nn) {
+void testComplex<
+  I extends int,
+  D extends double,
+  N extends num,
+  O extends Object,
+  NN extends N
+>(I i, D d, N n, O o, NN nn) {
   O p = 1 as O;
   if (p is! N) throw "promote to O&N";
   if (p is! NN) throw "promote to O&N&NN";
@@ -1070,23 +1078,23 @@ class TestConst<I extends int, D extends double, N extends num> {
   final num num4;
   final num num5;
   const TestConst(I i, D d, N n)
-      : int1 = 1 + i,
-        int2 = i + 1,
-        int3 = i + 1,
-        int4 = i + i,
-        dbl1 = 1.0 + i,
-        dbl2 = 1.0 + d,
-        dbl3 = 1.0 + n,
-        dbl4 = 1.0 + dyn,
-        dbl5 = 1 + 1, // Checking context type of "double = int + _".
-        dbl6 = n + 1, // Checking context type of "double = num + _".
-        dbl7 = d + i,
-        dbl8 = d + d,
-        dbl9 = d + n,
-        dbl10 = d + dyn,
-        num1 = i + n,
-        num2 = n + d,
-        num3 = n + n,
-        num4 = n + i,
-        num5 = n + dyn;
+    : int1 = 1 + i,
+      int2 = i + 1,
+      int3 = i + 1,
+      int4 = i + i,
+      dbl1 = 1.0 + i,
+      dbl2 = 1.0 + d,
+      dbl3 = 1.0 + n,
+      dbl4 = 1.0 + dyn,
+      dbl5 = 1 + 1, // Checking context type of "double = int + _".
+      dbl6 = n + 1, // Checking context type of "double = num + _".
+      dbl7 = d + i,
+      dbl8 = d + d,
+      dbl9 = d + n,
+      dbl10 = d + dyn,
+      num1 = i + n,
+      num2 = n + d,
+      num3 = n + n,
+      num4 = n + i,
+      num5 = n + dyn;
 }

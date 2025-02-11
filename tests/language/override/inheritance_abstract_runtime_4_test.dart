@@ -6,63 +6,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 abstract class A {
-
-
-
-
-
-
-
-
-
-
-
   method18() {}
-
 }
 
 abstract class I {
-
-
-
-
-
-
-
-
   method18() {}
-
-
-
-
-
-
-
-
 }
 
-abstract class J {
+abstract class J {}
 
-
-
-}
-
-class Class extends A implements I, J {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
+class Class extends A implements I, J {}
 
 main() {
   new Class();

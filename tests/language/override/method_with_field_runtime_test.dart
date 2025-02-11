@@ -18,8 +18,6 @@ class Super {
 class Sub extends Super {
   Sub() : super();
 
-
-
   superInstanceMethod() => super.instanceMethod();
 }
 

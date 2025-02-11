@@ -8,9 +8,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  A() {
-
-  }
+  A() {}
 }
 
 class B extends A {
@@ -20,6 +18,4 @@ class B extends A {
   }
 }
 
-main() {
-
-}
+main() {}

@@ -49,7 +49,8 @@ tests() {
   if (death() == nullFn()) {
     throw "failed";
   }
-  if (death() != nullFn()) {} else {
+  if (death() != nullFn()) {
+  } else {
     throw "failed";
   }
 }

@@ -11,22 +11,14 @@ library unsupported_operators;
 
 class C {
   m() {
-    print(
-
-        null);
-    print(
-
-        null);
+    print(null);
+    print(null);
   }
 }
 
 void main() {
   new C().m();
   new C().m();
-  print(
-
-      null);
-  print(
-
-      null);
+  print(null);
+  print(null);
 }

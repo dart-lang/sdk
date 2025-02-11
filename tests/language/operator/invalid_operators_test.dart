@@ -6,9 +6,8 @@ class Operators1 {
   operator ==() => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-  // [cfe] Operator '==' should have exactly one parameter.
-  //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
+  // [cfe] Operator '==' should have exactly one parameter.
   // [cfe] The method 'Operators1.==' has fewer positional arguments than those of overridden method 'Object.=='.
   operator <() => true;
   //       ^
@@ -84,9 +83,8 @@ class Operators2 {
   operator ==(a, b) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-  // [cfe] Operator '==' should have exactly one parameter.
-  //       ^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
+  // [cfe] Operator '==' should have exactly one parameter.
   // [cfe] The method 'Operators2.==' has more required arguments than those of overridden method 'Object.=='.
   operator <(a, b) => true;
   //       ^
@@ -493,7 +491,6 @@ class Operators7 {
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
   // [cfe] Can't infer types for '==' as the overridden members don't have a combined signature.
-  //       ^
   // [cfe] Declared type variables of 'Operators7.==' doesn't match those on overridden method 'Object.=='.
   //         ^^^
   // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR

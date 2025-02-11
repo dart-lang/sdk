@@ -45,19 +45,19 @@ abstract class J {
 }
 
 class Class extends A implements I, J {
-//    ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
-// [cfe] The non-abstract class 'Class' is missing implementations for these members:
+  //  ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+  // [cfe] The non-abstract class 'Class' is missing implementations for these members:
   method1() {}
   method2();
-//^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  // [error column 3, length 10]
+  // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   get getter3;
-//^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  // [error column 3, length 12]
+  // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   set setter4(_);
-//^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  // [error column 3, length 15]
+  // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   method5() {}
   method6([a]) {}
   set field13(_) {}

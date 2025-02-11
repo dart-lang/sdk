@@ -13,7 +13,6 @@ class C {
           //    ^
           // [analyzer] SYNTACTIC_ERROR.UNSUPPORTED_OPERATOR
           // [cfe] The '===' operator is not supported.
-          //    ^
           // [cfe] The string '===' isn't a user-definable operator.
         null);
     print(
@@ -21,7 +20,6 @@ class C {
           //    ^
           // [analyzer] SYNTACTIC_ERROR.UNSUPPORTED_OPERATOR
           // [cfe] The '!==' operator is not supported.
-          //    ^
           // [cfe] The string '!==' isn't a user-definable operator.
         null);
   }
@@ -35,7 +33,6 @@ void main() {
         //    ^
         // [analyzer] SYNTACTIC_ERROR.UNSUPPORTED_OPERATOR
         // [cfe] The '===' operator is not supported.
-        //    ^
         // [cfe] The string '===' isn't a user-definable operator.
       null);
   print(
@@ -43,7 +40,6 @@ void main() {
         //    ^
         // [analyzer] SYNTACTIC_ERROR.UNSUPPORTED_OPERATOR
         // [cfe] The '!==' operator is not supported.
-        //    ^
         // [cfe] The string '!==' isn't a user-definable operator.
       null);
 }
