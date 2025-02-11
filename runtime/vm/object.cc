@@ -23610,10 +23610,18 @@ void TypeParameter::PrintName(NameVisibility name_visibility,
 
 uword TypeParameter::ComputeHash() const {
   ASSERT(IsFinalized());
-  uint32_t result = parameterized_class_id();
-  result = CombineHashes(result, base());
+  uint32_t result = base();
   result = CombineHashes(result, index());
   result = CombineHashes(result, static_cast<uint32_t>(nullability()));
+  if (IsFunctionTypeParameter()) {
+    const FunctionType& func =
+        FunctionType::Handle(parameterized_function_type());
+    result = CombineHashes(result, func.packed_parameter_counts());
+    result = CombineHashes(result, func.packed_type_parameter_counts());
+  } else {
+    ASSERT(IsClassTypeParameter());
+    result = CombineHashes(result, parameterized_class_id());
+  }
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
   return result;
