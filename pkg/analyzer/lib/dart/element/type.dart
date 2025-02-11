@@ -439,6 +439,18 @@ abstract class InterfaceType implements ParameterizedType {
   /// </blockquote>
   ConstructorElement? lookUpConstructor(String? name, LibraryElement library);
 
+  /// Return the element representing the constructor that results from looking
+  /// up the constructor with the given [name] in this class with respect to the
+  /// given [library], or `null` if the look up fails. The behavior of this
+  /// method is defined by the Dart Language Specification in section 12.11.1:
+  /// <blockquote>
+  /// If <i>e</i> is of the form <b>new</b> <i>T.id()</i> then let <i>q<i> be
+  /// the constructor <i>T.id</i>, otherwise let <i>q<i> be the constructor
+  /// <i>T<i>. Otherwise, if <i>q</i> is not defined or not accessible, a
+  /// NoSuchMethodException is thrown.
+  /// </blockquote>
+  ConstructorElement2? lookUpConstructor2(String? name, LibraryElement2 library);
+
   /// Return the getter with the given [name].
   ///
   /// If [concrete] is `true`, then the concrete implementation is returned,

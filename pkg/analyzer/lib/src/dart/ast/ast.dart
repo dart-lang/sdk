@@ -325,13 +325,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
   @experimental
   @override
   Element2? get element2 {
-    var element = this.element;
-    if (element case Fragment fragment) {
-      return fragment.element;
-    } else if (element case Element2 element) {
-      return element;
-    }
-    return null;
+    return element?.asElement2;
   }
 
   @override
@@ -15105,6 +15099,10 @@ final class RedirectingConstructorInvocationImpl
   @override
   ConstructorElement2? get element => staticElement?.asElement2;
 
+  set element(ConstructorElement2? value) {
+    staticElement = value?.asElement;
+  }
+
   @override
   Token get endToken => _argumentList.endToken;
 
@@ -16659,6 +16657,10 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @experimental
   @override
   ConstructorElement2? get element => staticElement?.asElement2;
+
+  set element(ConstructorElement2? value) {
+    staticElement = value?.asElement;
+  }
 
   @override
   Token get endToken => _argumentList.endToken;

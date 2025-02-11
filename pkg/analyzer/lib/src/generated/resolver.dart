@@ -2568,7 +2568,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           argumentList.correspondingStaticParameters =
               ResolverVisitor.resolveArgumentsToParameters(
             argumentList: argumentList,
-            parameters: constructorElement.parameters,
+            formalParameters:
+                constructorElement.parameters.map((e) => e.asElement2).toList(),
             errorReporter: errorReporter,
           );
         } else if (definingLibrary.featureSet
@@ -4314,10 +4315,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// matched an argument, that position will be `null` in the list.
   static List<ParameterElementMixin?> resolveArgumentsToParameters({
     required ArgumentList argumentList,
-    required List<ParameterElement> parameters,
+    required List<FormalParameterElement> formalParameters,
     ErrorReporter? errorReporter,
     ConstructorDeclaration? enclosingConstructor,
   }) {
+    var parameters = formalParameters.map((e) => e.asElement).toList();
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
     List<ParameterElementMixin> unnamedParameters = <ParameterElementMixin>[];

@@ -52,7 +52,6 @@ import 'package:analyzer/src/error/return_type_verifier.dart';
 import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/error/use_result_verifier.dart';
-import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -1211,7 +1210,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var target = node.realTarget;
     SimpleIdentifier methodName = node.methodName;
     if (target != null) {
-      var typeReference = ElementResolver.getTypeReference(target);
+      var typeReference = getTypeReference(target)?.asElement;
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(
           typeReference, node.target, methodName);
@@ -1349,7 +1348,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node.parent is! Annotation) {
-      var typeReference = ElementResolver.getTypeReference(node.prefix);
+      var typeReference = getTypeReference(node.prefix)?.asElement;
       SimpleIdentifier name = node.identifier;
       _checkForStaticAccessToInstanceMember(typeReference, name);
       _checkForInstanceAccessToStaticMember(typeReference, node.prefix, name);
@@ -1374,7 +1373,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitPropertyAccess(PropertyAccess node) {
     var target = node.realTarget;
-    var typeReference = ElementResolver.getTypeReference(target);
+    var typeReference = getTypeReference(target)?.asElement;
     SimpleIdentifier propertyName = node.propertyName;
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
@@ -6584,6 +6583,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     return fields.toList();
+  }
+
+  /// Checks whether the given [expression] is a reference to a class. If it is
+  /// then the element representing the class is returned, otherwise `null` is
+  /// returned.
+  static InterfaceElement2? getTypeReference(Expression expression) {
+    if (expression is Identifier) {
+      var element = expression.element;
+      if (element is InterfaceElement2) {
+        return element;
+      } else if (element is TypeAliasElement2) {
+        var aliasedType = element.aliasedType;
+        if (aliasedType is InterfaceType) {
+          return aliasedType.element3;
+        }
+      }
+    }
+    return null;
   }
 }
 
