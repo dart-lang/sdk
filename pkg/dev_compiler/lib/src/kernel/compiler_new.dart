@@ -36,6 +36,7 @@ import '../js_ast/source_map_printer.dart'
 import 'compiler.dart' as old;
 import 'constants.dart';
 import 'future_or_normalizer.dart';
+import 'hot_reload_delta_inspector.dart';
 import 'js_interop.dart';
 import 'js_typerep.dart';
 import 'kernel_helpers.dart';
@@ -128,6 +129,12 @@ class LibraryBundleCompiler implements old.Compiler {
   js_ast.Program emitModule(Component component) {
     assert(_options.emitLibraryBundle);
     _ticker?.logMs('Emitting library bundle');
+    // When there is hot reload metadata, update the mappings to the nodes in
+    // the current LibraryIndex before passing it on the library compilers.
+    var repo = component.metadata[hotReloadLibraryMetadataTag]
+        as HotReloadLibraryMetadataRepository?;
+    repo?.mapToIndexedNodes(LibraryIndex.all(component));
+    var metadata = repo?.mapping;
     var compiledLibraries = <js_ast.Program>[];
     for (var library in component.libraries) {
       var libraryCompiler = LibraryCompiler(
@@ -139,6 +146,7 @@ class LibraryBundleCompiler implements old.Compiler {
         coreTypes: _coreTypes,
         ticker: _ticker,
         symbolData: _symbolData,
+        compileForHotReload: metadata?[library],
       );
       _libraryCompilers[library] = libraryCompiler;
       compiledLibraries.add(libraryCompiler.emitLibrary(library));
@@ -599,6 +607,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Supports verbose logging with a timer.
   Ticker? _ticker;
 
+  /// Whether the library is being compiled for a hot reload.
+  bool _compileForHotReload;
+
   factory LibraryCompiler(
     Component component,
     ClassHierarchy hierarchy,
@@ -608,6 +619,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     CoreTypes? coreTypes,
     Ticker? ticker,
     required SymbolData symbolData,
+    bool? compileForHotReload,
   }) {
     coreTypes ??= CoreTypes(component);
     var types = TypeEnvironment(coreTypes, hierarchy);
@@ -630,6 +642,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       importToSummary,
       summaryToModule,
       symbolData,
+      compileForHotReload ?? false,
     );
   }
 
@@ -647,7 +660,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       this._options,
       this._importToSummary,
       this._summaryToModule,
-      this._symbolData)
+      this._symbolData,
+      this._compileForHotReload)
       : _jsArrayClass = sdk.getClass('dart:_interceptors', 'JSArray'),
         _privateSymbolClass = sdk.getClass('dart:_js_helper', 'PrivateSymbol'),
         _linkedHashMapImplClass = sdk.getClass('dart:_js_helper', 'LinkedMap'),
@@ -871,7 +885,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           typeRulesExceptLegacyJavaScriptObject,
           rulesFunction: 'addRules'));
     }
-    if (typesThatOnlyExtendObject.isNotEmpty) {
+    if (_compileForHotReload && typesThatOnlyExtendObject.isNotEmpty) {
       _typeRuleLinks.add(emitRulesStatement(typesThatOnlyExtendObject.toList(),
           rulesFunction: 'deleteRules'));
     }
@@ -2857,10 +2871,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // We avoid emitting casts for top level fields in the legacy SDK since
     // some are used for legacy type checks and must be initialized to avoid
     // infinite loops.
-    var initialFieldValueExpression =
-        !_options.soundNullSafety && _isSdkInternalRuntime(_currentLibrary!)
-            ? valueCache
-            : _emitCast(valueCache, field.type);
+    var initialFieldValueExpression = !_compileForHotReload ||
+            !_options.soundNullSafety && _isSdkInternalRuntime(_currentLibrary!)
+        ? valueCache
+        : _emitCast(valueCache, field.type);
 
     // Lazy static fields require an additional type check around their value
     // cache if their type is updated after hot reload. To avoid a type check
