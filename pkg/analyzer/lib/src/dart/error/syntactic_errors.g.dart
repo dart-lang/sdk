@@ -114,7 +114,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INVALID_INITIALIZER,
   ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
-  ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
+  ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE,
   ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER,
   ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
   ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER,
@@ -200,7 +200,6 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS,
   ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS,
   ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
-  ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -749,16 +748,6 @@ class ParserErrorCode extends ErrorCode {
     'EXTENSION_DECLARES_CONSTRUCTOR',
     "Extensions can't declare constructors.",
     correctionMessage: "Try removing the constructor declaration.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const ParserErrorCode EXTENSION_DECLARES_INSTANCE_FIELD =
-      ParserErrorCode(
-    'EXTENSION_DECLARES_INSTANCE_FIELD',
-    "Extensions can't declare instance fields",
-    correctionMessage:
-        "Try removing the field declaration or making it a static field",
     hasPublishedDocs: true,
   );
 

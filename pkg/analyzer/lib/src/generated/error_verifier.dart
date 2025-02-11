@@ -885,6 +885,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var oldHasAccessToThis = _hasAccessToThis;
     try {
       _hasAccessToThis = !node.isStatic && node.fields.isLate;
+      _checkForExtensionDeclaresInstanceField(node);
       _checkForExtensionTypeDeclaresInstanceField(node);
       _checkForNotInitializedNonNullableStaticField(node);
       _checkForWrongTypeParameterVarianceInField(node);
@@ -3387,6 +3388,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var type = namedType.type;
     return type is InterfaceType &&
         _typeProvider.isNonSubtypableClass(type.element);
+  }
+
+  void _checkForExtensionDeclaresInstanceField(FieldDeclaration node) {
+    if (node.parent is! ExtensionDeclaration) {
+      return;
+    }
+
+    if (node.isStatic || node.externalKeyword != null) {
+      return;
+    }
+
+    for (var field in node.fields.variables) {
+      errorReporter.atToken(
+        field.name,
+        CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
+      );
+    }
   }
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {

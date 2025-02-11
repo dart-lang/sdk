@@ -4,8 +4,8 @@
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
-// Instead modify 'pkg/front_end/messages.yaml' and run
-// 'pkg/front_end/tool/cfe generate-messages' to update.
+// Instead modify 'pkg/front_end/messages.yaml' and defer to it for the
+// commands to update this file.
 
 // ignore_for_file: lines_longer_than_80_chars
 
@@ -5380,7 +5380,7 @@ const Code<Null> codeExtensionAugmentationHasOnClause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtensionAugmentationHasOnClause = const MessageCode(
   "ExtensionAugmentationHasOnClause",
-  index: 179,
+  index: 93,
   problemMessage: r"""Extension augmentations can't have 'on' clauses.""",
   correctionMessage: r"""Try removing the 'on' clause.""",
 );
@@ -5416,7 +5416,7 @@ const Code<Null> codeExtensionDeclaresInstanceField =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtensionDeclaresInstanceField = const MessageCode(
   "ExtensionDeclaresInstanceField",
-  index: 93,
+  analyzerCodes: <String>["EXTENSION_DECLARES_INSTANCE_FIELD"],
   problemMessage: r"""Extensions can't declare instance fields""",
   correctionMessage:
       r"""Try removing the field declaration or making it a static field""",
