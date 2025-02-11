@@ -19,13 +19,13 @@ class Y extends B {}
 class Z implements A, B {}
 
 method(S s) => switch (s) {
-//             ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-//                     ^
-// [cfe] The type 'S' is not exhaustively matched by the switch cases since it doesn't match 'A()'.
-      X() as A => 0,
-      Y() as B => 1,
-    };
+  //           ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+  //                   ^
+  // [cfe] The type 'S' is not exhaustively matched by the switch cases since it doesn't match 'A()'.
+  X() as A => 0,
+  Y() as B => 1,
+};
 
 test() {
   method(Z());

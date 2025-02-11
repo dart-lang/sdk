@@ -37,7 +37,7 @@ test<T>(o) {
     print(hashCode);
     return 7;
   }
-  if (o case dynamic(: var hashCode)) {
+  if (o case dynamic(:var hashCode)) {
     print(hashCode);
     return 0;
   }

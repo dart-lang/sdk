@@ -9,9 +9,9 @@ class A {}
 class Test extends B {
   test() {
     _staticField = true;
-//  ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] The setter '_staticField' isn't defined for the class 'Test'.
+    // [error column 5]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [cfe] The setter '_staticField' isn't defined for the class 'Test'.
   }
 }
 

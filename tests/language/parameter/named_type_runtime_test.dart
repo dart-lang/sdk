@@ -24,7 +24,4 @@ main() {
   anyFunction = funNumOptBool;
   anyFunction = funNumOptBoolX;
   acceptFunNumOptBool(funNumOptBool);
-
-
-
 }

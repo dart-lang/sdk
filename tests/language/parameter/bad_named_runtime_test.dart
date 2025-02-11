@@ -23,16 +23,11 @@ main() {
 
   // Parameter b passed twice.
 
-
   // Parameter x does not exist.
-
 
   // Parameter b1 does not exist.
 
-
   // Too many parameters.
 
-
   // Too few parameters.
-
 }

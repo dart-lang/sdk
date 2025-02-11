@@ -12,9 +12,7 @@ import "../library10.dart" as T;
 import "../library10.dart" as lib10;
 
 class P<T> {
-  test() {
-
-  }
+  test() {}
 }
 
 main() {

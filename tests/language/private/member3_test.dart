@@ -9,9 +9,9 @@ class A {}
 class Test extends B {
   test() {
     _fun();
-//  ^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] The method '_fun' isn't defined for the class 'Test'.
+    // [error column 5]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] The method '_fun' isn't defined for the class 'Test'.
   }
 }
 

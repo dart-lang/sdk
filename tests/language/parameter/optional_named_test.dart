@@ -63,59 +63,59 @@ class OptionalNamedParametersTest {
     Expect.equals(20, F10());
     Expect.equals(20, np.f21());
     Expect.equals(20, F10(20));
+    //                   ^
+    // [cfe] Too many positional arguments: 0 allowed, but 1 found.
     //                    ^^
     // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-    //                   ^^^^
-    // [cfe] Too many positional arguments: 0 allowed, but 1 found.
     Expect.equals(20, np.f21(20));
+    //                      ^
+    // [cfe] Too many positional arguments: 0 allowed, but 1 found.
     //                       ^^
     // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-    //                      ^^^^
-    // [cfe] Too many positional arguments: 0 allowed, but 1 found.
     Expect.equals(20, F10(b: 20));
     Expect.equals(20, np.f21(b: 20));
     Expect.equals(1020, F21(10));
     Expect.equals(1020, np.f32(10));
     Expect.equals(1025, F21(10, 25));
+    //                     ^
+    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     //                          ^^
     // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-    //                     ^^^^^^^^
-    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     Expect.equals(1025, np.f32(10, 25));
+    //                        ^
+    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     //                             ^^
     // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-    //                        ^^^^^^^^
-    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     Expect.equals(1025, F21(10, b: 25));
     Expect.equals(1025, np.f32(10, b: 25));
     Expect.equals(102030, F31(10));
     Expect.equals(102030, np.f42(10));
     Expect.equals(102530, F31(10, 25));
+    //                       ^
+    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     //                            ^^
     // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-    //                       ^^^^^^^^
-    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     Expect.equals(102530, np.f42(10, 25));
+    //                          ^
+    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     //                               ^^
     // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-    //                          ^^^^^^^^
-    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     Expect.equals(102530, F31(10, b: 25));
     Expect.equals(102530, np.f42(10, b: 25));
     Expect.equals(102035, F31(10, c: 35));
     Expect.equals(102035, np.f42(10, c: 35));
     Expect.equals(102535, F31(10, b: 25, c: 35));
     Expect.equals(102535, np.f42(10, b: 25, c: 35));
-    Expect.equals(102535, F31(10, 25, c:35));
+    Expect.equals(102535, F31(10, 25, c: 35));
+    //                       ^
+    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     //                            ^^
     // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-    //                       ^^^^^^^^^^^^^^
+    Expect.equals(102535, np.f42(10, 25, c: 35));
+    //                          ^
     // [cfe] Too many positional arguments: 1 allowed, but 2 found.
-    Expect.equals(102535, np.f42(10, 25, c:35));
     //                               ^^
     // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-    //                          ^^^^^^^^^^^^^^
-    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     Expect.equals(102535, F31(10, c: 35, b: 25));
     Expect.equals(102535, np.f42(10, c: 35, b: 25));
     Expect.equals(10200040, F41(10));
@@ -123,11 +123,11 @@ class OptionalNamedParametersTest {
     Expect.equals(10203540, F41(10, c: 35));
     Expect.equals(10203540, np.f52(10, c: 35));
     Expect.equals(10250045, F41(10, d: 45, b: 25));
-    Expect.equals(10250045, F41(10, 25, d:45));
+    Expect.equals(10250045, F41(10, 25, d: 45));
+    //                         ^
+    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     //                              ^^
     // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-    //                         ^^^^^^^^^^^^^^
-    // [cfe] Too many positional arguments: 1 allowed, but 2 found.
     Expect.equals(10250045, np.f52(10, d: 45, b: 25));
     Expect.equals(10253545, F41(10, d: 45, c: 35, b: 25));
     Expect.equals(10253545, np.f52(10, d: 45, c: 35, b: 25));

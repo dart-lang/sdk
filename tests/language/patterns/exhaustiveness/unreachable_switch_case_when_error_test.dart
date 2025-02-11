@@ -8,18 +8,18 @@
 enum E { e1, e2 }
 
 Object reachableCaseInSwitchExpression(E e, bool b) => switch (e) {
-      E.e1 when b => 0,
-      E.e2 => 1,
-      E.e1 => 2,
-    };
+  E.e1 when b => 0,
+  E.e2 => 1,
+  E.e1 => 2,
+};
 
 Object unreachableCaseInSwitchExpression(E e, bool b) => switch (e) {
-      E.e1 => 0,
-      E.e2 => 1,
-      E.e1 when b => 2,
-      //          ^^
-      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
-    };
+  E.e1 => 0,
+  E.e2 => 1,
+  E.e1 when b => 2,
+  //          ^^
+  // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+};
 
 void reachableCaseInSwitchStatement(E e, bool b) {
   switch (e) {
@@ -39,8 +39,8 @@ void unreachableCaseInSwitchStatement(E e, bool b) {
     case E.e2:
       break;
     case E.e1 when b:
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       break;
   }
 }

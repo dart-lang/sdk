@@ -11,17 +11,18 @@ main() {
   var map = {'a': 1, 'b': 2};
 
   // Map patterns don't access length.
-  Expect.isTrue(switch (NoLengthMap(map)) { {'a': _} => true, _ => false });
+  Expect.isTrue(switch (NoLengthMap(map)) {
+    {'a': _} => true,
+    _ => false,
+  });
 
   // Map patterns match even if there are extra keys.
-  Expect.equals(
-      'a b',
-      switch (map) {
-        {'a': _, 'b': _} => 'a b',
-        {'a': _} => 'a',
-        {'b': _} => 'b',
-        _ => '???'
-      });
+  Expect.equals('a b', switch (map) {
+    {'a': _, 'b': _} => 'a b',
+    {'a': _} => 'a',
+    {'b': _} => 'b',
+    _ => '???',
+  });
 }
 
 class NoLengthMap extends MapBase<String, int> {

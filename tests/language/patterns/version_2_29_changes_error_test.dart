@@ -13,21 +13,22 @@ main() {
   switch (map) {
     case {...}:
     //    ^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.REST_ELEMENT_IN_MAP_PATTERN
+    // [cfe] The '...' pattern can't appear in map patterns.
     case {'a': _, ...}:
+    // [error column 5, length 4]
+    // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
     //            ^^^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.REST_ELEMENT_IN_MAP_PATTERN
+    // [cfe] The '...' pattern can't appear in map patterns.
   }
 
   // It's an error to have an empty map pattern.
   switch (map) {
     case {}:
-//       ^^
-// [analyzer] COMPILE_TIME_ERROR.EMPTY_MAP_PATTERN
-//  ^^^^
-// [cfe] unspecified
+    //   ^^
+    // [analyzer] COMPILE_TIME_ERROR.EMPTY_MAP_PATTERN
+    // [cfe] A map pattern must have at least one entry.
   }
 
   // Later cases may be unreachable because map patterns ignore extra keys.
@@ -37,8 +38,8 @@ main() {
     case {'b': _}:
       print('b');
     case {'a': _, 'b': _}:
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('a b');
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum E {a, b}
+enum E { a, b }
 
 void exhaustiveSwitch1((E, bool) r) {
   switch (r) /* Ok */ {
@@ -28,10 +28,10 @@ void exhaustiveSwitch2((E, bool) r) {
 
 void nonExhaustiveSwitch1((E, bool) r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.b, false)'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.b, false)'.
     case (E.a, var b):
       print('(a, *)');
       break;
@@ -43,10 +43,10 @@ void nonExhaustiveSwitch1((E, bool) r) {
 
 void nonExhaustiveSwitch2((E, bool) r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.b, true)'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.b, true)'.
     case (var a, false):
       print('(*, false)');
       break;
@@ -58,10 +58,10 @@ void nonExhaustiveSwitch2((E, bool) r) {
 
 void nonExhaustiveSwitch3((E, bool) r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.b, true)'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.b, true)'.
     case (E a, false):
       print('(*, false)');
       break;
@@ -98,10 +98,10 @@ void exhaustiveNullableSwitch((E, bool)? r) {
 
 void nonExhaustiveNullableSwitch1((E, bool)? r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type '(E, bool)?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type '(E, bool)?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case (E a, bool b):
       print('(*, *)');
       break;
@@ -110,10 +110,10 @@ void nonExhaustiveNullableSwitch1((E, bool)? r) {
 
 void nonExhaustiveNullableSwitch2((E, bool)? r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type '(E, bool)?' is not exhaustively matched by the switch cases since it doesn't match '(E.a, true)'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type '(E, bool)?' is not exhaustively matched by the switch cases since it doesn't match '(E.a, true)'.
     case (E a, false):
       print('(*, false)');
       break;
@@ -141,8 +141,8 @@ void unreachableCase1((E, bool) r) {
       print('(b, true)');
       break;
     case (E a, bool b): // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('(*, *)');
       break;
   }
@@ -169,8 +169,8 @@ void unreachableCase3((E, bool)? r) {
       print('null1');
       break;
     case null: // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null2');
       break;
   }

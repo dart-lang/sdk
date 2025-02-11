@@ -16,10 +16,7 @@
 
 import 'dart:async';
 
-enum E {
-  e1,
-  e2
-}
+enum E { e1, e2 }
 
 void ignore(Object? value) {}
 
@@ -48,8 +45,8 @@ void untypedWildcard(bool b) {
       break;
   }
   ignore(switch (b) {
-      true => 0,
-      _ => 1
+    true => 0,
+    _ => 1,
   });
 }
 
@@ -65,8 +62,8 @@ void untypedVariable(bool b) {
       break;
   }
   ignore(switch (b) {
-      true => 0,
-      var x => 1
+    true => 0,
+    var x => 1,
   });
 }
 
@@ -89,12 +86,12 @@ void typedWildcard(bool b) {
       break;
   }
   ignore(switch (b) {
-      true => 0,
-      bool _ => 1
+    true => 0,
+    bool _ => 1,
   });
   ignore(switch (b) {
-      true => 0,
-      Object _ => 1
+    true => 0,
+    Object _ => 1,
   });
 }
 
@@ -117,12 +114,12 @@ void typedVariable(bool b) {
       break;
   }
   ignore(switch (b) {
-      true => 0,
-      bool x => 1,
+    true => 0,
+    bool x => 1,
   });
   ignore(switch (b) {
-      true => 0,
-      Object x => 1,
+    true => 0,
+    Object x => 1,
   });
 }
 
@@ -145,12 +142,12 @@ void objectPattern(bool b) {
       break;
   }
   ignore(switch (b) {
-      true => 0,
-      bool() => 1
+    true => 0,
+    bool() => 1,
   });
   ignore(switch (b) {
-      true => 0,
-      Object() => 1
+    true => 0,
+    Object() => 1,
   });
 }
 
@@ -169,10 +166,10 @@ void logicalOrPattern(bool b) {
       break;
   }
   ignore(switch (b) {
-      true || bool() => 0
+    true || bool() => 0,
   });
   ignore(switch (b) {
-      bool() || true => 0
+    bool() || true => 0,
   });
 }
 
@@ -187,7 +184,7 @@ void logicalAndPattern(bool b) {
       break;
   }
   ignore(switch (b) {
-      bool() && Object() => 0
+    bool() && Object() => 0,
   });
 }
 
@@ -201,7 +198,7 @@ void castPattern(bool? b) {
       break;
   }
   ignore(switch (b) {
-      bool() as bool => 0
+    bool() as bool => 0,
   });
 }
 
@@ -216,7 +213,7 @@ void nullAssertPattern(bool? b1, bool? b2) {
       break;
   }
   ignore(switch (b2) {
-      bool()! => 0
+    bool()! => 0,
   });
 }
 
@@ -230,7 +227,7 @@ void nullPattern(Null n) {
       break;
   }
   ignore(switch (n) {
-      null => 0
+    null => 0,
   });
 }
 
@@ -254,14 +251,14 @@ void parenthesizedPattern(bool b, E e) {
       break;
   }
   ignore(switch (b) {
-      (bool()) => 0
+    (bool()) => 0,
   });
   ignore(switch (b) {
-      ((bool())) => 0
+    ((bool())) => 0,
   });
   ignore(switch (e) {
-      (E.e1) => 0,
-      ((E.e2)) => 1
+    (E.e1) => 0,
+    ((E.e2)) => 1,
   });
 }
 
@@ -275,7 +272,7 @@ void recordPattern((bool, E) r) {
       break;
   }
   ignore(switch (r) {
-      (bool(), E()) => 0
+    (bool(), E()) => 0,
   });
 }
 
@@ -290,8 +287,8 @@ void factorNullable(bool? b) {
       break;
   }
   ignore(switch (b) {
-      null => 0,
-      bool() => 1
+    null => 0,
+    bool() => 1,
   });
 }
 
@@ -307,8 +304,8 @@ void factorFutureOr(FutureOr<bool> x) {
       break;
   }
   ignore(switch (x) {
-      Future<bool>() => 0,
-      bool() => 1
+    Future<bool>() => 0,
+    bool() => 1,
   });
 }
 
@@ -324,8 +321,8 @@ void exhaustedEnum(E e) {
       break;
   }
   ignore(switch (e) {
-      E.e1 => 0,
-      E.e2 => 1
+    E.e1 => 0,
+    E.e2 => 1,
   });
 }
 
@@ -343,9 +340,9 @@ void exhaustedNullableEnum(E? e) {
       break;
   }
   ignore(switch (e) {
-      E.e1 => 0,
-      E.e2 => 1,
-      null => 2
+    E.e1 => 0,
+    E.e2 => 1,
+    null => 2,
   });
 }
 

@@ -7,24 +7,24 @@ import 'package:expect/expect.dart';
 import 'package:expect/variations.dart';
 
 exhaustiveNonNullableTypeVariable<T extends Object>(int? o) => switch (o) {
-      int() as T => 0,
-    };
+  int() as T => 0,
+};
 
 exhaustiveNonNullableType(int? o) => switch (o) {
-      int() as int => 0,
-    };
+  int() as int => 0,
+};
 
 exhaustiveNonNullableSuperType(int? o) => switch (o) {
-      int() as num => 0,
-    };
+  int() as num => 0,
+};
 
 exhaustiveNonNullableFutureOr1(FutureOr<int>? o) => switch (o) {
-      FutureOr<int>() as FutureOr<int> => 0,
-    };
+  FutureOr<int>() as FutureOr<int> => 0,
+};
 
 exhaustiveNonNullableFutureOr2(FutureOr<int?> o) => switch (o) {
-      FutureOr<int>() as FutureOr<int> => 0,
-    };
+  FutureOr<int>() as FutureOr<int> => 0,
+};
 
 exhaustiveNonNullableFutureOrTypeVariable1<T extends Object>(FutureOr<T>? o) =>
     switch (o) {
@@ -63,7 +63,8 @@ main() {
   Expect.equals(0, exhaustiveNonNullableFutureOr2(Future<int>.value(42)));
   if (!unsoundNullSafety) {
     Expect.throws(
-        () => exhaustiveNonNullableFutureOr2(Future<int?>.value(null)));
+      () => exhaustiveNonNullableFutureOr2(Future<int?>.value(null)),
+    );
     Expect.throws(() => exhaustiveNonNullableFutureOr2(null));
   } else {
     Expect.equals(0, exhaustiveNonNullableFutureOr2(Future<int?>.value(null)));
@@ -71,30 +72,37 @@ main() {
   }
 
   Expect.equals(0, exhaustiveNonNullableFutureOrTypeVariable1<Object>(42));
-  Expect.equals(0,
-      exhaustiveNonNullableFutureOrTypeVariable1<int>(Future<int>.value(42)));
+  Expect.equals(
+    0,
+    exhaustiveNonNullableFutureOrTypeVariable1<int>(Future<int>.value(42)),
+  );
   if (!unsoundNullSafety) {
     Expect.throws(
-        () => exhaustiveNonNullableFutureOrTypeVariable1<Object>(null));
+      () => exhaustiveNonNullableFutureOrTypeVariable1<Object>(null),
+    );
   } else {
     Expect.equals(0, exhaustiveNonNullableFutureOrTypeVariable1<Object>(null));
   }
 
   Expect.equals(0, exhaustiveNonNullableFutureOrTypeVariable2<int>(42));
   Expect.equals(
-      0,
-      exhaustiveNonNullableFutureOrTypeVariable2<Object>(
-          Future<int>.value(42)));
+    0,
+    exhaustiveNonNullableFutureOrTypeVariable2<Object>(Future<int>.value(42)),
+  );
   if (!unsoundNullSafety) {
-    Expect.throws(() => exhaustiveNonNullableFutureOrTypeVariable2<int>(
-        Future<int?>.value(null)));
     Expect.throws(
-        () => exhaustiveNonNullableFutureOrTypeVariable2<Object>(null));
+      () => exhaustiveNonNullableFutureOrTypeVariable2<int>(
+        Future<int?>.value(null),
+      ),
+    );
+    Expect.throws(
+      () => exhaustiveNonNullableFutureOrTypeVariable2<Object>(null),
+    );
   } else {
     Expect.equals(
-        0,
-        exhaustiveNonNullableFutureOrTypeVariable2<int>(
-            Future<int?>.value(null)));
+      0,
+      exhaustiveNonNullableFutureOrTypeVariable2<int>(Future<int?>.value(null)),
+    );
     Expect.equals(0, exhaustiveNonNullableFutureOrTypeVariable2<Object>(null));
   }
 }

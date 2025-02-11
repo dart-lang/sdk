@@ -10,11 +10,11 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Couldn't find constructor 'lib11.Library11'.
   lib11.Library11.static_func();
-//^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Undefined name 'lib11'.
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'lib11'.
   lib11.Library11.static_fld;
-//^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Undefined name 'lib11'.
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'lib11'.
 }

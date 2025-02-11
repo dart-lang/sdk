@@ -12,6 +12,6 @@ void main() {
     //                 ^
     // [cfe] The type 'List<int>' is not exhaustively matched by the switch cases since it doesn't match '[]'.
     const [] => 'empty constant',
-    [_, ...] => 'non-empty'
+    [_, ...] => 'non-empty',
   };
 }

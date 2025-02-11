@@ -6,10 +6,9 @@ import "package:expect/expect.dart";
 
 void main() {
   dynamic foo = 84;
-  var (int x, (int, )? y) = switch (foo) {
+  var (int x, (int,)? y) = switch (foo) {
     _ => (42, null),
   };
   Expect.equals(42, x);
   Expect.equals(null, y);
 }
-

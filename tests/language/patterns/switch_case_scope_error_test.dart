@@ -11,9 +11,9 @@ main() {
     case final int local when false: // Guard to make the next case reachable.
     case int local:
       print(local);
-      //    ^^^^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    //      ^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+    // [cfe] Variable pattern 'local' doesn't have the same type or finality in all cases.
   }
 
   // If cases sharing a body don't agree on a variable's type, it is still
@@ -22,8 +22,8 @@ main() {
     case bool local:
     case int local:
       print(local);
-      //    ^^^^^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+    //      ^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+    // [cfe] Variable pattern 'local' doesn't have the same type or finality in all cases.
   }
 }

@@ -64,11 +64,11 @@ class NamedParametersTest {
     Expect.equals(20, np.f21());
     Expect.equals(20, F10(20));
     Expect.equals(20, np.f21(20));
-    Expect.equals(20, F10(b:20));
+    Expect.equals(20, F10(b: 20));
     //                    ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
     // [cfe] No named parameter with the name 'b'.
-    Expect.equals(20, np.f21(b:20));
+    Expect.equals(20, np.f21(b: 20));
     //                       ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
     // [cfe] No named parameter with the name 'b'.
@@ -76,11 +76,11 @@ class NamedParametersTest {
     Expect.equals(1020, np.f32(10));
     Expect.equals(1025, F21(10, 25));
     Expect.equals(1025, np.f32(10, 25));
-    Expect.equals(1025, F21(10, b:25));
+    Expect.equals(1025, F21(10, b: 25));
     //                          ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
     // [cfe] No named parameter with the name 'b'.
-    Expect.equals(1025, np.f32(10, b:25));
+    Expect.equals(1025, np.f32(10, b: 25));
     //                             ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
     // [cfe] No named parameter with the name 'b'.
@@ -88,31 +88,31 @@ class NamedParametersTest {
     Expect.equals(102030, np.f42(10));
     Expect.equals(102530, F31(10, 25));
     Expect.equals(102530, np.f42(10, 25));
-    Expect.equals(102035, F31(10, c:35));
+    Expect.equals(102035, F31(10, c: 35));
     //                            ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
     // [cfe] No named parameter with the name 'c'.
-    Expect.equals(102035, np.f42(10, c:35));
+    Expect.equals(102035, np.f42(10, c: 35));
     //                               ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
     // [cfe] No named parameter with the name 'c'.
     Expect.equals(102535, F31(10, 25, 35));
     Expect.equals(102535, np.f42(10, 25, 35));
-    Expect.equals(102535, F31(10, 25, c:35));
+    Expect.equals(102535, F31(10, 25, c: 35));
     //                                ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
     // [cfe] No named parameter with the name 'c'.
-    Expect.equals(102535, np.f42(10, 25, c:35));
+    Expect.equals(102535, np.f42(10, 25, c: 35));
     //                                   ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
     // [cfe] No named parameter with the name 'c'.
     Expect.equals(10200040, F41(10));
     Expect.equals(10200040, np.f52(10));
-    Expect.equals(10203540, F41(10, c:35));
+    Expect.equals(10203540, F41(10, c: 35));
     //                              ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
     // [cfe] No named parameter with the name 'c'.
-    Expect.equals(10203540, np.f52(10, c:35));
+    Expect.equals(10203540, np.f52(10, c: 35));
     //                                 ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
     // [cfe] No named parameter with the name 'c'.

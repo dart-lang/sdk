@@ -70,4 +70,3 @@ void sharedPatternVariableShadows(Object value) {
   // Outer local is not assigned.
   Expect.equals('local', local);
 }
-
