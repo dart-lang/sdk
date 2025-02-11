@@ -27,12 +27,6 @@ vm/no_such_args_error_message_vm_test: SkipByDesign # Looks for function name in
 vm/no_such_method_error_message_callable_vm_test: SkipByDesign # Expects unobfuscated method names
 vm/no_such_method_error_message_vm_test: SkipByDesign # Looks for unobfuscated name in error message
 
-[ $compiler == dartk && $mode == debug && ($hot_reload || $hot_reload_rollback) ]
-enum/duplicate_test/02: Crash # Issue 34606
-enum/duplicate_test/none: Crash # Issue 34606
-enum/private_test/01: Crash # Issue 34606
-unsorted/inference_enum_list_test: Skip # Issue 35885
-
 [ $compiler == dartk && $mode == product && $runtime == vm ]
 vm/lazy_async_exception_stack2_test: SkipByDesign
 vm/lazy_async_exception_stack_test: SkipByDesign
