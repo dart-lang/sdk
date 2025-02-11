@@ -15,6 +15,8 @@
 /// Each of the "builder" classes has a single `finish` method which writes
 /// the entity being built into the given FlatBuffer and returns the `Offset`
 /// reference to it.
+///
+/// @docImport 'package:analyzer/src/summary/api_signature.dart';
 library;
 
 import 'dart:convert';
@@ -433,7 +435,7 @@ class _BuilderGenerator extends _BaseGenerator {
     }
   }
 
-  /// Generate a call to the appropriate method of [ApiSignature] for the type
+  /// Generates a call to the appropriate method of [ApiSignature] for the type
   /// [typeName], using the data named by [ref].  If [couldBeNull] is `true`,
   /// generate code to handle the possibility that [ref] is `null` (substituting
   /// in the appropriate default value).

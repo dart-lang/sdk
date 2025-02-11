@@ -1420,9 +1420,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     return parser.parseSimpleIdentifier();
   }
 
-  /// Parse the given [content] as a statement. If
-  /// [enableLazyAssignmentOperators] is `true`, then lazy assignment operators
-  /// should be enabled.
+  /// Parses the given [content] as a statement.
   @override
   Statement parseStatement(String content, {int? expectedEndOffset}) {
     Source source = TestSource();

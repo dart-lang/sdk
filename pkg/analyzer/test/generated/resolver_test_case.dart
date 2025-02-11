@@ -4,6 +4,9 @@
 
 // ignore_for_file: analyzer_use_new_elements
 
+/// @docImport 'strong_mode_test.dart';
+library;
+
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -288,7 +291,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   }
 }
 
-/// Shared infrastructure for [StaticTypeAnalyzer2Test].
+/// Shared infrastructure for [StrongModeStaticTypeAnalyzer2Test].
 class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// Looks up the identifier with [name] and validates that its type type
   /// stringifies to [type] and that its generics match the given stringified
@@ -319,34 +322,21 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// If [type] is a string, validates that the identifier's static type
   /// stringifies to that text. Otherwise, [type] is used directly a [Matcher]
   /// to match the type.
-  void expectIdentifierType(String name, type) {
+  void expectIdentifierType(String name, String type) {
     SimpleIdentifier identifier = findNode.simple(name);
-    _expectType(identifier.staticType, type);
+    assertType(identifier.staticType, type);
   }
 
-  /// Looks up the initializer for the declaration containing [identifier] and
+  /// Looks up the initializer for the declaration containing [name] and
   /// validates its static [type].
   ///
   /// If [type] is a string, validates that the identifier's static type
   /// stringifies to that text. Otherwise, [type] is used directly a [Matcher]
   /// to match the type.
-  void expectInitializerType(String name, type) {
+  void expectInitializerType(String name, String type) {
     var declaration = findNode.variableDeclaration(name);
     var initializer = declaration.initializer!;
-    _expectType(initializer.staticType, type);
-  }
-
-  /// Validates that [type] matches [expected].
-  ///
-  /// If [expected] is a string, validates that the type stringifies to that
-  /// text. Otherwise, [expected] is used directly a [Matcher] to match the
-  /// type.
-  _expectType(DartType? type, expected) {
-    if (expected is String) {
-      assertType(type, expected);
-    } else {
-      expect(type, expected);
-    }
+    assertType(initializer.staticType, type);
   }
 
   FunctionType _getFunctionTypedElementType(SimpleIdentifier identifier) {

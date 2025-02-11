@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'complex_parser_test.dart';
+library;
+
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -71,10 +74,11 @@ class SimpleParserTest extends FastaParserTestCase {
     return directive.name2;
   }
 
-  /// Parse the given [content] as a sequence of statements by enclosing it in a
-  /// block. The [expectedCount] is the number of statements that are expected
-  /// to be parsed. If [errorCodes] are provided, verify that the error codes of
-  /// the errors that are expected are found.
+  /// Parses the given [content] as a sequence of statements by enclosing it in
+  /// a block.
+  ///
+  /// The [expectedCount] is the number of statements that are expected to be
+  /// parsed.
   void parseStatementList(String content, int expectedCount) {
     Statement statement = parseStatement('{$content}');
     expect(statement, isBlock);
