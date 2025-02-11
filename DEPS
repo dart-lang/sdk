@@ -73,7 +73,7 @@ vars = {
   "checkout_javascript_engines": False,
   "d8_tag": "version:13.5.7",
   "jsshell_tag": "version:134.0.2",
-  "jsc_tag": "version:289733",
+  "jsc_tag": "version:290198",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
   "clang_version": "git_revision:84af3ee5124de3385b829c3a9980fd734f0d92e8",
