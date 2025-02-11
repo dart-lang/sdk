@@ -306,7 +306,35 @@ abstract class FileKind {
     return _libraryImports = result;
   }
 
+  void _addImplicitParts() {
+    var baseName = path.basenameWithoutExtension(file.path);
+
+    if (!baseName.contains(".")) {
+      //search for any files with the format baseName.*.dart
+      //and add them as parts if they are not already included
+      baseName += ".";
+      var implicitParts = file.source.file.parent
+          .getChildren()
+          .map((resource) => path.basename(resource.path))
+          .where((filename) =>
+              filename.startsWith(baseName) &&
+              !file.unlinked2.parts.any((element) => element.uri == filename));
+
+      if (implicitParts.isEmpty) {
+        return;
+      }
+      _partIncludes = null;
+      file.unlinked2.parts.addAll(implicitParts.map((path) {
+        return UnlinkedPartDirective(
+          configurations: [],
+          uri: path,
+        );
+      }));
+    }
+  }
+
   List<PartIncludeState> get partIncludes {
+    _addImplicitParts();
     return _partIncludes ??=
         file.unlinked2.parts.map<PartIncludeState>((unlinked) {
       var uris = file._buildConfigurableDirectiveUris(unlinked);
