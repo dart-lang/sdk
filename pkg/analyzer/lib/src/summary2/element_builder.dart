@@ -731,24 +731,28 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     covariant FieldFormalParameterImpl node,
   ) {
     var nameToken = node.name;
-    var name = nameToken.lexeme;
-    var nameOffset = nameToken.offset;
+    var name2 = nameToken.lexeme.nullIfEmpty;
+    var nameOffset2 = nameToken.offset.nullIfNegative;
 
     ParameterElementImpl element;
     var parent = node.parent;
     if (parent is DefaultFormalParameterImpl) {
       element = DefaultFieldFormalParameterElementImpl(
-        name: name,
-        nameOffset: nameOffset,
+        name: name2 ?? '',
+        nameOffset: nameOffset2 ?? -1,
+        name2: name2,
+        nameOffset2: nameOffset2,
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
-      var refName = node.isNamed ? name : null;
+      var refName = node.isNamed ? name2 : null;
       _enclosingContext.addParameter(refName, element);
     } else {
       element = FieldFormalParameterElementImpl(
-        name: name,
-        nameOffset: nameOffset,
+        name: name2 ?? '',
+        nameOffset: nameOffset2 ?? -1,
+        name2: name2,
+        nameOffset2: nameOffset2,
         parameterKind: node.kind,
       );
       _linker.elementNodes[element] = node;
@@ -1004,22 +1008,26 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     covariant FunctionTypedFormalParameterImpl node,
   ) {
     var nameToken = node.name;
-    var name = nameToken.lexeme;
-    var nameOffset = nameToken.offset;
+    var name2 = nameToken.lexeme.nullIfEmpty;
+    var nameOffset2 = nameToken.offset.nullIfNegative;
 
     ParameterElementImpl element;
     var parent = node.parent;
     if (parent is DefaultFormalParameterImpl) {
       element = DefaultParameterElementImpl(
-        name: name,
-        nameOffset: nameOffset,
+        name: name2 ?? '',
+        nameOffset: nameOffset2 ?? -1,
+        name2: name2,
+        nameOffset2: nameOffset2,
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
     } else {
       element = ParameterElementImpl(
-        name: name,
-        nameOffset: nameOffset,
+        name: name2 ?? '',
+        nameOffset: nameOffset2 ?? -1,
+        name2: name2,
+        nameOffset2: nameOffset2,
         parameterKind: node.kind,
       );
       _linker.elementNodes[element] = node;
@@ -1033,7 +1041,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
-    var refName = node.isNamed ? name : null;
+    var refName = node.isNamed ? name2 : null;
     _enclosingContext.addParameter(refName, element);
 
     var holder = _EnclosingContext(
@@ -1397,25 +1405,29 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     covariant SimpleFormalParameterImpl node,
   ) {
     var nameToken = node.name;
-    var name = nameToken?.lexeme ?? '';
-    var nameOffset = nameToken?.offset ?? -1;
+    var name2 = nameToken?.lexeme.nullIfEmpty;
+    var nameOffset2 = nameToken?.offset;
 
     ParameterElementImpl element;
     var parent = node.parent;
     if (parent is DefaultFormalParameterImpl &&
         _enclosingContext.hasDefaultFormalParameters) {
       element = DefaultParameterElementImpl(
-        name: name,
-        nameOffset: nameOffset,
+        name: name2 ?? '',
+        nameOffset: nameOffset2 ?? -1,
+        name2: name2,
+        nameOffset2: nameOffset2,
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
-      var refName = node.isNamed ? name : null;
+      var refName = node.isNamed ? name2 : null;
       _enclosingContext.addParameter(refName, element);
     } else {
       element = ParameterElementImpl(
-        name: name,
-        nameOffset: nameOffset,
+        name: name2 ?? '',
+        nameOffset: nameOffset2 ?? -1,
+        name2: name2,
+        nameOffset2: nameOffset2,
         parameterKind: node.kind,
       );
       _linker.elementNodes[element] = node;
@@ -1440,24 +1452,28 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     covariant SuperFormalParameterImpl node,
   ) {
     var nameToken = node.name;
-    var name = nameToken.lexeme;
-    var nameOffset = nameToken.offset;
+    var name2 = nameToken.lexeme.nullIfEmpty;
+    var nameOffset2 = nameToken.offset.nullIfNegative;
 
     SuperFormalParameterElementImpl element;
     var parent = node.parent;
     if (parent is DefaultFormalParameterImpl) {
       element = DefaultSuperFormalParameterElementImpl(
-        name: name,
-        nameOffset: nameOffset,
+        name: name2 ?? '',
+        nameOffset: nameOffset2 ?? -1,
+        name2: name2,
+        nameOffset2: nameOffset2,
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
-      var refName = node.isNamed ? name : null;
+      var refName = node.isNamed ? name2 : null;
       _enclosingContext.addParameter(refName, element);
     } else {
       element = SuperFormalParameterElementImpl(
-        name: name,
-        nameOffset: nameOffset,
+        name: name2 ?? '',
+        nameOffset: nameOffset2 ?? -1,
+        name2: name2,
+        nameOffset2: nameOffset2,
         parameterKind: node.kind,
       );
       _linker.elementNodes[element] = node;
@@ -1763,9 +1779,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[fieldElement] = representation;
     _enclosingContext.addNonSyntheticField(fieldName, fieldElement);
 
+    var nameOffset2 = fieldNameToken.offset.nullIfNegative;
+
     var formalParameterElement = FieldFormalParameterElementImpl(
       name: fieldName,
-      nameOffset: fieldNameToken.offset,
+      nameOffset: nameOffset2 ?? -1,
+      name2: fieldName.nullIfEmpty,
+      nameOffset2: nameOffset2,
       parameterKind: ParameterKind.REQUIRED,
     )
       ..field = fieldElement

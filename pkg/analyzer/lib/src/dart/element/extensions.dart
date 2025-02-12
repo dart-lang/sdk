@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
@@ -249,7 +250,7 @@ extension ParameterElementExtension on ParameterElement {
     bool? isCovariant,
   }) {
     return ParameterElementImpl.synthetic(
-      name,
+      name.nullIfEmpty,
       type ?? this.type,
       // ignore: deprecated_member_use_from_same_package
       kind ?? parameterKind,

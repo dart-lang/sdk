@@ -28,6 +28,8 @@ extension IntExtension on int {
   /// Whether this, as an ASCII character, is a space (as per [isSpace]) or EOL
   /// character (as per [isEOL]).
   bool get isWhitespace => isSpace || isEOL;
+
+  int? get nullIfNegative => isNegative ? null : this;
 }
 
 extension IterableOfStringExtension on Iterable<String> {

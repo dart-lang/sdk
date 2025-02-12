@@ -35,6 +35,7 @@ import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class ElementHolder {
   final ElementImpl _element;
@@ -446,27 +447,33 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (_elementWalker != null) {
       element = _elementWalker!.getParameter();
     } else {
-      var name = nameToken?.lexeme ?? '';
-      var nameOffset = nameToken?.offset ?? -1;
+      var name2 = nameToken?.lexeme.nullIfEmpty;
+      var nameOffset2 = nameToken?.offset;
       if (node.parameter is FieldFormalParameter) {
         // Only for recovery, this should not happen in valid code.
         element = DefaultFieldFormalParameterElementImpl(
-          name: name,
-          nameOffset: nameOffset,
+          name: name2 ?? '',
+          nameOffset: nameOffset2 ?? -1,
           parameterKind: node.kind,
+          name2: name2,
+          nameOffset2: nameOffset2,
         )..constantInitializer = node.defaultValue;
       } else if (node.parameter is SuperFormalParameter) {
         // Only for recovery, this should not happen in valid code.
         element = DefaultSuperFormalParameterElementImpl(
-          name: name,
-          nameOffset: nameOffset,
+          name: name2 ?? '',
+          nameOffset: nameOffset2 ?? -1,
           parameterKind: node.kind,
+          name2: name2,
+          nameOffset2: nameOffset2,
         )..constantInitializer = node.defaultValue;
       } else {
         element = DefaultParameterElementImpl(
-          name: name,
-          nameOffset: nameOffset,
+          name: name2 ?? '',
+          nameOffset: nameOffset2 ?? -1,
           parameterKind: node.kind,
+          name2: name2,
+          nameOffset2: nameOffset2,
         )..constantInitializer = node.defaultValue;
       }
       _elementHolder.addParameter(element);
@@ -630,6 +637,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element = FieldFormalParameterElementImpl(
           name: nameToken.lexeme,
           nameOffset: nameToken.offset,
+          name2: nameToken.lexeme.nullIfEmpty,
+          nameOffset2: nameToken.offset.nullIfNegative,
           parameterKind: node.kind,
         );
         _elementHolder.enclose(element);
@@ -838,6 +847,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element = ParameterElementImpl(
           name: nameToken.lexeme,
           nameOffset: nameToken.offset,
+          name2: nameToken.lexeme.nullIfEmpty,
+          nameOffset2: nameToken.offset.nullIfNegative,
           parameterKind: node.kind,
         );
         _elementHolder.addParameter(element);
@@ -1214,12 +1225,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           element = ParameterElementImpl(
             name: nameToken.lexeme,
             nameOffset: nameToken.offset,
+            name2: nameToken.lexeme.nullIfEmpty,
+            nameOffset2: nameToken.offset.nullIfNegative,
             parameterKind: node.kind,
           );
         } else {
           element = ParameterElementImpl(
             name: '',
             nameOffset: -1,
+            name2: null,
+            nameOffset2: null,
             parameterKind: node.kind,
           );
         }
@@ -1270,6 +1285,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element = SuperFormalParameterElementImpl(
           name: nameToken.lexeme,
           nameOffset: nameToken.offset,
+          name2: nameToken.lexeme.nullIfEmpty,
+          nameOffset2: nameToken.offset.nullIfNegative,
           parameterKind: node.kind,
         );
         _elementHolder.enclose(element);

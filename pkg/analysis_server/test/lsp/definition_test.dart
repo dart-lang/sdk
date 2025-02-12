@@ -137,6 +137,31 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_closure_parameter() async {
+    setLocationLinkSupport();
+
+    var code = TestCode.parse('''
+void f(void Function(int) _) {}
+
+void g() => f((/*[0*/variable/*0]*/) {
+  print(/*[1*/^variable/*1]*/);
+});
+''');
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.position.position,
+    );
+
+    expect(res, hasLength(1));
+    var loc = res.first;
+    expect(loc.originSelectionRange, equals(code.ranges.last.range));
+    expect(loc.targetRange, equals(code.ranges.first.range));
+    expect(loc.targetSelectionRange, equals(code.ranges.first.range));
+  }
+
   Future<void> test_comment_adjacentReference() async {
     /// Computing Dart navigation locates a node at the provided offset then
     /// returns all navigation regions inside it. This test ensures we filter

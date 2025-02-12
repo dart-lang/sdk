@@ -482,6 +482,8 @@ mixin ElementsTypesMixin {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
     );
     parameter.type = type;
@@ -506,6 +508,8 @@ mixin ElementsTypesMixin {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.NAMED_REQUIRED,
     );
     parameter.type = type;
@@ -532,6 +536,8 @@ mixin ElementsTypesMixin {
     var parameter = ParameterElementImpl(
       name: name ?? '',
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
     parameter.type = type;
@@ -547,10 +553,11 @@ mixin ElementsTypesMixin {
     String? defaultValueCode,
   }) {
     return positionalParameter(
-            type: type,
-            isCovariant: isCovariant,
-            defaultValueCode: defaultValueCode)
-        .asElement2;
+      name: name,
+      type: type,
+      isCovariant: isCovariant,
+      defaultValueCode: defaultValueCode,
+    ).asElement2;
   }
 
   TypeParameterTypeImpl promotedTypeParameterType({
@@ -655,6 +662,8 @@ mixin ElementsTypesMixin {
     var parameter = ParameterElementImpl(
       name: name ?? '',
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
     parameter.type = type;
