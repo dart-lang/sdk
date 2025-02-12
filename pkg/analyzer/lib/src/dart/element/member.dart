@@ -795,6 +795,16 @@ class GetterMember extends PropertyAccessorMember
   String? get lookupName => _element2.lookupName;
 
   @override
+  Element2 get nonSynthetic2 {
+    if (!isSynthetic) {
+      return this;
+    } else if (variable3 case var variable?) {
+      return variable.nonSynthetic2;
+    }
+    throw StateError('Synthetic getter has no variable');
+  }
+
+  @override
   PropertyInducingElement2OrMember? get variable3 =>
       variable2.asElement2 as PropertyInducingElement2OrMember?;
 
@@ -1563,6 +1573,16 @@ class SetterMember extends PropertyAccessorMember
 
   @override
   String? get lookupName => _element2.lookupName;
+
+  @override
+  Element2 get nonSynthetic2 {
+    if (!isSynthetic) {
+      return this;
+    } else if (variable3 case var variable?) {
+      return variable.nonSynthetic2;
+    }
+    throw StateError('Synthetic setter has no variable');
+  }
 
   @override
   PropertyInducingElement2OrMember? get variable3 =>
