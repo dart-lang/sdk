@@ -68,6 +68,7 @@ import 'flutter_wrap_column_test.dart' as flutter_wrap_column;
 import 'flutter_wrap_container_test.dart' as flutter_wrap_container;
 import 'flutter_wrap_expanded_test.dart' as flutter_wrap_expanded;
 import 'flutter_wrap_flexible_test.dart' as flutter_wrap_flexible;
+import 'flutter_wrap_future_builder_test.dart' as flutter_wrap_future_builder;
 import 'flutter_wrap_generic_test.dart' as flutter_wrap_generic;
 import 'flutter_wrap_padding_test.dart' as flutter_wrap_padding;
 import 'flutter_wrap_row_test.dart' as flutter_wrap_row;
@@ -160,6 +161,7 @@ void main() {
     flutter_wrap_container.main();
     flutter_wrap_expanded.main();
     flutter_wrap_flexible.main();
+    flutter_wrap_future_builder.main();
     flutter_wrap_generic.main();
     flutter_wrap_padding.main();
     flutter_wrap_row.main();

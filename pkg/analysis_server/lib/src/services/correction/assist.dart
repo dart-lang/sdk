@@ -301,6 +301,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
     'Wrap with Flexible',
   );
+  static const FLUTTER_WRAP_FUTURE_BUILDER = AssistKind(
+    'dart.assist.flutter.wrap.futureBuilder',
+    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    'Wrap with FutureBuilder',
+  );
   static const FLUTTER_WRAP_PADDING = AssistKind(
     'dart.assist.flutter.wrap.padding',
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
