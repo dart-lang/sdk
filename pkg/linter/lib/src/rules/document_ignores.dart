@@ -4,10 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/ignore_comments/ignore_info.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer/src/ignore_comments/ignore_info.dart' // ignore: implementation_imports
+    show CommentTokenExtension, CompilationUnitExtension, IgnoredDiagnosticComment;
+import 'package:analyzer/src/utilities/extensions/string.dart' // ignore: implementation_imports
+    show IntExtension;
 
 import '../analyzer.dart';
 
