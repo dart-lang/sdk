@@ -1453,7 +1453,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node.element = augmentationTarget;
         inferenceLogWriter?.exitLValue(node);
         return PropertyElementResolverResult(
-          writeElementRequested: augmentationTarget,
+          writeElementRequested2: augmentationTarget.asElement2,
         );
       }
       errorReporter.atNode(
@@ -1540,7 +1540,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         hasWrite: true,
       );
 
-      if (hasRead && result.readElementRequested == null) {
+      if (hasRead && result.readElementRequested2?.asElement == null) {
         errorReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
@@ -3052,7 +3052,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       hasWrite: false,
     );
 
-    var element = result.readElement;
+    var element = result.readElement2?.asElement;
     node.staticElement = element as MethodElement?;
 
     analyzeExpression(
@@ -4175,7 +4175,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       hasWrite: false,
     );
 
-    var element = result.readElement;
+    var element = result.readElement2?.asElement;
 
     var propertyName = node.propertyName;
     propertyName.staticElement = element;
