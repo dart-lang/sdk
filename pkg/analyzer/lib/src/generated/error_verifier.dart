@@ -833,7 +833,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       var members = node.members;
       _checkForRepeatedType(
-        libraryContext.setOfImplements(firstFragment),
+        libraryContext.setOfImplements(firstFragment.asElement2),
         node.implementsClause?.interfaces,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
@@ -1908,7 +1908,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         !_checkForNoGenerativeConstructorsInSuperclass(superclass)) {
       _checkForExtendsDeferredClass(superclass);
       _checkForRepeatedType(
-        libraryContext.setOfImplements(declarationElement),
+        libraryContext.setOfImplements(declarationElement.asElement2),
         implementsClause?.interfaces,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
@@ -2115,7 +2115,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // check exported names
     Namespace namespace =
         NamespaceBuilder().createExportNamespaceForDirective(exportElement);
-    Map<String, Element> definedNames = namespace.definedNames;
+    Map<String, Element2> definedNames = namespace.definedNames2;
     for (String name in definedNames.keys) {
       var element = definedNames[name]!;
       var prevElement = libraryContext._exportedElements[name];
@@ -2125,8 +2125,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.AMBIGUOUS_EXPORT,
           arguments: [
             name,
-            prevElement.library!.definingCompilationUnit.source.uri,
-            element.library!.definingCompilationUnit.source.uri
+            prevElement.library2!.firstFragment.source.uri,
+            element.library2!.firstFragment.source.uri
           ],
         );
         return;
@@ -5206,7 +5206,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForRepeatedType(
-    Set<InstanceElement> accumulatedElements,
+    Set<InstanceElement2> accumulatedElements,
     List<NamedType>? namedTypes,
     ErrorCode errorCode,
   ) {
@@ -5217,13 +5217,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var namedType in namedTypes) {
       var type = namedType.type;
       if (type is InterfaceType) {
-        var element = type.element;
+        var element = type.element3;
         var added = accumulatedElements.add(element);
         if (!added) {
           errorReporter.atNode(
             namedType,
             errorCode,
-            arguments: [element.name],
+            arguments: [element.name3!],
           );
         }
       }
@@ -6144,12 +6144,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
       _checkForRepeatedType(
-        libraryContext.setOfOn(declarationElement),
+        libraryContext.setOfOn(declarationElement.asElement2),
         onClause?.superclassConstraints,
         CompileTimeErrorCode.ON_REPEATED,
       );
       _checkForRepeatedType(
-        libraryContext.setOfImplements(declarationElement),
+        libraryContext.setOfImplements(declarationElement.asElement2),
         implementsClause?.interfaces,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
@@ -6663,16 +6663,17 @@ class LibraryVerificationContext {
   final Map<FileState, FileAnalysis> files;
 
   /// A table mapping names to the exported elements.
-  final Map<String, Element> _exportedElements = {};
+  final Map<String, Element2> _exportedElements = {};
 
   /// Elements referenced in `implements` clauses.
   /// Key: the declaration element.
-  final Map<InstanceElement, Set<InstanceElement>> _setOfImplementsMap =
+  final Map<InstanceElement2, Set<InstanceElement2>> _setOfImplementsMap =
       Map.identity();
 
   /// Elements referenced in `on` clauses.
   /// Key: the declaration element.
-  final Map<MixinElement, Set<InterfaceElement>> _setOfOnMaps = Map.identity();
+  final Map<MixinElement2, Set<InterfaceElement2>> _setOfOnMaps =
+      Map.identity();
 
   LibraryVerificationContext({
     required this.libraryKind,
@@ -6684,11 +6685,11 @@ class LibraryVerificationContext {
     return libraryKind.libraryCycle.libraryUris.contains(uri);
   }
 
-  Set<InstanceElement> setOfImplements(InstanceElement declaration) {
+  Set<InstanceElement2> setOfImplements(InstanceElement2 declaration) {
     return _setOfImplementsMap[declaration] ??= Set.identity();
   }
 
-  Set<InterfaceElement> setOfOn(MixinElement declaration) {
+  Set<InterfaceElement2> setOfOn(MixinElement2 declaration) {
     return _setOfOnMaps[declaration] ??= Set.identity();
   }
 }
