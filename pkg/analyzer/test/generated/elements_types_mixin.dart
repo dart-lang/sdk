@@ -26,45 +26,45 @@ import 'package:test/test.dart';
 
 mixin ElementsTypesMixin {
   InterfaceTypeImpl get boolNone {
-    var element = typeProvider.boolElement;
-    return interfaceTypeNone(element);
+    var element = typeProvider.boolElement2;
+    return interfaceTypeNone2(element);
   }
 
   InterfaceTypeImpl get boolQuestion {
-    var element = typeProvider.boolElement;
-    return interfaceTypeQuestion(element);
+    var element = typeProvider.boolElement2;
+    return interfaceTypeQuestion2(element);
   }
 
   InterfaceTypeImpl get doubleNone {
-    var element = typeProvider.doubleType.element;
-    return interfaceTypeNone(element);
+    var element = typeProvider.doubleElement2;
+    return interfaceTypeNone2(element);
   }
 
   InterfaceTypeImpl get doubleQuestion {
-    var element = typeProvider.doubleType.element;
-    return interfaceTypeQuestion(element);
+    var element = typeProvider.doubleElement2;
+    return interfaceTypeQuestion2(element);
   }
 
   TypeImpl get dynamicType => DynamicTypeImpl.instance;
 
   InterfaceTypeImpl get functionNone {
-    var element = typeProvider.functionType.element;
-    return interfaceTypeNone(element);
+    var element = typeProvider.functionElement2;
+    return interfaceTypeNone2(element);
   }
 
   InterfaceTypeImpl get functionQuestion {
-    var element = typeProvider.functionType.element;
-    return interfaceTypeQuestion(element);
+    var element = typeProvider.functionElement2;
+    return interfaceTypeQuestion2(element);
   }
 
   InterfaceTypeImpl get intNone {
-    var element = typeProvider.intType.element;
-    return interfaceTypeNone(element);
+    var element = typeProvider.intElement2;
+    return interfaceTypeNone2(element);
   }
 
   InterfaceTypeImpl get intQuestion {
-    var element = typeProvider.intType.element;
-    return interfaceTypeQuestion(element);
+    var element = typeProvider.intElement2;
+    return interfaceTypeQuestion2(element);
   }
 
   TypeImpl get invalidType => InvalidTypeImpl.instance;
@@ -74,43 +74,43 @@ mixin ElementsTypesMixin {
   NeverTypeImpl get neverQuestion => NeverTypeImpl.instanceNullable;
 
   InterfaceTypeImpl get nullNone {
-    var element = typeProvider.nullType.element;
-    return interfaceTypeNone(element);
+    var element = typeProvider.nullElement2;
+    return interfaceTypeNone2(element);
   }
 
   InterfaceTypeImpl get numNone {
-    var element = typeProvider.numType.element;
-    return interfaceTypeNone(element);
+    var element = typeProvider.numElement2;
+    return interfaceTypeNone2(element);
   }
 
   InterfaceTypeImpl get numQuestion {
-    var element = typeProvider.numType.element;
-    return interfaceTypeQuestion(element);
+    var element = typeProvider.numElement2;
+    return interfaceTypeQuestion2(element);
   }
 
   InterfaceTypeImpl get objectNone {
-    var element = typeProvider.objectType.element;
-    return interfaceTypeNone(element);
+    var element = typeProvider.objectElement2;
+    return interfaceTypeNone2(element);
   }
 
   InterfaceTypeImpl get objectQuestion {
-    var element = typeProvider.objectType.element;
-    return interfaceTypeQuestion(element);
+    var element = typeProvider.objectElement2;
+    return interfaceTypeQuestion2(element);
   }
 
   InterfaceTypeImpl get recordNone {
-    var element = typeProvider.recordElement;
-    return interfaceTypeNone(element);
+    var element = typeProvider.recordElement2;
+    return interfaceTypeNone2(element);
   }
 
   InterfaceTypeImpl get stringNone {
-    var element = typeProvider.stringType.element;
-    return interfaceTypeNone(element);
+    var element = typeProvider.stringElement2;
+    return interfaceTypeNone2(element);
   }
 
   InterfaceTypeImpl get stringQuestion {
-    var element = typeProvider.stringType.element;
-    return interfaceTypeQuestion(element);
+    var element = typeProvider.stringElement2;
+    return interfaceTypeQuestion2(element);
   }
 
   LibraryElementImpl get testLibrary => throw UnimplementedError();
@@ -354,8 +354,28 @@ mixin ElementsTypesMixin {
     );
   }
 
+  InterfaceTypeImpl interfaceTypeNone2(
+    InterfaceElementImpl2 element, {
+    List<DartType> typeArguments = const [],
+  }) {
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
   InterfaceTypeImpl interfaceTypeQuestion(
     InterfaceElementImpl element, {
+    List<DartType> typeArguments = const [],
+  }) {
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceTypeImpl interfaceTypeQuestion2(
+    InterfaceElementImpl2 element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
