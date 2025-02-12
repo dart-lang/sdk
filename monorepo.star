@@ -122,7 +122,7 @@ dart.try_builder(
     cq_branches = ["main"],
 )
 
-def monorepo_builder(name, short_name, console):
+def _monorepo_builder(name, short_name, console):
     dart.ci_sandbox_builder(
         name = name,
         channels = [],
@@ -134,17 +134,6 @@ def monorepo_builder(name, short_name, console):
         triggered_by = [],
         schedule = None,
     )
-    luci.console_view_entry(
-        builder = name,
-        short_name = short_name,
-        category = console,
-        console_view = "monorepo",
-    )
-    luci.console_view_entry(
-        builder = name,
-        short_name = short_name,
-        console_view = console,
-    )
     dart.try_builder(
         name,
         bucket = "try.monorepo",
@@ -154,70 +143,82 @@ def monorepo_builder(name, short_name, console):
         on_cq = False,
         cq_branches = [],
     )
+    if console:
+        luci.console_view_entry(
+            builder = name,
+            short_name = short_name,
+            category = console,
+            console_view = "monorepo",
+        )
+        luci.console_view_entry(
+            builder = name,
+            short_name = short_name,
+            console_view = console,
+        )
 
-monorepo_builder(
+_monorepo_builder(
     "flutter-linux-android_debug",
     "android-debug",
     "flutter-engine",
 )
-monorepo_builder(
+_monorepo_builder(
     "flutter-linux-android_profile",
     "android-profile",
     "flutter-engine",
 )
-monorepo_builder(
+_monorepo_builder(
     "flutter-linux-android_release",
     "android-release",
     "flutter-engine",
 )
-monorepo_builder(
+_monorepo_builder(
     "flutter-linux-android_debug_arm64",
     "android-debug-arm64",
     "flutter-engine",
 )
-monorepo_builder(
+_monorepo_builder(
     "flutter-linux-android_profile_arm64",
     "android-profile-arm64",
     "flutter-engine",
 )
-monorepo_builder(
+_monorepo_builder(
     "flutter-linux-android_release_arm64",
     "android-release-arm64",
     "flutter-engine",
 )
-monorepo_builder(
+_monorepo_builder(
     "flutter-linux-android_debug_x64",
     "android-debug-x64",
     "flutter-engine",
 )
-monorepo_builder(
+_monorepo_builder(
     "flutter-linux-android_profile_x64",
     "android-profile-x64",
     "flutter-engine",
 )
-monorepo_builder(
+_monorepo_builder(
     "flutter-linux-android_release_x64",
     "android-release-x64",
     "flutter-engine",
 )
-monorepo_builder(
+_monorepo_builder(
     "flutter-linux-android_debug_x86",
     "android-debug-x86",
     "flutter-engine",
 )
-monorepo_builder("flutter-linux-host_debug", "debug", "flutter-engine")
-monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engine")
-monorepo_builder("flutter-linux-host_profile", "profile", "flutter-engine")
-monorepo_builder("flutter-linux-host_release", "release", "flutter-engine")
-monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
-monorepo_builder("flutter-linux-web_tests-artifacts", "web-tests", "flutter-web")
-monorepo_builder(
+_monorepo_builder("flutter-linux-host_debug", "debug", "flutter-engine")
+_monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engine")
+_monorepo_builder("flutter-linux-host_profile", "profile", "flutter-engine")
+_monorepo_builder("flutter-linux-host_release", "release", "flutter-engine")
+_monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
+_monorepo_builder("flutter-linux-web_tests-artifacts", "web-tests", None)
+_monorepo_builder(
     "flutter-linux-web_tests-test_bundles-dart2wasm-skwasm-ui",
     "skwasm-ui-tests",
-    "flutter-web",
+    None,
 )
 
-def monorepo_tester(name, short_name, console, recipe = "engine_v2/tester"):
+def _monorepo_tester(name, short_name, console, recipe = "engine_v2/tester"):
     dart.ci_sandbox_builder(
         name = name,
         channels = [],
@@ -229,17 +230,6 @@ def monorepo_tester(name, short_name, console, recipe = "engine_v2/tester"):
         triggered_by = [],
         schedule = None,
     )
-    luci.console_view_entry(
-        builder = name,
-        short_name = short_name,
-        category = console,
-        console_view = "monorepo",
-    )
-    luci.console_view_entry(
-        builder = name,
-        short_name = short_name,
-        console_view = console,
-    )
     dart.try_builder(
         name,
         bucket = "try.monorepo",
@@ -249,27 +239,39 @@ def monorepo_tester(name, short_name, console, recipe = "engine_v2/tester"):
         on_cq = False,
         cq_branches = [],
     )
+    if console:
+        luci.console_view_entry(
+            builder = name,
+            short_name = short_name,
+            category = console,
+            console_view = "monorepo",
+        )
+        luci.console_view_entry(
+            builder = name,
+            short_name = short_name,
+            console_view = console,
+        )
 
-monorepo_tester("flutter-linux-flutter-plugins", "plugins", "flutter-engine")
-monorepo_tester("flutter-linux-framework-coverage", "coverage", "flutter-engine")
-monorepo_tester("flutter-linux-framework-tests-libraries", "fl", "flutter-engine")
-monorepo_tester("flutter-linux-framework-tests-misc", "fm", "flutter-engine")
-monorepo_tester("flutter-linux-framework-tests-slow", "fs", "flutter-engine")
-monorepo_tester("flutter-linux-framework-tests-widgets", "fw", "flutter-engine")
-monorepo_tester("flutter-linux-tool-tests", "tool", "flutter-engine")
-monorepo_tester("flutter-linux-customer-testing", "customer_testing", "flutter-engine")
-monorepo_tester("flutter-linux-web-tests-0", "wt0", "flutter-web")
-monorepo_tester("flutter-linux-web-tests-1", "wt1", "flutter-web")
-monorepo_tester("flutter-linux-web-tests-2", "wt2", "flutter-web")
-monorepo_tester("flutter-linux-web-tests-3", "wt3", "flutter-web")
-monorepo_tester("flutter-linux-web-tests-4", "wt4", "flutter-web")
-monorepo_tester("flutter-linux-web-tests-5", "wt5", "flutter-web")
-monorepo_tester("flutter-linux-web-tests-6", "wt6", "flutter-web")
-monorepo_tester("flutter-linux-web-tests-7-last", "wt7", "flutter-web")
-monorepo_tester("flutter-linux-web-tool-tests", "wtool", "flutter-web")
-monorepo_tester(
+_monorepo_tester("flutter-linux-flutter-plugins", "plugins", "flutter-engine")
+_monorepo_tester("flutter-linux-framework-coverage", "coverage", "flutter-engine")
+_monorepo_tester("flutter-linux-framework-tests-libraries", "fl", "flutter-engine")
+_monorepo_tester("flutter-linux-framework-tests-misc", "fm", "flutter-engine")
+_monorepo_tester("flutter-linux-framework-tests-slow", "fs", "flutter-engine")
+_monorepo_tester("flutter-linux-framework-tests-widgets", "fw", "flutter-engine")
+_monorepo_tester("flutter-linux-tool-tests", "tool", "flutter-engine")
+_monorepo_tester("flutter-linux-customer-testing", "customer_testing", "flutter-engine")
+_monorepo_tester("flutter-linux-web-tests-0", "wt0", "flutter-web")
+_monorepo_tester("flutter-linux-web-tests-1", "wt1", "flutter-web")
+_monorepo_tester("flutter-linux-web-tests-2", "wt2", "flutter-web")
+_monorepo_tester("flutter-linux-web-tests-3", "wt3", "flutter-web")
+_monorepo_tester("flutter-linux-web-tests-4", "wt4", "flutter-web")
+_monorepo_tester("flutter-linux-web-tests-5", "wt5", "flutter-web")
+_monorepo_tester("flutter-linux-web-tests-6", "wt6", "flutter-web")
+_monorepo_tester("flutter-linux-web-tests-7-last", "wt7", "flutter-web")
+_monorepo_tester("flutter-linux-web-tool-tests", "wtool", "flutter-web")
+_monorepo_tester(
     "flutter-linux-chrome-dart2wasm-skwasm-ui",
     "skwasm-ui",
-    "flutter-web",
+    None,
     recipe = "engine_v2/tester_engine",
 )
