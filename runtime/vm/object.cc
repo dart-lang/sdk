@@ -4124,6 +4124,9 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
   extractor.set_is_visible(false);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  extractor.SetIsDynamicallyOverridden(IsDynamicallyOverridden());
+#endif
 
   signature ^= ClassFinalizer::FinalizeType(signature);
   extractor.SetSignature(signature);
