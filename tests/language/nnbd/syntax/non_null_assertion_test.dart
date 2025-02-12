@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Test that the trailing "!" is accepted after a sampling of expression
 // syntaxes.  Verify that the compiler understands the resulting type to be
 // non-nullable by constructing a list containing the expression, and assigning
@@ -36,13 +35,19 @@ main() {
   var x4 = [#foo!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x4;
 
-  var x5 = [[1]!]; // ignore: unnecessary_non_null_assertion
+  var x5 = [
+    [1]!, // ignore: unnecessary_non_null_assertion
+  ];
   listOfObject = x5;
 
-  var x6 = [{1:2}!]; // ignore: unnecessary_non_null_assertion
+  var x6 = [
+    {1: 2}!, // ignore: unnecessary_non_null_assertion
+  ];
   listOfObject = x6;
 
-  var x7 = [{1}!]; // ignore: unnecessary_non_null_assertion
+  var x7 = [
+    {1}!, // ignore: unnecessary_non_null_assertion
+  ];
   listOfObject = x7;
 
   var x8 = [new C()!]; // ignore: unnecessary_non_null_assertion
@@ -52,20 +57,20 @@ main() {
   listOfObject = x9;
 
   Expect.throws(() {
-      var x10 = [f()!];
-      listOfObject = x10;
+    var x10 = [f()!];
+    listOfObject = x10;
   });
 
   C c = new C();
   Expect.throws(() {
-      var x11 = [c.x!];
-      listOfObject = x11;
+    var x11 = [c.x!];
+    listOfObject = x11;
   });
 
   var g = f;
   Expect.throws(() {
-      var x12 = [g()!];
-      listOfObject = x12;
+    var x12 = [g()!];
+    listOfObject = x12;
   });
 
   int i = 0;

@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
+import 'dynamic_modules.dart';
 import 'translator.dart';
 
 /// Wasm struct field indices for fields that are accessed explicitly from Wasm
@@ -43,6 +44,7 @@ class FieldIndex {
   static const instantiationContextInner = 0;
   static const instantiationContextTypeArgumentsBase = 1;
   static const typeIsDeclaredNullable = 2;
+  static const interfaceTypeClassId = 3;
   static const interfaceTypeTypeArguments = 4;
   static const functionTypeNamedParameters = 9;
   static const recordTypeNames = 3;
@@ -154,14 +156,14 @@ class ClassInfo {
   final Class? cls;
 
   /// The Class ID of this class, stored in every instance of the class.
-  int get classId {
-    if (_classId == anonymousMixinClassId) {
+  ClassId get classId {
+    if (_classId._localValue == anonymousMixinClassId) {
       throw 'Tried to access class ID of anonymous mixin $cls';
     }
     return _classId;
   }
 
-  final int _classId;
+  final ClassId _classId;
 
   /// Depth of this class in the Wasm type hierarchy.
   final int depth;
@@ -216,6 +218,12 @@ class ClassInfo {
         for (var fieldType in struct.fields.skip(FieldIndex.objectFieldBase))
           fieldType.type.unpacked
       ];
+
+  void forEachClassFieldIndex(void Function(int index, w.FieldType type) f) {
+    for (int i = FieldIndex.objectFieldBase; i < struct.fields.length; i++) {
+      f(i, struct.fields[i]);
+    }
+  }
 }
 
 ClassInfo upperBound(ClassInfo a, ClassInfo b) {
@@ -301,11 +309,11 @@ class ClassInfoCollector {
 
   void _createStructForClassTop(int classCount) {
     final w.StructType struct = translator.typesBuilder.defineStruct("#Top");
-    topInfo = ClassInfo(null, 0, 0, struct, null);
+    topInfo = ClassInfo(null, AbsoluteClassId(0), 0, struct, null);
     translator.classForHeapType[struct] = topInfo;
   }
 
-  void _createStructForClass(Map<Class, int> classIds, Class cls) {
+  void _createStructForClass(Map<Class, ClassId> classIds, Class cls) {
     ClassInfo? info = translator.classInfo[cls];
     if (info != null) return;
 
@@ -364,16 +372,22 @@ class ClassInfoCollector {
           .defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
+      if (translator.dynamicModuleSupportEnabled &&
+          cls.isDynamicModuleExtendable(translator.coreTypes)) {
+        // If a class is extendable in a dynamic module then we have to be
+        // conservative and mark it as not being final.
+        struct.hasAnySubtypes = true;
+      }
     }
     translator.classesSupersFirst.add(info);
     translator.classInfo[cls] = info;
     translator.classForHeapType.putIfAbsent(info.struct, () => info!);
-    if (classId != anonymousMixinClassId) {
-      translator.classes[classId] = info;
+    if (classId._localValue != anonymousMixinClassId) {
+      translator.classes[classId._localValue] = info;
     }
   }
 
-  void _createStructForRecordClass(Map<Class, int> classIds, Class cls) {
+  void _createStructForRecordClass(Map<Class, ClassId> classIds, Class cls) {
     final numFields = cls.fields.length;
 
     final struct = _recordStructs.putIfAbsent(
@@ -390,7 +404,7 @@ class ClassInfoCollector {
         ClassInfo(cls, classId, superInfo.depth + 1, struct, superInfo);
 
     translator.classesSupersFirst.add(info);
-    translator.classes[classId] = info;
+    translator.classes[classId._localValue] = info;
     translator.classInfo[cls] = info;
     translator.classForHeapType.putIfAbsent(info.struct, () => info);
   }
@@ -471,8 +485,11 @@ class ClassInfoCollector {
 
     // Class infos by class-id, will be populated by the calls to
     // [_createStructForClass] and [_createStructForRecordClass] below.
-    translator.classes =
-        List<ClassInfo>.filled(classIdNumbering.maxClassId + 1, topInfo);
+    translator.classes = List<ClassInfo>.filled(
+        (classIdNumbering.maxDynamicModuleClassId ??
+                classIdNumbering.maxClassId) +
+            1,
+        topInfo);
 
     // Class infos in different order: Infos of super class and super interfaces
     // before own info.
@@ -504,15 +521,43 @@ class ClassInfoCollector {
     // represent objects of that dart type).
     for (final cls in dfsOrder) {
       ClassInfo? representation;
-      for (final range in classIdNumbering.getConcreteClassIdRanges(cls)) {
-        for (int classId = range.start; classId <= range.end; ++classId) {
-          final current = translator.classes[classId];
-          if (representation == null) {
-            representation = current;
-            continue;
+      if (translator.dynamicModuleSupportEnabled &&
+          cls.isDynamicModuleExtendable(translator.coreTypes)) {
+        assert(!translator.builtinTypes.containsKey(cls));
+
+        // If a class is extendable in a dynamic module then we have to be
+        // conservative and assume it might be a subclass of Object. The Object
+        // class maps to topInfo because boxed values are a subtype of Object in
+        // Dart but not of the object struct.
+        representation = cls == translator.coreTypes.objectClass
+            ? translator.topInfo
+            : translator.objectInfo;
+      } else {
+        void addRanges(List<Range> ranges) {
+          for (final range in ranges) {
+            for (int classId = range.start; classId <= range.end; ++classId) {
+              final current = translator.classes[classId];
+              if (representation == null) {
+                representation = current;
+                continue;
+              }
+              representation = upperBound(representation!, current);
+            }
           }
-          representation = upperBound(representation, current);
         }
+
+        final mainModuleConcreteRange =
+            classIdNumbering.getConcreteClassIdRangeForMainModule(cls);
+        final dynamicModuleConcreteRange =
+            classIdNumbering.getConcreteClassIdRangeForDynamicModule(cls);
+
+        // Only non-extendable classes can get here so they should only have
+        // concrete implementations in either the main module or the dynamic
+        // module, not both.
+        assert(mainModuleConcreteRange.isEmpty ||
+            dynamicModuleConcreteRange.isEmpty);
+        addRanges(mainModuleConcreteRange);
+        addRanges(dynamicModuleConcreteRange);
       }
       final info = translator.classInfo[cls]!;
       info._repr = representation ?? info;
@@ -537,25 +582,35 @@ class ClassInfoCollector {
 }
 
 class ClassIdNumbering {
+  final Translator translator;
   final Map<Class, List<Class>> _subclasses;
   final Map<Class, List<Class>> _implementors;
-  final Map<Class, Range> _concreteSubclassIdRange;
+  final Map<Class, List<Range>> _concreteSubclassIdRange;
+  final Map<Class, List<Range>> _concreteSubclassIdRangeForDynamicModule;
   final Set<Class> _masqueraded;
 
   final List<Class> dfsOrder;
-  final Map<Class, int> classIds;
+  final Map<Class, ClassId> classIds;
   final int maxConcreteClassId;
   final int maxClassId;
+  final int? maxDynamicModuleConcreteClassId;
+  final int? maxDynamicModuleClassId;
+
+  int get firstDynamicModuleClassId => maxClassId + 1;
 
   ClassIdNumbering._(
+      this.translator,
       this._subclasses,
       this._implementors,
       this._concreteSubclassIdRange,
+      this._concreteSubclassIdRangeForDynamicModule,
       this._masqueraded,
       this.dfsOrder,
       this.classIds,
       this.maxConcreteClassId,
-      this.maxClassId);
+      this.maxClassId,
+      this.maxDynamicModuleConcreteClassId,
+      this.maxDynamicModuleClassId);
 
   final Map<Class, Set<Class>> _transitiveImplementors = {};
   Set<Class> _getTransitiveImplementors(Class klass) {
@@ -581,30 +636,58 @@ class ClassIdNumbering {
     return _transitiveImplementors[klass] = transitiveImplementors;
   }
 
-  // Maps a class to a list of class id ranges that implement/extend the given
-  // class directly or transitively.
+  /// Maps a class to a list of class id ranges that implement/extend the given
+  /// class directly or transitively.
+  ///
+  /// If this function is invoked from a dynamic module enabled build then it
+  /// should be wrapped with [DynamicModuleInfo.callClassIdBranch] so that the
+  /// checked range will be updated.
   final Map<Class, List<Range>> _concreteClassIdRanges = {};
-  List<Range> getConcreteClassIdRanges(Class klass) {
-    var ranges = _concreteClassIdRanges[klass];
+  List<Range> getConcreteClassIdRangeForMainModule(Class klass) {
+    return _getConcreteClassIdRange(
+        klass, _concreteClassIdRanges, _concreteSubclassIdRange);
+  }
+
+  final Map<Class, List<Range>> _concreteClassIdRangesForDynamicModule = {};
+  List<Range> getConcreteClassIdRangeForDynamicModule(Class klass) {
+    return _getConcreteClassIdRange(
+        klass,
+        _concreteClassIdRangesForDynamicModule,
+        _concreteSubclassIdRangeForDynamicModule);
+  }
+
+  List<Range> getConcreteClassIdRangeForCurrentModule(Class klass) {
+    return translator.isDynamicModule
+        ? getConcreteClassIdRangeForDynamicModule(klass)
+        : getConcreteClassIdRangeForMainModule(klass);
+  }
+
+  List<Range> _getConcreteClassIdRange(Class klass,
+      Map<Class, List<Range>> cache, Map<Class, List<Range>> subclasses) {
+    var ranges = cache[klass];
     if (ranges != null) return ranges;
 
     ranges = [];
     final transitiveImplementors = _getTransitiveImplementors(klass);
-    final range = _concreteSubclassIdRange[klass]!;
-    if (!range.isEmpty) ranges.add(range);
+    final subclassRanges = subclasses[klass] ?? const [];
+    for (final range in subclassRanges) {
+      ranges.add(range);
+    }
     for (final implementor in transitiveImplementors) {
-      final range = _concreteSubclassIdRange[implementor]!;
-      if (!range.isEmpty) ranges.add(range);
+      final implementorRanges = subclasses[implementor] ?? const [];
+      for (final range in implementorRanges) {
+        ranges.add(range);
+      }
     }
     ranges.normalize();
 
-    return _concreteClassIdRanges[klass] = ranges;
+    return cache[klass] = ranges;
   }
 
   late final int firstNonMasqueradedInterfaceClassCid = (() {
     int lastMasqueradedClassId = 0;
     for (final cls in _masqueraded) {
-      final ranges = getConcreteClassIdRanges(cls);
+      final ranges = getConcreteClassIdRangeForMainModule(cls);
       if (ranges.isNotEmpty) {
         lastMasqueradedClassId = max(lastMasqueradedClassId, ranges.last.end);
       }
@@ -616,20 +699,40 @@ class ClassIdNumbering {
       Translator translator, Set<Class> masqueraded, int firstClassId) {
     // Make graph from class to its subclasses.
     late final Class root;
+    int? savedMaxConcreteClassId;
+    int? savedMaxClassId;
     final subclasses = <Class, List<Class>>{};
     final implementors = <Class, List<Class>>{};
+    final classIds = <Class, ClassId>{};
+
+    final savedMapping = translator.dynamicModuleInfo?.classIdMapping;
+    if (savedMapping != null) {
+      savedMapping.forEach((cls, classId) {
+        classIds[cls] = AbsoluteClassId(classId);
+        savedMaxClassId = max(savedMaxClassId ?? -2, classId);
+        if (!cls.isAbstract && !cls.isAnonymousMixin) {
+          savedMaxConcreteClassId = max(savedMaxConcreteClassId ?? -2, classId);
+        }
+      });
+    }
+
     int concreteClassCount = 0;
     int abstractClassCount = 0;
     int anonymousMixinClassCount = 0;
+    int alreadyAssignedCount = 0;
     for (final library in translator.component.libraries) {
       for (final cls in library.classes) {
-        if (cls.isAnonymousMixin) {
-          assert(cls.isAbstract);
-          anonymousMixinClassCount++;
-        } else if (cls.isAbstract) {
-          abstractClassCount++;
+        if (!classIds.containsKey(cls)) {
+          if (cls.isAnonymousMixin) {
+            assert(cls.isAbstract);
+            anonymousMixinClassCount++;
+          } else if (cls.isAbstract) {
+            abstractClassCount++;
+          } else {
+            concreteClassCount++;
+          }
         } else {
-          concreteClassCount++;
+          alreadyAssignedCount++;
         }
         final superClass = cls.superclass;
         if (superClass == null) {
@@ -700,51 +803,125 @@ class ClassIdNumbering {
     }
 
     // Make a list of the depth-first pre-order traversal.
-    final dfsOrder = <Class>[];
-    final classIds = <Class, int>{};
+    final dfsOrder =
+        translator.dynamicModuleInfo?.dfsOrderClassIds ?? <Class>[];
+    final inDfsOrder = {...dfsOrder};
 
     // Maps any class to a dense range of concrete class ids that are subclasses
     // of that class.
-    final concreteSubclassRange = <Class, Range>{};
+    final concreteSubclassRanges = <Class, List<Range>>{};
+    final concreteSubclassRangesForDynamicModule = <Class, List<Range>>{};
 
-    int nextConcreteClassId = firstClassId;
-    int nextAbstractClassId = firstClassId + concreteClassCount;
+    int nextConcreteClassId = (savedMaxClassId ?? (firstClassId - 1)) + 1;
+    int nextAbstractClassId = nextConcreteClassId + concreteClassCount;
+
+    if (classIds.isNotEmpty) {
+      // Assumes that saved IDs form a contiguous region at the top of the
+      // subclass tree. So if we encounter a node without a saved ID, then we do
+      // not need to explore its children for saved IDs.
+      Range? addSavedRanges(Class cls) {
+        final savedClassId = classIds[cls];
+        if (savedClassId == null) return null;
+        final children = subclasses[cls] ?? const [];
+        final isConcrete = !cls.isAbstract && !cls.isAnonymousMixin;
+        Range? savedRange = isConcrete
+            ? Range(savedClassId._localValue, savedClassId._localValue)
+            : null;
+        for (final child in children) {
+          final childRange = addSavedRanges(child);
+          if (childRange != null) {
+            savedRange = savedRange == null
+                ? Range(childRange.start, childRange.end)
+                : Range(savedRange.start, max(savedRange.end, childRange.end));
+          }
+        }
+        if (savedRange != null) {
+          (concreteSubclassRanges[cls] ??= []).add(savedRange);
+        }
+        return savedRange;
+      }
+
+      addSavedRanges(root);
+    }
+
+    final subclassesRangesToBuild = savedMaxClassId != null
+        ? concreteSubclassRangesForDynamicModule
+        : concreteSubclassRanges;
+
     dfs(root, (Class cls) {
-      dfsOrder.add(cls);
+      if (!inDfsOrder.contains(cls)) {
+        dfsOrder.add(cls);
+      }
+      if (classIds.containsKey(cls)) return nextConcreteClassId;
       if (cls.isAnonymousMixin) {
-        classIds[cls] = anonymousMixinClassId;
+        classIds[cls] = AbsoluteClassId(anonymousMixinClassId);
         return nextConcreteClassId;
       }
       if (cls.isAbstract) {
         var classId = classIds[cls];
-        if (classId == null) classIds[cls] = nextAbstractClassId++;
+        if (classId == null) {
+          classIds[cls] = AbsoluteClassId(nextAbstractClassId++);
+        }
         return nextConcreteClassId;
       }
 
       assert(classIds[cls] == null);
-      classIds[cls] = nextConcreteClassId++;
+      final classId = nextConcreteClassId++;
+      classIds[cls] = savedMaxClassId != null
+          ? RelativeClassId(classId)
+          : AbsoluteClassId(classId);
       return nextConcreteClassId - 1;
     }, (Class cls, int firstClassId) {
       final range = Range(firstClassId, nextConcreteClassId - 1);
-      concreteSubclassRange[cls] = range;
+      if (!range.isEmpty) {
+        (subclassesRangesToBuild[cls] ??= []).add(range);
+      }
     });
 
     assert(dfsOrder.length ==
-        (concreteClassCount + abstractClassCount + anonymousMixinClassCount));
+        (concreteClassCount +
+            abstractClassCount +
+            anonymousMixinClassCount +
+            alreadyAssignedCount));
 
     return ClassIdNumbering._(
+        translator,
         subclasses,
         implementors,
-        concreteSubclassRange,
+        concreteSubclassRanges,
+        concreteSubclassRangesForDynamicModule,
         masqueraded,
         dfsOrder,
         classIds,
-        firstClassId + concreteClassCount - 1,
-        firstClassId + concreteClassCount + abstractClassCount - 1);
+        savedMaxConcreteClassId ?? nextConcreteClassId - 1,
+        savedMaxClassId ?? nextAbstractClassId - 1,
+        savedMaxConcreteClassId == null ? null : nextConcreteClassId - 1,
+        savedMaxClassId == null ? null : nextAbstractClassId - 1);
   }
 
-  Range getConcreteSubclassRange(Class klass) =>
-      _concreteSubclassIdRange[klass]!;
+  List<Range> getConcreteSubclassRanges(Class klass) =>
+      _concreteSubclassIdRange[klass] ?? const [];
+}
+
+sealed class ClassId {
+  int get _localValue;
+}
+
+final class AbsoluteClassId extends ClassId {
+  final int value;
+
+  @override
+  int get _localValue => value;
+
+  AbsoluteClassId(this.value);
+}
+
+final class RelativeClassId extends ClassId {
+  final int relativeValue;
+  @override
+  int get _localValue => relativeValue;
+
+  RelativeClassId(this.relativeValue);
 }
 
 // A range of class ids, both ends inclusive.

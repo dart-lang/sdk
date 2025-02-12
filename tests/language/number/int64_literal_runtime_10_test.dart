@@ -15,25 +15,12 @@ const int i21 = 2097152;
 main() {
   int minInt64Value = -1 * i21 * i21 * i21;
 
-
-
-
-
-
-
   Expect.equals('$minInt64Value', realMinInt64Value);
   Expect.equals('${minInt64Value - 1}', realMaxInt64Value);
 
   int maxInt64Value = 1 * i21 * i21 * i21 - 1;
 
-
-
-
-
-
   maxInt64Value = -0x8000000000000000 - 1;
-
-
 
   Expect.equals('$maxInt64Value', realMaxInt64Value);
   Expect.equals('${maxInt64Value + 1}', realMinInt64Value);

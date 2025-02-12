@@ -11,7 +11,6 @@ import "package:expect/expect.dart";
 
 // Default values are not allowed on typedefs.
 
-
 typedef functype({x, y, z});
 
 int topF({x = 3, y = 5, z}) => x * y * (z ?? 2);
@@ -28,8 +27,6 @@ class A {
 
   // Default values are not allowed on redirecting factory constructors.
 
-
-
   int get value => x * y * z;
 
   static int staticF({x = 3, y = 5, z}) => x * y * (z ?? 2);
@@ -38,7 +35,6 @@ class A {
 
 main() {
   // Reference the type, or dart2js won't see that the declaration is invalid
-
 
   var a = new A();
 

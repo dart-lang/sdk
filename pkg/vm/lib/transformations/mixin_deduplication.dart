@@ -6,14 +6,13 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
 /// De-duplication of identical mixin applications.
-void transformComponent(Component component) {
+void transformLibraries(List<Library> libraries) {
   final deduplicateMixins = new DeduplicateMixinsTransformer();
   final referenceUpdater = ReferenceUpdater(deduplicateMixins);
 
   // Deduplicate mixins and re-resolve super initializers.
   // (this is a shallow transformation)
-  component.libraries
-      .forEach((library) => deduplicateMixins.visitLibrary(library, null));
+  libraries.forEach((library) => deduplicateMixins.visitLibrary(library, null));
 
   // Do a deep transformation to update references to the removed mixin
   // application classes in the interface targets and types.
@@ -32,7 +31,12 @@ void transformComponent(Component component) {
   // TODO(dartbug.com/39375): Remove this extra O(N) pass over the AST if the
   // CFE decides to consistently let the interface target point to the mixin
   // class (instead of mixin application).
-  component.libraries.forEach(referenceUpdater.visitLibrary);
+  libraries.forEach(referenceUpdater.visitLibrary);
+}
+
+/// De-duplication of identical mixin applications.
+void transformComponent(Component component) {
+  transformLibraries(component.libraries);
 }
 
 class _DeduplicateMixinKey {

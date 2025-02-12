@@ -202,14 +202,12 @@ void testNullSafeApplyDynamically() {
 
 void main() {
   never = null;
-  // ^
-  // [analyzer] unspecified
-  //      ^
+  //      ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] The value 'null' can't be assigned to a variable of type 'Never' because 'Never' is not nullable.
   never = nil;
-  // ^
-  // [analyzer] unspecified
-  //      ^
+  //      ^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Null' can't be assigned to a variable of type 'Never' because 'Never' is not nullable.
   nil = never;
   testNullSafeCalls();

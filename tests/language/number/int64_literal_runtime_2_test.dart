@@ -17,23 +17,10 @@ main() {
 
   minInt64Value = -9223372036854775808;
 
-
-
-
-
   Expect.equals('$minInt64Value', realMinInt64Value);
   Expect.equals('${minInt64Value - 1}', realMaxInt64Value);
 
   int maxInt64Value = 1 * i21 * i21 * i21 - 1;
-
-
-
-
-
-
-
-
-
 
   Expect.equals('$maxInt64Value', realMaxInt64Value);
   Expect.equals('${maxInt64Value + 1}', realMinInt64Value);

@@ -26,6 +26,6 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
     //                 ^
     // [cfe] The type 'int' is not exhaustively matched by the switch cases since it doesn't match 'int()'.
-    double d => 'wrong'
+    double d => 'wrong',
   };
 }

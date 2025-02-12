@@ -8,7 +8,4 @@ import "../library10.dart";
 
 main() {
   // Library prefixes in the imported libraries should not be visible here.
-
-
-
 }

@@ -76,7 +76,8 @@ class Globals {
       final module = translator.moduleForReference(field.fieldReference);
       final memberName = field.toString();
       if (init != null &&
-          !(translator.constants.ensureConstant(init)?.isLazy ?? false)) {
+          !(translator.constants.ensureConstant(init, module)?.isLazy ??
+              false)) {
         // Initialized to a constant
         final global = module.globals.define(
             w.GlobalType(fieldType, mutable: !field.isFinal), memberName);

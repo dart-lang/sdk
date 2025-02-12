@@ -21,12 +21,9 @@ class Base {
 }
 
 class Derived extends Base {
-  void f() {
-
-  }
+  void f() {}
 }
 
 main() {
   new Derived().f();
-
 }

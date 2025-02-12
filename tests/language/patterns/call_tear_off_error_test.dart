@@ -12,26 +12,30 @@ main() {
   // the type of the value isn't assignable to the pattern's type.
   (C,) record = (C(),);
   var (IntFn b,) = record;
+  //   ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT
   //         ^
-  // [analyzer] unspecified
   // [cfe] The matched value of type 'C' isn't assignable to the required type 'int Function(int)'.
 
   List<C> list = [C()];
   var [IntFn c] = list;
+  //   ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT
   //         ^
-  // [analyzer] unspecified
   // [cfe] The matched value of type 'C' isn't assignable to the required type 'int Function(int)'.
 
   Map<String, C> map = {'x': C()};
   var {'x': IntFn d} = map;
+  //        ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT
   //              ^
-  // [analyzer] unspecified
   // [cfe] The matched value of type 'C' isn't assignable to the required type 'int Function(int)'.
 
   Box<C> box = Box(C());
   var Box<C>(value: IntFn e) = box;
+  //                ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT
   //                      ^
-  // [analyzer] unspecified
   // [cfe] The matched value of type 'C' isn't assignable to the required type 'int Function(int)'.
 }
 

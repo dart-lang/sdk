@@ -106,7 +106,9 @@ test_propertyIsEnumerable() {
 
   Expect.equals(null, TestClass_propertyIsEnumerable.staticMethod());
   Expect.equals(
-      0, TestClass_propertyIsEnumerable.staticMethod(propertyIsEnumerable: 0));
+    0,
+    TestClass_propertyIsEnumerable.staticMethod(propertyIsEnumerable: 0),
+  );
 
   Expect.equals(null, globalMethod_propertyIsEnumerable());
   Expect.equals(0, globalMethod_propertyIsEnumerable(propertyIsEnumerable: 0));

@@ -11,10 +11,10 @@ void nullableWithField(x) {
   // This is an error because `isEven` can't be called on `int?`.
   switch (x) {
     case A(isEven: true):
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//               ^
-// [cfe] The getter 'isEven' isn't defined for the class 'int?'.
+      // ^
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      //         ^
+      // [cfe] The getter 'isEven' isn't defined for the class 'int?'.
       break;
   }
 }
@@ -23,10 +23,10 @@ void potentiallyNullableWithField<T extends int?>(x) {
   // This is an error because `isEven` can't be called on `int?`.
   switch (x) {
     case T(isEven: true):
-//       ^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-//               ^
-// [cfe] The getter 'isEven' isn't defined for the class 'int?'.
+      // ^
+      // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+      //         ^
+      // [cfe] The getter 'isEven' isn't defined for the class 'int?'.
       break;
   }
 }

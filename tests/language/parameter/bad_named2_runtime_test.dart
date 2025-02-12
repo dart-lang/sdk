@@ -18,5 +18,4 @@ main() {
   BadNamedParameters2Test np = new BadNamedParameters2Test();
 
   // No formal parameter named b.
-
 }

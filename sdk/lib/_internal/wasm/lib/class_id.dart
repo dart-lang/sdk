@@ -78,4 +78,73 @@ class ClassID {
 
   // Dummy, only used by VM-specific hash table code.
   static final WasmI32 numPredefinedCids = 1.toWasmI32();
+
+  // The maximum class ID in the main module of the program.
+  external static WasmI32 get maxClassId;
+}
+
+const int mainModuleId = 0;
+
+/// The ith entry in this array is the max global class ID for module i.
+WasmArray<WasmI32> _moduleMaxClassId = WasmArray.filled(1, ClassID.maxClassId);
+
+/// Gets the module ID for a given global class ID.
+@pragma('dyn-module:callable')
+int classIdToModuleId(WasmI32 classId) {
+  if (!hasDynamicModuleSupport) {
+    assert(
+      _moduleMaxClassId.length == 1 &&
+          classId <= _moduleMaxClassId[mainModuleId],
+    );
+    return mainModuleId;
+  }
+  // NOTE: This could be made into binary search if many modules are getting
+  // registered. For now we expect few so a linear search is fine.
+  final array = _moduleMaxClassId;
+  for (int i = 0; i < array.length; i++) {
+    if (classId <= array[i]) return i;
+  }
+  throw ArgumentError();
+}
+
+/// Registers a new dynamic module based on the size of its new class ID range.
+@pragma('dyn-module:callable')
+int registerModuleClassRange(WasmI32 rangeSize) {
+  final oldRanges = _moduleMaxClassId;
+  final moduleId = oldRanges.length;
+
+  final newRanges = WasmArray<WasmI32>.filled(moduleId + 1, 0.toWasmI32());
+  newRanges.copy(0, oldRanges, 0, oldRanges.length);
+  newRanges[moduleId] = rangeSize + oldRanges[moduleId - 1];
+  _moduleMaxClassId = newRanges;
+  return moduleId;
+}
+
+/// Scopes a class ID to the enclosing module giving an ID relative to only
+/// classes defined in the module defining the class.
+@pragma('dyn-module:callable')
+WasmI32 scopeClassId(WasmI32 classId) {
+  final moduleId = classIdToModuleId(classId);
+  if (moduleId == 0) return classId;
+  return classId - (_moduleMaxClassId[moduleId - 1] + 1.toWasmI32());
+}
+
+/// Produces a localized class ID from a global class ID. A local ID is offset
+/// relative to the main module rather than the global ID space. The compiler
+/// produces localized IDs since it can't track global IDs. Multiple classes
+/// can map to the same localized class ID.
+@pragma('dyn-module:callable')
+WasmI32 localizeClassId(WasmI32 classId) {
+  final moduleId = classIdToModuleId(classId);
+  if (moduleId == 0) return classId;
+  return classId - _moduleMaxClassId[moduleId - 1] + ClassID.maxClassId;
+}
+
+/// Produces a global class ID from a local class ID. A global ID is offset
+/// relative to all registered dynamic modules. Each class will have a unique
+/// global class ID.
+@pragma('dyn-module:callable')
+WasmI32 globalizeClassId(WasmI32 classId, int moduleId) {
+  if (moduleId == 0) return classId;
+  return classId - ClassID.maxClassId + _moduleMaxClassId[moduleId - 1];
 }

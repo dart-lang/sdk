@@ -24,7 +24,10 @@ void testSwitchStatement() {
 }
 
 void testSwitchExpression() {
-  (switch ('value') { var a when _guard(a) => 'body', _ => 'other' });
+  (switch ('value') {
+    var a when _guard(a) => 'body',
+    _ => 'other',
+  });
 
   _expectGuard('value');
 }

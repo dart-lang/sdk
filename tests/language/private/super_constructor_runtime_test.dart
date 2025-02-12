@@ -9,8 +9,6 @@ library private_super_constructor_test;
 
 import 'super_constructor_lib.dart';
 
-class C extends B {
-
-}
+class C extends B {}
 
 main() => new C();

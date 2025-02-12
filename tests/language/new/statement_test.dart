@@ -11,9 +11,7 @@ class A {
   static int c = -1;
   static int d = -1;
 
-  A(int x, int y)
-      : a = x,
-        b = y {
+  A(int x, int y) : a = x, b = y {
     A.c = x;
     A.d = y;
   }

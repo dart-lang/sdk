@@ -73,6 +73,4 @@ regexp/global_test: Skip # Issue 21709
 regexp/pcre_test: Slow, Pass
 
 [ $hot_reload || $hot_reload_rollback ]
-bigint_parse_radix_test: Skip # Issue 31659. Issue 34361.
-bigint_test: Skip # Issue 31659
-integer_parsed_mul_div_vm_test: Slow, Pass # Slow
+bigint_test: SkipSlow

@@ -43,10 +43,10 @@ const f2 = false;
 
 void nonExhaustiveSwitch1(bool b) {
   switch (b) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'bool' is not exhaustively matched by the switch cases since it doesn't match 'false'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'bool' is not exhaustively matched by the switch cases since it doesn't match 'false'.
     case true:
       print('true');
       break;
@@ -55,10 +55,10 @@ void nonExhaustiveSwitch1(bool b) {
 
 void nonExhaustiveSwitch2(bool b) {
   switch (b) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'bool' is not exhaustively matched by the switch cases since it doesn't match 'true'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'bool' is not exhaustively matched by the switch cases since it doesn't match 'true'.
     case false:
       print('false');
       break;
@@ -92,10 +92,10 @@ void exhaustiveNullableSwitch(bool? b) {
 
 void nonExhaustiveNullableSwitch1(bool? b) {
   switch (b) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'bool?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'bool?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case true:
       print('true');
       break;
@@ -107,10 +107,10 @@ void nonExhaustiveNullableSwitch1(bool? b) {
 
 void nonExhaustiveNullableSwitch2(bool? b) {
   switch (b) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'bool?' is not exhaustively matched by the switch cases since it doesn't match 'false'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'bool?' is not exhaustively matched by the switch cases since it doesn't match 'false'.
     case true:
       print('true');
       break;
@@ -129,8 +129,8 @@ void unreachableCase1(bool b) {
       print('false');
       break;
     case true: // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('true2');
       break;
   }
@@ -163,8 +163,8 @@ void unreachableCase3(bool? b) {
       print('null1');
       break;
     case null: // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null2');
       break;
   }
@@ -179,8 +179,8 @@ void unreachableDefault(bool b) {
       print('false');
       break;
     default: // Unreachable
-//  ^^^^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      // [error column 5, length 7]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
       print('default');
       break;
   }

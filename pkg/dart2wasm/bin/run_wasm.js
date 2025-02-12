@@ -416,6 +416,9 @@ const main = async () => {
     loadDeferredWasm: async (moduleName) => {
       let filename = wasmFilename.replace('.wasm', `_${moduleName}.wasm`);
       return readBytes(filename);
+    },
+    loadDynamicModule: async (uri) => {
+      return readBytes(uri);
     }
   });
 

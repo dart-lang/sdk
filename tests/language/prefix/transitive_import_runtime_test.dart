@@ -12,7 +12,5 @@ import "../library12.dart" as lib12;
 main() {
   // Class should not be visible.
 
-
   // Variable should not be visible.
-
 }

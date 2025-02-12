@@ -12,20 +12,30 @@ main() {
   Expect.equals(fn.runtimeType, fn2.runtimeType);
   Expect.equals(voidToT.runtimeType, voidToS.runtimeType);
   Expect.equals(positionalTToVoid.runtimeType, positionalSToVoid.runtimeType);
-  Expect.equals(positionalNullableTToVoid.runtimeType,
-      positionalNullableSToVoid.runtimeType);
+  Expect.equals(
+    positionalNullableTToVoid.runtimeType,
+    positionalNullableSToVoid.runtimeType,
+  );
   Expect.equals(optionalTToVoid.runtimeType, optionalSToVoid.runtimeType);
   Expect.equals(
-      optionalNullableTToVoid.runtimeType, optionalNullableSToVoid.runtimeType);
+    optionalNullableTToVoid.runtimeType,
+    optionalNullableSToVoid.runtimeType,
+  );
   Expect.equals(namedTToVoid.runtimeType, namedSToVoid.runtimeType);
   Expect.equals(
-      namedNullableTToVoid.runtimeType, namedNullableSToVoid.runtimeType);
+    namedNullableTToVoid.runtimeType,
+    namedNullableSToVoid.runtimeType,
+  );
   Expect.equals(requiredTToVoid.runtimeType, requiredSToVoid.runtimeType);
   Expect.equals(
-      requiredNullableTToVoid.runtimeType, requiredNullableSToVoid.runtimeType);
+    requiredNullableTToVoid.runtimeType,
+    requiredNullableSToVoid.runtimeType,
+  );
 
   // Required named arguments are not equal to named arguments.
   Expect.notEquals(namedTToVoid.runtimeType, requiredTToVoid.runtimeType);
   Expect.notEquals(
-      namedNullableTToVoid.runtimeType, requiredNullableTToVoid.runtimeType);
+    namedNullableTToVoid.runtimeType,
+    requiredNullableTToVoid.runtimeType,
+  );
 }

@@ -5,15 +5,19 @@
 import "dart:_internal"
     show
         ClassID,
+        classIdToModuleId,
         CodeUnits,
         doubleToIntBits,
         EfficientLengthIterable,
         FixedLengthListMixin,
+        hasDynamicModuleSupport,
         intBitsToDouble,
         IterableElementError,
         jsonEncode,
+        localizeClassId,
         ListIterator,
         Lists,
+        mainModuleId,
         minify,
         mix64,
         patch,
@@ -62,6 +66,8 @@ import 'dart:_object_helper';
 import 'dart:_string_helper';
 
 import 'dart:_wasm';
+
+import 'internal_patch.dart';
 
 part "closure.dart";
 part "double_patch.dart";

@@ -37,10 +37,10 @@ class NamedParametersAggregatedTests {
 main() {
   // Expect compile-time error due to missing comma in function definition.
   NamedParametersAggregatedTests.f_missing_comma(10, 25);
+  //                                            ^
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
   //                                                 ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
-  //                                            ^^^^^^^^
-  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 
   // Expect compile-time error due to duplicate named argument.
   NamedParametersAggregatedTests.F31(10, b: 25, b:35);
@@ -50,10 +50,10 @@ main() {
 
   // Expect compile-time error due to missing positional argument.
   NamedParametersAggregatedTests.F31(b: 25, c: 35);
+  //                                ^
+  // [cfe] Too few positional arguments: 1 required, 0 given.
   //                                 ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
-  //                                ^^^^^^^^^^^^^^
-  // [cfe] Too few positional arguments: 1 required, 0 given.
 
   new TypeTester<Callback>();
 

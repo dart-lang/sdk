@@ -5,24 +5,24 @@
 import 'package:expect/expect.dart';
 
 exhaustiveDynamicAsStringOrInt(o) => switch (o) {
-      final String value => value,
-      final value as int => '$value',
-    };
+  final String value => value,
+  final value as int => '$value',
+};
 
 exhaustiveDynamicAsStringOrIntAnd(o) => switch (o) {
-      final String value => value,
-      (final value && final value2) as int => '$value$value2',
-    };
+  final String value => value,
+  (final value && final value2) as int => '$value$value2',
+};
 
 exhaustiveDynamicAsStringOrNum(o) => switch (o) {
-      final String value => value,
-      final num value as int => '$value',
-    };
+  final String value => value,
+  final num value as int => '$value',
+};
 
 exhaustiveDynamicAsStringOrIntUnrestricted(o) => switch (o) {
-      final String value => value,
-      int(:bool isEven) as int => '$isEven',
-    };
+  final String value => value,
+  int(:bool isEven) as int => '$isEven',
+};
 
 sealed class M {}
 
@@ -33,25 +33,25 @@ class B extends M {}
 class C extends M {}
 
 exhaustiveMAsM(M m) => switch (m) {
-      (A() || B() || C()) as M => 0,
-    };
+  (A() || B() || C()) as M => 0,
+};
 
 exhaustiveDynamicAsM(dynamic m) => switch (m) {
-      (A() || B() || C()) as M => 0,
-    };
+  (A() || B() || C()) as M => 0,
+};
 
 exhaustiveDynamicAsMUnrestricted(dynamic m) => switch (m) {
-      (A() || B() || C(hashCode: int())) as M => 0,
-    };
+  (A() || B() || C(hashCode: int())) as M => 0,
+};
 
 exhaustiveDynamicAsMSeeminglyRestricted(dynamic m) => switch (m) {
-      (A() || B() || C(hashCode: 5)) as A => 0,
-    };
+  (A() || B() || C(hashCode: 5)) as A => 0,
+};
 
 exhaustiveList(o) => switch (o) {
-      [_] => 1,
-      [...] as List => 0,
-    };
+  [_] => 1,
+  [...] as List => 0,
+};
 
 main() {
   Expect.equals('foo', exhaustiveDynamicAsStringOrInt('foo'));

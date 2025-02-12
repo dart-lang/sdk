@@ -15,8 +15,10 @@ class Mock {
 void main() {
   var g = new Mock();
 
-  Expect.listEquals(
-      [String, int], (g as dynamic).hurrah<String, int>(moose: 42, duck: 12));
+  Expect.listEquals([
+    String,
+    int,
+  ], (g as dynamic).hurrah<String, int>(moose: 42, duck: 12));
 
   // map has interceptor calling convention in dart2js.
   Expect.listEquals([String, int], (g as dynamic).map<String, int>());

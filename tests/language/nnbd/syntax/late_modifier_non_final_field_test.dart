@@ -19,9 +19,7 @@ class A {
   late int? nullableFieldWithNoInit;
   late int? fieldWithOnlyCtorInit;
   late int? fieldWithOnlyBothInitAndCtorInit = 123;
-  A()
-      : fieldWithOnlyCtorInit = null,
-        fieldWithOnlyBothInitAndCtorInit = null;
+  A() : fieldWithOnlyCtorInit = null, fieldWithOnlyBothInitAndCtorInit = null;
 }
 
 main() {

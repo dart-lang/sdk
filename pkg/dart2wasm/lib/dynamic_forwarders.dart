@@ -98,9 +98,11 @@ class Forwarder {
   void _generateGetterCode(Translator translator) {
     final selectors =
         translator.dispatchTable.dynamicGetterSelectors(memberName);
+    final isDynamicModule = translator.isDynamicModule &&
+        function.enclosingModule == translator.dynamicModule;
     final ranges = selectors
         .expand((selector) => selector
-            .targets(unchecked: false)
+            .targets(unchecked: false, dynamicModule: isDynamicModule)
             .targetRanges
             .map((r) => (range: r.range, value: r.target)))
         .toList();
@@ -146,9 +148,11 @@ class Forwarder {
   void _generateSetterCode(Translator translator) {
     final selectors =
         translator.dispatchTable.dynamicSetterSelectors(memberName);
+    final isDynamicModule = translator.isDynamicModule &&
+        function.enclosingModule == translator.dynamicModule;
     final ranges = selectors
         .expand((selector) => selector
-            .targets(unchecked: false)
+            .targets(unchecked: false, dynamicModule: isDynamicModule)
             .targetRanges
             .map((r) => (range: r.range, value: r.target)))
         .toList();
@@ -201,8 +205,11 @@ class Forwarder {
     for (final selector in methodSelectors) {
       // Accumulates all class ID ranges that have the same target.
       final Map<Reference, List<Range>> targets = {};
-      for (final (:range, :target)
-          in selector.targets(unchecked: false).targetRanges) {
+      final isDynamicModule = translator.isDynamicModule &&
+          function.enclosingModule == translator.dynamicModule;
+      for (final (:range, :target) in selector
+          .targets(unchecked: false, dynamicModule: isDynamicModule)
+          .targetRanges) {
         targets.putIfAbsent(target, () => []).add(range);
       }
 
@@ -481,9 +488,12 @@ class Forwarder {
     final getterSelectors =
         translator.dispatchTable.dynamicGetterSelectors(memberName);
     final getterValueLocal = b.addLocal(translator.topInfo.nullableType);
+    final isDynamicModule = translator.isDynamicModule &&
+        function.enclosingModule == translator.dynamicModule;
     for (final selector in getterSelectors) {
-      for (final (:range, :target)
-          in selector.targets(unchecked: false).targetRanges) {
+      for (final (:range, :target) in selector
+          .targets(unchecked: false, dynamicModule: isDynamicModule)
+          .targetRanges) {
         for (int classId = range.start; classId <= range.end; ++classId) {
           final targetMember = target.asMember;
           // This loop checks getters and fields. Methods are considered in the
@@ -528,7 +538,8 @@ class Forwarder {
 
           // Invoke "call" if the value is not a closure
           b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-          b.i32_const(translator.closureInfo.classId);
+          b.i32_const(
+              (translator.closureInfo.classId as AbsoluteClassId).value);
           b.i32_ne();
           b.if_();
           // Value is not a closure
@@ -780,7 +791,7 @@ void generateNoSuchMethodCall(
   // Get class id for virtual call
   pushReceiver();
   translator.callDispatchTable(b, noSuchMethodSelector,
-      useUncheckedEntry: false);
+      interfaceTarget: translator.objectNoSuchMethod, useUncheckedEntry: false);
 }
 
 class ClassIdRange {

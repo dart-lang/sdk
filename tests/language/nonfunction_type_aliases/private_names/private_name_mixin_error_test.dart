@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Test that a private mixin exported via a typedef cannot be used as a class.
 
 import "private_name_library.dart";

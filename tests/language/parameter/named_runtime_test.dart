@@ -68,27 +68,21 @@ class NamedParametersTest {
     Expect.equals(20, F10(20));
     Expect.equals(20, np.f21(20));
 
-
     Expect.equals(1020, F21(10));
     Expect.equals(1020, np.f32(10));
     Expect.equals(1025, F21(10, 25));
     Expect.equals(1025, np.f32(10, 25));
-
 
     Expect.equals(102030, F31(10));
     Expect.equals(102030, np.f42(10));
     Expect.equals(102530, F31(10, 25));
     Expect.equals(102530, np.f42(10, 25));
 
-
     Expect.equals(102535, F31(10, 25, 35));
     Expect.equals(102535, np.f42(10, 25, 35));
 
-
     Expect.equals(10200040, F41(10));
     Expect.equals(10200040, np.f52(10));
-
-
   }
 }
 

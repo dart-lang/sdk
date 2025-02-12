@@ -182,6 +182,14 @@ class _RecordClassGenerator {
 
   Library get library => coreTypes.coreLibrary;
 
+  late final Map<String, Class> _existingCoreClassNames = (() {
+    final map = <String, Class>{};
+    for (final cls in library.classes) {
+      map[cls.name] = cls;
+    }
+    return map;
+  })();
+
   _RecordClassGenerator(this.classes, this.coreTypes);
 
   void generateClassForRecordType(RecordType recordType) {
@@ -197,6 +205,11 @@ class _RecordClassGenerator {
     if (shape.names.isNotEmpty) {
       className = '${className}_${shape.names.join('_')}';
     }
+
+    // If this is a dynamic module the loaded main module may already contain
+    // this class.
+    final existingClass = _existingCoreClassNames[className];
+    if (existingClass != null) return existingClass;
 
     final cls = addWasmEntryPointPragma(
         Class(

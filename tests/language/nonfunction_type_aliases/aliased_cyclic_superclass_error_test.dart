@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 typedef T = C;
 
 class C extends T {}
 //    ^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
+// [cfe] 'C' is a supertype of itself.
 
 main() => C();

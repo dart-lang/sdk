@@ -66,7 +66,7 @@ main() {
     new A6(),
     new A7(),
     new A8(),
-    new A9()
+    new A9(),
   ];
   for (int i = 0; i < 20; i++) {
     for (var obj in list) {

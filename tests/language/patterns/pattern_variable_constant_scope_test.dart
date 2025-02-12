@@ -8,14 +8,17 @@
 void testSwitchStatement(int x) {
   switch (x) {
     case var a && == a:
-      //               ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      //             ^
+      // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+      // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      // [cfe] Read of a non-const variable is not a constant expression.
       'error';
     case == b && var b:
       //    ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+      // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      // [cfe] Local variable 'b' can't be referenced before it is declared.
+      // [cfe] Undefined name 'b'.
       'error';
   }
 }
@@ -27,13 +30,15 @@ void testSwitchStatementInScope(int x) {
   switch (x) {
     case var a && == a:
       //             ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+      // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      // [cfe] Read of a non-const variable is not a constant expression.
       'error';
     case == b && var b:
       //    ^
-      // [analyzer] unspecified
-      // [cfe] unspecified
+      // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+      // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      // [cfe] Local variable 'b' can't be referenced before it is declared.
       'error';
   }
 }
@@ -42,13 +47,16 @@ String testSwitchExpression(int x) {
   return switch (x) {
     var a && == a => 'error',
     //          ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Read of a non-const variable is not a constant expression.
     == b && var b => 'error',
     // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
-    _ => 'other'
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Local variable 'b' can't be referenced before it is declared.
+    // [cfe] Undefined name 'b'.
+    _ => 'other',
   };
 }
 
@@ -59,26 +67,31 @@ String testSwitchExpressionInScope(int x) {
   return switch (x) {
     var a && == a => 'error',
     //          ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Read of a non-const variable is not a constant expression.
     == b && var b => 'error',
     // ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
-    _ => 'other'
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Local variable 'b' can't be referenced before it is declared.
+    _ => 'other',
   };
 }
 
 void testIfCaseStatement(int x) {
   if (x case var a && == a) {}
   //                     ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  // [cfe] Read of a non-const variable is not a constant expression.
 
   if (x case == b && var b) {}
   //            ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  // [cfe] Local variable 'b' can't be referenced before it is declared.
+  // [cfe] Undefined name 'b'.
 }
 
 void testIfCaseStatementInScope(int x) {
@@ -87,25 +100,30 @@ void testIfCaseStatementInScope(int x) {
 
   if (x case var a && == a) {}
   //                     ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  // [cfe] Read of a non-const variable is not a constant expression.
 
   if (x case == b && var b) {}
   //            ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  // [cfe] Local variable 'b' can't be referenced before it is declared.
 }
 
 List<String> testIfCaseElement(int x) {
   return [
     if (x case var a && == a) 'one',
     //                     ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
-    if (x case == b && var b) 'two'
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Read of a non-const variable is not a constant expression.
+    if (x case == b && var b) 'two',
     //            ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Local variable 'b' can't be referenced before it is declared.
+    // [cfe] Undefined name 'b'.
   ];
 }
 
@@ -116,11 +134,13 @@ List<String> testIfCaseElementInScope(int x) {
   return [
     if (x case var a && == a) 'one',
     //                     ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
-    if (x case == b && var b) 'two'
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Read of a non-const variable is not a constant expression.
+    if (x case == b && var b) 'two',
     //            ^
-    // [analyzer] unspecified
-    // [cfe] unspecified
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Local variable 'b' can't be referenced before it is declared.
   ];
 }

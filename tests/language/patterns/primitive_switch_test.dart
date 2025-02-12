@@ -10,23 +10,15 @@ import 'package:expect/expect.dart';
 
 abstract class I {}
 
-enum A implements I {
-  a,
-  b,
-  c,
-}
+enum A implements I { a, b, c }
 
-enum B implements I {
-  a,
-  b,
-  c,
-}
+enum B implements I { a, b, c }
 
 int switchExpressionA(A a) => switch (a) {
-      A.a => 0,
-      A.b => 1,
-      A.c => 2,
-    };
+  A.a => 0,
+  A.b => 1,
+  A.c => 2,
+};
 
 int switchStatementA(A a) {
   switch (a) {
@@ -40,10 +32,10 @@ int switchStatementA(A a) {
 }
 
 int switchExpressionB(B b) => switch (b) {
-      B.a => 3,
-      B.b => 4,
-      B.c => 5,
-    };
+  B.a => 3,
+  B.b => 4,
+  B.c => 5,
+};
 
 int switchStatementB(B b) {
   switch (b) {
@@ -57,14 +49,14 @@ int switchStatementB(B b) {
 }
 
 int switchExpressionI(I i) => switch (i) {
-      A.a => 0,
-      A.b => 1,
-      A.c => 2,
-      B.a => 3,
-      B.b => 4,
-      B.c => 5,
-      _ => -1,
-    };
+  A.a => 0,
+  A.b => 1,
+  A.c => 2,
+  B.a => 3,
+  B.b => 4,
+  B.c => 5,
+  _ => -1,
+};
 
 int switchStatementI(I i) {
   switch (i) {

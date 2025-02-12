@@ -12,19 +12,14 @@ class A {
   Comparator? b;
   // This code exhibited a bug in dart2js, where the type of [a] was inferred to
   // be [Comparator] or null;
-  A()
-      : b = null,
-        a = null;
+  A() : b = null, a = null;
 }
 
-main() {
-
-}
+main() {}
 
 bar() {
   // We would create a typed selector for the call to foo, where the
   // receiver type is a typedef. Some code in the dart2js backend were
   // not dealing correctly with typedefs and lead the compiler to
   // crash.
-
 }

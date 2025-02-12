@@ -7,8 +7,6 @@
 
 library ambiguous_lib;
 
-
-
 part "of_multiple_libs_part.dart";
 
 main() {

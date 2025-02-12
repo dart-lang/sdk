@@ -51,7 +51,7 @@ class CompiledApp {
   //   wasm file produced by the dart2wasm compiler and returns the bytes to
   //   load the module. These bytes can be in either a format supported by
   //   `WebAssembly.compile` or `WebAssembly.compileStreaming`.
-  async instantiate(additionalImports, {loadDeferredWasm} = {}) {
+  async instantiate(additionalImports, {loadDeferredWasm, loadDynamicModule} = {}) {
     let dartInstance;
 
     // Prints to the console
@@ -111,12 +111,18 @@ class CompiledApp {
 
     <<JS_STRING_POLYFILL_METHODS>>
 
-    const deferredLibraryHelper = {
-      "loadModule": async (moduleName) => {
-        if (!loadDeferredWasm) {
-          throw "No implementation of loadDeferredWasm provided.";
-        }
-        const source = await Promise.resolve(loadDeferredWasm(moduleName));
+    const loadModuleFromBytes = async (bytes) => {
+        const module = await WebAssembly.compile(bytes, this.builtins);
+        return await WebAssembly.instantiate(module, {
+          ...baseImports,
+          ...additionalImports,
+          "wasm:js-string": jsStringPolyfill,
+          "module0": dartInstance.exports,
+        });
+    }
+
+    const loadModule = async (loader, loaderArgument) => {
+        const source = await Promise.resolve(loader(loaderArgument));
         const module = await ((source instanceof Response)
             ? WebAssembly.compileStreaming(source, this.builtins)
             : WebAssembly.compile(source, this.builtins));
@@ -126,6 +132,25 @@ class CompiledApp {
           <<JS_POLYFILL_IMPORT>>
           "module0": dartInstance.exports,
         });
+    }
+
+    const deferredLibraryHelper = {
+      "loadModule": async (moduleName) => {
+        if (!loadDeferredWasm) {
+          throw "No implementation of loadDeferredWasm provided.";
+        }
+        return await loadModule(loadDeferredWasm, moduleName);
+      },
+      "loadDynamicModuleFromUri": async (uri) => {
+        if (!loadDynamicModule) {
+          throw "No implementation of loadDynamicModule provided.";
+        }
+        const loadedModule = await loadModule(loadDynamicModule, uri);
+        return loadedModule.exports.$invokeEntryPoint;
+      },
+      "loadDynamicModuleFromBytes": async (bytes) => {
+        const loadedModule = await loadModuleFromBytes(loadDynamicModule, uri);
+        return loadedModule.exports.$invokeEntryPoint;
       },
     };
 

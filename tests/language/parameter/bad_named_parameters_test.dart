@@ -20,17 +20,17 @@ main() {
 
   // Parameter b passed twice.
   np.f42(10, 25, b: 25);
+  //    ^
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
   //         ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-  //    ^^^^^^^^^^^^^^^
-  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 
   // Parameter x does not exist.
   np.f42(10, 25, x: 99);
+  //    ^
+  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
   //         ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-  //    ^^^^^^^^^^^^^^^
-  // [cfe] Too many positional arguments: 1 allowed, but 2 found.
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_NAMED_PARAMETER
 
@@ -42,15 +42,15 @@ main() {
 
   // Too many parameters.
   np.f42(10, 20, 30, 40);
+  //    ^
+  // [cfe] Too many positional arguments: 1 allowed, but 4 found.
   //         ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-  //    ^^^^^^^^^^^^^^^^
-  // [cfe] Too many positional arguments: 1 allowed, but 4 found.
 
   // Too few parameters.
   np.f42(b: 25);
+  //    ^
+  // [cfe] Too few positional arguments: 1 required, 0 given.
   //     ^
   // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
-  //    ^^^^^^^
-  // [cfe] Too few positional arguments: 1 required, 0 given.
 }

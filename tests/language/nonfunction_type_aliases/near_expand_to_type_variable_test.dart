@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 import 'package:expect/expect.dart';
 
 typedef TB<T extends C> = T;
-typedef AC = C;  // Direct.
-typedef AEC = TB<C>;  // Explicit C argument.
-typedef AIC = TB;  // Implicit instantiate to bounds.
+typedef AC = C; // Direct.
+typedef AEC = TB<C>; // Explicit C argument.
+typedef AIC = TB; // Implicit instantiate to bounds.
 
 class C {
   static const c = 42;

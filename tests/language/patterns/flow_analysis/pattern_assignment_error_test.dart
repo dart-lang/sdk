@@ -73,9 +73,9 @@ test() {
     // Assignment to a variable makes it definitely assigned.
     int x;
     x; // Definitely not assigned
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE
-// [cfe] Non-nullable variable 'x' must be assigned before it can be used.
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE
+    // [cfe] Non-nullable variable 'x' must be assigned before it can be used.
     (x) = expr<int>();
     x; // Definitely assigned
   }

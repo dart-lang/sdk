@@ -15,14 +15,14 @@ main() {
 
 foo1() {
   var a = bar();
-  for (;; a = 1 + a) {
+  for (; ; a = 1 + a) {
     if (a != 'foo') return;
   }
 }
 
 foo2() {
   var a = bar();
-  for (;; a = 1 + a) {
+  for (; ; a = 1 + a) {
     if (a != 'foo') break;
   }
 }

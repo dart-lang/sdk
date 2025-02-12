@@ -97,6 +97,30 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
 
   ConstantPragmaAnnotationParser(this.coreTypes, this.target);
 
+  ParsedEntryPointPragma? getEntryPointTypeFromOptions(
+      Constant options, String pragmaName) {
+    PragmaEntryPointType? type;
+    if (options is NullConstant) {
+      type = PragmaEntryPointType.Default;
+    } else if (options is BoolConstant && options.value == true) {
+      type = PragmaEntryPointType.Default;
+    } else if (options is StringConstant) {
+      if (options.value == "get") {
+        type = PragmaEntryPointType.GetterOnly;
+      } else if (options.value == "set") {
+        type = PragmaEntryPointType.SetterOnly;
+      } else if (options.value == "call") {
+        type = PragmaEntryPointType.CallOnly;
+      } else {
+        throw "Error: string directive to "
+            "@pragma('$pragmaName', ...) "
+            "must be either 'get' or 'set' for fields "
+            "or 'get' or 'call' for procedures.";
+      }
+    }
+    return type != null ? ParsedEntryPointPragma(type) : null;
+  }
+
   ParsedPragma? parsePragma(Expression annotation) {
     InstanceConstant? pragmaConstant;
     if (annotation is ConstantExpression) {
@@ -131,26 +155,7 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
 
     switch (pragmaName) {
       case kVmEntryPointPragmaName:
-        PragmaEntryPointType? type;
-        if (options is NullConstant) {
-          type = PragmaEntryPointType.Default;
-        } else if (options is BoolConstant && options.value == true) {
-          type = PragmaEntryPointType.Default;
-        } else if (options is StringConstant) {
-          if (options.value == "get") {
-            type = PragmaEntryPointType.GetterOnly;
-          } else if (options.value == "set") {
-            type = PragmaEntryPointType.SetterOnly;
-          } else if (options.value == "call") {
-            type = PragmaEntryPointType.CallOnly;
-          } else {
-            throw "Error: string directive to "
-                "@pragma('$kVmEntryPointPragmaName', ...) "
-                "must be either 'get' or 'set' for fields "
-                "or 'get' or 'call' for procedures.";
-          }
-        }
-        return type != null ? ParsedEntryPointPragma(type) : null;
+        return getEntryPointTypeFromOptions(options, pragmaName);
       case kVmExactResultTypePragmaName:
         if (options is TypeLiteralConstant) {
           return ParsedResultTypeByTypePragma(options.type, false);
@@ -207,7 +212,7 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
             PragmaEntryPointType.CanBeOverridden);
       case kDynModuleCallablePragmaName:
       case kDynModuleImplicitlyCallablePragmaName:
-        return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
+        return getEntryPointTypeFromOptions(options, pragmaName);
       case kDynModuleEntryPointPragmaName:
         return const ParsedDynModuleEntryPointPragma();
       default:

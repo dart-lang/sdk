@@ -187,12 +187,9 @@ isolate/static_function_test: Skip # Isolate.spawnUri
 isolate/unresolved_ports_test: Skip # Isolate.spawnUri
 
 [ $hot_reload || $hot_reload_rollback ]
-convert/chunked_conversion_utf88_test: SkipSlow
-convert/utf85_test: SkipSlow
 isolate/deferred_in_isolate2_test: Crash # Requires deferred libraries
 isolate/deferred_in_isolate_test: Crash # Requires deferred libraries
 isolate/issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
-isolate/spawn_uri_nested_vm_test: Crash # Issue 28192
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/deferred_constraints_constants_test: Crash # Requires deferred libraries
 mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading
@@ -203,4 +200,3 @@ mirrors/library_import_deferred_loading_test: Crash # Deferred loading
 mirrors/library_imports_deferred_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 mirrors/typedef_deferred_library_test: Crash # Deferred loading
-typed_data/zeroed_allocation_test: SkipSlow

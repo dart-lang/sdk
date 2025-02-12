@@ -337,8 +337,10 @@ class _InterfaceType extends _Type {
   @override
   String toString() {
     StringBuffer s = StringBuffer();
-    final int index = classId.toIntSigned();
-    s.write(_typeNames?[index] ?? 'minified:Class$index');
+    final int index = scopeClassId(classId).toIntSigned();
+    s.write(
+      _moduleRttForClassId(classId).typeNames?[index] ?? 'minified:Class$index',
+    );
     if (typeArguments.isNotEmpty) {
       s.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
@@ -654,39 +656,80 @@ class _RecordType extends _Type {
       identical(names, other.names);
 }
 
-/// Maps each class id representing a type to the offset of that type-checker
-/// row in [_typeRowDisplacementTable].
-external WasmArray<WasmI32> get _typeRowDisplacementOffsets;
-
-/// Tells whether a class `Sub` is a subclass of another class `Base.
-///
-/// Used via
-/// ```
-///    baseOffset = _typeRowDisplacementOffsets[Base.classId]`
-///    index = baseOffset + Sub.classId
-///    value = _typeRowDisplacementTable[index]
-///    if (value == Base.classId) {
-///      // => Sub.classId is a subclass of Base.classId
-///      // => Can use `index` into `_typeRowDisplacementSubstTable[index]`
-///    }
-///```
-external WasmArray<WasmI32> get _typeRowDisplacementTable;
-
-/// Holds the canonical type argument substitution index for matching table
-/// entries (see above).
-///
-/// If `index` matches in [_typeRowDisplacementTable] then the same index can be
-/// used in this array to find the type argument substitution array for
-/// translating type arguments from a base class to a direct/indirect class.
-external WasmArray<WasmArray<_Type>> get _typeRowDisplacementSubstTable;
-
-/// The names of all classes (indexed by class id) or null (if `--minify` was
-/// used)
-external WasmArray<String>? get _typeNames;
-
-/// The non-negative index into [_typeRowDisplacementSubstTable] that represents
-/// that no substitution is needed.
+/// The non-negative index into [_ModuleRtt.typeRowDisplacementSubstTable] that
+/// represents that no substitution is needed.
 external WasmI32 get _noSubstitutionIndex;
+
+external _ModuleRtt get _mainModuleRtt;
+
+WasmArray<_ModuleRtt> _rttInfoForModule = WasmArray.filled(1, _mainModuleRtt);
+
+@pragma('wasm:entry-point')
+void _registerModuleRtt(int moduleId, _ModuleRtt moduleRtt) {
+  if (moduleId >= _rttInfoForModule.length) {
+    final oldArray = _rttInfoForModule;
+    final newArray = WasmArray.filled(moduleId + 1, moduleRtt);
+    newArray.copy(0, oldArray, 0, oldArray.length);
+    _rttInfoForModule = newArray;
+  }
+  _rttInfoForModule[moduleId] = moduleRtt;
+}
+
+_ModuleRtt _moduleRttForClassId(WasmI32 classId) {
+  if (!hasDynamicModuleSupport) {
+    assert(classId <= ClassID.maxClassId);
+    return _mainModuleRtt;
+  }
+  return _rttInfoForModule[classIdToModuleId(classId)];
+}
+
+class _ModuleRtt {
+  /// Maps each class id representing a type to the offset of that type-checker
+  /// row in [typeRowDisplacementTable].
+  final WasmArray<WasmI32> typeRowDisplacementOffsets;
+
+  /// Tells whether a class `Sub` is a subclass of another class `Base.
+  ///
+  /// Used via
+  /// ```
+  ///    baseOffset = _typeRowDisplacementOffsets[Base.classId]`
+  ///    index = baseOffset + Sub.classId
+  ///    value = _typeRowDisplacementTable[index]
+  ///    if (value == Base.classId) {
+  ///      // => Sub.classId is a subclass of Base.classId
+  ///      // => Can use `index` into `typeRowDisplacementSubstTable[index]`
+  ///    }
+  ///```
+  ///
+  /// Takes two class IDs of classes to be queried. For dynamic modules this will
+  /// allow the compiler to scope the query to a specific module. The class IDs
+  /// are ignored for all other compilations.
+  final WasmArray<WasmI32> typeRowDisplacementTable;
+
+  /// Holds the canonical type argument substitution index for matching table
+  /// entries (see above).
+  ///
+  /// If `index` matches in [typeRowDisplacementTable] then the same index can be
+  /// used in this array to find the type argument substitution array for
+  /// translating type arguments from a base class to a direct/indirect class.
+  ///
+  /// Takes two class IDs of classes to be queried. For dynamic modules this will
+  /// allow the compiler to scope the query to a specific module. The class IDs
+  /// are ignored for all other compilations.
+  final WasmArray<WasmArray<_Type>> typeRowDisplacementSubstTable;
+
+  /// The names of all classes (indexed by class id) or null (if `--minify` was
+  /// used)
+  final WasmArray<String>? typeNames;
+
+  @pragma("wasm:entry-point")
+  const _ModuleRtt(
+    this.typeRowDisplacementOffsets,
+    this.typeRowDisplacementTable,
+    this.typeRowDisplacementSubstTable,
+    this.typeNames,
+  );
+}
 
 /// Type parameter environment used while comparing function types.
 ///
@@ -973,6 +1016,9 @@ abstract class _TypeUniverse {
       tTypeArguments,
       tEnv,
       substitutionIndex,
+      // Since these are already proved to be subclasses, sId and tId are in the
+      // same module or sId's module contains info for both.
+      _moduleRttForClassId(sId).typeRowDisplacementSubstTable,
     );
   }
 
@@ -998,6 +1044,9 @@ abstract class _TypeUniverse {
       sTypeArguments,
       tTypeArgument0,
       substitutionIndex,
+      // Since these are already proved to be subclasses, sId and tId are in the
+      // same module or sId's module contains info for both.
+      _moduleRttForClassId(sId).typeRowDisplacementSubstTable,
     );
   }
 
@@ -1020,6 +1069,9 @@ abstract class _TypeUniverse {
       tTypeArgument0,
       tTypeArgument1,
       substitutionIndex,
+      // Since these are already proved to be subclasses, sId and tId are in the
+      // same module or sId's module contains info for both.
+      _moduleRttForClassId(sId).typeRowDisplacementSubstTable,
     );
   }
 
@@ -1046,6 +1098,9 @@ abstract class _TypeUniverse {
       tTypeArguments,
       null,
       substitutionIndex,
+      // Since these are already proved to be subclasses, sId and tId are in the
+      // same module or sId's module contains info for both.
+      _moduleRttForClassId(sId).typeRowDisplacementSubstTable,
     );
   }
 
@@ -1053,6 +1108,7 @@ abstract class _TypeUniverse {
     WasmArray<_Type> sTypeArguments,
     _Type tTypeArgument0,
     WasmI32 substitutionIndex,
+    WasmArray<WasmArray<_Type>> substTable,
   ) {
     // Check individual type arguments without substitution (fast case).
     if (substitutionIndex == _noSubstitutionIndex) {
@@ -1060,8 +1116,7 @@ abstract class _TypeUniverse {
     }
 
     // Substitue each argument before performing the subtype check (slow case).
-    final substitutions =
-        _typeRowDisplacementSubstTable[substitutionIndex.toIntSigned()];
+    final substitutions = substTable[substitutionIndex.toIntSigned()];
     assert(substitutions.length == 1);
     final sArgForClassT = substituteTypeArgument(
       substitutions[0],
@@ -1076,6 +1131,7 @@ abstract class _TypeUniverse {
     _Type tTypeArgument0,
     _Type tTypeArgument1,
     WasmI32 substitutionIndex,
+    WasmArray<WasmArray<_Type>> substTable,
   ) {
     // Check individual type arguments without substitution (fast case).
     if (substitutionIndex == _noSubstitutionIndex) {
@@ -1084,8 +1140,7 @@ abstract class _TypeUniverse {
     }
 
     // Substitue each argument before performing the subtype check (slow case).
-    final substitutions =
-        _typeRowDisplacementSubstTable[substitutionIndex.toIntSigned()];
+    final substitutions = substTable[substitutionIndex.toIntSigned()];
     assert(substitutions.length == 2);
     final sArg1ForClassT = substituteTypeArgument(
       substitutions[1],
@@ -1107,6 +1162,7 @@ abstract class _TypeUniverse {
     WasmArray<_Type> tTypeArguments,
     _Environment? tEnv,
     WasmI32 substitutionIndex,
+    WasmArray<WasmArray<_Type>> substTable,
   ) {
     // Check individual type arguments without substitution (fast case).
     if (substitutionIndex == _noSubstitutionIndex) {
@@ -1119,8 +1175,7 @@ abstract class _TypeUniverse {
     }
 
     // Substitute each argument before performing the subtype check (slow case).
-    final substitutions =
-        _typeRowDisplacementSubstTable[substitutionIndex.toIntSigned()];
+    final substitutions = substTable[substitutionIndex.toIntSigned()];
     assert(substitutions.length == tTypeArguments.length);
     for (int i = 0; i < tTypeArguments.length; i++) {
       final sArgForClassT = substituteTypeArgument(
@@ -1155,8 +1210,17 @@ abstract class _TypeUniverse {
 
   @pragma('wasm:prefer-inline')
   static WasmI32 _checkSubclassRelationshipViaTable(WasmI32 sId, WasmI32 tId) {
-    final offset = _typeRowDisplacementOffsets;
-    final table = _typeRowDisplacementTable;
+    final sModuleId = classIdToModuleId(sId);
+    final tModuleId = classIdToModuleId(tId);
+    if (tModuleId != mainModuleId) {
+      if (sModuleId != tModuleId) return -1.toWasmI32();
+    }
+
+    final rtt = _rttInfoForModule[sModuleId];
+    final offset = rtt.typeRowDisplacementOffsets;
+    final table = rtt.typeRowDisplacementTable;
+    sId = localizeClassId(sId);
+    tId = localizeClassId(tId);
 
     final WasmI32 index = offset[tId.toIntSigned()] + sId;
     if (index.geU(table.length.toWasmI32())) return (-1).toWasmI32();

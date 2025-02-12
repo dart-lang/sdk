@@ -104,8 +104,4 @@ io/socket_many_connections_test: Skip # This test fails with "Too many open file
 deferred_transitive_import_error_test: Skip
 
 [ $hot_reload || $hot_reload_rollback ]
-io/addlatexhash_test: Crash # Issue 31252
-io/many_directory_operations_test: SkipSlow
-io/many_file_operations_test: SkipSlow
 package/*: SkipByDesign # Launches VMs in interesting ways.
-typed_data_isolate_test: SkipSlow

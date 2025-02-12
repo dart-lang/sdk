@@ -17,7 +17,7 @@ void test<T extends int>(num value) {
     //                 ^
     // [cfe] The type 'num' is not exhaustively matched by the switch cases since it doesn't match 'int()'.
     T() => 'T',
-    double() => 'double'
+    double() => 'double',
   };
 
   // Variable type.
@@ -27,6 +27,6 @@ void test<T extends int>(num value) {
     //             ^
     // [cfe] The type 'num' is not exhaustively matched by the switch cases since it doesn't match 'int()'.
     T _ => 'T',
-    double _ => 'double'
+    double _ => 'double',
   };
 }

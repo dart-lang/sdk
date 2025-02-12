@@ -414,6 +414,8 @@ class ClosureLayouter extends RecursiveVisitor {
       ClosureRepresentation? parent,
       Map<NameCombination, int>? indexOfCombination,
       Iterable<int> paramCounts) {
+    // TODO(natebiggs): Add logic to allow for changing signatures in a dynamic
+    // module.
     List<String> nameTags = ["$typeCount", "$positionalCount", ...names];
     String vtableName = ["#Vtable", ...nameTags].join("-");
     String closureName = ["#Closure", ...nameTags].join("-");
@@ -723,7 +725,7 @@ class ClosureLayouter extends RecursiveVisitor {
     w.Local typeParam(int i) => instantiationFunction.locals[1 + i];
 
     // Header for the closure struct
-    b.pushObjectHeaderFields(translator.closureInfo);
+    b.pushObjectHeaderFields(translator, translator.closureInfo);
 
     // Context for the instantiated closure, containing the original closure and
     // the type arguments

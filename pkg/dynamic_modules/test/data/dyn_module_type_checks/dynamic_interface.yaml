@@ -1,0 +1,34 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+extendable:
+  - library: 'shared/shared.dart'
+    class: 'Base'
+
+can-be-overridden:
+  - library: 'shared/shared.dart'
+    class: 'Base'
+    member: 'method1'
+
+# TODO(sigmund): consider implying this for all extendable types.
+callable:
+  - library: 'shared/shared.dart'
+    class: 'Base'
+  - library: 'shared/shared.dart'
+    class: 'Base'
+    member: 'x'
+  - library: 'shared/shared.dart'
+    class: 'Base'
+    member: 'method1'
+    # TODO(sigmund): This should be included by default
+  - library: 'dart:core'
+    class: 'Object'
+  - library: 'dart:core'
+    class: 'int'
+  - library: 'dart:core'
+    class: 'pragma'
+    member: '_'
+  - library: 'dart:core'
+    member: 'override'
+  - library: 'dart:core'
+    class: 'num'

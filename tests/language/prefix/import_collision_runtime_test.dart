@@ -11,6 +11,4 @@
 import "../library1.dart" as lib2; // defines 'foo'.
 import "../library2.dart" as lib2; // also defines 'foo'.
 
-main() {
-
-}
+main() {}

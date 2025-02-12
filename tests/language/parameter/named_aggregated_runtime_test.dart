@@ -10,46 +10,32 @@ class TypeTester<T> {}
 
 // Expect compile-time error as no default values are allowed
 // in closure type definitions.
-typedef void Callback([String msg
-
-]);
+typedef void Callback([String msg]);
 
 class NamedParametersAggregatedTests {
   static int F31(int a, {int b = 20, int c = 30}) {
     return 100 * (100 * a + b) + c;
   }
 
-  static int f_missing_comma(a
-
-  ) =>
-  a;
+  static int f_missing_comma(a) => a;
 
   var _handler = null;
 
   // Expect compile-time error as no default values
   // are allowed in closure type.
-  void InstallCallback(
-      void cb({String msg
-
-      })?) {
+  void InstallCallback(void cb({String msg})?) {
     _handler = cb;
   }
 }
 
 main() {
   // Expect compile-time error due to missing comma in function definition.
-  NamedParametersAggregatedTests.f_missing_comma(10
-
-  );
+  NamedParametersAggregatedTests.f_missing_comma(10);
 
   // Expect compile-time error due to duplicate named argument.
-  NamedParametersAggregatedTests.F31(10, b: 25
-
-
-  );
+  NamedParametersAggregatedTests.F31(10, b: 25);
 
   // Expect compile-time error due to missing positional argument.
-
 
   new TypeTester<Callback>();
 

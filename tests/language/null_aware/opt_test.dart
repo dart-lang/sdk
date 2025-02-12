@@ -33,10 +33,12 @@ test() {
   Expect.equals(null, c?.v);
   Expect.equals(10, c ?? 10);
   Expect.equals(d, d ?? bomb());
-  var list = [[3]] as List<List<int>>?;
-  Expect.equals(
-      3,
-      list?.expand((i) => i).toList()[0]);
+  var list =
+      [
+            [3],
+          ]
+          as List<List<int>>?;
+  Expect.equals(3, list?.expand((i) => i).toList()[0]);
   Expect.equals(null, (null as dynamic)?.expand((i) => i)?.toList());
 
   var e;

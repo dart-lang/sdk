@@ -16,9 +16,9 @@ void promoteViaIsCheck(Object x, Object? y) {
   }
   // Since the `y is Never?` branch was reachable, `x` is not promoted to `int`.
   x.isEven;
-//  ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-// [cfe] unspecified
+  //^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
 }
 
 main() {

@@ -13,14 +13,15 @@ test() {
     var x = expr<int?>();
     <String>[
       if (expr<Object>() case _ when x != null)
-        pickSecond(
-            <Object?>[reachability0 = null, x.expectStaticType<Exactly<int>>()],
-            expr<String>())
+        pickSecond(<Object?>[
+          reachability0 = null,
+          x.expectStaticType<Exactly<int>>(),
+        ], expr<String>())
       else
         pickSecond(<Object?>[
           reachability1 = null,
-          x.expectStaticType<Exactly<int?>>()
-        ], expr<String>())
+          x.expectStaticType<Exactly<int?>>(),
+        ], expr<String>()),
     ];
     reachability0.expectStaticType<Exactly<int?>>();
     reachability1.expectStaticType<Exactly<int?>>();
@@ -32,13 +33,15 @@ test() {
     var x = expr<num>();
     <String>[
       if (x case int y)
-        pickSecond(
-            <Object?>[reachability0 = null, x.expectStaticType<Exactly<int>>()],
-            expr<String>())
+        pickSecond(<Object?>[
+          reachability0 = null,
+          x.expectStaticType<Exactly<int>>(),
+        ], expr<String>())
       else
-        pickSecond(
-            <Object?>[reachability1 = null, x.expectStaticType<Exactly<num>>()],
-            expr<String>())
+        pickSecond(<Object?>[
+          reachability1 = null,
+          x.expectStaticType<Exactly<num>>(),
+        ], expr<String>()),
     ];
     reachability0.expectStaticType<Exactly<int?>>();
     reachability1.expectStaticType<Exactly<int?>>();
