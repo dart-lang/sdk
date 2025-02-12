@@ -3091,10 +3091,6 @@ void FlowGraphAllocator::AllocateUnallocatedRanges() {
       if (dst.IsRegister() || dst.IsFpuRegister()) {
         if (range->spill_slot().IsInvalid()) {
           AllocateSpillSlotFor(range);
-          auto try_entry = catch_entry->PredecessorAt(0)->AsTryEntry();
-          auto try_body = try_entry->try_body();
-          AddMoveAt(try_body->start_pos() + 1, range->spill_slot(),
-                    range->assigned_location());
         }
       }
     }
@@ -3357,6 +3353,12 @@ void FlowGraphAllocator::ResolveControlFlow() {
           }
         }
       } else {
+        TRACE_ALLOC(THR_Print("inserting eager spill to %s at %" Pd
+                              " for range v%" Pd " allocated to %s\n",
+                              range->spill_slot().ToCString(),
+                              range->Start() + 1, range->vreg(),
+                              range->assigned_location().ToCString()));
+
         AddMoveAt(range->Start() + 1, range->spill_slot(),
                   range->assigned_location());
       }
