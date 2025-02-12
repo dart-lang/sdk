@@ -96,6 +96,7 @@ typedef void (*Dart_NativeMessageHandler_DL)(Dart_Port_DL dest_port_id,
   F(Dart_ExitIsolate, void, (void))                                            \
   F(Dart_EnterIsolate, void, (Dart_Isolate))                                   \
   /* Dart_Port */                                                              \
+  F(Dart_GetMainPortId, Dart_Port, (void))                                     \
   F(Dart_Post, bool, (Dart_Port_DL port_id, Dart_Handle object))               \
   F(Dart_NewSendPort, Dart_Handle, (Dart_Port_DL port_id))                     \
   F(Dart_NewSendPortEx, Dart_Handle, (Dart_PortEx_DL portex_id))               \
@@ -103,6 +104,7 @@ typedef void (*Dart_NativeMessageHandler_DL)(Dart_Port_DL dest_port_id,
     (Dart_Handle port, Dart_Port_DL * port_id))                                \
   F(Dart_SendPortGetIdEx, Dart_Handle,                                         \
     (Dart_Handle port, Dart_PortEx_DL * portex_id))                            \
+  F(Dart_GetCurrentThreadOwnsIsolate, bool, (Dart_Port))                       \
   /* Scopes */                                                                 \
   F(Dart_EnterScope, void, (void))                                             \
   F(Dart_ExitScope, void, (void))                                              \

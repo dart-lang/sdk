@@ -1115,7 +1115,6 @@
   "../../../tests/language/deferred/load_inval_code_test.dart",
   "../../../tests/language/deferred/loading_unit_root_has_only_export_test.dart",
   "../../../tests/language/deferred/mixin_test.dart",
-  "../../../tests/language/deferred/no_prefix_runtime_test.dart",
   "../../../tests/language/deferred/no_such_method_test.dart",
   "../../../tests/language/deferred/only_constant_test.dart",
   "../../../tests/language/deferred/optimized_test.dart",
