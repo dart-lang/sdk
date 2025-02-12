@@ -110,6 +110,17 @@ DART_EXPORT void DartEngine_SetHandleMessageErrorCallback(
     DartEngine_HandleMessageErrorCallback handle_message_error_callback);
 
 /**
+ * Drains the microtasks queue. Requires to be an active isolate.
+ *
+ * Normally the microtasks queue is drained after handling each
+ * isolate message, but when the engine calls into Dart, it might be
+ * required to manually drain the microtasks queue.
+ *
+ * \return Dart_Handle invocation result.
+ */
+DART_EXPORT Dart_Handle DartEngine_DrainMicrotasksQueue();
+
+/**
  * Handles a single message for an isolate.
  */
 DART_EXPORT void DartEngine_HandleMessage(Dart_Isolate isolate);

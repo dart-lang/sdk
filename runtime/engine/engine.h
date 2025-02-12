@@ -6,7 +6,6 @@
 #define RUNTIME_ENGINE_ENGINE_H_
 
 #include <memory>
-#include <queue>
 #include <unordered_map>
 #include <vector>
 #include "include/dart_engine.h"
@@ -54,6 +53,9 @@ class Engine {
   // Calls Dart_HandleMessage, managing an isolate lock and Dart scope.
   void HandleMessage(Dart_Isolate isolate);
 
+  // Drains the microtasks queue, requires an active isolate.
+  Dart_Handle DrainMicrotasksQueue();
+
   // Sets a callback to be called when Dart_HandleMessage returns an error.
   void SetHandleMessageErrorCallback(
       DartEngine_HandleMessageErrorCallback callback);
@@ -85,6 +87,14 @@ class Engine {
   static void HandleMessageCallback(Dart_Isolate isolate);
 
  private:
+  // Engine's internal data for isolate.
+  struct IsolateData {
+    DartEngine_MessageScheduler scheduler;
+    Mutex mutex;
+    Dart_PersistentHandle isolate_library;
+    Dart_PersistentHandle drain_microtasks_function_name;
+  };
+
   // Set to false once shutdown starts.
   bool is_running_ = false;
 
@@ -114,19 +124,17 @@ class Engine {
   // All isolates, started via Engine::StartIsolate.
   std::vector<Dart_Isolate> isolates_;
 
-  // Stores per-isolate mutexes, used by Engine::LockIsolate/UnlockIsolate.
-  std::unordered_map<Dart_Isolate, Mutex> mutexes_;
+  // Stores per-isolate engine state.
+  std::unordered_map<Dart_Isolate, std::shared_ptr<IsolateData>> isolate_data_;
 
   // Default scheduler.
   DartEngine_MessageScheduler default_scheduler_;
-  // Per-isolate message schedulers.
-  std::unordered_map<Dart_Isolate, DartEngine_MessageScheduler> schedulers_;
 
   // Callback to notify about Dart_HandleMessage errors.
   DartEngine_HandleMessageErrorCallback handle_message_error_callback_;
 
-  // Helper function to get an element from mutexes_.
-  Mutex& MutexForIsolate(Dart_Isolate isolate);
+  // Helper function to get an element from isolate_data_.
+  std::shared_ptr<IsolateData> DataForIsolate(Dart_Isolate isolate);
 };
 
 }  // namespace engine

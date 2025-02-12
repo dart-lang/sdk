@@ -15,6 +15,7 @@ group("all") {
 
 group("aot") {
   deps = [
+    ":run_futures_aot",
     ":run_main_aot",
     ":run_timer_aot",
     ":run_timer_async_aot",
@@ -24,6 +25,7 @@ group("aot") {
 
 group("kernel") {
   deps = [
+    ":run_futures_kernel",
     ":run_main_kernel",
     ":run_timer_async_kernel",
     ":run_timer_kernel",
@@ -149,4 +151,13 @@ sample("run_timer_async") {
 
 snapshots("timer") {
   main_dart = "timer.dart"
+}
+
+snapshots("futures") {
+  main_dart = "futures.dart"
+}
+
+sample("run_futures") {
+  sources = [ "run_futures.cc" ]
+  snapshots = [ ":futures" ]
 }
