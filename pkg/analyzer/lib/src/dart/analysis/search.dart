@@ -357,8 +357,10 @@ class Search {
       if (index != null) {
         _IndexRequest request = _IndexRequest(index);
         int elementId = request.findElementId(element.asElement!);
-        var prefixList = index.elementImportPrefixes[elementId].split(',');
-        prefixes.addAll(prefixList);
+        if (elementId != -1) {
+          var prefixList = index.elementImportPrefixes[elementId].split(',');
+          prefixes.addAll(prefixList);
+        }
       }
     }
     return prefixes;
