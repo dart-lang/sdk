@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
@@ -11,23 +9,39 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/// A [Refactoring] for renaming [LibraryImportElement]s.
+/// A [Refactoring] for renaming [LibraryImport]s.
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
-  RenameImportRefactoringImpl(
+  @override
+  final MockLibraryImportElement element2;
+
+  factory RenameImportRefactoringImpl(
+    RefactoringWorkspace workspace,
+    AnalysisSessionHelper sessionHelper,
+    LibraryImport import,
+  ) {
+    var element2 = MockLibraryImportElement(import);
+    return RenameImportRefactoringImpl._(
+      workspace,
+      sessionHelper,
+      element2,
+      element2,
+    );
+  }
+
+  RenameImportRefactoringImpl._(
     super.workspace,
     super.sessionHelper,
-    LibraryImportElement super.element,
-  );
-
-  @override
-  LibraryImportElement get element => super.element as LibraryImportElement;
+    super.element,
+    this.element2,
+  ) : super.c2();
 
   @override
   String get refactoringName {
@@ -78,12 +92,12 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         }
       }
       if (edit != null) {
-        doSourceChange_addElementEdit(change, element, edit);
+        doSourceChange_addFragmentEdit(change, element2, edit);
       }
     }
     // update references
     var references = await searchEngine.searchLibraryImportReferences(
-      element.asElement2,
+      element2.import,
     );
     for (var reference in references) {
       if (newName.isEmpty) {
@@ -117,14 +131,14 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
 
   /// Return the [ImportDirective] node that corresponds to the [element].
   Future<ImportDirective?> _findNode() async {
-    var library = element.library;
-    var path = library.source.fullName;
+    var libraryFragment = element2.libraryFragment;
+    var path = libraryFragment.source.fullName;
     var unitResult = sessionHelper.session.getParsedUnit(path);
     if (unitResult is! ParsedUnitResult) {
       return null;
     }
     var unit = unitResult.unit;
-    var index = library.definingCompilationUnit.libraryImports.indexOf(element);
+    var index = libraryFragment.libraryImports2.indexOf(element2.import);
     return unit.directives.whereType<ImportDirective>().elementAt(index);
   }
 

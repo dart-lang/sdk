@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 Set<Object> _computeExplicitlyTypedParameterSet(
     FunctionExpression functionExpression) {
@@ -290,7 +291,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       argumentList.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
         argumentList: argumentList,
-        parameters: parameters,
+        formalParameters: parameters.map((e) => e.asElement2).toList(),
         errorReporter: resolver.errorReporter,
       );
     }

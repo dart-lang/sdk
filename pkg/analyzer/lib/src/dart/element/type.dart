@@ -988,6 +988,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  ConstructorElement2? lookUpConstructor2(
+      String? constructorName, LibraryElement2 library) {
+    return lookUpConstructor(constructorName, library.asElement)?.asElement2;
+  }
+
+  @override
   PropertyAccessorElement? lookUpGetter2(
     String name,
     LibraryElement library, {
@@ -1543,6 +1549,10 @@ abstract class TypeImpl implements DartType, SharedType {
 
   /// Initialize a newly created type.
   const TypeImpl({this.alias});
+
+  // TODO(scheglov): remove it after element model migration.
+  @override
+  Element? get element => element3?.asElement;
 
   @override
   TypeImpl get extensionTypeErasure {

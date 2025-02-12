@@ -964,9 +964,13 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
     _libraryBuilder.element.fieldNameNonPromotabilityInfo = {
       for (var MapEntry(:key, :value) in fieldNonPromotabilityInfo.entries)
         key: element_model.FieldNameNonPromotabilityInfo(
-            conflictingFields: value.conflictingFields,
-            conflictingGetters: value.conflictingGetters,
-            conflictingNsmClasses: value.conflictingNsmClasses)
+          conflictingFields:
+              value.conflictingFields.map((e) => e.asElement2).toList(),
+          conflictingGetters:
+              value.conflictingGetters.map((e) => e.asElement2).toList(),
+          conflictingNsmClasses:
+              value.conflictingNsmClasses.map((e) => e.asElement2).toList(),
+        )
     };
   }
 

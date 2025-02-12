@@ -95,7 +95,7 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
       instructions_(),
       block_entries_(),
       extra_loop_info_(),
-      liveness_(flow_graph),
+      liveness_(&flow_graph),
       vreg_count_(flow_graph.max_vreg()),
       live_ranges_(flow_graph.max_vreg()),
       unallocated_cpu_(),
@@ -179,6 +179,10 @@ void SSALivenessAnalysis::ComputeInitialSets() {
     // Iterate backwards starting at the last instruction.
     for (BackwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+
+      if (current->MayThrow()) {
+        does_block_have_throw.Add(i);
+      }
 
       // Initialize location summary for instruction.
       current->InitializeLocationSummary(zone(), true);  // opt

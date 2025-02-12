@@ -57,6 +57,8 @@ class IncrementalJavaScriptBundler {
   final Map<Uri, String> _summaryToLibraryBundleJSPath = <Uri, String>{};
   final String _fileSystemScheme;
   final HotReloadDeltaInspector _deltaInspector = new HotReloadDeltaInspector();
+  final HotReloadLibraryMetadataRepository _libraryMetadataRepository =
+      new HotReloadLibraryMetadataRepository();
 
   late Component _lastFullComponent;
   late Component _currentComponent;
@@ -86,6 +88,9 @@ class IncrementalJavaScriptBundler {
     if (canaryFeatures &&
         _moduleFormat == ModuleFormat.ddc &&
         !recompileRestart) {
+      // Attach the global metadata to the last full component. The delta
+      // inspector will add to it while comparing the two components.
+      lastFullComponent.addMetadataRepository(_libraryMetadataRepository);
       // Find any potential hot reload rejections before updating the strongly
       // connected component graph.
       final List<String> errors = _deltaInspector.compareGenerations(
@@ -228,24 +233,29 @@ class IncrementalJavaScriptBundler {
         canaryFeatures: canaryFeatures,
         moduleFormats: [_moduleFormat],
       );
-      Compiler compiler = ddcOptions.emitLibraryBundle
-          ? new LibraryBundleCompiler(
-              _currentComponent,
-              classHierarchy,
-              ddcOptions,
-              _libraryToSummary,
-              _summaryToLibraryBundleName,
-              coreTypes: coreTypes,
-            )
-          : new ProgramCompiler(
-              _currentComponent,
-              classHierarchy,
-              ddcOptions,
-              _libraryToSummary,
-              _summaryToLibraryBundleName,
-              coreTypes: coreTypes,
-            );
-
+      Compiler compiler;
+      if (ddcOptions.emitLibraryBundle) {
+        compiler = new LibraryBundleCompiler(
+          _currentComponent,
+          classHierarchy,
+          ddcOptions,
+          _libraryToSummary,
+          _summaryToLibraryBundleName,
+          coreTypes: coreTypes,
+        );
+        // Attach all the hot reload metadata collected so far to the component
+        // that is about to be compiled.
+        summaryComponent.addMetadataRepository(_libraryMetadataRepository);
+      } else {
+        compiler = new ProgramCompiler(
+          _currentComponent,
+          classHierarchy,
+          ddcOptions,
+          _libraryToSummary,
+          _summaryToLibraryBundleName,
+          coreTypes: coreTypes,
+        );
+      }
       final Program jsBundle = compiler.emitModule(summaryComponent);
 
       // Save program compiler to reuse for expression evaluation.

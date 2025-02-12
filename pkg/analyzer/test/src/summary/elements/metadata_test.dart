@@ -11987,7 +11987,9 @@ library
                   package:test/b.dart::<fragment>::@getter::v#element
                 staticType: null
               element: <null>
-              element2: <null>
+              element2: multiplyDefinedElement
+                package:test/a.dart::<fragment>::@getter::v#element
+                package:test/b.dart::<fragment>::@getter::v#element
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new

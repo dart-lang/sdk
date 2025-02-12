@@ -1696,10 +1696,13 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   }
 
   @override
-  ConstructorElement2? get redirectedConstructor2 =>
-      (firstFragment.redirectedConstructor?.declaration
-              as ConstructorElementImpl?)
-          ?.element;
+  ConstructorElement2? get redirectedConstructor2 {
+    return firstFragment.redirectedConstructor?.asElement2;
+  }
+
+  set redirectedConstructor2(ConstructorElement2? value) {
+    firstFragment.redirectedConstructor = value?.asElement;
+  }
 
   @override
   InterfaceTypeImpl get returnType {
@@ -2320,6 +2323,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   Element2? get element2 {
     return element?.asElement2;
+  }
+
+  set element2(Element2? value) {
+    element = value?.asElement;
   }
 
   @override

@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -597,9 +598,9 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
         readKey: () => reader.readStringReference(),
         readValue: () {
           return FieldNameNonPromotabilityInfo(
-            conflictingFields: reader.readElementList(),
-            conflictingGetters: reader.readElementList(),
-            conflictingNsmClasses: reader.readElementList(),
+            conflictingFields: reader.readElementList2(),
+            conflictingGetters: reader.readElementList2(),
+            conflictingNsmClasses: reader.readElementList2(),
           );
         },
       );
@@ -2107,14 +2108,21 @@ class ResolutionReader {
     throw UnimplementedError('memberFlags: $memberFlags');
   }
 
+  Element2? readElement2() {
+    return readElement()?.asElement2;
+  }
+
   List<T> readElementList<T extends Element>() {
     return _reader.readTypedListCast<T>(readElement);
+  }
+
+  List<T> readElementList2<T extends Element2>() {
+    return _reader.readTypedListCast<T>(readElement2);
   }
 
   T readEnum<T extends Enum>(List<T> values) {
     return _reader.readEnum(values);
   }
-
 
   Map<K, V> readMap<K, V>({
     required K Function() readKey,
@@ -2417,8 +2425,6 @@ class ResolutionReader {
   List<InterfaceTypeImpl> _readInterfaceTypeList() {
     return readTypedList(_readInterfaceType);
   }
-
-
 
   List<T> _readNodeList<T>() {
     return readTypedList(() {

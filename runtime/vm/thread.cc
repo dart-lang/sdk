@@ -304,7 +304,7 @@ void Thread::AssertEmptyStackInvariants() {
 void Thread::AssertEmptyThreadInvariants() {
   AssertEmptyStackInvariants();
 
-  ASSERT(top_ == 0);
+  ASSERT(top() == 0);
   ASSERT(end_ == 0);
   ASSERT(true_end_ == 0);
   ASSERT(isolate_ == nullptr);
