@@ -2100,7 +2100,6 @@
   "../../../tests/language/named_arguments_anywhere/order_side_effects_ok_test.dart",
   "../../../tests/language/new/create_unresolved_type_runtime_test.dart",
   "../../../tests/language/new/expression_type_args_runtime_test.dart",
-  "../../../tests/language/new/prefix_runtime_test.dart",
   "../../../tests/language/new/statement_test.dart",
   "../../../tests/language/nnbd/boolean_conversion/boolean_conversion_strong_test.dart",
   "../../../tests/language/nnbd/const/potentially_constant_types_test.dart",
