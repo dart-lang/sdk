@@ -22,6 +22,32 @@ extension DartTypeExtension on DartType {
 }
 
 extension Element2Extension on Element2 {
+  /// Return `true` if this element, the enclosing class (if there is one), or
+  /// the enclosing library, has been annotated with the `@doNotStore`
+  /// annotation.
+  bool get hasOrInheritsDoNotStore {
+    if (this case Annotatable annotatable) {
+      if (annotatable.metadata2.hasDoNotStore) {
+        return true;
+      }
+    }
+
+    var ancestor = enclosingElement2;
+    if (ancestor is InterfaceElement2) {
+      if (ancestor.metadata2.hasDoNotStore) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement2;
+    } else if (ancestor is ExtensionElement2) {
+      if (ancestor.metadata2.hasDoNotStore) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement2;
+    }
+
+    return ancestor is LibraryElement2 && ancestor.metadata2.hasDoNotStore;
+  }
+
   /// Return `true` if this element is an instance member of a class or mixin.
   ///
   /// Only [MethodElement2]s, [GetterElement]s, and  [SetterElement]s are
