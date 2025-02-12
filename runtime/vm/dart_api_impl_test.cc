@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/dart_api_impl.h"
+
+#include <thread>  // NOLINT(build/c++11)
+
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "include/dart_api.h"
@@ -19,6 +22,7 @@
 #include "vm/flags.h"
 #include "vm/heap/verifier.h"
 #include "vm/lockers.h"
+#include "vm/native_message_handler.h"
 #include "vm/timeline.h"
 #include "vm/unit_test.h"
 
@@ -211,6 +215,110 @@ TEST_CASE(Dart_KillIsolatePriority) {
     }
   }
   EXPECT(interrupted);
+}
+
+TEST_CASE(DartAPI_IsolateOwnership) {
+  Dart_Handle lib = TestCase::LoadTestScript("", nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+
+  NativeMessageHandler dummy_handler("test", nullptr, 1);
+  Dart_Port dummy_port = PortMap::CreatePort(&dummy_handler);
+
+  Dart_Port port = Dart_GetMainPortId();
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(dummy_port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(ILLEGAL_PORT));
+
+  Dart_SetCurrentThreadOwnsIsolate();
+  EXPECT_EQ(true, Dart_GetCurrentThreadOwnsIsolate(port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(dummy_port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(ILLEGAL_PORT));
+
+  Dart_ExitIsolate();
+  EXPECT_EQ(true, Dart_GetCurrentThreadOwnsIsolate(port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(dummy_port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(ILLEGAL_PORT));
+
+  Dart_Port other_port;
+  std::thread([port, dummy_port, isolate, &other_port]() {
+    EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(port));
+    EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(dummy_port));
+    EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(ILLEGAL_PORT));
+
+    char* error = nullptr;
+    Dart_CreateIsolateInGroup(isolate, "other", nullptr, nullptr, nullptr,
+                              &error);
+    EXPECT_EQ(nullptr, error);
+    other_port = Dart_GetMainPortId();
+    EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(other_port));
+
+    Dart_SetCurrentThreadOwnsIsolate();
+    EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(port));
+    EXPECT_EQ(true, Dart_GetCurrentThreadOwnsIsolate(other_port));
+    EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(dummy_port));
+    EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(ILLEGAL_PORT));
+
+    Dart_ShutdownIsolate();
+  }).join();
+
+  EXPECT_EQ(true, Dart_GetCurrentThreadOwnsIsolate(port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(other_port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(dummy_port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(ILLEGAL_PORT));
+
+  Dart_EnterIsolate(isolate);
+  EXPECT_EQ(true, Dart_GetCurrentThreadOwnsIsolate(port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(other_port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(dummy_port));
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(ILLEGAL_PORT));
+
+  Dart_ExitIsolate();
+  PortMap::ClosePort(dummy_port);
+  Dart_EnterIsolate(isolate);
+}
+
+TEST_CASE_WITH_EXPECTATION(DartAPI_IsolateOwnership_SetWhenAlreadyOwned,
+                           "Crash") {
+  Dart_Handle lib = TestCase::LoadTestScript("", nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Port port = Dart_GetMainPortId();
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(port));
+
+  Dart_SetCurrentThreadOwnsIsolate();
+  EXPECT_EQ(true, Dart_GetCurrentThreadOwnsIsolate(port));
+
+  // Causes an assertion failure, because this thread already owns the isolate.
+  Dart_SetCurrentThreadOwnsIsolate();
+}
+
+TEST_CASE_WITH_EXPECTATION(
+    DartAPI_IsolateOwnership_EnterIsolateOwnedByOtherThread,
+    "Crash") {
+  Dart_Handle lib = TestCase::LoadTestScript("", nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+
+  Dart_Port port = Dart_GetMainPortId();
+  EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(port));
+
+  Dart_SetCurrentThreadOwnsIsolate();
+  EXPECT_EQ(true, Dart_GetCurrentThreadOwnsIsolate(port));
+
+  Dart_ExitIsolate();
+
+  std::thread([isolate, port]() {
+    EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(port));
+
+    // Causes an assertion failure, because the isolate is already owned by
+    // another thread.
+    Dart_EnterIsolate(isolate);
+  }).join();
+
+  Dart_EnterIsolate(isolate);
 }
 
 TEST_CASE(DartAPI_ErrorHandleBasics) {

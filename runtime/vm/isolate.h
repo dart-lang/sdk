@@ -29,6 +29,7 @@
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
 #include "vm/os_thread.h"
+#include "vm/port.h"
 #include "vm/random.h"
 #include "vm/service.h"
 #include "vm/tags.h"
@@ -1478,6 +1479,12 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     return &pointers_to_verify_at_exit_;
   }
 
+  bool SetOwnerThread(ThreadId expected_old_owner, ThreadId new_owner);
+
+  // Must be invoked with a valid PortMap::Locker, or while this isolate is the
+  // current isolate (in which case the locker may be null).
+  ThreadId GetOwnerThread(PortMap::Locker* locker);
+
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
@@ -1675,6 +1682,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   DeoptContext* deopt_context_ = nullptr;
   FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
   intptr_t ffi_callback_keep_alive_counter_ = 0;
+  RelaxedAtomic<ThreadId> owner_thread_ = OSThread::kInvalidThreadId;
 
   GrowableObjectArrayPtr tag_table_;
 

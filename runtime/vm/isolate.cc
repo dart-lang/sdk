@@ -39,7 +39,6 @@
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
-#include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/reverse_pc_lookup_cache.h"
@@ -1815,6 +1814,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
       mutex_(),
+      owner_thread_(OSThread::kInvalidThreadId),
       tag_table_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       spawn_count_monitor_(),
@@ -2857,6 +2857,15 @@ void Isolate::SetPrefixIsLoaded(const LibraryPrefix& prefix) {
       loaded_prefixes_set_storage_);
   loaded_prefixes_set.InsertOrGet(prefix);
   loaded_prefixes_set_storage_ = loaded_prefixes_set.Release().ptr();
+}
+
+bool Isolate::SetOwnerThread(ThreadId expected_old_owner, ThreadId new_owner) {
+  return owner_thread_.compare_exchange_strong(expected_old_owner, new_owner);
+}
+
+ThreadId Isolate::GetOwnerThread(PortMap::Locker* locker) {
+  ASSERT(Isolate::Current() == this || locker != nullptr);
+  return owner_thread_.load();
 }
 
 void IsolateGroup::EnableIncrementalBarrier(
