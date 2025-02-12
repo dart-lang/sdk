@@ -247,7 +247,7 @@ class GenericInferrer {
   List<DartType>? tryChooseFinalTypes({bool failAtError = true}) {
     var inferredTypes = _chooseTypes(preliminary: false);
     // Check the inferred types against all of the constraints.
-    var knownTypes = <TypeParameterElement, TypeImpl>{};
+    var knownTypes = <TypeParameterElement2, TypeImpl>{};
     var hasErrorReported = false;
     for (int i = 0; i < _typeFormals.length; i++) {
       TypeParameterElementImpl2 parameter = _typeFormals[i];
@@ -331,7 +331,7 @@ class GenericInferrer {
       }
 
       if (UnknownInferredType.isKnown(inferred)) {
-        knownTypes[parameter.firstFragment] = inferred;
+        knownTypes[parameter] = inferred;
       } else if (_strictInference) {
         // [typeParam] could not be inferred. A result will still be returned
         // by [infer], with [typeParam] filled in as its bounds. This is
@@ -347,10 +347,8 @@ class GenericInferrer {
 
     // Use instantiate to bounds to finish things off.
     var hasError = List<bool>.filled(_typeFormals.length, false);
-    var result = _typeSystem.instantiateTypeFormalsToBounds(
-        _typeFormals.map((e) => e.firstFragment).toList(),
-        hasError: hasError,
-        knownTypes: knownTypes);
+    var result = _typeSystem.instantiateTypeFormalsToBounds2(_typeFormals,
+        hasError: hasError, knownTypes: knownTypes);
 
     // Report any errors from instantiateToBounds.
     for (int i = 0; i < hasError.length; i++) {

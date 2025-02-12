@@ -772,21 +772,6 @@ class TypeSystemImpl implements TypeSystem {
     );
   }
 
-  /// Given a [DartType] [type], if [type] is an uninstantiated
-  /// parameterized type then instantiate the parameters to their
-  /// bounds. See the issue for the algorithm description.
-  ///
-  /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-  // TODO(scheglov): Move this method to elements for classes, typedefs,
-  //  and generic functions; compute lazily and cache.
-  DartType instantiateToBounds(DartType type,
-      {List<bool>? hasError, Map<TypeParameterElement, TypeImpl>? knownTypes}) {
-    var typeFormals = typeFormalsAsElements(type);
-    List<DartType> arguments = instantiateTypeFormalsToBounds(typeFormals,
-        hasError: hasError, knownTypes: knownTypes);
-    return instantiateType(type, arguments);
-  }
-
   /// Given a [DartType] [type] and a list of types
   /// [typeArguments], instantiate the type formals with the
   /// provided actuals.  If [type] is not a parameterized type,
@@ -826,83 +811,6 @@ class TypeSystemImpl implements TypeSystem {
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
-  }
-
-  /// Given uninstantiated [typeFormals], instantiate them to their bounds.
-  /// See the issue for the algorithm description.
-  ///
-  /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-  List<TypeImpl> instantiateTypeFormalsToBounds(
-      List<TypeParameterElementImpl> typeFormals,
-      {List<bool>? hasError,
-      Map<TypeParameterElement, TypeImpl>? knownTypes}) {
-    int count = typeFormals.length;
-    if (count == 0) {
-      return const <TypeImpl>[];
-    }
-
-    Set<TypeParameterElement> all = <TypeParameterElement>{};
-    // all ground
-    Map<TypeParameterElement, TypeImpl> defaults = knownTypes ?? {};
-    // not ground
-    Map<TypeParameterElement, TypeImpl> partials = {};
-
-    for (var typeParameter in typeFormals) {
-      all.add(typeParameter);
-      if (!defaults.containsKey(typeParameter)) {
-        var bound = typeParameter.bound ?? DynamicTypeImpl.instance;
-        partials[typeParameter] = bound;
-      }
-    }
-
-    bool hasProgress = true;
-    while (hasProgress) {
-      hasProgress = false;
-      for (TypeParameterElement parameter in partials.keys) {
-        var value = partials[parameter]!;
-        var freeParameters = getFreeParameters(value, candidates: all);
-        if (freeParameters == null) {
-          defaults[parameter] = value;
-          partials.remove(parameter);
-          hasProgress = true;
-          break;
-        } else if (freeParameters.every(defaults.containsKey)) {
-          defaults[parameter] =
-              Substitution.fromMap(defaults).substituteType(value);
-          partials.remove(parameter);
-          hasProgress = true;
-          break;
-        }
-      }
-    }
-
-    // If we stopped making progress, and not all types are ground,
-    // then the whole type is malbounded and an error should be reported
-    // if errors are requested, and a partially completed type should
-    // be returned.
-    if (partials.isNotEmpty) {
-      if (hasError != null) {
-        hasError[0] = true;
-      }
-      var domain = defaults.keys.toList();
-      var range = defaults.values.toList();
-      // Build a substitution Phi mapping each uncompleted type variable to
-      // dynamic, and each completed type variable to its default.
-      for (TypeParameterElement parameter in partials.keys) {
-        domain.add(parameter);
-        range.add(DynamicTypeImpl.instance);
-      }
-      // Set the default for an uncompleted type variable (T extends B)
-      // to be Phi(B)
-      for (TypeParameterElement parameter in partials.keys) {
-        defaults[parameter] = Substitution.fromPairs(domain, range)
-            .substituteType(partials[parameter]!);
-      }
-    }
-
-    List<TypeImpl> orderedArguments =
-        typeFormals.map((p) => defaults[p]!).toFixedList();
-    return orderedArguments;
   }
 
   /// Given uninstantiated [typeFormals], instantiate them to their bounds.
@@ -2011,21 +1919,6 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return null;
-  }
-
-  /// Given a [DartType] type, return the [TypeParameterElement]s corresponding
-  /// to its formal type parameters (if any).
-  ///
-  /// @param type the type whose type arguments are to be returned
-  /// @return the type arguments associated with the given type
-  List<TypeParameterElementImpl> typeFormalsAsElements(DartType type) {
-    if (type is FunctionTypeImpl) {
-      return type.typeFormals;
-    } else if (type is InterfaceTypeImpl) {
-      return type.element.typeParameters;
-    } else {
-      return const <TypeParameterElementImpl>[];
-    }
   }
 
   /// Optimistically estimates, if type arguments of [left] can be equal to
