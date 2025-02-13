@@ -602,8 +602,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitConstructorDeclaration(
     covariant ConstructorDeclarationImpl node,
   ) {
-    var element = node.declaredElement!;
-    _withEnclosingExecutable(element, () {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    _withEnclosingExecutable2(element, () {
       _checkForNonConstGenerativeEnumConstructor(node);
       _checkForInvalidModifierOnBody(
           node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
@@ -620,7 +621,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForReturnInGenerativeConstructor(node);
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
-        element: element,
+        element: fragment,
       );
       super.visitConstructorDeclaration(node);
     });
@@ -631,11 +632,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _isInConstructorInitializer = true;
     try {
       SimpleIdentifier fieldName = node.fieldName;
-      var staticElement = fieldName.staticElement;
-      _checkForInvalidField(node, fieldName, staticElement);
-      if (staticElement is FieldElement) {
+      var element = fieldName.element;
+      _checkForInvalidField(node, fieldName, element);
+      if (element is FieldElement2) {
         _checkForAbstractOrExternalFieldConstructorInitializer(
-            node.fieldName.token, staticElement);
+            node.fieldName.token, element);
       }
       super.visitConstructorFieldInitializer(node);
     } finally {
@@ -914,13 +915,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForPrivateOptionalParameter(node);
     _checkForFieldInitializingFormalRedirectingConstructor(node);
     _checkForTypeAnnotationDeferredClass(node.type);
-    ParameterElement element = node.declaredElement!;
-    if (element is FieldFormalParameterElement) {
-      var fieldElement = element.field;
-      if (fieldElement != null) {
-        _checkForAbstractOrExternalFieldConstructorInitializer(
-            node.name, fieldElement);
-      }
+    var fieldElement = node.declaredFragment?.element.field2;
+    if (fieldElement != null) {
+      _checkForAbstractOrExternalFieldConstructorInitializer(
+          node.name, fieldElement);
     }
     super.visitFieldFormalParameter(node);
   }
@@ -1949,7 +1947,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForAbstractOrExternalFieldConstructorInitializer(
-      Token identifier, FieldElement fieldElement) {
+      Token identifier, FieldElement2 fieldElement) {
     if (fieldElement.isAbstract) {
       errorReporter.atToken(
         identifier,
@@ -2123,11 +2121,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         errorReporter.atNode(
           directive.uri,
           CompileTimeErrorCode.AMBIGUOUS_EXPORT,
-          arguments: [
-            name,
-            prevElement.library2!.firstFragment.source.uri,
-            element.library2!.firstFragment.source.uri
-          ],
+          arguments: [name, prevElement.library2!.uri, element.library2!.uri],
         );
         return;
       } else {
@@ -2920,7 +2914,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// constructor element.
   void _checkForConstConstructorWithNonFinalField(
       ConstructorDeclaration constructor,
-      ConstructorElement constructorElement) {
+      ConstructorElement2 constructorElement) {
     if (!_enclosingExecutable.isConstConstructor) {
       return;
     }
@@ -2928,8 +2922,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // check if there is non-final field
-    var classElement = constructorElement.enclosingElement3;
-    if (classElement is! ClassElement || !classElement.hasNonFinalField) {
+    var classElement = constructorElement.enclosingElement2;
+    if (classElement is! ClassElement2 || !classElement.hasNonFinalField) {
       return;
     }
     errorReporter.atConstructorDeclaration(
@@ -3959,8 +3953,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [ConstructorFieldInitializer]. The [staticElement] is the static element
   /// from the name in the [ConstructorFieldInitializer].
   void _checkForInvalidField(ConstructorFieldInitializer initializer,
-      SimpleIdentifier fieldName, Element? staticElement) {
-    if (staticElement is FieldElement) {
+      SimpleIdentifier fieldName, Element2? staticElement) {
+    if (staticElement is FieldElement2) {
       if (staticElement.isSynthetic) {
         errorReporter.atNode(
           initializer,
@@ -5081,7 +5075,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT].
   void _checkForRecursiveConstructorRedirect(ConstructorDeclaration declaration,
-      ConstructorElement constructorElement) {
+      ConstructorElement2 constructorElement) {
     // we check generative constructor here
     if (declaration.factoryKeyword != null) {
       return;
@@ -5107,7 +5101,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT].
   bool _checkForRecursiveFactoryRedirect(
-      ConstructorDeclaration declaration, ConstructorElement element) {
+      ConstructorDeclaration declaration, ConstructorElement2 element) {
     // prepare redirected constructor
     var redirectedConstructorNode = declaration.redirectedConstructor;
     if (redirectedConstructorNode == null) {
@@ -6134,7 +6128,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Checks the class for problems with the superclass, mixins, or implemented
   /// interfaces.
   void _checkMixinInheritance(
-      MixinElementImpl declarationElement,
+      MixinElementImpl declarationFragment,
       MixinDeclaration node,
       MixinOnClause? onClause,
       ImplementsClause? implementsClause) {
@@ -6144,12 +6138,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
       _checkForRepeatedType(
-        libraryContext.setOfOn(declarationElement.asElement2),
+        libraryContext.setOfOn(declarationFragment.asElement2),
         onClause?.superclassConstraints,
         CompileTimeErrorCode.ON_REPEATED,
       );
       _checkForRepeatedType(
-        libraryContext.setOfImplements(declarationElement.asElement2),
+        libraryContext.setOfImplements(declarationFragment.asElement2),
         implementsClause?.interfaces,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
@@ -6372,15 +6366,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Return `true` if the given [constructor] redirects to itself, directly or
   /// indirectly.
-  bool _hasRedirectingFactoryConstructorCycle(ConstructorElement constructor) {
-    Set<ConstructorElement> constructors = HashSet<ConstructorElement>();
-    ConstructorElement? current = constructor;
+  bool _hasRedirectingFactoryConstructorCycle(ConstructorElement2 constructor) {
+    Set<ConstructorElement2> constructors = HashSet<ConstructorElement2>();
+    ConstructorElement2? current = constructor;
     while (current != null) {
       if (constructors.contains(current)) {
         return identical(current, constructor);
       }
       constructors.add(current);
-      current = current.redirectedConstructor?.declaration;
+      current = current.redirectedConstructor2?.baseElement;
     }
     return false;
   }
@@ -6493,6 +6487,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingExecutable = current;
       _returnTypeVerifier.enclosingExecutable = _enclosingExecutable;
     }
+  }
+
+  void _withEnclosingExecutable2(
+    ExecutableElement2 element,
+    void Function() operation,
+  ) {
+    _withEnclosingExecutable(element.asElement, operation);
   }
 
   void _withHiddenElements(List<Statement> statements, void Function() f) {
