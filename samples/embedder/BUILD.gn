@@ -15,22 +15,30 @@ group("all") {
 
 group("aot") {
   deps = [
-    ":run_futures_aot",
     ":run_main_aot",
     ":run_timer_aot",
     ":run_timer_async_aot",
     ":run_two_programs_aot",
   ]
+
+  # FFI can't execute on the VM's simulator
+  if (dart_target_arch == host_cpu) {
+    deps += [ ":run_futures_aot" ]
+  }
 }
 
 group("kernel") {
   deps = [
-    ":run_futures_kernel",
     ":run_main_kernel",
     ":run_timer_async_kernel",
     ":run_timer_kernel",
     ":run_two_programs_kernel",
   ]
+
+  # FFI can't execute on the VM's simulator
+  if (dart_target_arch == host_cpu) {
+    deps += [ ":run_futures_kernel" ]
+  }
 }
 
 # Generates a pair of executables for kernel and AOT snapshots.
@@ -153,11 +161,14 @@ snapshots("timer") {
   main_dart = "timer.dart"
 }
 
-snapshots("futures") {
-  main_dart = "futures.dart"
-}
+# FFI can't execute on the VM's simulator
+if (dart_target_arch == host_cpu) {
+  snapshots("futures") {
+    main_dart = "futures.dart"
+  }
 
-sample("run_futures") {
-  sources = [ "run_futures.cc" ]
-  snapshots = [ ":futures" ]
+  sample("run_futures") {
+    sources = [ "run_futures.cc" ]
+    snapshots = [ ":futures" ]
+  }
 }

@@ -224,8 +224,9 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     } else if (rawType == null || rawType.typeFormals.isEmpty) {
       typeArgumentTypes = const <DartType>[];
     } else {
-      rawType = getFreshTypeParameters(rawType.typeFormals)
-          .applyToFunctionType(rawType);
+      var typeParameters = [for (var tp in rawType.typeFormals) tp.element];
+      rawType =
+          getFreshTypeParameters2(typeParameters).applyToFunctionType(rawType);
       inferenceLogWriter?.enterGenericInference(
           rawType.typeParameters, rawType);
 

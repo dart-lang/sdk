@@ -155,13 +155,13 @@ class ConstructorMember extends ExecutableMember
     MapSubstitution substitution;
     if (element is ConstructorMember) {
       declaration = element._declaration as ConstructorElement;
-      var map = <TypeParameterElement, DartType>{};
-      var elementMap = element._substitution.map;
+      var map = <TypeParameterElement2, DartType>{};
+      var elementMap = element._substitution.map2;
       for (var typeParameter in elementMap.keys) {
         var type = elementMap[typeParameter]!;
         map[typeParameter] = _substitution.substituteType(type);
       }
-      substitution = Substitution.fromMap(map);
+      substitution = Substitution.fromMap2(map);
     } else {
       declaration = element;
       substitution = _substitution;
@@ -422,12 +422,12 @@ abstract class ExecutableMember extends Member
 
       augmentationSubstitution = member.augmentationSubstitution;
 
-      var map = <TypeParameterElement, DartType>{};
-      for (var entry in member._substitution.map.entries) {
-        map[entry.key] = substitution.substituteType(entry.value);
-      }
-      map.addAll(substitution.map);
-      combined = Substitution.fromMap(map);
+      var map = <TypeParameterElement2, DartType>{
+        for (var MapEntry(:key, :value) in member._substitution.map2.entries)
+          key: substitution.substituteType(value),
+        ...substitution.map2,
+      };
+      combined = Substitution.fromMap2(map);
     }
 
     if (augmentationSubstitution.map.isEmpty && combined.map.isEmpty) {
@@ -1371,12 +1371,12 @@ class ParameterMember extends VariableMember
       var member = element;
       element = member.declaration;
 
-      var map = <TypeParameterElement, DartType>{};
-      for (var entry in member._substitution.map.entries) {
-        map[entry.key] = substitution.substituteType(entry.value);
-      }
-      map.addAll(substitution.map);
-      combined = Substitution.fromMap(map);
+      var map = <TypeParameterElement2, DartType>{
+        for (var MapEntry(:key, :value) in member._substitution.map2.entries)
+          key: substitution.substituteType(value),
+        ...substitution.map2,
+      };
+      combined = Substitution.fromMap2(map);
     }
 
     if (combined.map.isEmpty) {
@@ -1825,9 +1825,9 @@ class _SubstitutedTypeParameters {
 
     return _SubstitutedTypeParameters._(
       newElements,
-      Substitution.fromMap({
-        ...substitution.map,
-        ...substitution2.map,
+      Substitution.fromMap2({
+        ...substitution.map2,
+        ...substitution2.map2,
       }),
     );
   }

@@ -1032,7 +1032,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  GetterElement? lookUpGetter3(
+  GetterElement2OrMember? lookUpGetter3(
     String name,
     LibraryElement2 library, {
     bool concrete = false,
@@ -1142,7 +1142,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  SetterElement? lookUpSetter3(
+  SetterElement2OrMember? lookUpSetter3(
     String name,
     LibraryElement2 library, {
     bool concrete = false,

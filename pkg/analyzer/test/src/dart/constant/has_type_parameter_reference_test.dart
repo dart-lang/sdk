@@ -41,7 +41,7 @@ class HasTypeParameterReferenceTest extends AbstractTypeSystemTest {
     _checkTrue(
       functionTypeNone(
         returnType: voidNone,
-        typeFormals: [typeParameter('S', bound: T_none)],
+        typeParameters: [typeParameter('S', bound: T_none)],
       ),
     );
   }

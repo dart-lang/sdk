@@ -181,6 +181,23 @@ class NamespaceBuilder {
   }
 
   /// Create a namespace representing the export namespace of the given
+  /// [export].
+  Namespace createExportNamespaceForDirective2(LibraryExport export) {
+    var exportedLibrary = export.exportedLibrary2;
+    if (exportedLibrary == null) {
+      //
+      // The exported library will be null if the URI does not reference a valid
+      // library.
+      //
+      return Namespace.EMPTY;
+    }
+    Map<String, Element> exportedNames =
+        _getExportMapping(exportedLibrary.asElement);
+    exportedNames = _applyCombinators(exportedNames, export.combinators);
+    return Namespace(exportedNames);
+  }
+
+  /// Create a namespace representing the export namespace of the given
   /// [library].
   Namespace createExportNamespaceForLibrary(LibraryElement2 library) {
     Map<String, Element> exportedNames = _getExportMapping(library.asElement);

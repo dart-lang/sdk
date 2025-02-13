@@ -39,7 +39,7 @@ extension JSObjectUnsafeUtilExtension on JSObject {
   external JSBoolean hasProperty(JSAny property);
 
   /// Shorthand helper for [getProperty] to get the value of the property key
-  /// [property] of this [JSObject], but takes and returns a Dart value.
+  /// [property] of this [JSObject], but takes a Dart value.
   JSAny? operator [](String property) => getProperty(property.toJS);
 
   /// The value of the property key [property] of this [JSObject].

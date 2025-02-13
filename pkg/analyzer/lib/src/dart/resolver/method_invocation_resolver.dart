@@ -749,16 +749,16 @@ class MethodInvocationResolver with ScopeHelpers {
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
       {required TypeImpl contextType}) {
     var enclosingClass = _resolver.enclosingClass;
-    if (SuperContext.of(receiver) != SuperContext.valid) {
+    if (enclosingClass == null ||
+        SuperContext.of(receiver) != SuperContext.valid) {
       _setInvalidTypeResolution(node,
           whyNotPromotedArguments: whyNotPromotedArguments,
           contextType: contextType);
       return null;
     }
 
-    var augmented = enclosingClass!.augmented;
     var target = _inheritance.getMember2(
-      augmented.firstFragment,
+      enclosingClass.firstFragment,
       _currentName!,
       forSuper: true,
     );
@@ -778,7 +778,8 @@ class MethodInvocationResolver with ScopeHelpers {
     // Otherwise, this is an error.
     // But we would like to give the user at least some resolution.
     // So, we try to find the interface target.
-    target = _inheritance.getInherited2(augmented.firstFragment, _currentName!);
+    target =
+        _inheritance.getInherited2(enclosingClass.firstFragment, _currentName!);
     if (target != null) {
       nameNode.staticElement = target;
       _setResolution(node, target.type, whyNotPromotedArguments,
@@ -799,7 +800,7 @@ class MethodInvocationResolver with ScopeHelpers {
     _resolver.errorReporter.atNode(
       nameNode,
       CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
-      arguments: [name, augmented.firstFragment.displayName],
+      arguments: [name, enclosingClass.firstFragment.displayName],
     );
     return null;
   }

@@ -18,7 +18,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 int test_resetCount = 0;
 
@@ -222,7 +221,7 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node).asElement2;
+        var element = server.getElementOfNode2(node);
         if (element is GetterElement) {
           refactoring = ConvertGetterToMethodRefactoring(
             refactoringWorkspace,
@@ -235,7 +234,7 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node).asElement2;
+        var element = server.getElementOfNode2(node);
         if (element is ExecutableElement2) {
           refactoring = ConvertMethodToGetterRefactoring(
             refactoringWorkspace,

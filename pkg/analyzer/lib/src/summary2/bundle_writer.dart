@@ -1071,10 +1071,10 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   static FunctionType _toSyntheticFunctionType(FunctionType type) {
-    var typeParameters = type.typeFormals;
+    var typeParameters = [for (var tp in type.typeFormals) tp.asElement2];
     if (typeParameters.isEmpty) return type;
 
-    var fresh = getFreshTypeParameters(typeParameters);
+    var fresh = getFreshTypeParameters2(typeParameters);
     return fresh.applyToFunctionType(type);
   }
 }

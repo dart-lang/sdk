@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A class that builds a "display string" for [Element]s and [DartType]s.
 class ElementDisplayStringBuilder {
@@ -649,9 +650,9 @@ class ElementDisplayStringBuilder {
       namesToAvoid.add(typeParameter.displayName);
     }
 
-    var newTypeParameters = <TypeParameterElement>[];
-    for (var typeParameter in type.typeFormals) {
-      var name = typeParameter.name;
+    var newTypeParameters = <TypeParameterElement2>[];
+    for (var typeParameter in type.typeParameters) {
+      var name = typeParameter.name3!;
       for (var counter = 0; !namesToAvoid.add(name); counter++) {
         const unicodeSubscriptZero = 0x2080;
         const unicodeZero = 0x30;
@@ -660,13 +661,13 @@ class ElementDisplayStringBuilder {
           return unicodeSubscriptZero + (n - unicodeZero);
         }));
 
-        name = typeParameter.name + subscript;
+        name = typeParameter.name3! + subscript;
       }
 
       var newTypeParameter = TypeParameterElementImpl(name, -1);
       newTypeParameter.name2 = name;
       newTypeParameter.bound = typeParameter.bound;
-      newTypeParameters.add(newTypeParameter);
+      newTypeParameters.add(newTypeParameter.asElement2);
     }
 
     return replaceTypeParameters(type as FunctionTypeImpl, newTypeParameters);

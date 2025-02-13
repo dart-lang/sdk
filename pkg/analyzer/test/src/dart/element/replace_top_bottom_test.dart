@@ -81,7 +81,7 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     // typedef F<T> = T Function(T);
     var T = typeParameter('T', variance: Variance.invariant);
     var T_none = typeParameterTypeNone(T);
-    var F = typeAlias(
+    var F = typeAlias2(
       name: 'F',
       typeParameters: [T],
       aliasedType: functionTypeNone(

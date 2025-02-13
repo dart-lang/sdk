@@ -42,7 +42,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
     var d = namedParameter(name: 'd', type: objectNone);
     var type = functionType(
         returnType: dynamicType,
-        typeFormals: [T, K],
+        typeParameters: [T, K],
         parameters: [a, b, c, d],
         nullabilitySuffix: NullabilitySuffix.none);
     expect(type.accept(visitor), true);
@@ -61,7 +61,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
     var a = positionalParameter(type: intNone);
     var type = functionType(
         returnType: dynamicType,
-        typeFormals: [],
+        typeParameters: [],
         parameters: [a],
         nullabilitySuffix: NullabilitySuffix.none);
     expect(type.accept(visitor), true);
@@ -71,7 +71,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   void test_functionType_returnType() {
     var type = functionType(
         returnType: intNone,
-        typeFormals: [],
+        typeParameters: [],
         parameters: [],
         nullabilitySuffix: NullabilitySuffix.none);
     expect(type.accept(visitor), true);
@@ -82,7 +82,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
     var T = typeParameter('T', bound: intNone);
     var type = functionType(
         returnType: dynamicType,
-        typeFormals: [T],
+        typeParameters: [T],
         parameters: [],
         nullabilitySuffix: NullabilitySuffix.none);
     expect(type.accept(visitor), true);
@@ -93,7 +93,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
     var T = typeParameter('T');
     var type = functionType(
         returnType: dynamicType,
-        typeFormals: [T],
+        typeParameters: [T],
         parameters: [],
         nullabilitySuffix: NullabilitySuffix.none);
     expect(type.accept(visitor), true);
@@ -142,7 +142,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
     var d = namedParameter(name: 'd', type: objectNone);
     var type = functionType(
         returnType: dynamicType,
-        typeFormals: [T, K],
+        typeParameters: [T, K],
         parameters: [a, b, c, d],
         nullabilitySuffix: NullabilitySuffix.none);
     visitor.stopOnType = dynamicType;
@@ -160,7 +160,7 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
     var d = namedParameter(name: 'd', type: objectNone);
     var type = functionType(
         returnType: dynamicType,
-        typeFormals: [T, K],
+        typeParameters: [T, K],
         parameters: [a, b, c, d],
         nullabilitySuffix: NullabilitySuffix.none);
     visitor.stopOnType = intNone;

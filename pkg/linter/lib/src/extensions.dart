@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' // ignore: implementation_imports
     show FunctionDeclarationImpl;
+import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_imports
     show InvalidTypeImpl;
 import 'package:collection/collection.dart';
@@ -572,7 +573,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
         var methodName = Name.forElement(declaredElement);
         if (methodName == null) return null;
         var inherited = inheritanceManager.getInherited4(parent, methodName);
-        if (inherited is MethodElement2) return inherited;
+        if (inherited is MethodElement2OrMember) return inherited;
       }
     }
     return null;

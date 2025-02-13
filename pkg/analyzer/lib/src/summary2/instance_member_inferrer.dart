@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/util/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// An object used to infer the type of instance fields and the return types of
@@ -709,7 +710,7 @@ class InstanceMemberInferrer {
   /// should infer this as `m<T>(T t)`.
   FunctionType? _toOverriddenFunctionType(
       ExecutableElement element, ExecutableElement overriddenElement) {
-    var elementTypeParameters = element.typeParameters;
+    var elementTypeParameters = element.asElement2.typeParameters2;
     var overriddenTypeParameters = overriddenElement.typeParameters;
 
     if (elementTypeParameters.length != overriddenTypeParameters.length) {

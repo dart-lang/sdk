@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/change_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
@@ -41,7 +42,6 @@ class CanRenameResponse {
 
   CheckNameResponse? checkNewName(String name) {
     var element = refactoringElement.element;
-    _flutterWidgetState = _findFlutterStateClass(element, name);
 
     RefactoringStatus? status;
     if (element is ParameterElement) {
@@ -58,9 +58,10 @@ class CanRenameResponse {
       status = validateTypeAliasName(name);
     } else if (element is InterfaceElement) {
       status = validateClassName(name);
+      _flutterWidgetState = _findFlutterStateClass(element.asElement2, name);
     } else if (element is ConstructorElement) {
       status = validateConstructorName(name);
-      _analyzePossibleConflicts(element, status, name);
+      _analyzePossibleConflicts(element.asElement2, status, name);
     } else if (element is LibraryImportElement) {
       status = validateImportPrefixName(name);
     }
@@ -72,20 +73,20 @@ class CanRenameResponse {
   }
 
   void _analyzePossibleConflicts(
-    ConstructorElement element,
+    ConstructorElement2 element,
     RefactoringStatus result,
     String newName,
   ) {
-    var parentClass = element.enclosingElement3;
+    var parentClass = element.enclosingElement2;
     // Check if the "newName" is the name of the enclosing class.
-    if (parentClass.name == newName) {
+    if (parentClass.name3 == newName) {
       result.addError(
         'The constructor should not have the same name '
         'as the name of the enclosing class.',
       );
     }
     // check if there are members with "newName" in the same ClassElement
-    for (var newNameMember in getChildren(parentClass.asElement2, newName)) {
+    for (var newNameMember in getChildren(parentClass, newName)) {
       var message = format(
         "Class '{0}' already declares {1} with name '{2}'.",
         parentClass.displayName,
@@ -99,17 +100,17 @@ class CanRenameResponse {
     }
   }
 
-  FlutterWidgetState? _findFlutterStateClass(Element element, String newName) {
-    if (element is ClassElement &&
-        element.asElement2.isStatefulWidgetDeclaration) {
+  FlutterWidgetState? _findFlutterStateClass(Element2 element, String newName) {
+    if (element is ClassElement2 && element.isStatefulWidgetDeclaration) {
       var oldStateName = '${element.displayName}State';
-      var library = element.library;
+      var library = element.library2;
       var state =
-          library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
+          library.getClass2(oldStateName) ??
+          library.getClass2('_$oldStateName');
       if (state != null) {
         var flutterWidgetStateNewName = '${newName}State';
         // If the State was private, ensure that it stays private.
-        if (state.name.startsWith('_') &&
+        if (state.name3!.startsWith('_') &&
             !flutterWidgetStateNewName.startsWith('_')) {
           flutterWidgetStateNewName = '_$flutterWidgetStateNewName';
         }
@@ -301,15 +302,17 @@ class CheckNameResponse {
     var flutterState = canRename._flutterWidgetState;
     var stateClass = flutterState!.state;
     var stateName = flutterState.newName;
-    var match = await canRename._fileResolver.findReferences2(stateClass);
-    var sourcePath = stateClass.source.fullName;
-    var location = stateClass.enclosingElement3.lineInfo.getLocation(
-      stateClass.nameOffset,
+    var match = await canRename._fileResolver.findReferences(stateClass);
+    var firstFragment = stateClass.firstFragment;
+    var libraryFragment = firstFragment.libraryFragment;
+    var sourcePath = libraryFragment.source.fullName;
+    var location = libraryFragment.lineInfo.getLocation(
+      firstFragment.nameOffset2!,
     );
     CiderSearchMatch ciderMatch;
     var searchInfo = CiderSearchInfo(
       location,
-      stateClass.nameLength,
+      stateClass.name3!.length,
       MatchKind.DECLARATION,
     );
     try {
@@ -328,7 +331,7 @@ class CheckNameResponse {
                       (p) => ReplaceInfo(
                         stateName,
                         p.startPosition,
-                        stateClass.nameLength,
+                        stateClass.name3!.length,
                       ),
                     )
                     .toList(),
@@ -488,7 +491,7 @@ class FlutterWidgetRename {
 
 /// The corresponding `State` declaration of a  Flutter `StatefulWidget`.
 class FlutterWidgetState {
-  ClassElement state;
+  ClassElement2 state;
   String newName;
 
   FlutterWidgetState(this.state, this.newName);

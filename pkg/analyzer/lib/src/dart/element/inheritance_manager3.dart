@@ -174,9 +174,9 @@ class InheritanceManager3 {
   /// This is equivalent to `getInheritedMap(type)[name]`.
   // This is a replacement for `getInherited2`.
   @experimental
-  ExecutableElement2? getInherited4(InterfaceElement2 element, Name name) {
+  ExecutableElement2OrMember? getInherited4(InterfaceElement2 element, Name name) {
     var oldElement = getInheritedMap2(element.asElement)[name];
-    return oldElement.asElement2;
+    return oldElement?.asElement2;
   }
 
   /// Returns signatures of all concrete members that the given [element]
@@ -375,7 +375,7 @@ class InheritanceManager3 {
   /// `class C extends S with M1, M2, M3`, only `S` and `M1` are considered.
   // This is a replacement for `getMember2`.
   @experimental
-  ExecutableElement2? getMember4(
+  ExecutableElement2OrMember? getMember4(
     InterfaceElement2 element,
     Name name, {
     bool concrete = false,

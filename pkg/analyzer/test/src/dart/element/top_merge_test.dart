@@ -170,15 +170,15 @@ class TopMergeTest extends AbstractTypeSystemTest {
     var TR = typeParameter('T', bound: objectQuestion);
     _check(
       functionTypeNone(
-        typeFormals: [T1],
+        typeParameters: [T1],
         returnType: typeParameterTypeNone(T1),
       ),
       functionTypeNone(
-        typeFormals: [T2],
+        typeParameters: [T2],
         returnType: typeParameterTypeNone(T2),
       ),
       functionTypeNone(
-        typeFormals: [TR],
+        typeParameters: [TR],
         returnType: typeParameterTypeNone(TR),
       ),
     );
@@ -189,11 +189,11 @@ class TopMergeTest extends AbstractTypeSystemTest {
     var T2 = typeParameter('T');
     _checkThrows(
       functionTypeNone(
-        typeFormals: [T1],
+        typeParameters: [T1],
         returnType: typeParameterTypeNone(T1),
       ),
       functionTypeNone(
-        typeFormals: [T2],
+        typeParameters: [T2],
         returnType: typeParameterTypeNone(T2),
       ),
     );

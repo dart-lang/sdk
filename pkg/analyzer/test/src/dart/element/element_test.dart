@@ -965,7 +965,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
 
   void test_getNamedParameterTypes_namedParameters() {
     var type = functionTypeNone(
-      typeFormals: [],
+      typeParameters: [],
       parameters: [
         requiredParameter(name: 'a', type: intNone),
         namedParameter(name: 'b', type: doubleNone),
@@ -981,7 +981,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
 
   void test_getNamedParameterTypes_noNamedParameters() {
     var type = functionTypeNone(
-      typeFormals: [],
+      typeParameters: [],
       parameters: [
         requiredParameter(type: intNone),
         requiredParameter(type: doubleNone),
@@ -995,7 +995,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
 
   void test_getNamedParameterTypes_noParameters() {
     var type = functionTypeNone(
-      typeFormals: [],
+      typeParameters: [],
       parameters: [],
       returnType: voidNone,
     );
@@ -1005,7 +1005,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
 
   void test_getNormalParameterTypes_noNormalParameters() {
     var type = functionTypeNone(
-      typeFormals: [],
+      typeParameters: [],
       parameters: [
         positionalParameter(type: intNone),
         positionalParameter(type: doubleNone),
@@ -1018,7 +1018,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
 
   void test_getNormalParameterTypes_noParameters() {
     var type = functionTypeNone(
-      typeFormals: [],
+      typeParameters: [],
       parameters: [],
       returnType: voidNone,
     );
@@ -1028,7 +1028,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
 
   void test_getNormalParameterTypes_normalParameters() {
     var type = functionTypeNone(
-      typeFormals: [],
+      typeParameters: [],
       parameters: [
         requiredParameter(type: intNone),
         requiredParameter(type: doubleNone),
@@ -1044,7 +1044,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
 
   void test_getOptionalParameterTypes_noOptionalParameters() {
     var type = functionTypeNone(
-      typeFormals: [],
+      typeParameters: [],
       parameters: [
         requiredParameter(name: 'a', type: intNone),
         namedParameter(name: 'b', type: doubleNone),
@@ -1057,7 +1057,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
 
   void test_getOptionalParameterTypes_noParameters() {
     var type = functionTypeNone(
-      typeFormals: [],
+      typeParameters: [],
       parameters: [],
       returnType: voidNone,
     );
@@ -1067,7 +1067,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
 
   void test_getOptionalParameterTypes_optionalParameters() {
     var type = functionTypeNone(
-      typeFormals: [],
+      typeParameters: [],
       parameters: [
         requiredParameter(type: intNone),
         positionalParameter(type: doubleNone),
@@ -2050,13 +2050,14 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   }
 
   void test_creation() {
-    expect(typeParameterTypeNone(TypeParameterElementImpl('E', -1)), isNotNull);
+    var element = typeParameter('E');
+    expect(typeParameterTypeNone(element), isNotNull);
   }
 
   void test_getElement() {
-    TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
+    var element = typeParameter('E');
     TypeParameterTypeImpl type = typeParameterTypeNone(element);
-    expect(type.element, element);
+    expect(type.element3, element);
   }
 
   void _assert_asInstanceOf(

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -436,7 +437,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     var t = typeParameter('T');
     var x = requiredParameter(name: 'x', type: typeParameterTypeNone(t));
     FunctionType f = FunctionTypeImpl(
-      typeFormals: [t],
+      typeFormals: [t.asElement],
       parameters: [x],
       returnType: typeParameterTypeNone(t),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -454,7 +455,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     // dynamic Function<T>()
     var t = typeParameter('T');
     FunctionType f = FunctionTypeImpl(
-      typeFormals: [t],
+      typeFormals: [t.asElement],
       parameters: const [],
       returnType: dynamicType,
       nullabilitySuffix: NullabilitySuffix.none,
@@ -537,16 +538,16 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   }
 
   test_synthetic_typeFormals() {
-    var t = typeParameter2('T');
+    var t = typeParameter('T');
     FunctionType f = FunctionTypeImpl.v2(
       typeParameters: [t],
       formalParameters: const [],
-      returnType: typeParameterTypeNone2(t),
+      returnType: typeParameterTypeNone(t),
       nullabilitySuffix: NullabilitySuffix.none,
     );
     basicChecks(f,
         displayName: 'T Function<T>()',
-        returnType: typeParameterTypeNone2(t),
+        returnType: typeParameterTypeNone(t),
         typeFormals: [same(t)]);
   }
 

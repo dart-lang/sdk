@@ -26,9 +26,9 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   void setUp() {
     super.setUp();
 
-    T = typeParameter2('T');
-    T_none = typeParameterTypeNone2(T);
-    T_question = typeParameterTypeQuestion2(T);
+    T = typeParameter('T');
+    T_none = typeParameterTypeNone(T);
+    T_question = typeParameterTypeQuestion(T);
   }
 
   test_contravariant() {
@@ -80,8 +80,8 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     // void Function<U extends T>()
     _check(
       functionTypeNone2(
-        typeFormals: [
-          typeParameter2('U', bound: T_none),
+        typeParameters: [
+          typeParameter('U', bound: T_none),
         ],
         returnType: voidNone,
       ),
@@ -113,8 +113,8 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     );
 
     _check1(
-      typeParameterTypeNone2(
-        typeParameter2('U'),
+      typeParameterTypeNone(
+        typeParameter('U'),
       ),
       'U',
     );

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -47,7 +48,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           Name(parent.library2.uri, variable.name.lexeme),
           forSuper: true,
         );
-        if (overriddenMember is GetterElement && overriddenMember.isSynthetic) {
+        if (overriddenMember is GetterElement2OrMember &&
+            overriddenMember.isSynthetic) {
           var definingInterface = overriddenMember.enclosingElement2;
           rule.reportLintForToken(
             variable.name,

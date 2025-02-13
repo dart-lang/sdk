@@ -76,8 +76,8 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
       expect(type.promotedBound, promotedBound);
     }
 
-    var T = typeParameter2('T');
-    var T_none = typeParameterTypeNone2(T);
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
 
     var T1 = tryPromote(numNone, T_none);
     check(T1, T, NullabilitySuffix.none, numNone);

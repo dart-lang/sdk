@@ -1361,6 +1361,12 @@ void Profiler::SampleThread(Thread* thread,
   ASSERT(os_thread != nullptr);
   Isolate* isolate = thread->isolate();
 
+  // Double check if interrupts are disabled
+  // after the thread interrupter decided to send a signal.
+  if (!os_thread->ThreadInterruptsEnabled()) {
+    return;
+  }
+
   // Thread is not doing VM work.
   if (thread->task_kind() == Thread::kUnknownTask) {
     counters_.bail_out_unknown_task.fetch_add(1);

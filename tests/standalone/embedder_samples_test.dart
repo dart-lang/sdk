@@ -44,9 +44,10 @@ void main() {
   checkSample('$out/run_timer_async_kernel', [
     '$out/gen/timer_kernel.dart.snapshot',
   ]);
+  // FFI samples aren't built on some platforms.
   checkSample('$out/run_futures_kernel', [
     '$out/gen/futures_kernel.dart.snapshot',
-  ]);
+  ], skipIfNotBuilt: true);
 
   // AOT Samples aren't built on some platforms.
   checkSample('$out/run_main_aot', [

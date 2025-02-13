@@ -13,6 +13,8 @@
 #### Analyzer
 
 - Added the experimental [`unnecessary_ignore`][] lint rule.
+- Offer additional assist to wrap a Flutter widget with a `FutureBuilder` widget.
+
 
 [`unnecessary_ignore`]: http://dart.dev/lints/unnecessary_ignore
 
