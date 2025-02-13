@@ -101,7 +101,7 @@ vars = {
   "boringssl_rev": "822902749a5956bba09c7e9e451104e8a74f02c5",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "dcf6e55e57d5cfc241d8d43765bd33160c7b42b7",
+  "devtools_rev": "ea7085c72b7b5bf913afc703ea3f47924e54abdd",
   "icu_rev": "43953f57b037778a1b8005564afabe214834f7bd",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",

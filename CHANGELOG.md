@@ -1,3 +1,13 @@
+## 3.7.1
+**Released on:** Unreleased
+
+This is a patch release that:
+
+ - Fixes a bug in the DevTools network profiler that was causing network
+   traffic to be dropped (issue [#8888])
+
+[#8888]: https://github.com/flutter/devtools/issues/8888
+
 ## 3.7.0
 
 **Released on:** Unreleased
