@@ -436,7 +436,7 @@ List<LspEntity> getCustomClasses() {
         'type',
         type: 'string',
         comment:
-            'The kind of parameter. This is not necessarily the Dart type, '
+            'The kind of parameter.\n\nThis is not necessarily the Dart type, '
             'it is from a defined set of values that clients may understand '
             'how to edit.',
       ),
@@ -446,27 +446,22 @@ List<LspEntity> getCustomClasses() {
         allowsNull: false,
         allowsUndefined: true,
         comment:
-            'The current value for this argument. This is only included if '
-            'an explicit value is given in the code and is a valid literal for '
-            'the kind of parameter. For expressions or named constants, this '
-            'will not be included and displayValue can be shown as the current '
-            'value instead.',
+            'The current value for this argument (provided only if '
+            'hasArgument=true).\n\nThis is only included if an explicit value '
+            'is given in the code and is a valid literal for the kind of '
+            'parameter. For expressions or named constants, this will not be '
+            'included and displayValue can be shown as the current value '
+            'instead.\n\nA value of `null` when hasArgument=true means the '
+            'argument has an explicit null value and not that defaultValue is '
+            'being used.',
       ),
       field(
         'hasArgument',
         type: 'boolean',
         comment:
             'Whether an explicit argument exists for this parameter in the '
-            'code. This will be true even if the explicit argument is the same '
-            'value as the parameter default.',
-      ),
-      field(
-        'isDefault',
-        type: 'boolean',
-        comment:
-            'Whether the value is the default for this parameter, either '
-            'because there is no argument or because it is explicitly provided '
-            'as the same value.',
+            'code.\n\nThis will be true even if the explicit argument is the '
+            'same value as the parameter default or null.',
       ),
       Field(
         name: 'defaultValue',
@@ -474,9 +469,9 @@ List<LspEntity> getCustomClasses() {
         allowsNull: false,
         allowsUndefined: true,
         comment:
-            'The default value for this parameter if no argument is supplied. '
-            'Setting the argument to this value does not remove it from the '
-            'argument list.',
+            'The default value for this parameter if no argument is supplied.'
+            '\n\nSetting the argument to this value does not remove it from '
+            'the argument list.',
       ),
       field(
         'displayValue',
@@ -484,8 +479,8 @@ List<LspEntity> getCustomClasses() {
         canBeUndefined: true,
         comment:
             'A string that can be displayed to indicate the value for this '
-            'argument. This will be populated in cases where the source code '
-            'is not literally the same as the value field, for example an '
+            'argument.\n\nThis will be populated in cases where the source '
+            'code is not literally the same as the value field, for example an '
             'expression or named constant.',
       ),
       field(
@@ -497,14 +492,14 @@ List<LspEntity> getCustomClasses() {
         'isNullable',
         type: 'boolean',
         comment:
-            'Whether this argument can be `null`. It is possible for an '
+            'Whether this argument can be `null`.\n\nIt is possible for an '
             'argument to be required, but still allow an explicit `null`.',
       ),
       field(
         'isEditable',
         type: 'boolean',
         comment:
-            'Whether this argument can be add/edited. If not, '
+            'Whether this argument can be add/edited.\n\nIf not, '
             'notEditableReason will contain an explanation for why.',
       ),
       field(
@@ -521,7 +516,7 @@ List<LspEntity> getCustomClasses() {
         array: true,
         canBeUndefined: true,
         comment:
-            'The set of values allowed for this argument if it is an enum. '
+            'The set of values allowed for this argument if it is an enum.\n\n'
             'Values are qualified in the form `EnumName.valueName`.',
       ),
       // TODO(dantup): field('properties', ...),
