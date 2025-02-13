@@ -7740,26 +7740,18 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final sufficiency = closedWorld.elementMap.typeEnvironment
           .computeTypeShapeCheckSufficiency(
             expressionStaticType: operandType,
-            // Add `?` in case operand is nullable:
-            checkTargetType: checkedType.withDeclaredNullability(
-              ir.Nullability.nullable,
-            ),
+            checkTargetType: checkedType,
             subtypeCheckMode: ir.SubtypeCheckMode.withNullabilities,
           );
 
       // If `true` the caller only needs to check nullabillity and the actual
       // concrete class, no need to check [testedAgainstType] arguments.
       if (sufficiency == ir.TypeShapeCheckSufficiency.interfaceShape) {
-        return ir.InterfaceType(
+        return closedWorld.elementMap.coreTypes.rawType(
           checkedType.classNode,
-          (operandType is ir.InterfaceType &&
-                  operandType.nullability == ir.Nullability.nonNullable)
+          operandType.nullability == ir.Nullability.nonNullable
               ? ir.Nullability.nonNullable
               : checkedType.nullability,
-          [
-            for (final parameter in checkedType.classNode.typeParameters)
-              parameter.defaultType,
-          ],
         );
       }
     }
