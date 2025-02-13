@@ -281,7 +281,7 @@ class FunctionTypeImpl extends TypeImpl
       }
 
       return other.returnType == returnType &&
-          _equalParameters(other.parameters, parameters);
+          _equalParameters(other.formalParameters, formalParameters);
     }
     return false;
   }
@@ -441,15 +441,9 @@ class FunctionTypeImpl extends TypeImpl
       FunctionType f1,
       FunctionType f2,
       bool Function(DartType bound2, DartType bound1) relation) {
-    List<TypeParameterElement> params1 = f1.typeFormals;
-    List<TypeParameterElement> params2 = f2.typeFormals;
-    return relateTypeFormals2(params1, params2, relation);
-  }
+    List<TypeParameterElement2> params1 = f1.typeParameters;
+    List<TypeParameterElement2> params2 = f2.typeParameters;
 
-  static List<TypeParameterType>? relateTypeFormals2(
-      List<TypeParameterElement> params1,
-      List<TypeParameterElement> params2,
-      bool Function(DartType bound2, DartType bound1) relation) {
     int count = params1.length;
     if (params2.length != count) {
       return null;
@@ -457,16 +451,16 @@ class FunctionTypeImpl extends TypeImpl
     // We build up a substitution matching up the type parameters
     // from the two types, {variablesFresh/variables1} and
     // {variablesFresh/variables2}
-    List<TypeParameterElement> variables1 = <TypeParameterElement>[];
-    List<TypeParameterElement> variables2 = <TypeParameterElement>[];
-    var variablesFresh = <TypeParameterType>[];
+    List<TypeParameterElement2> variables1 = <TypeParameterElement2>[];
+    List<TypeParameterElement2> variables2 = <TypeParameterElement2>[];
+    List<TypeParameterType> variablesFresh = <TypeParameterType>[];
     for (int i = 0; i < count; i++) {
-      TypeParameterElement p1 = params1[i];
-      TypeParameterElement p2 = params2[i];
+      TypeParameterElement2 p1 = params1[i];
+      TypeParameterElement2 p2 = params2[i];
       TypeParameterElementImpl pFresh =
-          TypeParameterElementImpl.synthetic(p2.name);
+          TypeParameterElementImpl.synthetic(p2.name3!);
 
-      var variableFresh = pFresh.instantiate(
+      TypeParameterTypeImpl variableFresh = pFresh.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
 
@@ -476,9 +470,9 @@ class FunctionTypeImpl extends TypeImpl
 
       DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
       DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
-      bound1 = Substitution.fromPairs(variables1, variablesFresh)
+      bound1 = Substitution.fromPairs2(variables1, variablesFresh)
           .substituteType(bound1);
-      bound2 = Substitution.fromPairs(variables2, variablesFresh)
+      bound2 = Substitution.fromPairs2(variables2, variablesFresh)
           .substituteType(bound2);
       if (!relation(bound2, bound1)) {
         return null;
@@ -496,8 +490,8 @@ class FunctionTypeImpl extends TypeImpl
   /// the same types. Named parameters must also have same names. Named
   /// parameters must be sorted in the given lists.
   static bool _equalParameters(
-    List<ParameterElement> firstParameters,
-    List<ParameterElement> secondParameters,
+    List<FormalParameterElement> firstParameters,
+    List<FormalParameterElement> secondParameters,
   ) {
     if (firstParameters.length != secondParameters.length) {
       return false;
@@ -505,15 +499,17 @@ class FunctionTypeImpl extends TypeImpl
     for (var i = 0; i < firstParameters.length; ++i) {
       var firstParameter = firstParameters[i];
       var secondParameter = secondParameters[i];
-      // ignore: deprecated_member_use_from_same_package
-      if (firstParameter.parameterKind != secondParameter.parameterKind) {
+      if (firstParameter.isPositional != secondParameter.isPositional) {
+        return false;
+      }
+      if (firstParameter.isOptional != secondParameter.isOptional) {
         return false;
       }
       if (firstParameter.type != secondParameter.type) {
         return false;
       }
       if (firstParameter.isNamed &&
-          firstParameter.name != secondParameter.name) {
+          firstParameter.name3 != secondParameter.name3) {
         return false;
       }
     }
