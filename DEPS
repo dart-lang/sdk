@@ -136,6 +136,7 @@ vars = {
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "glob_rev": "043796be996190473b397fa2fecfa34bb91376fb",
   "http_rev": "b7cdf6136926589210662bbdd71000e7abab7271",
+  "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
   "markdown_rev": "62f78c64d963ba6f73bd70ed65630dc934a264e6",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
@@ -352,6 +353,8 @@ deps = {
 
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + "@" + Var("http_rev"),
+  Var("dart_root") + "/third_party/pkg/intl":
+      Var("dart_git") + "intl.git" + "@" + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/leak_tracker":
       Var("dart_git") + "leak_tracker.git" + "@" + Var("leak_tracker_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
