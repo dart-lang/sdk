@@ -58,7 +58,7 @@ class ConstructorInitializerResolver {
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
         _linker, unitElement, initializerScope, analysisOptions,
-        enclosingClassElement: classElement,
+        enclosingClassElement: classElement.asElement2,
         enclosingExecutableElement: element);
 
     var body = node.body;

@@ -172,7 +172,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
-  InterfaceElementImpl? enclosingClass;
+  InterfaceElementImpl2? enclosingClass;
 
   /// The element representing the extension containing the AST nodes being
   /// visited, or `null` if we are not in the scope of an extension.
@@ -429,12 +429,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Inference context information for the current function body, if the
   /// current node is inside a function body.
   BodyInferenceContext? get bodyContext => _bodyContext;
-
-  /// The class containing the AST nodes being visited,
-  /// or `null` if we are not in the scope of a class.
-  InterfaceElementImpl2? get enclosingClass2 {
-    return enclosingClass?.asElement2;
-  }
 
   /// Return the element representing the function containing the current node,
   /// or `null` if the current node is not contained in a function.
@@ -1319,13 +1313,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
-    InterfaceElement? enclosingClassElement,
+    InterfaceElementImpl2? enclosingClassElement,
     ExecutableElement? enclosingExecutableElement,
     AugmentableElement? enclosingAugmentation,
   }) {
-    // TODO(paulberry): eliminate this cast by changing the type of the
-    // parameter `enclosingClassElement`.
-    enclosingClass = enclosingClassElement as InterfaceElementImpl?;
+    enclosingClass = enclosingClassElement;
     _setupThisType();
     _enclosingFunction = enclosingExecutableElement;
     this.enclosingAugmentation = enclosingAugmentation;
@@ -1349,7 +1341,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     void forClassElement(InterfaceElementImpl parentElement) {
-      enclosingClass = parentElement;
+      enclosingClass = parentElement.asElement2;
     }
 
     if (parent is ClassDeclarationImpl) {
@@ -2229,7 +2221,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     //
     var outerType = enclosingClass;
     try {
-      enclosingClass = node.declaredElement;
+      enclosingClass = declaredElement;
       checkUnreachableNode(node);
       node.visitChildren(this);
       elementResolver.visitClassDeclaration(node);
@@ -2387,14 +2379,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitConstructorFieldInitializer(
     covariant ConstructorFieldInitializerImpl node,
   ) {
-    var augmented = enclosingClass!.augmented;
-
     //
     // We visit the expression, but do not visit the field name because it needs
     // to be visited in the context of the constructor field initializer node.
     //
     var fieldName = node.fieldName;
-    var fieldElement = augmented.getField(fieldName.name);
+    var fieldElement = enclosingClass!.getField(fieldName.name);
     fieldName.staticElement = fieldElement;
     var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
     var expression = node.expression;
@@ -2617,7 +2607,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     //
     var outerType = enclosingClass;
     try {
-      enclosingClass = node.declaredElement;
+      enclosingClass = node.declaredFragment!.element;
       checkUnreachableNode(node);
       node.visitChildren(this);
       elementResolver.visitEnumDeclaration(node);
@@ -2735,7 +2725,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ) {
     var outerType = enclosingClass;
     try {
-      enclosingClass = node.declaredElement;
+      enclosingClass = node.declaredFragment!.element;
       checkUnreachableNode(node);
       node.visitChildren(this);
       elementResolver.visitExtensionTypeDeclaration(node);
@@ -3296,7 +3286,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     //
     var outerType = enclosingClass;
     try {
-      enclosingClass = node.declaredElement!;
+      enclosingClass = node.declaredFragment!.element;
       checkUnreachableNode(node);
       node.visitChildren(this);
       elementResolver.visitMixinDeclaration(node);
@@ -4242,8 +4232,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void _setupThisType() {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      var augmented = enclosingClass.augmented;
-      _thisType = augmented.firstFragment.thisType;
+      _thisType = enclosingClass.thisType;
     } else {
       var enclosingExtension = this.enclosingExtension;
       if (enclosingExtension != null) {

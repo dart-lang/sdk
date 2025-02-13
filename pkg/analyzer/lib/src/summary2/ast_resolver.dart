@@ -29,7 +29,7 @@ class AstResolver {
   final AnalysisErrorListener _errorListener =
       AnalysisErrorListener.NULL_LISTENER;
   final AnalysisOptions analysisOptions;
-  final InterfaceElement? enclosingClassElement;
+  final InterfaceElementImpl2? enclosingClassElement;
   final ExecutableElement? enclosingExecutableElement;
   final AugmentableElement? enclosingAugmentation;
   late final _resolutionVisitor = ResolutionVisitor(
