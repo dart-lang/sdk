@@ -111,7 +111,7 @@ class EnclosingExecutableContext {
   }
 
   String? get displayName {
-    return element?.displayName;
+    return element2?.displayName;
   }
 
   ExecutableElement2? get element2 => element.asElement2;
@@ -120,7 +120,7 @@ class EnclosingExecutableContext {
     return element is FunctionElement && element!.displayName.isEmpty;
   }
 
-  bool get isConstructor => element is ConstructorElement;
+  bool get isConstructor => element2 is ConstructorElement2;
 
   bool get isFunction {
     if (element is FunctionElement) {
@@ -129,12 +129,12 @@ class EnclosingExecutableContext {
     return element is PropertyAccessorElement;
   }
 
-  bool get isMethod => element is MethodElement;
+  bool get isMethod => element2 is MethodElement2;
 
   bool get isSynchronous => !isAsynchronous;
 
   DartType get returnType {
-    return catchErrorOnErrorReturnType ?? element!.returnType;
+    return catchErrorOnErrorReturnType ?? element2!.returnType;
   }
 
   static bool _inFactoryConstructor(Element? element) {
@@ -435,8 +435,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitBreakStatement(BreakStatement node) {
     var labelNode = node.label;
     if (labelNode != null) {
-      var labelElement = labelNode.staticElement;
-      if (labelElement is LabelElementImpl && labelElement.isOnSwitchMember) {
+      var labelElement = labelNode.element;
+      if (labelElement is LabelElementImpl2 && labelElement.isOnSwitchMember) {
         errorReporter.atNode(
           labelNode,
           CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
@@ -657,7 +657,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       checkForAssignableExpressionAtType(
         defaultValue,
         defaultValue.typeOrThrow,
-        node.declaredElement!.type,
+        node.declaredFragment!.element.type,
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
       );
     }
@@ -926,7 +926,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
-    if (_checkForEachParts(node, loopVariable.declaredElement)) {
+    if (_checkForEachParts(node, loopVariable.declaredFragment?.element)) {
       if (loopVariable.isConst) {
         errorReporter.atToken(
           loopVariable.keyword!,
@@ -940,7 +940,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     SimpleIdentifier identifier = node.identifier;
-    if (_checkForEachParts(node, identifier.staticElement)) {
+    if (_checkForEachParts(node, identifier.element)) {
       _checkForAssignmentToFinal(identifier);
     }
     super.visitForEachPartsWithIdentifier(node);
@@ -994,7 +994,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (node.parent is FunctionDeclaration) {
       super.visitFunctionExpression(node);
     } else {
-      _withEnclosingExecutable(node.declaredElement!, () {
+      _withEnclosingExecutable2(node.declaredFragment!.element, () {
         super.visitFunctionExpression(node);
       });
     }
@@ -1283,11 +1283,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitNamedType(NamedType node) {
     _checkForAmbiguousImport(
       name: node.name2,
-      element: node.element,
+      element: node.element2,
     );
     _checkForTypeParameterReferencedByStatic(
       name: node.name2,
-      element: node.element,
+      element: node.element2,
     );
     _typeArgumentsVerifier.checkNamedType(node);
     super.visitNamedType(node);
@@ -1435,7 +1435,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForAmbiguousImport(
       name: node.token,
-      element: node.writeOrReadElement,
+      element: node.writeOrReadElement2,
     );
     _checkForReferenceBeforeDeclaration(
       nameToken: node.token,
@@ -1444,7 +1444,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForInvalidInstanceMemberAccess(node);
     _checkForTypeParameterReferencedByStatic(
       name: node.token,
-      element: node.staticElement,
+      element: node.element,
     );
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
@@ -1964,9 +1964,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForAbstractOrExternalVariableInitializer(
       VariableDeclaration node) {
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredFragment?.element;
     if (node.initializer != null) {
-      if (declaredElement is FieldElement) {
+      if (declaredElement is FieldElement2) {
         if (declaredElement.isAbstract) {
           errorReporter.atToken(
             node.name,
@@ -1979,7 +1979,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER,
           );
         }
-      } else if (declaredElement is TopLevelVariableElement) {
+      } else if (declaredElement is TopLevelVariableElement2) {
         if (declaredElement.isExternal) {
           errorReporter.atToken(
             node.name,
@@ -2054,7 +2054,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Prepare redirected constructor type
-    var redirectedElement = redirectedConstructor.staticElement;
+    var redirectedElement = redirectedConstructor.element;
     if (redirectedElement == null) {
       // If the element is null, we check for the
       // REDIRECT_TO_MISSING_CONSTRUCTOR case
@@ -2078,7 +2078,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     DartType redirectedReturnType = redirectedType.returnType;
 
     // Report specific problem when return type is incompatible
-    FunctionType constructorType = declaration.declaredElement!.type;
+    FunctionType constructorType = declaration.declaredFragment!.element.type;
     DartType constructorReturnType = constructorType.returnType;
     if (!typeSystem.isAssignableTo(redirectedReturnType, constructorReturnType,
         strictCasts: strictCasts)) {
@@ -2134,10 +2134,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// imported from two or more imports.
   void _checkForAmbiguousImport({
     required Token name,
-    required Element? element,
+    required Element2? element,
   }) {
-    if (element is MultiplyDefinedElementImpl) {
-      var conflictingMembers = element.conflictingElements;
+    if (element is MultiplyDefinedElementImpl2) {
+      var conflictingMembers = element.conflictingElements2;
       var libraryNames =
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();
@@ -2357,16 +2357,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType withMixin in withClause.mixinTypes) {
         var withType = withMixin.type;
         if (withType is InterfaceType) {
-          var withElement = withType.element;
-          if (withElement is ClassElementImpl &&
+          var withElement = withType.element3;
+          if (withElement is ClassElementImpl2 &&
               !withElement.isMixinClass &&
-              withElement.library.featureSet
+              withElement.library2.featureSet
                   .isEnabled(Feature.class_modifiers) &&
-              !_mayIgnoreClassModifiers(withElement.library)) {
+              !_mayIgnoreClassModifiers(withElement.library2)) {
             errorReporter.atNode(
               withMixin,
               CompileTimeErrorCode.CLASS_USED_AS_MIXIN,
-              arguments: [withElement.name],
+              arguments: [withElement.name3!],
             );
           }
         }
@@ -2550,31 +2550,34 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify all conflicts between type variable and enclosing class.
   void _checkForConflictingClassTypeVariableErrorCodes() {
-    var enclosingClass = _enclosingClass!;
-    for (TypeParameterElement typeParameter in enclosingClass.typeParameters) {
+    var enclosingClass = _enclosingClass!.asElement2;
+    for (TypeParameterElement2 typeParameter
+        in enclosingClass.typeParameters2) {
       if (typeParameter.isWildcardVariable) continue;
 
-      String name = typeParameter.name;
+      var name = typeParameter.name3;
+      if (name == null) continue;
+
       // name is same as the name of the enclosing class
-      if (enclosingClass.name == name) {
-        var code = enclosingClass is MixinElement
+      if (enclosingClass.name3 == name) {
+        var code = enclosingClass is MixinElement2
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS;
-        errorReporter.atElement(
+        errorReporter.atElement2(
           typeParameter,
           code,
           arguments: [name],
         );
       }
       // check members
-      if (enclosingClass.getNamedConstructor(name) != null ||
-          enclosingClass.getMethod(name) != null ||
-          enclosingClass.getGetter(name) != null ||
-          enclosingClass.getSetter(name) != null) {
-        var code = enclosingClass is MixinElement
+      if (enclosingClass.getNamedConstructor2(name) != null ||
+          enclosingClass.getMethod2(name) != null ||
+          enclosingClass.getGetter2(name) != null ||
+          enclosingClass.getSetter2(name) != null) {
+        var code = enclosingClass is MixinElement2
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS;
-        errorReporter.atElement(
+        errorReporter.atElement2(
           typeParameter,
           code,
           arguments: [name],
@@ -3120,7 +3123,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Return `true` if the caller should continue checking the rest of the
   /// information in the for-each part.
-  bool _checkForEachParts(ForEachParts node, Element? variableElement) {
+  bool _checkForEachParts(ForEachParts node, Element2? variableElement) {
     if (checkForUseOfVoidResult(node.iterable)) {
       return false;
     }
@@ -3154,7 +3157,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // The type of the loop variable.
     DartType variableType;
-    if (variableElement is VariableElement) {
+    if (variableElement is VariableElement2) {
       variableType = variableElement.type;
     } else {
       return false;
@@ -5448,11 +5451,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForTypeParameterReferencedByStatic({
     required Token name,
-    required Element? element,
+    required Element2? element,
   }) {
     if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
-      if (element is TypeParameterElement &&
-          element.enclosingElement3 is InstanceElement) {
+      if (element is TypeParameterElement2 &&
+          element.enclosingElement2 is InstanceElement2) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
@@ -6317,15 +6320,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   /// Return the name of the library that defines given [element].
-  String _getLibraryName(Element? element) {
+  String _getLibraryName(Element2? element) {
     if (element == null) {
       return '';
     }
-    var library = element.library;
+    var library = element.library2;
     if (library == null) {
       return '';
     }
-    var name = element.name;
+    var name = element.name3;
     if (name == null) {
       return '';
     }
@@ -6335,14 +6338,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     int count = imports.length;
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].importedLibrary, library)) {
-        return library.definingCompilationUnit.source.uri.toString();
+        return library.uri.toString();
       }
     }
     List<String> indirectSources = <String>[];
     for (var import in imports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null) {
-        if (import.namespace.get(name) == element) {
+        if (import.namespace.get2(name) == element) {
           indirectSources.add(
               importedLibrary.definingCompilationUnit.source.uri.toString());
         }
@@ -6350,7 +6353,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     int indirectCount = indirectSources.length;
     StringBuffer buffer = StringBuffer();
-    buffer.write(library.definingCompilationUnit.source.uri.toString());
+    buffer.write(library.uri.toString());
     if (indirectCount > 0) {
       buffer.write(" (via ");
       if (indirectCount > 1) {
