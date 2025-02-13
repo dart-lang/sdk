@@ -363,9 +363,9 @@ class ElementPrinter {
     return '${source.uri}';
   }
 
-  String _substitutionMapStr(Map<TypeParameterElement, DartType> map) {
+  String _substitutionMapStr(Map<TypeParameterElement2, DartType> map) {
     var entriesStr = map.entries.map((entry) {
-      return '${entry.key.name}: ${_typeStr(entry.value)}';
+      return '${entry.key.name3}: ${_typeStr(entry.value)}';
     }).join(', ');
     return '{$entriesStr}';
   }
