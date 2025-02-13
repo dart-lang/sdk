@@ -107,6 +107,12 @@ extension ConstructorElementExtension on ConstructorElement {
   }
 }
 
+extension ConstructorElementImplExtension on ConstructorElementImpl {
+  ConstructorElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension Element2Extension on Element2 {
   /// Whether the element is effectively [internal].
   bool get isInternal {
@@ -349,6 +355,12 @@ extension ExecutableElementExtension on ExecutableElement {
         // TODO(paulberry): eliminate this cast by using impl types in the
         // switch patterns above.
         as ExecutableElement2OrMember;
+  }
+}
+
+extension ExecutableElementImplExtension on ExecutableElementImpl {
+  ExecutableElementImpl2 get asElement2 {
+    return element;
   }
 }
 
@@ -620,6 +632,12 @@ extension PropertyAccessorElementExtension on PropertyAccessorElement {
       PropertyAccessorMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
+  }
+}
+
+extension PropertyAccessorElementImplExtension on PropertyAccessorElementImpl {
+  PropertyAccessorElementImpl2 get asElement2 {
+    return element;
   }
 }
 

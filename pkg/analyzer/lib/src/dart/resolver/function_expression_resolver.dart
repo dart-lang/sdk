@@ -165,8 +165,7 @@ class FunctionExpressionResolver {
   }
 
   void _resolve2(FunctionExpressionImpl node, DartType? imposedType) {
-    var functionElement =
-        node.declaredFragment!.element as ExecutableElementImpl2;
+    var functionElement = node.declaredFragment!.element;
 
     if (_shouldUpdateReturnType(node)) {
       var firstFragment =

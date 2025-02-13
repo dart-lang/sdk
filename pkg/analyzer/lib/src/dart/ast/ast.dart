@@ -6481,8 +6481,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @experimental
   @override
-  ExtensionFragment? get declaredFragment =>
-      declaredElement as ExtensionFragment?;
+  ExtensionElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -8319,11 +8318,8 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  ExecutableFragment? get declaredFragment {
-    if (declaredElement case ExecutableFragment fragment) {
-      return fragment;
-    }
-    return null;
+  ExecutableElementImpl? get declaredFragment {
+    return declaredElement;
   }
 
   @override
@@ -11910,8 +11906,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @experimental
   @override
-  ExecutableFragment? get declaredFragment =>
-      declaredElement as ExecutableFragment?;
+  ExecutableElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => body.endToken;

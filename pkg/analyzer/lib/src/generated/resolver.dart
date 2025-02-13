@@ -176,7 +176,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The element representing the extension containing the AST nodes being
   /// visited, or `null` if we are not in the scope of an extension.
-  ExtensionElementImpl? enclosingExtension;
+  ExtensionElementImpl2? enclosingExtension;
 
   /// The element representing the function containing the current node, or
   /// `null` if the current node is not contained in a function.
@@ -1350,7 +1350,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     if (parent is ExtensionDeclarationImpl) {
-      enclosingExtension = parent.declaredElement!;
+      enclosingExtension = parent.declaredFragment!.element;
       return true;
     }
 
@@ -2672,7 +2672,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     var outerExtension = enclosingExtension;
     try {
-      enclosingExtension = node.declaredElement!;
+      enclosingExtension = node.declaredFragment!.element;
       checkUnreachableNode(node);
       node.visitChildren(this);
       elementResolver.visitExtensionDeclaration(node);
