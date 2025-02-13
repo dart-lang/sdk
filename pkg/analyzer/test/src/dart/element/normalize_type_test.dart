@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -100,43 +100,43 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   test_functionType_parameter_typeParameter() {
-    TypeParameterElement2 T;
-    TypeParameterElement2 T2;
+    TypeParameterElementImpl2 T;
+    TypeParameterElementImpl2 T2;
 
-    T = typeParameter2('T', bound: neverNone);
-    T2 = typeParameter2('T2', bound: neverNone);
+    T = typeParameter('T', bound: neverNone);
+    T2 = typeParameter('T2', bound: neverNone);
     _check(
       functionTypeNone2(
         returnType: voidNone,
-        typeFormals: [T],
+        typeParameters: [T],
         parameters: [
-          requiredParameter2(type: typeParameterTypeNone2(T)),
+          requiredParameter2(type: typeParameterTypeNone(T)),
         ],
       ),
       functionTypeNone2(
         returnType: voidNone,
-        typeFormals: [T2],
+        typeParameters: [T2],
         parameters: [
           requiredParameter2(type: neverNone),
         ],
       ),
     );
 
-    T = typeParameter2('T', bound: iterableNone(futureOrNone(dynamicType)));
-    T2 = typeParameter2('T2', bound: iterableNone(dynamicType));
+    T = typeParameter('T', bound: iterableNone(futureOrNone(dynamicType)));
+    T2 = typeParameter('T2', bound: iterableNone(dynamicType));
     _check(
       functionTypeNone2(
         returnType: voidNone,
-        typeFormals: [T],
+        typeParameters: [T],
         parameters: [
-          requiredParameter2(type: typeParameterTypeNone2(T)),
+          requiredParameter2(type: typeParameterTypeNone(T)),
         ],
       ),
       functionTypeNone2(
         returnType: voidNone,
-        typeFormals: [T2],
+        typeParameters: [T2],
         parameters: [
-          requiredParameter2(type: typeParameterTypeNone2(T2)),
+          requiredParameter2(type: typeParameterTypeNone(T2)),
         ],
       ),
     );
@@ -166,13 +166,13 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     _check(
       functionTypeNone(
         returnType: voidNone,
-        typeFormals: [
+        typeParameters: [
           typeParameter('T', bound: futureOrNone(objectNone)),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        typeFormals: [
+        typeParameters: [
           typeParameter('T', bound: objectNone),
         ],
       ),
@@ -183,13 +183,13 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     _check(
       functionTypeNone(
         returnType: intNone,
-        typeFormals: [
+        typeParameters: [
           typeParameter('T', bound: numNone),
         ],
       ),
       functionTypeNone(
         returnType: intNone,
-        typeFormals: [
+        typeParameters: [
           typeParameter('T', bound: numNone),
         ],
       ),
@@ -202,7 +202,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     _check(
       functionTypeNone(
         returnType: typeParameterTypeNone(T),
-        typeFormals: [T],
+        typeParameters: [T],
         parameters: [
           requiredParameter(
             type: typeParameterTypeNone(T),
@@ -211,7 +211,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
       ),
       functionTypeNone(
         returnType: typeParameterTypeNone(T2),
-        typeFormals: [T2],
+        typeParameters: [T2],
         parameters: [
           requiredParameter(
             type: typeParameterTypeNone(T2),
@@ -229,7 +229,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     _check(
       functionTypeNone(
         returnType: typeParameterTypeNone(T),
-        typeFormals: [T, S],
+        typeParameters: [T, S],
         parameters: [
           requiredParameter(
             type: typeParameterTypeNone(T),
@@ -241,7 +241,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
       ),
       functionTypeNone(
         returnType: typeParameterTypeNone(T2),
-        typeFormals: [T2, S2],
+        typeParameters: [T2, S2],
         parameters: [
           requiredParameter(
             type: typeParameterTypeNone(T2),
@@ -379,19 +379,19 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   /// NORM(X & T)
   /// * let S be NORM(T)
   test_typeParameter_bound() {
-    TypeParameterElement2 T;
+    TypeParameterElementImpl2 T;
 
     // * if S is Never then Never
-    T = typeParameter2('T', bound: neverNone);
-    _check(typeParameterTypeNone2(T), neverNone);
+    T = typeParameter('T', bound: neverNone);
+    _check(typeParameterTypeNone(T), neverNone);
 
     // * else X
-    T = typeParameter2('T');
-    _check(typeParameterTypeNone2(T), typeParameterTypeNone2(T));
+    T = typeParameter('T');
+    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
 
     // * else X
-    T = typeParameter2('T', bound: futureOrNone(objectNone));
-    _check(typeParameterTypeNone2(T), typeParameterTypeNone2(T));
+    T = typeParameter('T', bound: futureOrNone(objectNone));
+    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
   }
 
   test_typeParameter_bound_recursive() {

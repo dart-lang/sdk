@@ -25,8 +25,8 @@ class TypeReferencesAnyTest extends AbstractTypeSystemTest {
   void setUp() {
     super.setUp();
 
-    T = typeParameter2('T');
-    T_none = typeParameterTypeNone2(T);
+    T = typeParameter('T');
+    T_none = typeParameterTypeNone(T);
   }
 
   test_false() {
@@ -53,7 +53,7 @@ class TypeReferencesAnyTest extends AbstractTypeSystemTest {
 
     _checkTrue(
       functionTypeNone(
-        typeFormals: [
+        typeParameters: [
           typeParameter('U', bound: T_none),
         ],
         returnType: voidNone,

@@ -173,7 +173,7 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       var T1_T = typeParameter('T', bound: numNone);
       _check(
         functionTypeNone(
-          typeFormals: [T1_T],
+          typeParameters: [T1_T],
           returnType: voidNone,
         ),
         functionTypeNone(
@@ -188,11 +188,11 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       var T2_U = typeParameter('U');
       _check(
         functionTypeNone(
-          typeFormals: [T1_T],
+          typeParameters: [T1_T],
           returnType: voidNone,
         ),
         functionTypeNone(
-          typeFormals: [T2_U],
+          typeParameters: [T2_U],
           returnType: voidNone,
         ),
         false,
@@ -204,7 +204,7 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       var T2_U = typeParameter('U');
       _check(
         functionTypeNone(
-          typeFormals: [T1_T],
+          typeParameters: [T1_T],
           returnType: typeParameterTypeNone(T1_T),
           parameters: [
             requiredParameter(
@@ -213,7 +213,7 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
           ],
         ),
         functionTypeNone(
-          typeFormals: [T2_U],
+          typeParameters: [T2_U],
           returnType: typeParameterTypeNone(T2_U),
           parameters: [
             requiredParameter(

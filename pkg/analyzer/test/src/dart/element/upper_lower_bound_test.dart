@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -104,29 +105,29 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   }
 
   test_isBottom() {
-    TypeParameterElement2 T;
+    TypeParameterElementImpl2 T;
 
     // BOTTOM(Never) is true
     isBottom(neverNone);
     isNotBottom(neverQuestion);
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
-    T = typeParameter2('T', bound: objectQuestion);
+    T = typeParameter('T', bound: objectQuestion);
 
-    isBottom(promotedTypeParameterTypeNone2(T, neverNone));
-    isNotBottom(promotedTypeParameterTypeQuestion2(T, neverNone));
+    isBottom(promotedTypeParameterTypeNone(T, neverNone));
+    isNotBottom(promotedTypeParameterTypeQuestion(T, neverNone));
 
-    isNotBottom(promotedTypeParameterTypeNone2(T, neverQuestion));
-    isNotBottom(promotedTypeParameterTypeQuestion2(T, neverQuestion));
+    isNotBottom(promotedTypeParameterTypeNone(T, neverQuestion));
+    isNotBottom(promotedTypeParameterTypeQuestion(T, neverQuestion));
 
     // BOTTOM(X extends T) is true iff BOTTOM(T)
-    T = typeParameter2('T', bound: neverNone);
-    isBottom(typeParameterTypeNone2(T));
-    isNotBottom(typeParameterTypeQuestion2(T));
+    T = typeParameter('T', bound: neverNone);
+    isBottom(typeParameterTypeNone(T));
+    isNotBottom(typeParameterTypeQuestion(T));
 
-    T = typeParameter2('T', bound: neverQuestion);
-    isNotBottom(typeParameterTypeNone2(T));
-    isNotBottom(typeParameterTypeQuestion2(T));
+    T = typeParameter('T', bound: neverQuestion);
+    isNotBottom(typeParameterTypeNone(T));
+    isNotBottom(typeParameterTypeQuestion(T));
 
     // BOTTOM(T) is false otherwise
     isNotBottom(dynamicType);
@@ -139,12 +140,12 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     isNotBottom(intNone);
     isNotBottom(intQuestion);
 
-    T = typeParameter2('T', bound: numNone);
-    isNotBottom(typeParameterTypeNone2(T));
-    isNotBottom(typeParameterTypeQuestion2(T));
+    T = typeParameter('T', bound: numNone);
+    isNotBottom(typeParameterTypeNone(T));
+    isNotBottom(typeParameterTypeQuestion(T));
 
-    isNotBottom(promotedTypeParameterTypeNone2(T, intNone));
-    isNotBottom(promotedTypeParameterTypeQuestion2(T, intNone));
+    isNotBottom(promotedTypeParameterTypeNone(T, intNone));
+    isNotBottom(promotedTypeParameterTypeQuestion(T, intNone));
   }
 
   test_isMoreBottom() {
@@ -724,7 +725,7 @@ class LowerBoundTest extends _BoundsTestBase {
     check(
       functionTypeNone(
         returnType: voidNone,
-        typeFormals: [
+        typeParameters: [
           typeParameter('T'),
         ],
       ),
@@ -735,13 +736,13 @@ class LowerBoundTest extends _BoundsTestBase {
     check(
       functionTypeNone(
         returnType: voidNone,
-        typeFormals: [
+        typeParameters: [
           typeParameter('T', bound: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        typeFormals: [
+        typeParameters: [
           typeParameter('T', bound: numNone),
         ],
       ),
@@ -755,15 +756,15 @@ class LowerBoundTest extends _BoundsTestBase {
       check(
         functionTypeNone(
           returnType: typeParameterTypeNone(T),
-          typeFormals: [T],
+          typeParameters: [T],
         ),
         functionTypeNone(
           returnType: typeParameterTypeNone(U),
-          typeFormals: [U],
+          typeParameters: [U],
         ),
         functionTypeNone(
           returnType: typeParameterTypeNone(R),
-          typeFormals: [R],
+          typeParameters: [R],
         ),
       );
     }
@@ -1261,7 +1262,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_typeParameter() {
-    void check({DartType? bound, required TypeImpl T2}) {
+    void check({TypeImpl? bound, required TypeImpl T2}) {
       var T1 = typeParameterTypeNone(
         typeParameter('T', bound: bound),
       );
@@ -1814,7 +1815,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     check(
       functionTypeNone(
         returnType: voidNone,
-        typeFormals: [
+        typeParameters: [
           typeParameter('T'),
         ],
       ),
@@ -1825,13 +1826,13 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     check(
       functionTypeNone(
         returnType: voidNone,
-        typeFormals: [
+        typeParameters: [
           typeParameter('T', bound: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        typeFormals: [
+        typeParameters: [
           typeParameter('T', bound: numNone),
         ],
       ),
@@ -1843,11 +1844,11 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       var U = typeParameter('U', bound: numNone);
       var T1 = functionTypeNone(
         returnType: typeParameterTypeNone(T),
-        typeFormals: [T],
+        typeParameters: [T],
       );
       var T2 = functionTypeNone(
         returnType: typeParameterTypeNone(U),
-        typeFormals: [U],
+        typeParameters: [U],
       );
       {
         var result = typeSystem.leastUpperBound(T1, T2);

@@ -11456,7 +11456,6 @@ class TypeParameterElementImpl extends ElementImpl
     return TypeParameterElementImpl2(
       firstFragment: firstFragment,
       name3: firstFragment.name.nullIfEmpty,
-      bound: firstFragment.bound,
     );
   }
 
@@ -11577,13 +11576,9 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   @override
   final String? name3;
 
-  @override
-  TypeImpl? bound;
-
   TypeParameterElementImpl2({
     required this.firstFragment,
     required this.name3,
-    required this.bound,
   }) {
     TypeParameterElementImpl? fragment = firstFragment;
     while (fragment != null) {
@@ -11594,6 +11589,13 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
 
   @override
   TypeParameterElement2 get baseElement => this;
+
+  @override
+  TypeImpl? get bound => firstFragment.bound;
+
+  set bound(TypeImpl? value) {
+    firstFragment.bound = value;
+  }
 
   @override
   TypeImpl? get boundShared => bound;
@@ -11623,7 +11625,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
 
   shared.Variance get variance => firstFragment.variance;
 
-  set variance(shared.Variance value) {
+  set variance(shared.Variance? value) {
     firstFragment.variance = value;
   }
 

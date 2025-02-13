@@ -582,93 +582,93 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_dynamic() {
-    var element = typeParameter2('T', bound: dynamicType);
+    var element = typeParameter('T', bound: dynamicType);
 
     _checkTypeParameter(
-      typeParameterTypeNone2(element),
+      typeParameterTypeNone(element),
       element: element,
       promotedBound: null,
     );
   }
 
   test_typeParameter_bound_invalidType() {
-    var element = typeParameter2('T', bound: invalidType);
+    var element = typeParameter('T', bound: invalidType);
 
     _checkTypeParameter(
-      typeParameterTypeNone2(element),
+      typeParameterTypeNone(element),
       element: element,
       promotedBound: null,
     );
   }
 
   test_typeParameter_bound_none() {
-    var element = typeParameter2('T', bound: intNone);
+    var element = typeParameter('T', bound: intNone);
 
     _checkTypeParameter(
-      typeParameterTypeNone2(element),
+      typeParameterTypeNone(element),
       element: element,
       promotedBound: null,
     );
 
     _checkTypeParameter(
-      typeParameterTypeQuestion2(element),
+      typeParameterTypeQuestion(element),
       element: element,
       promotedBound: null,
     );
   }
 
   test_typeParameter_bound_null() {
-    var element = typeParameter2('T');
+    var element = typeParameter('T');
     _checkTypeParameter(
-      typeParameterTypeNone2(element),
+      typeParameterTypeNone(element),
       element: element,
       promotedBound: objectNone,
     );
   }
 
   test_typeParameter_bound_question() {
-    var element = typeParameter2('T', bound: intQuestion);
+    var element = typeParameter('T', bound: intQuestion);
 
     _checkTypeParameter(
-      typeParameterTypeNone2(element),
+      typeParameterTypeNone(element),
       element: element,
       promotedBound: intNone,
     );
 
     _checkTypeParameter(
-      typeParameterTypeQuestion2(element),
+      typeParameterTypeQuestion(element),
       element: element,
       promotedBound: intNone,
     );
   }
 
   test_typeParameter_promotedBound_none() {
-    var element = typeParameter2('T', bound: numQuestion);
+    var element = typeParameter('T', bound: numQuestion);
 
     _checkTypeParameter(
-      promotedTypeParameterTypeNone2(element, intNone),
+      promotedTypeParameterTypeNone(element, intNone),
       element: element,
       promotedBound: intNone,
     );
 
     _checkTypeParameter(
-      promotedTypeParameterTypeQuestion2(element, intNone),
+      promotedTypeParameterTypeQuestion(element, intNone),
       element: element,
       promotedBound: intNone,
     );
   }
 
   test_typeParameter_promotedBound_question() {
-    var element = typeParameter2('T', bound: numQuestion);
+    var element = typeParameter('T', bound: numQuestion);
 
     _checkTypeParameter(
-      promotedTypeParameterTypeNone2(element, intQuestion),
+      promotedTypeParameterTypeNone(element, intQuestion),
       element: element,
       promotedBound: intNone,
     );
 
     _checkTypeParameter(
-      promotedTypeParameterTypeQuestion2(element, intQuestion),
+      promotedTypeParameterTypeQuestion(element, intQuestion),
       element: element,
       promotedBound: intNone,
     );

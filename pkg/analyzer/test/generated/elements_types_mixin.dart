@@ -127,7 +127,7 @@ mixin ElementsTypesMixin {
     bool isAugmentation = false,
     bool isSealed = false,
     InterfaceType? superType,
-    List<TypeParameterElementImpl> typeParameters = const [],
+    List<TypeParameterElementImpl2> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
     List<InterfaceType> mixins = const [],
     List<MethodElementImpl> methods = const [],
@@ -137,7 +137,7 @@ mixin ElementsTypesMixin {
     fragment.isAugmentation = isAugmentation;
     fragment.isSealed = isSealed;
     fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
-    fragment.typeParameters = typeParameters;
+    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.supertype = superType ?? typeProvider.objectType;
     fragment.interfaces = interfaces;
     fragment.mixins = mixins;
@@ -151,34 +151,40 @@ mixin ElementsTypesMixin {
     return fragment;
   }
 
-  ClassElementImpl class_2({
+  ClassElementImpl2 class_2({
     required String name,
     bool isAbstract = false,
     bool isAugmentation = false,
     bool isSealed = false,
     InterfaceType? superType,
-    List<TypeParameterElement2> typeParameters = const [],
+    List<TypeParameterElementImpl2> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
     List<InterfaceType> mixins = const [],
-    List<MethodElementImpl> methods = const [],
+    List<MethodElementImpl2> methods = const [],
   }) {
-    return class_(
-        name: name,
-        isAbstract: isAbstract,
-        isAugmentation: isAugmentation,
-        isSealed: isSealed,
-        superType: superType,
-        typeParameters: typeParameters
-            .map((e) => e.asElement as TypeParameterElementImpl)
-            .toList(),
-        interfaces: interfaces,
-        mixins: mixins,
-        methods: methods);
+    var fragment = ClassElementImpl(name, 0);
+    fragment.isAbstract = isAbstract;
+    fragment.isAugmentation = isAugmentation;
+    fragment.isSealed = isSealed;
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters =
+        typeParameters.map((e) => e.firstFragment).toList();
+    fragment.supertype = superType ?? typeProvider.objectType;
+    fragment.interfaces = interfaces;
+    fragment.mixins = mixins;
+    fragment.methods = methods.map((e) => e.firstFragment).toList();
+
+    var element = ClassElementImpl2(Reference.root(), fragment);
+    element.mixins = fragment.mixins;
+    element.interfaces = fragment.interfaces;
+    element.methods = fragment.methods;
+
+    return element;
   }
 
   InterfaceTypeImpl comparableNone(DartType type) {
-    var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getClass('Comparable')!;
+    var coreLibrary = typeProvider.intElement2.library2;
+    var element = coreLibrary.getClass2('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -186,8 +192,8 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl comparableQuestion(DartType type) {
-    var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getClass('Comparable')!;
+    var coreLibrary = typeProvider.intElement2.library2;
+    var element = coreLibrary.getClass2('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -232,12 +238,12 @@ mixin ElementsTypesMixin {
     String name, {
     String representationName = 'it',
     required TypeImpl representationType,
-    List<TypeParameterElementImpl> typeParameters = const [],
+    List<TypeParameterElementImpl2> typeParameters = const [],
     List<InterfaceType> interfaces = const [],
   }) {
     var fragment = ExtensionTypeElementImpl(name, -1);
     fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
-    fragment.typeParameters = typeParameters;
+    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.interfaces = interfaces;
 
     var field = FieldElementImpl(representationName, -1);
@@ -255,13 +261,13 @@ mixin ElementsTypesMixin {
   }
 
   FunctionTypeImpl functionType({
-    required List<TypeParameterElement> typeFormals,
+    required List<TypeParameterElementImpl2> typeParameters,
     required List<ParameterElement> parameters,
     required DartType returnType,
     required NullabilitySuffix nullabilitySuffix,
   }) {
     return FunctionTypeImpl(
-      typeFormals: typeFormals,
+      typeFormals: typeParameters.map((e) => e.asElement).toList(),
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
@@ -269,12 +275,12 @@ mixin ElementsTypesMixin {
   }
 
   FunctionTypeImpl functionTypeNone({
-    List<TypeParameterElement> typeFormals = const [],
+    List<TypeParameterElementImpl2> typeParameters = const [],
     List<ParameterElement> parameters = const [],
     required DartType returnType,
   }) {
     return functionType(
-      typeFormals: typeFormals,
+      typeParameters: typeParameters,
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
@@ -282,23 +288,24 @@ mixin ElementsTypesMixin {
   }
 
   FunctionTypeImpl functionTypeNone2({
-    List<TypeParameterElement2> typeFormals = const [],
+    List<TypeParameterElementImpl2> typeParameters = const [],
     List<FormalParameterElement> parameters = const [],
     required DartType returnType,
   }) {
     return functionTypeNone(
-        parameters: parameters.map((e) => e.asElement).toList(),
-        typeFormals: typeFormals.map((e) => e.asElement).toList(),
-        returnType: returnType);
+      parameters: parameters.map((e) => e.asElement).toList(),
+      typeParameters: typeParameters,
+      returnType: returnType,
+    );
   }
 
   FunctionTypeImpl functionTypeQuestion({
-    List<TypeParameterElement> typeFormals = const [],
+    List<TypeParameterElementImpl2> typeParameters = const [],
     List<ParameterElement> parameters = const [],
     required DartType returnType,
   }) {
     return functionType(
-      typeFormals: typeFormals,
+      typeParameters: typeParameters,
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.question,
@@ -461,27 +468,27 @@ mixin ElementsTypesMixin {
     String name,
     DartType returnType, {
     bool isStatic = false,
-    List<TypeParameterElementImpl> typeFormals = const [],
+    List<TypeParameterElementImpl2> typeParameters = const [],
     List<ParameterElementImpl> parameters = const [],
   }) {
     return MethodElementImpl(name, 0)
       ..isStatic = isStatic
       ..parameters = parameters
       ..returnType = returnType
-      ..typeParameters = typeFormals;
+      ..typeParameters = typeParameters.map((e) => e.asElement).toList();
   }
 
   MixinElementImpl mixin_({
     required String name,
     bool isAugmentation = false,
-    List<TypeParameterElementImpl> typeParameters = const [],
+    List<TypeParameterElementImpl2> typeParameters = const [],
     List<InterfaceType>? constraints,
     List<InterfaceType> interfaces = const [],
   }) {
     var fragment = MixinElementImpl(name, 0);
     fragment.isAugmentation = isAugmentation;
     fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
-    fragment.typeParameters = typeParameters;
+    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.superclassConstraints = constraints ?? [typeProvider.objectType];
     fragment.interfaces = interfaces;
     fragment.constructors = const <ConstructorElementImpl>[];
@@ -581,11 +588,11 @@ mixin ElementsTypesMixin {
   }
 
   TypeParameterTypeImpl promotedTypeParameterType({
-    required TypeParameterElement element,
+    required TypeParameterElementImpl2 element,
     required NullabilitySuffix nullabilitySuffix,
     required DartType promotedBound,
   }) {
-    return TypeParameterTypeImpl(
+    return TypeParameterTypeImpl.v2(
       element: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
@@ -593,7 +600,7 @@ mixin ElementsTypesMixin {
   }
 
   TypeParameterTypeImpl promotedTypeParameterTypeNone(
-    TypeParameterElement element,
+    TypeParameterElementImpl2 element,
     DartType promotedBound,
   ) {
     return promotedTypeParameterType(
@@ -603,18 +610,8 @@ mixin ElementsTypesMixin {
     );
   }
 
-  TypeParameterTypeImpl promotedTypeParameterTypeNone2(
-    TypeParameterElement2 element,
-    DartType promotedBound,
-  ) {
-    return promotedTypeParameterTypeNone(
-      element.asElement,
-      promotedBound,
-    );
-  }
-
   TypeParameterTypeImpl promotedTypeParameterTypeQuestion(
-    TypeParameterElement element,
+    TypeParameterElementImpl2 element,
     DartType promotedBound,
   ) {
     return promotedTypeParameterType(
@@ -622,13 +619,6 @@ mixin ElementsTypesMixin {
       nullabilitySuffix: NullabilitySuffix.question,
       promotedBound: promotedBound,
     );
-  }
-
-  TypeParameterTypeImpl promotedTypeParameterTypeQuestion2(
-    TypeParameterElement2 element,
-    DartType promotedBound,
-  ) {
-    return promotedTypeParameterTypeQuestion(element.asElement, promotedBound);
   }
 
   RecordTypeImpl recordType({
@@ -700,21 +690,6 @@ mixin ElementsTypesMixin {
         .asElement2;
   }
 
-  TypeAliasElementImpl typeAlias({
-    required String name,
-    required List<TypeParameterElementImpl> typeParameters,
-    required DartType aliasedType,
-  }) {
-    var fragment = TypeAliasElementImpl(name, 0);
-    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
-    fragment.typeParameters = typeParameters;
-    fragment.aliasedType = aliasedType;
-
-    TypeAliasElementImpl2(Reference.root(), fragment);
-
-    return fragment;
-  }
-
   TypeAliasElementImpl2 typeAlias2({
     required String name,
     required List<TypeParameterElementImpl2> typeParameters,
@@ -723,22 +698,10 @@ mixin ElementsTypesMixin {
     var fragment = TypeAliasElementImpl(name, 0);
     fragment.name2 = name;
     fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
-    fragment.typeParameters = typeParameters
-        .map((e) => e.asElement as TypeParameterElementImpl)
-        .toList();
+    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.aliasedType = aliasedType;
 
     return TypeAliasElementImpl2(Reference.root(), fragment);
-  }
-
-  TypeImpl typeAliasTypeNone(
-    TypeAliasElementImpl element, {
-    List<DartType> typeArguments = const [],
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
   }
 
   TypeImpl typeAliasTypeNone2(
@@ -751,25 +714,25 @@ mixin ElementsTypesMixin {
     );
   }
 
-  TypeParameterElementImpl typeParameter(String name,
-      {DartType? bound, Variance? variance}) {
-    var element = TypeParameterElementImpl.synthetic(name);
-    element.bound = bound;
+  TypeParameterElementImpl2 typeParameter(String name,
+      {TypeImpl? bound, Variance? variance}) {
+    var fragment = TypeParameterElementImpl(name, -1);
+    fragment.bound = bound;
+
+    var element = TypeParameterElementImpl2(
+      firstFragment: fragment,
+      name3: name,
+    );
     element.variance = variance;
     return element;
   }
 
-  TypeParameterElementImpl2 typeParameter2(String name,
-      {DartType? bound, Variance? variance}) {
-    return typeParameter(name, bound: bound, variance: variance).asElement2;
-  }
-
   TypeParameterTypeImpl typeParameterType(
-    TypeParameterElement element, {
+    TypeParameterElementImpl2 element, {
     required NullabilitySuffix nullabilitySuffix,
     DartType? promotedBound,
   }) {
-    return TypeParameterTypeImpl(
+    return TypeParameterTypeImpl.v2(
       element: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
@@ -777,7 +740,7 @@ mixin ElementsTypesMixin {
   }
 
   TypeParameterTypeImpl typeParameterTypeNone(
-    TypeParameterElement element, {
+    TypeParameterElementImpl2 element, {
     DartType? promotedBound,
   }) {
     return typeParameterType(
@@ -787,33 +750,13 @@ mixin ElementsTypesMixin {
     );
   }
 
-  TypeParameterTypeImpl typeParameterTypeNone2(
-    TypeParameterElement2 element, {
-    DartType? promotedBound,
-  }) {
-    return typeParameterTypeNone(
-      element.asElement,
-      promotedBound: promotedBound,
-    );
-  }
-
   TypeParameterTypeImpl typeParameterTypeQuestion(
-    TypeParameterElement element, {
+    TypeParameterElementImpl2 element, {
     DartType? promotedBound,
   }) {
     return typeParameterType(
       element,
       nullabilitySuffix: NullabilitySuffix.question,
-      promotedBound: promotedBound,
-    );
-  }
-
-  TypeParameterTypeImpl typeParameterTypeQuestion2(
-    TypeParameterElement2 element, {
-    DartType? promotedBound,
-  }) {
-    return typeParameterTypeQuestion(
-      element.asElement,
       promotedBound: promotedBound,
     );
   }

@@ -818,10 +818,10 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
   List<TypeImpl> instantiateTypeFormalsToBounds2(
-      List<TypeParameterElementImpl2> typeFormals,
+      List<TypeParameterElementImpl2> typeParameters,
       {List<bool>? hasError,
       Map<TypeParameterElement2, TypeImpl>? knownTypes}) {
-    int count = typeFormals.length;
+    int count = typeParameters.length;
     if (count == 0) {
       return const <TypeImpl>[];
     }
@@ -832,7 +832,7 @@ class TypeSystemImpl implements TypeSystem {
     // not ground
     Map<TypeParameterElement2, TypeImpl> partials = {};
 
-    for (var typeParameter in typeFormals) {
+    for (var typeParameter in typeParameters) {
       all.add(typeParameter);
       if (!defaults.containsKey(typeParameter)) {
         var bound = typeParameter.bound ?? DynamicTypeImpl.instance;
@@ -886,7 +886,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     List<TypeImpl> orderedArguments =
-        typeFormals.map((p) => defaults[p]!).toFixedList();
+        typeParameters.map((p) => defaults[p]!).toFixedList();
     return orderedArguments;
   }
 

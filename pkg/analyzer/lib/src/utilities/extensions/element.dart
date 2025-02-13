@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
 class MockLibraryImportElement implements Element2, PrefixFragment {
@@ -685,9 +684,6 @@ extension TypeParameterElement2Extension on TypeParameterElement2 {
     return TypeParameterElementImpl2(
       firstFragment: fragment,
       name3: name3,
-      // TODO(paulberry): eliminate this cast by changing this extension to
-      // apply to `TypeParameterElementImpl2`.
-      bound: bound as TypeImpl?,
     );
   }
 }
@@ -695,6 +691,12 @@ extension TypeParameterElement2Extension on TypeParameterElement2 {
 extension TypeParameterElementExtension on TypeParameterElement {
   TypeParameterElement2 get asElement2 {
     return (this as TypeParameterElementImpl).asElement2;
+  }
+}
+
+extension TypeParameterElementImpl2Extension on TypeParameterElementImpl2 {
+  TypeParameterElementImpl get asElement {
+    return firstFragment;
   }
 }
 
