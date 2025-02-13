@@ -76,16 +76,16 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
     isNotNonNullable(intQuestion);
   }
 
-  test_interface_extensionType() {
+  test_interface_extensionType2() {
     isNotNonNullable(
       interfaceTypeNone(
-        extensionType('A', representationType: intNone),
+        extensionType2('A', representationType: intNone),
       ),
     );
 
     isNonNullable(
       interfaceTypeNone(
-        extensionType('A', representationType: intNone, interfaces: [intNone]),
+        extensionType2('A', representationType: intNone, interfaces: [intNone]),
       ),
     );
   }
@@ -210,22 +210,22 @@ class IsNullableTest extends AbstractTypeSystemTest {
     isNullable(intQuestion);
   }
 
-  test_interface_extensionType() {
+  test_interface_extensionType2() {
     isNotNullable(
       interfaceTypeNone(
-        extensionType('A', representationType: intNone),
+        extensionType2('A', representationType: intNone),
       ),
     );
 
     isNotNullable(
       interfaceTypeNone(
-        extensionType('A', representationType: intNone, interfaces: [intNone]),
+        extensionType2('A', representationType: intNone, interfaces: [intNone]),
       ),
     );
 
     isNullable(
-      interfaceTypeQuestion(
-        extensionType('A', representationType: intNone, interfaces: [intNone]),
+      interfaceTypeQuestion2(
+        extensionType2('A', representationType: intNone, interfaces: [intNone]),
       ),
     );
   }
@@ -325,16 +325,16 @@ class IsPotentiallyNonNullableTest extends AbstractTypeSystemTest {
     isNotPotentiallyNonNullable(intQuestion);
   }
 
-  test_interface_extensionType() {
+  test_interface_extensionType2() {
     isPotentiallyNonNullable(
       interfaceTypeNone(
-        extensionType('A', representationType: intNone),
+        extensionType2('A', representationType: intNone),
       ),
     );
 
     isPotentiallyNonNullable(
       interfaceTypeNone(
-        extensionType('A', representationType: intNone, interfaces: [intNone]),
+        extensionType2('A', representationType: intNone, interfaces: [intNone]),
       ),
     );
   }
@@ -385,22 +385,22 @@ class IsPotentiallyNullableTest extends AbstractTypeSystemTest {
     isPotentiallyNullable(intQuestion);
   }
 
-  test_interface_extensionType() {
+  test_interface_extensionType2() {
     isPotentiallyNullable(
-      interfaceTypeQuestion(
-        extensionType('A', representationType: intNone),
+      interfaceTypeQuestion2(
+        extensionType2('A', representationType: intNone),
       ),
     );
 
     isPotentiallyNullable(
       interfaceTypeNone(
-        extensionType('A', representationType: intNone),
+        extensionType2('A', representationType: intNone),
       ),
     );
 
     isNotPotentiallyNullable(
       interfaceTypeNone(
-        extensionType('A', representationType: intNone, interfaces: [intNone]),
+        extensionType2('A', representationType: intNone, interfaces: [intNone]),
       ),
     );
   }
@@ -476,16 +476,16 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
     isNotStrictlyNonNullable(intQuestion);
   }
 
-  test_interface_extensionType() {
+  test_interface_extensionType2() {
     isNotStrictlyNonNullable(
       interfaceTypeNone(
-        extensionType('A', representationType: intNone),
+        extensionType2('A', representationType: intNone),
       ),
     );
 
     isStrictlyNonNullable(
       interfaceTypeNone(
-        extensionType('A', representationType: intNone, interfaces: [intNone]),
+        extensionType2('A', representationType: intNone, interfaces: [intNone]),
       ),
     );
   }

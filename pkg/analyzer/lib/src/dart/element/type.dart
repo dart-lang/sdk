@@ -954,7 +954,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       MethodMember.from(element.getMethod(methodName), this);
 
   @override
-  MethodElement2? getMethod2(String methodName) {
+  MethodElement2OrMember? getMethod2(String methodName) {
     return getMethod(methodName)?.asElement2;
   }
 

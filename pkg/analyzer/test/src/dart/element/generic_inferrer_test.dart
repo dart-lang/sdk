@@ -50,16 +50,16 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
     // class A {}
-    var A = class_(name: 'A', superType: objectNone);
+    var A = class_2(name: 'A', superType: objectNone);
     var typeA = interfaceTypeNone(A);
 
     // class B extends A {}
-    var B = class_(name: 'B', superType: typeA);
+    var B = class_2(name: 'B', superType: typeA);
     var typeB = interfaceTypeNone(B);
 
     // class C<T extends A> {
     var CT = typeParameter('T', bound: typeA);
-    var C = class_(
+    var C = class_2(
       name: 'C',
       superType: objectNone,
       typeParameters: [CT],
@@ -78,6 +78,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       ],
     );
     C.methods = [m];
+    C.firstFragment.methods = [m];
     // }
 
     // C<Object> cOfObject;
@@ -89,29 +90,29 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // B b;
     // cOfB.m(b); // infer <B>
     _assertType(
-        _inferCall2(cOfB.getMethod('m')!.type, [typeB]), 'B Function(B)');
+        _inferCall2(cOfB.getMethod2('m')!.type, [typeB]), 'B Function(B)');
     // cOfA.m(b); // infer <B>
     _assertType(
-        _inferCall2(cOfA.getMethod('m')!.type, [typeB]), 'B Function(B)');
+        _inferCall2(cOfA.getMethod2('m')!.type, [typeB]), 'B Function(B)');
     // cOfObject.m(b); // infer <B>
     _assertType(
-        _inferCall2(cOfObject.getMethod('m')!.type, [typeB]), 'B Function(B)');
+        _inferCall2(cOfObject.getMethod2('m')!.type, [typeB]), 'B Function(B)');
   }
 
   void test_boundedByOuterClassSubstituted() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
     // class A {}
-    var A = class_(name: 'A', superType: objectNone);
+    var A = class_2(name: 'A', superType: objectNone);
     var typeA = interfaceTypeNone(A);
 
     // class B extends A {}
-    var B = class_(name: 'B', superType: typeA);
+    var B = class_2(name: 'B', superType: typeA);
     var typeB = interfaceTypeNone(B);
 
     // class C<T extends A> {
     var CT = typeParameter('T', bound: typeA);
-    var C = class_(
+    var C = class_2(
       name: 'C',
       superType: objectNone,
       typeParameters: [CT],
@@ -131,6 +132,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       ],
     );
     C.methods = [m];
+    C.firstFragment.methods = [m];
     // }
 
     // C<Object> cOfObject;
@@ -142,20 +144,20 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // List<B> b;
     var listOfB = listNone(typeB);
     // cOfB.m(b); // infer <B>
-    _assertType(_inferCall2(cOfB.getMethod('m')!.type, [listOfB]),
+    _assertType(_inferCall2(cOfB.getMethod2('m')!.type, [listOfB]),
         'List<B> Function(List<B>)');
     // cOfA.m(b); // infer <B>
-    _assertType(_inferCall2(cOfA.getMethod('m')!.type, [listOfB]),
+    _assertType(_inferCall2(cOfA.getMethod2('m')!.type, [listOfB]),
         'List<B> Function(List<B>)');
     // cOfObject.m(b); // infer <B>
-    _assertType(_inferCall2(cOfObject.getMethod('m')!.type, [listOfB]),
+    _assertType(_inferCall2(cOfObject.getMethod2('m')!.type, [listOfB]),
         'List<B> Function(List<B>)');
   }
 
   void test_boundedRecursively() {
     // class A<T extends A<T>>
     var T = typeParameter('T');
-    var A = class_(
+    var A = class_2(
       name: 'Cloneable',
       superType: objectNone,
       typeParameters: [T],
@@ -166,8 +168,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     );
 
     // class B extends A<B> {}
-    var B = class_(name: 'B');
-    B.supertype = interfaceTypeNone(A, typeArguments: [interfaceTypeNone(B)]);
+    var B = class_2(name: 'B');
+    B.firstFragment.supertype =
+        interfaceTypeNone(A, typeArguments: [interfaceTypeNone(B)]);
     var typeB = interfaceTypeNone(B);
 
     // <S extends A<S>>

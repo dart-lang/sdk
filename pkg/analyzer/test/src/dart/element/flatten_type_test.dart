@@ -148,12 +148,12 @@ class FutureTypeTest extends AbstractTypeSystemTest {
   }
 
   test_implements_Future() {
-    var A = class_(name: 'A', interfaces: [
+    var A = class_2(name: 'A', interfaces: [
       futureNone(intNone),
     ]);
 
     _check(interfaceTypeNone(A), 'Future<int>');
-    _check(interfaceTypeQuestion(A), null);
+    _check(interfaceTypeQuestion2(A), null);
   }
 
   test_interfaceType() {
