@@ -119,6 +119,10 @@ class Sdk {
         'dart_tooling_daemon.dart.snapshot',
       );
 
+  String get dtdAotSnapshot => _snapshotPathFor(
+        'dart_tooling_daemon_aot.dart.snapshot',
+      );
+
   String get devToolsBinaries => path.absolute(
         _runFromBuildRoot
             ? sdkPath

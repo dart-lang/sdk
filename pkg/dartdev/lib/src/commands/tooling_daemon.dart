@@ -8,7 +8,7 @@ import 'package:dtd_impl/dtd.dart' as dtd show DartToolingDaemonOptions;
 
 import '../core.dart';
 import '../sdk.dart';
-import '../utils.dart';
+import '../vm_interop_handler.dart';
 
 class ToolingDaemonCommand extends DartdevCommand {
   static const String commandName = 'tooling-daemon';
@@ -30,14 +30,37 @@ class ToolingDaemonCommand extends DartdevCommand {
 
   @override
   Future<int> run() async {
-    // Need to make a copy as argResults!.arguments is an
-    // UnmodifiableListView object which cannot be passed as
-    // the args for spawnUri.
-    final args = [...argResults!.arguments];
-    return await runFromSnapshot(
-      snapshot: sdk.dtdSnapshot,
-      args: args,
-      verbose: verbose,
-    );
+    var script = sdk.dartAotRuntime;
+    var snapshot = sdk.dtdAotSnapshot;
+    var useExecProcess = true;
+    final args = argResults!.arguments;
+
+    if (!Sdk.checkArtifactExists(sdk.dtdAotSnapshot, logError: false)) {
+      // On ia32 platforms we do not have an AOT snapshot and so we need
+      // to run the JIT snapshot.
+      useExecProcess = false;
+      script = sdk.dtdSnapshot;
+    }
+    final dtdCommand = [
+      if (useExecProcess) snapshot,
+      // Add the remaining args.
+      if (args.isNotEmpty) ...args,
+    ];
+    try {
+      VmInteropHandler.run(
+        script,
+        dtdCommand,
+        packageConfigOverride: null,
+        useExecProcess : useExecProcess,
+      );
+      return 0;
+    } catch (e, st) {
+      log.stderr('Error: launching tooling daemon failed');
+      log.stderr(e.toString());
+      if (verbose) {
+        log.stderr(st.toString());
+      }
+      return 255;
+    }
   }
 }

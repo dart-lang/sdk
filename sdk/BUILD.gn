@@ -49,8 +49,10 @@ declare_args() {
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
 # ........dartdevc_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........dartdevc.dart.snapshot (JIT snapshot only on ia32)
-# ........dds.dart.snapshot
-# ........dart_tooling_daemon.dart.snapshot
+# ........dds_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dds.dart.snapshot (JIT snapshot only on ia32)
+# ........dart_tooling_daemon_aot.dart.snapshot (AOT snapshot, if not on ia32)
+# ........dart_tooling_daemon.dart.snapshot (JIT snapshot only on ia32)
 # ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........frontend_server.dart.snapshot (JIT snapshot only on ia32)
 # ........gen_kernel_aot.dart.snapshot (if not on ia32)
@@ -128,24 +130,38 @@ _platform_sdk_snapshots = [
     "../utils/dtd:dtd",
     "dart_tooling_daemon",
   ],
-  [
-    "dds",
-    "../utils/dds:dds",
-    "dds",
-  ],
 ]
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-  _platform_sdk_snapshots += [ [
-        "frontend_server_aot_product",
-        "../utils/kernel-service:frontend_server_aot_product",
-        "frontend_server_aot",
-      ] ]
+  _platform_sdk_snapshots += [
+    [
+      "frontend_server_aot_product",
+      "../utils/kernel-service:frontend_server_aot_product",
+      "frontend_server_aot",
+    ],
+    [
+      "dds_aot_product",
+      "../utils/dds:dds_aot",
+      "dds_aot",
+    ],
+    [
+      "dart_tooling_daemon_aot_product",
+      "../utils/dtd:dtd_aot",
+      "dart_tooling_daemon_aot",
+    ],
+  ]
 } else {
-  _platform_sdk_snapshots += [ [
-        "frontend_server",
-        "../utils/kernel-service:frontend_server",
-        "frontend_server",
-      ] ]
+  _platform_sdk_snapshots += [
+    [
+      "frontend_server",
+      "../utils/kernel-service:frontend_server",
+      "frontend_server",
+    ],
+    [
+      "dds",
+      "../utils/dds:dds",
+      "dds",
+    ],
+  ]
 }
 if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
