@@ -12,7 +12,9 @@ import "dart:_js_helper" show jsStringToDartString;
 import "dart:_list"
     show GrowableList, WasmListBaseUnsafeExtensions, WasmListBase;
 import "dart:_string";
+import "dart:_string_helper";
 import "dart:_typed_data";
+import "dart:_object_helper";
 import "dart:_wasm";
 import "dart:typed_data" show Uint8List;
 
@@ -669,6 +671,11 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    */
   void addSliceToString(int start, int end);
 
+  /**
+   * Adds a string slice to the string being built.
+   */
+  void addStringSliceToString(String string);
+
   /** Finalizes the string being built and returns it as a String. */
   String endString();
 
@@ -688,6 +695,12 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    * The function may choose to optimize depending on the value.
    */
   String getString(int start, int end, int bits);
+
+  /**
+   * Same as [getString] but with [hash] containing the already computed string
+   * hash.
+   */
+  String getStringWithHash(int start, int end, int bits, int hash);
 
   /**
    * Parse a slice of the current chunk as a number.
@@ -943,8 +956,15 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
       switch (char) {
         case QUOTE:
           if ((state & ALLOW_STRING_MASK) != 0) fail(position);
+          final calculateHash =
+              isUtf16Input &&
+              (state == STATE_OBJECT_EMPTY || state == STATE_OBJECT_COMMA);
           state |= VALUE_READ_BITS;
-          position = parseString(position + 1);
+          if (calculateHash) {
+            position = parseStringWithHash(position + 1);
+          } else {
+            position = parseString(position + 1);
+          }
           break;
         case LBRACKET:
           if ((state & ALLOW_VALUE_MASK) != 0) fail(position);
@@ -1150,12 +1170,30 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    * Returned position right after the final quote.
    */
   int parseString(int position) {
+    return _parseStringWithHashInternal(position, false);
+  }
+
+  /**
+   * Same as [parseString] but also calculates the string hash.
+   */
+  int parseStringWithHash(int position) {
+    return _parseStringWithHashInternal(position, true);
+  }
+
+  @pragma('wasm:prefer-inline')
+  int _parseStringWithHashInternal(int position, bool computeHash) {
+    // If the input is utf-8 encoded bytes and we process it byte by byte but
+    // don't accumulate the utf-16 code points then we cannot easily precompute
+    // the hash.
+    assert(!computeHash || isUtf16Input);
+
     // Format: '"'([^\x00-\x1f\\\"]|'\\'[bfnrt/\\"])*'"'
     // Initial position is right after first '"'.
     int start = position;
     int end = chunkEnd;
     int bits = 0;
     int char = 0;
+    int hash = 0;
     if (position < end) {
       do {
         // Caveat: do not combine the following two lines together. It helps
@@ -1165,6 +1203,9 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
         position++;
         bits |= char; // Includes final '"', but that never matters.
         if (isUtf16Input && char > 0xFF) {
+          if (computeHash) {
+            hash = stringCombineHashes(hash, char);
+          }
           continue;
         }
         if ((_characterAttributes.readUnsigned(char) &
@@ -1172,16 +1213,39 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
             0) {
           break;
         }
+        if (computeHash) {
+          hash = stringCombineHashes(hash, char);
+        }
       } while (position < end);
       if (char == QUOTE) {
         int sliceEnd = position - 1;
-        listener.handleString(getString(start, sliceEnd, bits));
+        listener.handleString(
+          computeHash
+              ? getStringWithHash(
+                start,
+                sliceEnd,
+                bits,
+                stringFinalizeHash(hash),
+              )
+              : getString(start, sliceEnd, bits),
+        );
         return sliceEnd + 1;
       }
       if (char == BACKSLASH) {
         int sliceEnd = position - 1;
         beginString();
-        if (start < sliceEnd) addSliceToString(start, sliceEnd);
+        if (start < sliceEnd) {
+          addStringSliceToString(
+            computeHash
+                ? getStringWithHash(
+                  start,
+                  sliceEnd,
+                  bits,
+                  stringFinalizeHash(hash),
+                )
+                : getString(start, sliceEnd, bits),
+          );
+        }
         return parseStringToBuffer(sliceEnd);
       }
       if (char < SPACE) {
@@ -1584,12 +1648,28 @@ class _JsonOneByteStringParser extends _ChunkedJsonParserState
   String getString(int start, int end, int bits) =>
       chunk.substringUnchecked(start, end);
 
+  String getStringWithHash(int start, int end, int bits, int stringHash) {
+    final sourceArray = chunk.array;
+    final length = end - start;
+    final result = OneByteString.withLength(length);
+    for (int i = 0; i < length; ++i) {
+      result.array.write(i, sourceArray.readUnsigned(start++));
+    }
+    assert(result.hashCode.toWasmI32() == stringHash.toWasmI32());
+    setIdentityHashField(result, stringHash);
+    return result;
+  }
+
   void beginString() {
     assert(stringBuffer.isEmpty);
   }
 
   void addSliceToString(int start, int end) {
-    stringBuffer.write(chunk.substringUnchecked(start, end));
+    addStringSliceToString(chunk.substringUnchecked(start, end));
+  }
+
+  void addStringSliceToString(String string) {
+    stringBuffer.write(string);
   }
 
   void addCharToString(int charCode) {
@@ -1635,15 +1715,55 @@ class _JsonTwoByteStringParser extends _ChunkedJsonParserState
 
   int getChar(int position) => chunk.codeUnitAtUnchecked(position);
 
-  String getString(int start, int end, int bits) =>
-      chunk.substringUnchecked(start, end);
+  String getString(int start, int end, int bits) {
+    int length = end - start;
+    if (length == 0) return '';
+
+    final WasmArray<WasmI16> sourceArray = chunk.array;
+    const int asciiBits = 0x7f;
+    if (bits <= asciiBits) {
+      final result = OneByteString.withLength(length);
+      for (int i = 0; i < length; ++i) {
+        result.array.write(i, sourceArray.readUnsigned(start++));
+      }
+      return result;
+    }
+    final result = TwoByteString.withLength(length);
+    result.array.copy(0, sourceArray, start, length);
+    return result;
+  }
+
+  String getStringWithHash(int start, int end, int bits, int stringHash) {
+    final sourceArray = chunk.array;
+    final length = end - start;
+
+    const asciiBits = 0x7f;
+    if (bits <= asciiBits) {
+      final result = OneByteString.withLength(length);
+      for (int i = 0; i < length; ++i) {
+        result.array.write(i, sourceArray.readUnsigned(start++));
+      }
+      setIdentityHashField(result, stringHash);
+      return result;
+    }
+
+    final result = TwoByteString.withLength(length);
+    result.array.copy(0, sourceArray, start, length);
+    assert(result.hashCode.toWasmI32() == stringHash.toWasmI32());
+    setIdentityHashField(result, stringHash);
+    return result;
+  }
 
   void beginString() {
     assert(stringBuffer.isEmpty);
   }
 
   void addSliceToString(int start, int end) {
-    stringBuffer.write(chunk.substringUnchecked(start, end));
+    addStringSliceToString(chunk.substringUnchecked(start, end));
+  }
+
+  void addStringSliceToString(String string) {
+    stringBuffer.write(string);
   }
 
   void addCharToString(int charCode) {
@@ -1829,13 +1949,21 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
     return result;
   }
 
+  String getStringWithHash(int start, int end, int bits, int stringHash) {
+    throw 'unused';
+  }
+
   void beginString() {
     decoder.reset();
     stringBuffer.clear();
   }
 
   void addSliceToString(int start, int end) {
-    stringBuffer.write(decoder.convertChunked(chunk, start, end));
+    addStringSliceToString(decoder.convertChunked(chunk, start, end));
+  }
+
+  void addStringSliceToString(String string) {
+    stringBuffer.write(string);
   }
 
   void addCharToString(int charCode) {
