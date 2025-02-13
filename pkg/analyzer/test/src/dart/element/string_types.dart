@@ -127,14 +127,14 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'num Function(num)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numNone)],
+        formalParameters: [requiredParameter(type: numNone)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num Function(num)?',
       functionTypeQuestion(
-        parameters: [requiredParameter(type: numNone)],
+        formalParameters: [requiredParameter(type: numNone)],
         returnType: numNone,
       ),
     );
@@ -142,14 +142,14 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'num Function(int)',
       functionTypeNone(
-        parameters: [requiredParameter(type: intNone)],
+        formalParameters: [requiredParameter(type: intNone)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num Function(int)?',
       functionTypeQuestion(
-        parameters: [requiredParameter(type: intNone)],
+        formalParameters: [requiredParameter(type: intNone)],
         returnType: numNone,
       ),
     );
@@ -157,14 +157,14 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'int Function(num)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numNone)],
+        formalParameters: [requiredParameter(type: numNone)],
         returnType: intNone,
       ),
     );
     _defineType(
       'int Function(int)',
       functionTypeNone(
-        parameters: [requiredParameter(type: intNone)],
+        formalParameters: [requiredParameter(type: intNone)],
         returnType: intNone,
       ),
     );
@@ -172,21 +172,21 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'num Function(num?)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numQuestion)],
+        formalParameters: [requiredParameter(type: numQuestion)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num? Function(num)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numNone)],
+        formalParameters: [requiredParameter(type: numNone)],
         returnType: numQuestion,
       ),
     );
     _defineType(
       'num? Function(num?)',
       functionTypeNone(
-        parameters: [requiredParameter(type: numQuestion)],
+        formalParameters: [requiredParameter(type: numQuestion)],
         returnType: numQuestion,
       ),
     );
@@ -194,28 +194,28 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'num Function({num x})',
       functionTypeNone(
-        parameters: [namedParameter(name: 'x', type: numNone)],
+        formalParameters: [namedParameter(name: 'x', type: numNone)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num Function({num? x})',
       functionTypeNone(
-        parameters: [namedParameter(name: 'x', type: numQuestion)],
+        formalParameters: [namedParameter(name: 'x', type: numQuestion)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num? Function({num x})',
       functionTypeNone(
-        parameters: [namedParameter(name: 'x', type: numNone)],
+        formalParameters: [namedParameter(name: 'x', type: numNone)],
         returnType: numQuestion,
       ),
     );
     _defineType(
       'num? Function({num? x})',
       functionTypeNone(
-        parameters: [namedParameter(name: 'x', type: numQuestion)],
+        formalParameters: [namedParameter(name: 'x', type: numQuestion)],
         returnType: numQuestion,
       ),
     );
@@ -223,28 +223,28 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType(
       'num Function([num])',
       functionTypeNone(
-        parameters: [positionalParameter(type: numNone)],
+        formalParameters: [positionalParameter(type: numNone)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num Function([num?])',
       functionTypeNone(
-        parameters: [positionalParameter(type: numQuestion)],
+        formalParameters: [positionalParameter(type: numQuestion)],
         returnType: numNone,
       ),
     );
     _defineType(
       'num? Function([num])',
       functionTypeNone(
-        parameters: [positionalParameter(type: numNone)],
+        formalParameters: [positionalParameter(type: numNone)],
         returnType: numQuestion,
       ),
     );
     _defineType(
       'num? Function([num?])',
       functionTypeNone(
-        parameters: [positionalParameter(type: numQuestion)],
+        formalParameters: [positionalParameter(type: numQuestion)],
         returnType: numQuestion,
       ),
     );

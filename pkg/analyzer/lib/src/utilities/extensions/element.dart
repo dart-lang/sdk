@@ -107,6 +107,12 @@ extension ConstructorElementExtension on ConstructorElement {
   }
 }
 
+extension ConstructorElementImplExtension on ConstructorElementImpl {
+  ConstructorElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension Element2Extension on Element2 {
   /// Whether the element is effectively [internal].
   bool get isInternal {
@@ -352,6 +358,12 @@ extension ExecutableElementExtension on ExecutableElement {
   }
 }
 
+extension ExecutableElementImplExtension on ExecutableElementImpl {
+  ExecutableElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension ExecutableElementOrNullExtension on ExecutableElement? {
   ExecutableElement2? get asElement2 {
     return this?.asElement2;
@@ -586,6 +598,12 @@ extension ParameterElementExtension on ParameterElement {
   }
 }
 
+extension ParameterElementImplExtension on ParameterElementImpl {
+  FormalParameterElementImpl get asElement2 {
+    return element;
+  }
+}
+
 extension PrefixElement2Extension on PrefixElement2 {
   PrefixElement get asElement {
     return (this as PrefixElementImpl2).asElement;
@@ -614,6 +632,12 @@ extension PropertyAccessorElementExtension on PropertyAccessorElement {
       PropertyAccessorMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
+  }
+}
+
+extension PropertyAccessorElementImplExtension on PropertyAccessorElementImpl {
+  PropertyAccessorElementImpl2 get asElement2 {
+    return element;
   }
 }
 

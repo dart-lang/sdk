@@ -72,7 +72,7 @@ vars = {
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
   "d8_tag": "version:13.5.7",
-  "jsshell_tag": "version:134.0.2",
+  "jsshell_tag": "version:135.0",
   "jsc_tag": "version:290198",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
@@ -136,7 +136,6 @@ vars = {
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "glob_rev": "043796be996190473b397fa2fecfa34bb91376fb",
   "http_rev": "b7cdf6136926589210662bbdd71000e7abab7271",
-  "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
   "markdown_rev": "62f78c64d963ba6f73bd70ed65630dc934a264e6",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
@@ -165,9 +164,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "133.0.6943.35",
+  "chrome_tag": "134.0.6998.3",
   "download_firefox": False,
-  "firefox_tag": "134.0.2",
+  "firefox_tag": "135.0",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
@@ -353,8 +352,6 @@ deps = {
 
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + "@" + Var("http_rev"),
-  Var("dart_root") + "/third_party/pkg/intl":
-      Var("dart_git") + "intl.git" + "@" + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/leak_tracker":
       Var("dart_git") + "leak_tracker.git" + "@" + Var("leak_tracker_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":

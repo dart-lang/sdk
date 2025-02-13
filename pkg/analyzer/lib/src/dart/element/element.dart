@@ -3762,6 +3762,9 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
       ];
 
   @override
+  ExecutableElementImpl2 get element;
+
+  @override
   Element get enclosingElement3 {
     return super.enclosingElement3!;
   }
@@ -5247,7 +5250,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   // TODO(brianwilkerson): Use either `LocalFunctionElement` or
   //  `TopLevelFunctionElement` when this class is split.
   @override
-  late ExecutableElement2 element;
+  late ExecutableElementImpl2 element;
 
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].

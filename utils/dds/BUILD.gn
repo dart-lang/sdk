@@ -2,8 +2,34 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../runtime/runtime_args.gni")
 import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
+
+group("dds_aot") {
+  public_deps = [
+    ":dds_aot_product_snapshot",
+    ":dds_aot_snapshot",
+  ]
+}
+
+aot_snapshot("dds_aot_snapshot") {
+  main_dart = "../../pkg/dds/bin/dds.dart"
+  output = "$root_gen_dir/dds_aot.dart.snapshot"
+}
+
+aot_snapshot("dds_aot_product_snapshot") {
+  main_dart = "../../pkg/dds/bin/dds.dart"
+  output = "$root_gen_dir/dds_aot_product.dart.snapshot"
+
+  # dartaotruntime has dart_product_config applied to it,
+  # so it is built in product mode in both release and
+  # product builds, and is only built in debug mode in debug
+  # builds. The following line ensures that the dartaotruntime
+  # and dartdevc_aot snapshot in an SDK build are
+  # always compatible with each other.
+  force_product_mode = !dart_debug
+}
 
 group("dds") {
   public_deps = [ ":copy_dds_snapshot" ]

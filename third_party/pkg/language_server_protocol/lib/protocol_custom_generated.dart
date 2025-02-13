@@ -1437,30 +1437,33 @@ class EditableArgument implements ToJsonable {
     EditableArgument.fromJson,
   );
 
-  /// The default value for this parameter if no argument is supplied. Setting
-  /// the argument to this value does not remove it from the argument list.
+  /// The default value for this parameter if no argument is supplied.
+  ///
+  /// Setting the argument to this value does not remove it from the argument
+  /// list.
   final Object? defaultValue;
 
   /// A string that can be displayed to indicate the value for this argument.
+  ///
   /// This will be populated in cases where the source code is not literally the
   /// same as the value field, for example an expression or named constant.
   final String? displayValue;
 
-  /// Whether an explicit argument exists for this parameter in the code. This
-  /// will be true even if the explicit argument is the same value as the
-  /// parameter default.
+  /// Whether an explicit argument exists for this parameter in the code.
+  ///
+  /// This will be true even if the explicit argument is the same value as the
+  /// parameter default or null.
   final bool hasArgument;
 
-  /// Whether the value is the default for this parameter, either because there
-  /// is no argument or because it is explicitly provided as the same value.
-  final bool isDefault;
-
-  /// Whether this argument can be add/edited. If not, notEditableReason will
-  /// contain an explanation for why.
+  /// Whether this argument can be add/edited.
+  ///
+  /// If not, notEditableReason will contain an explanation for why.
   final bool isEditable;
 
-  /// Whether this argument can be `null`. It is possible for an argument to be
-  /// required, but still allow an explicit `null`.
+  /// Whether this argument can be `null`.
+  ///
+  /// It is possible for an argument to be required, but still allow an explicit
+  /// `null`.
   final bool isNullable;
 
   /// Whether an argument is required for this parameter.
@@ -1472,24 +1475,31 @@ class EditableArgument implements ToJsonable {
   /// If isEditable is false, contains a human-readable description of why.
   final String? notEditableReason;
 
-  /// The set of values allowed for this argument if it is an enum. Values are
-  /// qualified in the form `EnumName.valueName`.
+  /// The set of values allowed for this argument if it is an enum.
+  ///
+  /// Values are qualified in the form `EnumName.valueName`.
   final List<String>? options;
 
-  /// The kind of parameter. This is not necessarily the Dart type, it is from a
-  /// defined set of values that clients may understand how to edit.
+  /// The kind of parameter.
+  ///
+  /// This is not necessarily the Dart type, it is from a defined set of values
+  /// that clients may understand how to edit.
   final String type;
 
-  /// The current value for this argument. This is only included if an explicit
-  /// value is given in the code and is a valid literal for the kind of
-  /// parameter. For expressions or named constants, this will not be included
-  /// and displayValue can be shown as the current value instead.
+  /// The current value for this argument (provided only if hasArgument=true).
+  ///
+  /// This is only included if an explicit value is given in the code and is a
+  /// valid literal for the kind of parameter. For expressions or named
+  /// constants, this will not be included and displayValue can be shown as the
+  /// current value instead.
+  ///
+  /// A value of `null` when hasArgument=true means the argument has an explicit
+  /// null value and not that defaultValue is being used.
   final Object? value;
   EditableArgument({
     this.defaultValue,
     this.displayValue,
     required this.hasArgument,
-    required this.isDefault,
     required this.isEditable,
     required this.isNullable,
     required this.isRequired,
@@ -1504,7 +1514,6 @@ class EditableArgument implements ToJsonable {
         defaultValue,
         displayValue,
         hasArgument,
-        isDefault,
         isEditable,
         isNullable,
         isRequired,
@@ -1522,7 +1531,6 @@ class EditableArgument implements ToJsonable {
         defaultValue == other.defaultValue &&
         displayValue == other.displayValue &&
         hasArgument == other.hasArgument &&
-        isDefault == other.isDefault &&
         isEditable == other.isEditable &&
         isNullable == other.isNullable &&
         isRequired == other.isRequired &&
@@ -1543,7 +1551,6 @@ class EditableArgument implements ToJsonable {
       result['displayValue'] = displayValue;
     }
     result['hasArgument'] = hasArgument;
-    result['isDefault'] = isDefault;
     result['isEditable'] = isEditable;
     result['isNullable'] = isNullable;
     result['isRequired'] = isRequired;
@@ -1571,10 +1578,6 @@ class EditableArgument implements ToJsonable {
         return false;
       }
       if (!_canParseBool(obj, reporter, 'hasArgument',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      if (!_canParseBool(obj, reporter, 'isDefault',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -1617,8 +1620,6 @@ class EditableArgument implements ToJsonable {
     final displayValue = displayValueJson as String?;
     final hasArgumentJson = json['hasArgument'];
     final hasArgument = hasArgumentJson as bool;
-    final isDefaultJson = json['isDefault'];
-    final isDefault = isDefaultJson as bool;
     final isEditableJson = json['isEditable'];
     final isEditable = isEditableJson as bool;
     final isNullableJson = json['isNullable'];
@@ -1640,7 +1641,6 @@ class EditableArgument implements ToJsonable {
       defaultValue: defaultValue,
       displayValue: displayValue,
       hasArgument: hasArgument,
-      isDefault: isDefault,
       isEditable: isEditable,
       isNullable: isNullable,
       isRequired: isRequired,

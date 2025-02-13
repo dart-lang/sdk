@@ -26,7 +26,7 @@ class NonCovariantTypeParameterPositionVisitorTest
   FunctionTypeImpl get _contravariantT {
     return functionTypeNone(
       returnType: voidNone,
-      parameters: [
+      formalParameters: [
         positionalParameter(type: T),
       ],
     );
@@ -67,7 +67,7 @@ class NonCovariantTypeParameterPositionVisitorTest
     expectNotNonCovariant(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           positionalParameter(type: _contravariantT),
         ],
       ),
@@ -77,7 +77,7 @@ class NonCovariantTypeParameterPositionVisitorTest
     expectNonCovariant(
       functionTypeNone(
         returnType: T,
-        parameters: [
+        formalParameters: [
           positionalParameter(type: T),
         ],
       ),
@@ -88,7 +88,7 @@ class NonCovariantTypeParameterPositionVisitorTest
     expectNotNonCovariant(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           positionalParameter(
             type: typeParameterTypeNone(T2),
           ),

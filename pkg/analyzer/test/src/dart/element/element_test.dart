@@ -966,7 +966,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void test_getNamedParameterTypes_namedParameters() {
     var type = functionTypeNone(
       typeParameters: [],
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'a', type: intNone),
         namedParameter(name: 'b', type: doubleNone),
         namedParameter(name: 'c', type: stringNone),
@@ -982,7 +982,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void test_getNamedParameterTypes_noNamedParameters() {
     var type = functionTypeNone(
       typeParameters: [],
-      parameters: [
+      formalParameters: [
         requiredParameter(type: intNone),
         requiredParameter(type: doubleNone),
         positionalParameter(type: stringNone),
@@ -996,7 +996,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void test_getNamedParameterTypes_noParameters() {
     var type = functionTypeNone(
       typeParameters: [],
-      parameters: [],
+      formalParameters: [],
       returnType: voidNone,
     );
     Map<String, DartType> types = type.namedParameterTypes;
@@ -1006,7 +1006,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void test_getNormalParameterTypes_noNormalParameters() {
     var type = functionTypeNone(
       typeParameters: [],
-      parameters: [
+      formalParameters: [
         positionalParameter(type: intNone),
         positionalParameter(type: doubleNone),
       ],
@@ -1019,7 +1019,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void test_getNormalParameterTypes_noParameters() {
     var type = functionTypeNone(
       typeParameters: [],
-      parameters: [],
+      formalParameters: [],
       returnType: voidNone,
     );
     List<DartType> types = type.normalParameterTypes;
@@ -1029,7 +1029,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void test_getNormalParameterTypes_normalParameters() {
     var type = functionTypeNone(
       typeParameters: [],
-      parameters: [
+      formalParameters: [
         requiredParameter(type: intNone),
         requiredParameter(type: doubleNone),
         positionalParameter(type: stringNone),
@@ -1045,7 +1045,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void test_getOptionalParameterTypes_noOptionalParameters() {
     var type = functionTypeNone(
       typeParameters: [],
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'a', type: intNone),
         namedParameter(name: 'b', type: doubleNone),
       ],
@@ -1058,7 +1058,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void test_getOptionalParameterTypes_noParameters() {
     var type = functionTypeNone(
       typeParameters: [],
-      parameters: [],
+      formalParameters: [],
       returnType: voidNone,
     );
     List<DartType> types = type.optionalParameterTypes;
@@ -1068,7 +1068,7 @@ class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void test_getOptionalParameterTypes_optionalParameters() {
     var type = functionTypeNone(
       typeParameters: [],
-      parameters: [
+      formalParameters: [
         requiredParameter(type: intNone),
         positionalParameter(type: doubleNone),
         positionalParameter(type: stringNone),

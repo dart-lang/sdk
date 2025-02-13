@@ -39,16 +39,16 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     _checkMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          requiredParameter2(type: intNone),
+        formalParameters: [
+          requiredParameter(type: intNone),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          requiredParameter2(type: intNone),
+        formalParameters: [
+          requiredParameter(type: intNone),
         ],
       ),
       true,
@@ -59,11 +59,11 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var T2 = typeParameter('T2');
     _checkMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: typeParameterTypeNone(T1),
         typeParameters: [T1],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: typeParameterTypeNone(T2),
         typeParameters: [T2],
       ),
@@ -81,18 +81,18 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     _checkMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: T_none,
         typeParameters: [T1],
-        parameters: [
-          requiredParameter2(type: T1_none),
+        formalParameters: [
+          requiredParameter(type: T1_none),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: intNone,
         typeParameters: [S1],
-        parameters: [
-          requiredParameter2(type: S1_none),
+        formalParameters: [
+          requiredParameter(type: S1_none),
         ],
       ),
       false,
@@ -101,18 +101,18 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     _checkMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: intNone,
         typeParameters: [T1],
-        parameters: [
-          requiredParameter2(type: T1_none),
+        formalParameters: [
+          requiredParameter(type: T1_none),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: T_none,
         typeParameters: [S1],
-        parameters: [
-          requiredParameter2(type: S1_none),
+        formalParameters: [
+          requiredParameter(type: S1_none),
         ],
       ),
       true,
@@ -122,18 +122,18 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     // We unified type formals, but still not match because return types.
     _checkNotMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: intNone,
         typeParameters: [T1],
-        parameters: [
-          requiredParameter2(type: T1_none),
+        formalParameters: [
+          requiredParameter(type: T1_none),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: stringNone,
         typeParameters: [S1],
-        parameters: [
-          requiredParameter2(type: S1_none),
+        formalParameters: [
+          requiredParameter(type: S1_none),
         ],
       ),
       false,
@@ -145,8 +145,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var S1 = typeParameter('S1', bound: numNone);
     _checkNotMatch(
       [T],
-      functionTypeNone2(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone2(returnType: intNone, typeParameters: [S1]),
+      functionTypeNone(returnType: T_none, typeParameters: [T1]),
+      functionTypeNone(returnType: intNone, typeParameters: [S1]),
       false,
     );
   }
@@ -156,8 +156,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var S1 = typeParameter('S1', bound: dynamicType);
     _checkMatch(
       [T],
-      functionTypeNone2(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone2(returnType: intNone, typeParameters: [S1]),
+      functionTypeNone(returnType: T_none, typeParameters: [T1]),
+      functionTypeNone(returnType: intNone, typeParameters: [S1]),
       false,
       ['_ <: T <: int'],
     );
@@ -168,8 +168,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var S1 = typeParameter('S1', bound: stringNone);
     _checkNotMatch(
       [T],
-      functionTypeNone2(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone2(returnType: intNone, typeParameters: [S1]),
+      functionTypeNone(returnType: T_none, typeParameters: [T1]),
+      functionTypeNone(returnType: intNone, typeParameters: [S1]),
       false,
     );
   }
@@ -179,8 +179,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var S1 = typeParameter('S1');
     _checkMatch(
       [T],
-      functionTypeNone2(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone2(returnType: intNone, typeParameters: [S1]),
+      functionTypeNone(returnType: T_none, typeParameters: [T1]),
+      functionTypeNone(returnType: intNone, typeParameters: [S1]),
       false,
       ['_ <: T <: int'],
     );
@@ -191,8 +191,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var S1 = typeParameter('S1', bound: objectQuestion);
     _checkMatch(
       [T],
-      functionTypeNone2(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone2(returnType: intNone, typeParameters: [S1]),
+      functionTypeNone(returnType: T_none, typeParameters: [T1]),
+      functionTypeNone(returnType: intNone, typeParameters: [S1]),
       false,
       ['_ <: T <: int'],
     );
@@ -210,18 +210,18 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     _checkMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         typeParameters: [X],
         returnType: T_none,
-        parameters: [
-          requiredParameter2(type: X_none),
+        formalParameters: [
+          requiredParameter(type: X_none),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         typeParameters: [Y],
         returnType: listNone(Y_none),
-        parameters: [
-          requiredParameter2(type: Y_none),
+        formalParameters: [
+          requiredParameter(type: Y_none),
         ],
       ),
       true,
@@ -235,8 +235,8 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var S2 = typeParameter('S2');
     _checkNotMatch(
       [T],
-      functionTypeNone2(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone2(returnType: intNone, typeParameters: [S1, S2]),
+      functionTypeNone(returnType: T_none, typeParameters: [T1]),
+      functionTypeNone(returnType: intNone, typeParameters: [S1, S2]),
       false,
     );
   }
@@ -244,15 +244,15 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   test_functionType_noTypeFormals_parameters_extraOptionalLeft() {
     _checkMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          positionalParameter2(type: intNone),
+        formalParameters: [
+          positionalParameter(type: intNone),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [],
+        formalParameters: [],
       ),
       true,
       ['_ <: T <: _'],
@@ -260,15 +260,15 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     _checkMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: intNone),
+        formalParameters: [
+          namedParameter(name: 'a', type: intNone),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [],
+        formalParameters: [],
       ),
       true,
       ['_ <: T <: _'],
@@ -278,30 +278,30 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   test_functionType_noTypeFormals_parameters_extraRequiredLeft() {
     _checkNotMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          requiredParameter2(type: intNone),
+        formalParameters: [
+          requiredParameter(type: intNone),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [],
+        formalParameters: [],
       ),
       true,
     );
 
     _checkNotMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedRequiredParameter2(name: 'a', type: intNone),
+        formalParameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [],
+        formalParameters: [],
       ),
       true,
     );
@@ -310,11 +310,11 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   test_functionType_noTypeFormals_parameters_extraRight() {
     _checkNotMatch(
       [T],
-      functionTypeNone2(returnType: voidNone),
-      functionTypeNone2(
+      functionTypeNone(returnType: voidNone),
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          requiredParameter2(type: T_none),
+        formalParameters: [
+          requiredParameter(type: T_none),
         ],
       ),
       true,
@@ -324,16 +324,16 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   test_functionType_noTypeFormals_parameters_leftOptionalNamed() {
     _checkMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: intNone),
+        formalParameters: [
+          namedParameter(name: 'a', type: intNone),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: T_none),
+        formalParameters: [
+          namedParameter(name: 'a', type: T_none),
         ],
       ),
       true,
@@ -342,16 +342,16 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     _checkMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: T_none),
+        formalParameters: [
+          namedParameter(name: 'a', type: T_none),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: intNone),
+        formalParameters: [
+          namedParameter(name: 'a', type: intNone),
         ],
       ),
       false,
@@ -361,16 +361,16 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     // int vs. String
     _checkNotMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: intNone),
+        formalParameters: [
+          namedParameter(name: 'a', type: intNone),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: stringNone),
+        formalParameters: [
+          namedParameter(name: 'a', type: stringNone),
         ],
       ),
       true,
@@ -379,18 +379,18 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     // Skip left non-required named.
     _checkMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: intNone),
-          namedParameter2(name: 'b', type: intNone),
-          namedParameter2(name: 'c', type: intNone),
+        formalParameters: [
+          namedParameter(name: 'a', type: intNone),
+          namedParameter(name: 'b', type: intNone),
+          namedParameter(name: 'c', type: intNone),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'b', type: T_none),
+        formalParameters: [
+          namedParameter(name: 'b', type: T_none),
         ],
       ),
       true,
@@ -400,17 +400,17 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     // Not match if skip left required named.
     _checkNotMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedRequiredParameter2(name: 'a', type: intNone),
-          namedParameter2(name: 'b', type: intNone),
+        formalParameters: [
+          namedRequiredParameter(name: 'a', type: intNone),
+          namedParameter(name: 'b', type: intNone),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'b', type: T_none),
+        formalParameters: [
+          namedParameter(name: 'b', type: T_none),
         ],
       ),
       true,
@@ -419,17 +419,17 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     // Not match if skip right named.
     _checkNotMatch(
       [T],
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'b', type: intNone),
+        formalParameters: [
+          namedParameter(name: 'b', type: intNone),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: intNone),
-          namedParameter2(name: 'b', type: T_none),
+        formalParameters: [
+          namedParameter(name: 'a', type: intNone),
+          namedParameter(name: 'b', type: T_none),
         ],
       ),
       true,
@@ -439,19 +439,19 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   test_functionType_noTypeFormals_parameters_leftOptionalPositional() {
     void check({
       required TypeImpl left,
-      required FormalParameterElement right,
+      required FormalParameterElementImpl right,
       required bool leftSchema,
       required String? expected,
     }) {
-      var P = functionTypeNone2(
+      var P = functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          positionalParameter2(type: left),
+        formalParameters: [
+          positionalParameter(type: left),
         ],
       );
-      var Q = functionTypeNone2(
+      var Q = functionTypeNone(
         returnType: voidNone,
-        parameters: [right],
+        formalParameters: [right],
       );
 
       if (expected != null) {
@@ -463,52 +463,52 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     check(
       left: intNone,
-      right: requiredParameter2(type: T_none),
+      right: requiredParameter(type: T_none),
       leftSchema: true,
       expected: '_ <: T <: int',
     );
     check(
       left: T_none,
-      right: requiredParameter2(type: intNone),
+      right: requiredParameter(type: intNone),
       leftSchema: false,
       expected: 'int <: T <: _',
     );
 
     check(
       left: intNone,
-      right: positionalParameter2(type: T_none),
+      right: positionalParameter(type: T_none),
       leftSchema: true,
       expected: '_ <: T <: int',
     );
     check(
       left: T_none,
-      right: positionalParameter2(type: intNone),
+      right: positionalParameter(type: intNone),
       leftSchema: false,
       expected: 'int <: T <: _',
     );
 
     check(
       left: intNone,
-      right: requiredParameter2(type: stringNone),
+      right: requiredParameter(type: stringNone),
       leftSchema: true,
       expected: null,
     );
     check(
       left: intNone,
-      right: positionalParameter2(type: stringNone),
+      right: positionalParameter(type: stringNone),
       leftSchema: true,
       expected: null,
     );
 
     check(
       left: intNone,
-      right: namedParameter2(type: intNone, name: 'a'),
+      right: namedParameter(type: intNone, name: 'a'),
       leftSchema: true,
       expected: null,
     );
     check(
       left: intNone,
-      right: namedParameter2(type: intNone, name: 'a'),
+      right: namedParameter(type: intNone, name: 'a'),
       leftSchema: false,
       expected: null,
     );
@@ -517,19 +517,19 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   test_functionType_noTypeFormals_parameters_leftRequiredPositional() {
     void check({
       required TypeImpl left,
-      required FormalParameterElement right,
+      required FormalParameterElementImpl right,
       required bool leftSchema,
       required String? expected,
     }) {
-      var P = functionTypeNone2(
+      var P = functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          requiredParameter2(type: left),
+        formalParameters: [
+          requiredParameter(type: left),
         ],
       );
-      var Q = functionTypeNone2(
+      var Q = functionTypeNone(
         returnType: voidNone,
-        parameters: [right],
+        formalParameters: [right],
       );
 
       if (expected != null) {
@@ -541,34 +541,34 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
 
     check(
       left: intNone,
-      right: requiredParameter2(type: T_none),
+      right: requiredParameter(type: T_none),
       leftSchema: true,
       expected: '_ <: T <: int',
     );
     check(
       left: T_none,
-      right: requiredParameter2(type: intNone),
+      right: requiredParameter(type: intNone),
       leftSchema: false,
       expected: 'int <: T <: _',
     );
 
     check(
       left: intNone,
-      right: requiredParameter2(type: stringNone),
+      right: requiredParameter(type: stringNone),
       leftSchema: true,
       expected: null,
     );
 
     check(
       left: intNone,
-      right: positionalParameter2(type: T_none),
+      right: positionalParameter(type: T_none),
       leftSchema: true,
       expected: null,
     );
 
     check(
       left: intNone,
-      right: namedParameter2(type: T_none, name: 'a'),
+      right: namedParameter(type: T_none, name: 'a'),
       leftSchema: true,
       expected: null,
     );
@@ -577,16 +577,16 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   test_functionType_noTypeFormals_returnType() {
     _checkMatch(
       [T],
-      functionTypeNone2(returnType: T_none),
-      functionTypeNone2(returnType: intNone),
+      functionTypeNone(returnType: T_none),
+      functionTypeNone(returnType: intNone),
       false,
       ['_ <: T <: int'],
     );
 
     _checkNotMatch(
       [T],
-      functionTypeNone2(returnType: stringNone),
-      functionTypeNone2(returnType: intNone),
+      functionTypeNone(returnType: stringNone),
+      functionTypeNone(returnType: intNone),
       false,
     );
   }
@@ -1096,7 +1096,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   test_right_functionClass() {
     _checkMatch(
       [T],
-      functionTypeNone2(returnType: voidNone),
+      functionTypeNone(returnType: voidNone),
       functionNone,
       true,
       ['_ <: T <: _'],

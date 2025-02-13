@@ -48,19 +48,19 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: objectQuestion, name: 'a'),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: dynamicType, name: 'a'),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: objectQuestion, name: 'a'),
         ],
       ),
@@ -71,19 +71,19 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: objectQuestion, isCovariant: true),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: dynamicType),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: objectQuestion, isCovariant: true),
         ],
       ),
@@ -92,19 +92,19 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: intNone, isCovariant: true),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: numNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: numNone, isCovariant: true),
         ],
       ),
@@ -115,19 +115,19 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: intNone, name: 'a'),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: intNone, name: 'b'),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: intNone, name: 'a'),
         ],
       ),
@@ -136,13 +136,13 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _checkThrows(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           positionalParameter(type: intNone),
         ],
       ),
@@ -151,13 +151,13 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _checkThrows(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedParameter(type: intNone, name: 'a'),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedParameter(type: intNone, name: 'b'),
         ],
       ),

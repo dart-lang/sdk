@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -473,13 +472,13 @@ class LowerBoundTest extends _BoundsTestBase {
     _checkGreatestLowerBound(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(name: 'a', type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedParameter(name: 'a', type: intNone),
         ],
       ),
@@ -489,13 +488,13 @@ class LowerBoundTest extends _BoundsTestBase {
     _checkGreatestLowerBound(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           positionalParameter(name: 'a', type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedParameter(name: 'a', type: intNone),
         ],
       ),
@@ -509,29 +508,29 @@ class LowerBoundTest extends _BoundsTestBase {
       Map<String, TypeImpl> namedMap,
       Map<String, TypeImpl> namedRequiredMap,
     ) {
-      var formalParameters = <FormalParameterElement>[];
+      var formalParameters = <FormalParameterElementImpl>[];
 
       for (var requiredType in requiredTypes) {
         formalParameters.add(
-          requiredParameter2(type: requiredType),
+          requiredParameter(type: requiredType),
         );
       }
 
       for (var entry in namedMap.entries) {
         formalParameters.add(
-          namedParameter2(name: entry.key, type: entry.value),
+          namedParameter(name: entry.key, type: entry.value),
         );
       }
 
       for (var entry in namedRequiredMap.entries) {
         formalParameters.add(
-          namedRequiredParameter2(name: entry.key, type: entry.value),
+          namedRequiredParameter(name: entry.key, type: entry.value),
         );
       }
 
-      return functionTypeNone2(
+      return functionTypeNone(
         returnType: voidNone,
-        parameters: formalParameters,
+        formalParameters: formalParameters,
       );
     }
 
@@ -611,23 +610,23 @@ class LowerBoundTest extends _BoundsTestBase {
       List<TypeImpl> requiredTypes,
       List<TypeImpl> positionalTypes,
     ) {
-      var formalParameters = <FormalParameterElement>[];
+      var formalParameters = <FormalParameterElementImpl>[];
 
       for (var requiredType in requiredTypes) {
         formalParameters.add(
-          requiredParameter2(type: requiredType),
+          requiredParameter(type: requiredType),
         );
       }
 
       for (var positionalType in positionalTypes) {
         formalParameters.add(
-          positionalParameter2(type: positionalType),
+          positionalParameter(type: positionalType),
         );
       }
 
-      return functionTypeNone2(
+      return functionTypeNone(
         returnType: voidNone,
-        parameters: formalParameters,
+        formalParameters: formalParameters,
       );
     }
 
@@ -793,7 +792,7 @@ class LowerBoundTest extends _BoundsTestBase {
     check(
       functionTypeNone(
         returnType: intNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: numQuestion),
         ],
       ),
@@ -803,7 +802,7 @@ class LowerBoundTest extends _BoundsTestBase {
   test_futureOr() {
     InterfaceTypeImpl futureOrFunction(TypeImpl T, String str) {
       var result = futureOrNone(
-        functionTypeNone(returnType: voidNone, parameters: [
+        functionTypeNone(returnType: voidNone, formalParameters: [
           requiredParameter(type: T),
         ]),
       );
@@ -1315,10 +1314,10 @@ actual: $resultStr
 class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   void test_nested2_upParameterType() {
     var T1 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(
           type: functionTypeNone(
-            parameters: [
+            formalParameters: [
               requiredParameter(type: stringNone),
               requiredParameter(type: intNone),
               requiredParameter(type: intNone),
@@ -1335,10 +1334,10 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     var T2 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(
           type: functionTypeNone(
-            parameters: [
+            formalParameters: [
               requiredParameter(type: intNone),
               requiredParameter(type: doubleNone),
               requiredParameter(type: numNone),
@@ -1355,10 +1354,10 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     var expected = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(
           type: functionTypeNone(
-            parameters: [
+            formalParameters: [
               requiredParameter(type: objectNone),
               requiredParameter(type: numNone),
               requiredParameter(type: numNone),
@@ -1379,13 +1378,13 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
 
   void test_nested3_downParameterTypes() {
     var T1 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(
           type: functionTypeNone(
-            parameters: [
+            formalParameters: [
               requiredParameter(
                 type: functionTypeNone(
-                  parameters: [
+                  formalParameters: [
                     requiredParameter(type: stringNone),
                     requiredParameter(type: intNone),
                     requiredParameter(type: intNone)
@@ -1406,13 +1405,13 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     var T2 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(
           type: functionTypeNone(
-            parameters: [
+            formalParameters: [
               requiredParameter(
                 type: functionTypeNone(
-                  parameters: [
+                  formalParameters: [
                     requiredParameter(type: intNone),
                     requiredParameter(type: doubleNone),
                     requiredParameter(type: numNone)
@@ -1433,13 +1432,13 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     var expected = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(
           type: functionTypeNone(
-            parameters: [
+            formalParameters: [
               requiredParameter(
                 type: functionTypeNone(
-                  parameters: [
+                  formalParameters: [
                     requiredParameter(type: neverNone),
                     requiredParameter(type: neverNone),
                     requiredParameter(type: intNone)
@@ -1464,21 +1463,21 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
 
   void test_parameters_fuzzyArrows() {
     var T1 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: dynamicType),
       ],
       returnType: voidNone,
     );
 
     var T2 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: intNone),
       ],
       returnType: voidNone,
     );
 
     var expected = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: intNone),
       ],
       returnType: voidNone,
@@ -1491,7 +1490,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     FunctionTypeImpl build(Map<String, TypeImpl> namedTypes) {
       return functionTypeNone(
         returnType: voidNone,
-        parameters: namedTypes.entries.map((entry) {
+        formalParameters: namedTypes.entries.map((entry) {
           return namedParameter(name: entry.key, type: entry.value);
         }).toList(),
       );
@@ -1518,7 +1517,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     FunctionTypeImpl build(List<TypeImpl> positionalTypes) {
       return functionTypeNone(
         returnType: voidNone,
-        parameters: positionalTypes.map((type) {
+        formalParameters: positionalTypes.map((type) {
           return positionalParameter(type: type);
         }).toList(),
       );
@@ -1552,13 +1551,13 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     _checkLeastUpperBound(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(name: 'a', type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedRequiredParameter(name: 'a', type: intNone),
         ],
       ),
@@ -1568,13 +1567,13 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     _checkLeastUpperBound(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           positionalParameter(name: 'a', type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedRequiredParameter(name: 'a', type: intNone),
         ],
       ),
@@ -1584,13 +1583,13 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     _checkLeastUpperBound(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedParameter(name: 'b', type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedRequiredParameter(name: 'a', type: intNone),
         ],
       ),
@@ -1600,19 +1599,19 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     _checkLeastUpperBound(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedParameter(name: 'a', type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedRequiredParameter(name: 'a', type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedRequiredParameter(name: 'a', type: intNone),
         ],
       ),
@@ -1621,20 +1620,20 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     _checkLeastUpperBound(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedParameter(name: 'a', type: intNone),
           namedRequiredParameter(name: 'b', type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedRequiredParameter(name: 'b', type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedRequiredParameter(name: 'b', type: intNone),
         ],
       ),
@@ -1643,19 +1642,19 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     _checkLeastUpperBound(
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedRequiredParameter(name: 'a', type: intNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedRequiredParameter(name: 'a', type: numNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           namedRequiredParameter(name: 'a', type: intNone),
         ],
       ),
@@ -1666,7 +1665,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     FunctionTypeImpl build(List<TypeImpl> requiredTypes) {
       return functionTypeNone(
         returnType: voidNone,
-        parameters: requiredTypes.map((type) {
+        formalParameters: requiredTypes.map((type) {
           return requiredParameter(type: type);
         }).toList(),
       );
@@ -1697,7 +1696,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
 
   void test_parameters_requiredPositional_differentArity() {
     var T1 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: intNone),
         requiredParameter(type: intNone),
       ],
@@ -1705,7 +1704,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     var T2 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: intNone),
         requiredParameter(type: intNone),
         requiredParameter(type: intNone),
@@ -1738,7 +1737,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
 
   void test_sameType_withNamed() {
     var T1 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: stringNone),
         requiredParameter(type: intNone),
         requiredParameter(type: numNone),
@@ -1748,7 +1747,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     var T2 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: stringNone),
         requiredParameter(type: intNone),
         requiredParameter(type: numNone),
@@ -1758,7 +1757,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     var expected = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: stringNone),
         requiredParameter(type: intNone),
         requiredParameter(type: numNone),
@@ -1772,7 +1771,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
 
   void test_sameType_withOptional() {
     var T1 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: stringNone),
         requiredParameter(type: intNone),
         requiredParameter(type: numNone),
@@ -1782,7 +1781,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     var T2 = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: stringNone),
         requiredParameter(type: intNone),
         requiredParameter(type: numNone),
@@ -1792,7 +1791,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     );
 
     var expected = functionTypeNone(
-      parameters: [
+      formalParameters: [
         requiredParameter(type: stringNone),
         requiredParameter(type: intNone),
         requiredParameter(type: numNone),
@@ -2611,7 +2610,7 @@ class UpperBoundTest extends _BoundsTestBase {
     checkNone(
       functionTypeNone(
         returnType: intNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: numQuestion),
         ],
       ),
@@ -2971,7 +2970,7 @@ class UpperBoundTest extends _BoundsTestBase {
     var T_none = typeParameterTypeNone(T);
     T.bound = functionTypeNone(
       returnType: voidNone,
-      parameters: [
+      formalParameters: [
         requiredParameter(type: T_none),
       ],
     );
@@ -2980,13 +2979,13 @@ class UpperBoundTest extends _BoundsTestBase {
       T_none,
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: nullNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: neverNone),
         ],
       ),
@@ -3000,7 +2999,7 @@ class UpperBoundTest extends _BoundsTestBase {
       T,
       promotedBound: functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: T_none),
         ],
       ),
@@ -3010,13 +3009,13 @@ class UpperBoundTest extends _BoundsTestBase {
       T_none_promoted,
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: nullNone),
         ],
       ),
       functionTypeNone(
         returnType: voidNone,
-        parameters: [
+        formalParameters: [
           requiredParameter(type: neverNone),
         ],
       ),

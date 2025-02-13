@@ -20,7 +20,6 @@ import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/runner.dart';
 import 'package:modular_test/src/suite.dart';
-import 'package:modular_test/src/steps/macro_precompile_aot.dart';
 import 'package:modular_test/src/steps/util.dart';
 import 'package:path/path.dart' as p;
 
@@ -157,11 +156,6 @@ abstract class CFEStep extends IOModularStep {
       ...(transitiveDependencies.expand(
         (m) => ['--input-summary', '${toUri(m, inputData)}'],
       )),
-      ...transitiveDependencies
-          .where((m) => m.macroConstructors.isNotEmpty)
-          .expand(
-            (m) => ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};'],
-          ),
       ...(sources.expand((String uri) => ['--source', uri])),
       ...(flags.expand((String flag) => ['--enable-experiment', flag])),
     ];
@@ -196,10 +190,7 @@ class OutlineDillCompilationStep extends CFEStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [
-    dillSummaryId,
-    precompiledMacroId,
-  ];
+  List<DataId> get dependencyDataNeeded => const [dillSummaryId];
 
   @override
   List<DataId> get moduleDataNeeded => const [];
@@ -229,10 +220,7 @@ class FullDillCompilationStep extends CFEStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [
-    dillSummaryId,
-    precompiledMacroId,
-  ];
+  List<DataId> get dependencyDataNeeded => const [dillSummaryId];
 
   @override
   List<DataId> get moduleDataNeeded => const [];

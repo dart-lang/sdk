@@ -33,7 +33,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
 
   test_contravariant() {
     _check(
-      functionTypeNone(returnType: voidNone, parameters: [
+      functionTypeNone(returnType: voidNone, formalParameters: [
         requiredParameter(type: T_none),
       ]),
       greatest: 'void Function(Never)',
@@ -44,7 +44,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
       functionTypeNone(
         returnType: functionTypeNone(
           returnType: voidNone,
-          parameters: [
+          formalParameters: [
             requiredParameter(type: T_none),
           ],
         ),
@@ -65,9 +65,9 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     );
 
     _check(
-        functionTypeNone(returnType: voidNone, parameters: [
+        functionTypeNone(returnType: voidNone, formalParameters: [
           requiredParameter(
-            type: functionTypeNone(returnType: intNone, parameters: [
+            type: functionTypeNone(returnType: intNone, formalParameters: [
               requiredParameter(type: T_none),
             ]),
           ),
@@ -79,7 +79,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   test_function() {
     // void Function<U extends T>()
     _check(
-      functionTypeNone2(
+      functionTypeNone(
         typeParameters: [
           typeParameter('U', bound: T_none),
         ],
@@ -106,7 +106,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     _check1(dynamicType, 'dynamic');
 
     _check1(
-      functionTypeNone(returnType: stringNone, parameters: [
+      functionTypeNone(returnType: stringNone, formalParameters: [
         requiredParameter(type: intNone),
       ]),
       'String Function(int)',

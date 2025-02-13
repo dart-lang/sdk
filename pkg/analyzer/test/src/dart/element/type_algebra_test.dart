@@ -99,16 +99,16 @@ class SubstituteTest extends _Base {
   test_function_fromAlias_hasRef() async {
     // typedef Alias<T> = void Function();
     var T = typeParameter('T');
-    var Alias = typeAlias2(
+    var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
-      aliasedType: functionTypeNone2(
+      aliasedType: functionTypeNone(
         returnType: voidNone,
       ),
     );
 
     var U = typeParameter('U');
-    var type = typeAliasTypeNone2(Alias, typeArguments: [
+    var type = typeAliasTypeNone(Alias, typeArguments: [
       typeParameterTypeNone(U),
     ]);
     assertType(type, 'void Function() via Alias<U>');
@@ -118,15 +118,15 @@ class SubstituteTest extends _Base {
   test_function_fromAlias_noRef() async {
     // typedef Alias<T> = void Function();
     var T = typeParameter('T');
-    var Alias = typeAlias2(
+    var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
-      aliasedType: functionTypeNone2(
+      aliasedType: functionTypeNone(
         returnType: voidNone,
       ),
     );
 
-    var type = typeAliasTypeNone2(Alias, typeArguments: [doubleNone]);
+    var type = typeAliasTypeNone(Alias, typeArguments: [doubleNone]);
     assertType(type, 'void Function() via Alias<double>');
 
     var U = typeParameter('U');
@@ -136,15 +136,15 @@ class SubstituteTest extends _Base {
   test_function_fromAlias_noTypeParameters() async {
     // typedef Alias<T> = void Function();
     var T = typeParameter('T');
-    var Alias = typeAlias2(
+    var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
-      aliasedType: functionTypeNone2(
+      aliasedType: functionTypeNone(
         returnType: voidNone,
       ),
     );
 
-    var type = typeAliasTypeNone2(Alias, typeArguments: [intNone]);
+    var type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
     assertType(type, 'void Function() via Alias<int>');
 
     var U = typeParameter('U');
@@ -152,9 +152,9 @@ class SubstituteTest extends _Base {
   }
 
   test_function_noSubstitutions() async {
-    var type = functionTypeNone2(
-      parameters: [
-        requiredParameter2(type: intNone),
+    var type = functionTypeNone(
+      formalParameters: [
+        requiredParameter(type: intNone),
       ],
       returnType: boolNone,
     );
@@ -167,10 +167,10 @@ class SubstituteTest extends _Base {
     // typedef F<T, U> = T Function(U u, bool);
     var T = typeParameter('T');
     var U = typeParameter('U');
-    var type = functionTypeNone2(
-      parameters: [
-        requiredParameter2(type: typeParameterTypeNone(U)),
-        requiredParameter2(type: boolNone),
+    var type = functionTypeNone(
+      formalParameters: [
+        requiredParameter(type: typeParameterTypeNone(U)),
+        requiredParameter(type: boolNone),
       ],
       returnType: typeParameterTypeNone(T),
     );
@@ -192,10 +192,10 @@ class SubstituteTest extends _Base {
     // typedef F<T> = T Function<U extends T>(U);
     var T = typeParameter('T');
     var U = typeParameter('U', bound: typeParameterTypeNone(T));
-    var type = functionTypeNone2(
+    var type = functionTypeNone(
       typeParameters: [U],
-      parameters: [
-        requiredParameter2(type: typeParameterTypeNone(U)),
+      formalParameters: [
+        requiredParameter(type: typeParameterTypeNone(U)),
       ],
       returnType: typeParameterTypeNone(T),
     );
@@ -231,7 +231,7 @@ class SubstituteTest extends _Base {
     );
     T.bound = T.firstFragment.bound;
 
-    var type = functionTypeNone2(
+    var type = functionTypeNone(
       typeParameters: [T, U],
       returnType: boolNone,
     );
@@ -311,14 +311,14 @@ class SubstituteTest extends _Base {
 
     // typedef Alias<T> = A;
     var T = typeParameter('T');
-    var Alias = typeAlias2(
+    var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
       aliasedType: interfaceTypeNone2(A),
     );
 
     var U = typeParameter('U');
-    var type = typeAliasTypeNone2(Alias, typeArguments: [
+    var type = typeAliasTypeNone(Alias, typeArguments: [
       typeParameterTypeNone(U),
     ]);
     assertType(type, 'A via Alias<U>');
@@ -331,13 +331,13 @@ class SubstituteTest extends _Base {
 
     // typedef Alias<T> = A;
     var T = typeParameter('T');
-    var Alias = typeAlias2(
+    var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
       aliasedType: interfaceTypeNone2(A),
     );
 
-    var type = typeAliasTypeNone2(Alias, typeArguments: [doubleNone]);
+    var type = typeAliasTypeNone(Alias, typeArguments: [doubleNone]);
     assertType(type, 'A via Alias<double>');
 
     var U = typeParameter('U');
@@ -349,13 +349,13 @@ class SubstituteTest extends _Base {
     var A = class_2(name: 'A');
 
     // typedef Alias = A;
-    var Alias = typeAlias2(
+    var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [],
       aliasedType: interfaceTypeNone2(A),
     );
 
-    var type = typeAliasTypeNone2(Alias);
+    var type = typeAliasTypeNone(Alias);
     assertType(type, 'A via Alias');
 
     var T = typeParameter('T');
@@ -381,7 +381,7 @@ class SubstituteTest extends _Base {
   test_record_fromAlias() async {
     // typedef Alias<T> = (int, String);
     var T = typeParameter('T');
-    var Alias = typeAlias2(
+    var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
       aliasedType: recordTypeNone(
@@ -390,7 +390,7 @@ class SubstituteTest extends _Base {
     );
 
     var U = typeParameter('U');
-    var type = typeAliasTypeNone2(Alias, typeArguments: [
+    var type = typeAliasTypeNone(Alias, typeArguments: [
       typeParameterTypeNone(U),
     ]);
     assertType(type, '(int, String) via Alias<U>');
@@ -401,7 +401,7 @@ class SubstituteTest extends _Base {
     // typedef Alias<T> = (T, List<T>);
     var T = typeParameter('T');
     var T_none = typeParameterTypeNone(T);
-    var Alias = typeAlias2(
+    var Alias = typeAlias(
       name: 'Alias',
       typeParameters: [T],
       aliasedType: recordTypeNone(
@@ -412,7 +412,7 @@ class SubstituteTest extends _Base {
       ),
     );
 
-    var type = typeAliasTypeNone2(Alias, typeArguments: [intNone]);
+    var type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
     assertType(type, '(int, List<int>) via Alias<int>');
   }
 
