@@ -807,7 +807,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
       superclassBuilder = supertypeDeclaration;
     } else {
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-          "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+          "${this.runtimeType}._computeSuperTargetBuilder: "
           "Unaliased 'declaration' isn't a ClassBuilder.",
           expectedPhase: CompilationPhaseForProblemReporting.outline));
       return null;
@@ -824,7 +824,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
         superTarget = memberBuilder.invokeTarget;
       } else {
         assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-            "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+            "${this.runtimeType}._computeSuperTargetBuilder: "
             "Can't find the implied unnamed constructor in the superclass.",
             expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
         return null;
@@ -839,7 +839,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     } else {
       // Coverage-ignore-block(suite): Not run.
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-          "DeclaredSourceConstructorBuilder._computeSuperTargetBuilder: "
+          "${this.runtimeType}._computeSuperTargetBuilder: "
           "Can't find a constructor with name '${superTarget.name.text}' in "
           "the superclass.",
           expectedPhase: CompilationPhaseForProblemReporting.outline));
@@ -923,7 +923,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
       superConstructorFunction = superTargetBuilder.function;
     } else {
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-          "DeclaredSourceConstructorBuilder.finalizeSuperInitializingFormals: "
+          "${this.runtimeType}.finalizeSuperInitializingFormals: "
           "Can't compute super target.",
           expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
       // Perform a simple recovery.
@@ -987,7 +987,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
             }
           } else {
             assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-                "DeclaredSourceConstructorBuilder"
+                "${this.runtimeType}"
                 ".finalizeSuperInitializingFormals: "
                 "Super initializer count is greater than the count of "
                 "positional formals in the super constructor.",

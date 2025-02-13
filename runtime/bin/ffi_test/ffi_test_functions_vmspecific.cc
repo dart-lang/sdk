@@ -890,7 +890,8 @@ DART_EXPORT void ThreadPoolTest_BarrierSync(
     Dart_Isolate (*dart_current_isolate)(),
     void (*dart_enter_isolate)(Dart_Isolate),
     void (*dart_exit_isolate)(),
-    intptr_t num_threads) {
+    intptr_t num_threads,
+    bool exit_and_reenter_isolate) {
   // Guaranteed to be initialized exactly once (no race between multiple
   // threads).
   static std::mutex mutex;
@@ -898,7 +899,9 @@ DART_EXPORT void ThreadPoolTest_BarrierSync(
   static intptr_t thread_count = 0;
 
   const Dart_Isolate isolate = dart_current_isolate();
-  dart_exit_isolate();
+  if (exit_and_reenter_isolate) {
+    dart_exit_isolate();
+  }
   {
     std::unique_lock<std::mutex> lock(mutex);
     ++thread_count;
@@ -907,7 +910,9 @@ DART_EXPORT void ThreadPoolTest_BarrierSync(
     }
     cvar.notify_all();
   }
-  dart_enter_isolate(isolate);
+  if (exit_and_reenter_isolate) {
+    dart_enter_isolate(isolate);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1284,9 +1289,11 @@ DART_EXPORT void SetFfiNativeResolverForTest(Dart_Handle url) {
   ENSURE(!Dart_IsError(result));
 }
 
-DART_EXPORT void WaitUntilNThreadsEnterBarrier(intptr_t num_threads) {
+DART_EXPORT void WaitUntilNThreadsEnterBarrier(intptr_t num_threads,
+                                               bool exit_and_reenter_isolate) {
   ThreadPoolTest_BarrierSync(Dart_CurrentIsolate_DL, Dart_EnterIsolate_DL,
-                             Dart_ExitIsolate_DL, num_threads);
+                             Dart_ExitIsolate_DL, num_threads,
+                             exit_and_reenter_isolate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
