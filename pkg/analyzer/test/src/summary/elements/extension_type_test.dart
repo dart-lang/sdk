@@ -4595,7 +4595,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -4828,7 +4828,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -5079,7 +5079,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -5331,7 +5331,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
@@ -5555,7 +5555,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -5956,7 +5956,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
               element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               formalParameters
-                <null-name>
+                _foo1
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -5982,7 +5982,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2#element
               formalParameters
-                <null-name>
+                _foo2
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2::@parameter::_foo2#element
   extensionTypes
     extension type A
@@ -6588,7 +6588,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -6821,7 +6821,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -9890,7 +9890,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart

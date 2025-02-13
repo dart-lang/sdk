@@ -73,22 +73,34 @@ inline int64_t IntFromHandle(Dart_Handle handle) {
   return result;
 }
 
+class DartScope {
+ public:
+  DartScope() { Dart_EnterScope(); }
+  virtual ~DartScope() { Dart_ExitScope(); }
+
+ private:
+  DartScope(const DartScope&) = delete;
+  void operator=(const DartScope&) = delete;
+};
+
+class IsolateScope {
+ public:
+  explicit IsolateScope(Dart_Isolate isolate) {
+    DartEngine_AcquireIsolate(isolate);
+  }
+  virtual ~IsolateScope() { DartEngine_ReleaseIsolate(); }
+
+ private:
+  IsolateScope(const IsolateScope&) = delete;
+  void operator=(const IsolateScope&) = delete;
+};
+
 template <typename T>
 inline T WithIsolate(Dart_Isolate isolate, std::function<T()> body) {
-  DartEngine_AcquireIsolate(isolate);
-  Dart_EnterScope();
-  T result = body();
-  Dart_ExitScope();
-  DartEngine_ReleaseIsolate();
-  return result;
-}
+  IsolateScope isolate_scope(isolate);
+  DartScope dart_scope;
 
-inline void WithIsolate(Dart_Isolate isolate, std::function<void()> body) {
-  DartEngine_AcquireIsolate(isolate);
-  Dart_EnterScope();
-  body();
-  Dart_ExitScope();
-  DartEngine_ReleaseIsolate();
+  return body();
 }
 
 #endif /* SAMPLES_EMBEDDER_HELPERS_H_ */

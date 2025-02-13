@@ -457,6 +457,8 @@ class AstBinaryReader {
     var element = DefaultParameterElementImpl(
       name: nonDefaultElement.name,
       nameOffset: nonDefaultElement.nameOffset,
+      name2: nonDefaultElement.name2,
+      nameOffset2: nonDefaultElement.nameOffset2,
       parameterKind: kind,
     );
     if (parameter is SimpleFormalParameterImpl) {
@@ -1219,6 +1221,8 @@ class AstBinaryReader {
     var element = ParameterElementImpl(
       name: name?.lexeme ?? '',
       nameOffset: -1,
+      name2: name?.lexeme,
+      nameOffset2: null,
       parameterKind: node.kind,
     );
     element.type = actualType;

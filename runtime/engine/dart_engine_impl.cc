@@ -72,5 +72,9 @@ DART_EXPORT void DartEngine_HandleMessage(Dart_Isolate isolate) {
   Engine::instance()->HandleMessage(isolate);
 }
 
+DART_EXPORT Dart_Handle DartEngine_DrainMicrotasksQueue() {
+  return Engine::instance()->DrainMicrotasksQueue();
+}
+
 }  // namespace engine
 }  // namespace dart

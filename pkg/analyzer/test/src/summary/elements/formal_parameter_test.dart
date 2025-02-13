@@ -1071,7 +1071,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::x
               element: <testLibraryFragment>::@class::C::@setter::x#element
               formalParameters
-                <null-name>
+                _x
                   element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
   classes
     class C

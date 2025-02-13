@@ -2,13 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A wrapper around [AnalysisSession] that provides additional utilities.
 ///
@@ -58,7 +54,7 @@ class AnalysisSessionHelper {
   Future<EnumElement2?> getEnum(String libraryUri, String className) async {
     var libraryResult = await session.getLibraryByUri(libraryUri);
     if (libraryResult is LibraryElementResult) {
-      var element = libraryResult.element.exportNamespace.get2(className);
+      var element = libraryResult.element2.exportNamespace.get2(className);
       if (element is EnumElement2) {
         return element;
       }
@@ -86,12 +82,17 @@ class AnalysisSessionHelper {
     return null;
   }
 
-  /// Return the resolved unit that declares the given [element2].
-  Future<ResolvedUnitResult?> getResolvedUnitByElement(
-      Element2 element2) async {
-    var element = element2.asElement;
-    if (element == null) return null;
-    return await _getResolvedUnitByElement(element);
+  /// Returns the resolved unit that declares the given [element].
+  Future<ResolvedUnitResult?> getResolvedUnitByElement(Element2 element) async {
+    var libraryPath = element.library2!.firstFragment.source.fullName;
+    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
+    if (resolvedLibrary == null) {
+      return null;
+    }
+
+    var unitPath = element.firstFragment.libraryFragment!.source.fullName;
+    return resolvedLibrary.units
+        .singleWhere((resolvedUnit) => resolvedUnit.path == unitPath);
   }
 
   /// Returns the [PropertyAccessorElement2] with the given [name] that is
@@ -121,19 +122,5 @@ class AnalysisSessionHelper {
       }
     }
     return result;
-  }
-
-  /// Return the resolved unit that declares the given [element].
-  Future<ResolvedUnitResult?> _getResolvedUnitByElement(Element element) async {
-    var libraryPath = element.library!.source.fullName;
-    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
-    if (resolvedLibrary == null) {
-      return null;
-    }
-
-    var unitPath = element.source!.fullName;
-    return resolvedLibrary.units.singleWhere((resolvedUnit) {
-      return resolvedUnit.path == unitPath;
-    });
   }
 }

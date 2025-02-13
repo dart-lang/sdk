@@ -312,6 +312,29 @@ void f(test) {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
+  Future<void> test_createChange_closure_parameter() async {
+    await indexTestUnit('''
+void f(void Function(int) _) {}
+
+void g() => f((parameter) {
+  print(parameter);
+});
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('parameter) {');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+void f(void Function(int) _) {}
+
+void g() => f((newName) {
+  print(newName);
+});
+''');
+  }
+
   Future<void> test_createChange_localFunction() async {
     await indexTestUnit('''
 void f() {

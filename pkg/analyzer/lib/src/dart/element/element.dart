@@ -578,6 +578,8 @@ class ClassElementImpl extends ClassOrMixinElementImpl
             implicitParameter = DefaultParameterElementImpl(
               name: superParameter.name,
               nameOffset: -1,
+              name2: superParameter.name.nullIfEmpty,
+              nameOffset2: null,
               // ignore: deprecated_member_use_from_same_package
               parameterKind: superParameter.parameterKind,
             )..constantInitializer = constVariable.constantInitializer;
@@ -592,6 +594,8 @@ class ClassElementImpl extends ClassOrMixinElementImpl
             implicitParameter = ParameterElementImpl(
               name: superParameter.name,
               nameOffset: -1,
+              name2: superParameter.name.nullIfEmpty,
+              nameOffset2: null,
               // ignore: deprecated_member_use_from_same_package
               parameterKind: superParameter.parameterKind,
             );
@@ -1844,6 +1848,8 @@ class DefaultFieldFormalParameterElementImpl
   DefaultFieldFormalParameterElementImpl({
     required super.name,
     required super.nameOffset,
+    required super.name2,
+    required super.nameOffset2,
     required super.parameterKind,
   });
 
@@ -1861,6 +1867,8 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   DefaultParameterElementImpl({
     required super.name,
     required super.nameOffset,
+    required super.name2,
+    required super.nameOffset2,
     required super.parameterKind,
   });
 
@@ -1877,6 +1885,8 @@ class DefaultSuperFormalParameterElementImpl
   DefaultSuperFormalParameterElementImpl({
     required super.name,
     required super.nameOffset,
+    required super.name2,
+    required super.nameOffset2,
     required super.parameterKind,
   });
 
@@ -4491,8 +4501,10 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   FieldFormalParameterElementImpl({
-    required String super.name,
+    required super.name,
     required super.nameOffset,
+    required super.name2,
+    required super.nameOffset2,
     required super.parameterKind,
   });
 
@@ -9358,7 +9370,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
     with _HasLibraryMixin {
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
-  NonParameterVariableElementImpl(String super.name, super.offset);
+  NonParameterVariableElementImpl(super.name, super.offset);
 
   @override
   Element get enclosingElement3 =>
@@ -9414,17 +9426,23 @@ class ParameterElementImpl extends VariableElementImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   ParameterElementImpl({
-    required String? name,
+    required String name,
     required int nameOffset,
+    required this.name2,
+    required this.nameOffset2,
     required this.parameterKind,
-  }) : super(name, nameOffset);
+  })  : assert(nameOffset2 == null || nameOffset2 >= 0),
+        assert(name2 == null || name2.isNotEmpty),
+        super(name, nameOffset);
 
-  /// Creates a synthetic parameter with [name], [type] and [parameterKind].
+  /// Creates a synthetic parameter with [name2], [type] and [parameterKind].
   factory ParameterElementImpl.synthetic(
-      String? name, DartType type, ParameterKind parameterKind) {
+      String? name2, DartType type, ParameterKind parameterKind) {
     var element = ParameterElementImpl(
-      name: name,
+      name: name2 ?? '',
       nameOffset: -1,
+      name2: name2,
+      nameOffset2: null,
       parameterKind: parameterKind,
     );
     // TODO(paulberry): remove this cast by changing the type of the `type`
@@ -9567,6 +9585,10 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
       : super(
           name: considerCanonicalizeString('_${setter.variable2.name}'),
           nameOffset: -1,
+          name2: setter.variable2.name == ''
+              ? null
+              : considerCanonicalizeString('_${setter.variable2.name}'),
+          nameOffset2: null,
           parameterKind: ParameterKind.REQUIRED,
         ) {
     enclosingElement3 = setter;
@@ -10712,8 +10734,10 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   SuperFormalParameterElementImpl({
-    required String super.name,
+    required super.name,
     required super.nameOffset,
+    required super.name2,
+    required super.nameOffset2,
     required super.parameterKind,
   });
 
@@ -11741,7 +11765,7 @@ abstract class VariableElementImpl extends ElementImpl
 
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
-  VariableElementImpl(super.name, super.offset);
+  VariableElementImpl(String super.name, super.offset);
 
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.

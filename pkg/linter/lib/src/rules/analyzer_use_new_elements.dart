@@ -6,7 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_visitor.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/dart/element/type_visitor.dart' // ignore: implementation_imports
+    show RecursiveTypeVisitor;
 
 import '../analyzer.dart';
 import '../extensions.dart';

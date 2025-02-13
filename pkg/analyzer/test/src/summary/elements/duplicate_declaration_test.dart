@@ -468,13 +468,13 @@ library
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::0
               element: <testLibraryFragment>::@class::A::@setter::foo::@def::0#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@class::A::@setter::foo::@def::0::@parameter::_foo#element
             synthetic set foo
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::1
               element: <testLibraryFragment>::@class::A::@setter::foo::@def::1#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@class::A::@setter::foo::@def::1::@parameter::_foo#element
   classes
     class A
@@ -1197,7 +1197,7 @@ library
               reference: <testLibraryFragment>::@extension::E::@def::1::@setter::x
               element: <testLibraryFragment>::@extension::E::@def::1::@setter::x#element
               formalParameters
-                <null-name>
+                _x
                   element: <testLibraryFragment>::@extension::E::@def::1::@setter::x::@parameter::_x#element
         extension E @71
           reference: <testLibraryFragment>::@extension::E::@def::2
@@ -1217,7 +1217,7 @@ library
               reference: <testLibraryFragment>::@extension::E::@def::2::@setter::y
               element: <testLibraryFragment>::@extension::E::@def::2::@setter::y#element
               formalParameters
-                <null-name>
+                _y
                   element: <testLibraryFragment>::@extension::E::@def::2::@setter::y::@parameter::_y#element
   extensions
     extension E
@@ -1720,7 +1720,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
               element: <testLibraryFragment>::@mixin::A::@def::1::@setter::x#element
               formalParameters
-                <null-name>
+                _x
                   element: <testLibraryFragment>::@mixin::A::@def::1::@setter::x::@parameter::_x#element
         mixin A @38
           reference: <testLibraryFragment>::@mixin::A::@def::2
@@ -1740,7 +1740,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
               element: <testLibraryFragment>::@mixin::A::@def::2::@setter::y#element
               formalParameters
-                <null-name>
+                _y
                   element: <testLibraryFragment>::@mixin::A::@def::2::@setter::y::@parameter::_y#element
   mixins
     mixin A
@@ -1932,19 +1932,19 @@ library
           reference: <testLibraryFragment>::@setter::x::@def::0
           element: <testLibraryFragment>::@setter::x::@def::0#element
           formalParameters
-            <null-name>
+            _x
               element: <testLibraryFragment>::@setter::x::@def::0::@parameter::_x#element
         synthetic set x
           reference: <testLibraryFragment>::@setter::x::@def::1
           element: <testLibraryFragment>::@setter::x::@def::1#element
           formalParameters
-            <null-name>
+            _x
               element: <testLibraryFragment>::@setter::x::@def::1::@parameter::_x#element
         synthetic set x
           reference: <testLibraryFragment>::@setter::x::@def::2
           element: <testLibraryFragment>::@setter::x::@def::2#element
           formalParameters
-            <null-name>
+            _x
               element: <testLibraryFragment>::@setter::x::@def::2::@parameter::_x#element
   topLevelVariables
     x

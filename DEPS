@@ -130,7 +130,7 @@ vars = {
   # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
-  "core_rev": "a896913715f2d8fb86d099b75dbfd02bf0d658a4",
+  "core_rev": "0b2bd3fcd7f3e082f4cc9b14c19ffa93894b85ae",
   "dartdoc_rev": "e1295863b11c54680bf178ec9c2662a33b0e24be", # https://github.com/dart-lang/dartdoc/issues/3969
   "ecosystem_rev": "5b0d815952d81f5a51cc6a1af1cacab26f3a61d7",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
@@ -148,7 +148,7 @@ vars = {
   "sync_http_rev": "47e6b264a209d0d806cfe9cdad8b6c69ce231986",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "test_rev": "17609bf90c9d5ef47707f5796763629450382474",
-  "tools_rev": "30de295e959beaaae7a18d2249a1cddb9053dd02", # b/391934702
+  "tools_rev": "750b4ad8ea80dd0bfa1d4dcf05915183c2bf6dab", # b/391934702
   "vector_math_rev": "533c513771d35312dcd0f69e662d729979882df1",
   "web_rev": "c2d5f63e9ea4c1409d6e159fc7b92dbcf4dc0d4d",
   "web_socket_channel_rev": "f335e52affa5c70a725401394bf265fc4384e62f",

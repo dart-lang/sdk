@@ -5,6 +5,7 @@
             "name": "Current file",
             "request": "launch",
             "type": "dart",
+            "program": "${file}",
         },
         {
             "name": "test: all",

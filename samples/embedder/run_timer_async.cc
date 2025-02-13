@@ -1,3 +1,7 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // Same as run_timer.cc, but uses std::async instead of a dedicated event loop
 // thread. Used as a demonstration of a custom message scheduler.
 #include <future>
@@ -9,7 +13,7 @@
 
 // Calls `startTimer` from timer.dart
 void StartTimer(Dart_Isolate isolate, uint32_t millis) {
-  WithIsolate(isolate, [&]() {
+  WithIsolate<void>(isolate, [&]() {
     std::initializer_list<Dart_Handle> args{Dart_NewInteger(millis)};
     CheckError(
         Dart_Invoke(Dart_RootLibrary(), Dart_NewStringFromCString("startTimer"),
@@ -20,7 +24,7 @@ void StartTimer(Dart_Isolate isolate, uint32_t millis) {
 
 // Calls `stopTimer` from timer.dart
 void StopTimer(Dart_Isolate isolate) {
-  WithIsolate(isolate, [&]() {
+  WithIsolate<void>(isolate, [&]() {
     CheckError(Dart_Invoke(Dart_RootLibrary(),
                            Dart_NewStringFromCString("stopTimer"), 0, nullptr),
                "calling stopTimer");

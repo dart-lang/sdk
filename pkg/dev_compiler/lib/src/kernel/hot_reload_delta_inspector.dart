@@ -39,6 +39,7 @@ class HotReloadDeltaInspector {
           // No previous version of the class to compare with.
           continue;
         }
+        _checkClassTypeParametersCountChange(acceptedClass, deltaClass);
         if (acceptedClass.hasConstConstructor) {
           _checkConstClassConsistency(acceptedClass, deltaClass);
           _checkConstClassDeletedFields(acceptedClass, deltaClass);
@@ -89,6 +90,22 @@ class HotReloadDeltaInspector {
     final deltaFields = {for (var field in deltaClass.fields) field.name.text};
     if (acceptedFields.difference(deltaFields).isNotEmpty) {
       _rejectionMessages.add('Const class cannot remove fields: '
+          "Library:'${deltaClass.enclosingLibrary.importUri}' "
+          'Class: ${deltaClass.name}');
+    }
+  }
+
+  /// Records a rejection error when the number of [TypeParameter]s on a class
+  /// changes between [acceptedClass] and [deltaClass].
+  ///
+  /// [acceptedClass] and [deltaClass] must represent the same class in the
+  /// last known accepted and delta components respectively.
+  void _checkClassTypeParametersCountChange(
+      Class acceptedClass, Class deltaClass) {
+    if (acceptedClass.typeParameters.length !=
+        deltaClass.typeParameters.length) {
+      _rejectionMessages.add(
+          'Limitation: changing type parameters does not work with hot reload.'
           "Library:'${deltaClass.enclosingLibrary.importUri}' "
           'Class: ${deltaClass.name}');
     }

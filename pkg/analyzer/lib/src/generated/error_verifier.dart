@@ -6711,8 +6711,8 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = node.element;
-    if (element is TypeParameterizedElement && !element.isSimplyBounded) {
+    var element = node.element2;
+    if (element is TypeParameterizedElement2 && !element.isSimplyBounded) {
       // TODO(srawlins): Don't report this if TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
       //  has been reported.
       _errorReporter.atNode(

@@ -1093,6 +1093,8 @@ class _MockSdkElementsBuilder {
     var parameter = DefaultParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
     );
     parameter.type = type;
@@ -1173,6 +1175,8 @@ class _MockSdkElementsBuilder {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
     parameter.type = type;
@@ -1183,6 +1187,8 @@ class _MockSdkElementsBuilder {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
     parameter.type = type;

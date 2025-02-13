@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
+library;
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
+    show BaseDeprecatedMemberUseVerifier;
+import 'package:analyzer/src/workspace/workspace.dart' // ignore: implementation_imports
+    show WorkspacePackage;
 
 import '../analyzer.dart';
 

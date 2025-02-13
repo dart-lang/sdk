@@ -746,7 +746,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             var args = <String>[];
             var propertyReference = whyNotPromotedVisitor.propertyReference;
             if (propertyReference != null) {
-              var id = computeMemberId(propertyReference.asElement2);
+              var id = computeMemberId(propertyReference);
               args.add('target: $id');
             }
             if (args.isNotEmpty) {
@@ -5658,7 +5658,7 @@ class _WhyNotPromotedVisitor
 
   final FlowAnalysisDataForTesting? _dataForTesting;
 
-  PropertyAccessorElement? propertyReference;
+  PropertyAccessorElement2? propertyReference;
 
   _WhyNotPromotedVisitor(this.source, this._errorEntity, this._dataForTesting);
 
@@ -5681,9 +5681,6 @@ class _WhyNotPromotedVisitor
       PropertyNotPromotedForInherentReason reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement2) {
-      receiverElement = receiverElement.asElement;
-    }
-    if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
       var propertyName = reason.propertyName;
       String message = switch (reason.whyNotPromotable) {
@@ -5701,10 +5698,10 @@ class _WhyNotPromotedVisitor
       };
       return [
         DiagnosticMessageImpl(
-            filePath: property.source.fullName,
+            filePath: property.firstFragment.libraryFragment.source.fullName,
             message: message,
-            offset: property.nonSynthetic.nameOffset,
-            length: property.nameLength,
+            offset: property.nonSynthetic2.firstFragment.nameOffset2!,
+            length: property.name3!.length,
             url: reason.documentationLink.url),
         if (!reason.fieldPromotionEnabled)
           _fieldPromotionUnavailableMessage(property, propertyName)
@@ -5721,12 +5718,9 @@ class _WhyNotPromotedVisitor
       PropertyNotPromotedForNonInherentReason reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement2) {
-      receiverElement = receiverElement.asElement;
-    }
-    if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
       var propertyName = reason.propertyName;
-      var library = receiverElement.library as LibraryElementImpl;
+      var library = receiverElement.library2 as LibraryElementImpl;
       var fieldNonPromotabilityInfo = library.fieldNameNonPromotabilityInfo;
       var fieldNameInfo = fieldNonPromotabilityInfo[reason.propertyName];
       var messages = <DiagnosticMessage>[];
@@ -5822,14 +5816,14 @@ class _WhyNotPromotedVisitor
   }
 
   DiagnosticMessageImpl _fieldPromotionUnavailableMessage(
-      PropertyAccessorElement property, String propertyName) {
+      PropertyAccessorElement2 property, String propertyName) {
     return DiagnosticMessageImpl(
-        filePath: property.source.fullName,
+        filePath: property.firstFragment.libraryFragment.source.fullName,
         message: "'$propertyName' couldn't be promoted "
             "because field promotion is only available in Dart 3.2 and "
             "above.",
-        offset: property.nonSynthetic.nameOffset,
-        length: property.nameLength,
+        offset: property.nonSynthetic2.firstFragment.nameOffset2!,
+        length: property.name3!.length,
         url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url);
   }
 }

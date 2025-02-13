@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// The type builder for a [GenericFunctionType].
 class FunctionTypeBuilder extends TypeBuilder {
@@ -157,7 +158,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   ) {
     return node.parameters.map((parameter) {
       return FormalParameterElementImpl.synthetic(
-        parameter.name?.lexeme ?? '',
+        parameter.name?.lexeme.nullIfEmpty,
         _getParameterType(parameter),
         parameter.kind,
       );

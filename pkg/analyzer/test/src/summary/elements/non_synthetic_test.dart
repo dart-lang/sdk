@@ -91,7 +91,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::foo
               element: <testLibraryFragment>::@class::C::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
   classes
     class C
@@ -520,7 +520,7 @@ library
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_foo#element
   mixins
     mixin M
@@ -935,7 +935,7 @@ library
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
-            <null-name>
+            _foo
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
   topLevelVariables
     hasInitializer foo

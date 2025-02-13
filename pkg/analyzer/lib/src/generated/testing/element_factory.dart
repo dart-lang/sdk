@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart' show NonExistingSource;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -173,6 +174,8 @@ class ElementFactory {
       FieldFormalParameterElementImpl(
         name: name.name,
         nameOffset: name.offset,
+        name2: name.name.nullIfEmpty,
+        nameOffset2: name.offset.nullIfNegative,
         parameterKind: ParameterKind.REQUIRED,
       );
 
@@ -272,6 +275,8 @@ class ElementFactory {
     return ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
     );
   }
@@ -280,6 +285,8 @@ class ElementFactory {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
     );
     parameter.type = type;
@@ -290,6 +297,8 @@ class ElementFactory {
     return ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
   }
@@ -298,6 +307,8 @@ class ElementFactory {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
     parameter.type = type;
@@ -310,6 +321,8 @@ class ElementFactory {
     return ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
   }
@@ -318,6 +331,8 @@ class ElementFactory {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
     parameter.type = type;
@@ -372,6 +387,8 @@ class ElementFactory {
       var parameter = ParameterElementImpl(
         name: 'a$index',
         nameOffset: index,
+        name2: 'a$index',
+        nameOffset2: index,
         parameterKind: ParameterKind.REQUIRED,
       );
       parameter.type = type;
