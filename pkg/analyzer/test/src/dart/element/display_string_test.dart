@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -66,7 +67,7 @@ class ElementDisplayStringTest extends AbstractTypeSystemTest {
     var methodA = method(
       'longMethodName',
       stringQuestion,
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'aaa', type: stringQuestion),
         positionalParameter(
             name: 'bbb', type: stringQuestion, defaultValueCode: "'a'"),
@@ -95,12 +96,12 @@ String? longMethodName(
     var methodA = method(
       'longMethodName',
       stringQuestion,
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'aaa', type: stringQuestion),
         positionalParameter(
             name: 'bbb',
             type: functionTypeNone(
-              parameters: [
+              formalParameters: [
                 requiredParameter(name: 'xxx', type: stringQuestion),
                 requiredParameter(name: 'yyy', type: stringQuestion),
                 requiredParameter(name: 'zzz', type: stringQuestion),
@@ -141,7 +142,7 @@ String? longMethodName(
       ..isSetter = true
       ..returnType = voidNone
       ..parameters = [
-        requiredParameter(name: 'value', type: stringNone),
+        requiredParameter(name: 'value', type: stringNone).asElement,
       ];
 
     expect(
@@ -154,7 +155,7 @@ String? longMethodName(
     var methodA = method(
       'm',
       stringQuestion,
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'a', type: stringQuestion),
         positionalParameter(name: 'b', type: stringQuestion),
       ],

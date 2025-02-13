@@ -31,7 +31,7 @@ class IsKnownTest extends AbstractTypeSystemTest {
     );
 
     _checkUnknown(
-      functionTypeNone(returnType: voidNone, parameters: [
+      functionTypeNone(returnType: voidNone, formalParameters: [
         requiredParameter(type: unknownInferredType),
       ]),
     );

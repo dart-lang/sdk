@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -262,13 +258,13 @@ mixin ElementsTypesMixin {
 
   FunctionTypeImpl functionType({
     required List<TypeParameterElementImpl2> typeParameters,
-    required List<ParameterElement> parameters,
+    required List<FormalParameterElementImpl> formalParameters,
     required DartType returnType,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return FunctionTypeImpl(
-      typeFormals: typeParameters.map((e) => e.asElement).toList(),
-      parameters: parameters,
+    return FunctionTypeImpl.v2(
+      typeParameters: typeParameters,
+      formalParameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
     );
@@ -276,37 +272,25 @@ mixin ElementsTypesMixin {
 
   FunctionTypeImpl functionTypeNone({
     List<TypeParameterElementImpl2> typeParameters = const [],
-    List<ParameterElement> parameters = const [],
+    List<FormalParameterElementImpl> formalParameters = const [],
     required DartType returnType,
   }) {
     return functionType(
       typeParameters: typeParameters,
-      parameters: parameters,
+      formalParameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  FunctionTypeImpl functionTypeNone2({
-    List<TypeParameterElementImpl2> typeParameters = const [],
-    List<FormalParameterElement> parameters = const [],
-    required DartType returnType,
-  }) {
-    return functionTypeNone(
-      parameters: parameters.map((e) => e.asElement).toList(),
-      typeParameters: typeParameters,
-      returnType: returnType,
-    );
-  }
-
   FunctionTypeImpl functionTypeQuestion({
     List<TypeParameterElementImpl2> typeParameters = const [],
-    List<ParameterElement> parameters = const [],
+    List<FormalParameterElementImpl> formalParameters = const [],
     required DartType returnType,
   }) {
     return functionType(
       typeParameters: typeParameters,
-      parameters: parameters,
+      formalParameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -469,11 +453,11 @@ mixin ElementsTypesMixin {
     DartType returnType, {
     bool isStatic = false,
     List<TypeParameterElementImpl2> typeParameters = const [],
-    List<ParameterElementImpl> parameters = const [],
+    List<FormalParameterElementImpl> formalParameters = const [],
   }) {
     return MethodElementImpl(name, 0)
       ..isStatic = isStatic
-      ..parameters = parameters
+      ..parameters = formalParameters.map((e) => e.asElement).toList()
       ..returnType = returnType
       ..typeParameters = typeParameters.map((e) => e.asElement).toList();
   }
@@ -501,90 +485,57 @@ mixin ElementsTypesMixin {
     return fragment;
   }
 
-  ParameterElementImpl namedParameter({
+  FormalParameterElementImpl namedParameter({
     required String name,
     required TypeImpl type,
     bool isCovariant = false,
   }) {
-    var parameter = ParameterElementImpl(
+    var fragment = ParameterElementImpl(
       name: name,
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
     );
-    parameter.type = type;
-    parameter.isExplicitlyCovariant = isCovariant;
-    return parameter;
+    fragment.type = type;
+    fragment.isExplicitlyCovariant = isCovariant;
+    return fragment.asElement2;
   }
 
-  FormalParameterElement namedParameter2({
+  FormalParameterElementImpl namedRequiredParameter({
     required String name,
     required TypeImpl type,
     bool isCovariant = false,
   }) {
-    return namedParameter(name: name, type: type, isCovariant: isCovariant)
-        .asElement2;
-  }
-
-  ParameterElementImpl namedRequiredParameter({
-    required String name,
-    required TypeImpl type,
-    bool isCovariant = false,
-  }) {
-    var parameter = ParameterElementImpl(
+    var fragment = ParameterElementImpl(
       name: name,
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,
       parameterKind: ParameterKind.NAMED_REQUIRED,
     );
-    parameter.type = type;
-    parameter.isExplicitlyCovariant = isCovariant;
-    return parameter;
+    fragment.type = type;
+    fragment.isExplicitlyCovariant = isCovariant;
+    return fragment.asElement2;
   }
 
-  FormalParameterElement namedRequiredParameter2({
-    required String name,
-    required TypeImpl type,
-    bool isCovariant = false,
-  }) {
-    return namedRequiredParameter(
-            name: name, type: type, isCovariant: isCovariant)
-        .asElement2;
-  }
-
-  ParameterElementImpl positionalParameter({
+  FormalParameterElementImpl positionalParameter({
     String? name,
     required TypeImpl type,
     bool isCovariant = false,
     String? defaultValueCode,
   }) {
-    var parameter = ParameterElementImpl(
+    var fragment = ParameterElementImpl(
       name: name ?? '',
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
-    parameter.type = type;
-    parameter.isExplicitlyCovariant = isCovariant;
-    parameter.defaultValueCode = defaultValueCode;
-    return parameter;
-  }
-
-  FormalParameterElement positionalParameter2({
-    String? name,
-    required TypeImpl type,
-    bool isCovariant = false,
-    String? defaultValueCode,
-  }) {
-    return positionalParameter(
-      name: name,
-      type: type,
-      isCovariant: isCovariant,
-      defaultValueCode: defaultValueCode,
-    ).asElement2;
+    fragment.type = type;
+    fragment.isExplicitlyCovariant = isCovariant;
+    fragment.defaultValueCode = defaultValueCode;
+    return fragment.asElement2;
   }
 
   TypeParameterTypeImpl promotedTypeParameterType({
@@ -664,33 +615,24 @@ mixin ElementsTypesMixin {
     );
   }
 
-  ParameterElementImpl requiredParameter({
+  FormalParameterElementImpl requiredParameter({
     String? name,
     required TypeImpl type,
     bool isCovariant = false,
   }) {
-    var parameter = ParameterElementImpl(
+    var fragment = ParameterElementImpl(
       name: name ?? '',
       nameOffset: 0,
       name2: name,
       nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
-    parameter.type = type;
-    parameter.isExplicitlyCovariant = isCovariant;
-    return parameter;
+    fragment.type = type;
+    fragment.isExplicitlyCovariant = isCovariant;
+    return fragment.asElement2;
   }
 
-  FormalParameterElement requiredParameter2({
-    String? name,
-    required TypeImpl type,
-    bool isCovariant = false,
-  }) {
-    return requiredParameter(name: name, type: type, isCovariant: isCovariant)
-        .asElement2;
-  }
-
-  TypeAliasElementImpl2 typeAlias2({
+  TypeAliasElementImpl2 typeAlias({
     required String name,
     required List<TypeParameterElementImpl2> typeParameters,
     required DartType aliasedType,
@@ -704,7 +646,7 @@ mixin ElementsTypesMixin {
     return TypeAliasElementImpl2(Reference.root(), fragment);
   }
 
-  TypeImpl typeAliasTypeNone2(
+  TypeImpl typeAliasTypeNone(
     TypeAliasElementImpl2 element, {
     List<DartType> typeArguments = const [],
   }) {

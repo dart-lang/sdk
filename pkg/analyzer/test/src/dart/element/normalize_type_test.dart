@@ -22,61 +22,61 @@ main() {
 class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   test_functionType_parameter() {
     _check(
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          requiredParameter2(type: futureOrNone(objectNone)),
+        formalParameters: [
+          requiredParameter(type: futureOrNone(objectNone)),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          requiredParameter2(type: objectNone),
-        ],
-      ),
-    );
-
-    _check(
-      functionTypeNone2(
-        returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: futureOrNone(objectNone)),
-        ],
-      ),
-      functionTypeNone2(
-        returnType: voidNone,
-        parameters: [
-          namedParameter2(name: 'a', type: objectNone),
+        formalParameters: [
+          requiredParameter(type: objectNone),
         ],
       ),
     );
 
     _check(
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedRequiredParameter2(name: 'a', type: futureOrNone(objectNone)),
+        formalParameters: [
+          namedParameter(name: 'a', type: futureOrNone(objectNone)),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          namedRequiredParameter2(name: 'a', type: objectNone),
+        formalParameters: [
+          namedParameter(name: 'a', type: objectNone),
         ],
       ),
     );
 
     _check(
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          positionalParameter2(type: futureOrNone(objectNone)),
+        formalParameters: [
+          namedRequiredParameter(name: 'a', type: futureOrNone(objectNone)),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          positionalParameter2(type: objectNone),
+        formalParameters: [
+          namedRequiredParameter(name: 'a', type: objectNone),
+        ],
+      ),
+    );
+
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [
+          positionalParameter(type: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        formalParameters: [
+          positionalParameter(type: objectNone),
         ],
       ),
     );
@@ -84,16 +84,16 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
 
   test_functionType_parameter_covariant() {
     _check(
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          requiredParameter2(type: futureOrNone(objectNone), isCovariant: true),
+        formalParameters: [
+          requiredParameter(type: futureOrNone(objectNone), isCovariant: true),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
-        parameters: [
-          requiredParameter2(type: objectNone, isCovariant: true),
+        formalParameters: [
+          requiredParameter(type: objectNone, isCovariant: true),
         ],
       ),
     );
@@ -106,18 +106,18 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     T = typeParameter('T', bound: neverNone);
     T2 = typeParameter('T2', bound: neverNone);
     _check(
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
         typeParameters: [T],
-        parameters: [
-          requiredParameter2(type: typeParameterTypeNone(T)),
+        formalParameters: [
+          requiredParameter(type: typeParameterTypeNone(T)),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
         typeParameters: [T2],
-        parameters: [
-          requiredParameter2(type: neverNone),
+        formalParameters: [
+          requiredParameter(type: neverNone),
         ],
       ),
     );
@@ -125,18 +125,18 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     T = typeParameter('T', bound: iterableNone(futureOrNone(dynamicType)));
     T2 = typeParameter('T2', bound: iterableNone(dynamicType));
     _check(
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
         typeParameters: [T],
-        parameters: [
-          requiredParameter2(type: typeParameterTypeNone(T)),
+        formalParameters: [
+          requiredParameter(type: typeParameterTypeNone(T)),
         ],
       ),
-      functionTypeNone2(
+      functionTypeNone(
         returnType: voidNone,
         typeParameters: [T2],
-        parameters: [
-          requiredParameter2(type: typeParameterTypeNone(T2)),
+        formalParameters: [
+          requiredParameter(type: typeParameterTypeNone(T2)),
         ],
       ),
     );
@@ -203,7 +203,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
       functionTypeNone(
         returnType: typeParameterTypeNone(T),
         typeParameters: [T],
-        parameters: [
+        formalParameters: [
           requiredParameter(
             type: typeParameterTypeNone(T),
           ),
@@ -212,7 +212,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
       functionTypeNone(
         returnType: typeParameterTypeNone(T2),
         typeParameters: [T2],
-        parameters: [
+        formalParameters: [
           requiredParameter(
             type: typeParameterTypeNone(T2),
           ),
@@ -230,7 +230,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
       functionTypeNone(
         returnType: typeParameterTypeNone(T),
         typeParameters: [T, S],
-        parameters: [
+        formalParameters: [
           requiredParameter(
             type: typeParameterTypeNone(T),
           ),
@@ -242,7 +242,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
       functionTypeNone(
         returnType: typeParameterTypeNone(T2),
         typeParameters: [T2, S2],
-        parameters: [
+        formalParameters: [
           requiredParameter(
             type: typeParameterTypeNone(T2),
           ),

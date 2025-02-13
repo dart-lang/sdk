@@ -46,7 +46,7 @@ class TypeReferencesAnyTest extends AbstractTypeSystemTest {
     _checkTrue(functionTypeNone(returnType: T_none));
 
     _checkTrue(
-      functionTypeNone(returnType: voidNone, parameters: [
+      functionTypeNone(returnType: voidNone, formalParameters: [
         requiredParameter(type: T_none),
       ]),
     );

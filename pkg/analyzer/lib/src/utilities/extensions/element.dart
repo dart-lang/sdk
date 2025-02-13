@@ -586,6 +586,12 @@ extension ParameterElementExtension on ParameterElement {
   }
 }
 
+extension ParameterElementImplExtension on ParameterElementImpl {
+  FormalParameterElementImpl get asElement2 {
+    return element;
+  }
+}
+
 extension PrefixElement2Extension on PrefixElement2 {
   PrefixElement get asElement {
     return (this as PrefixElementImpl2).asElement;
