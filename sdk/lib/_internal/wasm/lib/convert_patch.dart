@@ -669,6 +669,11 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    */
   void addSliceToString(int start, int end);
 
+  /**
+   * Adds a string slice to the string being built.
+   */
+  void addStringSliceToString(String string);
+
   /** Finalizes the string being built and returns it as a String. */
   String endString();
 
@@ -1181,7 +1186,9 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
       if (char == BACKSLASH) {
         int sliceEnd = position - 1;
         beginString();
-        if (start < sliceEnd) addSliceToString(start, sliceEnd);
+        if (start < sliceEnd) {
+          addStringSliceToString(getString(start, sliceEnd, bits));
+        }
         return parseStringToBuffer(sliceEnd);
       }
       if (char < SPACE) {
@@ -1589,7 +1596,11 @@ class _JsonOneByteStringParser extends _ChunkedJsonParserState
   }
 
   void addSliceToString(int start, int end) {
-    stringBuffer.write(chunk.substringUnchecked(start, end));
+    addStringSliceToString(chunk.substringUnchecked(start, end));
+  }
+
+  void addStringSliceToString(String string) {
+    stringBuffer.write(string);
   }
 
   void addCharToString(int charCode) {
@@ -1635,15 +1646,34 @@ class _JsonTwoByteStringParser extends _ChunkedJsonParserState
 
   int getChar(int position) => chunk.codeUnitAtUnchecked(position);
 
-  String getString(int start, int end, int bits) =>
-      chunk.substringUnchecked(start, end);
+  String getString(int start, int end, int bits) {
+    int length = end - start;
+    if (length == 0) return '';
+
+    final WasmArray<WasmI16> sourceArray = chunk.array;
+    const int asciiBits = 0x7f;
+    if (bits <= asciiBits) {
+      final result = OneByteString.withLength(length);
+      for (int i = 0; i < length; ++i) {
+        result.array.write(i, sourceArray.readUnsigned(start++));
+      }
+      return result;
+    }
+    final result = TwoByteString.withLength(length);
+    result.array.copy(0, sourceArray, start, length);
+    return result;
+  }
 
   void beginString() {
     assert(stringBuffer.isEmpty);
   }
 
   void addSliceToString(int start, int end) {
-    stringBuffer.write(chunk.substringUnchecked(start, end));
+    addStringSliceToString(chunk.substringUnchecked(start, end));
+  }
+
+  void addStringSliceToString(String string) {
+    stringBuffer.write(string);
   }
 
   void addCharToString(int charCode) {
@@ -1835,7 +1865,11 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
   }
 
   void addSliceToString(int start, int end) {
-    stringBuffer.write(decoder.convertChunked(chunk, start, end));
+    addStringSliceToString(decoder.convertChunked(chunk, start, end));
+  }
+
+  void addStringSliceToString(String string) {
+    stringBuffer.write(string);
   }
 
   void addCharToString(int charCode) {
