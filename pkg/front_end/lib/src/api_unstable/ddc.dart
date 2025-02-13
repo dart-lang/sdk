@@ -161,8 +161,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     required Map<String, String> environmentDefines,
     bool trackNeededDillLibraries = false,
-    bool requirePrebuiltMacros = false,
-    List<String> precompiledMacros = const [],
     required NnbdMode nnbdMode}) {
   return modular.initializeIncrementalCompiler(
       oldState,
