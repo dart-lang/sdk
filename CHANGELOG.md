@@ -32,7 +32,7 @@ disallowed.
 
 ## 3.7.0
 
-**Released on:** Unreleased
+**Released on:** 2025-02-12
 
 ### Language
 
