@@ -79,6 +79,8 @@ main() {
 
 #### Analyzer
 
+- Add a new 'Go to imports' command to find the import directives that export a
+  declaration.
 - Assists and quick fixes that add an import now consider the
   `prefer_relative_imports` and `always_use_package_imports` lint rules.
 - Add a new fix that converts a `~/` operation into `/`, when the `~/`
@@ -93,6 +95,8 @@ main() {
   and with a `Flexible` widget.
 - Offer an assist to "inline" an else-block's inner if-statement with the
   else-block to read `else if`.
+- Add a fix to `use_decorated_box` by swapping the `Container` with
+  `ColoredBox` as suggested by the lint.
 - Add an additional fix to import an unknown prefixed identifier by updating
   the `show` combinator on an existing import.
 - Add a fix to import an unknown prefixed identifier by adding an
