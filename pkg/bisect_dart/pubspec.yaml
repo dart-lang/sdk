@@ -7,7 +7,6 @@ environment:
 
 dependencies:
   cli_config: any
-  intl: any
   logging: any
 
 dev_dependencies:
