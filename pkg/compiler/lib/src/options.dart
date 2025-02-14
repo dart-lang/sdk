@@ -4,6 +4,7 @@
 
 library;
 
+import 'package:collection/collection.dart';
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
@@ -126,8 +127,7 @@ enum CompilerStage {
     return CompilerStage.values.map((p) => '`${p._stageFlag}`').join(', ');
   }
 
-  static CompilerStage fromFlag(String? stageFlag) {
-    if (stageFlag == null) return CompilerStage.all;
+  static CompilerStage _fromFlagString(String stageFlag) {
     for (final stage in CompilerStage.values) {
       if (stageFlag == stage._stageFlag) {
         return stage;
@@ -137,6 +137,24 @@ enum CompilerStage {
       'Invalid stage: $stageFlag. '
       'Supported values are: $validFlagValuesString',
     );
+  }
+
+  /// Can be used from outside the compiler to determine which stage will run
+  /// based on provided flag.
+  ///
+  /// Used for internal build systems.
+  static CompilerStage fromFlag(String? stageFlag) {
+    return stageFlag == null ? CompilerStage.all : _fromFlagString(stageFlag);
+  }
+
+  static CompilerStage fromOptions(CompilerOptions options) {
+    final stageFlag = options._stageFlag;
+    if (stageFlag == null) {
+      return options._dumpInfoFormatOption != null
+          ? CompilerStage.dumpInfoAll
+          : CompilerStage.all;
+    }
+    return _fromFlagString(stageFlag);
   }
 }
 
@@ -289,6 +307,8 @@ abstract class DiagnosticOptions {
   /// Returns `true` if warnings should be should for [uri].
   bool showPackageWarningsFor(Uri uri);
 }
+
+enum DumpInfoFormat { binary, json }
 
 /// Object for passing options to the compiler. Superclasses are used to select
 /// subsets of these options, enabling each part of the compiler to depend on
@@ -470,9 +490,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// a standalone task (without re-emitting JS).
   Uri? _dumpInfoDataUri;
 
-  /// Whether to use the new dump-info binary format. This will be the default
-  /// after a transitional period.
-  bool useDumpInfoBinaryFormat = false;
+  /// Which format the user has chosen to emit dump info in if any.
+  DumpInfoFormat? _dumpInfoFormatOption;
+  DumpInfoFormat get dumpInfoFormat =>
+      _dumpInfoFormatOption ?? DumpInfoFormat.json;
 
   /// If set, SSA intermediate form is dumped for methods with names matching
   /// this RegExp pattern.
@@ -712,7 +733,7 @@ class CompilerOptions implements DiagnosticOptions {
   late final CompilerStage stage = _calculateStage();
 
   CompilerStage _calculateStage() =>
-      _cfeOnly ? CompilerStage.cfe : CompilerStage.fromFlag(_stageFlag);
+      _cfeOnly ? CompilerStage.cfe : CompilerStage.fromOptions(this);
 
   Uri? _outputUri;
   Uri? outputUri;
@@ -895,9 +916,11 @@ class CompilerOptions implements DiagnosticOptions {
         options,
         '${Flags.dumpInfoDataUri}=',
       )
-      ..useDumpInfoBinaryFormat = _hasOption(
+      .._dumpInfoFormatOption = _extractEnumOption(
         options,
-        "${Flags.dumpInfo}=binary",
+        Flags.dumpInfo,
+        DumpInfoFormat.values,
+        emptyValue: DumpInfoFormat.binary,
       )
       ..dumpSsaPattern = _extractStringOption(
         options,
@@ -1268,6 +1291,22 @@ Uri? _extractUriOption(List<String> options, String prefix) {
 int? _extractIntOption(List<String> options, String prefix) {
   String? option = _extractStringOption(options, prefix, null);
   return (option == null) ? null : int.parse(option);
+}
+
+/// Extracts an enum value for the flag given by [prefix].
+///
+/// [emptyValue] is used to provide a default value when the flag is given but
+/// with no '=' value provided.
+T? _extractEnumOption<T extends Enum>(
+  List<String> options,
+  String prefix,
+  List<T> values, {
+  T? emptyValue,
+}) {
+  if (emptyValue != null && _hasOption(options, prefix)) return emptyValue;
+  String? option = _extractStringOption(options, '$prefix=', null);
+  if (option == null) return null;
+  return values.firstWhereOrNull((e) => e.name == option);
 }
 
 bool _hasOption(List<String> options, String option) {

@@ -17,7 +17,8 @@ import 'commandline_options.dart';
 import 'common/ram_usage.dart';
 import 'compiler.dart' as default_compiler show Compiler;
 import 'io/mapped_file.dart';
-import 'options.dart' show CompilerOptions, CompilerStage, FeatureOptions;
+import 'options.dart'
+    show CompilerOptions, CompilerStage, DumpInfoFormat, FeatureOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
@@ -344,17 +345,17 @@ Future<api.CompilationResult> compile(
   }
 
   void setDumpInfo(String argument) {
-    passThrough(Flags.dumpInfo);
-    if (argument == Flags.dumpInfo || argument == "${Flags.dumpInfo}=json") {
-      return;
-    }
-    if (argument == "${Flags.dumpInfo}=binary") {
+    final hasEnumFormatMatch = DumpInfoFormat.values.any(
+      (e) => '${Flags.dumpInfo}=${e.name}' == argument,
+    );
+    if (argument == Flags.dumpInfo || hasEnumFormatMatch) {
       passThrough(argument);
       return;
     }
     _helpAndFail(
       "Unsupported dump-info format '$argument', "
-      "supported formats are: json or binary",
+      "supported formats: "
+      "${DumpInfoFormat.values.map((e) => e.name).join(', ')}",
     );
   }
 

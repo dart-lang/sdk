@@ -388,7 +388,7 @@ class SerializationTask extends CompilerTask {
     source.registerAbstractValueDomain(abstractValueDomain);
     return DumpInfoProgramData.readFromDataSource(
       source,
-      includeCodeText: !_options.useDumpInfoBinaryFormat,
+      includeCodeText: _options.dumpInfoFormat != DumpInfoFormat.binary,
     );
   }
 }
