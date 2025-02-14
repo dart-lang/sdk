@@ -1599,7 +1599,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         (libraryChangeBuilder ?? this)._elementLibrariesToImport;
     var libraryToImport = resultCache?[element] ??
         await TopLevelDeclarations(resolvedUnit)
-            .publiclyExporting2(element, resultCache: resultCache) ??
+            .publiclyExporting(element, resultCache: resultCache) ??
         // Fall back to the element's library if we didn't find a better one.
         element.library2;
 
