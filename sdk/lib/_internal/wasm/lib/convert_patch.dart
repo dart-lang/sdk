@@ -161,16 +161,6 @@ class _JsonListener {
 
   /** Pops the top container from the [stack]. */
   void popContainer() {
-    final currentContainerLocal = currentContainer;
-    if (currentContainerLocal == null) {
-      value = null;
-    } else {
-      value = GrowableList.withDataAndLength(
-        currentContainerLocal,
-        currentContainerLength,
-      );
-    }
-
     final GrowableList<dynamic>? currentContainerList = stackPop();
     if (currentContainerList == null) {
       currentContainer = null;
@@ -220,12 +210,11 @@ class _JsonListener {
   }
 
   void endObject() {
-    popContainer();
-    final list = unsafeCast<GrowableList>(value);
     value = createMapFromKeyValueListUnsafe<String, dynamic>(
-      list.data,
-      list.length,
+      unsafeCast<WasmArray<Object?>>(currentContainer),
+      currentContainerLength,
     );
+    popContainer();
   }
 
   void beginArray() {
@@ -242,6 +231,10 @@ class _JsonListener {
   }
 
   void endArray() {
+    value = GrowableList.withDataAndLength(
+      unsafeCast<WasmArray<Object?>>(currentContainer),
+      currentContainerLength,
+    );
     popContainer();
   }
 
