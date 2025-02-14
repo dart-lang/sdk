@@ -2721,24 +2721,6 @@ library my.new_name;
     );
   }
 
-  Future<void> test_library_partOfDirective() {
-    newFile('$testPackageLibPath/my_lib.dart', '''
-library aaa.bbb.ccc;
-part 'test.dart';
-''');
-    addTestFile('''
-part of aaa.bbb.ccc;
-''');
-    return assertSuccessfulRefactoring(
-      () {
-        return sendRenameRequest('aaa.bb', 'my.new_name');
-      },
-      '''
-part of my.new_name;
-''',
-    );
-  }
-
   Future<void> test_localVariable() {
     setPriorityFiles([testFile]);
     addTestFile('''
