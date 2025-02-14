@@ -1,6 +1,7 @@
 set noparent
 file:/tools/OWNERS_CFE
-# In addition to CFE team allow global owners.
+file:/tools/OWNERS_MODEL
+# In addition to CFE and Dart Model teams allow global owners.
 file:/OWNERS
 
 # Add the VM team as owners of ResidentFrontendServer-related files.
