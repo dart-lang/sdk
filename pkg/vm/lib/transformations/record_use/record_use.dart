@@ -38,10 +38,7 @@ ast.Component transformComponent(
 
   final staticCallRecorder = CallRecorder(source, loadingUnits);
   final instanceUseRecorder = InstanceRecorder(source, loadingUnits);
-  component.accept(_RecordUseVisitor(
-    staticCallRecorder,
-    instanceUseRecorder,
-  ));
+  component.accept(_RecordUseVisitor(staticCallRecorder, instanceUseRecorder));
 
   final usages = _usages(
     staticCallRecorder.foundCalls,
@@ -59,10 +56,7 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
   final CallRecorder staticCallRecorder;
   final InstanceRecorder instanceUseRecorder;
 
-  _RecordUseVisitor(
-    this.staticCallRecorder,
-    this.instanceUseRecorder,
-  );
+  _RecordUseVisitor(this.staticCallRecorder, this.instanceUseRecorder);
 
   @override
   void visitStaticInvocation(ast.StaticInvocation node) {
@@ -96,49 +90,56 @@ UsageRecord _usages(
 }
 
 Constant evaluateConstant(ast.Constant constant) => switch (constant) {
-      ast.NullConstant() => NullConstant(),
-      ast.BoolConstant() => BoolConstant(constant.value),
-      ast.IntConstant() => IntConstant(constant.value),
-      ast.DoubleConstant() => _unsupported('DoubleConstant'),
-      ast.StringConstant() => StringConstant(constant.value),
-      ast.SymbolConstant() => StringConstant(constant.name),
-      ast.MapConstant() => MapConstant(Map.fromEntries(
-          constant.entries.map((e) => MapEntry(
-              (e.key as ast.StringConstant).value, evaluateConstant(e.value))),
-        )),
-      ast.ListConstant() =>
-        ListConstant(constant.entries.map(evaluateConstant).toList()),
-      // The following are not supported, but theoretically could be, so they
-      // are listed explicitly here.
-      ast.InstanceConstant() => _unsupported('InstanceConstant'),
-      ast.AuxiliaryConstant() => _unsupported('AuxiliaryConstant'),
-      ast.SetConstant() => _unsupported('SetConstant'),
-      ast.RecordConstant() => _unsupported('RecordConstant'),
-      ast.InstantiationConstant() => _unsupported('InstantiationConstant'),
-      ast.TearOffConstant() => _unsupported('TearOffConstant'),
-      ast.TypedefTearOffConstant() => _unsupported('TypedefTearOffConstant'),
-      ast.TypeLiteralConstant() => _unsupported('TypeLiteralConstant'),
-      ast.UnevaluatedConstant() => _unsupported('UnevaluatedConstant'),
-    };
+  ast.NullConstant() => NullConstant(),
+  ast.BoolConstant() => BoolConstant(constant.value),
+  ast.IntConstant() => IntConstant(constant.value),
+  ast.DoubleConstant() => _unsupported('DoubleConstant'),
+  ast.StringConstant() => StringConstant(constant.value),
+  ast.SymbolConstant() => StringConstant(constant.name),
+  ast.MapConstant() => MapConstant(
+    Map.fromEntries(
+      constant.entries.map(
+        (e) => MapEntry(
+          (e.key as ast.StringConstant).value,
+          evaluateConstant(e.value),
+        ),
+      ),
+    ),
+  ),
+  ast.ListConstant() => ListConstant(
+    constant.entries.map(evaluateConstant).toList(),
+  ),
+  // The following are not supported, but theoretically could be, so they
+  // are listed explicitly here.
+  ast.InstanceConstant() => _unsupported('InstanceConstant'),
+  ast.AuxiliaryConstant() => _unsupported('AuxiliaryConstant'),
+  ast.SetConstant() => _unsupported('SetConstant'),
+  ast.RecordConstant() => _unsupported('RecordConstant'),
+  ast.InstantiationConstant() => _unsupported('InstantiationConstant'),
+  ast.TearOffConstant() => _unsupported('TearOffConstant'),
+  ast.TypedefTearOffConstant() => _unsupported('TypedefTearOffConstant'),
+  ast.TypeLiteralConstant() => _unsupported('TypeLiteralConstant'),
+  ast.UnevaluatedConstant() => _unsupported('UnevaluatedConstant'),
+};
 
 Constant evaluateLiteral(ast.BasicLiteral expression) => switch (expression) {
-      ast.NullLiteral() => NullConstant(),
-      ast.IntLiteral() => IntConstant(expression.value),
-      ast.BoolLiteral() => BoolConstant(expression.value),
-      ast.StringLiteral() => StringConstant(expression.value),
-      ast.DoubleLiteral() => _unsupported('DoubleLiteral'),
-      ast.BasicLiteral() => _unsupported(expression.runtimeType.toString()),
-    };
+  ast.NullLiteral() => NullConstant(),
+  ast.IntLiteral() => IntConstant(expression.value),
+  ast.BoolLiteral() => BoolConstant(expression.value),
+  ast.StringLiteral() => StringConstant(expression.value),
+  ast.DoubleLiteral() => _unsupported('DoubleLiteral'),
+  ast.BasicLiteral() => _unsupported(expression.runtimeType.toString()),
+};
 
 Never _unsupported(String constantType) =>
     throw UnsupportedError('$constantType is not supported for recording.');
 
 extension RecordUseLocation on ast.Location {
   Location recordLocation(Uri source) => Location(
-        uri: relativizeUri(source, this.file, Platform.isWindows),
-        line: line,
-        column: column,
-      );
+    uri: relativizeUri(source, this.file, Platform.isWindows),
+    line: line,
+    column: column,
+  );
 }
 
 String getImportUri(ast.Library library, Uri source) {

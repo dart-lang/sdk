@@ -64,7 +64,11 @@ late Function unknown;
 getDynamic() => unknown.call();
 
 main(List<String> args) {
-  foo1(new Future<B>.value(new B()), new B(), new Future<B>.value(new B()),
-      new B());
+  foo1(
+    new Future<B>.value(new B()),
+    new B(),
+    new Future<B>.value(new B()),
+    new B(),
+  );
   foo2(getDynamic(), getDynamic(), getDynamic(), getDynamic());
 }

@@ -17,11 +17,16 @@ final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
 runTestCase(Uri source) async {
   final target = VmTarget(new TargetFlags());
-  final component =
-      await compileTestCaseToKernelProgram(source, target: target);
+  final component = await compileTestCaseToKernelProgram(
+    source,
+    target: target,
+  );
   transformComponent(component);
   verifyComponent(
-      target, VerificationStage.afterGlobalTransformations, component);
+    target,
+    VerificationStage.afterGlobalTransformations,
+    component,
+  );
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
   compareResultWithExpectationsFile(source, actual);
@@ -29,12 +34,14 @@ runTestCase(Uri source) async {
 
 main() {
   group('mixin-deduplication', () {
-    final testCasesDir =
-        Directory(pkgVmDir + '/testcases/transformations/mixin_deduplication');
+    final testCasesDir = Directory(
+      pkgVmDir + '/testcases/transformations/mixin_deduplication',
+    );
 
-    for (var entry in testCasesDir
-        .listSync(recursive: true, followLinks: false)
-        .reversed) {
+    for (var entry
+        in testCasesDir
+            .listSync(recursive: true, followLinks: false)
+            .reversed) {
       if (entry.path.endsWith(".dart")) {
         test(entry.path, () => runTestCase(entry.uri));
       }

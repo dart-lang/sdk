@@ -54,8 +54,12 @@ class TestCase {
   final bool enableAsserts;
   final bool throws;
 
-  const TestCase(this.os,
-      {required this.debug, required this.enableAsserts, this.throws = false});
+  const TestCase(
+    this.os, {
+    required this.debug,
+    required this.enableAsserts,
+    this.throws = false,
+  });
 
   String postfix() {
     String result = '.${os.name}';
@@ -72,8 +76,10 @@ class TestCase {
 class TestOptions {
   static const Option<bool?> debug = Option('--debug', BoolValue(null));
 
-  static const Option<bool?> enableAsserts =
-      Option('--enable-asserts', BoolValue(null));
+  static const Option<bool?> enableAsserts = Option(
+    '--enable-asserts',
+    BoolValue(null),
+  );
 
   static const Option<String?> targetOS = Option('--target-os', StringValue());
 
@@ -82,23 +88,35 @@ class TestOptions {
 
 runTestCase(Uri source, TestCase testCase) async {
   final target = new VmTarget(new TargetFlags());
-  Component component = await compileTestCaseToKernelProgram(source,
-      target: target,
-      environmentDefines: {
-        'test.define.debug': testCase.debug ? 'true' : 'false',
-        'test.define.enableAsserts': testCase.enableAsserts ? 'true' : 'false',
-      });
+  Component component = await compileTestCaseToKernelProgram(
+    source,
+    target: target,
+    environmentDefines: {
+      'test.define.debug': testCase.debug ? 'true' : 'false',
+      'test.define.enableAsserts': testCase.enableAsserts ? 'true' : 'false',
+    },
+  );
 
   final reporter = TestErrorReporter();
-  final evaluator = VMConstantEvaluator.create(target, component, testCase.os,
-      enableAsserts: testCase.enableAsserts, errorReporter: reporter);
+  final evaluator = VMConstantEvaluator.create(
+    target,
+    component,
+    testCase.os,
+    enableAsserts: testCase.enableAsserts,
+    errorReporter: reporter,
+  );
   late String actual;
   if (testCase.throws) {
     try {
       component = transformComponent(
-          target, component, evaluator, testCase.enableAsserts);
-      final kernel =
-          kernelLibraryToString(component.mainMethod!.enclosingLibrary);
+        target,
+        component,
+        evaluator,
+        testCase.enableAsserts,
+      );
+      final kernel = kernelLibraryToString(
+        component.mainMethod!.enclosingLibrary,
+      );
       fail("Expected compilation failure, got:\n$kernel");
     } on PlatformConstError catch (e) {
       final buffer = StringBuffer();
@@ -126,16 +144,26 @@ runTestCase(Uri source, TestCase testCase) async {
     }
   } else {
     component = transformComponent(
-        target, component, evaluator, testCase.enableAsserts);
+      target,
+      component,
+      evaluator,
+      testCase.enableAsserts,
+    );
     if (reporter.reportedMessages.isNotEmpty) {
       fail('Expected no errors, got:\n${reporter.reportedMessages.join('\n')}');
     }
     verifyComponent(
-        target, VerificationStage.afterGlobalTransformations, component);
+      target,
+      VerificationStage.afterGlobalTransformations,
+      component,
+    );
     actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
   }
-  compareResultWithExpectationsFile(source, actual,
-      expectFilePostfix: testCase.postfix());
+  compareResultWithExpectationsFile(
+    source,
+    actual,
+    expectFilePostfix: testCase.postfix(),
+  );
 }
 
 void runWithTargetOS(ParsedOptions? parsedOptions, void Function(TargetOS) fn) {
@@ -158,8 +186,11 @@ void runWithTargetOS(ParsedOptions? parsedOptions, void Function(TargetOS) fn) {
   }
 }
 
-void runWithBool(Option<bool?> option, ParsedOptions? parsedOptions,
-    void Function(bool) fn) {
+void runWithBool(
+  Option<bool?> option,
+  ParsedOptions? parsedOptions,
+  void Function(bool) fn,
+) {
   bool? specified;
   if (parsedOptions != null) {
     specified = option.read(parsedOptions);
@@ -178,15 +209,20 @@ void runTest(String path, Uri uri, {bool throws = false}) {
   final optionsFile = File('$path.options');
   if (optionsFile.existsSync()) {
     options = ParsedOptions.parse(
-        ParsedOptions.readOptionsFile(optionsFile.readAsStringSync()),
-        TestOptions.options);
+      ParsedOptions.readOptionsFile(optionsFile.readAsStringSync()),
+      TestOptions.options,
+    );
   }
 
   runWithTargetOS(options, (os) {
     runWithBool(TestOptions.enableAsserts, options, (enableAsserts) {
       runWithBool(TestOptions.debug, options, (debug) {
-        final testCase = TestCase(os,
-            debug: debug, enableAsserts: enableAsserts, throws: throws);
+        final testCase = TestCase(
+          os,
+          debug: debug,
+          enableAsserts: enableAsserts,
+          throws: throws,
+        );
         test('$path${testCase.postfix()}', () => runTestCase(uri, testCase));
       });
     });
@@ -196,13 +232,18 @@ void runTest(String path, Uri uri, {bool throws = false}) {
 main() {
   group('platform-use-transformation', () {
     final testCasesPath = path.join(
-        pkgVmDir, 'testcases', 'transformations', 'vm_constant_evaluator');
+      pkgVmDir,
+      'testcases',
+      'transformations',
+      'vm_constant_evaluator',
+    );
 
     group('successes', () {
       final successCasesPath = path.join(testCasesPath, 'successes');
-      for (var entry in Directory(successCasesPath)
-          .listSync(recursive: true, followLinks: false)
-          .reversed) {
+      for (var entry
+          in Directory(
+            successCasesPath,
+          ).listSync(recursive: true, followLinks: false).reversed) {
         if (entry.path.endsWith('.dart')) {
           runTest(entry.path, entry.uri);
         }
@@ -212,9 +253,10 @@ main() {
     group('failures', () {
       final errorCasesPath = path.join(testCasesPath, 'errors');
 
-      for (var entry in Directory(errorCasesPath)
-          .listSync(recursive: true, followLinks: false)
-          .reversed) {
+      for (var entry
+          in Directory(
+            errorCasesPath,
+          ).listSync(recursive: true, followLinks: false).reversed) {
         if (entry.path.endsWith('.dart')) {
           runTest(entry.path, entry.uri, throws: true);
         }

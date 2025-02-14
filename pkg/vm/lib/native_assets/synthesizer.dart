@@ -33,11 +33,7 @@ class NativeAssetsSynthesizer {
     );
     Component(
       libraries: [
-        Library(
-          corelibUri,
-          fileUri: _dummyFileUri,
-          classes: [pragma],
-        )
+        Library(corelibUri, fileUri: _dummyFileUri, classes: [pragma]),
       ],
     );
     return pragma;
@@ -48,32 +44,35 @@ class NativeAssetsSynthesizer {
   /// [nativeAssetsYaml] must have been validated with [NativeAssetsValidator].
   ///
   /// The VM consumes this component in runtime/vm/ffi/native_assets.cc.
-  static Library synthesizeLibrary(
-    Map nativeAssetsYaml, {
-    Class? pragmaClass,
-  }) {
+  static Library synthesizeLibrary(Map nativeAssetsYaml, {Class? pragmaClass}) {
     // We don't need the format-version in the VM.
     final jsonForVM = nativeAssetsYaml['native-assets'] as Map;
     final nativeAssetsConstant = jsonToKernelConstant(jsonForVM);
 
     pragmaClass ??= _pragmaClass();
-    final pragmaName =
-        pragmaClass.fields.singleWhere((f) => f.name.text == 'name');
-    final pragmaOptions =
-        pragmaClass.fields.singleWhere((f) => f.name.text == 'options');
+    final pragmaName = pragmaClass.fields.singleWhere(
+      (f) => f.name.text == 'name',
+    );
+    final pragmaOptions = pragmaClass.fields.singleWhere(
+      (f) => f.name.text == 'options',
+    );
 
     return Library(
       Uri.parse('vm:ffi:native-assets'),
       fileUri: _dummyFileUri,
       annotations: [
-        ConstantExpression(InstanceConstant(pragmaClass.reference, [], {
-          pragmaName.fieldReference: StringConstant('vm:entry-point'),
-          pragmaOptions.fieldReference: NullConstant(),
-        })),
-        ConstantExpression(InstanceConstant(pragmaClass.reference, [], {
-          pragmaName.fieldReference: StringConstant('vm:ffi:native-assets'),
-          pragmaOptions.fieldReference: nativeAssetsConstant,
-        })),
+        ConstantExpression(
+          InstanceConstant(pragmaClass.reference, [], {
+            pragmaName.fieldReference: StringConstant('vm:entry-point'),
+            pragmaOptions.fieldReference: NullConstant(),
+          }),
+        ),
+        ConstantExpression(
+          InstanceConstant(pragmaClass.reference, [], {
+            pragmaName.fieldReference: StringConstant('vm:ffi:native-assets'),
+            pragmaOptions.fieldReference: nativeAssetsConstant,
+          }),
+        ),
       ],
     );
   }
@@ -93,8 +92,9 @@ class NativeAssetsSynthesizer {
       return null;
     }
 
-    final nativeAssetsYaml = NativeAssetsValidator(errorDetector)
-        .parseAndValidate(nativeAssetsYamlString);
+    final nativeAssetsYaml = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(nativeAssetsYamlString);
     if (nativeAssetsYaml == null) {
       return null;
     }
@@ -121,11 +121,13 @@ class NativeAssetsSynthesizer {
 
     final nativeAssetsFile = File.fromUri(nativeAssetsUri);
     if (!await nativeAssetsFile.exists()) {
-      errorDetector(NativeAssetsDiagnosticMessage(
-        message:
-            "Native assets file ${nativeAssetsUri.toFilePath()} doesn't exist.",
-        involvedFiles: [nativeAssetsUri],
-      ));
+      errorDetector(
+        NativeAssetsDiagnosticMessage(
+          message:
+              "Native assets file ${nativeAssetsUri.toFilePath()} doesn't exist.",
+          involvedFiles: [nativeAssetsUri],
+        ),
+      );
       return null;
     }
     final nativeAssetsYamlString = await nativeAssetsFile.readAsString();

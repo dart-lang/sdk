@@ -41,17 +41,18 @@ void runTestCaseAot(Uri source, bool throws) async {
     path: path.join(tempDir, 'recorded_usages.json'),
   );
   runGlobalTransformations(
-      target,
-      component,
-      nopErrorDetector,
-      KernelCompilationArguments(
-        useGlobalTypeFlowAnalysis: true,
-        enableAsserts: false,
-        useProtobufTreeShakerV2: true,
-        treeShakeWriteOnlyFields: true,
-        recordedUsages: recordedUsagesFile,
-        source: source,
-      ));
+    target,
+    component,
+    nopErrorDetector,
+    KernelCompilationArguments(
+      useGlobalTypeFlowAnalysis: true,
+      enableAsserts: false,
+      useProtobufTreeShakerV2: true,
+      treeShakeWriteOnlyFields: true,
+      recordedUsages: recordedUsagesFile,
+      source: source,
+    ),
+  );
 
   verifyComponent(
     target,
@@ -59,8 +60,9 @@ void runTestCaseAot(Uri source, bool throws) async {
     component,
   );
 
-  final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary)
-      .replaceAll(_pkgVmDir.toString(), 'org-dartlang-test:///');
+  final actual = kernelLibraryToString(
+    component.mainMethod!.enclosingLibrary,
+  ).replaceAll(_pkgVmDir.toString(), 'org-dartlang-test:///');
 
   compareResultWithExpectationsFile(source, actual, expectFilePostfix: '.aot');
   compareResultWithExpectationsFile(
@@ -75,17 +77,21 @@ void main(List<String> args) {
   final filter = args.firstOrNull;
   group('record-use-transformations', () {
     final testCasesDir = Directory.fromUri(
-        _pkgVmDir.resolve('testcases/transformations/record_use/'));
+      _pkgVmDir.resolve('testcases/transformations/record_use/'),
+    );
 
-    for (var file in testCasesDir
-        .listSync(recursive: true, followLinks: false)
-        .reversed) {
+    for (var file
+        in testCasesDir
+            .listSync(recursive: true, followLinks: false)
+            .reversed) {
       if (file.path.endsWith('.dart') &&
           !file.path.contains('helper') &&
           !file.path.contains('instance_complex') &&
           (filter == null || file.path.contains(filter))) {
-        test('${file.path} aot',
-            () => runTestCaseAot(file.uri, file.path.contains('throws')));
+        test(
+          '${file.path} aot',
+          () => runTestCaseAot(file.uri, file.path.contains('throws')),
+        );
       }
     }
   });

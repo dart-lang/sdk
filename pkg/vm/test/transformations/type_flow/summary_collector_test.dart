@@ -32,7 +32,7 @@ class FakeTypesBuilder extends TypesBuilder {
   int _classIdCounter = 0;
 
   FakeTypesBuilder(CoreTypes coreTypes, Target target)
-      : super(coreTypes, target);
+    : super(coreTypes, target);
 
   @override
   TFClass getTFClass(Class c) =>
@@ -88,9 +88,11 @@ class FakeSharedVariable implements SharedVariable {
       throw 'Not implemented';
 
   @override
-  void setValue(Type newValue, TypeHierarchy typeHierarchy,
-          CallHandler callHandler) =>
-      throw 'Not implemented';
+  void setValue(
+    Type newValue,
+    TypeHierarchy typeHierarchy,
+    CallHandler callHandler,
+  ) => throw 'Not implemented';
 
   @override
   String toString() => name;
@@ -102,12 +104,14 @@ class FakeSharedVariableBuilder implements SharedVariableBuilder {
 
   @override
   SharedVariable getSharedVariable(VariableDeclaration variable) =>
-      _sharedVariables[variable] ??=
-          FakeSharedVariable(variable.name ?? '__tmp');
+      _sharedVariables[variable] ??= FakeSharedVariable(
+        variable.name ?? '__tmp',
+      );
   @override
   SharedVariable getSharedCapturedThis(Member member) =>
-      _sharedCapturedThisVariables[member] ??=
-          FakeSharedVariable('${nodeToText(member)}::this');
+      _sharedCapturedThisVariables[member] ??= FakeSharedVariable(
+        '${nodeToText(member)}::this',
+      );
 }
 
 class PrintSummaries extends RecursiveVisitor {
@@ -115,20 +119,25 @@ class PrintSummaries extends RecursiveVisitor {
   final StringBuffer _buf = new StringBuffer();
   Member? _enclosingMember;
 
-  PrintSummaries(Target target, TypeEnvironment environment,
-      CoreTypes coreTypes, ClosedWorldClassHierarchy hierarchy) {
+  PrintSummaries(
+    Target target,
+    TypeEnvironment environment,
+    CoreTypes coreTypes,
+    ClosedWorldClassHierarchy hierarchy,
+  ) {
     final typesBuilder = FakeTypesBuilder(coreTypes, target);
     final annotationParser = ConstantPragmaAnnotationParser(coreTypes, target);
     _summaryCollector = SummaryCollector(
-        target,
-        environment,
-        hierarchy,
-        FakeEntryPointsListener(typesBuilder),
-        typesBuilder,
-        NativeCodeOracle(coreTypes.index, annotationParser),
-        GenericInterfacesInfoImpl(coreTypes, hierarchy),
-        FakeSharedVariableBuilder(),
-        /*_protobufHandler=*/ null);
+      target,
+      environment,
+      hierarchy,
+      FakeEntryPointsListener(typesBuilder),
+      typesBuilder,
+      NativeCodeOracle(coreTypes.index, annotationParser),
+      GenericInterfacesInfoImpl(coreTypes, hierarchy),
+      FakeSharedVariableBuilder(),
+      /*_protobufHandler=*/ null,
+    );
   }
 
   String print(Library node) {
@@ -172,16 +181,21 @@ class PrintSummaries extends RecursiveVisitor {
 }
 
 class TestOptions {
-  static const Option<List<String>?> enableExperiment =
-      Option('--enable-experiment', StringListValue());
+  static const Option<List<String>?> enableExperiment = Option(
+    '--enable-experiment',
+    StringListValue(),
+  );
 
   static const List<Option> options = [enableExperiment];
 }
 
 runTestCase(Uri source, List<String>? experimentalFlags) async {
   final Target target = new VmTarget(new TargetFlags());
-  final Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: experimentalFlags);
+  final Component component = await compileTestCaseToKernelProgram(
+    source,
+    target: target,
+    experimentalFlags: experimentalFlags,
+  );
   final Library library = component.mainMethod!.enclosingLibrary;
   final CoreTypes coreTypes = new CoreTypes(component);
 
@@ -189,28 +203,35 @@ runTestCase(Uri source, List<String>? experimentalFlags) async {
       new ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
 
-  final actual =
-      new PrintSummaries(target, typeEnvironment, coreTypes, hierarchy)
-          .print(library);
+  final actual = new PrintSummaries(
+    target,
+    typeEnvironment,
+    coreTypes,
+    hierarchy,
+  ).print(library);
 
   compareResultWithExpectationsFile(source, actual);
 }
 
 main() {
   group('collect-summary', () {
-    final testCasesDir = Directory.fromUri(pkgVmDir
-        .resolve('testcases/transformations/type_flow/summary_collector'));
+    final testCasesDir = Directory.fromUri(
+      pkgVmDir.resolve('testcases/transformations/type_flow/summary_collector'),
+    );
 
-    for (var entry
-        in testCasesDir.listSync(recursive: true, followLinks: false)) {
+    for (var entry in testCasesDir.listSync(
+      recursive: true,
+      followLinks: false,
+    )) {
       final path = entry.path;
       if (path.endsWith(".dart")) {
         List<String>? experimentalFlags;
         final File optionsFile = new File('${path}.options');
         if (optionsFile.existsSync()) {
           ParsedOptions parsedOptions = ParsedOptions.parse(
-              ParsedOptions.readOptionsFile(optionsFile.readAsStringSync()),
-              TestOptions.options);
+            ParsedOptions.readOptionsFile(optionsFile.readAsStringSync()),
+            TestOptions.options,
+          );
           experimentalFlags = TestOptions.enableExperiment.read(parsedOptions);
         }
         test(path, () => runTestCase(entry.uri, experimentalFlags));

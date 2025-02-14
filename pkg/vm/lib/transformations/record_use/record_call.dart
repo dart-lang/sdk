@@ -86,8 +86,10 @@ class CallRecorder {
   /// shared across multiple calls to the same method.
   Usage _getCall(ast.Procedure target) {
     final definition = _definitionFromMember(target);
-    return _callsForMethod[target] ??=
-        Usage(definition: definition, references: []);
+    return _callsForMethod[target] ??= Usage(
+      definition: definition,
+      references: [],
+    );
   }
 
   CallReference _createCallReference(ast.StaticInvocation node) {
@@ -115,14 +117,20 @@ class CallRecorder {
       loadingUnit: loadingUnitForNode(node, _loadingUnits).toString(),
       arguments: Arguments(
         constArguments: ConstArguments(
-          positional: positionalGrouped[false] != null
-              ? Map.fromEntries(positionalGrouped[false]!
-                  .map((e) => MapEntry(e.key, e.value!)))
-              : null,
-          named: namedGrouped[false] != null
-              ? Map.fromEntries(
-                  namedGrouped[false]!.map((e) => MapEntry(e.key, e.value!)))
-              : null,
+          positional:
+              positionalGrouped[false] != null
+                  ? Map.fromEntries(
+                    positionalGrouped[false]!.map(
+                      (e) => MapEntry(e.key, e.value!),
+                    ),
+                  )
+                  : null,
+          named:
+              namedGrouped[false] != null
+                  ? Map.fromEntries(
+                    namedGrouped[false]!.map((e) => MapEntry(e.key, e.value!)),
+                  )
+                  : null,
         ),
         nonConstArguments: NonConstArguments(
           positional: positionalGrouped[true]?.map((e) => e.key).toList(),
@@ -133,8 +141,8 @@ class CallRecorder {
   }
 
   Map<bool, List<MapEntry<T, Constant?>>> _groupByNull<T>(
-          Iterable<MapEntry<T, Constant?>> arguments) =>
-      groupBy(arguments, (entry) => entry.value == null);
+    Iterable<MapEntry<T, Constant?>> arguments,
+  ) => groupBy(arguments, (entry) => entry.value == null);
 
   Constant? _evaluateLiteral(ast.Expression expression) {
     if (expression is ast.BasicLiteral) {

@@ -17,15 +17,16 @@ native-assets:
   linux_x64:
     'package:foo/foo.dart': ['absolute', '/path/to/libfoo.so']
 ''';
-    final result =
-        NativeAssetsValidator(errorDetector).parseAndValidate(yamlString);
+    final result = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(yamlString);
     expect(result, {
       'format-version': [1, 0, 0],
       'native-assets': {
         'linux_x64': {
-          'package:foo/foo.dart': ['absolute', '/path/to/libfoo.so']
-        }
-      }
+          'package:foo/foo.dart': ['absolute', '/path/to/libfoo.so'],
+        },
+      },
     });
     expect(errorDetector.hasCompilationErrors, false);
   });
@@ -33,11 +34,13 @@ native-assets:
   test('not yaml', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-        previousErrorHandler: (message) =>
-            errors.add(message as NativeAssetsDiagnosticMessage));
+      previousErrorHandler:
+          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+    );
     final yamlString = '&&&';
-    final result =
-        NativeAssetsValidator(errorDetector).parseAndValidate(yamlString);
+    final result = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(yamlString);
     expect(errorDetector.hasCompilationErrors, true);
     expect(result, null);
     expect(errors.single.message, equals('File not formatted as yaml: &&&.'));
@@ -46,16 +49,18 @@ native-assets:
   test('no format-version', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-        previousErrorHandler: (message) =>
-            errors.add(message as NativeAssetsDiagnosticMessage));
+      previousErrorHandler:
+          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+    );
 
     final yamlString = '''
 native-assets:
   linux_x64:
     'package:foo/foo.dart': ['absolute', '/path/to/libfoo.so']
 ''';
-    final result =
-        NativeAssetsValidator(errorDetector).parseAndValidate(yamlString);
+    final result = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(yamlString);
     expect(errorDetector.hasCompilationErrors, true);
     expect(result, null);
     expect(errors.single.message, startsWith('Expected format-version in'));
@@ -64,32 +69,38 @@ native-assets:
   test('wrong format-version', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-        previousErrorHandler: (message) =>
-            errors.add(message as NativeAssetsDiagnosticMessage));
+      previousErrorHandler:
+          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+    );
     final yamlString = '''
 format-version: [9000, 0, 1]
 native-assets:
   linux_x64:
     'package:foo/foo.dart': ['absolute', '/path/to/libfoo.so']
 ''';
-    final result =
-        NativeAssetsValidator(errorDetector).parseAndValidate(yamlString);
+    final result = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(yamlString);
     expect(errorDetector.hasCompilationErrors, true);
     expect(result, null);
-    expect(errors.single.message,
-        startsWith('Unexpected format version: [9000, 0, 1].'));
+    expect(
+      errors.single.message,
+      startsWith('Unexpected format version: [9000, 0, 1].'),
+    );
   });
 
   test('no native-assets', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-        previousErrorHandler: (message) =>
-            errors.add(message as NativeAssetsDiagnosticMessage));
+      previousErrorHandler:
+          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+    );
     final yamlString = '''
 format-version: [1, 0, 0]
 ''';
-    final result =
-        NativeAssetsValidator(errorDetector).parseAndValidate(yamlString);
+    final result = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(yamlString);
     expect(errorDetector.hasCompilationErrors, true);
     expect(result, null);
     expect(errors.single.message, startsWith('Expected native-assets in'));
@@ -98,86 +109,102 @@ format-version: [1, 0, 0]
   test('invalid target warning', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-        previousErrorHandler: (message) =>
-            errors.add(message as NativeAssetsDiagnosticMessage));
+      previousErrorHandler:
+          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+    );
     final yamlString = '''
 format-version: [1,0,0]
 native-assets:
   target_does_not_exist:
     'package:foo/foo.dart': ['absolute', '/path/to/libfoo.so']
 ''';
-    final result =
-        NativeAssetsValidator(errorDetector).parseAndValidate(yamlString);
+    final result = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(yamlString);
     expect(errorDetector.hasCompilationErrors, false);
     // Invalid targets only issue warnings.
     expect(errors.single.severity, Severity.warning);
-    expect(errors.single.message,
-        startsWith('Unexpected target: target_does_not_exist.'));
+    expect(
+      errors.single.message,
+      startsWith('Unexpected target: target_does_not_exist.'),
+    );
     // Filters out unsupported targets.
     expect(result, {
       'format-version': [1, 0, 0],
-      'native-assets': {}
+      'native-assets': {},
     });
   });
 
   test('invalid path', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-        previousErrorHandler: (message) =>
-            errors.add(message as NativeAssetsDiagnosticMessage));
+      previousErrorHandler:
+          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+    );
     final yamlString = '''
 format-version: [1,0,0]
 native-assets:
   linux_x64:
     'package:foo/foo.dart': ['path_type_does_not_exist']
 ''';
-    final result =
-        NativeAssetsValidator(errorDetector).parseAndValidate(yamlString);
+    final result = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(yamlString);
     expect(errorDetector.hasCompilationErrors, true);
     expect(result, null);
-    expect(errors.single.message,
-        startsWith('Unexpected path type: path_type_does_not_exist.'));
+    expect(
+      errors.single.message,
+      startsWith('Unexpected path type: path_type_does_not_exist.'),
+    );
   });
 
   test('invalid absolute path', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-        previousErrorHandler: (message) =>
-            errors.add(message as NativeAssetsDiagnosticMessage));
+      previousErrorHandler:
+          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+    );
     final yamlString = '''
 format-version: [1,0,0]
 native-assets:
   linux_x64:
     'package:foo/foo.dart': ['absolute']
 ''';
-    final result =
-        NativeAssetsValidator(errorDetector).parseAndValidate(yamlString);
+    final result = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(yamlString);
     expect(errorDetector.hasCompilationErrors, true);
     expect(result, null);
     expect(
-        errors.single.message,
-        equals(
-            'Unexpected asset path: [absolute]. Expected list with 2 elements.'));
+      errors.single.message,
+      equals(
+        'Unexpected asset path: [absolute]. Expected list with 2 elements.',
+      ),
+    );
   });
 
   test('invalid process path', () {
     final errors = <NativeAssetsDiagnosticMessage>[];
     final errorDetector = ErrorDetector(
-        previousErrorHandler: (message) =>
-            errors.add(message as NativeAssetsDiagnosticMessage));
+      previousErrorHandler:
+          (message) => errors.add(message as NativeAssetsDiagnosticMessage),
+    );
     final yamlString = '''
 format-version: [1,0,0]
 native-assets:
   linux_x64:
     'package:foo/foo.dart': ['process' , '/path/to/libfoo.so']
 ''';
-    final result =
-        NativeAssetsValidator(errorDetector).parseAndValidate(yamlString);
+    final result = NativeAssetsValidator(
+      errorDetector,
+    ).parseAndValidate(yamlString);
     expect(errorDetector.hasCompilationErrors, true);
     expect(result, null);
     expect(
-        errors.single.message,
-        equals(
-            'Unexpected asset path: [process, /path/to/libfoo.so]. Expected list with 1 elements.'));
+      errors.single.message,
+      equals(
+        'Unexpected asset path: [process, /path/to/libfoo.so]. Expected list with 1 elements.',
+      ),
+    );
   });
 }

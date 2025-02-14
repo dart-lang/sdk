@@ -2,14 +2,14 @@ import 'dart:typed_data';
 
 class _Vector {
   _Vector(int size)
-      : _offset = 0,
-        _length = size,
-        _elements = new Float64List(size);
+    : _offset = 0,
+      _length = size,
+      _elements = new Float64List(size);
 
   _Vector.fromVOL(List<double> values, int offset, int length)
-      : _offset = offset,
-        _length = length,
-        _elements = values;
+    : _offset = offset,
+      _length = length,
+      _elements = values;
 
   final int _offset;
 

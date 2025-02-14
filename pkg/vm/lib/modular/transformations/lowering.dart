@@ -12,7 +12,8 @@ import '../specializer/factory_specializer.dart';
 import 'for_in_lowering.dart' show ForInLowering;
 import 'late_var_init_transformer.dart' show LateVarInitTransformer;
 import 'list_literals_lowering.dart' show ListLiteralsLowering;
-import 'type_casts_optimizer.dart' as typeCastsOptimizer
+import 'type_casts_optimizer.dart'
+    as typeCastsOptimizer
     show transformAsExpression;
 
 /// VM-specific lowering transformations and optimizations combined into a
@@ -21,15 +22,21 @@ import 'type_casts_optimizer.dart' as typeCastsOptimizer
 /// Each transformation is applied locally to AST nodes of certain types
 /// after transforming children nodes.
 void transformLibraries(
-    List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    {required bool productMode}) {
+  List<Library> libraries,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy, {
+  required bool productMode,
+}) {
   final transformer = _Lowering(coreTypes, hierarchy, productMode: productMode);
   libraries.forEach(transformer.visitLibrary);
 }
 
 void transformProcedure(
-    Procedure procedure, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    {required bool productMode}) {
+  Procedure procedure,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy, {
+  required bool productMode,
+}) {
   final transformer = _Lowering(coreTypes, hierarchy, productMode: productMode);
   procedure.accept(transformer);
 }
@@ -45,13 +52,15 @@ class _Lowering extends Transformer {
   FunctionNode? _currentFunctionNode;
   StaticTypeContext? _cachedStaticTypeContext;
 
-  _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy,
-      {required bool productMode})
-      : env = TypeEnvironment(coreTypes, hierarchy),
-        lateVarInitTransformer = LateVarInitTransformer(),
-        factorySpecializer = FactorySpecializer(coreTypes),
-        listLiteralsLowering = ListLiteralsLowering(coreTypes),
-        forInLowering = ForInLowering(coreTypes, productMode: productMode);
+  _Lowering(
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy, {
+    required bool productMode,
+  }) : env = TypeEnvironment(coreTypes, hierarchy),
+       lateVarInitTransformer = LateVarInitTransformer(),
+       factorySpecializer = FactorySpecializer(coreTypes),
+       listLiteralsLowering = ListLiteralsLowering(coreTypes),
+       forInLowering = ForInLowering(coreTypes, productMode: productMode);
 
   StaticTypeContext get _staticTypeContext =>
       _cachedStaticTypeContext ??= StaticTypeContext(_currentMember!, env);
@@ -119,7 +128,10 @@ class _Lowering extends Transformer {
   visitForInStatement(ForInStatement node) {
     node.transformChildren(this);
     return forInLowering.transformForInStatement(
-        node, _currentFunctionNode, _staticTypeContext);
+      node,
+      _currentFunctionNode,
+      _staticTypeContext,
+    );
   }
 
   @override

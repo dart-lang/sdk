@@ -18,19 +18,21 @@ class ProcedureAttributesMetadata {
   final int methodOrSetterSelectorId;
   final int getterSelectorId;
 
-  const ProcedureAttributesMetadata(
-      {this.methodOrSetterCalledDynamically = true,
-      this.getterCalledDynamically = true,
-      this.hasThisUses = true,
-      this.hasNonThisUses = true,
-      this.hasTearOffUses = true,
-      this.methodOrSetterSelectorId = kInvalidSelectorId,
-      this.getterSelectorId = kInvalidSelectorId});
+  const ProcedureAttributesMetadata({
+    this.methodOrSetterCalledDynamically = true,
+    this.getterCalledDynamically = true,
+    this.hasThisUses = true,
+    this.hasNonThisUses = true,
+    this.hasTearOffUses = true,
+    this.methodOrSetterSelectorId = kInvalidSelectorId,
+    this.getterSelectorId = kInvalidSelectorId,
+  });
 
   const ProcedureAttributesMetadata.noDynamicUses()
-      : this(
-            methodOrSetterCalledDynamically: false,
-            getterCalledDynamically: false);
+    : this(
+        methodOrSetterCalledDynamically: false,
+        getterCalledDynamically: false,
+      );
 
   @override
   String toString() {
@@ -92,7 +94,10 @@ class ProcedureAttributesMetadataRepository
 
   @override
   void writeToBinary(
-      ProcedureAttributesMetadata metadata, Node node, BinarySink sink) {
+    ProcedureAttributesMetadata metadata,
+    Node node,
+    BinarySink sink,
+  ) {
     sink.writeByte(_getFlags(metadata));
     sink.writeUInt30(metadata.methodOrSetterSelectorId);
     sink.writeUInt30(metadata.getterSelectorId);
@@ -114,12 +119,13 @@ class ProcedureAttributesMetadataRepository
     final int getterSelectorId = source.readUInt30();
 
     return new ProcedureAttributesMetadata(
-        methodOrSetterCalledDynamically: methodOrSetterCalledDynamically,
-        getterCalledDynamically: getterCalledDynamically,
-        hasThisUses: hasThisUses,
-        hasNonThisUses: hasNonThisUses,
-        hasTearOffUses: hasTearOffUses,
-        methodOrSetterSelectorId: methodOrSetterSelectorId,
-        getterSelectorId: getterSelectorId);
+      methodOrSetterCalledDynamically: methodOrSetterCalledDynamically,
+      getterCalledDynamically: getterCalledDynamically,
+      hasThisUses: hasThisUses,
+      hasNonThisUses: hasNonThisUses,
+      hasTearOffUses: hasTearOffUses,
+      methodOrSetterSelectorId: methodOrSetterSelectorId,
+      getterSelectorId: getterSelectorId,
+    );
   }
 }

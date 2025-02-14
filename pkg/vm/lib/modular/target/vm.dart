@@ -12,17 +12,23 @@ import 'package:kernel/target/targets.dart';
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/deeply_immutable.dart' as deeply_immutable;
-import '../transformations/lowering.dart' as lowering
+import '../transformations/lowering.dart'
+    as lowering
     show transformLibraries, transformProcedure;
-import '../transformations/mixin_full_resolution.dart' as transformMixins
+import '../transformations/mixin_full_resolution.dart'
+    as transformMixins
     show transformLibraries;
-import '../transformations/ffi/common.dart' as ffiHelper
+import '../transformations/ffi/common.dart'
+    as ffiHelper
     show calculateTransitiveImportsOfDartFfiIfUsed;
-import '../transformations/ffi/definitions.dart' as transformFfiDefinitions
+import '../transformations/ffi/definitions.dart'
+    as transformFfiDefinitions
     show transformLibraries;
-import '../transformations/ffi/native.dart' as transformFfiNative
+import '../transformations/ffi/native.dart'
+    as transformFfiNative
     show transformLibraries;
-import '../transformations/ffi/use_sites.dart' as transformFfiUseSites
+import '../transformations/ffi/use_sites.dart'
+    as transformFfiUseSites
     show transformLibraries;
 
 class VmTarget extends Target {
@@ -73,29 +79,29 @@ class VmTarget extends Target {
   // `runtime/vm/object_store.h`.
   @override
   List<String> get extraRequiredLibraries => const <String>[
-        'dart:async',
-        'dart:collection',
-        'dart:_compact_hash',
-        'dart:concurrent',
-        'dart:convert',
-        'dart:developer',
-        'dart:ffi',
-        'dart:_internal',
-        'dart:isolate',
-        'dart:math',
+    'dart:async',
+    'dart:collection',
+    'dart:_compact_hash',
+    'dart:concurrent',
+    'dart:convert',
+    'dart:developer',
+    'dart:ffi',
+    'dart:_internal',
+    'dart:isolate',
+    'dart:math',
 
-        // The library dart:mirrors may be ignored by the VM, e.g. when built in
-        // PRODUCT mode.
-        'dart:mirrors',
+    // The library dart:mirrors may be ignored by the VM, e.g. when built in
+    // PRODUCT mode.
+    'dart:mirrors',
 
-        'dart:typed_data',
-        'dart:vmservice_io',
-        'dart:_vmservice',
-        'dart:_builtin',
-        'dart:nativewrappers',
-        'dart:io',
-        'dart:cli',
-      ];
+    'dart:typed_data',
+    'dart:vmservice_io',
+    'dart:_vmservice',
+    'dart:_builtin',
+    'dart:nativewrappers',
+    'dart:io',
+    'dart:cli',
+  ];
 
   @override
   bool mayDefineRestrictedType(Uri uri) => uri.isScheme('dart');
@@ -110,10 +116,16 @@ class VmTarget extends Target {
     // Can't use normal patching process for this because CFE does not
     // support patching fields.
     // See http://dartbug.com/32836 for the background.
-    final Field host =
-        coreTypes.index.getField('dart:typed_data', 'Endian', 'host');
-    final Field little =
-        coreTypes.index.getField('dart:typed_data', 'Endian', 'little');
+    final Field host = coreTypes.index.getField(
+      'dart:typed_data',
+      'Endian',
+      'host',
+    );
+    final Field little = coreTypes.index.getField(
+      'dart:typed_data',
+      'Endian',
+      'little',
+    );
     host.isConst = true;
     host.initializer = new CloneVisitorNotMembers().clone(little.initializer!)
       ..parent = host;
@@ -121,39 +133,46 @@ class VmTarget extends Target {
 
   @override
   void performPreConstantEvaluationTransformations(
-      Component component,
-      CoreTypes coreTypes,
-      List<Library> libraries,
-      DiagnosticReporter diagnosticReporter,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     super.performPreConstantEvaluationTransformations(
-        component, coreTypes, libraries, diagnosticReporter,
-        logger: logger, changedStructureNotifier: changedStructureNotifier);
+      component,
+      coreTypes,
+      libraries,
+      diagnosticReporter,
+      logger: logger,
+      changedStructureNotifier: changedStructureNotifier,
+    );
     _patchVmConstants(coreTypes);
   }
 
   @override
   List<String> get extraIndexedLibraries => const <String>[
-        "dart:_compact_hash",
-        "dart:collection",
-        // TODO(askesc): This is for the VM host endian optimization, which
-        // could possibly be done more cleanly after the VM no longer supports
-        // doing constant evaluation on its own. See http://dartbug.com/32836
-        "dart:typed_data",
-      ];
+    "dart:_compact_hash",
+    "dart:collection",
+    // TODO(askesc): This is for the VM host endian optimization, which
+    // could possibly be done more cleanly after the VM no longer supports
+    // doing constant evaluation on its own. See http://dartbug.com/32836
+    "dart:typed_data",
+  ];
 
   @override
   void performModularTransformationsOnLibraries(
-      Component component,
-      CoreTypes coreTypes,
-      ClassHierarchy hierarchy,
-      List<Library> libraries,
-      Map<String, String>? environmentDefines,
-      DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex? referenceFromIndex,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    Component component,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    List<Library> libraries,
+    Map<String, String>? environmentDefines,
+    DiagnosticReporter diagnosticReporter,
+    ReferenceFromIndex? referenceFromIndex, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     deeply_immutable.validateLibraries(
       libraries,
       coreTypes,
@@ -162,7 +181,12 @@ class VmTarget extends Target {
     logger?.call("Validated deeply immutable");
 
     transformMixins.transformLibraries(
-        this, coreTypes, hierarchy, libraries, referenceFromIndex);
+      this,
+      coreTypes,
+      hierarchy,
+      libraries,
+      referenceFromIndex,
+    );
     logger?.call("Transformed mixin applications");
 
     List<Library>? transitiveImportingDartFfi = ffiHelper
@@ -171,13 +195,14 @@ class VmTarget extends Target {
       logger?.call("Skipped ffi transformation");
     } else {
       transformFfiDefinitions.transformLibraries(
-          component,
-          coreTypes,
-          hierarchy,
-          transitiveImportingDartFfi,
-          diagnosticReporter,
-          referenceFromIndex,
-          changedStructureNotifier);
+        component,
+        coreTypes,
+        hierarchy,
+        transitiveImportingDartFfi,
+        diagnosticReporter,
+        referenceFromIndex,
+        changedStructureNotifier,
+      );
       logger?.call("Transformed ffi definitions");
 
       // Transform @Native(..) functions into FFI native call functions.
@@ -185,85 +210,126 @@ class VmTarget extends Target {
       // native function.
       // Transform arguments that extend NativeFieldWrapperClass1 to Pointer if
       // the native function expects Pointer (to avoid Handle overhead).
-      transformFfiNative.transformLibraries(component, coreTypes, hierarchy,
-          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
+      transformFfiNative.transformLibraries(
+        component,
+        coreTypes,
+        hierarchy,
+        transitiveImportingDartFfi,
+        diagnosticReporter,
+        referenceFromIndex,
+      );
       logger?.call("Transformed ffi natives");
 
       // The use sites transformer implements `Native.addressOf` by reading a
       // VM pragma attached to valid targets in the native transformer. Hence,
       // it can only run after `@Native` targets have been transformed.
-      transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
+      transformFfiUseSites.transformLibraries(
+        component,
+        coreTypes,
+        hierarchy,
+        transitiveImportingDartFfi,
+        diagnosticReporter,
+        referenceFromIndex,
+      );
       logger?.call("Transformed ffi use sites");
     }
 
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
-    lowering.transformLibraries(libraries, coreTypes, hierarchy,
-        productMode: productMode);
+    lowering.transformLibraries(
+      libraries,
+      coreTypes,
+      hierarchy,
+      productMode: productMode,
+    );
     logger?.call("Lowering transformations performed");
 
     callSiteAnnotator.transformLibraries(
-        component, libraries, coreTypes, hierarchy);
+      component,
+      libraries,
+      coreTypes,
+      hierarchy,
+    );
     logger?.call("Annotated call sites");
   }
 
   @override
   void performTransformationsOnProcedure(
-      CoreTypes coreTypes,
-      ClassHierarchy hierarchy,
-      Procedure procedure,
-      Map<String, String>? environmentDefines,
-      {void Function(String msg)? logger}) {
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    Procedure procedure,
+    Map<String, String>? environmentDefines, {
+    void Function(String msg)? logger,
+  }) {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
-    lowering.transformProcedure(procedure, coreTypes, hierarchy,
-        productMode: productMode);
+    lowering.transformProcedure(
+      procedure,
+      coreTypes,
+      hierarchy,
+      productMode: productMode,
+    );
     logger?.call("Lowering transformations performed");
   }
 
   Expression _instantiateInvocationMirrorWithType(
-      CoreTypes coreTypes,
-      Expression receiver,
-      String name,
-      Arguments arguments,
-      int offset,
-      int type) {
+    CoreTypes coreTypes,
+    Expression receiver,
+    String name,
+    Arguments arguments,
+    int offset,
+    int type,
+  ) {
     return new ConstructorInvocation(
-        coreTypes.invocationMirrorWithTypeConstructor,
-        new Arguments(<Expression>[
-          new SymbolLiteral(name)..fileOffset = offset,
-          new IntLiteral(type)..fileOffset = offset,
-          _fixedLengthList(
-              coreTypes,
-              coreTypes.typeNonNullableRawType,
-              arguments.types
-                  .map<Expression>((t) => new TypeLiteral(t))
-                  .toList(),
-              arguments.fileOffset),
-          _fixedLengthList(coreTypes, const DynamicType(), arguments.positional,
-              arguments.fileOffset),
-          new StaticInvocation(
-              coreTypes.mapUnmodifiable,
-              new Arguments([
-                new MapLiteral(new List<MapLiteralEntry>.from(
+      coreTypes.invocationMirrorWithTypeConstructor,
+      new Arguments(<Expression>[
+        new SymbolLiteral(name)..fileOffset = offset,
+        new IntLiteral(type)..fileOffset = offset,
+        _fixedLengthList(
+          coreTypes,
+          coreTypes.typeNonNullableRawType,
+          arguments.types.map<Expression>((t) => new TypeLiteral(t)).toList(),
+          arguments.fileOffset,
+        ),
+        _fixedLengthList(
+          coreTypes,
+          const DynamicType(),
+          arguments.positional,
+          arguments.fileOffset,
+        ),
+        new StaticInvocation(
+          coreTypes.mapUnmodifiable,
+          new Arguments(
+            [
+              new MapLiteral(
+                  new List<MapLiteralEntry>.from(
                     arguments.named.map((NamedExpression arg) {
-                  return new MapLiteralEntry(
-                      new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
-                      arg.value)
-                    ..fileOffset = arg.fileOffset;
-                })), keyType: coreTypes.symbolNonNullableRawType)
-                  ..isConst = (arguments.named.isEmpty)
-                  ..fileOffset = arguments.fileOffset
-              ], types: [
-                coreTypes.symbolNonNullableRawType,
-                new DynamicType()
-              ]))
-            ..fileOffset = offset
-        ]));
+                      return new MapLiteralEntry(
+                        new SymbolLiteral(arg.name)
+                          ..fileOffset = arg.fileOffset,
+                        arg.value,
+                      )..fileOffset = arg.fileOffset;
+                    }),
+                  ),
+                  keyType: coreTypes.symbolNonNullableRawType,
+                )
+                ..isConst = (arguments.named.isEmpty)
+                ..fileOffset = arguments.fileOffset,
+            ],
+            types: [coreTypes.symbolNonNullableRawType, new DynamicType()],
+          ),
+        )..fileOffset = offset,
+      ]),
+    );
   }
 
   @override
-  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
-      String name, Arguments arguments, int offset, bool isSuper) {
+  Expression instantiateInvocation(
+    CoreTypes coreTypes,
+    Expression receiver,
+    String name,
+    Arguments arguments,
+    int offset,
+    bool isSuper,
+  ) {
     bool isGetter = false, isSetter = false, isMethod = false;
     if (name.startsWith("set:")) {
       isSetter = true;
@@ -276,59 +342,80 @@ class VmTarget extends Target {
     }
 
     int type = _invocationType(
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isMethod: isMethod,
-        isSuper: isSuper);
+      isGetter: isGetter,
+      isSetter: isSetter,
+      isMethod: isMethod,
+      isSuper: isSuper,
+    );
 
     return _instantiateInvocationMirrorWithType(
-        coreTypes, receiver, name, arguments, offset, type);
+      coreTypes,
+      receiver,
+      name,
+      arguments,
+      offset,
+      type,
+    );
   }
 
   @override
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
+  Expression instantiateNoSuchMethodError(
+    CoreTypes coreTypes,
+    Expression receiver,
+    String name,
+    Arguments arguments,
+    int offset, {
+    bool isMethod = false,
+    bool isGetter = false,
+    bool isSetter = false,
+    bool isField = false,
+    bool isLocalVariable = false,
+    bool isDynamic = false,
+    bool isSuper = false,
+    bool isStatic = false,
+    bool isConstructor = false,
+    bool isTopLevel = false,
+  }) {
     int type = _invocationType(
-        isMethod: isMethod,
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isField: isField,
-        isLocalVariable: isLocalVariable,
-        isDynamic: isDynamic,
-        isSuper: isSuper,
-        isStatic: isStatic,
-        isConstructor: isConstructor,
-        isTopLevel: isTopLevel);
+      isMethod: isMethod,
+      isGetter: isGetter,
+      isSetter: isSetter,
+      isField: isField,
+      isLocalVariable: isLocalVariable,
+      isDynamic: isDynamic,
+      isSuper: isSuper,
+      isStatic: isStatic,
+      isConstructor: isConstructor,
+      isTopLevel: isTopLevel,
+    );
     return new StaticInvocation(
-        coreTypes.noSuchMethodErrorDefaultConstructor,
-        new Arguments(<Expression>[
+      coreTypes.noSuchMethodErrorDefaultConstructor,
+      new Arguments(<Expression>[
+        receiver,
+        _instantiateInvocationMirrorWithType(
+          coreTypes,
           receiver,
-          _instantiateInvocationMirrorWithType(
-              coreTypes, receiver, name, arguments, offset, type)
-        ]));
+          name,
+          arguments,
+          offset,
+          type,
+        ),
+      ]),
+    );
   }
 
-  int _invocationType(
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
+  int _invocationType({
+    bool isMethod = false,
+    bool isGetter = false,
+    bool isSetter = false,
+    bool isField = false,
+    bool isLocalVariable = false,
+    bool isDynamic = false,
+    bool isSuper = false,
+    bool isStatic = false,
+    bool isConstructor = false,
+    bool isTopLevel = false,
+  }) {
     // This is copied from [_InvocationMirror](
     // ../../../../../../runtime/lib/invocation_mirror_patch.dart).
 
@@ -387,8 +474,12 @@ class VmTarget extends Target {
     return type;
   }
 
-  Expression _fixedLengthList(CoreTypes coreTypes, DartType typeArgument,
-      List<Expression> elements, int offset) {
+  Expression _fixedLengthList(
+    CoreTypes coreTypes,
+    DartType typeArgument,
+    List<Expression> elements,
+    int offset,
+  ) {
     // TODO(ahe): It's possible that it would be better to create a fixed-length
     // list first, and then populate it. That would create fewer objects. But as
     // this is currently only used in (statically resolved) no-such-method
@@ -400,13 +491,15 @@ class VmTarget extends Target {
     }
 
     return new StaticInvocation(
-        coreTypes.listUnmodifiableConstructor,
-        new Arguments([
+      coreTypes.listUnmodifiableConstructor,
+      new Arguments(
+        [
           new ListLiteral(elements, typeArgument: typeArgument)
-            ..fileOffset = offset
-        ], types: [
-          typeArgument,
-        ]));
+            ..fileOffset = offset,
+        ],
+        types: [typeArgument],
+      ),
+    );
   }
 
   // In addition to the default implementation, we allow VM tests to import
@@ -428,14 +521,18 @@ class VmTarget extends Target {
 
   @override
   Class concreteListLiteralClass(CoreTypes coreTypes) {
-    return _growableList ??=
-        coreTypes.index.getClass('dart:core', '_GrowableList');
+    return _growableList ??= coreTypes.index.getClass(
+      'dart:core',
+      '_GrowableList',
+    );
   }
 
   @override
   Class concreteConstListLiteralClass(CoreTypes coreTypes) {
-    return _immutableList ??=
-        coreTypes.index.getClass('dart:core', '_ImmutableList');
+    return _immutableList ??= coreTypes.index.getClass(
+      'dart:core',
+      '_ImmutableList',
+    );
   }
 
   @override
@@ -445,8 +542,10 @@ class VmTarget extends Target {
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
-    return _constMap ??=
-        coreTypes.index.getClass('dart:_compact_hash', '_ConstMap');
+    return _constMap ??= coreTypes.index.getClass(
+      'dart:_compact_hash',
+      '_ConstMap',
+    );
   }
 
   @override
@@ -456,13 +555,18 @@ class VmTarget extends Target {
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
-    return _constSet ??=
-        coreTypes.index.getClass('dart:_compact_hash', '_ConstSet');
+    return _constSet ??= coreTypes.index.getClass(
+      'dart:_compact_hash',
+      '_ConstSet',
+    );
   }
 
   @override
   Class getRecordImplementationClass(
-      CoreTypes coreTypes, int numPositionalFields, List<String> namedFields) {
+    CoreTypes coreTypes,
+    int numPositionalFields,
+    List<String> namedFields,
+  ) {
     return _record ??= coreTypes.index.getClass('dart:core', '_Record');
   }
 
@@ -490,12 +594,16 @@ class VmTarget extends Target {
     const int maxLatin1 = 0xff;
     for (int i = 0; i < value.length; ++i) {
       if (value.codeUnitAt(i) > maxLatin1) {
-        return _twoByteString ??=
-            coreTypes.index.getClass('dart:core', '_TwoByteString');
+        return _twoByteString ??= coreTypes.index.getClass(
+          'dart:core',
+          '_TwoByteString',
+        );
       }
     }
-    return _oneByteString ??=
-        coreTypes.index.getClass('dart:core', '_OneByteString');
+    return _oneByteString ??= coreTypes.index.getClass(
+      'dart:core',
+      '_OneByteString',
+    );
   }
 
   @override
@@ -509,8 +617,10 @@ class VmTarget extends Target {
 
   @override
   Class? concreteSyncStarResultClass(CoreTypes coreTypes) {
-    return _syncStarIterable ??=
-        coreTypes.index.getClass('dart:async', '_SyncStarIterable');
+    return _syncStarIterable ??= coreTypes.index.getClass(
+      'dart:async',
+      '_SyncStarIterable',
+    );
   }
 
   @override
@@ -525,9 +635,10 @@ class VmTarget extends Target {
   }
 
   @override
-  DartLibrarySupport get dartLibrarySupport => flags.supportMirrors
-      ? const DefaultDartLibrarySupport()
-      : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
+  DartLibrarySupport get dartLibrarySupport =>
+      flags.supportMirrors
+          ? const DefaultDartLibrarySupport()
+          : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
 
   @override
   bool isSupportedPragma(String pragmaName) =>

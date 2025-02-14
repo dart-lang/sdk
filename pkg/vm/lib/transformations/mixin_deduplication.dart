@@ -82,10 +82,11 @@ class _DeduplicateMixinKey {
     final substitution = Substitution.fromMap({
       for (int i = 0; i < otherParameters.length; ++i)
         otherParameters[i]: TypeParameterType(
-            thisParameters[i],
-            otherParameters[i].bound.nullability == Nullability.nonNullable
-                ? Nullability.nonNullable
-                : Nullability.undetermined),
+          thisParameters[i],
+          otherParameters[i].bound.nullability == Nullability.nonNullable
+              ? Nullability.nonNullable
+              : Nullability.undetermined,
+        ),
     });
     if (thisSupertype != substitution.substituteSupertype(otherSupertype)) {
       return false;
@@ -147,8 +148,10 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
       return c;
     }
 
-    Class canonical =
-        _canonicalMixins.putIfAbsent(new _DeduplicateMixinKey(c), () => c);
+    Class canonical = _canonicalMixins.putIfAbsent(
+      new _DeduplicateMixinKey(c),
+      () => c,
+    );
 
     if (canonical != c) {
       // Ensure that kernel file writer will not be able to
@@ -168,7 +171,10 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
   }
 
   Supertype _transformSupertype(
-      Supertype supertype, Class? cls, bool isSuperclass) {
+    Supertype supertype,
+    Class? cls,
+    bool isSuperclass,
+  ) {
     Class oldSuper = supertype.classNode;
     Class newSuper = visitClass(oldSuper, dummyClass) as Class;
     if (identical(newSuper, dummyClass)) {

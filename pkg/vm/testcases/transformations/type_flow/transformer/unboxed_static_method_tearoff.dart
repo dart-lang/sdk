@@ -15,15 +15,16 @@ void use(dynamic object) {
 class X {}
 
 void takePositional(
-    int? unboxedSmi,
-    dynamic unboxedInt,
-    dynamic unboxedDouble,
-    dynamic boxedNullableInt,
-    dynamic boxedNullableDouble,
-    dynamic boxedIntOrDouble,
-    dynamic boxedNullableIntOrDouble,
-    dynamic boxedNullableX,
-    dynamic boxedX) {
+  int? unboxedSmi,
+  dynamic unboxedInt,
+  dynamic unboxedDouble,
+  dynamic boxedNullableInt,
+  dynamic boxedNullableDouble,
+  dynamic boxedIntOrDouble,
+  dynamic boxedNullableIntOrDouble,
+  dynamic boxedNullableX,
+  dynamic boxedX,
+) {
   use(unboxedInt);
   use(unboxedDouble);
   use(boxedNullableInt);
@@ -34,16 +35,17 @@ void takePositional(
   use(boxedX);
 }
 
-void takeOptional(
-    [int? unboxedSmi,
-    dynamic unboxedInt,
-    dynamic unboxedDouble,
-    dynamic boxedNullableInt,
-    dynamic boxedNullableDouble,
-    dynamic boxedIntOrDouble,
-    dynamic boxedNullableIntOrDouble,
-    dynamic boxedNullableX,
-    dynamic boxedX]) {
+void takeOptional([
+  int? unboxedSmi,
+  dynamic unboxedInt,
+  dynamic unboxedDouble,
+  dynamic boxedNullableInt,
+  dynamic boxedNullableDouble,
+  dynamic boxedIntOrDouble,
+  dynamic boxedNullableIntOrDouble,
+  dynamic boxedNullableX,
+  dynamic boxedX,
+]) {
   use(unboxedInt);
   use(unboxedDouble);
   use(boxedNullableInt);
@@ -54,16 +56,17 @@ void takeOptional(
   use(boxedX);
 }
 
-void takeNamed(
-    {int? unboxedSmi,
-    dynamic unboxedInt,
-    dynamic unboxedDouble,
-    dynamic boxedNullableInt,
-    dynamic boxedNullableDouble,
-    dynamic boxedIntOrDouble,
-    dynamic boxedNullableIntOrDouble,
-    dynamic boxedNullableX,
-    dynamic boxedX}) {
+void takeNamed({
+  int? unboxedSmi,
+  dynamic unboxedInt,
+  dynamic unboxedDouble,
+  dynamic boxedNullableInt,
+  dynamic boxedNullableDouble,
+  dynamic boxedIntOrDouble,
+  dynamic boxedNullableIntOrDouble,
+  dynamic boxedNullableX,
+  dynamic boxedX,
+}) {
   use(unboxedInt);
   use(unboxedDouble);
   use(boxedNullableInt);
@@ -87,37 +90,40 @@ dynamic returnBoxedX() => X();
 
 main() {
   takePositional(
-      kTrue ? 1 : 2,
-      kTrue ? smiOrMint : 2,
-      kTrue ? 1.1 : 2.2,
-      kTrue ? smiOrMint : null,
-      kTrue ? 1.1 : null,
-      kTrue ? smiOrMint : 1.1,
-      kTrue ? (kFalse ? smiOrMint : 1.1) : null,
-      kTrue ? X() : null,
-      X());
+    kTrue ? 1 : 2,
+    kTrue ? smiOrMint : 2,
+    kTrue ? 1.1 : 2.2,
+    kTrue ? smiOrMint : null,
+    kTrue ? 1.1 : null,
+    kTrue ? smiOrMint : 1.1,
+    kTrue ? (kFalse ? smiOrMint : 1.1) : null,
+    kTrue ? X() : null,
+    X(),
+  );
 
   takeOptional(
-      kTrue ? 1 : 2,
-      kTrue ? smiOrMint : 2,
-      kTrue ? 1.1 : 2.2,
-      kTrue ? smiOrMint : null,
-      kTrue ? 1.1 : null,
-      kTrue ? smiOrMint : 1.1,
-      kTrue ? (kFalse ? smiOrMint : 1.1) : null,
-      kTrue ? X() : null,
-      X());
+    kTrue ? 1 : 2,
+    kTrue ? smiOrMint : 2,
+    kTrue ? 1.1 : 2.2,
+    kTrue ? smiOrMint : null,
+    kTrue ? 1.1 : null,
+    kTrue ? smiOrMint : 1.1,
+    kTrue ? (kFalse ? smiOrMint : 1.1) : null,
+    kTrue ? X() : null,
+    X(),
+  );
 
   takeNamed(
-      unboxedSmi: kTrue ? 1 : 2,
-      unboxedInt: kTrue ? smiOrMint : 2,
-      unboxedDouble: kTrue ? 1.1 : 2.2,
-      boxedNullableInt: kTrue ? smiOrMint : null,
-      boxedNullableDouble: kTrue ? 1.1 : null,
-      boxedIntOrDouble: kTrue ? smiOrMint : 1.1,
-      boxedNullableIntOrDouble: kTrue ? (kFalse ? smiOrMint : 1.1) : null,
-      boxedNullableX: kTrue ? X() : null,
-      boxedX: X());
+    unboxedSmi: kTrue ? 1 : 2,
+    unboxedInt: kTrue ? smiOrMint : 2,
+    unboxedDouble: kTrue ? 1.1 : 2.2,
+    boxedNullableInt: kTrue ? smiOrMint : null,
+    boxedNullableDouble: kTrue ? 1.1 : null,
+    boxedIntOrDouble: kTrue ? smiOrMint : 1.1,
+    boxedNullableIntOrDouble: kTrue ? (kFalse ? smiOrMint : 1.1) : null,
+    boxedNullableX: kTrue ? X() : null,
+    boxedX: X(),
+  );
 
   use(returnUnboxedSmi());
   use(returnUnboxedInt());

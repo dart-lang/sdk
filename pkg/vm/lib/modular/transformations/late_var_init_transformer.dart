@@ -34,17 +34,26 @@ class LateVarInitTransformer {
   }
 
   List<Statement> _transformVariableDeclaration(VariableDeclaration node) {
-    final fnNode =
-        FunctionNode(ReturnStatement(node.initializer), returnType: node.type);
-    final functionType =
-        fnNode.computeThisFunctionType(Nullability.nonNullable);
+    final fnNode = FunctionNode(
+      ReturnStatement(node.initializer),
+      returnType: node.type,
+    );
+    final functionType = fnNode.computeThisFunctionType(
+      Nullability.nonNullable,
+    );
     final fn = FunctionDeclaration(
-        VariableDeclaration("#${node.name}#initializer",
-            type: functionType, isSynthesized: true),
-        fnNode);
-    node.initializer = LocalFunctionInvocation(fn.variable, Arguments([]),
-        functionType: functionType)
-      ..parent = node;
+      VariableDeclaration(
+        "#${node.name}#initializer",
+        type: functionType,
+        isSynthesized: true,
+      ),
+      fnNode,
+    );
+    node.initializer = LocalFunctionInvocation(
+      fn.variable,
+      Arguments([]),
+      functionType: functionType,
+    )..parent = node;
 
     return [fn, node];
   }
@@ -54,8 +63,9 @@ class LateVarInitTransformer {
     final List<Statement> newStatements = <Statement>[];
     for (Statement s in statements) {
       if (_shouldApplyTransform(s)) {
-        newStatements
-            .addAll(_transformVariableDeclaration(s as VariableDeclaration));
+        newStatements.addAll(
+          _transformVariableDeclaration(s as VariableDeclaration),
+        );
       } else {
         newStatements.add(s);
       }

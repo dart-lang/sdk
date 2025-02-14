@@ -14,18 +14,30 @@ import 'vm_constant_evaluator.dart' show VMConstantEvaluator;
 ///
 /// Also performs some additional constant evaluation via [evaluator], which is
 /// applied to certain types of expressions (currently only StaticGet).
-Component transformComponent(Target target, Component component,
-    VMConstantEvaluator evaluator, bool enableAsserts) {
-  SimpleUnreachableCodeElimination(evaluator, enableAsserts: enableAsserts)
-      .visitComponent(component, null);
+Component transformComponent(
+  Target target,
+  Component component,
+  VMConstantEvaluator evaluator,
+  bool enableAsserts,
+) {
+  SimpleUnreachableCodeElimination(
+    evaluator,
+    enableAsserts: enableAsserts,
+  ).visitComponent(component, null);
   return component;
 }
 
-List<Library> transformLibraries(Target target, List<Library> libraries,
-    VMConstantEvaluator evaluator, bool enableAsserts) {
+List<Library> transformLibraries(
+  Target target,
+  List<Library> libraries,
+  VMConstantEvaluator evaluator,
+  bool enableAsserts,
+) {
   for (final library in libraries) {
-    SimpleUnreachableCodeElimination(evaluator, enableAsserts: enableAsserts)
-        .visitLibrary(library, null);
+    SimpleUnreachableCodeElimination(
+      evaluator,
+      enableAsserts: enableAsserts,
+    ).visitLibrary(library, null);
   }
   return libraries;
 }
@@ -35,8 +47,10 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
   final VMConstantEvaluator constantEvaluator;
   StaticTypeContext? _staticTypeContext;
 
-  SimpleUnreachableCodeElimination(this.constantEvaluator,
-      {required this.enableAsserts});
+  SimpleUnreachableCodeElimination(
+    this.constantEvaluator, {
+    required this.enableAsserts,
+  });
 
   Never _throwPlatformConstError(Member node, String message) {
     final uri = constantEvaluator.getFileUri(node);
@@ -66,8 +80,10 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
 
   @override
   TreeNode defaultMember(Member node, TreeNode? removalSentinel) {
-    _staticTypeContext =
-        StaticTypeContext(node, constantEvaluator.typeEnvironment);
+    _staticTypeContext = StaticTypeContext(
+      node,
+      constantEvaluator.typeEnvironment,
+    );
     if (constantEvaluator.shouldEvaluateMember(node)) {
       _checkPlatformConstMember(node);
       // Create a StaticGet to ensure the member is evaluated at least once,
@@ -80,18 +96,20 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
         if (initializer == null) {
           assert(node.isExternal);
         } else {
-          node.initializer = result
-            ..fileOffset = initializer.fileOffset
-            ..parent = node;
+          node.initializer =
+              result
+                ..fileOffset = initializer.fileOffset
+                ..parent = node;
         }
       } else if (node is Procedure) {
         final body = node.function.body;
         if (body == null) {
           assert(node.isExternal);
         } else {
-          node.function.body = ReturnStatement(result)
-            ..fileOffset = body.fileOffset
-            ..parent = node.function;
+          node.function.body =
+              ReturnStatement(result)
+                ..fileOffset = body.fileOffset
+                ..parent = node.function;
         }
       }
     }
@@ -108,9 +126,10 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
   }
 
   Expression _createBoolConstantExpression(bool value, Expression node) =>
-      ConstantExpression(constantEvaluator.makeBoolConstant(value),
-          node.getStaticType(_staticTypeContext!))
-        ..fileOffset = node.fileOffset;
+      ConstantExpression(
+        constantEvaluator.makeBoolConstant(value),
+        node.getStaticType(_staticTypeContext!),
+      )..fileOffset = node.fileOffset;
 
   Statement _makeEmptyBlockIfEmptyStatement(Statement node, TreeNode parent) =>
       node is EmptyStatement ? (Block(<Statement>[])..parent = parent) : node;
@@ -131,7 +150,9 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
 
   @override
   visitConditionalExpression(
-      ConditionalExpression node, TreeNode? removalSentinel) {
+    ConditionalExpression node,
+    TreeNode? removalSentinel,
+  ) {
     node.transformOrRemoveChildren(this);
     final condition = node.condition;
     final value = _getBoolConstantValue(condition);
@@ -154,7 +175,9 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
 
   @override
   TreeNode visitLogicalExpression(
-      LogicalExpression node, TreeNode? removalSentinel) {
+    LogicalExpression node,
+    TreeNode? removalSentinel,
+  ) {
     node.transformOrRemoveChildren(this);
     bool? value = _getBoolConstantValue(node.left);
     // Because of short-circuiting, these operators cannot be treated as
@@ -170,7 +193,9 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
 
   @override
   TreeNode visitSwitchStatement(
-      SwitchStatement node, TreeNode? removalSentinel) {
+    SwitchStatement node,
+    TreeNode? removalSentinel,
+  ) {
     node.transformOrRemoveChildren(this);
     final tested = node.expression;
     if (tested is! ConstantExpression) return node;
@@ -272,7 +297,9 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
 
   @override
   TreeNode visitAssertStatement(
-      AssertStatement node, TreeNode? removalSentinel) {
+    AssertStatement node,
+    TreeNode? removalSentinel,
+  ) {
     if (!enableAsserts) {
       return removalSentinel ?? new EmptyStatement();
     }
@@ -289,7 +316,9 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
 
   @override
   TreeNode visitAssertInitializer(
-      AssertInitializer node, TreeNode? removalSentinel) {
+    AssertInitializer node,
+    TreeNode? removalSentinel,
+  ) {
     if (!enableAsserts) {
       // Initializers only occur in the initializer list where they are always
       // removable.
@@ -394,6 +423,7 @@ class PlatformConstError extends Error {
   PlatformConstError(this.message, this.member, this.uri, this.offset);
 
   @override
-  String toString() => '${uri ?? ''}:$offset '
+  String toString() =>
+      '${uri ?? ''}:$offset '
       'Error for annotated member ${member.name}: $message';
 }

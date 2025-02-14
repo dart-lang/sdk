@@ -50,19 +50,24 @@ import 'modular/transformations/call_site_annotator.dart'
 import 'native_assets/synthesizer.dart';
 import 'target_os.dart';
 import 'transformations/deferred_loading.dart' as deferred_loading;
-import 'transformations/devirtualization.dart' as devirtualization
+import 'transformations/devirtualization.dart'
+    as devirtualization
     show transformComponent;
 import 'transformations/dynamic_interface_annotator.dart'
-    as dynamic_interface_annotator show annotateComponent;
-import 'transformations/mixin_deduplication.dart' as mixin_deduplication
+    as dynamic_interface_annotator
+    show annotateComponent;
+import 'transformations/mixin_deduplication.dart'
+    as mixin_deduplication
     show transformComponent;
 import 'transformations/no_dynamic_invocations_annotator.dart'
-    as no_dynamic_invocations_annotator show transformComponent;
+    as no_dynamic_invocations_annotator
+    show transformComponent;
 import 'transformations/obfuscation_prohibitions_annotator.dart'
     as obfuscationProhibitions;
 import 'transformations/record_use/record_use.dart' as record_use;
 import 'transformations/to_string_transformer.dart' as to_string_transformer;
-import 'transformations/type_flow/transformer.dart' as globalTypeFlow
+import 'transformations/type_flow/transformer.dart'
+    as globalTypeFlow
     show transformComponent;
 import 'transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
@@ -70,20 +75,35 @@ import 'transformations/vm_constant_evaluator.dart' as vm_constant_evaluator;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
-  args.addOption('platform',
-      help: 'Path to vm_platform_strong.dill file', defaultsTo: null);
-  args.addOption('packages',
-      help: 'Path to .dart_tool/package_config.json file', defaultsTo: null);
-  args.addOption('output',
-      abbr: 'o', help: 'Path to resulting dill file', defaultsTo: null);
-  args.addFlag('aot',
-      help:
-          'Produce kernel file for AOT compilation (enables global transformations).',
-      defaultsTo: false);
-  args.addFlag('support-mirrors',
-      help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
-          'supported when --aot and --minimal-kernel are not used.',
-      defaultsTo: null);
+  args.addOption(
+    'platform',
+    help: 'Path to vm_platform_strong.dill file',
+    defaultsTo: null,
+  );
+  args.addOption(
+    'packages',
+    help: 'Path to .dart_tool/package_config.json file',
+    defaultsTo: null,
+  );
+  args.addOption(
+    'output',
+    abbr: 'o',
+    help: 'Path to resulting dill file',
+    defaultsTo: null,
+  );
+  args.addFlag(
+    'aot',
+    help:
+        'Produce kernel file for AOT compilation (enables global transformations).',
+    defaultsTo: false,
+  );
+  args.addFlag(
+    'support-mirrors',
+    help:
+        'Whether dart:mirrors is supported. By default dart:mirrors is '
+        'supported when --aot and --minimal-kernel are not used.',
+    defaultsTo: null,
+  );
   args.addFlag('compact-async', help: 'Obsolete, ignored.', hide: true);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addOption(
@@ -91,95 +111,158 @@ void declareCompilerOptions(ArgParser args) {
     help: 'Override the target in the generated depfile',
     hide: true,
   );
-  args.addOption('from-dill',
-      help: 'Read existing dill file instead of compiling from sources',
-      defaultsTo: null);
-  args.addFlag('link-platform',
-      help: 'Include platform into resulting kernel file.', defaultsTo: true);
-  args.addFlag('minimal-kernel',
-      help: 'Produce minimal tree-shaken kernel file.', defaultsTo: false);
-  args.addFlag('embed-sources',
-      help: 'Embed source files in the generated kernel component',
-      defaultsTo: true);
-  args.addMultiOption('filesystem-root',
-      help: 'A base path for the multi-root virtual file system.'
-          ' If multi-root file system is used, the input script and .dart_tool/package_config.json file should be specified using URI.');
-  args.addOption('filesystem-scheme',
-      help: 'The URI scheme for the multi-root virtual filesystem.');
-  args.addMultiOption('source',
-      help: 'List additional source files to include into compilation.',
-      defaultsTo: const <String>[]);
-  args.addOption('native-assets',
-      help:
-          'Provide the native-assets mapping for @Native external functions.');
-  args.addOption('recorded-usages-file',
-      help: 'The path to store the recorded usages.');
-  args.addOption('target',
-      help: 'Target model that determines what core libraries are available',
-      allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
-      defaultsTo: 'vm');
-  args.addFlag('tfa',
-      help:
-          'Enable global type flow analysis and related transformations in AOT mode.',
-      defaultsTo: true);
-  args.addOption('target-os',
-      help: 'Compile for a specific target operating system when in AOT mode.',
-      allowed: TargetOS.names);
-  args.addFlag('rta',
-      help: 'Use rapid type analysis for faster compilation in AOT mode.',
-      defaultsTo: true);
-  args.addFlag('tree-shake-write-only-fields',
-      help: 'Enable tree shaking of fields which are only written in AOT mode.',
-      defaultsTo: true);
-  args.addFlag('protobuf-tree-shaker-v2',
-      help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false);
-  args.addMultiOption('define',
-      abbr: 'D',
-      help: 'The values for the environment constants (e.g. -Dkey=value).');
-  args.addFlag('enable-asserts',
-      help: 'Whether asserts will be enabled.', defaultsTo: false);
-  args.addFlag('sound-null-safety',
-      help: 'Respect the nullability of types at runtime.',
-      defaultsTo: true,
-      hide: true);
-  args.addFlag('split-output-by-packages',
-      help:
-          'Split resulting kernel file into multiple files (one per package).',
-      defaultsTo: false);
-  args.addOption('component-name',
-      help: 'Name of the Fuchsia component', defaultsTo: null);
-  args.addOption('data-dir',
-      help: 'Name of the subdirectory of //data for output files');
-  args.addOption('dynamic-interface',
-      help: 'Path to dynamic module interface yaml file.');
+  args.addOption(
+    'from-dill',
+    help: 'Read existing dill file instead of compiling from sources',
+    defaultsTo: null,
+  );
+  args.addFlag(
+    'link-platform',
+    help: 'Include platform into resulting kernel file.',
+    defaultsTo: true,
+  );
+  args.addFlag(
+    'minimal-kernel',
+    help: 'Produce minimal tree-shaken kernel file.',
+    defaultsTo: false,
+  );
+  args.addFlag(
+    'embed-sources',
+    help: 'Embed source files in the generated kernel component',
+    defaultsTo: true,
+  );
+  args.addMultiOption(
+    'filesystem-root',
+    help:
+        'A base path for the multi-root virtual file system.'
+        ' If multi-root file system is used, the input script and .dart_tool/package_config.json file should be specified using URI.',
+  );
+  args.addOption(
+    'filesystem-scheme',
+    help: 'The URI scheme for the multi-root virtual filesystem.',
+  );
+  args.addMultiOption(
+    'source',
+    help: 'List additional source files to include into compilation.',
+    defaultsTo: const <String>[],
+  );
+  args.addOption(
+    'native-assets',
+    help: 'Provide the native-assets mapping for @Native external functions.',
+  );
+  args.addOption(
+    'recorded-usages-file',
+    help: 'The path to store the recorded usages.',
+  );
+  args.addOption(
+    'target',
+    help: 'Target model that determines what core libraries are available',
+    allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
+    defaultsTo: 'vm',
+  );
+  args.addFlag(
+    'tfa',
+    help:
+        'Enable global type flow analysis and related transformations in AOT mode.',
+    defaultsTo: true,
+  );
+  args.addOption(
+    'target-os',
+    help: 'Compile for a specific target operating system when in AOT mode.',
+    allowed: TargetOS.names,
+  );
+  args.addFlag(
+    'rta',
+    help: 'Use rapid type analysis for faster compilation in AOT mode.',
+    defaultsTo: true,
+  );
+  args.addFlag(
+    'tree-shake-write-only-fields',
+    help: 'Enable tree shaking of fields which are only written in AOT mode.',
+    defaultsTo: true,
+  );
+  args.addFlag(
+    'protobuf-tree-shaker-v2',
+    help: 'Enable protobuf tree shaker v2 in AOT mode.',
+    defaultsTo: false,
+  );
+  args.addMultiOption(
+    'define',
+    abbr: 'D',
+    help: 'The values for the environment constants (e.g. -Dkey=value).',
+  );
+  args.addFlag(
+    'enable-asserts',
+    help: 'Whether asserts will be enabled.',
+    defaultsTo: false,
+  );
+  args.addFlag(
+    'sound-null-safety',
+    help: 'Respect the nullability of types at runtime.',
+    defaultsTo: true,
+    hide: true,
+  );
+  args.addFlag(
+    'split-output-by-packages',
+    help: 'Split resulting kernel file into multiple files (one per package).',
+    defaultsTo: false,
+  );
+  args.addOption(
+    'component-name',
+    help: 'Name of the Fuchsia component',
+    defaultsTo: null,
+  );
+  args.addOption(
+    'data-dir',
+    help: 'Name of the subdirectory of //data for output files',
+  );
+  args.addOption(
+    'dynamic-interface',
+    help: 'Path to dynamic module interface yaml file.',
+  );
   args.addOption('manifest', help: 'Path to output Fuchsia package manifest');
-  args.addMultiOption('enable-experiment',
-      help: 'Comma separated list of experimental features to enable.');
-  args.addFlag('help',
-      abbr: 'h', negatable: false, help: 'Print this help message.');
-  args.addFlag('track-widget-creation',
-      help: 'Run a kernel transformer to track creation locations for widgets.',
-      defaultsTo: false);
+  args.addMultiOption(
+    'enable-experiment',
+    help: 'Comma separated list of experimental features to enable.',
+  );
+  args.addFlag(
+    'help',
+    abbr: 'h',
+    negatable: false,
+    help: 'Print this help message.',
+  );
+  args.addFlag(
+    'track-widget-creation',
+    help: 'Run a kernel transformer to track creation locations for widgets.',
+    defaultsTo: false,
+  );
   args.addMultiOption(
     'delete-tostring-package-uri',
-    help: 'Replaces implementations of `toString` with `super.toString()` for '
+    help:
+        'Replaces implementations of `toString` with `super.toString()` for '
         'specified package',
     valueHelp: 'dart:ui',
     defaultsTo: const <String>[],
   );
   args.addMultiOption(
     'keep-class-names-implementing',
-    help: 'Prevents obfuscation of the class names of any class implementing '
+    help:
+        'Prevents obfuscation of the class names of any class implementing '
         'the given class.',
     defaultsTo: const <String>[],
   );
-  args.addOption('invocation-modes',
-      help: 'Provides information to the front end about how it is invoked.',
-      defaultsTo: '');
-  args.addOption('verbosity',
-      help: 'Sets the verbosity level used for filtering messages during '
-          'compilation.',
-      defaultsTo: Verbosity.defaultValue);
+  args.addOption(
+    'invocation-modes',
+    help: 'Provides information to the front end about how it is invoked.',
+    defaultsTo: '',
+  );
+  args.addOption(
+    'verbosity',
+    help:
+        'Sets the verbosity level used for filtering messages during '
+        'compilation.',
+    defaultsTo: Verbosity.defaultValue,
+  );
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -256,7 +339,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     }
     if (splitOutputByPackages) {
       print(
-          'Error: --split-output-by-packages option cannot be used with --aot');
+        'Error: --split-output-by-packages option cannot be used with --aot',
+      );
       return badUsageExitCode;
     }
   }
@@ -267,14 +351,18 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       return badUsageExitCode;
     }
     if (minimalKernel) {
-      print('Error: --support-mirrors option cannot be used with '
-          '--minimal-kernel');
+      print(
+        'Error: --support-mirrors option cannot be used with '
+        '--minimal-kernel',
+      );
       return badUsageExitCode;
     }
   }
 
-  final fileSystem =
-      createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
+  final fileSystem = createFrontEndFileSystem(
+    fileSystemScheme,
+    fileSystemRoots,
+  );
 
   final Uri? packagesUri = packages != null ? resolveInputUri(packages) : null;
 
@@ -286,8 +374,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final verbosity = Verbosity.parseArgument(options['verbosity']);
   final errorPrinter = new ErrorPrinter(verbosity);
-  final errorDetector =
-      new ErrorDetector(previousErrorHandler: errorPrinter.call);
+  final errorDetector = new ErrorDetector(
+    previousErrorHandler: errorPrinter.call,
+  );
 
   final Uri? nativeAssetsUri =
       nativeAssetsPath == null ? null : resolveInputUri(nativeAssetsPath);
@@ -296,9 +385,10 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       recordedUsagesFile == null ? null : resolveInputUri(recordedUsagesFile);
 
   final String? dynamicInterfaceFilePath = options['dynamic-interface'];
-  final Uri? dynamicInterfaceUri = dynamicInterfaceFilePath == null
-      ? null
-      : resolveInputUri(dynamicInterfaceFilePath);
+  final Uri? dynamicInterfaceUri =
+      dynamicInterfaceFilePath == null
+          ? null
+          : resolveInputUri(dynamicInterfaceFilePath);
 
   Uri? mainUri;
   if (input != null) {
@@ -310,31 +400,37 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final List<Uri> additionalSources = sources.map(resolveInputUri).toList();
 
-  final CompilerOptions compilerOptions = new CompilerOptions()
-    ..sdkSummary = platformKernelUri
-    ..fileSystem = fileSystem
-    ..additionalDills = additionalDills
-    ..packagesFileUri = packagesUri
-    ..explicitExperimentalFlags = parseExperimentalFlags(
-        parseExperimentalArguments(experimentalFlags),
-        onError: print)
-    ..onDiagnostic = (DiagnosticMessage m) {
-      errorDetector(m);
-    }
-    ..embedSourceText = embedSources
-    ..invocationModes =
-        InvocationMode.parseArguments(options['invocation-modes'])
-    ..verbosity = verbosity;
+  final CompilerOptions compilerOptions =
+      new CompilerOptions()
+        ..sdkSummary = platformKernelUri
+        ..fileSystem = fileSystem
+        ..additionalDills = additionalDills
+        ..packagesFileUri = packagesUri
+        ..explicitExperimentalFlags = parseExperimentalFlags(
+          parseExperimentalArguments(experimentalFlags),
+          onError: print,
+        )
+        ..onDiagnostic = (DiagnosticMessage m) {
+          errorDetector(m);
+        }
+        ..embedSourceText = embedSources
+        ..invocationModes = InvocationMode.parseArguments(
+          options['invocation-modes'],
+        )
+        ..verbosity = verbosity;
 
-  compilerOptions.target = createFrontEndTarget(targetName,
-      trackWidgetCreation: options['track-widget-creation'],
-      supportMirrors: supportMirrors ?? !(aot || minimalKernel));
+  compilerOptions.target = createFrontEndTarget(
+    targetName,
+    trackWidgetCreation: options['track-widget-creation'],
+    supportMirrors: supportMirrors ?? !(aot || minimalKernel),
+  );
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
   }
 
-  final results = await compileToKernel(KernelCompilationArguments(
+  final results = await compileToKernel(
+    KernelCompilationArguments(
       source: mainUri,
       options: compilerOptions,
       additionalSources: additionalSources,
@@ -353,7 +449,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
       targetOS: targetOS,
-      fromDillFile: fromDillFile));
+      fromDillFile: fromDillFile,
+    ),
+  );
 
   errorPrinter.printCompilationMessages();
 
@@ -366,8 +464,10 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final IOSink sink = new File(outputFileName).openWrite();
   if (component != null) {
-    final BinaryPrinter printer = new BinaryPrinter(sink,
-        libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
+    final BinaryPrinter printer = new BinaryPrinter(
+      sink,
+      libraryFilter: (lib) => !results.loadedLibraries.contains(lib),
+    );
     if (aot && nativeAssetsLibrary != null) {
       // If Dart component in AOT, write the vm:native-assets library _inside_
       // the Dart component.
@@ -382,10 +482,12 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     // If Dart component in JIT, write as concatenated dill, to not mess with
     // the incremental compiler.
     final BinaryPrinter printer = new BinaryPrinter(sink);
-    printer.writeComponentFile(Component(
-      libraries: [nativeAssetsLibrary],
-      mode: NonNullableByDefaultCompiledMode.Strong,
-    ));
+    printer.writeComponentFile(
+      Component(
+        libraries: [nativeAssetsLibrary],
+        mode: NonNullableByDefaultCompiledMode.Strong,
+      ),
+    );
   }
   await sink.close();
 
@@ -439,8 +541,8 @@ class KernelCompilationResults {
     this.classHierarchy,
     this.coreTypes,
     this.compiledSources,
-  )   : nativeAssetsLibrary = null,
-        usedPackageConfig = null;
+  ) : nativeAssetsLibrary = null,
+      usedPackageConfig = null;
 
   KernelCompilationResults.named({
     this.component,
@@ -507,17 +609,21 @@ class KernelCompilationArguments {
 ///
 /// Either [arg.source], or [args.nativeAssets], or both must be non-null.
 Future<KernelCompilationResults> compileToKernel(
-    KernelCompilationArguments args) async {
+  KernelCompilationArguments args,
+) async {
   final options = args.options!;
 
   // Replace error handler to detect if there are compilation errors.
-  final errorDetector =
-      new ErrorDetector(previousErrorHandler: options.onDiagnostic);
+  final errorDetector = new ErrorDetector(
+    previousErrorHandler: options.onDiagnostic,
+  );
   options.onDiagnostic = errorDetector.call;
 
   final nativeAssetsLibrary =
       await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
-          args.nativeAssets, errorDetector);
+        args.nativeAssets,
+        errorDetector,
+      );
   if (args.source == null) {
     return KernelCompilationResults.named(
       nativeAssetsLibrary: nativeAssetsLibrary,
@@ -525,27 +631,36 @@ Future<KernelCompilationResults> compileToKernel(
   }
 
   final target = options.target!;
-  options.environmentDefines =
-      target.updateEnvironmentDefines(args.environmentDefines);
+  options.environmentDefines = target.updateEnvironmentDefines(
+    args.environmentDefines,
+  );
 
   CompilerResult? compilerResult;
   final fromDillFile = args.fromDillFile;
   Uri? usedPackageConfig;
   if (fromDillFile != null) {
-    compilerResult =
-        await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
+    compilerResult = await loadKernel(
+      options.fileSystem,
+      resolveInputUri(fromDillFile),
+    );
   } else {
     final processedOptions = new ProcessedOptions(
       options: options,
       inputs: [args.source!, ...args.additionalSources],
     );
-    compilerResult = await CompilerContext.runWithOptions(processedOptions,
-        (CompilerContext context) async {
+    compilerResult = await CompilerContext.runWithOptions(processedOptions, (
+      CompilerContext context,
+    ) async {
       return args.requireMain
-          ? await kernelForProgram(args.source!, options,
-              additionalSources: args.additionalSources)
-          : await kernelForModule(
-              [args.source!, ...args.additionalSources], options);
+          ? await kernelForProgram(
+            args.source!,
+            options,
+            additionalSources: args.additionalSources,
+          )
+          : await kernelForModule([
+            args.source!,
+            ...args.additionalSources,
+          ], options);
     });
     usedPackageConfig = await processedOptions.resolvePackagesFileUri();
   }
@@ -554,12 +669,16 @@ Future<KernelCompilationResults> compileToKernel(
   Iterable<Uri>? compiledSources = component?.uriToSource.keys;
 
   Set<Library> loadedLibraries = createLoadedLibrariesSet(
-      compilerResult?.loadedComponents, compilerResult?.sdkComponent,
-      includePlatform: args.includePlatform);
+    compilerResult?.loadedComponents,
+    compilerResult?.sdkComponent,
+    includePlatform: args.includePlatform,
+  );
 
   if (args.deleteToStringPackageUris.isNotEmpty && component != null) {
     to_string_transformer.transformComponent(
-        component, args.deleteToStringPackageUris);
+      component,
+      args.deleteToStringPackageUris,
+    );
   }
 
   // Run global transformations only if component is correct.
@@ -592,8 +711,10 @@ Future<KernelCompilationResults> compileToKernel(
 }
 
 Set<Library> createLoadedLibrariesSet(
-    List<Component>? loadedComponents, Component? sdkComponent,
-    {bool includePlatform = false}) {
+  List<Component>? loadedComponents,
+  Component? sdkComponent, {
+  bool includePlatform = false,
+}) {
   final Set<Library> loadedLibraries = {};
   if (loadedComponents != null) {
     for (Component c in loadedComponents) {
@@ -616,8 +737,12 @@ Set<Library> createLoadedLibrariesSet(
   return loadedLibraries;
 }
 
-Future runGlobalTransformations(Target target, Component component,
-    ErrorDetector errorDetector, KernelCompilationArguments args) async {
+Future runGlobalTransformations(
+  Target target,
+  Component component,
+  ErrorDetector errorDetector,
+  KernelCompilationArguments args,
+) async {
   assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 
@@ -627,10 +752,11 @@ Future runGlobalTransformations(Target target, Component component,
   if (dynamicInterface != null) {
     final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
     dynamic_interface_annotator.annotateComponent(
-        File(fileUri.toFilePath()).readAsStringSync(),
-        dynamicInterface,
-        component,
-        coreTypes);
+      File(fileUri.toFilePath()).readAsStringSync(),
+      dynamicInterface,
+      component,
+      coreTypes,
+    );
   }
 
   // TODO(alexmarkov,cstefantsova): Consider doing canonicalization of
@@ -646,19 +772,30 @@ Future runGlobalTransformations(Target target, Component component,
   final targetOS = args.targetOS;
   final os = targetOS != null ? TargetOS.fromString(targetOS)! : null;
   final evaluator = vm_constant_evaluator.VMConstantEvaluator.create(
-      target, component, os,
-      enableAsserts: args.enableAsserts,
-      environmentDefines: args.environmentDefines,
-      coreTypes: coreTypes);
+    target,
+    component,
+    os,
+    enableAsserts: args.enableAsserts,
+    environmentDefines: args.environmentDefines,
+    coreTypes: coreTypes,
+  );
   unreachable_code_elimination.transformComponent(
-      target, component, evaluator, args.enableAsserts);
+    target,
+    component,
+    evaluator,
+    args.enableAsserts,
+  );
 
   if (args.useGlobalTypeFlowAnalysis) {
-    globalTypeFlow.transformComponent(target, coreTypes, component,
-        treeShakeSignatures: !args.minimalKernel,
-        treeShakeWriteOnlyFields: args.treeShakeWriteOnlyFields,
-        treeShakeProtobufs: args.useProtobufTreeShakerV2,
-        useRapidTypeAnalysis: args.useRapidTypeAnalysis);
+    globalTypeFlow.transformComponent(
+      target,
+      coreTypes,
+      component,
+      treeShakeSignatures: !args.minimalKernel,
+      treeShakeWriteOnlyFields: args.treeShakeWriteOnlyFields,
+      treeShakeProtobufs: args.useProtobufTreeShakerV2,
+      useRapidTypeAnalysis: args.useRapidTypeAnalysis,
+    );
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
@@ -666,15 +803,27 @@ Future runGlobalTransformations(Target target, Component component,
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
   void ignoreAmbiguousSupertypes(cls, a, b) {}
-  final hierarchy = new ClassHierarchy(component, coreTypes,
-      onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
+  final hierarchy = new ClassHierarchy(
+    component,
+    coreTypes,
+    onAmbiguousSupertypes: ignoreAmbiguousSupertypes,
+  );
   call_site_annotator.transformLibraries(
-      component, component.libraries, coreTypes, hierarchy);
+    component,
+    component.libraries,
+    coreTypes,
+    hierarchy,
+  );
 
   // We don't know yet whether gen_snapshot will want to do obfuscation, but if
   // it does it will need the obfuscation prohibitions.
   obfuscationProhibitions.transformComponent(
-      component, coreTypes, target, hierarchy, args.keepClassNamesImplementing);
+    component,
+    coreTypes,
+    target,
+    hierarchy,
+    args.keepClassNamesImplementing,
+  );
 
   deferred_loading.transformComponent(component, coreTypes, target);
 
@@ -688,16 +837,20 @@ Future runGlobalTransformations(Target target, Component component,
 /// Runs given [action] with [CompilerContext]. This is needed to
 /// be able to report compile-time errors.
 Future<T> runWithFrontEndCompilerContext<T>(
-    Uri source,
-    CompilerOptions compilerOptions,
-    Component component,
-    Future<T> action()) async {
-  final processedOptions =
-      new ProcessedOptions(options: compilerOptions, inputs: [source]);
+  Uri source,
+  CompilerOptions compilerOptions,
+  Component component,
+  Future<T> action(),
+) async {
+  final processedOptions = new ProcessedOptions(
+    options: compilerOptions,
+    inputs: [source],
+  );
 
   // Run within the context, so we have uri source tokens...
-  return await CompilerContext.runWithOptions(processedOptions,
-      (CompilerContext context) async {
+  return await CompilerContext.runWithOptions(processedOptions, (
+    CompilerContext context,
+  ) async {
     // To make the fileUri/fileOffset -> line/column mapping, we need to
     // pre-fill the map.
     context.uriToSource.addAll(component.uriToSource);
@@ -728,8 +881,11 @@ class ErrorPrinter {
       <Uri?, List<DiagnosticMessage>>{};
   final void Function(String) println;
 
-  ErrorPrinter(this.verbosity,
-      {this.previousErrorHandler, this.println = print});
+  ErrorPrinter(
+    this.verbosity, {
+    this.previousErrorHandler,
+    this.println = print,
+  });
 
   void call(DiagnosticMessage message) {
     final sourceUri = getMessageUri(message);
@@ -738,19 +894,19 @@ class ErrorPrinter {
   }
 
   void printCompilationMessages() {
-    final sortedUris = compilationMessages.keys.toList()
-      ..sort((a, b) {
-        // Sort messages without a corresponding uri before the location based
-        // messages, since these related to the whole compilation.
-        if (a != null && b != null) {
-          return '$a'.compareTo('$b');
-        } else if (a != null) {
-          return 1;
-        } else if (b != null) {
-          return -1;
-        }
-        return 0;
-      });
+    final sortedUris =
+        compilationMessages.keys.toList()..sort((a, b) {
+          // Sort messages without a corresponding uri before the location based
+          // messages, since these related to the whole compilation.
+          if (a != null && b != null) {
+            return '$a'.compareTo('$b');
+          } else if (a != null) {
+            return 1;
+          } else if (b != null) {
+            return -1;
+          }
+          return 0;
+        });
     for (final Uri? sourceUri in sortedUris) {
       for (final DiagnosticMessage message in compilationMessages[sourceUri]!) {
         if (Verbosity.shouldPrint(verbosity, message)) {
@@ -762,7 +918,10 @@ class ErrorPrinter {
 }
 
 bool parseCommandLineDefines(
-    List<String> dFlags, Map<String, String> environmentDefines, String usage) {
+  List<String> dFlags,
+  Map<String, String> environmentDefines,
+  String usage,
+) {
   for (final String dflag in dFlags) {
     final equalsSignIndex = dflag.indexOf('=');
     if (equalsSignIndex < 0) {
@@ -781,13 +940,18 @@ bool parseCommandLineDefines(
 }
 
 /// Create front-end target with given name.
-Target? createFrontEndTarget(String targetName,
-    {bool trackWidgetCreation = false, bool supportMirrors = true}) {
+Target? createFrontEndTarget(
+  String targetName, {
+  bool trackWidgetCreation = false,
+  bool supportMirrors = true,
+}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
-      trackWidgetCreation: trackWidgetCreation, supportMirrors: supportMirrors);
+    trackWidgetCreation: trackWidgetCreation,
+    supportMirrors: supportMirrors,
+  );
   return getTarget(targetName, targetFlags);
 }
 
@@ -796,8 +960,10 @@ Target? createFrontEndTarget(String targetName,
 /// If requested, create a virtual multi-root file system and/or an http aware
 /// file system.
 FileSystem createFrontEndFileSystem(
-    String? multiRootFileSystemScheme, List<String>? multiRootFileSystemRoots,
-    {bool allowHttp = false}) {
+  String? multiRootFileSystemScheme,
+  List<String>? multiRootFileSystemRoots, {
+  bool allowHttp = false,
+}) {
   FileSystem fileSystem = StandardFileSystem.instance;
   if (allowHttp) {
     fileSystem = HttpAwareFileSystem(fileSystem);
@@ -810,7 +976,10 @@ FileSystem createFrontEndFileSystem(
       rootUris.add(resolveInputUri(root));
     }
     fileSystem = new MultiRootFileSystem(
-        multiRootFileSystemScheme, rootUris, fileSystem);
+      multiRootFileSystemScheme,
+      rootUris,
+      fileSystem,
+    );
   }
   return fileSystem;
 }
@@ -827,15 +996,19 @@ Future<Uri> asFileUri(FileSystem fileSystem, Uri uri) async {
 /// Convert URI to a package URI if it is inside one of the packages.
 /// TODO(alexmarkov) Remove this conversion after Fuchsia build rules are fixed.
 Future<Uri> convertToPackageUri(
-    FileSystem fileSystem, Uri uri, Uri packagesUri) async {
+  FileSystem fileSystem,
+  Uri uri,
+  Uri packagesUri,
+) async {
   if (uri.scheme == 'package') {
     return uri;
   }
   // Convert virtual URI to a real file URI.
   final Uri fileUri = await asFileUri(fileSystem, uri);
   try {
-    final packageConfig =
-        await loadPackageConfigUri(await asFileUri(fileSystem, packagesUri));
+    final packageConfig = await loadPackageConfigUri(
+      await asFileUri(fileSystem, packagesUri),
+    );
     return packageConfig.toPackageUri(fileUri) ?? uri;
   } catch (_) {
     // Can't read packages file - silently give up.
@@ -846,28 +1019,42 @@ Future<Uri> convertToPackageUri(
 /// Write a separate kernel binary for each package. The name of the
 /// output kernel binary is '[outputFileName]-$package.dilp'.
 /// The list of package names is written into a file '[outputFileName]-packages'.
-Future writeOutputSplitByPackages(Uri source, CompilerOptions compilerOptions,
-    KernelCompilationResults compilationResults, String outputFileName) async {
+Future writeOutputSplitByPackages(
+  Uri source,
+  CompilerOptions compilerOptions,
+  KernelCompilationResults compilationResults,
+  String outputFileName,
+) async {
   final packages = <String>[];
   final Component component = compilationResults.component!;
-  await runWithFrontEndCompilerContext(source, compilerOptions, component,
-      () async {
-    // When loading a kernel file list, flutter_runner and dart_runner expect
-    // 'main' to be last.
-    await forEachPackage(compilationResults,
-        (String package, List<Library> libraries) async {
-      packages.add(package);
-      final String filename = '$outputFileName-$package.dilp';
-      final IOSink sink = new File(filename).openWrite();
+  await runWithFrontEndCompilerContext(
+    source,
+    compilerOptions,
+    component,
+    () async {
+      // When loading a kernel file list, flutter_runner and dart_runner expect
+      // 'main' to be last.
+      await forEachPackage(compilationResults, (
+        String package,
+        List<Library> libraries,
+      ) async {
+        packages.add(package);
+        final String filename = '$outputFileName-$package.dilp';
+        final IOSink sink = new File(filename).openWrite();
 
-      final BinaryPrinter printer = new BinaryPrinter(sink,
-          libraryFilter: (lib) =>
-              packageFor(lib, compilationResults.loadedLibraries) == package);
-      printer.writeComponentFile(component);
+        final BinaryPrinter printer = new BinaryPrinter(
+          sink,
+          libraryFilter:
+              (lib) =>
+                  packageFor(lib, compilationResults.loadedLibraries) ==
+                  package,
+        );
+        printer.writeComponentFile(component);
 
-      await sink.close();
-    }, mainFirst: false);
-  });
+        await sink.close();
+      }, mainFirst: false);
+    },
+  );
 
   final IOSink packagesList = new File('$outputFileName-packages').openWrite();
   for (String package in packages) {
@@ -902,9 +1089,11 @@ void sortComponent(Component component) {
   }
 }
 
-Future<void> forEachPackage(KernelCompilationResults results,
-    Future<void> action(String package, List<Library> libraries),
-    {required bool mainFirst}) async {
+Future<void> forEachPackage(
+  KernelCompilationResults results,
+  Future<void> action(String package, List<Library> libraries), {
+  required bool mainFirst,
+}) async {
   final Component component = results.component!;
   final Set<Library> loadedLibraries = results.loadedLibraries;
   sortComponent(component);
@@ -947,8 +1136,12 @@ String _escapePath(String path) {
 
 /// Create ninja dependencies file, as described in
 /// https://ninja-build.org/manual.html#_depfile
-Future<void> writeDepfile(FileSystem fileSystem, Iterable<Uri> compiledSources,
-    String output, String depfile) async {
+Future<void> writeDepfile(
+  FileSystem fileSystem,
+  Iterable<Uri> compiledSources,
+  String output,
+  String depfile,
+) async {
   final IOSink file = new File(depfile).openWrite();
   file.write(_escapePath(output));
   file.write(':');
@@ -966,7 +1159,10 @@ Future<void> writeDepfile(FileSystem fileSystem, Iterable<Uri> compiledSources,
 }
 
 Future<void> createFarManifest(
-    String output, String? dataDir, String packageManifestFilename) async {
+  String output,
+  String? dataDir,
+  String packageManifestFilename,
+) async {
   List<String> packages = await File('$output-packages').readAsLines();
 
   // Make sure the 'main' package is the last (convention with package loader).
@@ -980,8 +1176,9 @@ Future<void> createFarManifest(
   for (String package in packages) {
     final String filenameInPackage = '$package.dilp';
     final String filenameInBuild = '$output-$package.dilp';
-    packageManifest
-        .write('data/$dataDir/$filenameInPackage=$filenameInBuild\n');
+    packageManifest.write(
+      'data/$dataDir/$filenameInPackage=$filenameInBuild\n',
+    );
     kernelList.write('$filenameInPackage\n');
   }
   await kernelList.close();
@@ -994,7 +1191,7 @@ Future<void> createFarManifest(
     'flutter',
     'meta',
     'typed_data',
-    'vector_math'
+    'vector_math',
   ]) {
     Digest? digest;
     if (packages.contains(package)) {
@@ -1007,8 +1204,9 @@ Future<void> createFarManifest(
   await frameworkVersion.close();
 
   packageManifest.write('data/$dataDir/app.dilplist=$kernelListFilename\n');
-  packageManifest
-      .write('data/$dataDir/app.frameworkversion=$frameworkVersionFilename\n');
+  packageManifest.write(
+    'data/$dataDir/app.frameworkversion=$frameworkVersionFilename\n',
+  );
   await packageManifest.close();
 }
 
@@ -1032,9 +1230,12 @@ class CompilerResultLoadedFromKernel implements CompilerResult {
 }
 
 Future<CompilerResult> loadKernel(
-    FileSystem fileSystem, Uri dillFileUri) async {
+  FileSystem fileSystem,
+  Uri dillFileUri,
+) async {
   final component = loadComponentFromBinary(
-      (await asFileUri(fileSystem, dillFileUri)).toFilePath());
+    (await asFileUri(fileSystem, dillFileUri)).toFilePath(),
+  );
   return CompilerResultLoadedFromKernel(component);
 }
 

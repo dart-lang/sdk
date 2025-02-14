@@ -20,8 +20,11 @@ class ForInLowering {
 
   ForInLowering(this.coreTypes, {required this.productMode});
 
-  Statement transformForInStatement(ForInStatement stmt,
-      FunctionNode? enclosingFunction, StaticTypeContext staticTypeContext) {
+  Statement transformForInStatement(
+    ForInStatement stmt,
+    FunctionNode? enclosingFunction,
+    StaticTypeContext staticTypeContext,
+  ) {
     if (stmt.isAsync) {
       if (enclosingFunction == null ||
           (enclosingFunction.asyncMarker != AsyncMarker.Async &&
@@ -66,34 +69,43 @@ class ForInLowering {
       //   }
       final valueVariable = stmt.variable;
 
-      final streamVariable = new VariableDeclaration(ForInVariables.stream,
-          initializer: stmt.iterable,
-          type: stmt.iterable.getStaticType(staticTypeContext),
-          isSynthesized: true);
+      final streamVariable = new VariableDeclaration(
+        ForInVariables.stream,
+        initializer: stmt.iterable,
+        type: stmt.iterable.getStaticType(staticTypeContext),
+        isSynthesized: true,
+      );
 
       final streamIteratorType = new InterfaceType(
-          coreTypes.streamIteratorClass,
-          staticTypeContext.nullable,
-          [valueVariable.type]);
+        coreTypes.streamIteratorClass,
+        staticTypeContext.nullable,
+        [valueVariable.type],
+      );
       final forIteratorVariable = VariableDeclaration(
-          ForInVariables.forIterator,
-          initializer: new ConstructorInvocation(
-              coreTypes.streamIteratorDefaultConstructor,
-              new Arguments(<Expression>[new VariableGet(streamVariable)],
-                  types: [valueVariable.type])),
-          type: streamIteratorType,
-          isSynthesized: true);
+        ForInVariables.forIterator,
+        initializer: new ConstructorInvocation(
+          coreTypes.streamIteratorDefaultConstructor,
+          new Arguments(
+            <Expression>[new VariableGet(streamVariable)],
+            types: [valueVariable.type],
+          ),
+        ),
+        type: streamIteratorType,
+        isSynthesized: true,
+      );
 
       // await :for-iterator.moveNext()
-      final condition = new AwaitExpression(new InstanceInvocation(
+      final condition = new AwaitExpression(
+        new InstanceInvocation(
           InstanceAccessKind.Instance,
           VariableGet(forIteratorVariable),
           coreTypes.streamIteratorMoveNext.name,
           new Arguments([]),
           interfaceTarget: coreTypes.streamIteratorMoveNext,
           functionType:
-              coreTypes.streamIteratorMoveNext.getterType as FunctionType))
-        ..fileOffset = stmt.fileOffset;
+              coreTypes.streamIteratorMoveNext.getterType as FunctionType,
+        ),
+      )..fileOffset = stmt.fileOffset;
 
       Expression whileCondition;
       if (productMode) {
@@ -101,55 +113,73 @@ class ForInLowering {
       } else {
         // _asyncStarMoveNextHelper(:stream)
         final asyncStarMoveNextCall = new StaticInvocation(
-            coreTypes.asyncStarMoveNextHelper,
-            new Arguments([new VariableGet(streamVariable)]))
-          ..fileOffset = stmt.fileOffset;
+          coreTypes.asyncStarMoveNextHelper,
+          new Arguments([new VariableGet(streamVariable)]),
+        )..fileOffset = stmt.fileOffset;
 
         // let _ = asyncStarMoveNextCall in (condition)
         whileCondition = new Let(
-            new VariableDeclaration(null,
-                initializer: asyncStarMoveNextCall, isSynthesized: true),
-            condition);
+          new VariableDeclaration(
+            null,
+            initializer: asyncStarMoveNextCall,
+            isSynthesized: true,
+          ),
+          condition,
+        );
       }
 
       // T <variable> = :for-iterator.current;
       valueVariable.initializer = new InstanceGet(
-          InstanceAccessKind.Instance,
-          VariableGet(forIteratorVariable),
-          coreTypes.streamIteratorCurrent.name,
-          interfaceTarget: coreTypes.streamIteratorCurrent,
-          resultType: valueVariable.type)
-        ..fileOffset = stmt.bodyOffset;
+        InstanceAccessKind.Instance,
+        VariableGet(forIteratorVariable),
+        coreTypes.streamIteratorCurrent.name,
+        interfaceTarget: coreTypes.streamIteratorCurrent,
+        resultType: valueVariable.type,
+      )..fileOffset = stmt.bodyOffset;
       valueVariable.initializer!.parent = valueVariable;
 
       final whileBody = new Block(<Statement>[valueVariable, stmt.body]);
       final tryBody = new WhileStatement(whileCondition, whileBody);
 
       // if (:for-iterator._subscription != null) await :for-iterator.cancel();
-      final DartType subscriptionType =
-          Substitution.fromInterfaceType(streamIteratorType)
-              .substituteType(coreTypes.streamIteratorSubscription.getterType);
+      final DartType subscriptionType = Substitution.fromInterfaceType(
+        streamIteratorType,
+      ).substituteType(coreTypes.streamIteratorSubscription.getterType);
       final tryFinalizer = new IfStatement(
-          new Not(new EqualsNull(new InstanceGet(
+        new Not(
+          new EqualsNull(
+            new InstanceGet(
               InstanceAccessKind.Instance,
               VariableGet(forIteratorVariable),
               coreTypes.streamIteratorSubscription.name,
               interfaceTarget: coreTypes.streamIteratorSubscription,
-              resultType: subscriptionType))),
-          new ExpressionStatement(new AwaitExpression(new InstanceInvocation(
+              resultType: subscriptionType,
+            ),
+          ),
+        ),
+        new ExpressionStatement(
+          new AwaitExpression(
+            new InstanceInvocation(
               InstanceAccessKind.Instance,
               VariableGet(forIteratorVariable),
               coreTypes.streamIteratorCancel.name,
               new Arguments(<Expression>[]),
               interfaceTarget: coreTypes.streamIteratorCancel,
               functionType:
-                  coreTypes.streamIteratorCancel.getterType as FunctionType))),
-          null);
+                  coreTypes.streamIteratorCancel.getterType as FunctionType,
+            ),
+          ),
+        ),
+        null,
+      );
 
       final tryFinally = new TryFinally(tryBody, tryFinalizer);
 
-      final block = new Block(
-          <Statement>[streamVariable, forIteratorVariable, tryFinally]);
+      final block = new Block(<Statement>[
+        streamVariable,
+        forIteratorVariable,
+        tryFinally,
+      ]);
       return block;
     }
 
@@ -177,41 +207,53 @@ class ForInLowering {
     final iterableType = iterable.getStaticType(staticTypeContext);
     if (iterableType is InvalidType) {
       return ExpressionStatement(
-          InvalidExpression('Invalid iterable type in for-in'));
+        InvalidExpression('Invalid iterable type in for-in'),
+      );
     }
 
-    assert(coreTypes.iterableGetIterator.function.returnType.nullability ==
-        Nullability.nonNullable);
+    assert(
+      coreTypes.iterableGetIterator.function.returnType.nullability ==
+          Nullability.nonNullable,
+    );
 
     final DartType elementType = stmt.getElementType(staticTypeContext);
     final iteratorType = InterfaceType(
-        coreTypes.iteratorClass, staticTypeContext.nonNullable, [elementType]);
+      coreTypes.iteratorClass,
+      staticTypeContext.nonNullable,
+      [elementType],
+    );
 
-    final syncForIterator = VariableDeclaration(ForInVariables.syncForIterator,
-        initializer: InstanceGet(InstanceAccessKind.Instance, iterable,
-            coreTypes.iterableGetIterator.name,
-            interfaceTarget: coreTypes.iterableGetIterator,
-            resultType: iteratorType)
-          ..fileOffset = iterable.fileOffset,
-        type: iteratorType,
-        isSynthesized: true)
-      ..fileOffset = iterable.fileOffset;
+    final syncForIterator = VariableDeclaration(
+      ForInVariables.syncForIterator,
+      initializer: InstanceGet(
+        InstanceAccessKind.Instance,
+        iterable,
+        coreTypes.iterableGetIterator.name,
+        interfaceTarget: coreTypes.iterableGetIterator,
+        resultType: iteratorType,
+      )..fileOffset = iterable.fileOffset,
+      type: iteratorType,
+      isSynthesized: true,
+    )..fileOffset = iterable.fileOffset;
 
     final condition = InstanceInvocation(
-        InstanceAccessKind.Instance,
-        VariableGet(syncForIterator),
-        coreTypes.iteratorMoveNext.name,
-        Arguments([]),
-        interfaceTarget: coreTypes.iteratorMoveNext,
-        functionType: coreTypes.iteratorMoveNext.getterType as FunctionType)
-      ..fileOffset = iterable.fileOffset;
+      InstanceAccessKind.Instance,
+      VariableGet(syncForIterator),
+      coreTypes.iteratorMoveNext.name,
+      Arguments([]),
+      interfaceTarget: coreTypes.iteratorMoveNext,
+      functionType: coreTypes.iteratorMoveNext.getterType as FunctionType,
+    )..fileOffset = iterable.fileOffset;
 
-    final variable = stmt.variable
-      ..initializer = (InstanceGet(InstanceAccessKind.Instance,
-          VariableGet(syncForIterator), coreTypes.iteratorGetCurrent.name,
-          interfaceTarget: coreTypes.iteratorGetCurrent,
-          resultType: elementType)
-        ..fileOffset = stmt.bodyOffset);
+    final variable =
+        stmt.variable
+          ..initializer = (InstanceGet(
+            InstanceAccessKind.Instance,
+            VariableGet(syncForIterator),
+            coreTypes.iteratorGetCurrent.name,
+            interfaceTarget: coreTypes.iteratorGetCurrent,
+            resultType: elementType,
+          )..fileOffset = stmt.bodyOffset);
     variable.initializer!.parent = variable;
 
     final Block body = Block([variable, stmt.body])

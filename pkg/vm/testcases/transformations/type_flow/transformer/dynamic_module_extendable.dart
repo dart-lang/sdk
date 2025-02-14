@@ -44,9 +44,10 @@ void cast2(A2 obj) {
   print(obj as B2); // Not eliminated.
 }
 
-List opaque = []
-  ..add(B1())
-  ..add(B2());
+List opaque =
+    []
+      ..add(B1())
+      ..add(B2());
 
 main() {
   call1(opaque[0]);

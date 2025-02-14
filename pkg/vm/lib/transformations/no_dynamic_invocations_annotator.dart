@@ -56,8 +56,8 @@ class NoDynamicUsesAnnotator {
   final ProcedureAttributesMetadataRepository _metadata;
 
   NoDynamicUsesAnnotator(Component component)
-      : _selectors = DynamicSelectorsCollector.collect(component),
-        _metadata = new ProcedureAttributesMetadataRepository() {
+    : _selectors = DynamicSelectorsCollector.collect(component),
+      _metadata = new ProcedureAttributesMetadataRepository() {
     component.addMetadataRepository(_metadata);
   }
 
@@ -92,10 +92,11 @@ class NoDynamicUsesAnnotator {
     ProcedureAttributesMetadata metadata;
     if (!_selectors.nonThisSelectors.contains(selector)) {
       metadata = const ProcedureAttributesMetadata(
-          methodOrSetterCalledDynamically: false,
-          getterCalledDynamically: false,
-          hasNonThisUses: true,
-          hasTearOffUses: false);
+        methodOrSetterCalledDynamically: false,
+        getterCalledDynamically: false,
+        hasNonThisUses: true,
+        hasTearOffUses: false,
+      );
     } else {
       metadata = const ProcedureAttributesMetadata.noDynamicUses();
     }
@@ -125,22 +126,25 @@ class NoDynamicUsesAnnotator {
     ProcedureAttributesMetadata metadata;
     if (!hasNonThisUses && !hasTearOffUses) {
       metadata = const ProcedureAttributesMetadata(
-          methodOrSetterCalledDynamically: false,
-          getterCalledDynamically: false,
-          hasNonThisUses: false,
-          hasTearOffUses: false);
+        methodOrSetterCalledDynamically: false,
+        getterCalledDynamically: false,
+        hasNonThisUses: false,
+        hasTearOffUses: false,
+      );
     } else if (!hasNonThisUses && hasTearOffUses) {
       metadata = const ProcedureAttributesMetadata(
-          methodOrSetterCalledDynamically: false,
-          getterCalledDynamically: false,
-          hasNonThisUses: false,
-          hasTearOffUses: true);
+        methodOrSetterCalledDynamically: false,
+        getterCalledDynamically: false,
+        hasNonThisUses: false,
+        hasTearOffUses: true,
+      );
     } else if (hasNonThisUses && !hasTearOffUses) {
       metadata = const ProcedureAttributesMetadata(
-          methodOrSetterCalledDynamically: false,
-          getterCalledDynamically: false,
-          hasNonThisUses: true,
-          hasTearOffUses: false);
+        methodOrSetterCalledDynamically: false,
+        getterCalledDynamically: false,
+        hasNonThisUses: true,
+        hasTearOffUses: false,
+      );
     } else {
       metadata = const ProcedureAttributesMetadata.noDynamicUses();
     }

@@ -9,8 +9,9 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show computePlatformBinariesLocation;
 
 main() {
-  final Directory tmpDir =
-      Directory.systemTemp.createTempSync("obfuscationtest");
+  final Directory tmpDir = Directory.systemTemp.createTempSync(
+    "obfuscationtest",
+  );
   try {
     final Uri tmpDirUri = tmpDir.uri;
     final Uri secretfilename = tmpDirUri.resolve("secretfilename.dart");
@@ -38,17 +39,21 @@ void alsoVerySecretFoo() {
 """);
 
     List<MappingPair> mapping = getSnapshotMap(tmpDir, secretfilenameFile);
-    bool good = verify(mapping, {
-      // This contains @pragma('vm:entry-point') and the uri should not change.
-      secretfilename2.toString(),
-      // This contains @pragma('vm:entry-point') and the name should not change.
-      "verySecretFoo",
-    }, {
-      // This is not special and should have been obfuscated.
-      secretfilename.toString(),
-      // This is not special and should have been obfuscated.
-      "alsoVerySecretFoo"
-    });
+    bool good = verify(
+      mapping,
+      {
+        // This contains @pragma('vm:entry-point') and the uri should not change.
+        secretfilename2.toString(),
+        // This contains @pragma('vm:entry-point') and the name should not change.
+        "verySecretFoo",
+      },
+      {
+        // This is not special and should have been obfuscated.
+        secretfilename.toString(),
+        // This is not special and should have been obfuscated.
+        "alsoVerySecretFoo",
+      },
+    );
     if (!good) throw "Obfuscation didn't work as expected";
     print("Good");
   } finally {
@@ -72,7 +77,8 @@ List<MappingPair> getSnapshotMap(Directory tmpDir, File compileDartFile) {
   File genSnapshotFile = new File.fromUri(genSnapshot);
   if (!genSnapshotFile.existsSync()) {
     print(
-        "Didn't find gen_kernel at $genSnapshot... Trying utils/$genSnapshotFilename");
+      "Didn't find gen_kernel at $genSnapshot... Trying utils/$genSnapshotFilename",
+    );
     genSnapshot = resolvedExecutable.resolve("utils/$genSnapshotFilename");
     genSnapshotFile = new File.fromUri(genSnapshot);
     if (!genSnapshotFile.existsSync()) {
@@ -80,8 +86,9 @@ List<MappingPair> getSnapshotMap(Directory tmpDir, File compileDartFile) {
     }
   }
 
-  final Uri platformDill = computePlatformBinariesLocation()
-      .resolve('vm_platform_strong_product.dill');
+  final Uri platformDill = computePlatformBinariesLocation().resolve(
+    'vm_platform_strong_product.dill',
+  );
   final File platformDillFile = new File.fromUri(platformDill);
   if (!platformDillFile.existsSync()) {
     throw "Didn't find vm_platform_strong_product at $platformDill";
@@ -104,7 +111,7 @@ List<MappingPair> getSnapshotMap(Directory tmpDir, File compileDartFile) {
     kernelDillFile.path,
     "--invocation-modes=compile",
     "--verbosity=all",
-    compileDartFile.path
+    compileDartFile.path,
   ]);
 
   if (kernelRun.exitCode != 0) {
@@ -159,21 +166,28 @@ class MappingPair {
   String toString() => "MappingPair[$from->$to]";
 }
 
-bool verify(List<MappingPair> mapping, Set<String> expectedIdentity,
-    Set<String> expectedDifferent) {
+bool verify(
+  List<MappingPair> mapping,
+  Set<String> expectedIdentity,
+  Set<String> expectedDifferent,
+) {
   bool good = true;
   Set<String> missingKeys = new Set<String>.of(expectedIdentity)
     ..addAll(expectedDifferent);
   for (MappingPair entry in mapping) {
     missingKeys.remove(entry.from);
     if (expectedIdentity.contains(entry.from) && entry.from != entry.to) {
-      print("Expected ${entry.from} to map to itself, "
-          "but mapped to ${entry.to}");
+      print(
+        "Expected ${entry.from} to map to itself, "
+        "but mapped to ${entry.to}",
+      );
       good = false;
     }
     if (expectedDifferent.contains(entry.from) && entry.from == entry.to) {
-      print("Expected ${entry.from} to map to something different, "
-          "but it didn't.");
+      print(
+        "Expected ${entry.from} to map to something different, "
+        "but it didn't.",
+      );
       good = false;
     }
   }

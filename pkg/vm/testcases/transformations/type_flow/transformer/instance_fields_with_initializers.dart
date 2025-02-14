@@ -19,9 +19,7 @@ class A {
   int f7 = sideEffect(7); // Used/retained.
   int f8 = sideEffect(8);
 
-  A(this.f8)
-      : f1 = sideEffect(100),
-        f2 = sideEffect(200);
+  A(this.f8) : f1 = sideEffect(100), f2 = sideEffect(200);
 
   A.foo() : this(800);
   A.bar(this.f1) : f8 = sideEffect(801);

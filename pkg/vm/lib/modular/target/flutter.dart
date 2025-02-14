@@ -21,28 +21,28 @@ class FlutterTarget extends VmTarget {
   // `runtime/vm/object_store.h`.
   @override
   List<String> get extraRequiredLibraries => const <String>[
-        'dart:async',
-        'dart:collection',
-        'dart:concurrent',
-        'dart:convert',
-        'dart:developer',
-        'dart:ffi',
-        'dart:_internal',
-        'dart:isolate',
-        'dart:math',
+    'dart:async',
+    'dart:collection',
+    'dart:concurrent',
+    'dart:convert',
+    'dart:developer',
+    'dart:ffi',
+    'dart:_internal',
+    'dart:isolate',
+    'dart:math',
 
-        // The library dart:mirrors may be ignored by the VM, e.g. when built in
-        // PRODUCT mode.
-        'dart:mirrors',
+    // The library dart:mirrors may be ignored by the VM, e.g. when built in
+    // PRODUCT mode.
+    'dart:mirrors',
 
-        'dart:typed_data',
-        'dart:nativewrappers',
-        'dart:io',
+    'dart:typed_data',
+    'dart:nativewrappers',
+    'dart:io',
 
-        // Required for flutter.
-        'dart:ui',
-        'dart:vmservice_io',
-      ];
+    // Required for flutter.
+    'dart:ui',
+    'dart:vmservice_io',
+  ];
 
   @override
   List<String> get extraRequiredLibrariesPlatform => const <String>[];
@@ -53,15 +53,21 @@ class FlutterTarget extends VmTarget {
 
   @override
   void performPreConstantEvaluationTransformations(
-      Component component,
-      CoreTypes coreTypes,
-      List<Library> libraries,
-      DiagnosticReporter diagnosticReporter,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     super.performPreConstantEvaluationTransformations(
-        component, coreTypes, libraries, diagnosticReporter,
-        logger: logger, changedStructureNotifier: changedStructureNotifier);
+      component,
+      coreTypes,
+      libraries,
+      diagnosticReporter,
+      logger: logger,
+      changedStructureNotifier: changedStructureNotifier,
+    );
     if (flags.trackWidgetCreation) {
       _widgetTracker.transform(component, libraries, changedStructureNotifier);
     }

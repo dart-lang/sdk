@@ -51,9 +51,10 @@ class UnboxingType {
 
   factory UnboxingType.readFromBinary(BinarySource source) {
     final kind = UnboxingKind.values[source.readUInt30()];
-    final recordShape = (kind == UnboxingKind.record)
-        ? RecordShape.readFromBinary(source)
-        : null;
+    final recordShape =
+        (kind == UnboxingKind.record)
+            ? RecordShape.readFromBinary(source)
+            : null;
     return UnboxingType._(kind, recordShape);
   }
 
@@ -95,19 +96,22 @@ class UnboxingInfoMetadata {
   bool mustUseStackCallingConvention;
   bool hasOverridesWithLessDirectParameters = false;
 
-  UnboxingInfoMetadata(int argsLen,
-      {UnboxingType initialValue = UnboxingType.kUnknown})
-      : argsInfo = List<UnboxingType>.filled(
-          argsLen,
-          initialValue,
-          growable: true,
-        ),
-        returnInfo = initialValue,
-        mustUseStackCallingConvention = false;
+  UnboxingInfoMetadata(
+    int argsLen, {
+    UnboxingType initialValue = UnboxingType.kUnknown,
+  }) : argsInfo = List<UnboxingType>.filled(
+         argsLen,
+         initialValue,
+         growable: true,
+       ),
+       returnInfo = initialValue,
+       mustUseStackCallingConvention = false;
 
   factory UnboxingInfoMetadata.readFromBinary(BinarySource source) {
-    final result = UnboxingInfoMetadata(source.readUInt30(),
-        initialValue: UnboxingType.kBoxed);
+    final result = UnboxingInfoMetadata(
+      source.readUInt30(),
+      initialValue: UnboxingType.kBoxed,
+    );
     final flags = source.readByte();
     result.mustUseStackCallingConvention =
         (flags & _mustUseStackCallingConventionFlag) != 0;
@@ -164,7 +168,8 @@ class UnboxingInfoMetadata {
 
   void writeToBinary(BinarySink sink) {
     sink.writeUInt30(argsInfo.length);
-    final flags = (mustUseStackCallingConvention
+    final flags =
+        (mustUseStackCallingConvention
             ? _mustUseStackCallingConventionFlag
             : 0) |
         (hasUnboxedParameterOrReturnValue
@@ -184,9 +189,10 @@ class UnboxingInfoMetadata {
 
   /// Remove placeholder parameter info slot for setters that the getter is
   /// grouped with.
-  UnboxingInfoMetadata toGetterInfo() => UnboxingInfoMetadata(0)
-    ..returnInfo = returnInfo
-    ..mustUseStackCallingConvention = mustUseStackCallingConvention;
+  UnboxingInfoMetadata toGetterInfo() =>
+      UnboxingInfoMetadata(0)
+        ..returnInfo = returnInfo
+        ..mustUseStackCallingConvention = mustUseStackCallingConvention;
 
   UnboxingInfoMetadata toFieldInfo() {
     if (argsInfo.length == 1 && argsInfo[0] == UnboxingType.kUnknown) {
@@ -231,7 +237,10 @@ class UnboxingInfoMetadataRepository
 
   @override
   void writeToBinary(
-      UnboxingInfoMetadata metadata, Node node, BinarySink sink) {
+    UnboxingInfoMetadata metadata,
+    Node node,
+    BinarySink sink,
+  ) {
     metadata.writeToBinary(sink);
   }
 
