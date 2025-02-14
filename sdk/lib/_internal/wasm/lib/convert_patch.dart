@@ -27,6 +27,7 @@ dynamic _parseJson(
   String source,
   Object? Function(Object? key, Object? value)? reviver,
 ) {
+  _oneByteStringInternCache.fill(0, null, _oneByteStringInternCacheSize);
   final listener = _JsonListener(reviver);
   if (source is OneByteString) {
     final parser = _JsonOneByteStringParser(listener);
@@ -1644,13 +1645,7 @@ class _JsonOneByteStringParser extends _ChunkedJsonParserState
   String getStringWithHash(int start, int end, int bits, int stringHash) {
     final sourceArray = chunk.array;
     final length = end - start;
-    final result = OneByteString.withLength(length);
-    for (int i = 0; i < length; ++i) {
-      result.array.write(i, sourceArray.readUnsigned(start++));
-    }
-    assert(result.hashCode.toWasmI32() == stringHash.toWasmI32());
-    setIdentityHashField(result, stringHash);
-    return result;
+    return _internOneByteStringFromI8(sourceArray, stringHash, start, length);
   }
 
   void beginString() {
@@ -1732,12 +1727,12 @@ class _JsonTwoByteStringParser extends _ChunkedJsonParserState
 
     const asciiBits = 0x7f;
     if (bits <= asciiBits) {
-      final result = OneByteString.withLength(length);
-      for (int i = 0; i < length; ++i) {
-        result.array.write(i, sourceArray.readUnsigned(start++));
-      }
-      setIdentityHashField(result, stringHash);
-      return result;
+      return _internOneByteStringFromI16(
+        sourceArray,
+        stringHash,
+        start,
+        length,
+      );
     }
 
     final result = TwoByteString.withLength(length);
@@ -1785,6 +1780,73 @@ class _JsonTwoByteStringParser extends _ChunkedJsonParserState
     final string = chunk.substringUnchecked(start, end);
     return double.parse(string);
   }
+}
+
+const int _oneByteStringInternCacheSize = 512;
+final WasmArray<OneByteString?> _oneByteStringInternCache =
+    WasmArray<OneByteString?>(_oneByteStringInternCacheSize);
+OneByteString _internOneByteStringFromI8(
+  WasmArray<WasmI8> array,
+  int stringHash,
+  int offset,
+  int length,
+) {
+  final int index = stringHash & (_oneByteStringInternCacheSize - 1);
+  final existing = _oneByteStringInternCache[index];
+
+  insert:
+  {
+    if (existing != null) {
+      if (existing.length == length) {
+        final existingArray = existing.array;
+        for (int start = offset, i = 0; i < length; ++i, start++) {
+          if (existingArray.readUnsigned(i) != array.readUnsigned(start)) {
+            break insert;
+          }
+        }
+        return existing;
+      }
+    }
+  }
+
+  final result = OneByteString.withLength(length);
+  result.array.copy(0, array, offset, length);
+  setIdentityHashField(result, stringHash);
+  _oneByteStringInternCache[index] = result;
+  return result;
+}
+
+OneByteString _internOneByteStringFromI16(
+  WasmArray<WasmI16> array,
+  int stringHash,
+  int offset,
+  int length,
+) {
+  final int index = stringHash & (_oneByteStringInternCacheSize - 1);
+  final existing = _oneByteStringInternCache[index];
+
+  insert:
+  {
+    if (existing != null) {
+      if (existing.length == length) {
+        final existingArray = existing.array;
+        for (int start = offset, i = 0; i < length; ++i, start++) {
+          if (existingArray.readUnsigned(i) != array.readUnsigned(start)) {
+            break insert;
+          }
+        }
+        return existing;
+      }
+    }
+  }
+
+  final result = OneByteString.withLength(length);
+  for (int start = offset, i = 0; i < length; ++i, start++) {
+    result.array.write(i, array.readUnsigned(start));
+  }
+  setIdentityHashField(result, stringHash);
+  _oneByteStringInternCache[index] = result;
+  return result;
 }
 
 @patch
