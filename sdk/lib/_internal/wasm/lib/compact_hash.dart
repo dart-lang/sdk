@@ -11,6 +11,7 @@ import "dart:_internal"
         TypeTest,
         unsafeCast;
 import "dart:_list" show GrowableList;
+import "dart:_object_helper";
 import "dart:_wasm";
 
 import "dart:collection";
@@ -459,7 +460,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   /// This function is unsafe: it does not perform any type checking on
   /// keys and values assuming that caller has ensured that types are
   /// correct.
-  void _populateUnsafe(WasmArray<Object?> data, int usedData) {
+  void _populateUnsafeOnlyStringKeys(WasmArray<Object?> data, int usedData) {
     assert(usedData.isEven);
     int size = data.length;
     if (size == 0) {
@@ -486,7 +487,17 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     for (int i = 0; i < usedData; i += 2) {
       final key = unsafeCast<K>(data[i]);
       final value = unsafeCast<V>(data[i + 1]);
-      _set(key, value, _hashCode(key));
+
+      // Strings store their hash code in the object header's identity hash code
+      // field. So before doing a indirect call to obtain the hash code, we can
+      // check if it was already computed and if so just use it.
+      final int idHash = getIdentityHashField(unsafeCast<Object>(key));
+      if (idHash != 0) {
+        assert(idHash == key.hashCode);
+        _set(key, value, idHash);
+      } else {
+        _set(key, value, key.hashCode);
+      }
     }
   }
 
@@ -1254,7 +1265,9 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
 }
 
 @pragma('wasm:prefer-inline')
-Map<K, V> createMapFromKeyValueListUnsafe<K, V>(
+Map<K, V> createMapFromStringKeyValueListUnsafe<K, V>(
   WasmArray<Object?> keyValuePairData,
   int usedData,
-) => DefaultMap<K, V>().._populateUnsafe(keyValuePairData, usedData);
+) =>
+    DefaultMap<K, V>()
+      .._populateUnsafeOnlyStringKeys(keyValuePairData, usedData);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_compact_hash" show createMapFromKeyValueListUnsafe;
+import "dart:_compact_hash" show createMapFromStringKeyValueListUnsafe;
 import "dart:_error_utils";
 import "dart:_internal"
     show patch, POWERS_OF_TEN, unsafeCast, pushWasmArray, popWasmArray;
@@ -210,7 +210,7 @@ class _JsonListener {
   }
 
   void endObject() {
-    value = createMapFromKeyValueListUnsafe<String, dynamic>(
+    value = createMapFromStringKeyValueListUnsafe<String, dynamic>(
       unsafeCast<WasmArray<Object?>>(currentContainer),
       currentContainerLength,
     );
