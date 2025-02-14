@@ -93,10 +93,7 @@ class CanRenameResponse {
         getElementKindName(newNameMember),
         newName,
       );
-      result.addError(
-        message,
-        newLocation_fromElement(newNameMember.asElement),
-      );
+      result.addError(message, newLocation_fromElement2(newNameMember));
     }
   }
 

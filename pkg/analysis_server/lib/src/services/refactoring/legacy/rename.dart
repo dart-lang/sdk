@@ -82,7 +82,11 @@ class RenameProcessor {
     required String code,
   }) {
     var edit = SourceEdit(offset, length, code);
-    doSourceChange_addElementEdit(change, referenceElement, edit);
+    doSourceChange_addFragmentEdit(
+      change,
+      referenceElement.asElement2!.firstFragment,
+      edit,
+    );
   }
 
   /// Add an edit that replaces the specified region with [code].

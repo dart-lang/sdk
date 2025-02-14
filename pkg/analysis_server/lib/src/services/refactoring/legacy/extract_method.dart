@@ -60,9 +60,6 @@ Future<void> addLibraryImports(
     return;
   }
 
-  // TODO(brianwilkerson): Use `targetLibrary2` everywhere below and rename it
-  //  to `targetLibrary`.
-  var targetLibrary = targetLibrary2.asElement;
   var libUtils = CorrectionUtils(resolveResult);
   var eol = libUtils.endOfLine;
   // Prepare information about existing imports.
@@ -110,9 +107,9 @@ Future<void> addLibraryImports(
         }
         if (importUri.compareTo(existingImport.uri) < 0) {
           var importCode = 'import $quote$importUri$quote;$eol';
-          doSourceChange_addElementEdit(
+          doSourceChange_addFragmentEdit(
             change,
-            targetLibrary,
+            targetLibrary2.firstFragment,
             SourceEdit(existingImport.offset, 0, importCode),
           );
           inserted = true;
@@ -124,9 +121,9 @@ Future<void> addLibraryImports(
         if (isPackage && isFirstPackage && isAfterDart) {
           importCode = eol + importCode;
         }
-        doSourceChange_addElementEdit(
+        doSourceChange_addFragmentEdit(
           change,
-          targetLibrary,
+          targetLibrary2.firstFragment,
           SourceEdit(importDirectives.last.end, 0, importCode),
         );
       }
@@ -143,9 +140,9 @@ Future<void> addLibraryImports(
     for (var importUri in uriList) {
       var importCode = '${prefix}import $quote$importUri$quote;';
       prefix = eol;
-      doSourceChange_addElementEdit(
+      doSourceChange_addFragmentEdit(
         change,
-        targetLibrary,
+        targetLibrary2.firstFragment,
         SourceEdit(libraryDirective.end, 0, importCode),
       );
     }
@@ -208,9 +205,9 @@ Future<void> addLibraryImports(
       if (i == uriList.length - 1 && insertEmptyLineAfter) {
         importCode = '$importCode$eol';
       }
-      doSourceChange_addElementEdit(
+      doSourceChange_addFragmentEdit(
         change,
-        targetLibrary,
+        targetLibrary2.firstFragment,
         SourceEdit(offset, 0, importCode),
       );
     }
@@ -493,9 +490,9 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       }
       // add replace edit
       var edit = newSourceEdit_range(range, invocationSource);
-      doSourceChange_addElementEdit(
+      doSourceChange_addFragmentEdit(
         change,
-        _resolveResult.unit.declaredElement!,
+        _resolveResult.unit.declaredFragment!,
         edit,
       );
     }
@@ -579,9 +576,9 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       if (declarationSource != null) {
         var offset = _parentMember!.end;
         var edit = SourceEdit(offset, 0, '$eol$eol$prefix$declarationSource');
-        doSourceChange_addElementEdit(
+        doSourceChange_addFragmentEdit(
           change,
-          _resolveResult.unit.declaredElement!,
+          _resolveResult.unit.declaredFragment!,
           edit,
         );
       }

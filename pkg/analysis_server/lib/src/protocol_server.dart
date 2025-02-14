@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_color.dart';
@@ -12,8 +10,6 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
-import 'package:analyzer/dart/ast/token.dart' as engine;
-import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/element2.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
@@ -22,7 +18,6 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/source.dart' as engine;
 import 'package:analyzer/source/source_range.dart' as engine;
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 export 'package:analysis_server/plugin/protocol/protocol_dart.dart';
@@ -36,16 +31,6 @@ List<AnalysisError> doAnalysisError_listFromEngine(
   engine.AnalysisResultWithErrors result,
 ) {
   return mapEngineErrors(result, result.errors, newAnalysisError_fromEngine);
-}
-
-/// Adds [edit] to the file containing the given [element].
-void doSourceChange_addElementEdit(
-  SourceChange change,
-  engine.Element element,
-  SourceEdit edit,
-) {
-  var source = element.source!;
-  doSourceChange_addSourceEdit(change, source, edit);
 }
 
 /// Adds [edit] to the file containing the given [fragment].
@@ -69,37 +54,10 @@ void doSourceChange_addSourceEdit(
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
-String? getAliasedTypeString(engine.Element element) {
-  if (element is engine.TypeAliasElement) {
-    var aliasedType = element.aliasedType;
-    return aliasedType.getDisplayString();
-  }
-  return null;
-}
-
 String? getAliasedTypeString2(engine.Element2 element) {
   if (element is engine.TypeAliasElement2) {
     var aliasedType = element.aliasedType;
     return aliasedType.getDisplayString();
-  }
-  return null;
-}
-
-/// Returns a color hex code (in the form '#FFFFFF')  if [element] represents
-/// a color.
-String? getColorHexString(engine.Element? element) {
-  if (element is engine.VariableElement) {
-    var dartValue = element.computeConstantValue();
-    if (dartValue != null) {
-      var color = ColorComputer.getColorForObject(dartValue);
-      if (color != null) {
-        return '#'
-                '${color.red.toRadixString(16).padLeft(2, '0')}'
-                '${color.green.toRadixString(16).padLeft(2, '0')}'
-                '${color.blue.toRadixString(16).padLeft(2, '0')}'
-            .toUpperCase();
-      }
-    }
   }
   return null;
 }
@@ -118,26 +76,6 @@ String? getColorHexString2(engine.Element2? element) {
                 '${color.blue.toRadixString(16).padLeft(2, '0')}'
             .toUpperCase();
       }
-    }
-  }
-  return null;
-}
-
-String? getReturnTypeString(engine.Element element) {
-  if (element is engine.ExecutableElement) {
-    if (element.kind == engine.ElementKind.SETTER) {
-      return null;
-    } else {
-      return element.returnType.getDisplayString();
-    }
-  } else if (element is engine.VariableElement) {
-    var type = element.type;
-    return type.getDisplayString();
-  } else if (element is engine.TypeAliasElement) {
-    var aliasedType = element.aliasedType;
-    if (aliasedType is FunctionType) {
-      var returnType = aliasedType.returnType;
-      return returnType.getDisplayString();
     }
   }
   return null;
@@ -294,23 +232,6 @@ DiagnosticMessage newDiagnosticMessage(
   );
 }
 
-/// Create a Location based on an [engine.Element].
-Location? newLocation_fromElement(engine.Element? element) {
-  if (element == null || element.source == null) {
-    return null;
-  }
-  var offset = element.nameOffset;
-  var length = element.nameLength;
-  if (element is engine.CompilationUnitElement ||
-      (element is engine.LibraryElement && offset < 0)) {
-    offset = 0;
-    length = 0;
-  }
-  var unitElement = _getUnitElement(element);
-  var range = engine.SourceRange(offset, length);
-  return _locationForArgs(unitElement, range);
-}
-
 /// Create a Location based on an [engine.Element2].
 Location? newLocation_fromElement2(engine.Element2? element) {
   if (element == null) {
@@ -351,25 +272,16 @@ Location? newLocation_fromFragment(engine.Fragment? fragment) {
 
 /// Create a Location based on an [engine.SearchMatch].
 Location newLocation_fromMatch(engine.SearchMatch match) {
-  var unitElement = _getUnitElement(match.element2.asElement!);
-  return _locationForArgs(unitElement, match.sourceRange);
+  var libraryFragment = _getUnitElement(match.element2);
+  return _locationForArgs(libraryFragment, match.sourceRange);
 }
 
 /// Create a Location based on an [engine.AstNode].
 Location newLocation_fromNode(engine.AstNode node) {
   var unit = node.thisOrAncestorOfType<engine.CompilationUnit>()!;
-  var unitElement = unit.declaredElement!;
+  var libraryFragment = unit.declaredFragment!;
   var range = engine.SourceRange(node.offset, node.length);
-  return _locationForArgs(unitElement, range);
-}
-
-/// Create a Location based on an [engine.AstNode].
-Location newLocation_fromToken({
-  required engine.CompilationUnitElement unitElement,
-  required engine.Token token,
-}) {
-  var range = engine.SourceRange(token.offset, token.length);
-  return _locationForArgs(unitElement, range);
+  return _locationForArgs(libraryFragment, range);
 }
 
 /// Create a Location based on an [engine.CompilationUnit].
@@ -377,7 +289,7 @@ Location newLocation_fromUnit(
   engine.CompilationUnit unit,
   engine.SourceRange range,
 ) {
-  return _locationForArgs(unit.declaredElement!, range);
+  return _locationForArgs(unit.declaredFragment!, range);
 }
 
 /// Construct based on an element from the analyzer engine.
@@ -391,7 +303,7 @@ OverriddenMember newOverriddenMember_fromEngine(engine.Element2 member) {
 SearchResult newSearchResult_fromMatch(engine.SearchMatch match) {
   var kind = newSearchResultKind_fromEngine(match.kind);
   var location = newLocation_fromMatch(match);
-  var path = _computePath(match.element2.asElement!);
+  var path = _computePath(match.element2);
   return SearchResult(location, kind, !match.isResolved, path);
 }
 
@@ -428,61 +340,34 @@ SourceEdit newSourceEdit_range(
   return SourceEdit(range.offset, range.length, replacement, id: id);
 }
 
-List<Element> _computePath(engine.Element element) {
+List<Element> _computePath(engine.Element2 element) {
   var path = <Element>[];
-
-  if (element is engine.PrefixElement) {
-    element = element.enclosingElement3;
-  }
-
-  var element2 = element.asElement2;
-  if (element2 != null) {
-    for (var fragment in element2.firstFragment.withAncestors) {
-      if (fragment case engine.Element e) {
-        if (fragment is engine.LibraryFragment) {
-          path.add(
-            convertLibraryFragment(fragment as CompilationUnitElementImpl),
-          );
-        }
-        path.add(convertElement(e.asElement2!));
-      }
+  for (var fragment in element.firstFragment.withAncestors) {
+    if (fragment is engine.LibraryFragment) {
+      path.add(convertLibraryFragment(fragment as CompilationUnitElementImpl));
     }
+    path.add(convertElement(fragment.element));
   }
-
   return path;
 }
 
-engine.CompilationUnitElement _getUnitElement(engine.Element element) {
-  if (element is engine.CompilationUnitElement) {
-    return element;
+engine.LibraryFragment _getUnitElement(engine.Element2 element) {
+  if (element is engine.LibraryElement2) {
+    return element.firstFragment;
   }
-
-  if (element.enclosingElement3 case engine.LibraryElement enclosing) {
-    return enclosing.definingCompilationUnit;
+  var fragment = element.firstFragment.libraryFragment;
+  if (fragment == null) {
+    throw StateError('No unit: $element');
   }
-
-  if (element is engine.LibraryElement) {
-    return element.definingCompilationUnit;
-  }
-
-  var element2 = element.asElement2;
-  if (element2 != null) {
-    for (var fragment in element2.firstFragment.withAncestors) {
-      if (fragment case engine.CompilationUnitElement unit) {
-        return unit;
-      }
-    }
-  }
-
-  throw StateError('No unit: $element');
+  return fragment;
 }
 
-/// Creates a new [Location].
+/// Returns a new [Location] based on a source [range] with a [libraryFragment].
 Location _locationForArgs(
-  engine.CompilationUnitElement unitElement,
+  engine.LibraryFragment libraryFragment,
   engine.SourceRange range,
 ) {
-  var lineInfo = unitElement.lineInfo;
+  var lineInfo = libraryFragment.lineInfo;
 
   var startLocation = lineInfo.getLocation(range.offset);
   var endLocation = lineInfo.getLocation(range.end);
@@ -493,7 +378,7 @@ Location _locationForArgs(
   var endColumn = endLocation.columnNumber;
 
   return Location(
-    unitElement.source.fullName,
+    libraryFragment.source.fullName,
     range.offset,
     range.length,
     startLine,

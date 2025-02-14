@@ -316,22 +316,36 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   bool get strictCasts => options.strictCasts;
 
+  /// The class containing the AST nodes being visited, or `null` if we are not
+  /// in the scope of a class.
+  InterfaceElement2? get _enclosingClass2 => switch (_enclosingClass) {
+        InterfaceElement element => element.asElement2,
+        _ => null,
+      };
+
+  /// The element of the extension being visited, or `null` if we are not
+  /// in the scope of an extension.
+  ExtensionElement2? get _enclosingExtension2 => switch (_enclosingExtension) {
+        ExtensionElement element => element.asElement2,
+        _ => null,
+      };
+
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.
   bool get _isEnclosingClassFfiStruct {
-    var superClass = _enclosingClass?.supertype?.element;
+    var superClass = _enclosingClass2?.supertype?.element3;
     return superClass != null &&
-        _isDartFfiLibrary(superClass.library) &&
-        superClass.name == 'Struct';
+        _isDartFfiLibrary(superClass.library2) &&
+        superClass.name3 == 'Struct';
   }
 
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.
   bool get _isEnclosingClassFfiUnion {
-    var superClass = _enclosingClass?.supertype?.element;
+    var superClass = _enclosingClass2?.supertype?.element3;
     return superClass != null &&
-        _isDartFfiLibrary(superClass.library) &&
-        superClass.name == 'Union';
+        _isDartFfiLibrary(superClass.library2) &&
+        superClass.name3 == 'Union';
   }
 
   @override
@@ -1208,7 +1222,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var target = node.realTarget;
     SimpleIdentifier methodName = node.methodName;
     if (target != null) {
-      var typeReference = getTypeReference(target)?.asElement;
+      var typeReference = getTypeReference(target);
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(
           typeReference, node.target, methodName);
@@ -1346,7 +1360,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node.parent is! Annotation) {
-      var typeReference = getTypeReference(node.prefix)?.asElement;
+      var typeReference = getTypeReference(node.prefix);
       SimpleIdentifier name = node.identifier;
       _checkForStaticAccessToInstanceMember(typeReference, name);
       _checkForInstanceAccessToStaticMember(typeReference, node.prefix, name);
@@ -1371,7 +1385,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitPropertyAccess(PropertyAccess node) {
     var target = node.realTarget;
-    var typeReference = getTypeReference(target)?.asElement;
+    var typeReference = getTypeReference(target);
     SimpleIdentifier propertyName = node.propertyName;
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
@@ -3404,7 +3418,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
-    if (_enclosingExtension != null) {
+    if (_enclosingExtension2 != null) {
       if (node.hasObjectMemberName) {
         errorReporter.atToken(
           node.name,
@@ -3413,7 +3427,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    if (_enclosingClass is ExtensionTypeElement) {
+    if (_enclosingClass2 is ExtensionTypeElement2) {
       if (node.hasObjectMemberName) {
         errorReporter.atToken(
           node.name,
@@ -3426,7 +3440,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForExtensionTypeConstructorWithSuperInvocation(
     SuperConstructorInvocation node,
   ) {
-    if (_enclosingClass is ExtensionTypeElement) {
+    if (_enclosingClass2 is ExtensionTypeElement2) {
       errorReporter.atToken(
         node.superKeyword,
         CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
@@ -3435,7 +3449,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForExtensionTypeDeclaresInstanceField(FieldDeclaration node) {
-    if (_enclosingClass is! ExtensionTypeElement) {
+    if (_enclosingClass2 is! ExtensionTypeElement2) {
       return;
     }
 
@@ -3629,11 +3643,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             arguments: [variable.name.lexeme],
           );
         } else {
-          var variableElement = variable.declaredElement;
-          if (variableElement is FieldElement &&
+          var variableElement = variable.declaredFragment?.element;
+          if (variableElement is FieldElement2 &&
               (variableElement.isAbstract || variableElement.isExternal)) {
             // Abstract and external fields can't be initialized, so no error.
-          } else if (variableElement is TopLevelVariableElement &&
+          } else if (variableElement is TopLevelVariableElement2 &&
               variableElement.isExternal) {
             // External top level variables can't be initialized, so no error.
           } else if (!variable.isLate) {
@@ -3660,7 +3674,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     if (container is InterfaceElementImpl) {
       var augmented = container.augmented;
-      for (var constructor in augmented.constructors) {
+      for (var constructor in augmented.constructors2) {
         if (constructor.isGenerative && !constructor.isSynthetic) {
           return;
         }
@@ -3692,16 +3706,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superclass != null) {
       var type = superclass.type;
       if (type is InterfaceType) {
-        var element = type.element;
-        if (element is ClassElementImpl &&
+        var element = type.element3;
+        if (element is ClassElementImpl2 &&
             element.isFinal &&
             !element.isSealed &&
-            element.library != _currentLibrary &&
-            !_mayIgnoreClassModifiers(element.library)) {
+            element.library2 != _currentLibrary &&
+            !_mayIgnoreClassModifiers(element.library2)) {
           errorReporter.atNode(
             superclass,
             CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-            arguments: [element.name],
+            arguments: [element.name3!],
           );
         }
       }
@@ -3712,19 +3726,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (type is InterfaceType) {
           var implementedInterfaces = [
             type,
-            ...type.element.allSupertypes,
-          ].map((e) => e.element).toList();
+            ...type.element3.allSupertypes,
+          ].map((e) => e.element3).toList();
           for (var element in implementedInterfaces) {
-            if (element is ClassElement &&
+            if (element is ClassElement2 &&
                 element.isFinal &&
                 !element.isSealed &&
-                element.library != _currentLibrary &&
-                !_mayIgnoreClassModifiers(element.library)) {
+                element.library2 != _currentLibrary &&
+                !_mayIgnoreClassModifiers(element.library2)) {
               // If the final interface is an indirect interface and is in a
               // different library that has class modifiers enabled, there is a
               // nearer declaration that would emit an error, if any.
-              if (element != type.element &&
-                  type.element.library.featureSet
+              if (element != type.element3 &&
+                  type.element3.library2.featureSet
                       .isEnabled(Feature.class_modifiers)) {
                 continue;
               }
@@ -3732,7 +3746,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               errorReporter.atNode(
                 namedType,
                 CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                arguments: [element.name],
+                arguments: [element.name3!],
               );
               break;
             }
@@ -3744,17 +3758,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType namedType in onClause.superclassConstraints) {
         var type = namedType.type;
         if (type is InterfaceType) {
-          var element = type.element;
-          if (element is ClassElement &&
+          var element = type.element3;
+          if (element is ClassElement2 &&
               element.isFinal &&
               !element.isSealed &&
-              element.library != _currentLibrary &&
-              !_mayIgnoreClassModifiers(element.library)) {
+              element.library2 != _currentLibrary &&
+              !_mayIgnoreClassModifiers(element.library2)) {
             errorReporter.atNode(
               namedType,
               CompileTimeErrorCode
                   .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
-              arguments: [element.name],
+              arguments: [element.name3!],
             );
           }
         }
@@ -3770,7 +3784,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     DartType type = node.typeOrThrow;
-    if (type is FunctionType && type.typeFormals.isNotEmpty) {
+    if (type is FunctionType && type.typeParameters.isNotEmpty) {
       errorReporter.atNode(
         node,
         CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
@@ -3859,29 +3873,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// the [name] is reference to an instance member.
   ///
   /// See [CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
-  void _checkForInstanceAccessToStaticMember(InterfaceElement? typeReference,
+  void _checkForInstanceAccessToStaticMember(InterfaceElement2? typeReference,
       Expression? target, SimpleIdentifier name) {
     if (_isInComment) {
       // OK, in comment
       return;
     }
     // prepare member Element
-    var element = name.writeOrReadElement;
-    if (element is ExecutableElement) {
+    var element = name.writeOrReadElement2;
+    if (element is ExecutableElement2) {
       if (!element.isStatic) {
         // OK, instance member
         return;
       }
-      Element enclosingElement = element.enclosingElement3;
-      if (enclosingElement is ExtensionElement) {
+      var enclosingElement = element.enclosingElement2;
+      if (enclosingElement is ExtensionElement2) {
         if (target is ExtensionOverride) {
           // OK, target is an extension override
           return;
         } else if (target is SimpleIdentifier &&
-            target.staticElement is ExtensionElement) {
+            target.staticElement is ExtensionElement2) {
           return;
         } else if (target is PrefixedIdentifier &&
-            target.staticElement is ExtensionElement) {
+            target.staticElement is ExtensionElement2) {
           return;
         }
       } else {
@@ -3889,7 +3903,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // OK, target is a type
           return;
         }
-        if (enclosingElement is! InterfaceElement) {
+        if (enclosingElement is! InterfaceElement2) {
           // OK, top-level element
           return;
         }
@@ -3908,16 +3922,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superclass != null) {
       var superclassType = superclass.type;
       if (superclassType is InterfaceType) {
-        var superclassElement = superclassType.element;
-        if (superclassElement is ClassElementImpl &&
+        var superclassElement = superclassType.element3;
+        if (superclassElement is ClassElementImpl2 &&
             superclassElement.isInterface &&
             !superclassElement.isSealed &&
-            superclassElement.library != _currentLibrary &&
-            !_mayIgnoreClassModifiers(superclassElement.library)) {
+            superclassElement.library2 != _currentLibrary &&
+            !_mayIgnoreClassModifiers(superclassElement.library2)) {
           errorReporter.atNode(
             superclass,
             CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-            arguments: [superclassElement.name],
+            arguments: [superclassElement.name3!],
           );
         }
       }
@@ -3930,10 +3944,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForIntNotAssignable(Expression argument) {
-    var staticParameterElement = argument.staticParameterElement;
-    var staticParameterType = staticParameterElement?.type;
-    if (staticParameterType != null) {
-      checkForArgumentTypeNotAssignable(argument, staticParameterType, _intType,
+    var parameterElement = argument.correspondingParameter;
+    var parameterType = parameterElement?.type;
+    if (parameterType != null) {
+      checkForArgumentTypeNotAssignable(argument, parameterType, _intType,
           CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     }
   }
@@ -3982,10 +3996,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForInvalidGenerativeConstructorReference(ConstructorName node) {
-    var constructorElement = node.staticElement;
+    var constructorElement = node.element;
     if (constructorElement != null &&
         constructorElement.isGenerative &&
-        constructorElement.enclosingElement3 is EnumElement) {
+        constructorElement.enclosingElement2 is EnumElement2) {
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
         errorReporter.atNode(
           node,
@@ -4018,19 +4032,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // prepare element
-    var element = identifier.writeOrReadElement;
-    if (!(element is MethodElement || element is PropertyAccessorElement)) {
+    var element = identifier.writeOrReadElement2;
+    if (!(element is MethodElement2 || element is PropertyAccessorElement2)) {
       return;
     }
     // static element
-    ExecutableElement executableElement = element as ExecutableElement;
+    ExecutableElement2 executableElement = element as ExecutableElement2;
     if (executableElement.isStatic) {
       return;
     }
     // not a class member
-    Element enclosingElement = element.enclosingElement3;
-    if (enclosingElement is! InterfaceElement &&
-        enclosingElement is! ExtensionElement) {
+    var enclosingElement = element.enclosingElement2;
+    if (enclosingElement is! InterfaceElement2 &&
+        enclosingElement is! ExtensionElement2) {
       return;
     }
     // qualified method invocation
@@ -4107,14 +4121,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var lateKeyword = variableList.lateKeyword;
     if (lateKeyword == null) return;
 
-    var enclosingClass = _enclosingClass;
+    var enclosingClass = _enclosingClass2;
     if (enclosingClass == null) {
       // The field is in an extension and should be handled elsewhere.
       return;
     }
 
     var hasGenerativeConstConstructor =
-        _enclosingClass!.constructors.any((c) => c.isConst && !c.isFactory);
+        enclosingClass.constructors2.any((c) => c.isConst && !c.isFactory);
     if (!hasGenerativeConstConstructor) return;
 
     errorReporter.atToken(
@@ -4266,11 +4280,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var hasCaseNull = false;
     if (expressionType is InterfaceType) {
-      var enumElement = expressionType.element;
-      if (enumElement is EnumElement) {
-        var constantNames = enumElement.fields
+      var enumElement = expressionType.element3;
+      if (enumElement is EnumElement2) {
+        var constantNames = enumElement.fields2
             .where((field) => field.isEnumConstant)
-            .map((field) => field.name)
+            .map((field) => field.name3)
             .toSet();
 
         for (var member in statement.members) {
@@ -4307,7 +4321,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             offset: offset,
             length: end - offset,
             errorCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
-            arguments: [constantName],
+            arguments: [constantName!],
           );
         }
 
@@ -4355,8 +4369,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       List<ClassMember> members,
       NamedType? superclass,
       WithClause? withClause) {
-    var element = node.declaredElement;
-    if (element is ClassElementImpl && element.isMixinClass) {
+    var element = node.declaredFragment?.element;
+    if (element is ClassElementImpl2 && element.isMixinClass) {
       // Check that the class does not have a constructor.
       for (ClassMember member in members) {
         if (member is ConstructorDeclarationImpl) {
@@ -4367,7 +4381,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               errorReporter.atNode(
                 member.returnType,
                 CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
-                arguments: [element.name],
+                arguments: [element.name3!],
               );
             }
           }
@@ -4378,14 +4392,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         errorReporter.atNode(
           superclass,
           CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
-          arguments: [element.name],
+          arguments: [element.name3!],
         );
       } else if (withClause != null &&
           !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
         errorReporter.atNode(
           withClause,
           CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
-          arguments: [element.name],
+          arguments: [element.name3!],
         );
       }
     }
@@ -4631,13 +4645,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       ConstructorName constructorName,
       NamedType namedType) {
     // OK if resolved
-    if (constructorName.staticElement != null) {
+    if (constructorName.element != null) {
       return;
     }
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      var element = type.element;
-      if (element is EnumElement || element is MixinElement) {
+      var element = type.element3;
+      if (element is EnumElement2 || element is MixinElement2) {
         // We have already reported the error.
         return;
       }
@@ -4711,29 +4725,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   bool _checkForNoGenerativeConstructorsInSuperclass(NamedType? superclass) {
-    var superType = _enclosingClass!.supertype;
+    var superType = _enclosingClass2!.supertype;
     if (superType == null) {
       return false;
     }
-    if (_enclosingClass!.constructors
+    if (_enclosingClass2!.constructors2
         .every((constructor) => constructor.isFactory)) {
       // A class with no generative constructors *can* be extended if the
       // subclass has only factory constructors.
       return false;
     }
-    var superElement = superType.element;
-    if (superElement.constructors.isEmpty) {
+    var superElement = superType.element3;
+    if (superElement.constructors2.isEmpty) {
       // Exclude empty constructor set, which indicates other errors occurred.
       return false;
     }
-    if (superElement.constructors
+    if (superElement.constructors2
         .every((constructor) => constructor.isFactory)) {
       // For `E extends Exception`, etc., this will never work, because it has
       // no generative constructors. State this clearly to users.
       errorReporter.atNode(
         superclass!,
         CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
-        arguments: [_enclosingClass!.name, superElement.name],
+        arguments: [_enclosingClass2!.name3!, superElement.name3!],
       );
       return true;
     }
@@ -4741,7 +4755,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForNonConstGenerativeEnumConstructor(ConstructorDeclaration node) {
-    if (_enclosingClass is EnumElement &&
+    if (_enclosingClass2 is EnumElement2 &&
         node.constKeyword == null &&
         node.factoryKeyword == null) {
       errorReporter.atConstructorDeclaration(
@@ -4818,8 +4832,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var variableList = node.fields;
     if (variableList.isFinal) return;
 
-    var enclosingClass = _enclosingClass;
-    if (enclosingClass == null || enclosingClass is! EnumElement) {
+    var enclosingClass = _enclosingClass2;
+    if (enclosingClass == null || enclosingClass is! EnumElement2) {
       return;
     }
 
@@ -4880,7 +4894,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_isEnclosingClassFfiUnion) return;
 
     for (var field in fields.variables) {
-      var fieldElement = field.declaredElement as FieldElement;
+      var fieldElement = field.declaredFragment?.element as FieldElement2;
       if (fieldElement.isAbstract || fieldElement.isExternal) continue;
       if (field.initializer != null) continue;
 
@@ -5274,14 +5288,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType namedType in namedTypes) {
         var type = namedType.type;
         if (type is InterfaceType) {
-          var element = type.element;
-          if (element is ClassElement &&
+          var element = type.element3;
+          if (element is ClassElement2 &&
               element.isSealed &&
-              element.library != _currentLibrary) {
+              element.library2 != _currentLibrary) {
             errorReporter.atNode(
               namedType,
               CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-              arguments: [element.name],
+              arguments: [element.name3!],
             );
           }
         }
@@ -5342,7 +5356,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
   void _checkForStaticAccessToInstanceMember(
-      InterfaceElement? typeReference, SimpleIdentifier name) {
+      InterfaceElement2? typeReference, SimpleIdentifier name) {
     // OK, in comment
     if (_isInComment) {
       return;
@@ -5352,10 +5366,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // prepare member Element
-    var element = name.staticElement;
-    if (element is ExecutableElement) {
+    var element = name.element;
+    if (element is ExecutableElement2) {
       // OK, static
-      if (element.isStatic || element is ConstructorElement) {
+      if (element.isStatic || element is ConstructorElement2) {
         return;
       }
       errorReporter.atNode(
@@ -5476,7 +5490,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
   void _checkForUndefinedConstructorInInitializerImplicit(
       ConstructorDeclaration constructor) {
-    if (_enclosingClass == null) {
+    if (_enclosingClass2 == null) {
       return;
     }
 
@@ -5503,24 +5517,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // Check to see whether the superclass has a non-factory unnamed
     // constructor.
-    var superType = _enclosingClass!.supertype;
+    var superType = _enclosingClass2!.supertype;
     if (superType == null) {
       return;
     }
-    var superElement = superType.element;
+    var superElement = superType.element3;
 
-    if (superElement.constructors
+    if (superElement.constructors2
         .every((constructor) => constructor.isFactory)) {
       // Already reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
       return;
     }
 
-    var superUnnamedConstructor = superElement.unnamedConstructor;
+    var superUnnamedConstructor = superElement.unnamedConstructor2;
     if (superUnnamedConstructor == null) {
       errorReporter.atNode(
         constructor.returnType,
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-        arguments: [superElement.name],
+        arguments: [superElement.name3!],
       );
       return;
     }
@@ -5534,12 +5548,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var requiredPositionalParameterCount = superUnnamedConstructor.parameters
+    var requiredPositionalParameterCount = superUnnamedConstructor
+        .formalParameters
         .where((parameter) => parameter.isRequiredPositional)
         .length;
-    var requiredNamedParameters = superUnnamedConstructor.parameters
+    var requiredNamedParameters = superUnnamedConstructor.formalParameters
         .where((parameter) => parameter.isRequiredNamed)
-        .map((parameter) => parameter.name)
+        .map((parameter) => parameter.name3)
         .toSet();
 
     void reportError(ErrorCode errorCode, List<Object> arguments) {
@@ -5659,10 +5674,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     } else if (targetType == null) {
       if (target is Identifier) {
-        var targetElement = target.staticElement;
-        if (targetElement is InterfaceElement ||
-            targetElement is ExtensionElement ||
-            targetElement is TypeAliasElement) {
+        var targetElement = target.element;
+        if (targetElement is InterfaceElement2 ||
+            targetElement is ExtensionElement2 ||
+            targetElement is TypeAliasElement2) {
           errorReporter.atOffset(
             offset: operator.offset,
             length: endToken.end - operator.offset,
@@ -6383,7 +6398,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   /// Returns `true` if the given [library] is the `dart:ffi` library.
-  bool _isDartFfiLibrary(LibraryElement library) => library.name == 'dart.ffi';
+  bool _isDartFfiLibrary(LibraryElement2 library) =>
+      library.name3 == 'dart.ffi';
 
   /// Return `true` if the given [identifier] is in a location where it is
   /// allowed to resolve to a static member of a supertype.
@@ -6450,7 +6466,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// either the current library is also a platform library,
   /// or the current library has a language version which predates
   /// class modifiers
-  bool _mayIgnoreClassModifiers(LibraryElement superLibrary) {
+  bool _mayIgnoreClassModifiers(LibraryElement2 superLibrary) {
     // Only modifiers in platform libraries can be ignored.
     if (!superLibrary.isInSdk) return false;
 
