@@ -754,6 +754,7 @@ class _FactoryEncoding implements InferredTypeListener {
               _fragment.fileUri,
               _fragment.builder.declarationBuilder.thisType,
               _fragment.builder.libraryBuilder,
+              _fragment.typeParameterScope,
               null);
       InferenceHelper helper = _fragment.builder.libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(

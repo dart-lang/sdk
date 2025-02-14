@@ -928,13 +928,13 @@ severity: $severity
   }
 
   BodyBuilder createBodyBuilderForOutlineExpression(
-      SourceLibraryBuilder library,
+      SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext,
       LookupScope scope,
       Uri fileUri,
       {LocalScope? formalParameterScope}) {
     return new BodyBuilder.forOutlineExpression(
-        library, bodyBuilderContext, scope, fileUri,
+        libraryBuilder, bodyBuilderContext, scope, fileUri,
         formalParameterScope: formalParameterScope);
   }
 

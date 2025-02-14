@@ -19,6 +19,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/instrumentation.dart' show Instrumentation;
+import '../base/scope.dart';
 import '../kernel/benchmarker.dart' show Benchmarker;
 import '../kernel/exhaustiveness.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
@@ -190,8 +191,12 @@ abstract class TypeInferenceEngine {
 
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
-  TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType? thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting);
+  TypeInferrer createLocalTypeInferrer(
+      Uri uri,
+      InterfaceType? thisType,
+      SourceLibraryBuilder libraryBuilder,
+      LookupScope extensionScope,
+      InferenceDataForTesting? dataForTesting);
 
   /// Performs the third phase of top level inference, which is to visit all
   /// constructors still needing inference and infer the types of their
@@ -351,8 +356,12 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       : super(instrumentation);
 
   @override
-  TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType? thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting) {
+  TypeInferrer createLocalTypeInferrer(
+      Uri uri,
+      InterfaceType? thisType,
+      SourceLibraryBuilder libraryBuilder,
+      LookupScope extensionScope,
+      InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
@@ -363,18 +372,30 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
     if (benchmarker == null) {
-      return new TypeInferrerImpl(this, uri, false, thisType, library,
-          assignedVariables, dataForTesting);
+      return new TypeInferrerImpl(this, uri, false, thisType, libraryBuilder,
+          extensionScope, assignedVariables, dataForTesting);
     }
     // Coverage-ignore(suite): Not run.
-    return new TypeInferrerImplBenchmarked(this, uri, false, thisType, library,
-        assignedVariables, dataForTesting, benchmarker!);
+    return new TypeInferrerImplBenchmarked(
+        this,
+        uri,
+        false,
+        thisType,
+        libraryBuilder,
+        extensionScope,
+        assignedVariables,
+        dataForTesting,
+        benchmarker!);
   }
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
-  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType? thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting? dataForTesting) {
+  TypeInferrer createTopLevelTypeInferrer(
+      Uri uri,
+      InterfaceType? thisType,
+      SourceLibraryBuilder libraryBuilder,
+      LookupScope extensionScope,
+      InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
@@ -385,12 +406,20 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
     if (benchmarker == null) {
-      return new TypeInferrerImpl(this, uri, true, thisType, library,
-          assignedVariables, dataForTesting);
+      return new TypeInferrerImpl(this, uri, true, thisType, libraryBuilder,
+          extensionScope, assignedVariables, dataForTesting);
     }
     // Coverage-ignore(suite): Not run.
-    return new TypeInferrerImplBenchmarked(this, uri, true, thisType, library,
-        assignedVariables, dataForTesting, benchmarker!);
+    return new TypeInferrerImplBenchmarked(
+        this,
+        uri,
+        true,
+        thisType,
+        libraryBuilder,
+        extensionScope,
+        assignedVariables,
+        dataForTesting,
+        benchmarker!);
   }
 }
 

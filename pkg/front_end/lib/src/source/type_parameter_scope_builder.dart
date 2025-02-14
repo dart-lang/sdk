@@ -2394,7 +2394,6 @@ class DeclarationBuilderScope implements LookupScope {
   DeclarationBuilderScope();
 
   @override
-  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _declarationBuilder?.scope.forEachExtension(f);
   }

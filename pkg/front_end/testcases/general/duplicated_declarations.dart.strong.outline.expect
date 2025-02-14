@@ -277,6 +277,13 @@ library;
 // typedef Typedef = Object Function();
 //         ^^^^^^^
 //
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:9:46: Error: 'Typedef' is already declared in this scope.
+// import 'duplicated_declarations_lib.dart' as Typedef;
+//                                              ^^^^^^^
+// pkg/front_end/testcases/general/duplicated_declarations_part.dart:15:9: Context: Previous declaration of 'Typedef'.
+// typedef Typedef = Object Function();
+//         ^^^^^^^
+//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:69:19: Error: 'C' isn't a type.
 // class Sub extends C {
 //                   ^

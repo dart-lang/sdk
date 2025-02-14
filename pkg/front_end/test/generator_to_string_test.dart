@@ -158,8 +158,8 @@ Future<void> main() async {
             new FixedLocalScope(kind: ScopeKind.library, debugName: "dummy"),
         coreTypes: coreTypes,
         hierarchy: hierarchy,
-        typeInferrer:
-            engine.createTopLevelTypeInferrer(uri, null, libraryBuilder, null));
+        typeInferrer: engine.createTopLevelTypeInferrer(uri, null,
+            libraryBuilder, compilationUnit.compilationUnitScope, null));
 
     Generator generator =
         new ThisAccessGenerator(helper, token, false, false, false);

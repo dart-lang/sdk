@@ -367,21 +367,21 @@ class BodyBuilder extends StackListenerImpl
             uri: uri,
             typeInferrer: typeInferrer);
 
-  BodyBuilder.forOutlineExpression(SourceLibraryBuilder library,
+  BodyBuilder.forOutlineExpression(SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext, LookupScope scope, Uri fileUri,
       {LocalScope? formalParameterScope})
       : this(
-            libraryBuilder: library,
+            libraryBuilder: libraryBuilder,
             context: bodyBuilderContext,
             enclosingScope: new EnclosingLocalScope(scope),
             formalParameterScope: formalParameterScope,
-            hierarchy: library.loader.hierarchy,
-            coreTypes: library.loader.coreTypes,
+            hierarchy: libraryBuilder.loader.hierarchy,
+            coreTypes: libraryBuilder.loader.coreTypes,
             thisVariable: null,
             uri: fileUri,
-            typeInferrer: library.loader.typeInferenceEngine
-                .createLocalTypeInferrer(
-                    fileUri, bodyBuilderContext.thisType, library, null));
+            typeInferrer: libraryBuilder.loader.typeInferenceEngine
+                .createLocalTypeInferrer(fileUri, bodyBuilderContext.thisType,
+                    libraryBuilder, scope, null));
 
   LocalScope get _localScope => _localScopes.current;
 

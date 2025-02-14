@@ -144,6 +144,12 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   @override
   SourceLibraryBuilder get libraryBuilder;
 
+  /// The parent compilation unit.
+  ///
+  /// This is the compilation unit that included this compilation unit as a
+  /// part or `null` if this is the root compilation unit of a library.
+  SourceCompilationUnit? get parentCompilationUnit;
+
   LibraryFeatures get libraryFeatures;
 
   /// Returns `true` if the compilation unit is part of a `dart:` library.
@@ -161,7 +167,18 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   List<MetadataBuilder>? get metadata;
 
-  LookupScope get scope;
+  /// The scope of this compilation unit.
+  ///
+  /// This is the enclosing scope for all declarations within the compilation
+  /// unit.
+  LookupScope get compilationUnitScope;
+
+  /// The prefix scope of this compilation unit.
+  ///
+  /// This contains all imports with prefixes declared in this compilation unit.
+  LookupScope get prefixScope;
+
+  NameSpace get prefixNameSpace;
 
   bool get mayImplementRestrictedTypes;
 
@@ -173,8 +190,11 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   void includeParts(SourceLibraryBuilder libraryBuilder,
       List<SourceCompilationUnit> includedParts, Set<Uri> usedParts);
 
-  void validatePart(SourceLibraryBuilder library,
-      LibraryNameSpaceBuilder libraryNameSpaceBuilder, Set<Uri>? usedParts);
+  void validatePart(
+      SourceLibraryBuilder library,
+      SourceCompilationUnit parentCompilationUnit,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+      Set<Uri>? usedParts);
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
