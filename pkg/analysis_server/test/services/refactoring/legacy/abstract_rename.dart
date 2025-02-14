@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -41,43 +38,24 @@ class RenameRefactoringTest extends RefactoringTest {
     expect(expectedOffsets, isEmpty);
   }
 
-  /// Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
+  /// Creates a new [RenameRefactoring] in [refactoring] for the element of
   /// the [SimpleIdentifier] at the given [search] pattern.
   void createRenameRefactoringAtString(String search) {
     var node = findNode.any(search);
 
-    Element? element;
+    Element2? element;
     switch (node) {
-      case ExportDirective():
-        element = node.element;
       case ImportDirective():
-        element = node.element;
-      case PartOfDirective():
-        element = node.element;
+        element = MockLibraryImportElement(node.libraryImport!);
       default:
-        element = ElementLocator.locate2(node).asElement;
+        element = ElementLocator.locate2(node);
     }
 
-    if (node is SimpleIdentifier && element is PrefixElement) {
-      element = getImportElement(node);
+    if (node is SimpleIdentifier && element is PrefixElement2) {
+      element = MockLibraryImportElement(getImportElement2(node)!);
     }
 
-    createRenameRefactoringForElement(element);
-  }
-
-  /// Creates a new [RenameRefactoring] in [refactoring] for [element].
-  /// Fails if no [RenameRefactoring] can be created.
-  void createRenameRefactoringForElement(Element? element) {
-    var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
-    var refactoring = RenameRefactoring.create(
-      workspace,
-      testAnalysisResult,
-      element,
-    );
-    if (refactoring == null) {
-      fail("No refactoring for '$element'.");
-    }
-    this.refactoring = refactoring;
+    createRenameRefactoringForElement2(element);
   }
 
   /// Creates a new [RenameRefactoring] in [refactoring] for [element].
