@@ -180,7 +180,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The element representing the function containing the current node, or
   /// `null` if the current node is not contained in a function.
-  ExecutableElement? _enclosingFunction;
+  ExecutableElementImpl2? enclosingFunction;
 
   /// The element that can be referenced by the `augmented` expression.
   AugmentableElement? enclosingAugmentation;
@@ -429,18 +429,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Inference context information for the current function body, if the
   /// current node is inside a function body.
   BodyInferenceContext? get bodyContext => _bodyContext;
-
-  /// Return the element representing the function containing the current node,
-  /// or `null` if the current node is not contained in a function.
-  ///
-  /// @return the element representing the function containing the current node
-  ExecutableElement? get enclosingFunction => _enclosingFunction;
-
-  /// Return the element representing the function containing the current node,
-  /// or `null` if the current node is not contained in a function.
-  ///
-  /// @return the element representing the function containing the current node
-  ExecutableElement2? get enclosingFunction2 => _enclosingFunction.asElement2;
 
   @override
   FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
@@ -1314,12 +1302,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
     InterfaceElementImpl2? enclosingClassElement,
-    ExecutableElement? enclosingExecutableElement,
+    ExecutableElementImpl2? enclosingExecutableElement,
     AugmentableElement? enclosingAugmentation,
   }) {
     enclosingClass = enclosingClassElement;
     _setupThisType();
-    _enclosingFunction = enclosingExecutableElement;
+    enclosingFunction = enclosingExecutableElement;
     this.enclosingAugmentation = enclosingAugmentation;
   }
 
@@ -2334,14 +2322,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    var element = node.declaredElement!;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
     var returnType = element.type.returnType;
-    var outerFunction = _enclosingFunction;
+    var outerFunction = enclosingFunction;
     var outerAugmentation = enclosingAugmentation;
 
     try {
-      _enclosingFunction = element;
-      enclosingAugmentation = element;
+      enclosingFunction = element;
+      enclosingAugmentation = fragment;
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -2369,7 +2358,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis.bodyOrInitializer_exit();
       nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
-      _enclosingFunction = outerFunction;
+      enclosingFunction = outerFunction;
       enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
@@ -2392,7 +2381,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     expression = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
     if (fieldElement != null) {
-      var enclosingConstructor = enclosingFunction as ConstructorElement;
+      var enclosingConstructor = enclosingFunction as ConstructorElementImpl2;
       checkForFieldInitializerNotAssignable(node, fieldElement.asElement2,
           isConstConstructor: enclosingConstructor.isConst,
           whyNotPromoted: whyNotPromoted);
@@ -2792,15 +2781,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     bool isLocal = node.parent is FunctionDeclarationStatement;
-    var element = node.declaredElement!;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
     var functionType = node.declaredElement!.type;
-    var outerFunction = _enclosingFunction;
+    var outerFunction = enclosingFunction;
     var outerAugmentation = enclosingAugmentation;
 
     try {
-      _enclosingFunction = element;
+      enclosingFunction = element;
       if (!isLocal) {
-        if (element case AugmentableElement augmentation) {
+        if (fragment case AugmentableElement augmentation) {
           enclosingAugmentation = augmentation;
         }
       }
@@ -2843,7 +2833,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
       nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
-      _enclosingFunction = outerFunction;
+      enclosingFunction = outerFunction;
       enclosingAugmentation = outerAugmentation;
     }
   }
@@ -2860,13 +2850,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitFunctionExpression(covariant FunctionExpressionImpl node,
       {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
-    var outerFunction = _enclosingFunction;
-    _enclosingFunction = node.declaredElement;
+    var outerFunction = enclosingFunction;
+    enclosingFunction = node.declaredFragment!.element;
 
     _functionExpressionResolver.resolve(node, contextType: contextType);
     insertGenericFunctionInstantiation(node, contextType: contextType);
 
-    _enclosingFunction = outerFunction;
+    enclosingFunction = outerFunction;
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3197,14 +3187,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var element = node.declaredElement!;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
     var returnType = element.returnType;
-    var outerFunction = _enclosingFunction;
+    var outerFunction = enclosingFunction;
     var outerAugmentation = enclosingAugmentation;
 
     try {
-      _enclosingFunction = element;
-      if (element case AugmentableElement augmentation) {
+      enclosingFunction = element;
+      if (fragment case AugmentableElement augmentation) {
         enclosingAugmentation = augmentation;
       }
       assert(_thisType == null);
@@ -3233,7 +3224,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis.bodyOrInitializer_exit();
       nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
-      _enclosingFunction = outerFunction;
+      enclosingFunction = outerFunction;
       enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }

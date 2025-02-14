@@ -35,7 +35,7 @@ class DefaultValueResolver {
     }
   }
 
-  void _constructor(_ClassContext context, ConstructorElement element) {
+  void _constructor(_ClassContext context, ConstructorElementImpl element) {
     if (element.isSynthetic) return;
     _executable(context, element);
   }
@@ -49,7 +49,7 @@ class DefaultValueResolver {
     }
   }
 
-  void _executable(_Context context, ExecutableElement element) {
+  void _executable(_Context context, ExecutableElementImpl element) {
     _ExecutableContext(
       enclosingContext: context,
       executableElement: element,
@@ -57,7 +57,7 @@ class DefaultValueResolver {
     ).forEach(element.parameters, _parameter);
   }
 
-  void _extension(_UnitContext context, ExtensionElement element) {
+  void _extension(_UnitContext context, ExtensionElementImpl element) {
     context.forEach(element.methods, _executable);
   }
 
@@ -83,7 +83,7 @@ class DefaultValueResolver {
       context.scope,
       analysisOptions,
       enclosingClassElement: context.classElement?.asElement2,
-      enclosingExecutableElement: context.executableElement,
+      enclosingExecutableElement: context.executableElement.asElement2,
     );
     astResolver.resolveExpression(() => node.defaultValue!,
         contextType: contextType);
@@ -117,7 +117,7 @@ abstract class _Context {
 
 class _ExecutableContext extends _Context {
   final _Context enclosingContext;
-  final ExecutableElement executableElement;
+  final ExecutableElementImpl executableElement;
   final Scope scope;
 
   _ExecutableContext({
