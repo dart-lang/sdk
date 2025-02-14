@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
@@ -11,7 +9,6 @@ import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class ConstructorInitializerResolver {
   final Linker _linker;
@@ -20,62 +17,57 @@ class ConstructorInitializerResolver {
   ConstructorInitializerResolver(this._linker, this._libraryBuilder);
 
   void resolve() {
-    for (var unitElement in _libraryBuilder.element.units) {
-      var interfaceElements = <InterfaceElementImpl>[
-        ...unitElement.classes,
-        ...unitElement.enums,
-        ...unitElement.extensionTypes,
-        ...unitElement.mixins,
-      ];
-      for (var interfaceElement in interfaceElements) {
-        for (var constructorElement in interfaceElement.constructors) {
-          _constructor(
-            unitElement,
-            interfaceElement.augmented.firstFragment,
-            constructorElement,
-          );
-        }
+    var libraryElement = _libraryBuilder.element;
+    var interfaceElements = <InterfaceElementImpl2>[
+      ...libraryElement.classes,
+      ...libraryElement.enums,
+      ...libraryElement.extensionTypes,
+      ...libraryElement.mixins,
+    ];
+
+    for (var interfaceElement in interfaceElements) {
+      for (var constructorElement in interfaceElement.constructors2) {
+        _constructorElement(interfaceElement, constructorElement);
       }
     }
   }
 
-  void _constructor(
-    CompilationUnitElementImpl unitElement,
-    InterfaceElementImpl classElement,
-    ConstructorElementImpl element,
+  void _constructorElement(
+    InterfaceElementImpl2 interfaceElement,
+    ConstructorElementImpl2 element,
   ) {
     if (element.isSynthetic) return;
 
-    var node = _linker.getLinkingNode(element);
-    if (node is! ConstructorDeclarationImpl) return;
+    for (var fragment in element.fragments) {
+      var node = _linker.getLinkingNode(fragment);
+      if (node is! ConstructorDeclarationImpl) return;
 
-    var functionScope = LinkingNodeContext.get(node).scope;
-    var initializerScope = ConstructorInitializerScope(
-      functionScope,
-      element.asElement2,
-    );
+      var constructorScope = LinkingNodeContext.get(node).scope;
+      var initializerScope =
+          ConstructorInitializerScope(constructorScope, element);
 
-    var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-    var astResolver = AstResolver(
-      _linker,
-      unitElement,
-      initializerScope,
-      analysisOptions,
-      enclosingClassElement: classElement.asElement2,
-      enclosingExecutableElement: element.asElement2,
-    );
+      var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+      var astResolver = AstResolver(
+        _linker,
+        fragment.libraryFragment,
+        initializerScope,
+        analysisOptions,
+        enclosingClassElement: interfaceElement,
+        enclosingExecutableElement: element,
+      );
 
-    var body = node.body;
-    body.localVariableInfo = LocalVariableInfo();
+      var body = node.body;
+      body.localVariableInfo = LocalVariableInfo();
 
-    astResolver.resolveConstructorNode(node);
+      astResolver.resolveConstructorNode(node);
 
-    if (node.factoryKeyword != null) {
-      element.redirectedConstructor = node.redirectedConstructor?.staticElement;
-    } else {
-      for (var initializer in node.initializers) {
-        if (initializer is RedirectingConstructorInvocationImpl) {
-          element.redirectedConstructor = initializer.staticElement;
+      if (node.factoryKeyword != null) {
+        element.redirectedConstructor2 = node.redirectedConstructor?.element;
+      } else {
+        for (var initializer in node.initializers) {
+          if (initializer is RedirectingConstructorInvocationImpl) {
+            element.redirectedConstructor2 = initializer.element;
+          }
         }
       }
     }
