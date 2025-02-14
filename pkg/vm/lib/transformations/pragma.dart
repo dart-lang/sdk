@@ -40,7 +40,7 @@ enum PragmaEntryPointType {
   CanBeOverridden,
   GetterOnly,
   SetterOnly,
-  CallOnly
+  CallOnly,
 }
 
 enum PragmaRecognizedType { AsmIntrinsic, GraphIntrinsic, Other }
@@ -54,7 +54,9 @@ class ParsedResultTypeByTypePragma implements ParsedPragma {
   final DartType type;
   final bool resultTypeUsesPassedTypeArguments;
   const ParsedResultTypeByTypePragma(
-      this.type, this.resultTypeUsesPassedTypeArguments);
+    this.type,
+    this.resultTypeUsesPassedTypeArguments,
+  );
 }
 
 class ParsedResultTypeByPathPragma implements ParsedPragma {
@@ -98,7 +100,9 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
   ConstantPragmaAnnotationParser(this.coreTypes, this.target);
 
   ParsedEntryPointPragma? getEntryPointTypeFromOptions(
-      Constant options, String pragmaName) {
+    Constant options,
+    String pragmaName,
+  ) {
     PragmaEntryPointType? type;
     if (options is NullConstant) {
       type = PragmaEntryPointType.Default;
@@ -168,7 +172,9 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
             (options.entries[1] as StringConstant).value ==
                 kResultTypeUsesPassedTypeArguments) {
           return ParsedResultTypeByTypePragma(
-              (options.entries[0] as TypeLiteralConstant).type, true);
+            (options.entries[0] as TypeLiteralConstant).type,
+            true,
+          );
         }
         throw "ERROR: Unsupported option to '$kVmExactResultTypePragmaName' "
             "pragma: $options";
@@ -209,7 +215,8 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return const ParsedEntryPointPragma(PragmaEntryPointType.Extendable);
       case kDynModuleCanBeOverriddenPragmaName:
         return const ParsedEntryPointPragma(
-            PragmaEntryPointType.CanBeOverridden);
+          PragmaEntryPointType.CanBeOverridden,
+        );
       case kDynModuleCallablePragmaName:
       case kDynModuleImplicitlyCallablePragmaName:
         return getEntryPointTypeFromOptions(options, pragmaName);
@@ -221,6 +228,6 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
   }
 
   Iterable<R> parsedPragmas<R extends ParsedPragma>(
-          Iterable<Expression> annotations) =>
-      annotations.map(parsePragma).whereType<R>();
+    Iterable<Expression> annotations,
+  ) => annotations.map(parsePragma).whereType<R>();
 }

@@ -29,8 +29,9 @@ import 'package:vm/modular/target/vm.dart';
 import 'common_test_utils.dart';
 
 main() {
-  final platformKernel =
-      computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+  final platformKernel = computePlatformBinariesLocation().resolve(
+    'vm_platform_strong.dill',
+  );
   final sdkRoot = computePlatformBinariesLocation();
 
   CompilerOptions getFreshOptions() {
@@ -65,27 +66,35 @@ main() {
     });
 
     test('compile', () async {
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(options, [main.uri]);
+      IncrementalCompiler compiler = new IncrementalCompiler(options, [
+        main.uri,
+      ]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
 
       final StringBuffer buffer = new StringBuffer();
-      new Printer(buffer, showMetadata: true)
-          .writeLibraryFile(component.mainMethod!.enclosingLibrary);
+      new Printer(
+        buffer,
+        showMetadata: true,
+      ).writeLibraryFile(component.mainMethod!.enclosingLibrary);
       expect(
-          buffer.toString(),
-          equals('library;\n'
-              'import self as self;\n'
-              '\n'
-              'static method main() → dynamic {}\n'));
+        buffer.toString(),
+        equals(
+          'library;\n'
+          'import self as self;\n'
+          '\n'
+          'static method main() → dynamic {}\n',
+        ),
+      );
     });
 
     test('compile exclude sources', () async {
-      CompilerOptions optionsExcludeSources = getFreshOptions()
-        ..embedSourceText = false;
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(optionsExcludeSources, [main.uri]);
+      CompilerOptions optionsExcludeSources =
+          getFreshOptions()..embedSourceText = false;
+      IncrementalCompiler compiler = new IncrementalCompiler(
+        optionsExcludeSources,
+        [main.uri],
+      );
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
 
@@ -94,58 +103,68 @@ main() {
       }
 
       final StringBuffer buffer = new StringBuffer();
-      new Printer(buffer, showMetadata: true)
-          .writeLibraryFile(component.mainMethod!.enclosingLibrary);
+      new Printer(
+        buffer,
+        showMetadata: true,
+      ).writeLibraryFile(component.mainMethod!.enclosingLibrary);
       expect(
-          buffer.toString(),
-          equals('library;\n'
-              'import self as self;\n'
-              '\n'
-              'static method main() → dynamic {}\n'));
+        buffer.toString(),
+        equals(
+          'library;\n'
+          'import self as self;\n'
+          '\n'
+          'static method main() → dynamic {}\n',
+        ),
+      );
     });
 
     test('compile expressions errors are not re-reported', () async {
       var errorsReported = 0;
-      CompilerOptions optionsAcceptErrors = getFreshOptions()
-        ..onDiagnostic = (DiagnosticMessage message) {
-          errorsReported++;
-          message.plainTextFormatted.forEach(print);
-        };
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(optionsAcceptErrors, [main.uri]);
+      CompilerOptions optionsAcceptErrors =
+          getFreshOptions()
+            ..onDiagnostic = (DiagnosticMessage message) {
+              errorsReported++;
+              message.plainTextFormatted.forEach(print);
+            };
+      IncrementalCompiler compiler = new IncrementalCompiler(
+        optionsAcceptErrors,
+        [main.uri],
+      );
       await compiler.compile();
       compiler.accept();
       {
         Procedure? procedure = await compiler.compileExpression(
-            'main',
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            main.uri.toString(),
-            null,
-            null,
-            -1,
-            null,
-            true);
+          'main',
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          main.uri.toString(),
+          null,
+          null,
+          -1,
+          null,
+          true,
+        );
         expect(procedure, isNotNull);
         expect(errorsReported, equals(0));
       }
       {
         Procedure? procedure = await compiler.compileExpression(
-            'main1',
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            main.uri.toString(),
-            null,
-            null,
-            -1,
-            null,
-            true);
+          'main1',
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          main.uri.toString(),
+          null,
+          null,
+          -1,
+          null,
+          true,
+        );
         expect(procedure, isNotNull);
         expect(errorsReported, equals(1));
         errorsReported = 0;
@@ -160,10 +179,13 @@ main() {
   /// return the hit positions for "lib1.dart".
   /// If [getAllSources] is false it will ask specifically for report
   /// (and thus hits) for "lib1.dart" only.
-  Future<Set<int>> collectAndCheckCoverageData(int port, bool getAllSources,
-      {bool resume = true,
-      bool onGetAllVerifyCount = true,
-      Set<int>? coverageForLines}) async {
+  Future<Set<int>> collectAndCheckCoverageData(
+    int port,
+    bool getAllSources, {
+    bool resume = true,
+    bool onGetAllVerifyCount = true,
+    Set<int>? coverageForLines,
+  }) async {
     RemoteVm remoteVm = new RemoteVm(port);
 
     // Wait for the script to have finished.
@@ -230,13 +252,17 @@ main() {
         scriptIndexToScript[scriptIdx] = script;
         List? tokenPosTable = script["tokenPosTable"];
         if (tokenPosTable == null) {
-          errorMessages.add("Script with uri ${script['uri']} "
-              "and id ${script['id']} "
-              "has null tokenPosTable.");
+          errorMessages.add(
+            "Script with uri ${script['uri']} "
+            "and id ${script['id']} "
+            "has null tokenPosTable.",
+          );
         } else if (tokenPosTable.isEmpty) {
-          errorMessages.add("Script with uri ${script['uri']} "
-              "and id ${script['id']} "
-              "has empty tokenPosTable.");
+          errorMessages.add(
+            "Script with uri ${script['uri']} "
+            "and id ${script['id']} "
+            "has empty tokenPosTable.",
+          );
         }
       }
 
@@ -275,10 +301,12 @@ main() {
           }
           for (int pos in positions) {
             if (!knownPositions.contains(pos)) {
-              errorMessages.add("Script with uri ${script['uri']} "
-                  "and id ${script['id']} "
-                  "references position $pos which cannot be translated to "
-                  "line and column.");
+              errorMessages.add(
+                "Script with uri ${script['uri']} "
+                "and id ${script['id']} "
+                "references position $pos which cannot be translated to "
+                "line and column.",
+              );
             }
           }
 
@@ -348,20 +376,28 @@ main() {
     });
 
     compileAndSerialize(
-        File mainDill, File libDill, IncrementalCompiler compiler) async {
+      File mainDill,
+      File libDill,
+      IncrementalCompiler compiler,
+    ) async {
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
-      new BinaryPrinter(new DevNullSink<List<int>>())
-          .writeComponentFile(component);
+      new BinaryPrinter(
+        new DevNullSink<List<int>>(),
+      ).writeComponentFile(component);
       IOSink sink = mainDill.openWrite();
-      BinaryPrinter printer = new BinaryPrinter(sink,
-          libraryFilter: (lib) => lib.fileUri.path.endsWith("main.dart"));
+      BinaryPrinter printer = new BinaryPrinter(
+        sink,
+        libraryFilter: (lib) => lib.fileUri.path.endsWith("main.dart"),
+      );
       printer.writeComponentFile(component);
       await sink.flush();
       await sink.close();
       sink = libDill.openWrite();
-      printer = new BinaryPrinter(sink,
-          libraryFilter: (lib) => lib.fileUri.path.endsWith("lib.dart"));
+      printer = new BinaryPrinter(
+        sink,
+        libraryFilter: (lib) => lib.fileUri.path.endsWith("lib.dart"),
+      );
       printer.writeComponentFile(component);
       await sink.flush();
       await sink.close();
@@ -371,14 +407,16 @@ main() {
       Directory dir = mytest.createTempSync();
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(options, [main.uri]);
+      IncrementalCompiler compiler = new IncrementalCompiler(options, [
+        main.uri,
+      ]);
       await compileAndSerialize(mainDill, libDill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
       list.writeAsStringSync("#@dill\n${mainDill.path}\n${libDill.path}\n");
-      vm =
-          await Process.start(Platform.resolvedExecutable, <String>[list.path]);
+      vm = await Process.start(Platform.resolvedExecutable, <String>[
+        list.path,
+      ]);
 
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
@@ -399,14 +437,16 @@ main() {
       Directory dir = mytest.createTempSync();
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(options, [lib.uri]);
+      IncrementalCompiler compiler = new IncrementalCompiler(options, [
+        lib.uri,
+      ]);
       await compileAndSerialize(mainDill, libDill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
       list.writeAsStringSync("#@dill\n${libDill.path}\n${mainDill.path}\n");
-      vm =
-          await Process.start(Platform.resolvedExecutable, <String>[list.path]);
+      vm = await Process.start(Platform.resolvedExecutable, <String>[
+        list.path,
+      ]);
 
       final splitter = new LineSplitter();
 
@@ -427,8 +467,9 @@ main() {
     test('empty list', () async {
       var list = new File(p.join(mytest.path, 'myMain.dilllist'))..createSync();
       list.writeAsStringSync("#@dill\n");
-      vm =
-          await Process.start(Platform.resolvedExecutable, <String>[list.path]);
+      vm = await Process.start(Platform.resolvedExecutable, <String>[
+        list.path,
+      ]);
 
       Completer<int> exitCodeCompleter = new Completer<int>();
       vm.exitCode.then((exitCode) {
@@ -441,8 +482,9 @@ main() {
     test('fallback to source compilation if fail to load', () async {
       var list = new File('${mytest.path}/myMain.dilllist')..createSync();
       list.writeAsStringSync("main() => print('baz');\n");
-      vm =
-          await Process.start(Platform.resolvedExecutable, <String>[list.path]);
+      vm = await Process.start(Platform.resolvedExecutable, <String>[
+        list.path,
+      ]);
 
       final splitter = new LineSplitter();
 
@@ -464,15 +506,17 @@ main() {
       Directory dir = mytest.createTempSync();
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(options, [main.uri]);
+      IncrementalCompiler compiler = new IncrementalCompiler(options, [
+        main.uri,
+      ]);
       await compileAndSerialize(mainDill, libDill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
       list.writeAsStringSync("#@dill\nmain.dart.dill\nlib.dart.dill\n");
       Directory runFrom = new Directory(dir.path + "/runFrom")..createSync();
-      vm = await Process.start(Platform.resolvedExecutable, <String>[list.path],
-          workingDirectory: runFrom.path);
+      vm = await Process.start(Platform.resolvedExecutable, <String>[
+        list.path,
+      ], workingDirectory: runFrom.path);
 
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
@@ -493,8 +537,9 @@ main() {
       Directory dir = mytest.createTempSync();
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(options, [main.uri]);
+      IncrementalCompiler compiler = new IncrementalCompiler(options, [
+        main.uri,
+      ]);
       await compileAndSerialize(mainDill, libDill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
@@ -503,19 +548,19 @@ main() {
         "--pause-isolates-on-exit",
         "--enable-vm-service:0",
         "--disable-service-auth-codes",
-        list.path
+        list.path,
       ]);
 
       const kDartVMServiceListening = 'The Dart VM service is listening on ';
       final RegExp dartVMServicePortRegExp = new RegExp(
-          "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)");
+        "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)",
+      );
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
-      vm.stdout
-          .transform(utf8.decoder)
-          .transform(splitter)
-          .listen((String s) async {
+      vm.stdout.transform(utf8.decoder).transform(splitter).listen((
+        String s,
+      ) async {
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
@@ -601,26 +646,28 @@ main() {
     });
 
     Future<Set<int>> runAndGetLineCoverage(
-        File list, String expectStdoutContains) async {
+      File list,
+      String expectStdoutContains,
+    ) async {
       vm = await Process.start(Platform.resolvedExecutable, <String>[
         "--pause-isolates-on-exit",
         "--enable-vm-service:0",
         "--disable-service-auth-codes",
-        list.path
+        list.path,
       ]);
 
       const kDartVMServiceListening = 'The Dart VM service is listening on ';
       final RegExp dartVMServicePortRegExp = new RegExp(
-          "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)");
+        "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)",
+      );
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
       Set<int> coverageLines = {};
       bool foundExpectedString = false;
-      vm.stdout
-          .transform(utf8.decoder)
-          .transform(splitter)
-          .listen((String s) async {
+      vm.stdout.transform(utf8.decoder).transform(splitter).listen((
+        String s,
+      ) async {
         if (s == expectStdoutContains) {
           foundExpectedString = true;
         }
@@ -628,8 +675,12 @@ main() {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
           port = int.parse(match.group(1)!);
-          await collectAndCheckCoverageData(port, true,
-              onGetAllVerifyCount: false, coverageForLines: coverageLines);
+          await collectAndCheckCoverageData(
+            port,
+            true,
+            onGetAllVerifyCount: false,
+            coverageForLines: coverageLines,
+          );
           if (!portLineCompleter.isCompleted) {
             portLineCompleter.complete("done");
           }
@@ -653,8 +704,9 @@ main() {
       // Note that it's called 'lib1' to match with expectations from coverage
       // collector helper in this file.
       File libDill = File(p.join(dir.path, p.basename(lib1.path + ".dill")));
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(options, [lib1.uri]);
+      IncrementalCompiler compiler = new IncrementalCompiler(options, [
+        lib1.uri,
+      ]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
       expect(component.libraries.length, equals(1));
@@ -669,9 +721,12 @@ main() {
       Set<int> lineCoverage = await runAndGetLineCoverage(list, "lib1");
       // Expect coverage for unnamed constructor but not for the named one.
       expect(
-          lineCoverage.intersection(
-              {lineForUnnamedConstructor, lineForNamedConstructor}),
-          equals({lineForUnnamedConstructor}));
+        lineCoverage.intersection({
+          lineForUnnamedConstructor,
+          lineForNamedConstructor,
+        }),
+        equals({lineForUnnamedConstructor}),
+      );
 
       try {
         vm.kill();
@@ -698,9 +753,12 @@ main() {
 
       // Expect coverage for both unnamed constructor and for the named one.
       expect(
-          lineCoverage.intersection(
-              {lineForUnnamedConstructor, lineForNamedConstructor}),
-          equals({lineForUnnamedConstructor, lineForNamedConstructor}));
+        lineCoverage.intersection({
+          lineForUnnamedConstructor,
+          lineForNamedConstructor,
+        }),
+        equals({lineForUnnamedConstructor, lineForNamedConstructor}),
+      );
 
       try {
         vm.kill();
@@ -757,13 +815,14 @@ main() {
       // Expect coverage for both unnamed constructor and for the named one on
       // the new positions, but no coverage on the old positions.
       expect(
-          lineCoverage.intersection({
-            lineForUnnamedConstructor,
-            lineForNamedConstructor,
-            newLineForUnnamedConstructor,
-            newLineForNamedConstructor
-          }),
-          equals({newLineForUnnamedConstructor, newLineForNamedConstructor}));
+        lineCoverage.intersection({
+          lineForUnnamedConstructor,
+          lineForNamedConstructor,
+          newLineForUnnamedConstructor,
+          newLineForNamedConstructor,
+        }),
+        equals({newLineForUnnamedConstructor, newLineForNamedConstructor}),
+      );
 
       try {
         vm.kill();
@@ -829,27 +888,38 @@ main() {
       }
     });
 
-    compileAndSerialize(File mainDill, File lib1Dill, File lib2Dill,
-        IncrementalCompiler compiler) async {
+    compileAndSerialize(
+      File mainDill,
+      File lib1Dill,
+      File lib2Dill,
+      IncrementalCompiler compiler,
+    ) async {
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
-      new BinaryPrinter(new DevNullSink<List<int>>())
-          .writeComponentFile(component);
+      new BinaryPrinter(
+        new DevNullSink<List<int>>(),
+      ).writeComponentFile(component);
       IOSink sink = mainDill.openWrite();
-      BinaryPrinter printer = new BinaryPrinter(sink,
-          libraryFilter: (lib) => lib.fileUri.path.endsWith("main.dart"));
+      BinaryPrinter printer = new BinaryPrinter(
+        sink,
+        libraryFilter: (lib) => lib.fileUri.path.endsWith("main.dart"),
+      );
       printer.writeComponentFile(component);
       await sink.flush();
       await sink.close();
       sink = lib1Dill.openWrite();
-      printer = new BinaryPrinter(sink,
-          libraryFilter: (lib) => lib.fileUri.path.endsWith("lib1.dart"));
+      printer = new BinaryPrinter(
+        sink,
+        libraryFilter: (lib) => lib.fileUri.path.endsWith("lib1.dart"),
+      );
       printer.writeComponentFile(component);
       await sink.flush();
       await sink.close();
       sink = lib2Dill.openWrite();
-      printer = new BinaryPrinter(sink,
-          libraryFilter: (lib) => lib.fileUri.path.endsWith("lib2.dart"));
+      printer = new BinaryPrinter(
+        sink,
+        libraryFilter: (lib) => lib.fileUri.path.endsWith("lib2.dart"),
+      );
       printer.writeComponentFile(component);
       await sink.flush();
       await sink.close();
@@ -860,38 +930,46 @@ main() {
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File lib1Dill = File(p.join(dir.path, p.basename(lib1.path + ".dill")));
       File lib2Dill = File(p.join(dir.path, p.basename(lib2.path + ".dill")));
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(options, [main.uri]);
+      IncrementalCompiler compiler = new IncrementalCompiler(options, [
+        main.uri,
+      ]);
       await compileAndSerialize(mainDill, lib1Dill, lib2Dill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
       list.writeAsStringSync(
-          "#@dill\n${mainDill.path}\n${lib1Dill.path}\n${lib2Dill.path}\n");
+        "#@dill\n${mainDill.path}\n${lib1Dill.path}\n${lib2Dill.path}\n",
+      );
       vm = await Process.start(Platform.resolvedExecutable, <String>[
         "--pause-isolates-on-exit",
         "--enable-vm-service:0",
         "--disable-service-auth-codes",
-        list.path
+        list.path,
       ]);
 
       const kDartVMServiceListening = 'The Dart VM service is listening on ';
       final RegExp dartVMServicePortRegExp = new RegExp(
-          "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)");
+        "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)",
+      );
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
-      vm.stdout
-          .transform(utf8.decoder)
-          .transform(splitter)
-          .listen((String s) async {
+      vm.stdout.transform(utf8.decoder).transform(splitter).listen((
+        String s,
+      ) async {
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
           final match = dartVMServicePortRegExp.firstMatch(s)!;
           port = int.parse(match.group(1)!);
-          Set<int> hits1 =
-              await collectAndCheckCoverageData(port, true, resume: false);
-          Set<int> hits2 =
-              await collectAndCheckCoverageData(port, false, resume: true);
+          Set<int> hits1 = await collectAndCheckCoverageData(
+            port,
+            true,
+            resume: false,
+          );
+          Set<int> hits2 = await collectAndCheckCoverageData(
+            port,
+            false,
+            resume: true,
+          );
           expect(hits1.toList()..sort(), equals(hits2.toList()..sort()));
           if (!portLineCompleter.isCompleted) {
             portLineCompleter.complete("done");
@@ -924,22 +1002,27 @@ main() {
 
     test('picks up after rejected delta', () async {
       var file = new File('${mytest.path}/foo.dart')..createSync();
-      file.writeAsStringSync("import 'bar.dart';\n"
-          "import 'baz.dart';\n"
-          "main() {\n"
-          "  new A();\n"
-          "  openReceivePortSoWeWontDie();"
-          "}\n");
+      file.writeAsStringSync(
+        "import 'bar.dart';\n"
+        "import 'baz.dart';\n"
+        "main() {\n"
+        "  new A();\n"
+        "  openReceivePortSoWeWontDie();"
+        "}\n",
+      );
 
       var fileBar = new File('${mytest.path}/bar.dart')..createSync();
       fileBar.writeAsStringSync("class A<T> { int _a = 0; }\n");
 
       var fileBaz = new File('${mytest.path}/baz.dart')..createSync();
-      fileBaz.writeAsStringSync("import 'dart:isolate';\n"
-          "openReceivePortSoWeWontDie() { new RawReceivePort(); }\n");
+      fileBaz.writeAsStringSync(
+        "import 'dart:isolate';\n"
+        "openReceivePortSoWeWontDie() { new RawReceivePort(); }\n",
+      );
 
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(options, [file.uri]);
+      IncrementalCompiler compiler = new IncrementalCompiler(options, [
+        file.uri,
+      ]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
 
@@ -952,7 +1035,7 @@ main() {
         '--enable-vm-service=0', // Note: use 0 to avoid port collisions.
         '--pause_isolates_on_start',
         '--disable-service-auth-codes',
-        outputFile.path
+        outputFile.path,
       ];
       final vm = await Process.start(Platform.resolvedExecutable, vmArgs);
 
@@ -977,7 +1060,8 @@ main() {
       String portLine = await portLineCompleter.future;
 
       final RegExp dartVMServicePortRegExp = new RegExp(
-          "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)");
+        "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)",
+      );
       expect(dartVMServicePortRegExp.hasMatch(portLine), isTrue);
       final match = dartVMServicePortRegExp.firstMatch(portLine)!;
       final port = int.parse(match.group(1)!);
@@ -1034,46 +1118,55 @@ main() {
 
     test('compile, reject, compile again', () async {
       new Directory(mytest.path + "/.dart_tool").createSync();
-      var packageUri =
-          Uri.file('${mytest.path}/.dart_tool/package_config.json');
-      new File(packageUri.toFilePath()).writeAsStringSync(jsonEncode({
-        "configVersion": 2,
-        "packages": [
-          {
-            "name": "foo",
-            "rootUri": "..",
-            "packageUri": "lib",
-            "languageVersion": "2.12",
-          },
-        ],
-      }));
+      var packageUri = Uri.file(
+        '${mytest.path}/.dart_tool/package_config.json',
+      );
+      new File(packageUri.toFilePath()).writeAsStringSync(
+        jsonEncode({
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "..",
+              "packageUri": "lib",
+              "languageVersion": "2.12",
+            },
+          ],
+        }),
+      );
       new Directory(mytest.path + "/lib").createSync();
       var fooUri = Uri.file('${mytest.path}/lib/foo.dart');
-      new File(fooUri.toFilePath())
-          .writeAsStringSync("import 'package:foo/bar.dart';\n"
-              "import 'package:foo/baz.dart';\n"
-              "main() {\n"
-              "  new A();\n"
-              "  openReceivePortSoWeWontDie();"
-              "}\n");
+      new File(fooUri.toFilePath()).writeAsStringSync(
+        "import 'package:foo/bar.dart';\n"
+        "import 'package:foo/baz.dart';\n"
+        "main() {\n"
+        "  new A();\n"
+        "  openReceivePortSoWeWontDie();"
+        "}\n",
+      );
 
       var barUri = Uri.file('${mytest.path}/lib/bar.dart');
-      new File(barUri.toFilePath())
-          .writeAsStringSync("class A { static int a = 0; }\n");
+      new File(
+        barUri.toFilePath(),
+      ).writeAsStringSync("class A { static int a = 0; }\n");
 
       var bazUri = Uri.file('${mytest.path}/lib/baz.dart');
-      new File(bazUri.toFilePath()).writeAsStringSync("import 'dart:isolate';\n"
-          "openReceivePortSoWeWontDie() { new RawReceivePort(); }\n");
+      new File(bazUri.toFilePath()).writeAsStringSync(
+        "import 'dart:isolate';\n"
+        "openReceivePortSoWeWontDie() { new RawReceivePort(); }\n",
+      );
 
       Uri packageEntry = Uri.parse('package:foo/foo.dart');
 
-      CompilerOptions optionsModified = getFreshOptions()
-        ..packagesFileUri = packageUri;
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(optionsModified, [packageEntry]);
+      CompilerOptions optionsModified =
+          getFreshOptions()..packagesFileUri = packageUri;
+      IncrementalCompiler compiler = new IncrementalCompiler(optionsModified, [
+        packageEntry,
+      ]);
       {
-        IncrementalCompilerResult compilerResult =
-            await compiler.compile(entryPoints: [packageEntry]);
+        IncrementalCompilerResult compilerResult = await compiler.compile(
+          entryPoints: [packageEntry],
+        );
         Component component = compilerResult.component;
         File outputFile = new File('${mytest.path}/foo.dart.dill');
         await _writeProgramToFile(component, outputFile);
@@ -1081,27 +1174,30 @@ main() {
       compiler.accept();
       {
         Procedure? procedure = await compiler.compileExpression(
-            'a',
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            'package:foo/bar.dart',
-            'A',
-            null,
-            -1,
-            null,
-            true);
+          'a',
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          'package:foo/bar.dart',
+          'A',
+          null,
+          -1,
+          null,
+          true,
+        );
         expect(procedure, isNotNull);
       }
 
-      new File(barUri.toFilePath())
-          .writeAsStringSync("class A { static int b = 0; }\n");
+      new File(
+        barUri.toFilePath(),
+      ).writeAsStringSync("class A { static int b = 0; }\n");
       compiler.invalidate(barUri);
       {
-        IncrementalCompilerResult compilerResult =
-            await compiler.compile(entryPoints: [packageEntry]);
+        IncrementalCompilerResult compilerResult = await compiler.compile(
+          entryPoints: [packageEntry],
+        );
         Component component = compilerResult.component;
         File outputFile = new File('${mytest.path}/foo1.dart.dill');
         await _writeProgramToFile(component, outputFile);
@@ -1109,18 +1205,19 @@ main() {
       await compiler.reject();
       {
         Procedure? procedure = await compiler.compileExpression(
-            'a',
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            'package:foo/bar.dart',
-            'A',
-            null,
-            -1,
-            null,
-            true);
+          'a',
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          <String>[],
+          'package:foo/bar.dart',
+          'A',
+          null,
+          -1,
+          null,
+          true,
+        );
         expect(procedure, isNotNull);
       }
     });
@@ -1148,16 +1245,20 @@ main() {
         """);
 
       final CompilerOptions optionsModified = getFreshOptions();
-      optionsModified.explicitExperimentalFlags[
-          ExperimentalFlag.alternativeInvalidationStrategy] = true;
+      optionsModified.explicitExperimentalFlags[ExperimentalFlag
+              .alternativeInvalidationStrategy] =
+          true;
 
-      final IncrementalCompiler compiler =
-          new IncrementalCompiler(optionsModified, [fooUri]);
+      final IncrementalCompiler compiler = new IncrementalCompiler(
+        optionsModified,
+        [fooUri],
+      );
       Library fooLib;
       Library barLib;
       {
-        final IncrementalCompilerResult compilerResult =
-            await compiler.compile(entryPoints: [fooUri]);
+        final IncrementalCompilerResult compilerResult = await compiler.compile(
+          entryPoints: [fooUri],
+        );
         final Component component = compilerResult.component;
         expect(component.libraries.length, equals(2));
         fooLib = component.libraries.firstWhere((lib) => lib.fileUri == fooUri);
@@ -1169,19 +1270,21 @@ main() {
       }
       compiler.accept();
       {
-        final Procedure procedure = (await compiler.compileExpression(
-            'a',
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            barUri.toString(),
-            'A',
-            null,
-            -1,
-            null,
-            true))!;
+        final Procedure procedure =
+            (await compiler.compileExpression(
+              'a',
+              <String>[],
+              <String>[],
+              <String>[],
+              <String>[],
+              <String>[],
+              barUri.toString(),
+              'A',
+              null,
+              -1,
+              null,
+              true,
+            ))!;
         // Verify that the expression only has links to the only bar we know
         // about.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
@@ -1197,14 +1300,17 @@ main() {
         """);
       compiler.invalidate(barUri);
       {
-        final IncrementalCompilerResult compilerResult =
-            await compiler.compile(entryPoints: [fooUri]);
+        final IncrementalCompilerResult compilerResult = await compiler.compile(
+          entryPoints: [fooUri],
+        );
         final Component component = compilerResult.component;
-        final Library? fooLib2 = component.libraries
-            .firstWhereOrNull((lib) => lib.fileUri == fooUri);
+        final Library? fooLib2 = component.libraries.firstWhereOrNull(
+          (lib) => lib.fileUri == fooUri,
+        );
         expect(fooLib2, isNull);
-        final Library barLib2 =
-            component.libraries.firstWhere((lib) => lib.fileUri == barUri);
+        final Library barLib2 = component.libraries.firstWhere(
+          (lib) => lib.fileUri == barUri,
+        );
         // Verify that the fooLib (we only have the original one) only has
         // links to the newly compiled bar.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
@@ -1227,19 +1333,21 @@ main() {
         expect(lrc.librariesReferenced, equals(<Library>{fooLib, barLib}));
       }
       {
-        final Procedure procedure = (await compiler.compileExpression(
-            'a',
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            <String>[],
-            barUri.toString(),
-            'A',
-            null,
-            -1,
-            null,
-            true))!;
+        final Procedure procedure =
+            (await compiler.compileExpression(
+              'a',
+              <String>[],
+              <String>[],
+              <String>[],
+              <String>[],
+              <String>[],
+              barUri.toString(),
+              'A',
+              null,
+              -1,
+              null,
+              true,
+            ))!;
         // Verify that the expression only has links to the original bar.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
         procedure.accept(lrc);
@@ -1247,10 +1355,11 @@ main() {
       }
     });
 
-    test('compile, recompile with new entry, reject, expression compilation',
-        () async {
-      var v1Uri = Uri.file('${mytest.path}/v1.dart');
-      new File(v1Uri.toFilePath()).writeAsStringSync("""import 'dart:isolate';
+    test(
+      'compile, recompile with new entry, reject, expression compilation',
+      () async {
+        var v1Uri = Uri.file('${mytest.path}/v1.dart');
+        new File(v1Uri.toFilePath()).writeAsStringSync("""import 'dart:isolate';
           test() => 'apple';
           main() {
             RawReceivePort keepAlive = new RawReceivePort();
@@ -1258,8 +1367,8 @@ main() {
           }
           """);
 
-      var v2Uri = Uri.file('${mytest.path}/v2.dart');
-      new File(v2Uri.toFilePath()).writeAsStringSync("""import 'dart:isolate';
+        var v2Uri = Uri.file('${mytest.path}/v2.dart');
+        new File(v2Uri.toFilePath()).writeAsStringSync("""import 'dart:isolate';
           import 'library_isnt_here_man';
 
           test() => 'apple';
@@ -1270,22 +1379,25 @@ main() {
           }
           """);
 
-      CompilerOptions optionsModified = getFreshOptions()
-        ..onDiagnostic = (DiagnosticMessage message) {
-          // sometimes expected on this one.
-          print(message.ansiFormatted);
-        };
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(optionsModified, [v1Uri]);
+        CompilerOptions optionsModified =
+            getFreshOptions()
+              ..onDiagnostic = (DiagnosticMessage message) {
+                // sometimes expected on this one.
+                print(message.ansiFormatted);
+              };
+        IncrementalCompiler compiler = new IncrementalCompiler(
+          optionsModified,
+          [v1Uri],
+        );
 
-      print("Compiling v1 uri (should be ok)");
-      await compiler.compile(entryPoints: [v1Uri]);
+        print("Compiling v1 uri (should be ok)");
+        await compiler.compile(entryPoints: [v1Uri]);
 
-      print("Accepting.");
-      compiler.accept();
-      {
-        print("Compiling expression.");
-        Procedure? procedure = await compiler.compileExpression(
+        print("Accepting.");
+        compiler.accept();
+        {
+          print("Compiling expression.");
+          Procedure? procedure = await compiler.compileExpression(
             'test()',
             <String>[],
             <String>[],
@@ -1297,20 +1409,21 @@ main() {
             null,
             -1,
             null,
-            false);
-        expect(procedure, isNotNull);
-        ReturnStatement returnStmt =
-            procedure!.function.body as ReturnStatement;
-        expect(returnStmt.expression, isA<StaticInvocation>());
-      }
+            false,
+          );
+          expect(procedure, isNotNull);
+          ReturnStatement returnStmt =
+              procedure!.function.body as ReturnStatement;
+          expect(returnStmt.expression, isA<StaticInvocation>());
+        }
 
-      print("Compiling v2 uri (with error)");
-      await compiler.compile(entryPoints: [v2Uri]);
-      print("Rejecting.");
-      await compiler.reject();
-      {
-        print("Compiling expression.");
-        Procedure? procedure = await compiler.compileExpression(
+        print("Compiling v2 uri (with error)");
+        await compiler.compile(entryPoints: [v2Uri]);
+        print("Rejecting.");
+        await compiler.reject();
+        {
+          print("Compiling expression.");
+          Procedure? procedure = await compiler.compileExpression(
             'test()',
             <String>[],
             <String>[],
@@ -1322,13 +1435,15 @@ main() {
             null,
             -1,
             null,
-            false);
-        expect(procedure, isNotNull);
-        ReturnStatement returnStmt =
-            procedure!.function.body as ReturnStatement;
-        expect(returnStmt.expression, isA<StaticInvocation>());
-      }
-    });
+            false,
+          );
+          expect(procedure, isNotNull);
+          ReturnStatement returnStmt =
+              procedure!.function.body as ReturnStatement;
+          expect(returnStmt.expression, isA<StaticInvocation>());
+        }
+      },
+    );
   });
 
   group('expression evaluation', () {
@@ -1352,26 +1467,30 @@ main() {
       }
     });
 
-    launchBreakAndEvaluate(File scriptOrDill, String scriptUriToBreakIn,
-        int lineToBreakAt, List<String> expressionsAndExpectedResults,
-        {Future Function(RemoteVm remoteVm)? callback}) async {
+    launchBreakAndEvaluate(
+      File scriptOrDill,
+      String scriptUriToBreakIn,
+      int lineToBreakAt,
+      List<String> expressionsAndExpectedResults, {
+      Future Function(RemoteVm remoteVm)? callback,
+    }) async {
       vm = await Process.start(Platform.resolvedExecutable, <String>[
         "--pause-isolates-on-start",
         "--enable-vm-service:0",
         "--disable-service-auth-codes",
-        scriptOrDill.path
+        scriptOrDill.path,
       ]);
 
       const kDartVMServiceListening = 'The Dart VM service is listening on ';
       final RegExp dartVMServicePortRegExp = new RegExp(
-          "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)");
+        "The Dart VM service is listening on http://127.0.0.1:\([0-9]*\)",
+      );
       int port;
       final splitter = new LineSplitter();
       Completer<String> portLineCompleter = new Completer<String>();
-      vm.stdout
-          .transform(utf8.decoder)
-          .transform(splitter)
-          .listen((String s) async {
+      vm.stdout.transform(utf8.decoder).transform(splitter).listen((
+        String s,
+      ) async {
         print("vm stdout: $s");
         if (s.startsWith(kDartVMServiceListening)) {
           expect(dartVMServicePortRegExp.hasMatch(s), isTrue);
@@ -1387,7 +1506,10 @@ main() {
           }
 
           var breakpoint = await findScriptAndBreak(
-              remoteVm, scriptUriToBreakIn, lineToBreakAt);
+            remoteVm,
+            scriptUriToBreakIn,
+            lineToBreakAt,
+          );
           await remoteVm.resume();
           await waitForScriptToHavePaused(remoteVm);
           await evaluateExpressions(expressionsAndExpectedResults, remoteVm);
@@ -1458,8 +1580,9 @@ main() {
         }
         int extra() { return 22; }
       """);
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(options, [mainFile.uri]);
+      IncrementalCompiler compiler = new IncrementalCompiler(options, [
+        mainFile.uri,
+      ]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
       File mainDill = new File.fromUri(mainFile.uri.resolve("main.dill"));
@@ -1532,8 +1655,9 @@ main() {
           print(s);
         }
       """);
-      IncrementalCompiler compiler =
-          new IncrementalCompiler(options, [mainFile.uri]);
+      IncrementalCompiler compiler = new IncrementalCompiler(options, [
+        mainFile.uri,
+      ]);
       IncrementalCompilerResult compilerResult = await compiler.compile();
       Component component = compilerResult.component;
       File mainDill = new File.fromUri(mainFile.uri.resolve("main.dill"));
@@ -1559,8 +1683,9 @@ main() {
       compiler.invalidate(helperFile.uri);
       compilerResult = await compiler.compile();
       component = compilerResult.component;
-      File partial1Dill =
-          new File.fromUri(mainFile.uri.resolve("partial1.dill"));
+      File partial1Dill = new File.fromUri(
+        mainFile.uri.resolve("partial1.dill"),
+      );
       sink = partial1Dill.openWrite();
       new BinaryPrinter(sink).writeComponentFile(component);
       await sink.flush();
@@ -1586,8 +1711,9 @@ main() {
       compiler.invalidate(helperFile.uri);
       compilerResult = await compiler.compile();
       component = compilerResult.component;
-      File partial2Dill =
-          new File.fromUri(mainFile.uri.resolve("partial2.dill"));
+      File partial2Dill = new File.fromUri(
+        mainFile.uri.resolve("partial2.dill"),
+      );
       sink = partial2Dill.openWrite();
       new BinaryPrinter(sink).writeComponentFile(component);
       await sink.flush();
@@ -1597,93 +1723,105 @@ main() {
       mainFile.deleteSync();
       helperFile.deleteSync();
 
-      await launchBreakAndEvaluate(mainDill, helperFile.uri.toString(), 7, [
-        // 1st expression
-        "s.length",
-        "12",
+      await launchBreakAndEvaluate(
+        mainDill,
+        helperFile.uri.toString(),
+        7,
+        [
+          // 1st expression
+          "s.length",
+          "12",
 
-        // 2nd expression
-        "s",
-        "Hello world!",
+          // 2nd expression
+          "s",
+          "Hello world!",
 
-        // 3rd expression
-        "hello",
-        "Hello",
+          // 3rd expression
+          "hello",
+          "Hello",
 
-        // 4th expression
-        "reloadTime()",
-        "0",
-      ], callback: (RemoteVm remoteVm) async {
-        for (int q = 0; q < 10; q++) {
-          Map reloadResult = await remoteVm.reload(partial1Dill.uri);
-          expect(reloadResult["success"], equals(true));
+          // 4th expression
+          "reloadTime()",
+          "0",
+        ],
+        callback: (RemoteVm remoteVm) async {
+          for (int q = 0; q < 10; q++) {
+            Map reloadResult = await remoteVm.reload(partial1Dill.uri);
+            expect(reloadResult["success"], equals(true));
 
-          await remoteVm.forceGc();
+            await remoteVm.forceGc();
 
-          var breakpoint =
-              await findScriptAndBreak(remoteVm, helperFile.uri.toString(), 7);
-          await remoteVm.resume();
-          await waitForScriptToHavePaused(remoteVm);
-          await evaluateExpressions([
-            // 1st expression
-            "s.length",
-            "14",
+            var breakpoint = await findScriptAndBreak(
+              remoteVm,
+              helperFile.uri.toString(),
+              7,
+            );
+            await remoteVm.resume();
+            await waitForScriptToHavePaused(remoteVm);
+            await evaluateExpressions([
+              // 1st expression
+              "s.length",
+              "14",
 
-            // 2nd expression
-            "s",
-            "Hello world!!!",
+              // 2nd expression
+              "s",
+              "Hello world!!!",
 
-            // 3rd expression
-            "hello",
-            "Hello",
+              // 3rd expression
+              "hello",
+              "Hello",
 
-            // 4th expression
-            "reloadTime()",
-            "1",
+              // 4th expression
+              "reloadTime()",
+              "1",
 
-            // 5th expression
-            "helperMethod2()",
-            "42",
-          ], remoteVm);
-          await deletePossibleBreakpoint(remoteVm, breakpoint);
+              // 5th expression
+              "helperMethod2()",
+              "42",
+            ], remoteVm);
+            await deletePossibleBreakpoint(remoteVm, breakpoint);
 
-          reloadResult = await remoteVm.reload(partial2Dill.uri);
-          expect(reloadResult["success"], equals(true));
+            reloadResult = await remoteVm.reload(partial2Dill.uri);
+            expect(reloadResult["success"], equals(true));
 
-          await remoteVm.forceGc();
+            await remoteVm.forceGc();
 
-          breakpoint =
-              await findScriptAndBreak(remoteVm, helperFile.uri.toString(), 7);
-          await remoteVm.resume();
-          await waitForScriptToHavePaused(remoteVm);
-          await evaluateExpressions([
-            // 1st expression
-            "s.length",
-            "15",
+            breakpoint = await findScriptAndBreak(
+              remoteVm,
+              helperFile.uri.toString(),
+              7,
+            );
+            await remoteVm.resume();
+            await waitForScriptToHavePaused(remoteVm);
+            await evaluateExpressions([
+              // 1st expression
+              "s.length",
+              "15",
 
-            // 2nd expression
-            "s",
-            "Hello world!!!!",
+              // 2nd expression
+              "s",
+              "Hello world!!!!",
 
-            // 3rd expression
-            "hello",
-            "Hello",
+              // 3rd expression
+              "hello",
+              "Hello",
 
-            // 4th expression
-            "reloadTime()",
-            "2",
+              // 4th expression
+              "reloadTime()",
+              "2",
 
-            // 5th expression
-            "helperMethod2()",
-            "21",
+              // 5th expression
+              "helperMethod2()",
+              "21",
 
-            // 6th expression
-            "helperMethod3()",
-            "84",
-          ], remoteVm);
-          await deletePossibleBreakpoint(remoteVm, breakpoint);
-        }
-      });
+              // 6th expression
+              "helperMethod3()",
+              "84",
+            ], remoteVm);
+            await deletePossibleBreakpoint(remoteVm, breakpoint);
+          }
+        },
+      );
     });
 
     test('from dill with package uri', () async {
@@ -1701,25 +1839,26 @@ main() {
           int extra() { return 22; }
         """);
 
-        File packagesFile =
-            new File.fromUri(dir.uri.resolve("package_config.json"));
-        packagesFile.writeAsStringSync(jsonEncode({
-          "configVersion": 2,
-          "packages": [
-            {
-              "name": "foo",
-              "rootUri": ".",
-              "languageVersion": "2.12",
-            },
-          ],
-        }));
+        File packagesFile = new File.fromUri(
+          dir.uri.resolve("package_config.json"),
+        );
+        packagesFile.writeAsStringSync(
+          jsonEncode({
+            "configVersion": 2,
+            "packages": [
+              {"name": "foo", "rootUri": ".", "languageVersion": "2.12"},
+            ],
+          }),
+        );
 
         Uri mainUri = Uri.parse("package:foo/main.dart");
 
-        CompilerOptions optionsModified = getFreshOptions()
-          ..packagesFileUri = packagesFile.uri;
-        IncrementalCompiler compiler =
-            new IncrementalCompiler(optionsModified, [mainUri]);
+        CompilerOptions optionsModified =
+            getFreshOptions()..packagesFileUri = packagesFile.uri;
+        IncrementalCompiler compiler = new IncrementalCompiler(
+          optionsModified,
+          [mainUri],
+        );
 
         IncrementalCompilerResult compilerResult = await compiler.compile();
         Component component = compilerResult.component;
@@ -1763,7 +1902,9 @@ main() {
 }
 
 Future evaluateExpressions(
-    List<String> expressionsAndExpectedResults, RemoteVm remoteVm) async {
+  List<String> expressionsAndExpectedResults,
+  RemoteVm remoteVm,
+) async {
   for (int i = 0; i < expressionsAndExpectedResults.length; i += 2) {
     String expression = expressionsAndExpectedResults[i];
     String expectedResult = expressionsAndExpectedResults[i + 1];
@@ -1786,7 +1927,10 @@ Future waitForScriptToHavePaused(RemoteVm remoteVm) async {
 }
 
 Future findScriptAndBreak(
-    RemoteVm remoteVm, String scriptUriToBreakIn, int lineToBreakAt) async {
+  RemoteVm remoteVm,
+  String scriptUriToBreakIn,
+  int lineToBreakAt,
+) async {
   Map scriptsMap = await remoteVm.getScripts();
   List scripts = scriptsMap["scripts"];
   String? scriptId;
@@ -1804,7 +1948,9 @@ Future findScriptAndBreak(
 }
 
 Future deletePossibleBreakpoint(
-    RemoteVm remoteVm, dynamic possibleBreakpoint) async {
+  RemoteVm remoteVm,
+  dynamic possibleBreakpoint,
+) async {
   if (possibleBreakpoint is Map && possibleBreakpoint["id"] is String) {
     return await remoteVm.removeBreakpoint(possibleBreakpoint["id"]);
   }
@@ -1854,13 +2000,16 @@ class RemoteVm {
   json_rpc.Peer _createPeer() {
     var socket = new IOWebSocketChannel.connect('ws://127.0.0.1:$port/ws');
     var peer = new json_rpc.Peer(socket.cast<String>());
-    peer.listen().then((_) {
-      print('connection to vm-service closed');
-      return disconnect();
-    }).catchError((e) {
-      print('error connecting to the vm-service');
-      return disconnect();
-    });
+    peer
+        .listen()
+        .then((_) {
+          print('connection to vm-service closed');
+          return disconnect();
+        })
+        .catchError((e) {
+          print('error connecting to the vm-service');
+          return disconnect();
+        });
     return peer;
   }
 
@@ -1918,27 +2067,27 @@ class RemoteVm {
 
   Future<Map> getScripts() async {
     var id = await mainId;
-    return (await rpc.sendRequest('getScripts', {
-      'isolateId': id,
-    })) as Map;
+    return (await rpc.sendRequest('getScripts', {'isolateId': id})) as Map;
   }
 
   Future<Map> getSourceReport([String? scriptId]) async {
     var id = await mainId;
     return (await rpc.sendRequest('getSourceReport', {
-      'isolateId': id,
-      if (scriptId != null) 'scriptId': scriptId,
-      'reports': ['Coverage', 'PossibleBreakpoints'],
-      'forceCompile': true,
-    })) as Map;
+          'isolateId': id,
+          if (scriptId != null) 'scriptId': scriptId,
+          'reports': ['Coverage', 'PossibleBreakpoints'],
+          'forceCompile': true,
+        }))
+        as Map;
   }
 
   Future<Map> getObject(String objectId) async {
     var id = await mainId;
     return (await rpc.sendRequest('getObject', {
-      'isolateId': id,
-      'objectId': objectId,
-    })) as Map;
+          'isolateId': id,
+          'objectId': objectId,
+        }))
+        as Map;
   }
 
   Future addBreakpoint(String scriptId, int line) async {
@@ -1972,10 +2121,12 @@ class RemoteVm {
     int expectGcAfter = new DateTime.now().millisecondsSinceEpoch;
     while (true) {
       var id = await mainId;
-      Map result = (await rpc.sendRequest('getAllocationProfile', {
-        'isolateId': id,
-        "gc": true,
-      })) as Map;
+      Map result =
+          (await rpc.sendRequest('getAllocationProfile', {
+                'isolateId': id,
+                "gc": true,
+              }))
+              as Map;
       String? lastGc = result["dateLastServiceGC"];
       if (lastGc != null && int.parse(lastGc) >= expectGcAfter) return;
     }

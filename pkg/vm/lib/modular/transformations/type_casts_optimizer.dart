@@ -19,7 +19,9 @@ import 'package:kernel/type_environment.dart'
 //    S x; x as T => (x == null) ? x as T : x
 //
 TreeNode transformAsExpression(
-    AsExpression node, StaticTypeContext staticTypeContext) {
+  AsExpression node,
+  StaticTypeContext staticTypeContext,
+) {
   final DartType operandType = node.operand.getStaticType(staticTypeContext);
   final env = staticTypeContext.typeEnvironment;
 
@@ -30,18 +32,24 @@ TreeNode transformAsExpression(
 
   if (canBeReducedToNullCheckAndCast(node, operandType, env)) {
     // Transform 'x as T' to 'Let tmp = x in (tmp == null) ? tmp as T : tmp'.
-    final tmp = VariableDeclaration(null,
-        initializer: node.operand, type: operandType, isSynthesized: true);
+    final tmp = VariableDeclaration(
+      null,
+      initializer: node.operand,
+      type: operandType,
+      isSynthesized: true,
+    );
     final dstType = node.type;
     return Let(
-        tmp,
-        ConditionalExpression(
-            EqualsNull(VariableGet(tmp)),
-            AsExpression(VariableGet(tmp), dstType)
-              ..flags = node.flags
-              ..fileOffset = node.fileOffset,
-            VariableGet(tmp, dstType),
-            dstType));
+      tmp,
+      ConditionalExpression(
+        EqualsNull(VariableGet(tmp)),
+        AsExpression(VariableGet(tmp), dstType)
+          ..flags = node.flags
+          ..fileOffset = node.fileOffset,
+        VariableGet(tmp, dstType),
+        dstType,
+      ),
+    );
   }
 
   return node;
@@ -51,20 +59,29 @@ TreeNode transformAsExpression(
 // [operandStaticType] is redundant and can be removed (replaced with its
 // operand).
 bool isRedundantTypeCast(
-    AsExpression node, DartType operandStaticType, TypeEnvironment env) {
+  AsExpression node,
+  DartType operandStaticType,
+  TypeEnvironment env,
+) {
   if (!_canBeTransformed(node, env.coreTypes)) {
     return false;
   }
 
   return env.isSubtypeOf(
-      operandStaticType, node.type, SubtypeCheckMode.withNullabilities);
+    operandStaticType,
+    node.type,
+    SubtypeCheckMode.withNullabilities,
+  );
 }
 
 // Returns true if type cast [node] which has operand of the given
 // [operandStaticType] can be reduced to the null-check-and-cast pattern
 // 'Let tmp = [node.operand] in (tmp == null) ? tmp as T : tmp'.
 bool canBeReducedToNullCheckAndCast(
-    AsExpression node, DartType operandStaticType, TypeEnvironment env) {
+  AsExpression node,
+  DartType operandStaticType,
+  TypeEnvironment env,
+) {
   if (!_canBeTransformed(node, env.coreTypes)) {
     return false;
   }
@@ -74,7 +91,10 @@ bool canBeReducedToNullCheckAndCast(
   if (dst.nullability != Nullability.nullable) {
     final nullableDst = dst.withDeclaredNullability(Nullability.nullable);
     return env.isSubtypeOf(
-        operandStaticType, nullableDst, SubtypeCheckMode.withNullabilities);
+      operandStaticType,
+      nullableDst,
+      SubtypeCheckMode.withNullabilities,
+    );
   }
 
   return false;

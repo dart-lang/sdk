@@ -29,21 +29,36 @@ void main(List<String> args) async {
   final graphs = _loadGraphs(ilFile, rename);
   final tests = await _loadTestCases(testFile);
 
-  Map<String, FlowGraph> findMatchingGraphs(String className,
-      String? accessorKind, String name, String? closureName) {
+  Map<String, FlowGraph> findMatchingGraphs(
+    String className,
+    String? accessorKind,
+    String name,
+    String? closureName,
+  ) {
     final classPrefix = className != '::' ? rename(className) : className;
     final accessorPrefix = accessorKind != null ? '${accessorKind}_' : '';
     final closureSuffix = closureName != null ? '_${rename(closureName)}' : '';
     final suffix =
         '${classPrefix}_${accessorPrefix}${rename(name)}${closureSuffix}';
-    return graphs.entries.firstWhere((f) => f.key.endsWith(suffix), orElse: () {
-      throw 'Failed to find graph matching $suffix';
-    }).value;
+    return graphs.entries
+        .firstWhere(
+          (f) => f.key.endsWith(suffix),
+          orElse: () {
+            throw 'Failed to find graph matching $suffix';
+          },
+        )
+        .value;
   }
 
   for (var test in tests) {
-    test.run(findMatchingGraphs(
-        test.className, test.accessorKind, test.name, test.closureName));
+    test.run(
+      findMatchingGraphs(
+        test.className,
+        test.accessorKind,
+        test.name,
+        test.closureName,
+      ),
+    );
   }
 
   exit(0); // Success.
@@ -69,7 +84,8 @@ class TestCase {
     required this.library,
   });
 
-  late final String matcherName = 'matchIL\$' +
+  late final String matcherName =
+      'matchIL\$' +
       (className != '::' ? '${className}\$' : '') +
       (accessorKind != null ? '${accessorKind}\$' : '') +
       name +
@@ -79,9 +95,12 @@ class TestCase {
     final closureSuffix = closureName != null ? ' (${closureName})' : '';
     final accessorPrefix = accessorKind != null ? '$accessorKind ' : '';
     print(
-        'matching IL (${phases.join(', ')}) for ${className}.${accessorPrefix}$name$closureSuffix');
-    library.invoke(MirrorSystem.getSymbol(matcherName),
-        phases.map((phase) => graphs[phase]!).toList());
+      'matching IL (${phases.join(', ')}) for ${className}.${accessorPrefix}$name$closureSuffix',
+    );
+    library.invoke(
+      MirrorSystem.getSymbol(matcherName),
+      phases.map((phase) => graphs[phase]!).toList(),
+    );
     print('... ok');
   }
 
@@ -118,8 +137,9 @@ class TestCase {
 /// marked with @pragma('vm:testing:print-flow-graph', ...).
 Future<Set<TestCase>> _loadTestCases(String testFile) async {
   final mirrorSystem = currentMirrorSystem();
-  final library =
-      await mirrorSystem.isolate.loadUri(File(testFile).absolute.uri);
+  final library = await mirrorSystem.isolate.loadUri(
+    File(testFile).absolute.uri,
+  );
 
   pragma? getPragma(DeclarationMirror decl, String name) => decl.metadata
       .map((m) => m.reflectee)
@@ -132,7 +152,8 @@ Future<Set<TestCase>> _loadTestCases(String testFile) async {
   );
 
   ({String className, String name, String? accessorKind}) getTestCaseName(
-      DeclarationMirror decl) {
+    DeclarationMirror decl,
+  ) {
     final accessor = switch (decl) {
       MethodMirror(isGetter: true) => 'get',
       MethodMirror(isSetter: true) => 'set',
@@ -141,11 +162,7 @@ Future<Set<TestCase>> _loadTestCases(String testFile) async {
     final name = MirrorSystem.getName(decl.simpleName);
     final className =
         decl.isTopLevel ? "::" : MirrorSystem.getName(decl.owner!.simpleName);
-    return (
-      className: className,
-      name: name,
-      accessorKind: accessor,
-    );
+    return (className: className, name: name, accessorKind: accessor);
   }
 
   void processDeclaration(DeclarationMirror decl) {

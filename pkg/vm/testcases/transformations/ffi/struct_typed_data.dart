@@ -34,9 +34,10 @@ final class Coordinate extends Struct {
 }
 
 void testStructAllocateDart() {
-  final c1 = Coordinate()
-    ..x = 10.0
-    ..y = 20.0;
+  final c1 =
+      Coordinate()
+        ..x = 10.0
+        ..y = 20.0;
   Expect.equals(10.0, c1.x);
   Expect.equals(20.0, c1.y);
 

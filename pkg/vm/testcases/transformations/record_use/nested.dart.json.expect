@@ -47,7 +47,7 @@
         "id": 0,
         "@": {
           "uri": 0,
-          "line": 19,
+          "line": 16,
           "column": 7
         },
         "loadingUnit": "1"
@@ -58,7 +58,7 @@
           "loadingUnit": "1",
           "@": {
             "uri": 0,
-            "line": 15,
+            "line": 12,
             "column": 9
           }
         },
@@ -67,7 +67,7 @@
           "loadingUnit": "1",
           "@": {
             "uri": 0,
-            "line": 15,
+            "line": 12,
             "column": 9
           }
         }
@@ -78,7 +78,7 @@
         "id": 1,
         "@": {
           "uri": 0,
-          "line": 26,
+          "line": 23,
           "column": 7
         },
         "loadingUnit": "1"
@@ -89,7 +89,7 @@
           "loadingUnit": "1",
           "@": {
             "uri": 0,
-            "line": 15,
+            "line": 12,
             "column": 9
           }
         }

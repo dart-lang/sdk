@@ -7,10 +7,7 @@ import 'package:meta/meta.dart' show RecordUse;
 void main() {
   const list = [
     const MyClass(42),
-    {
-      const MyClass('test'),
-      const MyOtherClass(),
-    },
+    {const MyClass('test'), const MyOtherClass()},
   ];
   print(list);
 }

@@ -208,7 +208,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       }
     } else if (element == null) {
       // TODO(brianwilkerson): Recover from this error.
-      if (node.name == "await" && _resolver.enclosingFunction2 != null) {
+      if (node.name == "await" && _resolver.enclosingFunction != null) {
         errorReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,

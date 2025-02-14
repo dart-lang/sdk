@@ -52,8 +52,9 @@ class TableSelectorAssigner {
     if (cachedMemberIds != null) return cachedMemberIds;
 
     // Merge maps from supertypes.
-    final memberIds =
-        Map<Name, int>.from(_memberIdsForClass(cls.superclass, getter: getter));
+    final memberIds = Map<Name, int>.from(
+      _memberIdsForClass(cls.superclass, getter: getter),
+    );
     for (Supertype impl in cls.implementedTypes) {
       _memberIdsForClass(impl.classNode, getter: getter).forEach((name, id) {
         final int? firstId = memberIds[name];
@@ -102,15 +103,17 @@ class TableSelectorAssigner {
     final map = getter ? _getterMemberIds : _methodOrSetterMemberIds;
     int? memberId = map[member.enclosingClass!]![member.name];
     if (memberId == null) {
-      assert(member is Procedure &&
-              ((identical(map, _getterMemberIds) &&
-                      (member.kind == ProcedureKind.Operator ||
-                          member.kind == ProcedureKind.Setter)) ||
-                  identical(map, _methodOrSetterMemberIds) &&
-                      member.kind == ProcedureKind.Getter) ||
-          member is Field &&
-              identical(map, _methodOrSetterMemberIds) &&
-              !member.hasSetter);
+      assert(
+        member is Procedure &&
+                ((identical(map, _getterMemberIds) &&
+                        (member.kind == ProcedureKind.Operator ||
+                            member.kind == ProcedureKind.Setter)) ||
+                    identical(map, _methodOrSetterMemberIds) &&
+                        member.kind == ProcedureKind.Getter) ||
+            member is Field &&
+                identical(map, _methodOrSetterMemberIds) &&
+                !member.hasSetter,
+      );
       return ProcedureAttributesMetadata.kInvalidSelectorId;
     }
     memberId = _unionFind.find(memberId);

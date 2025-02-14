@@ -8,11 +8,8 @@ import 'package:front_end/src/kernel/record_use.dart' as recordUse;
 /// Expose only the [collect] method of a [_ConstantCollector] to outside use.
 extension type ConstantCollector(_ConstantCollector _collector) {
   ConstantCollector.collectWith(
-      Function(
-        ConstantExpression context,
-        InstanceConstant constant,
-      ) collector)
-      : _collector = _ConstantCollector(collector);
+    Function(ConstantExpression context, InstanceConstant constant) collector,
+  ) : _collector = _ConstantCollector(collector);
 
   void collect(ConstantExpression expression) => _collector.collect(expression);
 }
@@ -21,10 +18,8 @@ extension type ConstantCollector(_ConstantCollector _collector) {
 /// `@RecordUse` annotation using the [collector] callback.
 class _ConstantCollector implements ConstantVisitor {
   /// The collector callback which records the constant.
-  final void Function(
-    ConstantExpression context,
-    InstanceConstant constant,
-  ) collector;
+  final void Function(ConstantExpression context, InstanceConstant constant)
+  collector;
 
   /// The expression in which the constant was found.
   ConstantExpression? _expression;
@@ -118,7 +113,8 @@ class _ConstantCollector implements ConstantVisitor {
 
   @override
   visitRedirectingFactoryTearOffConstant(
-      RedirectingFactoryTearOffConstant node) {}
+    RedirectingFactoryTearOffConstant node,
+  ) {}
 
   @override
   visitStaticTearOffConstant(StaticTearOffConstant node) {}

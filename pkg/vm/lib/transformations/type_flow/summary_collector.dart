@@ -61,9 +61,13 @@ class _SummaryNormalizer implements StatementVisitor {
     // and remove this sorting.
     if (_summary.positionalParameterCount < _summary.parameterCount) {
       List<Statement> namedParams = statements.sublist(
-          _summary.positionalParameterCount, _summary.parameterCount);
-      namedParams.sort((Statement s1, Statement s2) =>
-          (s1 as Parameter).name.compareTo((s2 as Parameter).name));
+        _summary.positionalParameterCount,
+        _summary.parameterCount,
+      );
+      namedParams.sort(
+        (Statement s1, Statement s2) =>
+            (s1 as Parameter).name.compareTo((s2 as Parameter).name),
+      );
       namedParams.forEach((Statement st) {
         assert(st is Parameter);
         _processed.add(st);
@@ -201,8 +205,10 @@ class _SummaryNormalizer implements StatementVisitor {
     visitStatement(expr);
     if (_inLoop) return;
     for (int i = 0; i < expr.flattenedTypeArgs.length; ++i) {
-      expr.flattenedTypeArgs[i] =
-          _normalizeExpr(expr.flattenedTypeArgs[i], true);
+      expr.flattenedTypeArgs[i] = _normalizeExpr(
+        expr.flattenedTypeArgs[i],
+        true,
+      );
       if (_inLoop) return;
     }
   }
@@ -212,8 +218,10 @@ class _SummaryNormalizer implements StatementVisitor {
     visitStatement(expr);
     if (_inLoop) return;
     for (int i = 0; i < expr.flattenedTypeArgs.length; ++i) {
-      expr.flattenedTypeArgs[i] =
-          _normalizeExpr(expr.flattenedTypeArgs[i], true);
+      expr.flattenedTypeArgs[i] = _normalizeExpr(
+        expr.flattenedTypeArgs[i],
+        true,
+      );
       if (_inLoop) return;
     }
   }
@@ -528,11 +536,13 @@ class _VariablesInfoCollector extends RecursiveVisitor {
   }
 }
 
-Iterable<Name> getSelectors(ClassHierarchy hierarchy, Class cls,
-        {bool setters = false}) =>
-    hierarchy
-        .getInterfaceMembers(cls, setters: setters)
-        .map((Member m) => m.name);
+Iterable<Name> getSelectors(
+  ClassHierarchy hierarchy,
+  Class cls, {
+  bool setters = false,
+}) => hierarchy
+    .getInterfaceMembers(cls, setters: setters)
+    .map((Member m) => m.name);
 
 enum FieldSummaryType { kFieldGuard, kInitializer }
 
@@ -600,26 +610,38 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   StaticTypeContext? _staticTypeContext;
 
   SummaryCollector(
-      this.target,
-      this._environment,
-      this._hierarchy,
-      this._entryPointsListener,
-      this._typesBuilder,
-      this._nativeCodeOracle,
-      this._genericInterfacesInfo,
-      this._sharedVariableBuilder,
-      this._protobufHandler) {
+    this.target,
+    this._environment,
+    this._hierarchy,
+    this._entryPointsListener,
+    this._typesBuilder,
+    this._nativeCodeOracle,
+    this._genericInterfacesInfo,
+    this._sharedVariableBuilder,
+    this._protobufHandler,
+  ) {
     constantAllocationCollector = new ConstantAllocationCollector(this);
-    _nullMethodsAndGetters.addAll(getSelectors(
-        _hierarchy, _environment.coreTypes.deprecatedNullClass,
-        setters: false));
-    _nullSetters.addAll(getSelectors(
-        _hierarchy, _environment.coreTypes.deprecatedNullClass,
-        setters: true));
+    _nullMethodsAndGetters.addAll(
+      getSelectors(
+        _hierarchy,
+        _environment.coreTypes.deprecatedNullClass,
+        setters: false,
+      ),
+    );
+    _nullSetters.addAll(
+      getSelectors(
+        _hierarchy,
+        _environment.coreTypes.deprecatedNullClass,
+        setters: true,
+      ),
+    );
   }
 
-  Summary createSummary(Member member, LocalFunction? localFunction,
-      {fieldSummaryType = FieldSummaryType.kInitializer}) {
+  Summary createSummary(
+    Member member,
+    LocalFunction? localFunction, {
+    fieldSummaryType = FieldSummaryType.kInitializer,
+  }) {
     String summaryName = member.toString();
     if (fieldSummaryType == FieldSummaryType.kFieldGuard) {
       summaryName += ' (guard)';
@@ -655,9 +677,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     // Summary collector doesn't visit outer functions, so
     // captured variables declared in the outer functions should be
     // "pre-declared" and marked as aggregate.
-    for (int i = 0;
-        i < _variablesInfo.numVariablesAtSummaryFunctionEntry;
-        ++i) {
+    for (
+      int i = 0;
+      i < _variablesInfo.numVariablesAtSummaryFunctionEntry;
+      ++i
+    ) {
       if (_variablesInfo.isCaptured(_variablesInfo.varDeclarations[i])) {
         _aggregateVariable[i] = true;
       }
@@ -669,17 +693,22 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       if (hasReceiver) {
         final int numArgs =
             fieldSummaryType == FieldSummaryType.kInitializer ? 1 : 2;
-        _summary = new Summary(summaryName,
-            parameterCount: numArgs, positionalParameterCount: numArgs);
+        _summary = new Summary(
+          summaryName,
+          parameterCount: numArgs,
+          positionalParameterCount: numArgs,
+        );
         // TODO(alexmarkov): subclass cone
         _receiver = _declareParameter(
-            "this",
-            _environment.coreTypes.nonNullableRawType(member.enclosingClass!),
-            null,
-            isReceiver: true);
+          "this",
+          _environment.coreTypes.nonNullableRawType(member.enclosingClass!),
+          null,
+          isReceiver: true,
+        );
         if (_variablesInfo.isReceiverCaptured) {
-          final capturedReceiver =
-              _sharedVariableBuilder.getSharedCapturedThis(_enclosingMember!);
+          final capturedReceiver = _sharedVariableBuilder.getSharedCapturedThis(
+            _enclosingMember!,
+          );
           final write = WriteVariable(capturedReceiver, _receiver!);
           _summary.add(write);
         }
@@ -688,13 +717,21 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       }
 
       _translator = new RuntimeTypeTranslatorImpl(
-          _environment.coreTypes, _summary, this, null, _genericInterfacesInfo);
+        _environment.coreTypes,
+        _summary,
+        this,
+        null,
+        _genericInterfacesInfo,
+      );
 
       if (fieldSummaryType == FieldSummaryType.kInitializer) {
         _summary.result = _visit(member.initializer!);
       } else {
-        final Parameter valueParam =
-            _declareParameter("value", member.type, null);
+        final Parameter valueParam = _declareParameter(
+          "value",
+          member.type,
+          null,
+        );
         _summary.result = _typeCheck(valueParam, member.type, member);
       }
     } else {
@@ -706,20 +743,23 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       final firstParamIndex =
           ((hasReceiver || localFunction != null) ? 1 : 0) + numTypeParameters;
 
-      _summary = new Summary(summaryName,
-          parameterCount: firstParamIndex +
-              function.positionalParameters.length +
-              function.namedParameters.length,
-          positionalParameterCount:
-              firstParamIndex + function.positionalParameters.length,
-          requiredParameterCount:
-              firstParamIndex + function.requiredParameterCount);
+      _summary = new Summary(
+        summaryName,
+        parameterCount:
+            firstParamIndex +
+            function.positionalParameters.length +
+            function.namedParameters.length,
+        positionalParameterCount:
+            firstParamIndex + function.positionalParameters.length,
+        requiredParameterCount:
+            firstParamIndex + function.requiredParameterCount,
+      );
 
       Map<TypeParameter, TypeExpr>? fnTypeVariables;
       if (numTypeParameters > 0) {
         fnTypeVariables = <TypeParameter, TypeExpr>{
           for (TypeParameter tp in function.typeParameters)
-            tp: _declareParameter(tp.name!, null, null)
+            tp: _declareParameter(tp.name!, null, null),
         };
       }
 
@@ -728,14 +768,20 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       } else if (hasReceiver) {
         // TODO(alexmarkov): subclass cone
         _receiver = _declareParameter(
-            'this',
-            _environment.coreTypes.nonNullableRawType(member.enclosingClass!),
-            null,
-            isReceiver: true);
+          'this',
+          _environment.coreTypes.nonNullableRawType(member.enclosingClass!),
+          null,
+          isReceiver: true,
+        );
       }
 
-      _translator = new RuntimeTypeTranslatorImpl(_environment.coreTypes,
-          _summary, this, fnTypeVariables, _genericInterfacesInfo);
+      _translator = new RuntimeTypeTranslatorImpl(
+        _environment.coreTypes,
+        _summary,
+        this,
+        fnTypeVariables,
+        _genericInterfacesInfo,
+      );
 
       // Handle forwarding stubs. We need to check types against the types of
       // the forwarding stub's target, [member.concreteForwardingStubTarget].
@@ -746,10 +792,16 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         final target = member.concreteForwardingStubTarget;
         if (target != null) {
           if (target is Field) {
-            useTypesFrom = FunctionNode(null, positionalParameters: [
-              VariableDeclaration("value",
-                  type: target.type, isSynthesized: true)
-            ]);
+            useTypesFrom = FunctionNode(
+              null,
+              positionalParameters: [
+                VariableDeclaration(
+                  "value",
+                  type: target.type,
+                  isSynthesized: true,
+                ),
+              ],
+            );
           } else {
             useTypesFrom = target.function!;
           }
@@ -759,25 +811,28 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       for (int i = 0; i < function.positionalParameters.length; ++i) {
         final decl = function.positionalParameters[i];
         _declareParameter(
-            decl.name!,
-            _useTypeCheckForParameter(decl)
-                ? null
-                : useTypesFrom.positionalParameters[i].type,
-            decl.initializer);
+          decl.name!,
+          _useTypeCheckForParameter(decl)
+              ? null
+              : useTypesFrom.positionalParameters[i].type,
+          decl.initializer,
+        );
       }
       for (int i = 0; i < function.namedParameters.length; ++i) {
         final decl = function.namedParameters[i];
         _declareParameter(
-            decl.name!,
-            _useTypeCheckForParameter(decl)
-                ? null
-                : useTypesFrom.namedParameters[i].type,
-            decl.initializer);
+          decl.name!,
+          _useTypeCheckForParameter(decl)
+              ? null
+              : useTypesFrom.namedParameters[i].type,
+          decl.initializer,
+        );
       }
 
       if (hasReceiver && _variablesInfo.isReceiverCaptured) {
-        final capturedReceiver =
-            _sharedVariableBuilder.getSharedCapturedThis(_enclosingMember!);
+        final capturedReceiver = _sharedVariableBuilder.getSharedCapturedThis(
+          _enclosingMember!,
+        );
         if (localFunction != null) {
           final read = _receiver = ReadVariable(capturedReceiver);
           _summary.add(read);
@@ -819,7 +874,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
               !f.isLate &&
               (f.initializer != null)) {
             _entryPointsListener.addRawCall(
-                new DirectSelector(f, callKind: CallKind.FieldInitializer));
+              new DirectSelector(f, callKind: CallKind.FieldInitializer),
+            );
           }
         }
         member.initializers.forEach(_visitWithoutResult);
@@ -828,7 +884,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       if (function.body == null) {
         assert(localFunction == null);
         TypeExpr type = _nativeCodeOracle.handleNativeProcedure(
-            member, _entryPointsListener, _typesBuilder, _translator);
+          member,
+          _entryPointsListener,
+          _typesBuilder,
+          _translator,
+        );
         if (type is! ConcreteType && type is! Statement) {
           // Runtime type could be more precise than static type, so
           // calculate intersection.
@@ -857,28 +917,34 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
       switch (function.asyncMarker) {
         case AsyncMarker.Async:
-          final Class? concreteClass =
-              target.concreteAsyncResultClass(_environment.coreTypes);
-          _summary.result = (concreteClass != null)
-              ? _entryPointsListener
-                  .addAllocatedClass(concreteClass)
-                  .cls
-                  .concreteType
-              : _typesBuilder.fromStaticType(function.returnType, false);
+          final Class? concreteClass = target.concreteAsyncResultClass(
+            _environment.coreTypes,
+          );
+          _summary.result =
+              (concreteClass != null)
+                  ? _entryPointsListener
+                      .addAllocatedClass(concreteClass)
+                      .cls
+                      .concreteType
+                  : _typesBuilder.fromStaticType(function.returnType, false);
           break;
         case AsyncMarker.AsyncStar:
-          _summary.result =
-              _typesBuilder.fromStaticType(function.returnType, false);
+          _summary.result = _typesBuilder.fromStaticType(
+            function.returnType,
+            false,
+          );
           break;
         case AsyncMarker.SyncStar:
-          final Class? concreteClass =
-              target.concreteSyncStarResultClass(_environment.coreTypes);
-          _summary.result = (concreteClass != null)
-              ? _entryPointsListener
-                  .addAllocatedClass(concreteClass)
-                  .cls
-                  .concreteType
-              : _typesBuilder.fromStaticType(function.returnType, false);
+          final Class? concreteClass = target.concreteSyncStarResultClass(
+            _environment.coreTypes,
+          );
+          _summary.result =
+              (concreteClass != null)
+                  ? _entryPointsListener
+                      .addAllocatedClass(concreteClass)
+                      .cls
+                      .concreteType
+                  : _typesBuilder.fromStaticType(function.returnType, false);
           break;
         default:
           _summary.result = _returnValue!;
@@ -943,7 +1009,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         if (member is! Field) {
           final function = member.function!;
 
-          final int paramCount = function.positionalParameters.length +
+          final int paramCount =
+              function.positionalParameters.length +
               function.namedParameters.length;
           for (int i = 0; i < paramCount; i++) {
             args.add(nullableAnyType);
@@ -981,8 +1048,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     node.accept(this);
   }
 
-  Args<TypeExpr> _visitArguments(TypeExpr? receiver, Arguments arguments,
-      {bool passTypeArguments = false}) {
+  Args<TypeExpr> _visitArguments(
+    TypeExpr? receiver,
+    Arguments arguments, {
+    bool passTypeArguments = false,
+  }) {
     final List<TypeExpr> args = <TypeExpr>[];
     if (passTypeArguments) {
       for (var type in arguments.types) {
@@ -1014,8 +1084,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   Parameter _declareParameter(
-      String name, DartType? type, Expression? initializer,
-      {bool isReceiver = false}) {
+    String name,
+    DartType? type,
+    Expression? initializer, {
+    bool isReceiver = false,
+  }) {
     Type? staticType;
     if (type != null) {
       staticType = _typesBuilder.fromStaticType(type, !isReceiver);
@@ -1026,8 +1099,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     if (param.index >= _summary.requiredParameterCount) {
       if (initializer != null) {
         if (initializer is ConstantExpression) {
-          param.defaultValue =
-              constantAllocationCollector.typeFor(initializer.constant);
+          param.defaultValue = constantAllocationCollector.typeFor(
+            initializer.constant,
+          );
         } else if (initializer is BasicLiteral ||
             initializer is SymbolLiteral ||
             initializer is TypeLiteral) {
@@ -1084,9 +1158,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       assert(_aggregateVariable[_variablesInfo.varIndex[variable]!]);
       final cachedRead = _capturedVariableReads?[variable];
       if (cachedRead != null) {
-        assert(cachedRead.variable ==
-                _sharedVariableBuilder.getSharedVariable(variable) &&
-            cachedRead.condition == null);
+        assert(
+          cachedRead.variable ==
+                  _sharedVariableBuilder.getSharedVariable(variable) &&
+              cachedRead.condition == null,
+        );
         if (_currentCondition == null) {
           return cachedRead;
         } else {
@@ -1112,8 +1188,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       new List<TypeExpr?>.from(values);
 
   List<TypeExpr?> _makeEmptyVariableValues() {
-    final values =
-        new List<TypeExpr?>.filled(_variablesInfo.numVariables, null);
+    final values = new List<TypeExpr?>.filled(
+      _variablesInfo.numVariables,
+      null,
+    );
     for (int i = 0; i < values.length; ++i) {
       if (_aggregateVariable[i]) {
         values[i] = _variableValues[i];
@@ -1198,8 +1276,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   List<Join?> _insertJoinsForModifiedVariables(ast.Statement node, bool isTry) {
-    final List<Join?> joins =
-        new List<Join?>.filled(_variablesInfo.numVariables, null);
+    final List<Join?> joins = new List<Join?>.filled(
+      _variablesInfo.numVariables,
+      null,
+    );
     for (var i in _variablesInfo.getModifiedVariables(node)) {
       if (!_aggregateVariable[i]) {
         final join = _makeJoin(i, _variableValues[i]!);
@@ -1227,11 +1307,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   void _mergeVariableValuesAndConditions(
-      TypeExpr? commonCondition,
-      List<TypeExpr?> variableValues1,
-      TypeExpr? condition1,
-      List<TypeExpr?> variableValues2,
-      TypeExpr? condition2) {
+    TypeExpr? commonCondition,
+    List<TypeExpr?> variableValues1,
+    TypeExpr? condition1,
+    List<TypeExpr?> variableValues2,
+    TypeExpr? condition2,
+  ) {
     if (condition1 is EmptyType) {
       _currentCondition = condition2;
       _variableValues = variableValues2;
@@ -1260,7 +1341,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeCheck _typeCheck(TypeExpr value, DartType type, TreeNode node) {
     final TypeExpr runtimeType = _translator.translate(type);
     final typeCheck = new TypeCheck(
-        value, runtimeType, node, _typesBuilder.fromStaticType(type, true));
+      value,
+      runtimeType,
+      node,
+      _typesBuilder.fromStaticType(type, true),
+    );
     typeCheck.condition = _currentCondition;
     _summary.add(typeCheck);
     return typeCheck;
@@ -1275,8 +1360,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _declareVariable(decl, _typesBuilder.fromStaticType(decl.type, true));
   }
 
-  TypeExpr _makeCall(TreeNode node, Selector selector, Args<TypeExpr> args,
-      {bool isInstanceCreation = false}) {
+  TypeExpr _makeCall(
+    TreeNode node,
+    Selector selector,
+    Args<TypeExpr> args, {
+    bool isInstanceCreation = false,
+  }) {
     Member? target;
     if (selector is DirectSelector) {
       target = selector.member;
@@ -1379,7 +1468,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   BinaryOperation _makeBinaryOperation(
-      BinaryOp op, TypeExpr arg1, TypeExpr arg2) {
+    BinaryOp op,
+    TypeExpr arg1,
+    TypeExpr arg2,
+  ) {
     final operation = BinaryOperation(op, arg1, arg2);
     operation.condition = _currentCondition;
     _summary.add(operation);
@@ -1441,8 +1533,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   Type _boolLiteralType(bool value) => value ? _boolTrue : _boolFalse;
 
   Type _intLiteralType(int value, Constant? constant) {
-    final Class? concreteClass =
-        target.concreteIntLiteralClass(_environment.coreTypes, value);
+    final Class? concreteClass = target.concreteIntLiteralClass(
+      _environment.coreTypes,
+      value,
+    );
     if (concreteClass != null) {
       constant ??= IntConstant(value);
       return _entryPointsListener
@@ -1454,8 +1548,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   Type _doubleLiteralType(double value, Constant? constant) {
-    final Class? concreteClass =
-        target.concreteDoubleLiteralClass(_environment.coreTypes, value);
+    final Class? concreteClass = target.concreteDoubleLiteralClass(
+      _environment.coreTypes,
+      value,
+    );
     if (concreteClass != null) {
       constant ??= DoubleConstant(value);
       return _entryPointsListener
@@ -1467,8 +1563,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   Type _stringLiteralType(String value, Constant? constant) {
-    final Class? concreteClass =
-        target.concreteStringLiteralClass(_environment.coreTypes, value);
+    final Class? concreteClass = target.concreteStringLiteralClass(
+      _environment.coreTypes,
+      value,
+    );
     if (concreteClass != null) {
       constant ??= StringConstant(value);
       return _entryPointsListener
@@ -1480,8 +1578,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   TypeExpr _closureType(LocalFunction node) {
-    final Class? concreteClass =
-        target.concreteClosureClass(_environment.coreTypes);
+    final Class? concreteClass = target.concreteClosureClass(
+      _environment.coreTypes,
+    );
     if (concreteClass != null) {
       return _entryPointsListener
           .addAllocatedClass(concreteClass)
@@ -1512,8 +1611,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       if (cachedResult != null) {
         return cachedResult;
       }
-      for (Class c
-          in _hierarchy.computeSubtypesInformation().getSubtypesOf(cls)) {
+      for (Class c in _hierarchy.computeSubtypesInformation().getSubtypesOf(
+        cls,
+      )) {
         if (!c.isAbstract) {
           final candidate = _hierarchy.getDispatchTarget(c, _equalsName)!;
           assert(!candidate.isAbstract);
@@ -1535,7 +1635,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   // On exit _variableValues is empty, so caller should explicitly pick
   // either trueState or falseState.
   TypeExpr _visitCondition(
-      Expression node, List<TypeExpr?> trueState, List<TypeExpr?> falseState) {
+    Expression node,
+    List<TypeExpr?> trueState,
+    List<TypeExpr?> falseState,
+  ) {
     assert(_isIdenticalState(_variableValues, trueState));
     assert(_isIdenticalState(_variableValues, falseState));
     if (node is Not) {
@@ -1553,8 +1656,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _currentCondition = _makeUnaryOperation(UnaryOp.Not, left);
         _variableValues = _cloneVariableValues(falseState);
         final trueStateAfterRHS = _cloneVariableValues(_variableValues);
-        final right =
-            _visitCondition(node.right, trueStateAfterRHS, falseState);
+        final right = _visitCondition(
+          node.right,
+          trueStateAfterRHS,
+          falseState,
+        );
         _currentCondition = conditionAfterLHS;
         _mergeVariableValues(trueState, trueStateAfterRHS);
         result = _makeBinaryOperation(BinaryOp.Or, left, right);
@@ -1563,8 +1669,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _currentCondition = left;
         _variableValues = _cloneVariableValues(trueState);
         final falseStateAfterRHS = _cloneVariableValues(_variableValues);
-        final right =
-            _visitCondition(node.right, trueState, falseStateAfterRHS);
+        final right = _visitCondition(
+          node.right,
+          trueState,
+          falseStateAfterRHS,
+        );
         _currentCondition = conditionAfterLHS;
         _mergeVariableValues(falseState, falseStateAfterRHS);
         result = _makeBinaryOperation(BinaryOp.And, left, right);
@@ -1589,32 +1698,38 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       final lhs = node.left as VariableGet;
       final rhs = node.right;
       bool isIntConstant(Expression expr) => switch (expr) {
-            IntLiteral() => true,
-            ConstantExpression(constant: IntConstant()) => true,
-            _ => false
-          };
+        IntLiteral() => true,
+        ConstantExpression(constant: IntConstant()) => true,
+        _ => false,
+      };
       bool isStringConstant(Expression expr) => switch (expr) {
-            StringLiteral() => true,
-            ConstantExpression(constant: StringConstant()) => true,
-            _ => false
-          };
+        StringLiteral() => true,
+        ConstantExpression(constant: StringConstant()) => true,
+        _ => false,
+      };
       bool doubleIsSafeToPropagate(double d) => !d.isNaN && d != 0.0;
       bool isDoubleConstantSafeToPropagate(Expression expr) => switch (expr) {
-            DoubleLiteral(value: var value) => doubleIsSafeToPropagate(value),
-            ConstantExpression(constant: DoubleConstant(value: var value)) =>
-              doubleIsSafeToPropagate(value),
-            _ => false
-          };
+        DoubleLiteral(value: var value) => doubleIsSafeToPropagate(value),
+        ConstantExpression(constant: DoubleConstant(value: var value)) =>
+          doubleIsSafeToPropagate(value),
+        _ => false,
+      };
       if ((isIntConstant(rhs) &&
-              _isSubtype(lhs.variable.type,
-                  _environment.coreTypes.intNullableRawType)) ||
+              _isSubtype(
+                lhs.variable.type,
+                _environment.coreTypes.intNullableRawType,
+              )) ||
           (isDoubleConstantSafeToPropagate(rhs) &&
-              _isSubtype(lhs.variable.type,
-                  _environment.coreTypes.doubleNullableRawType)) ||
+              _isSubtype(
+                lhs.variable.type,
+                _environment.coreTypes.doubleNullableRawType,
+              )) ||
           (isStringConstant(rhs) &&
               target.canInferStringClassAfterEqualityComparison &&
-              _isSubtype(lhs.variable.type,
-                  _environment.coreTypes.stringNullableRawType)) ||
+              _isSubtype(
+                lhs.variable.type,
+                _environment.coreTypes.stringNullableRawType,
+              )) ||
           (rhs is ConstantExpression &&
               !_hasOverriddenEquals(lhs.variable.type))) {
         // 'x == c', where x is a variable and c is a constant.
@@ -1631,8 +1746,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       final lhs = node.expression as VariableGet;
       // 'x == null', where x is a variable.
       final expr = _visit(lhs);
-      _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
-          Args<TypeExpr>([expr, _nullType]));
+      _makeCall(
+        node,
+        DirectSelector(_environment.coreTypes.objectEquals),
+        Args<TypeExpr>([expr, _nullType]),
+      );
       final narrowedNotNull = _makeNarrowNotNull(node, expr);
       final int varIndex = _variablesInfo.varIndex[lhs.variable]!;
       final result = _makeUnaryOperation(UnaryOp.IsNull, expr);
@@ -1653,7 +1771,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         trueState[varIndex] = typeCheck;
       }
       final result = _makeUnaryOperation(
-          UnaryOp.Not, _makeUnaryOperation(UnaryOp.IsEmpty, typeCheck));
+        UnaryOp.Not,
+        _makeUnaryOperation(UnaryOp.IsEmpty, typeCheck),
+      );
       _variableValues = const <TypeExpr?>[]; // Should not be used.
       return result;
     }
@@ -1666,15 +1786,20 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   void _updateReceiverAfterCall(
-      TreeNode receiverNode, TypeExpr receiverValue, Name selector,
-      {bool isSetter = false}) {
+    TreeNode receiverNode,
+    TypeExpr receiverValue,
+    Name selector, {
+    bool isSetter = false,
+  }) {
     if (receiverNode is VariableGet) {
       final nullSelectors = isSetter ? _nullSetters : _nullMethodsAndGetters;
       if (!nullSelectors.contains(selector)) {
         final int varIndex = _variablesInfo.varIndex[receiverNode.variable]!;
         if (!_aggregateVariable[varIndex]) {
-          _variableValues[varIndex] =
-              _makeNarrow(receiverValue, anyInstanceType);
+          _variableValues[varIndex] = _makeNarrow(
+            receiverValue,
+            anyInstanceType,
+          );
         }
       }
     }
@@ -1739,8 +1864,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     v.condition = _currentCondition;
     _summary.add(v);
 
-    final conditionValue =
-        _visitCondition(node.condition, trueState, falseState);
+    final conditionValue = _visitCondition(
+      node.condition,
+      trueState,
+      falseState,
+    );
     final conditionBeforeBranch = _currentCondition;
 
     _currentCondition = conditionValue;
@@ -1756,8 +1884,13 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final conditionAfterElse = _currentCondition;
     final stateAfterElse = _variableValues;
 
-    _mergeVariableValuesAndConditions(conditionBeforeBranch, stateAfterThen,
-        conditionAfterThen, stateAfterElse, conditionAfterElse);
+    _mergeVariableValuesAndConditions(
+      conditionBeforeBranch,
+      stateAfterThen,
+      conditionAfterThen,
+      stateAfterElse,
+      conditionAfterElse,
+    );
     return _makeNarrow(v, _staticType(node));
   }
 
@@ -1765,11 +1898,17 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr visitConstructorInvocation(ConstructorInvocation node) {
     ConcreteType klass =
         _typesBuilder.getTFClass(node.constructedType.classNode).concreteType;
-    TypeExpr receiver =
-        _translator.instantiateConcreteType(klass, node.arguments.types);
+    TypeExpr receiver = _translator.instantiateConcreteType(
+      klass,
+      node.arguments.types,
+    );
     final args = _visitArguments(receiver, node.arguments);
-    return _makeCall(node, new DirectSelector(node.target), args,
-        isInstanceCreation: true);
+    return _makeCall(
+      node,
+      new DirectSelector(node.target),
+      args,
+      isInstanceCreation: true,
+    );
   }
 
   @override
@@ -1819,12 +1958,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitListLiteral(ListLiteral node) {
     node.expressions.forEach(_visit);
-    Class? concreteClass =
-        target.concreteListLiteralClass(_environment.coreTypes);
+    Class? concreteClass = target.concreteListLiteralClass(
+      _environment.coreTypes,
+    );
     if (concreteClass != null) {
       return _translator.instantiateConcreteType(
-          _entryPointsListener.addAllocatedClass(concreteClass),
-          [node.typeArgument]);
+        _entryPointsListener.addAllocatedClass(concreteClass),
+        [node.typeArgument],
+      );
     }
     return _staticType(node);
   }
@@ -1845,12 +1986,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       _visit(entry.key);
       _visit(entry.value);
     }
-    Class? concreteClass =
-        target.concreteMapLiteralClass(_environment.coreTypes);
+    Class? concreteClass = target.concreteMapLiteralClass(
+      _environment.coreTypes,
+    );
     if (concreteClass != null) {
       return _translator.instantiateConcreteType(
-          _entryPointsListener.addAllocatedClass(concreteClass),
-          [node.keyType, node.valueType]);
+        _entryPointsListener.addAllocatedClass(concreteClass),
+        [node.keyType, node.valueType],
+      );
     }
     return _staticType(node);
   }
@@ -1860,12 +2003,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     for (var expression in node.expressions) {
       _visit(expression);
     }
-    Class? concreteClass =
-        target.concreteSetLiteralClass(_environment.coreTypes);
+    Class? concreteClass = target.concreteSetLiteralClass(
+      _environment.coreTypes,
+    );
     if (concreteClass != null) {
       return _translator.instantiateConcreteType(
-          _entryPointsListener.addAllocatedClass(concreteClass),
-          [node.typeArgument]);
+        _entryPointsListener.addAllocatedClass(concreteClass),
+        [node.typeArgument],
+      );
     }
     return _staticType(node);
   }
@@ -1875,20 +2020,30 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final recordShape = RecordShape(node.recordType);
     final Type receiver = _typesBuilder.getRecordType(recordShape, true);
     for (int i = 0; i < node.positional.length; ++i) {
-      final Field f =
-          _entryPointsListener.getRecordPositionalField(recordShape, i);
+      final Field f = _entryPointsListener.getRecordPositionalField(
+        recordShape,
+        i,
+      );
       final TypeExpr value = _visit(node.positional[i]);
       final args = Args<TypeExpr>([receiver, value]);
-      _makeCall(node,
-          DirectSelector(f, callKind: CallKind.SetFieldInConstructor), args);
+      _makeCall(
+        node,
+        DirectSelector(f, callKind: CallKind.SetFieldInConstructor),
+        args,
+      );
     }
     for (var expr in node.named) {
-      final Field f =
-          _entryPointsListener.getRecordNamedField(recordShape, expr.name);
+      final Field f = _entryPointsListener.getRecordNamedField(
+        recordShape,
+        expr.name,
+      );
       final TypeExpr value = _visit(expr.value);
       final args = Args<TypeExpr>([receiver, value]);
-      _makeCall(node,
-          DirectSelector(f, callKind: CallKind.SetFieldInConstructor), args);
+      _makeCall(
+        node,
+        DirectSelector(f, callKind: CallKind.SetFieldInConstructor),
+        args,
+      );
     }
     callSites.remove(node);
     return receiver;
@@ -1898,20 +2053,30 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr visitRecordIndexGet(RecordIndexGet node) {
     final receiver = _visit(node.receiver);
     final Field field = _entryPointsListener.getRecordPositionalField(
-        RecordShape(node.receiverType), node.index);
+      RecordShape(node.receiverType),
+      node.index,
+    );
     final args = Args<TypeExpr>([receiver]);
     return _makeCall(
-        node, DirectSelector(field, callKind: CallKind.PropertyGet), args);
+      node,
+      DirectSelector(field, callKind: CallKind.PropertyGet),
+      args,
+    );
   }
 
   @override
   TypeExpr visitRecordNameGet(RecordNameGet node) {
     final receiver = _visit(node.receiver);
     final Field field = _entryPointsListener.getRecordNamedField(
-        RecordShape(node.receiverType), node.name);
+      RecordShape(node.receiverType),
+      node.name,
+    );
     final args = Args<TypeExpr>([receiver]);
     return _makeCall(
-        node, DirectSelector(field, callKind: CallKind.PropertyGet), args);
+      node,
+      DirectSelector(field, callKind: CallKind.PropertyGet),
+      args,
+    );
   }
 
   @override
@@ -1929,11 +2094,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     assert(!target.isGetter);
     // TODO(alexmarkov): overloaded arithmetic operators
     final result = _makeCall(
-        node,
-        (node.receiver is ThisExpression)
-            ? new VirtualSelector(target)
-            : new InterfaceSelector(target),
-        args);
+      node,
+      (node.receiver is ThisExpression)
+          ? new VirtualSelector(target)
+          : new InterfaceSelector(target),
+      args,
+    );
     _updateReceiverAfterCall(receiverNode, receiver, node.name);
     return result;
   }
@@ -1962,8 +2128,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final receiverNode = node.receiver;
     final receiver = _visit(receiverNode);
     final args = _visitArguments(receiver, node.arguments);
-    final result =
-        _makeCall(node, new DynamicSelector(CallKind.Method, node.name), args);
+    final result = _makeCall(
+      node,
+      new DynamicSelector(CallKind.Method, node.name),
+      args,
+    );
     _updateReceiverAfterCall(receiverNode, receiver, node.name);
     return result;
   }
@@ -1998,11 +2167,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     // In order to speed up the analysis, arguments of 'operator=='
     // are approximated eagerly to static types during summary construction.
     return _makeCall(
-        node,
-        (node.left is ThisExpression)
-            ? new VirtualSelector(target)
-            : new InterfaceSelector(target),
-        Args<TypeExpr>([_staticType(node.left), _staticType(node.right)]));
+      node,
+      (node.left is ThisExpression)
+          ? new VirtualSelector(target)
+          : new InterfaceSelector(target),
+      Args<TypeExpr>([_staticType(node.left), _staticType(node.right)]),
+    );
   }
 
   @override
@@ -2015,26 +2185,37 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     // classes, causing a large number of invalidated invocations.
     // In order to speed up the analysis, arguments of 'operator=='
     // are approximated eagerly to static types during summary construction.
-    _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
-        Args<TypeExpr>([_staticType(node.expression), _nullType]));
+    _makeCall(
+      node,
+      DirectSelector(_environment.coreTypes.objectEquals),
+      Args<TypeExpr>([_staticType(node.expression), _nullType]),
+    );
     return _makeUnaryOperation(UnaryOp.IsNull, arg);
   }
 
   TypeExpr _handlePropertyGet(
-      TreeNode node, Expression receiverNode, Member? target, Name selector) {
+    TreeNode node,
+    Expression receiverNode,
+    Member? target,
+    Name selector,
+  ) {
     var receiver = _visit(receiverNode);
     var args = new Args<TypeExpr>([receiver]);
     TypeExpr result;
     if (target == null) {
       result = _makeCall(
-          node, new DynamicSelector(CallKind.PropertyGet, selector), args);
+        node,
+        new DynamicSelector(CallKind.PropertyGet, selector),
+        args,
+      );
     } else {
       result = _makeCall(
-          node,
-          (receiverNode is ThisExpression)
-              ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
-              : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
-          args);
+        node,
+        (receiverNode is ThisExpression)
+            ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
+            : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
+        args,
+      );
     }
     _updateReceiverAfterCall(receiverNode, receiver, selector);
     return result;
@@ -2043,13 +2224,21 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitInstanceGet(InstanceGet node) {
     return _handlePropertyGet(
-        node, node.receiver, node.interfaceTarget, node.name);
+      node,
+      node.receiver,
+      node.interfaceTarget,
+      node.name,
+    );
   }
 
   @override
   TypeExpr visitInstanceTearOff(InstanceTearOff node) {
     return _handlePropertyGet(
-        node, node.receiver, node.interfaceTarget, node.name);
+      node,
+      node.receiver,
+      node.interfaceTarget,
+      node.name,
+    );
   }
 
   @override
@@ -2065,13 +2254,18 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final target = node.interfaceTarget;
     assert((target is Field) || ((target is Procedure) && target.isSetter));
     _makeCall(
-        node,
-        (node.receiver is ThisExpression)
-            ? new VirtualSelector(target, callKind: CallKind.PropertySet)
-            : new InterfaceSelector(target, callKind: CallKind.PropertySet),
-        args);
-    _updateReceiverAfterCall(node.receiver, receiver, node.name,
-        isSetter: true);
+      node,
+      (node.receiver is ThisExpression)
+          ? new VirtualSelector(target, callKind: CallKind.PropertySet)
+          : new InterfaceSelector(target, callKind: CallKind.PropertySet),
+      args,
+    );
+    _updateReceiverAfterCall(
+      node.receiver,
+      receiver,
+      node.name,
+      isSetter: true,
+    );
     return value;
   }
 
@@ -2081,8 +2275,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     var value = _visit(node.value);
     var args = new Args<TypeExpr>([receiver, value]);
     _makeCall(node, new DynamicSelector(CallKind.PropertySet, node.name), args);
-    _updateReceiverAfterCall(node.receiver, receiver, node.name,
-        isSetter: true);
+    _updateReceiverAfterCall(
+      node.receiver,
+      receiver,
+      node.name,
+      isSetter: true,
+    );
     return value;
   }
 
@@ -2110,8 +2308,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     if (target == null) {
       return emptyType;
     } else {
-      return _makeCall(node,
-          new DirectSelector(target, callKind: CallKind.PropertyGet), args);
+      return _makeCall(
+        node,
+        new DirectSelector(target, callKind: CallKind.PropertyGet),
+        args,
+      );
     }
   }
 
@@ -2121,13 +2322,19 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final value = _visit(node.value);
     final args = new Args<TypeExpr>([_readReceiver(), value]);
     // Re-resolve target due to partial mixin resolution.
-    final target =
-        _hierarchy.getDispatchTarget(_superclass, node.name, setter: true);
+    final target = _hierarchy.getDispatchTarget(
+      _superclass,
+      node.name,
+      setter: true,
+    );
     if (target != null) {
       assert((target is Field) || ((target is Procedure) && target.isSetter));
       _entryPointsListener.recordMemberCalledViaThis(target);
-      _makeCall(node,
-          new DirectSelector(target, callKind: CallKind.PropertySet), args);
+      _makeCall(
+        node,
+        new DirectSelector(target, callKind: CallKind.PropertySet),
+        args,
+      );
     }
     return value;
   }
@@ -2156,7 +2363,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final args = new Args<TypeExpr>(const <TypeExpr>[]);
     final target = node.target;
     return _makeCall(
-        node, new DirectSelector(target, callKind: CallKind.PropertyGet), args);
+      node,
+      new DirectSelector(target, callKind: CallKind.PropertyGet),
+      args,
+    );
   }
 
   @override
@@ -2166,8 +2376,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       // they are weakly reachable.
       return _staticType(node);
     }
-    final args = _visitArguments(null, node.arguments,
-        passTypeArguments: node.target.isFactory);
+    final args = _visitArguments(
+      null,
+      node.arguments,
+      passTypeArguments: node.target.isFactory,
+    );
     final target = node.target;
     assert((target is! Field) && !target.isGetter && !target.isSetter);
     if (target == _environment.coreTypes.identicalProcedure) {
@@ -2178,8 +2391,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       // classes, causing a large number of invalidated invocations.
       // In order to speed up the analysis, invocations of 'identical'
       // are approximated eagerly during summary construction.
-      _makeCall(node, new DirectSelector(target),
-          Args<TypeExpr>([nullableAnyType, nullableAnyType]));
+      _makeCall(
+        node,
+        new DirectSelector(target),
+        Args<TypeExpr>([nullableAnyType, nullableAnyType]),
+      );
       return _boolType;
     }
     TypeExpr result = _makeCall(node, new DirectSelector(target), args);
@@ -2190,7 +2406,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       // by the casted type.
       final arg = args.values.single;
       result = _makeNarrow(
-          arg, _typesBuilder.fromStaticType(node.arguments.types.single, true));
+        arg,
+        _typesBuilder.fromStaticType(node.arguments.types.single, true),
+      );
     }
     return result;
   }
@@ -2202,7 +2420,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final target = node.target;
     assert((target is Field) || (target is Procedure) && target.isSetter);
     _makeCall(
-        node, new DirectSelector(target, callKind: CallKind.PropertySet), args);
+      node,
+      new DirectSelector(target, callKind: CallKind.PropertySet),
+      args,
+    );
     return value;
   }
 
@@ -2392,8 +2613,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr? visitIfStatement(IfStatement node) {
     final trueState = _cloneVariableValues(_variableValues);
     final falseState = _cloneVariableValues(_variableValues);
-    final conditionValue =
-        _visitCondition(node.condition, trueState, falseState);
+    final conditionValue = _visitCondition(
+      node.condition,
+      trueState,
+      falseState,
+    );
 
     final conditionBeforeBranch = _currentCondition;
     _currentCondition = conditionValue;
@@ -2411,8 +2635,13 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final conditionAfterElse = _currentCondition;
     final stateAfterElse = _variableValues;
 
-    _mergeVariableValuesAndConditions(conditionBeforeBranch, stateAfterThen,
-        conditionAfterThen, stateAfterElse, conditionAfterElse);
+    _mergeVariableValuesAndConditions(
+      conditionBeforeBranch,
+      stateAfterThen,
+      conditionAfterThen,
+      stateAfterElse,
+      conditionAfterElse,
+    );
 
     return null;
   }
@@ -2505,8 +2734,13 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _declareVariableWithStaticType(catchClause.stackTrace!);
       }
       _visitWithoutResult(catchClause.body);
-      _mergeVariableValuesAndConditions(conditionOnEntry, stateAfterTry,
-          conditionAfterTry, _variableValues, _currentCondition);
+      _mergeVariableValuesAndConditions(
+        conditionOnEntry,
+        stateAfterTry,
+        conditionAfterTry,
+        _variableValues,
+        _currentCondition,
+      );
     }
     return null;
   }
@@ -2552,11 +2786,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr? visitVariableDeclaration(VariableDeclaration node) {
     node.annotations.forEach(_visit);
     final initializer = node.initializer;
-    final TypeExpr initialValue = initializer == null
-        ? ((node.type.nullability == Nullability.nonNullable || node.isLate)
-            ? emptyType
-            : _nullType)
-        : _visit(initializer);
+    final TypeExpr initialValue =
+        initializer == null
+            ? ((node.type.nullability == Nullability.nonNullable || node.isLate)
+                ? emptyType
+                : _nullType)
+            : _visit(initializer);
     _declareVariable(node, initialValue);
     return null;
   }
@@ -2591,10 +2826,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final value = _visit(node.value);
     final args = new Args<TypeExpr>([_readReceiver(), value]);
     _makeCall(
-        node,
-        new DirectSelector(node.field,
-            callKind: CallKind.SetFieldInConstructor),
-        args);
+      node,
+      new DirectSelector(node.field, callKind: CallKind.SetFieldInConstructor),
+      args,
+    );
     return null;
   }
 
@@ -2670,16 +2905,22 @@ class RuntimeTypeTranslatorImpl
   final Map<DartType, TypeExpr> typesCache = <DartType, TypeExpr>{};
   final GenericInterfacesInfo genericInterfacesInfo;
 
-  RuntimeTypeTranslatorImpl(this.coreTypes, this.summary, this.summaryCollector,
-      this.functionTypeVariables, this.genericInterfacesInfo) {}
+  RuntimeTypeTranslatorImpl(
+    this.coreTypes,
+    this.summary,
+    this.summaryCollector,
+    this.functionTypeVariables,
+    this.genericInterfacesInfo,
+  ) {}
 
   // Create a type translator which can be used only for types with no free type
   // variables.
   RuntimeTypeTranslatorImpl.forClosedTypes(
-      this.coreTypes, this.genericInterfacesInfo)
-      : summary = null,
-        summaryCollector = null,
-        functionTypeVariables = null {}
+    this.coreTypes,
+    this.genericInterfacesInfo,
+  ) : summary = null,
+      summaryCollector = null,
+      functionTypeVariables = null {}
 
   TypeExpr instantiateConcreteType(ConcreteType type, List<DartType> typeArgs) {
     if (typeArgs.isEmpty) return type;
@@ -2688,15 +2929,17 @@ class RuntimeTypeTranslatorImpl
     // many small differences.
     final klass = type.cls.classNode;
     final substitution = Substitution.fromPairs(klass.typeParameters, typeArgs);
-    final flattenedTypeArgs =
-        genericInterfacesInfo.flattenedTypeArgumentsFor(klass);
+    final flattenedTypeArgs = genericInterfacesInfo.flattenedTypeArgumentsFor(
+      klass,
+    );
     final flattenedTypeExprs = <TypeExpr>[];
 
     bool createConcreteType = true;
     bool allUnknown = true;
     for (int i = 0; i < flattenedTypeArgs.length; ++i) {
-      final typeExpr =
-          translate(substitution.substituteType(flattenedTypeArgs[i]));
+      final typeExpr = translate(
+        substitution.substituteType(flattenedTypeArgs[i]),
+      );
       if (typeExpr is! UnknownType) allUnknown = false;
       if (typeExpr is Statement) createConcreteType = false;
       flattenedTypeExprs.add(typeExpr);
@@ -2732,7 +2975,8 @@ class RuntimeTypeTranslatorImpl
     typesCache[type] = unknownType;
     final result = type.accept(this);
     assert(
-        result is UnknownType || result is RuntimeType || result is Statement);
+      result is UnknownType || result is RuntimeType || result is Statement,
+    );
     typesCache[type] = result;
     return result;
   }
@@ -2740,7 +2984,8 @@ class RuntimeTypeTranslatorImpl
   @override
   TypeExpr visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary type ${node} (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -2760,26 +3005,35 @@ class RuntimeTypeTranslatorImpl
     if (type.typeArguments.isEmpty) return RuntimeType(type, null);
 
     final substitution = Substitution.fromPairs(
-        type.classNode.typeParameters, type.typeArguments);
-    final flattenedTypeArgs =
-        genericInterfacesInfo.flattenedTypeArgumentsFor(type.classNode);
+      type.classNode.typeParameters,
+      type.typeArguments,
+    );
+    final flattenedTypeArgs = genericInterfacesInfo.flattenedTypeArgumentsFor(
+      type.classNode,
+    );
     final flattenedTypeExprs = <TypeExpr>[];
 
     bool createRuntimeType = true;
     for (var i = 0; i < flattenedTypeArgs.length; ++i) {
-      final typeExpr =
-          translate(substitution.substituteType(flattenedTypeArgs[i]));
+      final typeExpr = translate(
+        substitution.substituteType(flattenedTypeArgs[i]),
+      );
       if (typeExpr == unknownType) return unknownType;
       if (typeExpr is! RuntimeType) createRuntimeType = false;
       flattenedTypeExprs.add(typeExpr);
     }
 
     if (createRuntimeType) {
-      return RuntimeType(new InterfaceType(type.classNode, type.nullability),
-          new List<RuntimeType>.from(flattenedTypeExprs));
+      return RuntimeType(
+        new InterfaceType(type.classNode, type.nullability),
+        new List<RuntimeType>.from(flattenedTypeExprs),
+      );
     } else {
       final instantiate = new CreateRuntimeType(
-          type.classNode, type.nullability, flattenedTypeExprs);
+        type.classNode,
+        type.nullability,
+        flattenedTypeExprs,
+      );
       summary!.add(instantiate);
       return instantiate;
     }
@@ -2791,13 +3045,15 @@ class RuntimeTypeTranslatorImpl
     if (typeArg == unknownType) return unknownType;
     if (typeArg is RuntimeType) {
       return RuntimeType(
-          new FutureOrType(const DynamicType(), type.nullability),
-          <RuntimeType>[typeArg]);
+        new FutureOrType(const DynamicType(), type.nullability),
+        <RuntimeType>[typeArg],
+      );
     } else {
       final instantiate = new CreateRuntimeType(
-          coreTypes.deprecatedFutureOrClass,
-          type.nullability,
-          <TypeExpr>[typeArg]);
+        coreTypes.deprecatedFutureOrClass,
+        type.nullability,
+        <TypeExpr>[typeArg],
+      );
       summary!.add(instantiate);
       return instantiate;
     }
@@ -2827,8 +3083,12 @@ class RuntimeTypeTranslatorImpl
     if (nullability == Nullability.undetermined) {
       nullability = Nullability.nonNullable;
     }
-    final extract = Extract(summaryCollector!._readReceiver(), interfaceClass,
-        interfaceClass.typeParameters.indexOf(type.parameter), nullability);
+    final extract = Extract(
+      summaryCollector!._readReceiver(),
+      interfaceClass,
+      interfaceClass.typeParameters.indexOf(type.parameter),
+      nullability,
+    );
     summary!.add(extract);
     return extract;
   }
@@ -2871,7 +3131,9 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
 
   Type _getStaticType(Constant constant) =>
       summaryCollector._typesBuilder.fromStaticType(
-          constant.getType(summaryCollector._staticTypeContext!), false);
+        constant.getType(summaryCollector._staticTypeContext!),
+        false,
+      );
 
   @override
   Type visitNullConstant(NullConstant constant) {
@@ -2956,8 +3218,10 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
   Type visitRecordConstant(RecordConstant constant) {
     final epl = summaryCollector._entryPointsListener;
     final recordShape = RecordShape(constant.recordType);
-    final Type receiver =
-        summaryCollector._typesBuilder.getRecordType(recordShape, true);
+    final Type receiver = summaryCollector._typesBuilder.getRecordType(
+      recordShape,
+      true,
+    );
     for (int i = 0; i < constant.positional.length; ++i) {
       final Field f = epl.getRecordPositionalField(recordShape, i);
       final Type value = typeFor(constant.positional[i]);
@@ -2975,27 +3239,34 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
 
   @override
   Type visitInstanceConstant(InstanceConstant constant) {
-    final resultClass = summaryCollector._entryPointsListener
-        .addAllocatedClass(constant.classNode);
+    final resultClass = summaryCollector._entryPointsListener.addAllocatedClass(
+      constant.classNode,
+    );
     constant.fieldValues.forEach((Reference fieldReference, Constant value) {
       assert(!fieldReference.asField.isCovariantByClass);
       summaryCollector._entryPointsListener.addFieldUsedInConstant(
-          fieldReference.asField, resultClass, typeFor(value));
+        fieldReference.asField,
+        resultClass,
+        typeFor(value),
+      );
     });
     return resultClass.cls.constantConcreteType(constant);
   }
 
   Type _visitTearOffConstant(TearOffConstant constant) {
     final Member member = constant.target;
-    summaryCollector._entryPointsListener
-        .addRawCall(new DirectSelector(member));
+    summaryCollector._entryPointsListener.addRawCall(
+      new DirectSelector(member),
+    );
     if (member is Constructor) {
-      summaryCollector._entryPointsListener
-          .addAllocatedClass(member.enclosingClass);
+      summaryCollector._entryPointsListener.addAllocatedClass(
+        member.enclosingClass,
+      );
     }
     summaryCollector._entryPointsListener.recordTearOff(member);
-    final Class? concreteClass = summaryCollector.target
-        .concreteClosureClass(summaryCollector._environment.coreTypes);
+    final Class? concreteClass = summaryCollector.target.concreteClosureClass(
+      summaryCollector._environment.coreTypes,
+    );
     if (concreteClass != null) {
       return summaryCollector._entryPointsListener
           .addAllocatedClass(concreteClass)
@@ -3015,8 +3286,8 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
 
   @override
   Type visitRedirectingFactoryTearOffConstant(
-          RedirectingFactoryTearOffConstant constant) =>
-      _visitTearOffConstant(constant);
+    RedirectingFactoryTearOffConstant constant,
+  ) => _visitTearOffConstant(constant);
 
   @override
   Type visitInstantiationConstant(InstantiationConstant constant) {
@@ -3039,7 +3310,9 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
 
   @override
   Type visitAuxiliaryConstant(AuxiliaryConstant constant) {
-    throw new UnsupportedError("Unsupported auxiliary constant "
-        "${constant} (${constant.runtimeType}).");
+    throw new UnsupportedError(
+      "Unsupported auxiliary constant "
+      "${constant} (${constant.runtimeType}).",
+    );
   }
 }

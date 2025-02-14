@@ -96,8 +96,8 @@ class ElementResolver {
   /// Return `true` iff the current enclosing function is a constant constructor
   /// declaration.
   bool get isInConstConstructor {
-    var function = _resolver.enclosingFunction2;
-    if (function is ConstructorElement2) {
+    var function = _resolver.enclosingFunction;
+    if (function is ConstructorElementImpl2) {
       return function.isConst;
     }
     return false;

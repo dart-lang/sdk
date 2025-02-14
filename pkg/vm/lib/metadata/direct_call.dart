@@ -18,18 +18,24 @@ class DirectCallMetadata {
   static const int flagClosure = 1 << 1;
 
   DirectCallMetadata.targetMember(Member target, bool checkReceiverForNull)
-      : this._(getNonNullableMemberReferenceGetter(target),
-            checkReceiverForNull ? flagCheckReceiverForNull : 0, 0);
+    : this._(
+        getNonNullableMemberReferenceGetter(target),
+        checkReceiverForNull ? flagCheckReceiverForNull : 0,
+        0,
+      );
 
   DirectCallMetadata.targetClosure(
-      Member closureMember, int closureId, bool checkReceiverForNull)
-      : this._(
-            getNonNullableMemberReferenceGetter(closureMember),
-            (checkReceiverForNull ? flagCheckReceiverForNull : 0) | flagClosure,
-            closureId);
+    Member closureMember,
+    int closureId,
+    bool checkReceiverForNull,
+  ) : this._(
+        getNonNullableMemberReferenceGetter(closureMember),
+        (checkReceiverForNull ? flagCheckReceiverForNull : 0) | flagClosure,
+        closureId,
+      );
 
   DirectCallMetadata._(this._memberReference, this._flags, this._closureId)
-      : assert(_closureId >= 0);
+    : assert(_closureId >= 0);
 
   // Target member or enclosing member of a closure.
   Member get _member => _memberReference.asMember;
@@ -49,9 +55,10 @@ class DirectCallMetadata {
   (Member, int)? get targetClosure => isClosure ? (_member, _closureId) : null;
 
   @override
-  String toString() => isClosure
-      ? 'closure ${_closureId} in ${_member.toText(astTextStrategyForTesting)}'
-      : '${_member.toText(astTextStrategyForTesting)}${checkReceiverForNull ? '??' : ''}';
+  String toString() =>
+      isClosure
+          ? 'closure ${_closureId} in ${_member.toText(astTextStrategyForTesting)}'
+          : '${_member.toText(astTextStrategyForTesting)}${checkReceiverForNull ? '??' : ''}';
 }
 
 /// Repository for [DirectCallMetadata].
@@ -69,7 +76,8 @@ class DirectCallMetadataRepository
   @override
   void writeToBinary(DirectCallMetadata metadata, Node node, BinarySink sink) {
     sink.writeNullAllowedCanonicalNameReference(
-        getMemberReferenceGetter(metadata._member));
+      getMemberReferenceGetter(metadata._member),
+    );
     sink.writeByte(metadata._flags);
     if (metadata.isClosure) {
       sink.writeUInt30(metadata._closureId);

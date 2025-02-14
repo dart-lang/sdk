@@ -30,7 +30,10 @@ class CallSiteAttributesMetadataRepository
 
   @override
   void writeToBinary(
-      CallSiteAttributesMetadata metadata, Node node, BinarySink sink) {
+    CallSiteAttributesMetadata metadata,
+    Node node,
+    BinarySink sink,
+  ) {
     sink.writeDartType(metadata.receiverType);
   }
 

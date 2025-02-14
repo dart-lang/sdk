@@ -46,19 +46,23 @@ class TFClass {
   /// [constant] value.
   ConcreteType constantConcreteType(Constant constant) =>
       _concreteTypeWithAttributes(
-          TypeAttributes._(constant, _closureForConstant(constant)));
+        TypeAttributes._(constant, _closureForConstant(constant)),
+      );
 
   /// Returns ConcreteType corresponding to this class and
   /// given [function] in [member].
   ConcreteType closureConcreteType(Member member, LocalFunction? function) {
-    assert(function != null ||
-        (member is Procedure &&
-            !member.isGetter &&
-            !member.isSetter &&
-            !member.isStatic &&
-            !member.isAbstract));
+    assert(
+      function != null ||
+          (member is Procedure &&
+              !member.isGetter &&
+              !member.isSetter &&
+              !member.isStatic &&
+              !member.isAbstract),
+    );
     return _concreteTypeWithAttributes(
-        TypeAttributes._(null, Closure(member, function)));
+      TypeAttributes._(null, Closure(member, function)),
+    );
   }
 
   /// Returns ConeType corresponding to this class.
@@ -84,9 +88,10 @@ class TFClass {
   bool operator ==(other) => identical(this, other);
 
   @override
-  String toString() => isRecord
-      ? '${nodeToText(classNode)}[$recordShape]'
-      : nodeToText(classNode);
+  String toString() =>
+      isRecord
+          ? '${nodeToText(classNode)}[$recordShape]'
+          : nodeToText(classNode);
 
   ConcreteType _concreteTypeWithAttributes(TypeAttributes attr) =>
       _concreteTypesWithAttributes[attr] ??= ConcreteType._(this, null, attr);
@@ -96,11 +101,13 @@ class TFClass {
       return _closureForConstant(c.tearOffConstant);
     } else if (c is TearOffConstant) {
       final target = c.target;
-      assert(target is Constructor ||
-          (target is Procedure &&
-              target.isStatic &&
-              !target.isGetter &&
-              !target.isSetter));
+      assert(
+        target is Constructor ||
+            (target is Procedure &&
+                target.isStatic &&
+                !target.isGetter &&
+                !target.isSetter),
+      );
       return Closure(target, null);
     } else if (c is TypedefTearOffConstant) {
       throw 'Unexpected TypedefTearOffConstant $c';
@@ -116,10 +123,11 @@ class RecordShape {
   final int _hash = 0;
 
   RecordShape(RecordType type)
-      : numPositionalFields = type.positional.length,
-        namedFields = type.named.isEmpty
-            ? const <String>[]
-            : type.named.map((nt) => nt.name).toList(growable: false);
+    : numPositionalFields = type.positional.length,
+      namedFields =
+          type.named.isEmpty
+              ? const <String>[]
+              : type.named.map((nt) => nt.name).toList(growable: false);
 
   int get numFields => numPositionalFields + namedFields.length;
 
@@ -132,10 +140,12 @@ class RecordShape {
   }
 
   RecordShape.readFromBinary(BinarySource source)
-      : numPositionalFields = source.readUInt30(),
-        namedFields = List<String>.generate(
-            source.readUInt30(), (_) => source.readStringReference(),
-            growable: false);
+    : numPositionalFields = source.readUInt30(),
+      namedFields = List<String>.generate(
+        source.readUInt30(),
+        (_) => source.readStringReference(),
+        growable: false,
+      );
 
   void writeToBinary(BinarySink sink) {
     sink.writeUInt30(numPositionalFields);
@@ -164,9 +174,10 @@ class RecordShape {
           listEquals(this.namedFields, other.namedFields));
 
   @override
-  String toString() => namedFields.isEmpty
-      ? '$numPositionalFields'
-      : '$numPositionalFields,${namedFields.join(',')}';
+  String toString() =>
+      namedFields.isEmpty
+          ? '$numPositionalFields'
+          : '$numPositionalFields,${namedFields.join(',')}';
 }
 
 abstract class GenericInterfacesInfo {
@@ -212,11 +223,13 @@ abstract class TypesBuilder {
   late final ConcreteType boolType =
       getTFClass(coreTypes.boolClass).concreteType;
 
-  late final ConcreteType constantTrue =
-      boolType.cls.constantConcreteType(BoolConstant(true));
+  late final ConcreteType constantTrue = boolType.cls.constantConcreteType(
+    BoolConstant(true),
+  );
 
-  late final ConcreteType constantFalse =
-      boolType.cls.constantConcreteType(BoolConstant(false));
+  late final ConcreteType constantFalse = boolType.cls.constantConcreteType(
+    BoolConstant(false),
+  );
 
   /// Create a Type which corresponds to a set of instances constrained by
   /// Dart type annotation [dartType].
@@ -297,8 +310,10 @@ abstract class TypeHierarchy extends TypesBuilder
   /// Returns true if [cls] has allocated subtypes.
   bool hasAllocatedSubtypes(TFClass cls);
 
-  late final Type intType =
-      fromStaticType(coreTypes.intNonNullableRawType, false);
+  late final Type intType = fromStaticType(
+    coreTypes.intNonNullableRawType,
+    false,
+  );
 }
 
 /// Base class for type expressions.
@@ -331,7 +346,9 @@ abstract class Type extends TypeExpr {
   // against 'runtimeType'. Returns 'false' if the test might fail (e.g. due to
   // an approximation).
   bool isSubtypeOfRuntimeType(
-      TypeHierarchy typeHierarchy, RuntimeType runtimeType);
+    TypeHierarchy typeHierarchy,
+    RuntimeType runtimeType,
+  );
 
   @override
   Type getComputedType(List<Type?> types) => this;
@@ -430,8 +447,8 @@ class NullableType extends Type {
   final Type baseType;
 
   const NullableType._(this.baseType)
-      : assert(baseType is! NullableType),
-        super._();
+    : assert(baseType is! NullableType),
+      super._();
 
   @override
   NullableType nullable() => this;
@@ -467,9 +484,10 @@ class NullableType extends Type {
   bool get isSpecialized => baseType.isSpecialized;
 
   @override
-  Type specialize(TypeHierarchy typeHierarchy) => baseType.isSpecialized
-      ? this
-      : baseType.specialize(typeHierarchy).nullable();
+  Type specialize(TypeHierarchy typeHierarchy) =>
+      baseType.isSpecialized
+          ? this
+          : baseType.specialize(typeHierarchy).nullable();
 
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
@@ -618,10 +636,15 @@ class SetType extends Type {
   int get order => TypeOrder.Set.index;
 
   static final ConcreteType _placeholderType = ConcreteType._(
-      TFClass(-1, Class(name: '', fileUri: Uri()), {}, null), null, null);
+    TFClass(-1, Class(name: '', fileUri: Uri()), {}, null),
+    null,
+    null,
+  );
 
   static List<ConcreteType> _unionLists(
-      List<ConcreteType> types1, List<ConcreteType> types2) {
+    List<ConcreteType> types1,
+    List<ConcreteType> types2,
+  ) {
     int i1 = 0;
     int i2 = 0;
     int newLength = 0;
@@ -629,8 +652,10 @@ class SetType extends Type {
     // avoid multiple expensive grow operations. Shrink the List to the correct
     // size at the end.
     List<ConcreteType> types = List.filled(
-        types1.length + types2.length, _placeholderType,
-        growable: true);
+      types1.length + types2.length,
+      _placeholderType,
+      growable: true,
+    );
     while ((i1 < types1.length) && (i2 < types2.length)) {
       final t1 = types1[i1];
       final t2 = types2[i2];
@@ -666,8 +691,11 @@ class SetType extends Type {
     return types..length = newLength;
   }
 
-  static List<ConcreteType> _intersectLists(List<ConcreteType> types1,
-      List<ConcreteType> types2, TypeHierarchy typeHierarchy) {
+  static List<ConcreteType> _intersectLists(
+    List<ConcreteType> types1,
+    List<ConcreteType> types2,
+    TypeHierarchy typeHierarchy,
+  ) {
     int i1 = 0;
     int i2 = 0;
     List<ConcreteType> types = <ConcreteType>[];
@@ -763,8 +791,11 @@ class SetType extends Type {
       return other.intersection(this, typeHierarchy);
     }
     if (other is SetType) {
-      List<ConcreteType> list =
-          _intersectLists(types, other.types, typeHierarchy);
+      List<ConcreteType> list = _intersectLists(
+        types,
+        other.types,
+        typeHierarchy,
+      );
       final size = list.length;
       if (size == 0) {
         return emptyType;
@@ -1031,37 +1062,45 @@ class Closure {
     final localFunction = this.function;
     final functionNode =
         (localFunction != null) ? localFunction.function : member.function!;
-    final typeParameters = (localFunction == null && member is Constructor)
-        ? member.enclosingClass!.typeParameters
-        : functionNode.typeParameters;
+    final typeParameters =
+        (localFunction == null && member is Constructor)
+            ? member.enclosingClass!.typeParameters
+            : functionNode.typeParameters;
     final freshTypeParameters = getFreshTypeParameters(typeParameters);
     List<VariableDeclaration> convertParameters(
-            List<VariableDeclaration> params) =>
-        [
-          for (final p in params)
-            VariableDeclaration(p.name,
-                initializer: (p.initializer != null)
-                    ? ConstantExpression(
-                        (p.initializer as ConstantExpression).constant)
-                    : null,
-                type: freshTypeParameters.substitute(p.type),
-                flags: p.flags)
-        ];
+      List<VariableDeclaration> params,
+    ) => [
+      for (final p in params)
+        VariableDeclaration(
+          p.name,
+          initializer:
+              (p.initializer != null)
+                  ? ConstantExpression(
+                    (p.initializer as ConstantExpression).constant,
+                  )
+                  : null,
+          type: freshTypeParameters.substitute(p.type),
+          flags: p.flags,
+        ),
+    ];
     return Procedure(
-        Name.callName,
-        ProcedureKind.Method,
-        FunctionNode(null,
-            typeParameters: freshTypeParameters.freshTypeParameters,
-            positionalParameters:
-                convertParameters(functionNode.positionalParameters),
-            namedParameters: convertParameters(functionNode.namedParameters),
-            requiredParameterCount: functionNode.requiredParameterCount,
-            returnType:
-                freshTypeParameters.substitute(functionNode.returnType)),
-        isExternal: true,
-        isSynthetic: true,
-        isStatic: false,
-        fileUri: artificialNodeUri);
+      Name.callName,
+      ProcedureKind.Method,
+      FunctionNode(
+        null,
+        typeParameters: freshTypeParameters.freshTypeParameters,
+        positionalParameters: convertParameters(
+          functionNode.positionalParameters,
+        ),
+        namedParameters: convertParameters(functionNode.namedParameters),
+        requiredParameterCount: functionNode.requiredParameterCount,
+        returnType: freshTypeParameters.substitute(functionNode.returnType),
+      ),
+      isExternal: true,
+      isSynthetic: true,
+      isStatic: false,
+      fileUri: artificialNodeUri,
+    );
   }
 
   @override
@@ -1098,7 +1137,7 @@ class TypeAttributes {
   final Closure? closure;
 
   TypeAttributes._(this.constant, this.closure)
-      : hashCode = constant.hashCode ^ closure.hashCode {
+    : hashCode = constant.hashCode ^ closure.hashCode {
     assert(constant != null || closure != null);
   }
 
@@ -1161,10 +1200,10 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   final TypeAttributes? attributes;
 
   ConcreteType._(this.cls, List<Type>? typeArgs_, this.attributes)
-      : typeArgs = typeArgs_,
-        numImmediateTypeArgs =
-            typeArgs_ != null ? cls.classNode.typeParameters.length : 0,
-        super._() {
+    : typeArgs = typeArgs_,
+      numImmediateTypeArgs =
+          typeArgs_ != null ? cls.classNode.typeParameters.length : 0,
+      super._() {
     assert(!cls.classNode.isAbstract);
     assert(typeArgs == null || cls.classNode.typeParameters.isNotEmpty);
     assert(typeArgs == null || typeArgs!.any((t) => t is RuntimeType));
@@ -1186,7 +1225,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   bool isSubtypeOf(TFClass other) => cls.isSubtypeOf(other);
 
   bool isSubtypeOfRuntimeType(
-      TypeHierarchy typeHierarchy, RuntimeType runtimeType) {
+    TypeHierarchy typeHierarchy,
+    RuntimeType runtimeType,
+  ) {
     final rhs = runtimeType._type;
     if (rhs is DynamicType || rhs is VoidType) return true;
     if (rhs is InterfaceType) {
@@ -1206,18 +1247,23 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       List<Type>? usableTypeArgs = typeArgs;
       if (usableTypeArgs == null) {
         if (cls.classNode.typeParameters.isEmpty) {
-          usableTypeArgs =
-              typeHierarchy.flattenedTypeArgumentsForNonGeneric(cls.classNode);
+          usableTypeArgs = typeHierarchy.flattenedTypeArgumentsForNonGeneric(
+            cls.classNode,
+          );
         } else {
           return false;
         }
       }
 
-      final interfaceOffset =
-          typeHierarchy.genericInterfaceOffsetFor(cls.classNode, rhs.classNode);
+      final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
+        cls.classNode,
+        rhs.classNode,
+      );
 
-      assert(usableTypeArgs.length - interfaceOffset >=
-          runtimeType.numImmediateTypeArgs);
+      assert(
+        usableTypeArgs.length - interfaceOffset >=
+            runtimeType.numImmediateTypeArgs,
+      );
 
       for (int i = 0; i < runtimeType.numImmediateTypeArgs; ++i) {
         final ta = usableTypeArgs[i + interfaceOffset];
@@ -1226,7 +1272,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
         }
         assert(ta is RuntimeType);
         if (!ta.isSubtypeOfRuntimeType(
-            typeHierarchy, runtimeType.typeArgs![i])) {
+          typeHierarchy,
+          runtimeType.typeArgs![i],
+        )) {
           return false;
         }
       }
@@ -1234,19 +1282,25 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     }
     if (rhs is FutureOrType) {
       if (typeHierarchy.isSubtype(
-          cls.classNode, typeHierarchy.coreTypes.futureClass)) {
+        cls.classNode,
+        typeHierarchy.coreTypes.futureClass,
+      )) {
         Type typeArg;
         if (typeArgs == null) {
           typeArg = unknownType;
         } else {
           final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
-              cls.classNode, typeHierarchy.coreTypes.futureClass);
+            cls.classNode,
+            typeHierarchy.coreTypes.futureClass,
+          );
           typeArg = typeArgs![interfaceOffset];
         }
         final RuntimeType lhs =
             typeArg is RuntimeType ? typeArg : RuntimeType(DynamicType(), null);
         return lhs.isSubtypeOfRuntimeType(
-            typeHierarchy, runtimeType.typeArgs![0]);
+          typeHierarchy,
+          runtimeType.typeArgs![0],
+        );
       } else {
         return isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs![0]);
       }
@@ -1322,15 +1376,18 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       if (this == other) {
         return this;
       } else if (!identical(this.cls, other.cls)) {
-        final types = (this.cls.id < other.cls.id)
-            ? <ConcreteType>[this, other]
-            : <ConcreteType>[other, this];
+        final types =
+            (this.cls.id < other.cls.id)
+                ? <ConcreteType>[this, other]
+                : <ConcreteType>[other, this];
         return SetType(types);
       } else {
-        assert(typeArgs != null ||
-            attributes != null ||
-            other.typeArgs != null ||
-            other.attributes != null);
+        assert(
+          typeArgs != null ||
+              attributes != null ||
+              other.typeArgs != null ||
+              other.attributes != null,
+        );
         return raw;
       }
     } else {
@@ -1368,12 +1425,16 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
         return this;
       } else {
         assert(thisTypeArgs.length == otherTypeArgs.length);
-        final mergedTypeArgs =
-            List<Type>.filled(thisTypeArgs.length, emptyType);
+        final mergedTypeArgs = List<Type>.filled(
+          thisTypeArgs.length,
+          emptyType,
+        );
         bool hasRuntimeType = false;
         for (int i = 0; i < thisTypeArgs.length; ++i) {
-          final merged =
-              thisTypeArgs[i].intersection(otherTypeArgs[i], typeHierarchy);
+          final merged = thisTypeArgs[i].intersection(
+            otherTypeArgs[i],
+            typeHierarchy,
+          );
           if (merged is EmptyType) {
             return emptyType;
           } else if (merged is RuntimeType) {
@@ -1422,11 +1483,12 @@ class RuntimeType extends Type {
   final List<RuntimeType>? typeArgs;
 
   RuntimeType(DartType type, this.typeArgs)
-      : _type = type,
-        numImmediateTypeArgs = type is InterfaceType
-            ? type.classNode.typeParameters.length
-            : (type is FutureOrType ? 1 : 0),
-        super._() {
+    : _type = type,
+      numImmediateTypeArgs =
+          type is InterfaceType
+              ? type.classNode.typeParameters.length
+              : (type is FutureOrType ? 1 : 0),
+      super._() {
     if (_type is InterfaceType && numImmediateTypeArgs > 0) {
       assert(typeArgs!.length >= numImmediateTypeArgs);
       assert(_type.typeArguments.every((t) => t == const DynamicType()));
@@ -1469,10 +1531,11 @@ class RuntimeType extends Type {
     final type = _type;
     if (type is InterfaceType && typeArgs != null) {
       final klass = type.classNode;
-      final typeArguments = typeArgs!
-          .take(klass.typeParameters.length)
-          .map((pt) => pt.representedType)
-          .toList();
+      final typeArguments =
+          typeArgs!
+              .take(klass.typeParameters.length)
+              .map((pt) => pt.representedType)
+              .toList();
       return new InterfaceType(klass, type.nullability, typeArguments);
     } else if (type is FutureOrType) {
       return new FutureOrType(typeArgs![0].representedType, type.nullability);
@@ -1508,12 +1571,14 @@ class RuntimeType extends Type {
 
   @override
   String toString() {
-    final head = _type is InterfaceType
-        ? "${nodeToText(_type.classNode)}"
-        : "${nodeToText(_type)}";
-    final typeArgsStrs = (numImmediateTypeArgs == 0)
-        ? ""
-        : "<${typeArgs!.take(numImmediateTypeArgs).map((t) => "$t").join(", ")}>";
+    final head =
+        _type is InterfaceType
+            ? "${nodeToText(_type.classNode)}"
+            : "${nodeToText(_type)}";
+    final typeArgsStrs =
+        (numImmediateTypeArgs == 0)
+            ? ""
+            : "<${typeArgs!.take(numImmediateTypeArgs).map((t) => "$t").join(", ")}>";
     final nullability = _type.nullability.suffix;
     return "$head$typeArgsStrs$nullability";
   }
@@ -1555,7 +1620,9 @@ class RuntimeType extends Type {
       throw "ERROR: RuntimeType does not support getConcreteClass.";
 
   bool isSubtypeOfRuntimeType(
-      TypeHierarchy typeHierarchy, RuntimeType runtimeType) {
+    TypeHierarchy typeHierarchy,
+    RuntimeType runtimeType,
+  ) {
     final rhs = runtimeType._type;
     if (_type.nullability == Nullability.nullable &&
         rhs.nullability == Nullability.nonNullable) {
@@ -1575,15 +1642,21 @@ class RuntimeType extends Type {
       if (_type is InterfaceType) {
         Class thisClass = _type.classNode;
         if (thisClass == typeHierarchy.coreTypes.futureClass) {
-          return typeArgs![0]
-              .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs![0]);
+          return typeArgs![0].isSubtypeOfRuntimeType(
+            typeHierarchy,
+            runtimeType.typeArgs![0],
+          );
         } else {
           return isSubtypeOfRuntimeType(
-              typeHierarchy, runtimeType.typeArgs![0]);
+            typeHierarchy,
+            runtimeType.typeArgs![0],
+          );
         }
       } else if (_type is FutureOrType) {
-        return typeArgs![0]
-            .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs![0]);
+        return typeArgs![0].isSubtypeOfRuntimeType(
+          typeHierarchy,
+          runtimeType.typeArgs![0],
+        );
       }
     }
 
@@ -1614,16 +1687,23 @@ class RuntimeType extends Type {
     List<Type>? usableTypeArgs = typeArgs;
     if (usableTypeArgs == null) {
       assert(thisClass.typeParameters.isEmpty);
-      usableTypeArgs =
-          typeHierarchy.flattenedTypeArgumentsForNonGeneric(thisClass);
+      usableTypeArgs = typeHierarchy.flattenedTypeArgumentsForNonGeneric(
+        thisClass,
+      );
     }
-    final interfaceOffset =
-        typeHierarchy.genericInterfaceOffsetFor(thisClass, otherClass);
-    assert(usableTypeArgs.length - interfaceOffset >=
-        runtimeType.numImmediateTypeArgs);
+    final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
+      thisClass,
+      otherClass,
+    );
+    assert(
+      usableTypeArgs.length - interfaceOffset >=
+          runtimeType.numImmediateTypeArgs,
+    );
     for (int i = 0; i < runtimeType.numImmediateTypeArgs; ++i) {
-      if (!usableTypeArgs[interfaceOffset + i]
-          .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs![i])) {
+      if (!usableTypeArgs[interfaceOffset + i].isSubtypeOfRuntimeType(
+        typeHierarchy,
+        runtimeType.typeArgs![i],
+      )) {
         return false;
       }
     }

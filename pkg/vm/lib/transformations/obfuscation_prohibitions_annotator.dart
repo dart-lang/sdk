@@ -13,12 +13,18 @@ import 'package:kernel/class_hierarchy.dart'
 import '../metadata/obfuscation_prohibitions.dart';
 import 'pragma.dart';
 
-void transformComponent(Component component, CoreTypes coreTypes, Target target,
-    ClassHierarchy hierarchy, List<String>? keepClassNamesImplementing) {
+void transformComponent(
+  Component component,
+  CoreTypes coreTypes,
+  Target target,
+  ClassHierarchy hierarchy,
+  List<String>? keepClassNamesImplementing,
+) {
   final repo = new ObfuscationProhibitionsMetadataRepository();
   component.addMetadataRepository(repo);
   final visitor = ObfuscationProhibitionsVisitor(
-      ConstantPragmaAnnotationParser(coreTypes, target));
+    ConstantPragmaAnnotationParser(coreTypes, target),
+  );
   visitor.visitComponent(component);
 
   if (keepClassNamesImplementing != null &&
@@ -48,7 +54,10 @@ class ObfuscationProhibitionsVisitor extends RecursiveVisitor {
   ObfuscationProhibitionsVisitor(this.parser);
 
   void _checkAnnotations(
-      List<Expression> annotations, String name, TreeNode node) {
+    List<Expression> annotations,
+    String name,
+    TreeNode node,
+  ) {
     for (final annotation in annotations) {
       final pragma = parser.parsePragma(annotation);
       if (pragma is ParsedEntryPointPragma || pragma is ParsedKeepNamePragma) {

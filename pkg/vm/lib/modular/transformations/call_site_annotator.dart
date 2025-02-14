@@ -18,15 +18,23 @@ import '../metadata/call_site_attributes.dart';
 
 CallSiteAttributesMetadataRepository addRepositoryTo(Component component) {
   return component.metadata.putIfAbsent(
-          CallSiteAttributesMetadataRepository.repositoryTag,
-          () => new CallSiteAttributesMetadataRepository())
+        CallSiteAttributesMetadataRepository.repositoryTag,
+        () => new CallSiteAttributesMetadataRepository(),
+      )
       as CallSiteAttributesMetadataRepository;
 }
 
-void transformLibraries(Component component, List<Library> libraries,
-    CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  final transformer =
-      new AnnotateWithStaticTypes(component, coreTypes, hierarchy);
+void transformLibraries(
+  Component component,
+  List<Library> libraries,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
+) {
+  final transformer = new AnnotateWithStaticTypes(
+    component,
+    coreTypes,
+    hierarchy,
+  );
   libraries.forEach(transformer.visitLibrary);
 }
 
@@ -36,9 +44,11 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
   StaticTypeContext? _staticTypeContext;
 
   AnnotateWithStaticTypes(
-      Component component, CoreTypes coreTypes, ClassHierarchy hierarchy)
-      : _metadata = addRepositoryTo(component),
-        env = new TypeEnvironment(coreTypes, hierarchy);
+    Component component,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+  ) : _metadata = addRepositoryTo(component),
+      env = new TypeEnvironment(coreTypes, hierarchy);
 
   @override
   defaultMember(Member node) {
@@ -52,8 +62,9 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
   }
 
   void annotateWithReceiverType(TreeNode node, DartType receiverType) {
-    _metadata.mapping[node] =
-        new CallSiteAttributesMetadata(receiverType: receiverType);
+    _metadata.mapping[node] = new CallSiteAttributesMetadata(
+      receiverType: receiverType,
+    );
   }
 
   @override
@@ -69,8 +80,9 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
   visitInstanceInvocation(InstanceInvocation node) {
     super.visitInstanceInvocation(node);
 
-    final DartType receiverType =
-        node.receiver.getStaticType(_staticTypeContext!);
+    final DartType receiverType = node.receiver.getStaticType(
+      _staticTypeContext!,
+    );
     if (receiverType is FunctionType && node.name.text == 'call') {
       throw 'Node ${node.runtimeType}: $node at ${node.location} has receiver'
           ' static type $receiverType and selector \'call\'';
@@ -104,7 +116,8 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
   static bool hasGenericCovariantParameters(Member? member) {
     if (member is Procedure) {
       return containsGenericCovariantImpl(
-              member.function.positionalParameters) ||
+            member.function.positionalParameters,
+          ) ||
           containsGenericCovariantImpl(member.function.namedParameters);
     } else if (member is Field) {
       return member.isCovariantByClass;

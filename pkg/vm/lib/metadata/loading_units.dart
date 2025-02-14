@@ -54,7 +54,10 @@ class LoadingUnitsMetadataRepository
 
   @override
   void writeToBinary(
-      LoadingUnitsMetadata metadata, Node node, BinarySink sink) {
+    LoadingUnitsMetadata metadata,
+    Node node,
+    BinarySink sink,
+  ) {
     sink.writeUInt30(metadata.loadingUnits.length);
     for (LoadingUnit unit in metadata.loadingUnits) {
       sink.writeUInt30(unit.id);

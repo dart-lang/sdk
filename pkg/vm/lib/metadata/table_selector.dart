@@ -24,13 +24,11 @@ class TableSelectorInfo {
     flags = value ? (flags | kTornOffBit) : (flags & ~kTornOffBit);
   }
 
-  TableSelectorInfo()
-      : callCount = 0,
-        flags = 0;
+  TableSelectorInfo() : callCount = 0, flags = 0;
 
   TableSelectorInfo.readFromBinary(BinarySource source)
-      : callCount = source.readUInt30(),
-        flags = source.readByte();
+    : callCount = source.readUInt30(),
+      flags = source.readByte();
 
   void writeToBinary(BinarySink sink) {
     sink.writeUInt30(callCount);
@@ -42,9 +40,10 @@ class TableSelectorMetadata {
   final List<TableSelectorInfo> selectors;
 
   TableSelectorMetadata()
-      : selectors = <TableSelectorInfo>[TableSelectorInfo()] {
+    : selectors = <TableSelectorInfo>[TableSelectorInfo()] {
     assert(
-        selectors.length == ProcedureAttributesMetadata.kInvalidSelectorId + 1);
+      selectors.length == ProcedureAttributesMetadata.kInvalidSelectorId + 1,
+    );
   }
 
   TableSelectorMetadata.fromSelectors(this.selectors);
@@ -69,7 +68,10 @@ class TableSelectorMetadataRepository
 
   @override
   void writeToBinary(
-      TableSelectorMetadata metadata, Node node, BinarySink sink) {
+    TableSelectorMetadata metadata,
+    Node node,
+    BinarySink sink,
+  ) {
     final List<TableSelectorInfo> selectors = metadata.selectors;
     sink.writeUInt30(selectors.length);
     for (TableSelectorInfo selector in selectors) {
@@ -81,7 +83,9 @@ class TableSelectorMetadataRepository
   TableSelectorMetadata readFromBinary(Node node, BinarySource source) {
     final int length = source.readUInt30();
     final List<TableSelectorInfo> selectors = List<TableSelectorInfo>.generate(
-        length, (_) => TableSelectorInfo.readFromBinary(source));
+      length,
+      (_) => TableSelectorInfo.readFromBinary(source),
+    );
     return TableSelectorMetadata.fromSelectors(selectors);
   }
 }

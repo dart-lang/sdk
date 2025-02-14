@@ -24,17 +24,26 @@ runTestCase(Uri source) async {
   final enableAsserts = false;
 
   final target = new VmTarget(new TargetFlags());
-  Component component = await compileTestCaseToKernelProgram(source,
-      target: target,
-      environmentDefines: {
-        'test.define.isTrue': 'true',
-        'test.define.isFalse': 'false'
-      });
-  final evaluator = VMConstantEvaluator.create(target, component, targetOS,
-      enableAsserts: enableAsserts);
+  Component component = await compileTestCaseToKernelProgram(
+    source,
+    target: target,
+    environmentDefines: {
+      'test.define.isTrue': 'true',
+      'test.define.isFalse': 'false',
+    },
+  );
+  final evaluator = VMConstantEvaluator.create(
+    target,
+    component,
+    targetOS,
+    enableAsserts: enableAsserts,
+  );
   component = transformComponent(target, component, evaluator, enableAsserts);
   verifyComponent(
-      target, VerificationStage.afterGlobalTransformations, component);
+    target,
+    VerificationStage.afterGlobalTransformations,
+    component,
+  );
 
   final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
@@ -44,11 +53,13 @@ runTestCase(Uri source) async {
 main() {
   group('unreachable-code-elimination', () {
     final testCasesDir = new Directory(
-        pkgVmDir + '/testcases/transformations/unreachable_code_elimination');
+      pkgVmDir + '/testcases/transformations/unreachable_code_elimination',
+    );
 
-    for (var entry in testCasesDir
-        .listSync(recursive: true, followLinks: false)
-        .reversed) {
+    for (var entry
+        in testCasesDir
+            .listSync(recursive: true, followLinks: false)
+            .reversed) {
       if (entry.path.endsWith(".dart")) {
         test(entry.path, () => runTestCase(entry.uri));
       }

@@ -14,13 +14,17 @@ import 'package:kernel/type_algebra.dart';
 /// Note that [referenceFromIndex] can be null, and is generally only needed
 /// when (ultimately) called from the incremental compiler.
 void transformLibraries(
-    Target targetInfo,
-    CoreTypes coreTypes,
-    ClassHierarchy hierarchy,
-    List<Library> libraries,
-    ReferenceFromIndex? referenceFromIndex) {
-  new MixinFullResolution(targetInfo, coreTypes, hierarchy)
-      .transform(libraries, referenceFromIndex);
+  Target targetInfo,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
+  List<Library> libraries,
+  ReferenceFromIndex? referenceFromIndex,
+) {
+  new MixinFullResolution(
+    targetInfo,
+    coreTypes,
+    hierarchy,
+  ).transform(libraries, referenceFromIndex);
 }
 
 /// Replaces all mixin applications with regular classes, cloning all fields
@@ -42,7 +46,9 @@ class MixinFullResolution {
   /// Transform the given new [libraries].  It is expected that all other
   /// libraries have already been transformed.
   void transform(
-      List<Library> libraries, ReferenceFromIndex? referenceFromIndex) {
+    List<Library> libraries,
+    ReferenceFromIndex? referenceFromIndex,
+  ) {
     if (libraries.isEmpty) return;
 
     var transformedClasses = new Set<Class>();
@@ -52,22 +58,30 @@ class MixinFullResolution {
     var processedClasses = new Set<Class>();
     for (var library in libraries) {
       for (var class_ in library.classes) {
-        transformClass(libraries, processedClasses, transformedClasses, class_,
-            referenceFromIndex);
+        transformClass(
+          libraries,
+          processedClasses,
+          transformedClasses,
+          class_,
+          referenceFromIndex,
+        );
       }
     }
 
     // We might need to update the class hierarchy.
-    hierarchy =
-        hierarchy.applyMemberChanges(transformedClasses, findDescendants: true);
+    hierarchy = hierarchy.applyMemberChanges(
+      transformedClasses,
+      findDescendants: true,
+    );
   }
 
   void transformClass(
-      List<Library> librariesToBeTransformed,
-      Set<Class> processedClasses,
-      Set<Class> transformedClasses,
-      Class class_,
-      ReferenceFromIndex? referenceFromIndex) {
+    List<Library> librariesToBeTransformed,
+    Set<Class> processedClasses,
+    Set<Class> transformedClasses,
+    Class class_,
+    ReferenceFromIndex? referenceFromIndex,
+  ) {
     // If this class was already handled then so were all classes up to the
     // [Object] class.
     if (!processedClasses.add(class_)) return;
@@ -83,12 +97,22 @@ class MixinFullResolution {
 
     // Ensure super classes have been transformed before this class.
     if (class_.superclass != null) {
-      transformClass(librariesToBeTransformed, processedClasses,
-          transformedClasses, class_.superclass!, referenceFromIndex);
+      transformClass(
+        librariesToBeTransformed,
+        processedClasses,
+        transformedClasses,
+        class_.superclass!,
+        referenceFromIndex,
+      );
     }
     if (class_.mixedInType != null) {
-      transformClass(librariesToBeTransformed, processedClasses,
-          transformedClasses, class_.mixedInClass!, referenceFromIndex);
+      transformClass(
+        librariesToBeTransformed,
+        processedClasses,
+        transformedClasses,
+        class_.mixedInClass!,
+        referenceFromIndex,
+      );
     }
 
     // If this is not a mixin application we don't need to make forwarding
@@ -102,10 +126,12 @@ class MixinFullResolution {
     var substitution = getSubstitutionMap(class_.mixedInType!);
     var cloner = new CloneVisitorWithMembers(typeSubstitution: substitution);
 
-    IndexedLibrary? indexedLibrary =
-        referenceFromIndex?.lookupLibrary(enclosingLibrary);
-    IndexedClass? indexedClass =
-        indexedLibrary?.lookupIndexedClass(class_.name);
+    IndexedLibrary? indexedLibrary = referenceFromIndex?.lookupLibrary(
+      enclosingLibrary,
+    );
+    IndexedClass? indexedClass = indexedLibrary?.lookupIndexedClass(
+      class_.name,
+    );
 
     if (class_.mixin.fields.isNotEmpty) {
       // When we copy a field from the mixed in class, we remove any
@@ -125,12 +151,15 @@ class MixinFullResolution {
         if (field.isStatic) {
           continue;
         }
-        Reference? fieldReference =
-            indexedClass?.lookupFieldReference(field.name);
-        Reference? getterReference =
-            indexedClass?.lookupGetterReference(field.name);
-        Reference? setterReference =
-            indexedClass?.lookupSetterReference(field.name);
+        Reference? fieldReference = indexedClass?.lookupFieldReference(
+          field.name,
+        );
+        Reference? getterReference = indexedClass?.lookupGetterReference(
+          field.name,
+        );
+        Reference? setterReference = indexedClass?.lookupSetterReference(
+          field.name,
+        );
         if (getterReference == null) {
           getterReference = nonSetters[field.name]?.reference;
           getterReference?.canonicalName?.unbind();
@@ -140,7 +169,11 @@ class MixinFullResolution {
           setterReference?.canonicalName?.unbind();
         }
         Field clone = cloner.cloneField(
-            field, fieldReference, getterReference, setterReference);
+          field,
+          fieldReference,
+          getterReference,
+          setterReference,
+        );
         Procedure? setter = setters[field.name];
         if (setter != null) {
           setters.remove(field.name);

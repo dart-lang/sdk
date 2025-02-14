@@ -646,10 +646,10 @@ abstract class AnalysisServer {
   /// Gets the current version number of a document (if known).
   int? getDocumentVersion(String path);
 
-  /// Return a [Future] that completes with the [Element] at the given
+  /// Return a [Future] that completes with the [Element2] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
-  Future<Element?> getElementAtOffset(String file, int offset) async {
+  Future<Element2?> getElementAtOffset2(String file, int offset) async {
     if (!priorityFiles.contains(file)) {
       var driver = getAnalysisDriver(file);
       if (driver == null) {
@@ -661,21 +661,18 @@ abstract class AnalysisServer {
         return null;
       }
 
-      var element = findElementByNameOffset(unitElementResult.element, offset);
-      if (element != null) {
-        return element;
+      var fragment = findFragmentByNameOffset(
+        unitElementResult.fragment,
+        offset,
+      );
+      if (fragment != null) {
+        return fragment.element;
       }
     }
 
     var node = await getNodeAtOffset(file, offset);
-    return getElementOfNode(node);
+    return getElementOfNode2(node);
   }
-
-  /// Return a [Future] that completes with the [Element2] at the given
-  /// [offset] of the given [file], or with `null` if there is no node at the
-  /// [offset] or the node does not have an element.
-  Future<Element2?> getElementAtOffset2(String file, int offset) async =>
-      (await getElementAtOffset(file, offset)).asElement2;
 
   /// Return the [Element] of the given [node], or `null` if [node] is `null` or
   /// does not have an element.

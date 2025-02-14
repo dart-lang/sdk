@@ -5,10 +5,8 @@
 import 'tree_shake_enum_from_lib.lib.dart';
 
 enum UnusedEnum { a, b }
-enum UsedEnum {
-  unusedValue,
-  usedValue,
-}
+
+enum UsedEnum { unusedValue, usedValue }
 
 usedMethod(UnusedInterface c) {
   c.usedInterfaceField = c.usedInterfaceField;

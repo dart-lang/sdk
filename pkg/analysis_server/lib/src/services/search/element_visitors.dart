@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Return the [Element] that is either [root], or one of its direct or
 /// indirect children, and has the given [nameOffset].
@@ -25,10 +24,11 @@ Element? findElementByNameOffset(Element? root, int nameOffset) {
   return null;
 }
 
-/// Return the [Element2] that is either [root], or one of its direct or
+/// Returns the fragment that is either [fragment], or one of its direct or
 /// indirect children, and has the given [nameOffset].
-Element2? findElementByNameOffset2(Element2? root, int nameOffset) =>
-    findElementByNameOffset(root.asElement, nameOffset).asElement2;
+Fragment? findFragmentByNameOffset(LibraryFragment fragment, int nameOffset) {
+  return _FragmentByNameOffsetVisitor(nameOffset).search(fragment);
+}
 
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
@@ -105,6 +105,28 @@ class _ElementVisitorAdapter2 extends GeneralizingElementVisitor2<void> {
     if (visitChildren == true) {
       element.visitChildren2(this);
     }
+  }
+}
+
+/// A visitor that finds the deep-most fragment that contains the [nameOffset].
+class _FragmentByNameOffsetVisitor {
+  final int nameOffset;
+
+  _FragmentByNameOffsetVisitor(this.nameOffset);
+
+  Fragment? search(LibraryFragment fragment) => _searchIn(fragment);
+
+  Fragment? _searchIn(Fragment fragment) {
+    if (fragment.nameOffset2 == nameOffset) {
+      return fragment;
+    }
+    for (var child in fragment.children3) {
+      var result = _searchIn(child);
+      if (result != null) {
+        return result;
+      }
+    }
+    return null;
   }
 }
 

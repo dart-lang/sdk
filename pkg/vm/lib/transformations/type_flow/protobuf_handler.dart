@@ -58,7 +58,9 @@ class ProtobufHandler {
   /// Creates [ProtobufHandler] instance for [component].
   /// Returns null if protobuf library is not used.
   static ProtobufHandler? forComponent(
-      Component component, CoreTypes coreTypes) {
+    Component component,
+    CoreTypes coreTypes,
+  ) {
     final libraryIndex = LibraryIndex(component, [protobufLibraryUri]);
     if (!libraryIndex.containsLibrary(protobufLibraryUri)) {
       return null;
@@ -67,19 +69,30 @@ class ProtobufHandler {
   }
 
   ProtobufHandler._internal(LibraryIndex libraryIndex, this.coreTypes)
-      : _generatedMessageClass =
-            libraryIndex.getClass(protobufLibraryUri, 'GeneratedMessage'),
-        _tagNumberClass =
-            libraryIndex.getClass(protobufLibraryUri, 'TagNumber'),
-        _tagNumberField =
-            libraryIndex.getField(protobufLibraryUri, 'TagNumber', 'tagNumber'),
-        _builderInfoClass =
-            libraryIndex.getClass(protobufLibraryUri, 'BuilderInfo'),
-        _builderInfoAddMethod = libraryIndex.getProcedure(
-            protobufLibraryUri, 'BuilderInfo', 'add') {
+    : _generatedMessageClass = libraryIndex.getClass(
+        protobufLibraryUri,
+        'GeneratedMessage',
+      ),
+      _tagNumberClass = libraryIndex.getClass(protobufLibraryUri, 'TagNumber'),
+      _tagNumberField = libraryIndex.getField(
+        protobufLibraryUri,
+        'TagNumber',
+        'tagNumber',
+      ),
+      _builderInfoClass = libraryIndex.getClass(
+        protobufLibraryUri,
+        'BuilderInfo',
+      ),
+      _builderInfoAddMethod = libraryIndex.getProcedure(
+        protobufLibraryUri,
+        'BuilderInfo',
+        'add',
+      ) {
     final functionType = _builderInfoAddMethod.getterType as FunctionType;
     _typeOfBuilderInfoAddOfNull = FunctionTypeInstantiator.instantiate(
-        functionType, const <DartType>[NullType()]);
+      functionType,
+      const <DartType>[NullType()],
+    );
     ;
   }
 
@@ -120,9 +133,11 @@ class ProtobufHandler {
         final constant = (annotation as ConstantExpression).constant;
         if (constant is InstanceConstant &&
             constant.classReference == _tagNumberClass.reference) {
-          if (messageClass._usedTags.add((constant
-                  .fieldValues[_tagNumberField.fieldReference] as IntConstant)
-              .value)) {
+          if (messageClass._usedTags.add(
+            (constant.fieldValues[_tagNumberField.fieldReference]
+                    as IntConstant)
+                .value,
+          )) {
             _invalidatedClasses.add(messageClass);
           }
         }
@@ -198,23 +213,23 @@ class _MetadataTransformer extends Transformer {
     // Change the tag-number to 0. Otherwise the decoder will get confused.
     ++numberOfFieldsPruned;
     return InstanceInvocation(
-        InstanceAccessKind.Instance,
-        node.receiver,
-        ph._builderInfoAddMethod.name,
-        Arguments(
-          <Expression>[
-            IntLiteral(0), // tagNumber
-            NullLiteral(), // name
-            NullLiteral(), // fieldType
-            NullLiteral(), // defaultOrMaker
-            NullLiteral(), // subBuilder
-            NullLiteral(), // valueOf
-            NullLiteral(), // enumValues
-          ],
-          types: <DartType>[const NullType()],
-        ),
-        interfaceTarget: ph._builderInfoAddMethod,
-        functionType: ph._typeOfBuilderInfoAddOfNull)
-      ..fileOffset = node.fileOffset;
+      InstanceAccessKind.Instance,
+      node.receiver,
+      ph._builderInfoAddMethod.name,
+      Arguments(
+        <Expression>[
+          IntLiteral(0), // tagNumber
+          NullLiteral(), // name
+          NullLiteral(), // fieldType
+          NullLiteral(), // defaultOrMaker
+          NullLiteral(), // subBuilder
+          NullLiteral(), // valueOf
+          NullLiteral(), // enumValues
+        ],
+        types: <DartType>[const NullType()],
+      ),
+      interfaceTarget: ph._builderInfoAddMethod,
+      functionType: ph._typeOfBuilderInfoAddOfNull,
+    )..fileOffset = node.fileOffset;
   }
 }

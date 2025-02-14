@@ -28,8 +28,9 @@ class ToStringVisitor extends RecursiveVisitor {
       '${importUri.scheme}:${importUri.pathSegments.first}';
 
   bool _isInTargetPackage(Procedure node) {
-    return _packageUris
-        .contains(_importUriToPackage(node.enclosingLibrary.importUri));
+    return _packageUris.contains(
+      _importUriToPackage(node.enclosingLibrary.importUri),
+    );
   }
 
   bool _hasKeepAnnotation(Procedure node) =>
@@ -39,9 +40,11 @@ class ToStringVisitor extends RecursiveVisitor {
       _hasPragma(node, 'flutter:keep-to-string-in-subtypes');
 
   bool _hasInheritedKeepAnnotation(Class node) =>
-      _inheritedKeepAnnotations[node] ??= (_hasKeepAnnotationOnClass(node) ||
-          node.supers
-              .any((Supertype t) => _hasInheritedKeepAnnotation(t.classNode)));
+      _inheritedKeepAnnotations[node] ??=
+          (_hasKeepAnnotationOnClass(node) ||
+              node.supers.any(
+                (Supertype t) => _hasInheritedKeepAnnotation(t.classNode),
+              ));
 
   bool _hasPragma(Annotatable node, String pragma) {
     for (ConstantExpression expression

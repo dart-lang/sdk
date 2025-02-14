@@ -4,10 +4,7 @@
 
 // This test verifies correct type assignment of type to const maps.
 
-enum _AttributeName {
-  name,
-  sibling,
-}
+enum _AttributeName { name, sibling }
 
 const _attributeNames = <int, _AttributeName>{
   0x01: _AttributeName.sibling,

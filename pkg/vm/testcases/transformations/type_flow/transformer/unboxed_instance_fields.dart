@@ -26,28 +26,30 @@ class A {
   dynamic boxedX;
 
   A(
-      this.unboxedSmi,
-      this.unboxedInt,
-      this.unboxedDouble,
-      this.boxedNullableInt,
-      this.boxedNullableDouble,
-      this.boxedNonNullableIntOrDouble,
-      this.boxedNullableIntOrDouble,
-      this.boxedNullableX,
-      this.boxedX);
+    this.unboxedSmi,
+    this.unboxedInt,
+    this.unboxedDouble,
+    this.boxedNullableInt,
+    this.boxedNullableDouble,
+    this.boxedNonNullableIntOrDouble,
+    this.boxedNullableIntOrDouble,
+    this.boxedNullableX,
+    this.boxedX,
+  );
 }
 
 main() {
   final a = A(
-      kTrue ? 1 : 2,
-      kTrue ? smiOrMint : 2,
-      kTrue ? 1.1 : 2.2,
-      kTrue ? smiOrMint : null,
-      kTrue ? 1.1 : null,
-      kTrue ? smiOrMint : 1.1,
-      kTrue ? (kFalse ? smiOrMint : 1.1) : null,
-      kTrue ? X() : null,
-      X());
+    kTrue ? 1 : 2,
+    kTrue ? smiOrMint : 2,
+    kTrue ? 1.1 : 2.2,
+    kTrue ? smiOrMint : null,
+    kTrue ? 1.1 : null,
+    kTrue ? smiOrMint : 1.1,
+    kTrue ? (kFalse ? smiOrMint : 1.1) : null,
+    kTrue ? X() : null,
+    X(),
+  );
 
   a.unboxedSmi = kTrue ? 1 : 2;
   a.unboxedInt = kTrue ? smiOrMint : 2;
