@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:meta/meta.dart';
@@ -287,6 +288,7 @@ class EnabledDisabledFlags {
 
 /// Information about a single experimental flag that the user might use to
 /// request that a feature be enabled (or disabled).
+@AnalyzerPublicApi(message: 'Exposed by static fields in the Feature class.')
 class ExperimentalFeature implements Feature {
   /// Index of the flag in the private data structure maintained by
   /// [ExperimentStatus].

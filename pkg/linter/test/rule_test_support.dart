@@ -154,8 +154,9 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
     int length, {
     Pattern? messageContains,
     Pattern? correctionContains,
+    String? name,
   }) => _ExpectedLint(
-    lintRule,
+    name ?? lintRule,
     offset,
     length,
     messageContains: messageContains,

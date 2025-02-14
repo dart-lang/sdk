@@ -225,6 +225,7 @@ canonicalizer
 canonicalizing
 cant
 cardinality
+carefully
 caret
 carets
 carriage
@@ -1547,6 +1548,7 @@ ret
 retrieval
 reusage
 reversible
+reviewed
 rewinding
 rewinds
 rework
@@ -1714,6 +1716,7 @@ speeding
 spend
 spent
 spin
+spite
 splitting
 spots
 spuriously
@@ -1765,6 +1768,7 @@ stub
 stubs
 stx
 sub
+subdirectories
 subdirectory
 subdivide
 subdivided
@@ -1972,6 +1976,7 @@ undergoes
 undermine
 undo
 undoable
+unduly
 unequal
 unescape
 unexact

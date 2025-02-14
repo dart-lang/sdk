@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -52,6 +53,7 @@ export 'package:analyzer/src/generated/timestamped_data.dart'
 /// a separate analysis based on the state of those files in open editors. It can
 /// also be used to perform an analysis based on a proposed future state, such as
 /// the state after a refactoring.
+@AnalyzerPublicApi(message: 'exposed by Element.context')
 abstract class AnalysisContext {
   /// Return the set of analysis options controlling the behavior of this
   /// context. Clients should not modify the returned set of options.
@@ -63,6 +65,7 @@ abstract class AnalysisContext {
 
   /// Return the source factory used to create the sources that can be analyzed
   /// in this context.
+  // ignore: analyzer_public_api_bad_type
   SourceFactory get sourceFactory;
 
   /// Get the [AnalysisOptions] instance for the given [file].

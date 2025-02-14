@@ -4,12 +4,15 @@
 
 import 'dart:math';
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+
 import 'customized_codes.dart';
 
 /// An error code associated with an `AnalysisError`.
 ///
 /// Generally, messages should follow the [Guide for Writing
 /// Diagnostics](https://github.com/dart-lang/sdk/blob/main/pkg/front_end/lib/src/base/diagnostics.md).
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 abstract class ErrorCode {
   /// Regular expression for identifying positional arguments in error messages.
   static final RegExp _positionalArgumentRegExp = new RegExp(r'{(\d+)\}');
@@ -117,6 +120,7 @@ abstract class ErrorCode {
 /**
  * The severity of an [ErrorCode].
  */
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 class ErrorSeverity implements Comparable<ErrorSeverity> {
   /**
    * The severity representing a non-error. This is never used for any error
@@ -189,6 +193,7 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
 /**
  * The type of an [ErrorCode].
  */
+@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 class ErrorType implements Comparable<ErrorType> {
   /**
    * Task (todo) comments in user code.

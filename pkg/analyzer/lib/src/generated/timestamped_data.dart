@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+
 /// Analysis data for which we have a modification time.
+@AnalyzerPublicApi(message: 'exposed by Source.contents')
 class TimestampedData<E> {
   /// The modification time of the source from which the data was created.
   final int modificationTime;
