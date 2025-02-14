@@ -17,7 +17,7 @@ void main() {
 
 @reflectiveTest
 class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
-  Element2 get testUnitElement => testLibraryElement;
+  LibraryFragment get testUnitFragment => testUnit.declaredFragment!;
 
   Future<void> test_class() async {
     await resolveTestCode(r'''
@@ -42,13 +42,12 @@ void bbb() {}
 class AAA {}
 class BBB {}
 ''');
-    expect(findElementByNameOffset2(null, 0), isNull);
 
-    expect(findElementByNameOffset2(testUnitElement, 0), isNull);
-    expect(findElementByNameOffset2(testUnitElement, 1), isNull);
+    expect(findFragmentByNameOffset(testUnitFragment, 0), isNull);
+    expect(findFragmentByNameOffset(testUnitFragment, 1), isNull);
 
-    expect(findElementByNameOffset2(testUnitElement, 5), isNull);
-    expect(findElementByNameOffset2(testUnitElement, 7), isNull);
+    expect(findFragmentByNameOffset(testUnitFragment, 5), isNull);
+    expect(findFragmentByNameOffset(testUnitFragment, 7), isNull);
   }
 
   Future<void> test_topLevelVariable() async {
@@ -62,8 +61,8 @@ int? ccc;
   }
 
   void _assertElement(int nameOffset, ElementKind kind, String name) {
-    var element = findElementByNameOffset2(testUnitElement, nameOffset)!;
-    expect(element.kind, kind);
-    expect(element.name3, name);
+    var fragment = findFragmentByNameOffset(testUnitFragment, nameOffset)!;
+    expect(fragment.element.kind, kind);
+    expect(fragment.name2, name);
   }
 }
