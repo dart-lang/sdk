@@ -6,6 +6,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -114,6 +115,7 @@ class LabelScope {
 
 /// A mapping of identifiers to the elements represented by those identifiers.
 /// Namespaces are the building blocks for scopes.
+@AnalyzerPublicApi(message: 'exposed from elements')
 class Namespace {
   /// An empty namespace.
   static Namespace EMPTY = Namespace(HashMap<String, Element>());

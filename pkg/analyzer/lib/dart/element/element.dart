@@ -38,6 +38,7 @@
 /// represented by an element.
 library;
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -2637,6 +2638,8 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
 
 /// This class exists to provide non-nullable overrides for existing elements,
 /// as opposite to artificial "multiply defined" element.
+@AnalyzerPublicApi(
+    message: 'Exposed because it is implemented by various elements')
 abstract class _ExistingElement implements Element {
   @override
   Element get declaration;

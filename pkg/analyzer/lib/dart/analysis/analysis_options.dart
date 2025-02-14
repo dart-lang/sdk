@@ -44,6 +44,7 @@ abstract class AnalysisOptions {
 
   /// A list of the lint rules that are to be run in an analysis context if
   /// [lint] is `true`.
+  // ignore: analyzer_public_api_bad_type
   List<LintRule> get lintRules;
 
   /// The plugin configurations for each plugin which is configured in analysis
@@ -123,11 +124,13 @@ final class PluginConfiguration {
   final PluginSource source;
 
   /// The list of specified [DiagnosticConfig]s.
+  // ignore: analyzer_public_api_bad_type
   final Map<String, DiagnosticConfig> diagnosticConfigs;
 
   /// Whether the plugin is enabled.
   final bool isEnabled;
 
+  // ignore: analyzer_public_api_bad_type
   PluginConfiguration({
     required this.name,
     required this.source,

@@ -6,6 +6,7 @@ include: analysis_options_no_lints.yaml
 
 linter:
   rules:
+    - analyzer_public_api
     - annotate_overrides
     - collection_methods_unrelated_type
     - curly_braces_in_flow_control_structures

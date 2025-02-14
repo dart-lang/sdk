@@ -45,6 +45,7 @@ abstract class ContextRoot {
   Folder get root;
 
   /// Return the workspace that contains this context root.
+  // ignore: analyzer_public_api_bad_type
   Workspace get workspace;
 
   /// Return the absolute, normalized paths of all of the files that are

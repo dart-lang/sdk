@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode;
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
@@ -47,6 +48,7 @@ bool startsWith(Uri uri1, Uri uri2) {
 
 /// The kind of a parameter. A parameter can be either positional or named, and
 /// can be either required or optional.
+@AnalyzerPublicApi(message: 'exposed by ParameterElement.parameterKind')
 class ParameterKind implements Comparable<ParameterKind> {
   /// A positional required parameter.
   static const ParameterKind REQUIRED = ParameterKind(

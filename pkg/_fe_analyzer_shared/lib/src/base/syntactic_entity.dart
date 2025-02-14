@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+
 /**
  * Interface representing a syntactic entity (either a token or an AST node)
  * which has a location and extent in the source file.
  */
+@AnalyzerPublicApi(
+    message: 'exported by package:analyzer/dart/ast/syntactic_entity.dart')
 abstract class SyntacticEntity {
   /**
    * Return the offset from the beginning of the file to the character after the

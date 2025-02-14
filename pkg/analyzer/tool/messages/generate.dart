@@ -227,6 +227,7 @@ class _ErrorCodeValuesGenerator {
 
     out.writeln();
     out.writeln(r'''
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -235,6 +236,8 @@ import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 ''');
     out.writeln();
+    out.writeln(
+        "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')");
     out.writeln('const List<ErrorCode> errorCodeValues = [');
     for (var name in generatedCodes) {
       out.writeln('  $name,');

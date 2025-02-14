@@ -1853,6 +1853,14 @@ LintCode.always_specify_types_split_to_types:
   status: hasFix
 LintCode.always_use_package_imports:
   status: hasFix
+LintCode.analyzer_public_api_bad_part_directive:
+  status: noFix
+LintCode.analyzer_public_api_bad_type:
+  status: noFix
+LintCode.analyzer_public_api_exports_non_public_name:
+  status: noFix
+LintCode.analyzer_public_api_impl_in_public_api:
+  status: noFix
 LintCode.analyzer_use_new_elements:
   status: noFix
 LintCode.annotate_overrides:
