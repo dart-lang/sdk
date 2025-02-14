@@ -7089,6 +7089,10 @@ class LabelElementImpl2 extends ElementImpl2
     return [firstFragment];
   }
 
+  /// Return `true` if this label is associated with a `switch` member (`case
+  /// ` or`default`).
+  bool get isOnSwitchMember => _wrappedElement.isOnSwitchMember;
+
   @override
   LibraryElement2 get library2 {
     return _wrappedElement.library2;

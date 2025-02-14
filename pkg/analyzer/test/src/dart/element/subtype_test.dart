@@ -77,7 +77,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_implementsNotNullable() {
-    var element = extensionType(
+    var element = extensionType2(
       'A',
       representationType: intNone,
       interfaces: [intNone],
@@ -92,7 +92,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_noImplementedInterfaces() {
-    var element = extensionType('A', representationType: intNone);
+    var element = extensionType2('A', representationType: intNone);
     var type = interfaceTypeNone(element);
 
     isSubtype(type, objectQuestion);
@@ -101,10 +101,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_superinterfaces() {
-    var A = class_(name: 'A');
-    var B = class_(name: 'B');
+    var A = class_2(name: 'A');
+    var B = class_2(name: 'B');
 
-    var element = extensionType(
+    var element = extensionType2(
       'X',
       representationType: intNone,
       interfaces: [
@@ -118,7 +118,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_typeArguments() {
-    var A = extensionType(
+    var A = extensionType2(
       'A',
       representationType: intNone,
       typeParameters: [
@@ -2603,9 +2603,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_25_interfaces() {
-    var I = class_(name: 'I');
+    var I = class_2(name: 'I');
 
-    var A = class_(
+    var A = class_2(
       name: 'A',
       interfaces: [
         I.instantiate(
@@ -2629,9 +2629,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_26_mixins() {
-    var M = class_(name: 'M');
+    var M = class_2(name: 'M');
 
-    var A = class_(
+    var A = class_2(
       name: 'A',
       mixins: [
         M.instantiate(
@@ -2693,8 +2693,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_class_augmented_interfaces() {
-    var A = class_(name: 'A');
-    var I = class_(name: 'I');
+    var A = class_2(name: 'A');
+    var I = class_2(name: 'I');
 
     var A1 = class_(
       name: 'A',
@@ -2713,8 +2713,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_class_augmented_mixins() {
-    var A = class_(name: 'A');
-    var M = mixin_(name: 'M');
+    var A = class_2(name: 'A');
+    var M = mixin_2(name: 'M');
 
     var A1 = class_(
       name: 'A',
@@ -2734,7 +2734,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_interfaceType_contravariant() {
     var T = typeParameter('T', variance: Variance.contravariant);
-    var A = class_(name: 'A', typeParameters: [T]);
+    var A = class_2(name: 'A', typeParameters: [T]);
 
     var A_num = A.instantiate(
       typeArguments: [numNone],
@@ -2753,7 +2753,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_interfaceType_covariant() {
     var T = typeParameter('T', variance: Variance.covariant);
-    var A = class_(name: 'A', typeParameters: [T]);
+    var A = class_2(name: 'A', typeParameters: [T]);
 
     var A_num = A.instantiate(
       typeArguments: [numNone],
@@ -2772,7 +2772,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   test_interfaceType_invariant() {
     var T = typeParameter('T', variance: Variance.invariant);
-    var A = class_(name: 'A', typeParameters: [T]);
+    var A = class_2(name: 'A', typeParameters: [T]);
 
     var A_num = A.instantiate(
       typeArguments: [numNone],
@@ -2790,8 +2790,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_mixin_augmented_interfaces() {
-    var M = mixin_(name: 'M');
-    var I = class_(name: 'I');
+    var M = mixin_2(name: 'M');
+    var I = class_2(name: 'I');
 
     var M1 = mixin_(
       name: 'M1',
@@ -2810,8 +2810,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_mixin_augmented_superclassConstraints() {
-    var M = mixin_(name: 'M');
-    var C = class_(name: 'C');
+    var M = mixin_2(name: 'M');
+    var C = class_2(name: 'C');
 
     var M1 = mixin_(
       name: 'M1',

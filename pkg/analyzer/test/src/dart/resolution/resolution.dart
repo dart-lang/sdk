@@ -311,7 +311,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     Map<String, String> expected,
   ) {
     var actualMapString = Map.fromEntries(
-      substitution.map2.entries.where((entry) {
+      substitution.map.entries.where((entry) {
         return entry.key.enclosingElement2 is! ExecutableElement2;
       }).map((entry) {
         return MapEntry(

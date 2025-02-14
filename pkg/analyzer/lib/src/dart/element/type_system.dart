@@ -2277,7 +2277,7 @@ class _TypeVariableEliminator extends Substitution {
   );
 
   @override
-  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
+  DartType getSubstitute(TypeParameterElement2 parameter, bool upperBound) {
     return upperBound ? _bottomType : _topType;
   }
 }

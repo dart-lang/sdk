@@ -880,9 +880,9 @@ class LowerBoundTest extends _BoundsTestBase {
     // class A
     // class B implements A
     // class C implements B
-    var A = class_(name: 'A');
-    var B = class_(name: 'B', interfaces: [interfaceTypeNone(A)]);
-    var C = class_(name: 'C', interfaces: [interfaceTypeNone(B)]);
+    var A = class_2(name: 'A');
+    var B = class_2(name: 'B', interfaces: [interfaceTypeNone(A)]);
+    var C = class_2(name: 'C', interfaces: [interfaceTypeNone(B)]);
     _checkGreatestLowerBound(
       interfaceTypeNone(A),
       interfaceTypeNone(C),
@@ -895,16 +895,16 @@ class LowerBoundTest extends _BoundsTestBase {
     // class B
     // class C
     // class D extends A with B, C
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var typeA = interfaceTypeNone(A);
 
-    var B = class_(name: 'B');
+    var B = class_2(name: 'B');
     var typeB = interfaceTypeNone(B);
 
-    var C = class_(name: 'C');
+    var C = class_2(name: 'C');
     var typeC = interfaceTypeNone(C);
 
-    var D = class_(
+    var D = class_2(
       name: 'D',
       superType: interfaceTypeNone(A),
       mixins: [typeB, typeC],
@@ -920,9 +920,9 @@ class LowerBoundTest extends _BoundsTestBase {
     // class A
     // class B extends A
     // class C extends B
-    var A = class_(name: 'A');
-    var B = class_(name: 'B', superType: interfaceTypeNone(A));
-    var C = class_(name: 'C', superType: interfaceTypeNone(B));
+    var A = class_2(name: 'A');
+    var B = class_2(name: 'B', superType: interfaceTypeNone(A));
+    var C = class_2(name: 'C', superType: interfaceTypeNone(B));
     _checkGreatestLowerBound(
       interfaceTypeNone(A),
       interfaceTypeNone(C),
@@ -1883,13 +1883,13 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B implements A
     // class C implements B
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var typeA = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', interfaces: [typeA]);
+    var B = class_2(name: 'B', interfaces: [typeA]);
     var typeB = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', interfaces: [typeB]);
+    var C = class_2(name: 'C', interfaces: [typeB]);
     var typeC = interfaceTypeNone(C);
 
     _checkLeastUpperBound(typeB, typeC, typeB);
@@ -1900,34 +1900,28 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B extends A
     // class C extends B
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var typeA = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', superType: typeA);
+    var B = class_2(name: 'B', superType: typeA);
     var typeB = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', superType: typeB);
+    var C = class_2(name: 'C', superType: typeB);
     var typeC = interfaceTypeNone(C);
 
     _checkLeastUpperBound(typeB, typeC, typeB);
   }
 
   void test_directSuperclass_nullability() {
-    var aElement = class_(name: 'A');
-    var aQuestion = interfaceTypeQuestion(aElement);
+    var aElement = class_2(name: 'A');
+    var aQuestion = interfaceTypeQuestion2(aElement);
     var aNone = interfaceTypeNone(aElement);
 
-    var bElementNone = class_(name: 'B', superType: aNone);
+    var bElementNone = class_2(name: 'B', superType: aNone);
 
-    var bNoneQuestion = interfaceType(
-      bElementNone,
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
+    var bNoneQuestion = interfaceTypeQuestion2(bElementNone);
 
-    var bNoneNone = interfaceType(
-      bElementNone,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    var bNoneNone = interfaceTypeNone(bElementNone);
 
     void assertLUB(TypeImpl type1, TypeImpl type2, DartType expected) {
       expect(typeSystem.leastUpperBound(type1, type2), expected);
@@ -1946,11 +1940,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_mixinAndClass_constraintAndInterface() {
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', interfaces: [A_none]);
-    var M = mixin_(name: 'M', constraints: [A_none]);
+    var B = class_2(name: 'B', interfaces: [A_none]);
+    var M = mixin_2(name: 'M', constraints: [A_none]);
 
     _checkLeastUpperBound(
       interfaceTypeNone(B),
@@ -1960,8 +1954,8 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_mixinAndClass_object() {
-    var A = class_(name: 'A');
-    var M = mixin_(name: 'M');
+    var A = class_2(name: 'A');
+    var M = mixin_2(name: 'M');
 
     _checkLeastUpperBound(
       interfaceTypeNone(A),
@@ -1971,11 +1965,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_mixinAndClass_sharedInterface() {
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', interfaces: [A_none]);
-    var M = mixin_(name: 'M', interfaces: [A_none]);
+    var B = class_2(name: 'B', interfaces: [A_none]);
+    var M = mixin_2(name: 'M', interfaces: [A_none]);
 
     _checkLeastUpperBound(
       interfaceTypeNone(B),
@@ -1985,9 +1979,9 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_sameElement_nullability() {
-    var aElement = class_(name: 'A');
+    var aElement = class_2(name: 'A');
 
-    var aQuestion = interfaceTypeQuestion(aElement);
+    var aQuestion = interfaceTypeQuestion2(aElement);
     var aNone = interfaceTypeNone(aElement);
 
     void assertLUB(TypeImpl type1, TypeImpl type2, DartType expected) {
@@ -2007,13 +2001,13 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B with M {}
     // class C with M {}
 
-    var M = mixin_(name: 'M');
+    var M = mixin_2(name: 'M');
     var M_none = interfaceTypeNone(M);
 
-    var B = class_(name: 'B', mixins: [M_none]);
+    var B = class_2(name: 'B', mixins: [M_none]);
     var B_none = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', mixins: [M_none]);
+    var C = class_2(name: 'C', mixins: [M_none]);
     var C_none = interfaceTypeNone(C);
 
     _checkLeastUpperBound(B_none, C_none, M_none);
@@ -2026,19 +2020,19 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class A with M1, M2 {}
     // class B with M1, M3 {}
 
-    var M1 = mixin_(name: 'M1');
+    var M1 = mixin_2(name: 'M1');
     var M1_none = interfaceTypeNone(M1);
 
-    var M2 = mixin_(name: 'M2');
+    var M2 = mixin_2(name: 'M2');
     var M2_none = interfaceTypeNone(M2);
 
-    var M3 = mixin_(name: 'M3');
+    var M3 = mixin_2(name: 'M3');
     var M3_none = interfaceTypeNone(M3);
 
-    var A = class_(name: 'A', mixins: [M1_none, M2_none]);
+    var A = class_2(name: 'A', mixins: [M1_none, M2_none]);
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', mixins: [M1_none, M3_none]);
+    var B = class_2(name: 'B', mixins: [M1_none, M3_none]);
     var B_none = interfaceTypeNone(B);
 
     _checkLeastUpperBound(A_none, B_none, M1_none);
@@ -2051,19 +2045,19 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class A with M2, M1 {}
     // class B with M3, M1 {}
 
-    var M1 = mixin_(name: 'M1');
+    var M1 = mixin_2(name: 'M1');
     var M1_none = interfaceTypeNone(M1);
 
-    var M2 = mixin_(name: 'M2');
+    var M2 = mixin_2(name: 'M2');
     var M2_none = interfaceTypeNone(M2);
 
-    var M3 = mixin_(name: 'M3');
+    var M3 = mixin_2(name: 'M3');
     var M3_none = interfaceTypeNone(M3);
 
-    var A = class_(name: 'A', mixins: [M2_none, M1_none]);
+    var A = class_2(name: 'A', mixins: [M2_none, M1_none]);
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', mixins: [M3_none, M1_none]);
+    var B = class_2(name: 'B', mixins: [M3_none, M1_none]);
     var B_none = interfaceTypeNone(B);
 
     _checkLeastUpperBound(A_none, B_none, M1_none);
@@ -2074,43 +2068,31 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B extends A {}
     // class C extends A {}
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', superType: A_none);
+    var B = class_2(name: 'B', superType: A_none);
     var B_none = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', superType: A_none);
+    var C = class_2(name: 'C', superType: A_none);
     var C_none = interfaceTypeNone(C);
 
     _checkLeastUpperBound(B_none, C_none, A_none);
   }
 
   void test_sharedSuperclass1_nullability() {
-    var aElement = class_(name: 'A');
-    var aQuestion = interfaceTypeQuestion(aElement);
+    var aElement = class_2(name: 'A');
+    var aQuestion = interfaceTypeQuestion2(aElement);
     var aNone = interfaceTypeNone(aElement);
 
-    var bElementNone = class_(name: 'B', superType: aNone);
-    var cElementNone = class_(name: 'C', superType: aNone);
+    var bElementNone = class_2(name: 'B', superType: aNone);
+    var cElementNone = class_2(name: 'C', superType: aNone);
 
-    var bNoneQuestion = interfaceType(
-      bElementNone,
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-    var bNoneNone = interfaceType(
-      bElementNone,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    var bNoneQuestion = interfaceTypeQuestion2(bElementNone);
+    var bNoneNone = interfaceTypeNone(bElementNone);
 
-    var cNoneQuestion = interfaceType(
-      cElementNone,
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-    var cNoneNone = interfaceType(
-      cElementNone,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    var cNoneQuestion = interfaceTypeQuestion2(cElementNone);
+    var cNoneNone = interfaceTypeNone(cElementNone);
 
     void assertLUB(TypeImpl type1, TypeImpl type2, DartType expected) {
       expect(typeSystem.leastUpperBound(type1, type2), expected);
@@ -2130,16 +2112,16 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class C extends A {}
     // class D extends C {}
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', superType: A_none);
+    var B = class_2(name: 'B', superType: A_none);
     var B_none = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', superType: A_none);
+    var C = class_2(name: 'C', superType: A_none);
     var C_none = interfaceTypeNone(C);
 
-    var D = class_(name: 'D', superType: C_none);
+    var D = class_2(name: 'D', superType: C_none);
     var D_none = interfaceTypeNone(D);
 
     _checkLeastUpperBound(B_none, D_none, A_none);
@@ -2151,16 +2133,16 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class C extends B {}
     // class D extends B {}
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', superType: A_none);
+    var B = class_2(name: 'B', superType: A_none);
     var B_none = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', superType: B_none);
+    var C = class_2(name: 'C', superType: B_none);
     var C_none = interfaceTypeNone(C);
 
-    var D = class_(name: 'D', superType: B_none);
+    var D = class_2(name: 'D', superType: B_none);
     var D_none = interfaceTypeNone(D);
 
     _checkLeastUpperBound(C_none, D_none, B_none);
@@ -2173,19 +2155,19 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B extends A implements A2 {}
     // class C extends A implement A3 {}
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var A2 = class_(name: 'A2');
+    var A2 = class_2(name: 'A2');
     var A2_none = interfaceTypeNone(A2);
 
-    var A3 = class_(name: 'A3');
+    var A3 = class_2(name: 'A3');
     var A3_none = interfaceTypeNone(A3);
 
-    var B = class_(name: 'B', superType: A_none, interfaces: [A2_none]);
+    var B = class_2(name: 'B', superType: A_none, interfaces: [A2_none]);
     var B_none = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', superType: A_none, interfaces: [A3_none]);
+    var C = class_2(name: 'C', superType: A_none, interfaces: [A3_none]);
     var C_none = interfaceTypeNone(C);
 
     _checkLeastUpperBound(B_none, C_none, A_none);
@@ -2196,13 +2178,13 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B implements A {}
     // class C implements A {}
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', interfaces: [A_none]);
+    var B = class_2(name: 'B', interfaces: [A_none]);
     var B_none = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', interfaces: [A_none]);
+    var C = class_2(name: 'C', interfaces: [A_none]);
     var C_none = interfaceTypeNone(C);
 
     _checkLeastUpperBound(B_none, C_none, A_none);
@@ -2214,16 +2196,16 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class C implements A {}
     // class D implements C {}
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', interfaces: [A_none]);
+    var B = class_2(name: 'B', interfaces: [A_none]);
     var B_none = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', interfaces: [A_none]);
+    var C = class_2(name: 'C', interfaces: [A_none]);
     var C_none = interfaceTypeNone(C);
 
-    var D = class_(name: 'D', interfaces: [C_none]);
+    var D = class_2(name: 'D', interfaces: [C_none]);
     var D_none = interfaceTypeNone(D);
 
     _checkLeastUpperBound(B_none, D_none, A_none);
@@ -2235,16 +2217,16 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class C implements B {}
     // class D implements B {}
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', interfaces: [A_none]);
+    var B = class_2(name: 'B', interfaces: [A_none]);
     var B_none = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', interfaces: [B_none]);
+    var C = class_2(name: 'C', interfaces: [B_none]);
     var C_none = interfaceTypeNone(C);
 
-    var D = class_(name: 'D', interfaces: [B_none]);
+    var D = class_2(name: 'D', interfaces: [B_none]);
     var D_none = interfaceTypeNone(D);
 
     _checkLeastUpperBound(C_none, D_none, B_none);
@@ -2257,19 +2239,19 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B implements A, A2 {}
     // class C implements A, A3 {}
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var A2 = class_(name: 'A2');
+    var A2 = class_2(name: 'A2');
     var A2_none = interfaceTypeNone(A2);
 
-    var A3 = class_(name: 'A3');
+    var A3 = class_2(name: 'A3');
     var A3_none = interfaceTypeNone(A3);
 
-    var B = class_(name: 'B', interfaces: [A_none, A2_none]);
+    var B = class_2(name: 'B', interfaces: [A_none, A2_none]);
     var B_none = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', interfaces: [A_none, A3_none]);
+    var C = class_2(name: 'C', interfaces: [A_none, A3_none]);
     var C_none = interfaceTypeNone(C);
 
     _checkLeastUpperBound(B_none, C_none, A_none);
@@ -2438,7 +2420,7 @@ class UpperBoundTest extends _BoundsTestBase {
     // extension type C(Object?) implements A {}
 
     var A_none = interfaceTypeNone(
-      extensionType(
+      extensionType2(
         'A',
         representationType: objectQuestion,
         interfaces: [],
@@ -2447,14 +2429,14 @@ class UpperBoundTest extends _BoundsTestBase {
 
     _checkLeastUpperBound(
       interfaceTypeNone(
-        extensionType(
+        extensionType2(
           'B',
           representationType: objectQuestion,
           interfaces: [A_none],
         ),
       ),
       interfaceTypeNone(
-        extensionType(
+        extensionType2(
           'C',
           representationType: objectQuestion,
           interfaces: [A_none],
@@ -2470,14 +2452,14 @@ class UpperBoundTest extends _BoundsTestBase {
 
     _checkLeastUpperBound(
       interfaceTypeNone(
-        extensionType(
+        extensionType2(
           'A',
           representationType: intNone,
           interfaces: [intNone],
         ),
       ),
       interfaceTypeNone(
-        extensionType(
+        extensionType2(
           'B',
           representationType: doubleNone,
           interfaces: [doubleNone],
@@ -2493,13 +2475,13 @@ class UpperBoundTest extends _BoundsTestBase {
 
     _checkLeastUpperBound(
       interfaceTypeNone(
-        extensionType(
+        extensionType2(
           'A',
           representationType: intNone,
         ),
       ),
       interfaceTypeNone(
-        extensionType(
+        extensionType2(
           'B',
           representationType: doubleNone,
         ),
@@ -2513,7 +2495,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
     _checkLeastUpperBound(
       interfaceTypeNone(
-        extensionType(
+        extensionType2(
           'A',
           typeParameters: [T],
           representationType: typeParameterTypeNone(T),
@@ -2522,7 +2504,7 @@ class UpperBoundTest extends _BoundsTestBase {
         typeArguments: [stringNone],
       ),
       interfaceTypeNone(
-        extensionType(
+        extensionType2(
           'B',
           typeParameters: [T],
           representationType: typeParameterTypeNone(T),
@@ -2539,7 +2521,7 @@ class UpperBoundTest extends _BoundsTestBase {
     var T1 = typeParameter('T1', bound: stringNone);
     var T2 = typeParameter('T2', bound: intNone);
 
-    var E = extensionType(
+    var E = extensionType2(
       'E',
       typeParameters: [T],
       representationType: typeParameterTypeNone(T),
@@ -2550,7 +2532,7 @@ class UpperBoundTest extends _BoundsTestBase {
     // B<T2> implements E<T2?>, num
     _checkLeastUpperBound(
       interfaceTypeNone(
-        extensionType(
+        extensionType2(
           'A',
           typeParameters: [T1],
           representationType: typeParameterTypeNone(T1),
@@ -2564,7 +2546,7 @@ class UpperBoundTest extends _BoundsTestBase {
         typeArguments: [stringNone],
       ),
       interfaceTypeNone(
-        extensionType(
+        extensionType2(
           'B',
           typeParameters: [T2],
           representationType: typeParameterTypeNone(T2),
@@ -2678,7 +2660,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_interfaceType_functionType() {
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
 
     _checkLeastUpperBound(
       interfaceTypeNone(A),
@@ -2926,7 +2908,7 @@ class UpperBoundTest extends _BoundsTestBase {
   void test_typeParameter_fBounded() {
     // class A<T> {}
     var T = typeParameter('T');
-    var A = class_(name: 'A', typeParameters: [T]);
+    var A = class_2(name: 'A', typeParameters: [T]);
 
     // <S extends A<S>>
     var S = typeParameter('S');
@@ -3023,13 +3005,13 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_typeParameter_interface_bounded() {
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     var A_none = interfaceTypeNone(A);
 
-    var B = class_(name: 'B', superType: A_none);
+    var B = class_2(name: 'B', superType: A_none);
     var B_none = interfaceTypeNone(B);
 
-    var C = class_(name: 'C', superType: A_none);
+    var C = class_2(name: 'C', superType: A_none);
     var C_none = interfaceTypeNone(C);
 
     var T = typeParameter('T', bound: B_none);
@@ -3091,10 +3073,10 @@ class UpperBoundTest extends _BoundsTestBase {
   void test_typeParameter_intersection_fbounded() {
     // `X`, `class C<X> {}`, `Y extends C<Y>?`, `Y & C<Y>`.
     var X = typeParameter('X');
-    var C = class_(name: 'C', typeParameters: [X]);
+    var C = class_2(name: 'C', typeParameters: [X]);
     var Y = typeParameter('Y');
     var Y_none = typeParameterTypeNone(Y);
-    Y.bound = interfaceTypeQuestion(C, typeArguments: [Y_none]);
+    Y.bound = interfaceTypeQuestion2(C, typeArguments: [Y_none]);
     var C_Y_none = interfaceTypeNone(C, typeArguments: [Y_none]);
     var Y_none_promoted = typeParameterTypeNone(
       Y,
@@ -3141,7 +3123,7 @@ class UpperBoundTest extends _BoundsTestBase {
   void test_typeParameters_contravariant_different() {
     // class A<in T>
     var T = typeParameter('T', variance: Variance.contravariant);
-    var A = class_(name: 'A', typeParameters: [T]);
+    var A = class_2(name: 'A', typeParameters: [T]);
 
     // A<num>
     // A<int>
@@ -3154,7 +3136,7 @@ class UpperBoundTest extends _BoundsTestBase {
   void test_typeParameters_contravariant_same() {
     // class A<in T>
     var T = typeParameter('T', variance: Variance.contravariant);
-    var A = class_(name: 'A', typeParameters: [T]);
+    var A = class_2(name: 'A', typeParameters: [T]);
 
     // A<num>
     var A_num = interfaceTypeNone(A, typeArguments: [numNone]);
@@ -3165,7 +3147,7 @@ class UpperBoundTest extends _BoundsTestBase {
   void test_typeParameters_covariant_different() {
     // class A<out T>
     var T = typeParameter('T', variance: Variance.covariant);
-    var A = class_(name: 'A', typeParameters: [T]);
+    var A = class_2(name: 'A', typeParameters: [T]);
 
     // A<num>
     // A<int>
@@ -3178,7 +3160,7 @@ class UpperBoundTest extends _BoundsTestBase {
   void test_typeParameters_covariant_same() {
     // class A<out T>
     var T = typeParameter('T', variance: Variance.covariant);
-    var A = class_(name: 'A', typeParameters: [T]);
+    var A = class_2(name: 'A', typeParameters: [T]);
 
     // A<num>
     var A_num = interfaceTypeNone(A, typeArguments: [numNone]);
@@ -3189,7 +3171,7 @@ class UpperBoundTest extends _BoundsTestBase {
   void test_typeParameters_invariant_object() {
     // class A<inout T>
     var T = typeParameter('T', variance: Variance.invariant);
-    var A = class_(name: 'A', typeParameters: [T]);
+    var A = class_2(name: 'A', typeParameters: [T]);
 
     // A<num>
     // A<int>
@@ -3202,7 +3184,7 @@ class UpperBoundTest extends _BoundsTestBase {
   void test_typeParameters_invariant_same() {
     // class A<inout T>
     var T = typeParameter('T', variance: Variance.invariant);
-    var A = class_(name: 'A', typeParameters: [T]);
+    var A = class_2(name: 'A', typeParameters: [T]);
 
     // A<num>
     var A_num = interfaceTypeNone(A, typeArguments: [numNone]);
@@ -3215,7 +3197,7 @@ class UpperBoundTest extends _BoundsTestBase {
     var T = typeParameter('T', variance: Variance.covariant);
     var U = typeParameter('U', variance: Variance.invariant);
     var V = typeParameter('V', variance: Variance.contravariant);
-    var A = class_(name: 'A', typeParameters: [T, U, V]);
+    var A = class_2(name: 'A', typeParameters: [T, U, V]);
 
     // A<num, num, num>
     // A<int, num, int>
@@ -3242,7 +3224,7 @@ class UpperBoundTest extends _BoundsTestBase {
     var T = typeParameter('T', variance: Variance.covariant);
     var U = typeParameter('T', variance: Variance.invariant);
     var V = typeParameter('T', variance: Variance.contravariant);
-    var A = class_(name: 'A', typeParameters: [T, U, V]);
+    var A = class_2(name: 'A', typeParameters: [T, U, V]);
 
     // A<num, String, num>
     // A<int, num, int>
@@ -3263,7 +3245,7 @@ class UpperBoundTest extends _BoundsTestBase {
     var T = typeParameter('T', variance: Variance.covariant);
     var U = typeParameter('T', variance: Variance.invariant);
     var V = typeParameter('T', variance: Variance.contravariant);
-    var A = class_(name: 'A', typeParameters: [T, U, V]);
+    var A = class_2(name: 'A', typeParameters: [T, U, V]);
 
     // A<String, num, num>
     // A<int, num, int>

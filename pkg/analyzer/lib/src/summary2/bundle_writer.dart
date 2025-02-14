@@ -1047,7 +1047,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
   static List<DartType> _enclosingClassTypeArguments(
     Element declaration,
-    Map<TypeParameterElement, DartType> substitution,
+    Map<TypeParameterElement2, DartType> substitution,
   ) {
     // TODO(scheglov): Just keep it null in class Member?
     if (substitution.isEmpty) {
@@ -1056,7 +1056,8 @@ class ResolutionSink extends _SummaryDataWriter {
 
     var enclosing = declaration.enclosingElement3;
     if (enclosing is InstanceElement) {
-      var typeParameters = enclosing.typeParameters;
+      var typeParameters =
+          (enclosing.asElement2! as InstanceElement2).typeParameters2;
       if (typeParameters.isEmpty) {
         return const <DartType>[];
       }

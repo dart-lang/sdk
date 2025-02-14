@@ -23,7 +23,7 @@ import 'package:test/test.dart';
 mixin ElementsTypesMixin {
   InterfaceTypeImpl get boolNone {
     var element = typeProvider.boolElement2;
-    return interfaceTypeNone2(element);
+    return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get boolQuestion {
@@ -33,7 +33,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get doubleNone {
     var element = typeProvider.doubleElement2;
-    return interfaceTypeNone2(element);
+    return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get doubleQuestion {
@@ -45,7 +45,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get functionNone {
     var element = typeProvider.functionElement2;
-    return interfaceTypeNone2(element);
+    return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get functionQuestion {
@@ -55,7 +55,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get intNone {
     var element = typeProvider.intElement2;
-    return interfaceTypeNone2(element);
+    return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get intQuestion {
@@ -71,12 +71,12 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get nullNone {
     var element = typeProvider.nullElement2;
-    return interfaceTypeNone2(element);
+    return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get numNone {
     var element = typeProvider.numElement2;
-    return interfaceTypeNone2(element);
+    return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get numQuestion {
@@ -86,7 +86,7 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get objectNone {
     var element = typeProvider.objectElement2;
-    return interfaceTypeNone2(element);
+    return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get objectQuestion {
@@ -96,12 +96,12 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get recordNone {
     var element = typeProvider.recordElement2;
-    return interfaceTypeNone2(element);
+    return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get stringNone {
     var element = typeProvider.stringElement2;
-    return interfaceTypeNone2(element);
+    return interfaceTypeNone(element);
   }
 
   InterfaceTypeImpl get stringQuestion {
@@ -200,10 +200,21 @@ mixin ElementsTypesMixin {
     required String name,
     required List<ConstFieldElementImpl> constants,
   }) {
-    var element = EnumElementImpl(name, 0);
-    EnumElementImpl2(Reference.root(), element);
-    element.enclosingElement3 = testLibrary.definingCompilationUnit;
-    element.fields = constants;
+    var fragment = EnumElementImpl(name, 0);
+    EnumElementImpl2(Reference.root(), fragment);
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.fields = constants;
+    return fragment;
+  }
+
+  EnumElementImpl2 enum_2({
+    required String name,
+    required List<ConstFieldElementImpl> constants,
+  }) {
+    var fragment = EnumElementImpl(name, 0);
+    var element = EnumElementImpl2(Reference.root(), fragment);
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.fields = constants;
     return element;
   }
 
@@ -254,6 +265,32 @@ mixin ElementsTypesMixin {
       ..fields = fragment.fields;
 
     return fragment;
+  }
+
+  ExtensionTypeElementImpl2 extensionType2(
+    String name, {
+    String representationName = 'it',
+    required TypeImpl representationType,
+    List<TypeParameterElementImpl2> typeParameters = const [],
+    List<InterfaceType> interfaces = const [],
+  }) {
+    var fragment = ExtensionTypeElementImpl(name, -1);
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
+    fragment.interfaces = interfaces;
+
+    var field = FieldElementImpl(representationName, -1);
+    field.type = representationType;
+    fragment.fields = [field];
+
+    var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
+    element
+      ..representation = field
+      ..typeErasure = representationType
+      ..interfaces = fragment.interfaces
+      ..fields = fragment.fields;
+
+    return element;
   }
 
   FunctionTypeImpl functionType({
@@ -336,16 +373,6 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl interfaceTypeNone(
-    InterfaceElementImpl element, {
-    List<DartType> typeArguments = const [],
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceTypeImpl interfaceTypeNone2(
     InterfaceElementImpl2 element, {
     List<DartType> typeArguments = const [],
   }) {
@@ -483,6 +510,29 @@ mixin ElementsTypesMixin {
     element.methods = fragment.methods;
 
     return fragment;
+  }
+
+  MixinElementImpl2 mixin_2({
+    required String name,
+    bool isAugmentation = false,
+    List<TypeParameterElementImpl2> typeParameters = const [],
+    List<InterfaceType>? constraints,
+    List<InterfaceType> interfaces = const [],
+  }) {
+    var fragment = MixinElementImpl(name, 0);
+    fragment.isAugmentation = isAugmentation;
+    fragment.enclosingElement3 = testLibrary.definingCompilationUnit;
+    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
+    fragment.superclassConstraints = constraints ?? [typeProvider.objectType];
+    fragment.interfaces = interfaces;
+    fragment.constructors = const <ConstructorElementImpl>[];
+
+    var element = MixinElementImpl2(Reference.root(), fragment);
+    element.superclassConstraints = fragment.superclassConstraints;
+    element.interfaces = fragment.interfaces;
+    element.methods = fragment.methods;
+
+    return element;
   }
 
   FormalParameterElementImpl namedParameter({
@@ -714,6 +764,31 @@ class _MockSource implements Source {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+extension ClassElementImpl2Extension on ClassElementImpl2 {
+  void addAugmentations(List<ClassElementImpl> augmentations) {
+    var augmentationTarget = fragments.last;
+    for (var augmentation in augmentations) {
+      expect(augmentation.isAugmentation, isTrue);
+      augmentationTarget.augmentation = augmentation;
+      augmentation.augmentationTargetAny = augmentationTarget;
+      augmentationTarget = augmentation;
+
+      expect(augmentation.typeParameters, isEmpty,
+          reason: 'Not supported in tests');
+
+      interfaces = [
+        ...interfaces,
+        ...augmentation.interfaces,
+      ];
+
+      mixins = [
+        ...mixins,
+        ...augmentation.mixins,
+      ];
+    }
+  }
+}
+
 extension ClassElementImplExtension on ClassElementImpl {
   void addAugmentations(List<ClassElementImpl> augmentations) {
     var augmentationTarget = this;
@@ -741,6 +816,31 @@ extension ClassElementImplExtension on ClassElementImpl {
   void updateElement() {
     element.interfaces = interfaces;
     element.mixins = mixins;
+  }
+}
+
+extension MixinElementImpl2Extension on MixinElementImpl2 {
+  void addAugmentations(List<MixinElementImpl> augmentations) {
+    var augmentationTarget = fragments.last;
+    for (var augmentation in augmentations) {
+      expect(augmentation.isAugmentation, isTrue);
+      augmentationTarget.augmentation = augmentation;
+      augmentation.augmentationTargetAny = augmentationTarget;
+      augmentationTarget = augmentation;
+
+      expect(augmentation.typeParameters, isEmpty,
+          reason: 'Not supported in tests');
+
+      superclassConstraints = [
+        ...superclassConstraints,
+        ...augmentation.superclassConstraints,
+      ];
+
+      interfaces = [
+        ...interfaces,
+        ...augmentation.interfaces,
+      ];
+    }
   }
 }
 

@@ -679,18 +679,18 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       var B = class_2(
         name: 'B',
         typeParameters: [B_T],
-        superType: interfaceTypeNone2(A, typeArguments: [B_T_none]),
+        superType: interfaceTypeNone(A, typeArguments: [B_T_none]),
       );
 
       // class Cx extends A<> implements B<> {}
-      var C = class_(
+      var C = class_2(
         name: 'C${testClassIndex++}',
-        superType: interfaceTypeNone2(
+        superType: interfaceTypeNone(
           A,
           typeArguments: [extendsTypeArgument],
         ),
         interfaces: [
-          interfaceTypeNone2(
+          interfaceTypeNone(
             B,
             typeArguments: [implementsTypeArgument],
           )
@@ -700,7 +700,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       _checkMatch(
         [T],
         interfaceTypeNone(C),
-        interfaceTypeNone2(A, typeArguments: [T_none]),
+        interfaceTypeNone(A, typeArguments: [T_none]),
         true,
         [expectedConstraint],
       );

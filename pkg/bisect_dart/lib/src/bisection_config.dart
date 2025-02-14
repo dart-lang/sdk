@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:cli_config/cli_config.dart';
+import 'package:intl/intl.dart';
 
 class BisectionConfig {
   /// A way to identify this bisection.
@@ -63,7 +64,7 @@ class BisectionConfig {
   factory BisectionConfig.fromConfig(Config config) {
     final testCommands = config.stringList(_testCommandsKey);
     final name = config.optionalString(_nameKey) ??
-        '${yyyyMMdd(DateTime.now())}_'
+        '${DateFormat('yyyyMMdd').format(DateTime.now())}_'
             '${testCommands.last.split(' ').last.split('/').last}';
     final sdkPath = config.optionalPath(_sdkPathKey, mustExist: true) ??
         Directory.current.uri;
@@ -160,10 +161,3 @@ $descriptions
 extension on String {
   RegExp toPattern() => RegExp(RegExp.escape(this));
 }
-
-String yyyyMMdd(DateTime date) {
-  // DateFormat('yyyyMMdd').format(date)
-  return zeroPad(date.year, 4) + zeroPad(date.month, 2) + zeroPad(date.day, 2);
-}
-
-String zeroPad(int number, int width) => number.toString().padLeft(width, '0');

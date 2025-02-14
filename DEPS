@@ -124,34 +124,33 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "21de99ec0ff8ace4d946a746fb427fffd6afa535", # disable tools/rev_sdk_deps.dart
+  "dart_style_rev": "21de99ec0ff8ace4d946a746fb427fffd6afa535", # rolled manually
 
   ### /third_party/pkg dependencies
-  # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
-  # EOL comment after a dependency to disable this and pin it at its current
-  # revision.
+  # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
+  # EOL comment after a dependency to instead pin at the current revision.
   "core_rev": "0b2bd3fcd7f3e082f4cc9b14c19ffa93894b85ae",
   "dartdoc_rev": "e1295863b11c54680bf178ec9c2662a33b0e24be", # https://github.com/dart-lang/dartdoc/issues/3969
-  "ecosystem_rev": "5b0d815952d81f5a51cc6a1af1cacab26f3a61d7",
+  "ecosystem_rev": "fe4979bc6466de62eaf30b2bf59a78b4bffa3c5b",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
   "glob_rev": "043796be996190473b397fa2fecfa34bb91376fb",
-  "http_rev": "b7cdf6136926589210662bbdd71000e7abab7271",
-  "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
+  "http_rev": "e28f9f5ec65d83d0bfb299a78c9365cc4dc38ba1",
+  "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
+  "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "markdown_rev": "62f78c64d963ba6f73bd70ed65630dc934a264e6",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
-  "native_rev": "c817a5e41220de370cbea6e6445e63cdc7087544", # disable tools/rev_sdk_deps.dart
-  "protobuf_rev": "d00f905450c562493d918884e02048b7aacc00a3",
-  "pub_rev": "710265bae23ad5860f33287fba10b5c369f19a93", # disable tools/rev_sdk_deps.dart
-  "shelf_rev": "2a7442f7d6d3e63fdc7b387128619b263dcb7e78",
+  "native_rev": "c817a5e41220de370cbea6e6445e63cdc7087544", # rolled manually while native assets are experimental
+  "protobuf_rev": "610943a3bed70c1c2079af5fca02462df10d223f",
+  "pub_rev": "710265bae23ad5860f33287fba10b5c369f19a93", # rolled manually
+  "shelf_rev": "b39e61196ce555dc1d3a0c3da695228fa6bdebb8",
   "sync_http_rev": "47e6b264a209d0d806cfe9cdad8b6c69ce231986",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
   "test_rev": "17609bf90c9d5ef47707f5796763629450382474",
-  "tools_rev": "750b4ad8ea80dd0bfa1d4dcf05915183c2bf6dab", # b/391934702
+  "tools_rev": "750b4ad8ea80dd0bfa1d4dcf05915183c2bf6dab",
   "vector_math_rev": "533c513771d35312dcd0f69e662d729979882df1",
   "web_rev": "c2d5f63e9ea4c1409d6e159fc7b92dbcf4dc0d4d",
   "web_socket_channel_rev": "f335e52affa5c70a725401394bf265fc4384e62f",
-  "webdev_rev": "616da45582e008efa114728927eabb498c71f1b7",
+  "webdev_rev": "718c39c3b10f6e77f767d70d1f30f8a6c8262d6f",
   "webdriver_rev": "e84e9ccbee3e0c38a149b7d964eb7ab6ccc78384",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 
@@ -352,6 +351,8 @@ deps = {
 
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + "@" + Var("http_rev"),
+  Var("dart_root") + "/third_party/pkg/intl":
+      Var("dart_git") + "intl.git" + "@" + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/leak_tracker":
       Var("dart_git") + "leak_tracker.git" + "@" + Var("leak_tracker_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":

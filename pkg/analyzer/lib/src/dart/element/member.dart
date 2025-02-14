@@ -156,7 +156,7 @@ class ConstructorMember extends ExecutableMember
     if (element is ConstructorMember) {
       declaration = element._declaration as ConstructorElement;
       var map = <TypeParameterElement2, DartType>{};
-      var elementMap = element._substitution.map2;
+      var elementMap = element._substitution.map;
       for (var typeParameter in elementMap.keys) {
         var type = elementMap[typeParameter]!;
         map[typeParameter] = _substitution.substituteType(type);
@@ -423,9 +423,9 @@ abstract class ExecutableMember extends Member
       augmentationSubstitution = member.augmentationSubstitution;
 
       var map = <TypeParameterElement2, DartType>{
-        for (var MapEntry(:key, :value) in member._substitution.map2.entries)
+        for (var MapEntry(:key, :value) in member._substitution.map.entries)
           key: substitution.substituteType(value),
-        ...substitution.map2,
+        ...substitution.map,
       };
       combined = Substitution.fromMap2(map);
     }
@@ -1372,9 +1372,9 @@ class ParameterMember extends VariableMember
       element = member.declaration;
 
       var map = <TypeParameterElement2, DartType>{
-        for (var MapEntry(:key, :value) in member._substitution.map2.entries)
+        for (var MapEntry(:key, :value) in member._substitution.map.entries)
           key: substitution.substituteType(value),
-        ...substitution.map2,
+        ...substitution.map,
       };
       combined = Substitution.fromMap2(map);
     }
@@ -1826,8 +1826,8 @@ class _SubstitutedTypeParameters {
     return _SubstitutedTypeParameters._(
       newElements,
       Substitution.fromMap2({
-        ...substitution.map2,
-        ...substitution2.map2,
+        ...substitution.map,
+        ...substitution2.map,
       }),
     );
   }
