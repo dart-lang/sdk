@@ -1972,6 +1972,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         debugLibrary.addImportsToScope();
         _ticker.logMs("Added imports");
       }
+      SourceCompilationUnit? orgCompilationUnit = debugCompilationUnit;
       debugCompilationUnit = new SourceCompilationUnitImpl(
           importUri: libraryUri,
           fileUri: debugExprUri,
@@ -1992,25 +1993,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           mayImplementRestrictedTypes: false);
       debugCompilationUnit.markLanguageVersionFinal();
 
-      SourceLibraryBuilder? orgDebugLibrary = debugLibrary;
       debugLibrary = debugCompilationUnit.createLibrary();
 
       // Copy over the prefix namespace for extensions
       // (`forEachExtensionInScope`) to be found when imported via prefixes.
-      // TODO(johnniwinther): Extensions should be available through
-      // [parentScope].
-      orgDebugLibrary.prefixNameSpace.forEachLocalMember((name, member) {
-        debugLibrary.prefixNameSpace
+      // TODO(johnniwinther): Do we still need these with the new scope
+      //  structure?
+      orgCompilationUnit.prefixNameSpace.forEachLocalMember((name, member) {
+        debugCompilationUnit.prefixNameSpace
             .addLocalMember(name, member, setter: false);
       });
       // Does a prefix namespace ever have anything but locals?
-      orgDebugLibrary.prefixNameSpace.forEachLocalSetter((name, member) {
-        debugLibrary.prefixNameSpace.addLocalMember(name, member, setter: true);
+      orgCompilationUnit.prefixNameSpace.forEachLocalSetter((name, member) {
+        debugCompilationUnit.prefixNameSpace
+            .addLocalMember(name, member, setter: true);
       });
-      orgDebugLibrary.prefixNameSpace.forEachLocalExtension((member) {
-        debugLibrary.prefixNameSpace.addExtension(member);
+      orgCompilationUnit.prefixNameSpace.forEachLocalExtension((member) {
+        debugCompilationUnit.prefixNameSpace.addExtension(member);
       });
-      orgDebugLibrary = null;
+      orgCompilationUnit = null;
 
       HybridFileSystem hfs =
           lastGoodKernelTarget.fileSystem as HybridFileSystem;

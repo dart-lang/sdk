@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "through_prefix_lib.dart" as thr;
+
+import "org-dartlang-testcase:///through_prefix_lib.dart" as lib;
+
+part through_prefix_part.dart;
+static method /* from org-dartlang-testcase:///through_prefix_part.dart */ method(core::int i) → void
+  return thr::Extension|get#foo(i);
+
+library;
+import self as thr;
+import "dart:core" as core;
+
+extension Extension on core::int {
+  get foo = thr::Extension|get#foo;
+}
+static extension-member method Extension|get#foo(lowered final core::int #this) → core::int
+  return 42;

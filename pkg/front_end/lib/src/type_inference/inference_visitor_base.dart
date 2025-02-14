@@ -29,6 +29,7 @@ import '../base/instrumentation.dart'
         InstrumentationValueForTypeArgs;
 import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
+import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../codes/cfe_codes.dart';
@@ -170,6 +171,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   @pragma("vm:prefer-inline")
   SourceLibraryBuilder get libraryBuilder => _inferrer.libraryBuilder;
+
+  LookupScope get extensionScope => _inferrer.extensionScope;
 
   bool get isInferenceUpdate1Enabled =>
       libraryBuilder.isInferenceUpdate1Enabled;
@@ -1031,7 +1034,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool otherIsSetter = descriptor.complementaryIsSetter;
     ExtensionAccessCandidate? bestSoFar;
     List<ExtensionAccessCandidate> noneMoreSpecific = [];
-    libraryBuilder.forEachExtensionInScope((ExtensionBuilder extensionBuilder) {
+    extensionScope.forEachExtension((ExtensionBuilder extensionBuilder) {
       MemberBuilder? thisBuilder = extensionBuilder
           .lookupLocalMemberByName(name, setter: setter) as MemberBuilder?;
       MemberBuilder? otherBuilder = extensionBuilder.lookupLocalMemberByName(

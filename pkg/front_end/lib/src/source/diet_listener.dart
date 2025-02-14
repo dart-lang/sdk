@@ -826,7 +826,7 @@ class DietListener extends StackListenerImpl {
     InterfaceType? thisType =
         thisVariable == null ? currentDeclaration?.thisType : null;
     TypeInferrer typeInferrer = typeInferenceEngine.createLocalTypeInferrer(
-        uri, thisType, libraryBuilder, inferenceDataForTesting);
+        uri, thisType, libraryBuilder, memberScope, inferenceDataForTesting);
     ConstantContext constantContext = bodyBuilderContext.constantContext;
     BodyBuilder result = createListenerInternal(
         bodyBuilderContext,

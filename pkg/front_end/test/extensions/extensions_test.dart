@@ -134,7 +134,8 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     Features features = new Features();
     SourceLibraryBuilder libraryBuilder =
         lookupLibraryBuilder(compilerResult, library) as SourceLibraryBuilder;
-    libraryBuilder.forEachExtensionInScope((ExtensionBuilder extension) {
+    libraryBuilder.compilationUnit.compilationUnitScope
+        .forEachExtension((ExtensionBuilder extension) {
       LibraryBuilder library = extension.libraryBuilder;
       if (library.importUri.isScheme('dart')) {
         // Don't include dart: extensions.
@@ -258,7 +259,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     } else if (memberBuilder is SourceMethodBuilder) {
       if (memberBuilder.formalsForTesting != null) {
         for (FormalParameterBuilder parameter
-        in memberBuilder.formalsForTesting!) {
+            in memberBuilder.formalsForTesting!) {
           if (parameter.isRequiredPositional) {
             features.addElement(Tags.builderRequiredParameters, parameter.name);
           } else if (parameter.isPositional) {
@@ -275,7 +276,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       }
       if (memberBuilder.typeParametersForTesting != null) {
         for (NominalParameterBuilder typeVariable
-        in memberBuilder.typeParametersForTesting!) {
+            in memberBuilder.typeParametersForTesting!) {
           features.addElement(Tags.builderTypeParameters,
               typeVariableBuilderToText(typeVariable));
         }

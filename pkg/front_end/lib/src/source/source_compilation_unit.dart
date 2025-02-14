@@ -55,6 +55,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final LookupScope? _parentScope;
 
+  SourceCompilationUnit? _parentCompilationUnit;
+
   /// Map used to find objects created in the [OutlineBuilder] from within
   /// the [DietListener].
   ///
@@ -97,6 +99,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final NameSpace _importNameSpace;
 
+  late final LookupScope _importScope;
+
+  final NameSpace _prefixNameSpace;
+
+  late final LookupScope _prefixScope;
+
   LibraryFeatures? _libraryFeatures;
 
   @override
@@ -111,7 +119,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   final bool isUnsupported;
 
-  late final LookupScope _scope;
+  late final LookupScope _compilationUnitScope;
 
   @override
   final bool mayImplementRestrictedTypes;
@@ -137,6 +145,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     LibraryNameSpaceBuilder libraryNameSpaceBuilder =
         new LibraryNameSpaceBuilder();
     NameSpace importNameSpace = new NameSpaceImpl();
+    NameSpace prefixNameSpace = new NameSpaceImpl();
     return new SourceCompilationUnitImpl._(libraryNameSpaceBuilder,
         importUri: importUri,
         fileUri: fileUri,
@@ -146,6 +155,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         indexedLibrary: indexedLibrary,
         parentScope: parentScope,
         importNameSpace: importNameSpace,
+        prefixNameSpace: prefixNameSpace,
         forAugmentationLibrary: forAugmentationLibrary,
         augmentationRoot: augmentationRoot,
         nameOrigin: nameOrigin,
@@ -166,6 +176,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       required this.indexedLibrary,
       LookupScope? parentScope,
       required NameSpace importNameSpace,
+      required NameSpace prefixNameSpace,
       required this.forAugmentationLibrary,
       required SourceCompilationUnit? augmentationRoot,
       required LibraryBuilder? nameOrigin,
@@ -179,13 +190,20 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         _packageUri = packageUri,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _importNameSpace = importNameSpace,
+        _prefixNameSpace = prefixNameSpace,
         _augmentationRoot = augmentationRoot,
         _nameOrigin = nameOrigin,
         _parentScope = parentScope,
         _referenceIsPartOwner = referenceIsPartOwner,
         _problemReporting = new LibraryProblemReporting(loader, fileUri) {
-    _scope = new SourceLibraryBuilderScope(
-        this, ScopeKind.typeParameters, 'library');
+    LookupScope scope =
+        _importScope = new CompilationUnitImportScope(this, _importNameSpace);
+    _prefixScope = new CompilationUnitPrefixScope(
+        prefixNameSpace, ScopeKind.prefix, 'prefix',
+        parent: scope);
+    _compilationUnitScope = new CompilationUnitScope(
+        this, ScopeKind.compilationUnit, 'compilation-unit',
+        parent: _prefixScope);
 
     // TODO(johnniwinther): Create these in [createOutlineBuilder].
     _builderFactoryResult = _builderFactory = new BuilderFactoryImpl(
@@ -193,7 +211,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         augmentationRoot: augmentationRoot ?? this,
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         problemReporting: _problemReporting,
-        scope: _scope,
+        scope: _compilationUnitScope,
         indexedLibrary: indexedLibrary);
   }
 
@@ -261,6 +279,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         "Library builder for $this has not been computed yet.");
     return _libraryBuilder!;
   }
+
+  @override
+  SourceCompilationUnit? get parentCompilationUnit => _parentCompilationUnit;
 
   @override
   void addExporter(CompilationUnit exporter,
@@ -544,7 +565,16 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   Uri? get partOfUri => _builderFactoryResult.partOfUri;
 
   @override
-  LookupScope get scope => _scope;
+  LookupScope get compilationUnitScope => _compilationUnitScope;
+
+  // Coverage-ignore(suite): Not run.
+  LookupScope get importScope => _importScope;
+
+  @override
+  LookupScope get prefixScope => _prefixScope;
+
+  @override
+  NameSpace get prefixNameSpace => _prefixNameSpace;
 
   @override
   void takeMixinApplications(
@@ -685,7 +715,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
               context: context);
         }
 
-        part.validatePart(libraryBuilder, _libraryNameSpaceBuilder, usedParts);
+        part.validatePart(libraryBuilder, parentCompilationUnit,
+            _libraryNameSpaceBuilder, usedParts);
         includedParts.add(part);
         return true;
       case DillCompilationUnit():
@@ -752,10 +783,14 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  void validatePart(SourceLibraryBuilder libraryBuilder,
-      LibraryNameSpaceBuilder libraryNameSpaceBuilder, Set<Uri>? usedParts) {
+  void validatePart(
+      SourceLibraryBuilder libraryBuilder,
+      SourceCompilationUnit parentCompilationUnit,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+      Set<Uri>? usedParts) {
     _libraryBuilder = libraryBuilder;
     _partOfLibrary = libraryBuilder;
+    _parentCompilationUnit = parentCompilationUnit;
     if (_builderFactoryResult.parts.isNotEmpty) {
       List<LocatedMessage> context = <LocatedMessage>[
         messagePartInPartLibraryContext.withLocation(
@@ -826,7 +861,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
       import.finalizeImports(this);
     }
-    if (!hasCoreImport) {
+    if (parentCompilationUnit == null && !hasCoreImport) {
+      // 'dart:core' should only be implicitly imported into the root
+      // compilation unit. Parts without imports will have access to 'dart:core'
+      // from the parent compilation unit.
       NameIterator<Builder> iterator = loader.coreLibrary.exportNameSpace
           .filteredNameIterator(
               includeDuplicates: false, includeAugmentations: false);
@@ -1021,8 +1059,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   @override
   bool addPrefixFragment(
       String name, PrefixFragment prefixFragment, int charOffset) {
-    Builder? existing =
-        libraryBuilder.prefixNameSpace.lookupLocalMember(name, setter: false);
+    Builder? existing = prefixNameSpace.lookupLocalMember(name, setter: false);
     existing ??=
         libraryBuilder.libraryNameSpace.lookupLocalMember(name, setter: false);
     if (existing is PrefixBuilder) {
@@ -1064,10 +1101,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                     existing.fileUri!, existing.fileOffset, fullName.length)
           ]);
     }
-    // TODO(johnniwinther): For enhanced parts, this should be the prefix name
-    //  space for the compilation unit.
-    libraryBuilder.prefixNameSpace.addLocalMember(
-        name, prefixFragment.createPrefixBuilder(),
+    prefixNameSpace.addLocalMember(name, prefixFragment.createPrefixBuilder(),
         setter: false);
     return true;
   }

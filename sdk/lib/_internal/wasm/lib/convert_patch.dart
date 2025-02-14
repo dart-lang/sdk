@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_compact_hash" show createMapFromKeyValueListUnsafe;
+import "dart:_compact_hash" show createMapFromStringKeyValueListUnsafe;
 import "dart:_error_utils";
 import "dart:_internal"
     show patch, POWERS_OF_TEN, unsafeCast, pushWasmArray, popWasmArray;
@@ -161,16 +161,6 @@ class _JsonListener {
 
   /** Pops the top container from the [stack]. */
   void popContainer() {
-    final currentContainerLocal = currentContainer;
-    if (currentContainerLocal == null) {
-      value = null;
-    } else {
-      value = GrowableList.withDataAndLength(
-        currentContainerLocal,
-        currentContainerLength,
-      );
-    }
-
     final GrowableList<dynamic>? currentContainerList = stackPop();
     if (currentContainerList == null) {
       currentContainer = null;
@@ -220,12 +210,11 @@ class _JsonListener {
   }
 
   void endObject() {
-    popContainer();
-    final list = unsafeCast<GrowableList>(value);
-    value = createMapFromKeyValueListUnsafe<String, dynamic>(
-      list.data,
-      list.length,
+    value = createMapFromStringKeyValueListUnsafe<String, dynamic>(
+      unsafeCast<WasmArray<Object?>>(currentContainer),
+      currentContainerLength,
     );
+    popContainer();
   }
 
   void beginArray() {
@@ -242,6 +231,10 @@ class _JsonListener {
   }
 
   void endArray() {
+    value = GrowableList.withDataAndLength(
+      unsafeCast<WasmArray<Object?>>(currentContainer),
+      currentContainerLength,
+    );
     popContainer();
   }
 

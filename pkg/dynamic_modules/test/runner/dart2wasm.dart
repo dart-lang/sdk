@@ -60,7 +60,7 @@ class Dart2wasmExecutor implements TargetExecutor {
     var testDir = _tmp.uri.resolve(testName).toFilePath();
     var args = [
       '--packages=${repoRoot.toFilePath()}/.dart_tool/package_config.json',
-      '--multi-root=${sourceDir.resolve('../../')}',
+      '--multi-root=${sourceDir.resolve('../../').toFilePath()}',
       '--multi-root-scheme=$rootScheme',
       // This is required while binaryen lacks support for partially closed
       // world optimizations.

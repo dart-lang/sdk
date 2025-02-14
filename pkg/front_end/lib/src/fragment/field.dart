@@ -209,22 +209,20 @@ class FieldFragment
               .thisInterfaceType(
                   declarationBuilder.cls, libraryBuilder.library.nonNullable)
           : null;
+      LookupScope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
       TypeInferrer typeInferrer =
           libraryBuilder.loader.typeInferenceEngine.createTopLevelTypeInferrer(
               fileUri,
               enclosingClassThisType,
               libraryBuilder,
+              scope,
               builder
                   .dataForTesting
                   // Coverage-ignore(suite): Not run.
                   ?.inferenceData);
       BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
       BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
-          libraryBuilder,
-          bodyBuilderContext,
-          declarationBuilder?.scope ?? libraryBuilder.scope,
-          typeInferrer,
-          fileUri);
+          libraryBuilder, bodyBuilderContext, scope, typeInferrer, fileUri);
       bodyBuilder.constantContext =
           modifiers.isConst ? ConstantContext.inferred : ConstantContext.none;
       bodyBuilder.inFieldInitializer = true;

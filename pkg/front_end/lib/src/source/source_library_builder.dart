@@ -128,17 +128,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final SourceCompilationUnit compilationUnit;
 
-  final LookupScope _importScope;
-
-  final NameSpace _prefixNameSpace;
-
-  final LookupScope _prefixScope;
-
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
-  NameSpace? _nameSpace;
+  NameSpace? _libraryNameSpace;
 
   final NameSpace _exportNameSpace;
+
+  final LookupScope? _parentScope;
 
   @override
   final SourceLoader loader;
@@ -227,10 +223,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // TODO(johnniwinther): Remove this.
   final Map<String, List<Builder>>? setterAugmentations;
 
-  /// Set of extension declarations in scope. This is computed lazily in
-  /// [forEachExtensionInScope].
-  Set<ExtensionBuilder>? _extensionsInScope;
-
   factory SourceLibraryBuilder(
       {required SourceCompilationUnit compilationUnit,
       required Uri importUri,
@@ -259,13 +251,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     : indexedLibrary?.library.reference)
           ..setLanguageVersion(packageLanguageVersion.version));
     LibraryName libraryName = new LibraryName(library.reference);
-    LookupScope importScope = new NameSpaceLookupScope(
-        importNameSpace, ScopeKind.import, 'import',
-        parent: parentScope);
-    NameSpace prefixNameSpace = new NameSpaceImpl();
-    LookupScope prefixScope = new NameSpaceLookupScope(
-        prefixNameSpace, ScopeKind.prefix, 'prefix',
-        parent: importScope);
     NameSpace exportNameSpace = origin?.exportNameSpace ?? new NameSpaceImpl();
     return new SourceLibraryBuilder._(
         compilationUnit: compilationUnit,
@@ -276,10 +261,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         originImportUri: originImportUri,
         packageLanguageVersion: packageLanguageVersion,
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
-        importScope: importScope,
-        prefixNameSpace: prefixNameSpace,
-        prefixScope: prefixScope,
         exportNameSpace: exportNameSpace,
+        parentScope: parentScope,
         origin: origin,
         library: library,
         libraryName: libraryName,
@@ -301,10 +284,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       required Uri originImportUri,
       required LanguageVersion packageLanguageVersion,
       required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
-      required LookupScope importScope,
-      required NameSpace prefixNameSpace,
-      required LookupScope prefixScope,
       required NameSpace exportNameSpace,
+      required LookupScope? parentScope,
       required SourceLibraryBuilder? origin,
       required this.library,
       required this.libraryName,
@@ -318,11 +299,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       : _packageUri = packageUri,
         _immediateOrigin = origin,
         _nameOrigin = nameOrigin,
-        _importScope = importScope,
-        _prefixNameSpace = prefixNameSpace,
-        _prefixScope = prefixScope,
         _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
         _exportNameSpace = exportNameSpace,
+        _parentScope = parentScope,
         super(fileUri) {
     assert(
         _packageUri == null ||
@@ -406,20 +385,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  LookupScope get scope => compilationUnit.scope;
+  LookupScope get scope => compilationUnit.compilationUnitScope;
 
-  // Coverage-ignore(suite): Not run.
-  LookupScope get importScope => _importScope;
+  LookupScope? get parentScope => _parentScope;
 
   @override
   NameSpace get libraryNameSpace {
-    assert(_nameSpace != null, "Name space has not being computed for $this.");
-    return _nameSpace!;
+    assert(_libraryNameSpace != null,
+        "Name space has not being computed for $this.");
+    return _libraryNameSpace!;
   }
-
-  LookupScope get prefixScope => _prefixScope;
-
-  NameSpace get prefixNameSpace => _prefixNameSpace;
 
   @override
   NameSpace get exportNameSpace => _exportNameSpace;
@@ -481,7 +456,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void computeSupertypes() {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
-    List<SourceClassBuilder> sourceClasses = _nameSpace!
+    List<SourceClassBuilder> sourceClasses = _libraryNameSpace!
         .filteredIterator<SourceClassBuilder>(
             includeDuplicates: true, includeAugmentations: true, parent: this)
         .toList();
@@ -653,13 +628,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void buildNameSpace() {
     assert(checkState(required: [SourceLibraryBuilderState.initial]));
 
-    assert(
-        _nameSpace == null, "Name space has already being computed for $this.");
+    assert(_libraryNameSpace == null,
+        "Name space has already being computed for $this.");
 
     assert(
         _mixinApplications != null, "Late registration of mixin application.");
 
-    _nameSpace = _libraryNameSpaceBuilder.toNameSpace(
+    _libraryNameSpace = _libraryNameSpaceBuilder.toNameSpace(
         problemReporting: this,
         enclosingLibraryBuilder: this,
         mixinApplications: _mixinApplications!,
@@ -688,7 +663,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         indexedLibrary: indexedLibrary,
         mixinApplications: _mixinApplications!,
         addAnonymousMixinClassBuilder: (SourceClassBuilder classBuilder) {
-          _nameSpace!
+          _libraryNameSpace!
               .addLocalMember(classBuilder.name, classBuilder, setter: false);
           _computeSupertypeBuilderForClass(classBuilder);
         });
@@ -1980,28 +1955,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeParametersTraversalState: typeParametersTraversalState);
       }
     }
-  }
-
-  void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
-    if (_extensionsInScope == null) {
-      _extensionsInScope = <ExtensionBuilder>{};
-      scope.forEachExtension((e) {
-        _extensionsInScope!.add(e);
-      });
-      Iterator<PrefixBuilder> iterator = prefixNameSpace.filteredIterator(
-          includeDuplicates: false, includeAugmentations: false);
-      while (iterator.moveNext()) {
-        iterator.current.forEachExtension((e) {
-          _extensionsInScope!.add(e);
-        });
-      }
-    }
-    _extensionsInScope!.forEach(f);
-  }
-
-  // Coverage-ignore(suite): Not run.
-  void clearExtensionsInScopeCache() {
-    _extensionsInScope = null;
   }
 
   void registerBoundsCheck(

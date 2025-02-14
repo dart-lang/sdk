@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/instrumentation.dart' show Instrumentation;
+import '../base/scope.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
 import '../source/constructor_declaration.dart';
@@ -121,6 +122,8 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final SourceLibraryBuilder libraryBuilder;
 
+  final LookupScope extensionScope;
+
   late final StaticTypeContext staticTypeContext =
       new StaticTypeContextImpl.direct(
           libraryBuilder.library, typeSchemaEnvironment,
@@ -132,6 +135,7 @@ class TypeInferrerImpl implements TypeInferrer {
       this.isTopLevel,
       this.thisType,
       this.libraryBuilder,
+      this.extensionScope,
       this.assignedVariables,
       this.dataForTesting)
       : instrumentation = isTopLevel ? null : engine.instrumentation,
@@ -305,12 +309,20 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     Uri uriForInstrumentation,
     bool topLevel,
     InterfaceType? thisType,
-    SourceLibraryBuilder library,
+    SourceLibraryBuilder libraryBuilder,
+    LookupScope extensionScope,
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables,
     InferenceDataForTesting? dataForTesting,
     this.benchmarker,
-  ) : impl = new TypeInferrerImpl(engine, uriForInstrumentation, topLevel,
-            thisType, library, assignedVariables, dataForTesting);
+  ) : impl = new TypeInferrerImpl(
+            engine,
+            uriForInstrumentation,
+            topLevel,
+            thisType,
+            libraryBuilder,
+            extensionScope,
+            assignedVariables,
+            dataForTesting);
 
   @override
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>

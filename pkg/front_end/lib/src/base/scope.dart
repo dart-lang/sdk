@@ -106,9 +106,23 @@ enum ScopeKind {
   /// Scope for type parameters of declarations
   typeParameters,
 
-  import,
+  /// Scope for a compilation unit.
+  ///
+  /// This contains the entities declared in the library to which the
+  /// compilation unit belongs. Its parent scopes are the [prefix] and [import]
+  /// scopes of the compilation unit.
+  compilationUnit,
 
+  /// Scope for the prefixed imports in a compilation unit.
+  ///
+  /// The parent scope is the [import] scope of the same compilation unit.
   prefix,
+
+  /// Scope for the non-prefixed imports in a compilation unit.
+  ///
+  /// The parent scope is the [prefix] scope of the parent compilation unit,
+  /// if any.
+  import,
 }
 
 abstract class LookupScope {
@@ -237,6 +251,9 @@ mixin LookupScopeMixin implements LookupScope {
         classNameOrDebugName: classNameOrDebugName,
         isSetter: true);
   }
+
+  @override
+  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
 /// A [LookupScope] based directly on a [NameSpace].
@@ -283,6 +300,9 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
     _nameSpace.forEachLocalExtension(f);
     _parent?.forEachExtension(f);
   }
+
+  @override
+  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
 class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
@@ -337,10 +357,12 @@ abstract class AbstractTypeParameterScope implements LookupScope {
   String get classNameOrDebugName => "type parameter";
 
   @override
-  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent.forEachExtension(f);
   }
+
+  @override
+  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
 class TypeParameterScope extends AbstractTypeParameterScope {
@@ -410,12 +432,45 @@ class FixedLookupScope implements LookupScope {
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent?.forEachExtension(f);
   }
+
+  @override
+  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
-// Coverage-ignore(suite): Not run.
-// TODO(johnniwinther): Use this instead of [SourceLibraryBuilderScope].
+/// The import scope of a compilation unit.
+///
+/// This includes all declaration available through imports in this compilation
+/// unit. Its parent scope is the prefix scope of the parent compilation unit.
+/// If the compilation unit has no parent, the
+/// [SourceLibraryBuilder.parentScope] is used as the parent. This is not a
+/// normal Dart scope, but instead a synthesized scope used for expression
+/// compilation.
+class CompilationUnitImportScope extends BaseNameSpaceLookupScope {
+  final SourceCompilationUnit _compilationUnit;
+  final NameSpace _importNameSpace;
+
+  CompilationUnitImportScope(this._compilationUnit, this._importNameSpace)
+      : super(ScopeKind.import, 'import');
+
+  @override
+  NameSpace get _nameSpace => _importNameSpace;
+
+  @override
+  LookupScope? get _parent =>
+      _compilationUnit.parentCompilationUnit?.prefixScope ??
+      _compilationUnit.libraryBuilder.parentScope;
+}
+
+/// The scope of a compilation unit.
+///
+/// This is the enclosing scope for all declarations within the compilation
+/// unit. It gives access to all declarations in the library the compilation
+/// unit is part of. Its parent scope is the prefix scope, which contains all
+/// imports with prefixes declared in this compilation unit. The grand parent
+/// scope is the import scope of the compilation  unit implemented through
+/// [CompilationUnitImportScope].
 class CompilationUnitScope extends BaseNameSpaceLookupScope {
-  final CompilationUnit _compilationUnit;
+  final SourceCompilationUnit _compilationUnit;
 
   @override
   final LookupScope? _parent;
@@ -427,19 +482,54 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
 
   @override
   NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
+
+  /// Set of extension declarations in scope. This is computed lazily in
+  /// [forEachExtension].
+  Set<ExtensionBuilder>? _extensions;
+
+  @override
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    if (_extensions == null) {
+      Set<ExtensionBuilder> extensions = _extensions = <ExtensionBuilder>{};
+      _parent?.forEachExtension(extensions.add);
+      _nameSpace.forEachLocalExtension(extensions.add);
+    }
+    _extensions!.forEach(f);
+  }
 }
 
-class SourceLibraryBuilderScope extends BaseNameSpaceLookupScope {
-  final SourceCompilationUnit _compilationUnit;
-
-  SourceLibraryBuilderScope(
-      this._compilationUnit, super.kind, super.classNameOrDebugName);
+/// The scope containing the prefixes imported into a compilation unit.
+class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
+  @override
+  final NameSpace _nameSpace;
 
   @override
-  NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
+  final LookupScope? _parent;
+
+  CompilationUnitPrefixScope(
+      this._nameSpace, super.kind, super.classNameOrDebugName,
+      {required LookupScope? parent})
+      : _parent = parent;
+
+  /// Set of extension declarations in scope. This is computed lazily in
+  /// [forEachExtension].
+  Set<ExtensionBuilder>? _extensions;
 
   @override
-  LookupScope? get _parent => _compilationUnit.libraryBuilder.prefixScope;
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    if (_extensions == null) {
+      Set<ExtensionBuilder> extensions = _extensions = {};
+      Iterator<PrefixBuilder> iterator = _nameSpace.filteredIterator(
+          includeDuplicates: false, includeAugmentations: false);
+      while (iterator.moveNext()) {
+        iterator.current.forEachExtension((e) {
+          extensions.add(e);
+        });
+      }
+      _parent?.forEachExtension(extensions.add);
+    }
+    _extensions!.forEach(f);
+  }
 }
 
 abstract class ConstructorScope {
