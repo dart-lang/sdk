@@ -26,7 +26,7 @@ class MyRule extends AnalysisRule {
 
   MyRule()
       : super(
-          name: LintNames.prefer_void_to_null,
+          name: 'my_rule',
           description: 'A longer description of the rule.',
         );
 
@@ -124,6 +124,13 @@ Let's look at each declaration individually:
   analysis. Typically, a 'visit' method like this is where we perform some
   analysis and maybe report lint(s) or warning(s).
 
+Some rules do not require complex logic in the visitor class, but rules may
+also need to walk up or down the syntax tree, or examine properties of nodes
+carefully and thoroughly. For many examples of analysis rules and their visitor
+classes, see the [lint rules] that ship with the Dart Analysis Server.
+
+[lint rules]: https://github.com/dart-lang/sdk/tree/main/pkg/linter/lib/src/rules
+
 ## Registering an analysis rule
 
 In order for an analysis rule to be used in an analyzer plugin, it must be
@@ -144,4 +151,6 @@ enabled by default. To register an analysis rule as a "lint rule," such that it
 must be specifically enabled from analysis options, use `registerLintRule`
 instead.
 
-TODO(srawlins): Write up and link documentation for this Plugin subclass.
+See [writing a plugin][] for for information about the `Plugin` class.
+
+[writing a plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_rules.md
