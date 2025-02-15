@@ -18,6 +18,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 int test_resetCount = 0;
 
@@ -314,7 +315,8 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node);
+        var element =
+            server.getElementOfNode2(node, useMockForImport: true)?.asElement;
         if (node is RepresentationDeclaration) {
           var extensionType = node.parent;
           if (extensionType is ExtensionTypeDeclaration &&

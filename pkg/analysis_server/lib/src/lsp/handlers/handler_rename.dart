@@ -19,6 +19,7 @@ import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 AstNode? _tweakLocatedNode(AstNode? node, int offset) {
   if (node is RepresentationDeclaration) {
@@ -66,7 +67,9 @@ class PrepareRenameHandler
     return (unit, offset).mapResults((unit, offset) async {
       var node = NodeLocator(offset).searchWithin(unit.unit);
       node = _tweakLocatedNode(node, offset);
-      var element = server.getElementOfNode(node);
+      var element =
+          server.getElementOfNode2(node, useMockForImport: true).asElement;
+
       if (node == null || element == null) {
         return success(null);
       }
@@ -161,7 +164,8 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
     ) async {
       var node = NodeLocator(offset).searchWithin(unit.unit);
       node = _tweakLocatedNode(node, offset);
-      var element = server.getElementOfNode(node);
+      var element =
+          server.getElementOfNode2(node, useMockForImport: true).asElement;
       if (node == null || element == null) {
         return success(null);
       }
@@ -223,7 +227,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
 
         // Set the completer to complete to show that request is paused, and
         // that processing of incoming messages can continue while we wait
-        // for the user's response. 
+        // for the user's response.
         message.completer?.complete();
 
         // Otherwise, ask the user whether to proceed with the rename.

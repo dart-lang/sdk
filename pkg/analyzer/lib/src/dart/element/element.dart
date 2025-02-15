@@ -6635,7 +6635,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   @override
-  List<ConstructorElement2> get constructors2 {
+  List<ConstructorElementImpl2> get constructors2 {
     _readMembers();
     return constructors
         .map((constructor) =>
@@ -11685,7 +11685,7 @@ mixin TypeParameterizedElementMixin on ElementImpl
   bool get isSimplyBounded => true;
 
   @override
-  LibraryFragment get libraryFragment => enclosingUnit;
+  CompilationUnitElementImpl get libraryFragment => enclosingUnit;
 
   ElementLinkedData? get linkedData;
 

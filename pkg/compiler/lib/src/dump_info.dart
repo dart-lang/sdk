@@ -75,7 +75,7 @@ class DumpInfoJsAstRegistry {
           !options.stage.emitsDumpInfo &&
           !options.stage.shouldWriteDumpInfoData;
 
-  bool get useBinaryFormat => options.useDumpInfoBinaryFormat;
+  bool get useBinaryFormat => options.dumpInfoFormat == DumpInfoFormat.binary;
 
   void registerEntityAst(Entity? entity, js_ast.Node code) {
     if (_disabled) return;
@@ -1637,7 +1637,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   final bool useBinaryFormat;
 
   DumpInfoTask(this.options, this.measurer, this.outputProvider, this.reporter)
-    : useBinaryFormat = options.useDumpInfoBinaryFormat,
+    : useBinaryFormat = options.dumpInfoFormat == DumpInfoFormat.binary,
       super(measurer);
 
   @override

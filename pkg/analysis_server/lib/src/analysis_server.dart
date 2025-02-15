@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:io';
@@ -56,7 +54,6 @@ import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -674,9 +671,15 @@ abstract class AnalysisServer {
     return getElementOfNode2(node);
   }
 
-  /// Return the [Element] of the given [node], or `null` if [node] is `null` or
-  /// does not have an element.
-  Element? getElementOfNode(AstNode? node) {
+  /// Returns the element associated with the [node].
+  ///
+  /// If [useMockForImport] is `true` then a [MockLibraryImportElement] will be
+  /// returned when an import directive or a prefix element is associated with
+  /// the [node]. The rename-prefix refactoring should be updated to not require
+  /// this work-around.
+  ///
+  /// Returns `null` if [node] is `null` or doesn't have an element.
+  Element2? getElementOfNode2(AstNode? node, {bool useMockForImport = false}) {
     if (node == null) {
       return null;
     }
@@ -690,40 +693,18 @@ abstract class AnalysisServer {
       return null;
     }
 
-    Element? element;
-    switch (node) {
-      case ExportDirective():
-        element = node.element;
-      case ImportDirective():
-        element = node.element;
-      case PartOfDirective():
-        element = node.element;
-      default:
-        element = ElementLocator.locate2(node).asElement;
+    Element2? element;
+    if (useMockForImport && node is ImportDirective) {
+      element = MockLibraryImportElement(node.libraryImport!);
+    } else {
+      element = ElementLocator.locate2(node);
     }
-
-    if (node is SimpleIdentifier && element is PrefixElement) {
-      element = getImportElement(node);
+    if (useMockForImport &&
+        node is SimpleIdentifier &&
+        element is PrefixElement2) {
+      element = MockLibraryImportElement(getImportElement2(node)!);
     }
     return element;
-  }
-
-  /// Return the [Element] of the given [node], or `null` if [node] is `null` or
-  /// does not have an element.
-  Element2? getElementOfNode2(AstNode? node) {
-    if (node == null) {
-      return null;
-    }
-    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is StringLiteral && node.parent is UriBasedDirective) {
-      return null;
-    }
-    return ElementLocator.locate2(node);
   }
 
   /// Return a [LineInfo] for the file with the given [path].
