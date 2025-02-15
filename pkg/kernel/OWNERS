@@ -1,6 +1,7 @@
 set noparent
 file:/tools/OWNERS_CFE
-# In addition to CFE team allow global owners.
+file:/tools/OWNERS_MODEL
+# In addition to CFE and Dart Model teams allow global owners.
 file:/OWNERS
 
 # Let the infrastructure team bump the language version on releases.

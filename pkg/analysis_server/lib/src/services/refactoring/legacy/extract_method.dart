@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
@@ -24,7 +22,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -37,7 +34,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
@@ -214,15 +210,14 @@ Future<void> addLibraryImports(
   }
 }
 
-bool isLocalElement(Element? element) {
-  return element is LocalVariableElement ||
-      element is ParameterElement ||
-      element is FunctionElement &&
-          element.enclosingElement3 is! CompilationUnitElement;
+bool isLocalElement(Element2? element) {
+  return element is LocalVariableElement2 ||
+      element is FormalParameterElement ||
+      element is LocalFunctionElement;
 }
 
-Element? _getLocalElement(SimpleIdentifier node) {
-  var element = node.writeOrReadElement;
+Element2? _getLocalElement(SimpleIdentifier node) {
+  var element = node.writeOrReadElement2;
   if (isLocalElement(element)) {
     return element;
   }
@@ -832,7 +827,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (argument.parent is NamedExpression) {
       argument = argument.parent as NamedExpression;
     }
-    var parameter = argument.staticParameterElement;
+    var parameter = argument.correspondingParameter;
     if (parameter != null) {
       var parameterType = parameter.type;
       if (parameterType is FunctionType) {
@@ -913,7 +908,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   String _getTypeCode(DartType type) =>
-      _resolveResult.libraryElement.getTypeSource(type, _librariesToImport)!;
+      _resolveResult.libraryElement2.getTypeSource(type, _librariesToImport)!;
 
   void _initializeHasAwait() {
     var visitor = _HasAwaitVisitor();
@@ -954,7 +949,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     _parametersMap.clear();
     _parameterReferencesMap.clear();
     var result = RefactoringStatus();
-    var assignedUsedVariables = <VariableElement>[];
+    var assignedUsedVariables = <VariableElement2>[];
 
     var unit = _resolveResult.unit;
     _visibleRangeMap = VisibleRangesComputer.forNode(unit);
@@ -1040,7 +1035,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       _variableType = _getTypeCode(returnTypeObj);
       if (_hasAwait) {
         if (returnTypeObj is InterfaceType &&
-            returnTypeObj.element != typeProvider.futureElement) {
+            returnTypeObj.element3 != typeProvider.futureElement2) {
           returnType = _getTypeCode(typeProvider.futureType(returnTypeObj));
         }
       } else {
@@ -1050,8 +1045,8 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   /// Checks if the given [element] is declared in [_selectionRange].
-  bool _isDeclaredInSelection(Element element) {
-    return _selectionRange.contains(element.nameOffset);
+  bool _isDeclaredInSelection(Element2 element) {
+    return _selectionRange.contains(element.firstFragment.nameOffset2!);
   }
 
   /// Checks if it is OK to extract the node with the given [SourceRange].
@@ -1096,7 +1091,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   /// Checks if [element] is referenced after [_selectionRange].
-  bool _isUsedAfterSelection(Element element) {
+  bool _isUsedAfterSelection(Element2 element) {
     var visitor = _IsUsedAfterSelectionVisitor(this, element);
     _parentMember!.accept(visitor);
     return visitor.result;
@@ -1345,11 +1340,13 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
         invalidSelection('Cannot extract the name part of a declaration.');
       }
       // method name
-      var element = node.writeOrReadElement;
-      if (element is FunctionElement || element is MethodElement) {
+      var element = node.writeOrReadElement2;
+      if (element is LocalFunctionElement ||
+          element is MethodElement2 ||
+          element is TopLevelFunctionElement) {
         invalidSelection('Cannot extract a single method name.');
       }
-      if (element is PrefixElement) {
+      if (element is PrefixElement2) {
         invalidSelection('Cannot extract an import prefix.');
       }
       var parent = node.parent;
@@ -1407,17 +1404,17 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _addPatterns(nameToken: node.token, element: node.staticElement);
+    _addPatterns(nameToken: node.token, element: node.element);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    _addPatterns(nameToken: node.name, element: node.declaredElement);
+    _addPatterns(nameToken: node.name, element: node.declaredFragment?.element);
 
     super.visitVariableDeclaration(node);
   }
 
-  void _addPatterns({required Token nameToken, required Element? element}) {
+  void _addPatterns({required Token nameToken, required Element2? element}) {
     var nameRange = range.token(nameToken);
     if (partRange.covers(nameRange)) {
       if (element != null && isLocalElement(element)) {
@@ -1440,11 +1437,11 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
     }
   }
 
-  DartType _getElementType(Element element) {
-    if (element is VariableElement) {
+  DartType _getElementType(Element2 element) {
+    if (element is VariableElement2) {
       return element.type;
     }
-    if (element is FunctionElement) {
+    if (element is LocalFunctionElement) {
       return element.type;
     }
     throw StateError('Unknown element type: ${element.runtimeType}');
@@ -1620,7 +1617,7 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
 
 class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
   final ExtractMethodRefactoringImpl ref;
-  final List<VariableElement> assignedUsedVariables;
+  final List<VariableElement2> assignedUsedVariables;
 
   _InitializeParametersVisitor(this.ref, this.assignedUsedVariables);
 
@@ -1645,7 +1642,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
         if (parameter == null) {
           var parameterType = node.writeOrReadType!;
           var parametersBuffer = StringBuffer();
-          var parameterTypeCode = ref._resolveResult.libraryElement
+          var parameterTypeCode = ref._resolveResult.libraryElement2
               .getTypeSource(
                 parameterType,
                 ref._librariesToImport,
@@ -1671,17 +1668,17 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
       }
       // remember, if assigned and used after selection
       if (isLeftHandOfAssignment(node) && ref._isUsedAfterSelection(element)) {
-        if (element is VariableElement &&
+        if (element is VariableElement2 &&
             !assignedUsedVariables.contains(element)) {
           assignedUsedVariables.add(element);
         }
       }
     }
     // remember information for conflicts checking
-    if (element is LocalElement) {
+    if (element is LocalElement2) {
       // declared local elements
       if (node.inDeclarationContext()) {
-        var range = ref._visibleRangeMap[element.asElement2];
+        var range = ref._visibleRangeMap[element];
         if (range != null) {
           var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
           ranges.add(range);
@@ -1699,7 +1696,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
   visitVariableDeclaration(VariableDeclaration node) {
     var nodeRange = range.node(node);
     if (ref._selectionRange.covers(nodeRange)) {
-      var element = node.declaredElement!;
+      var element = node.declaredFragment!.element;
 
       // remember, if assigned and used after selection
       if (ref._isUsedAfterSelection(element)) {
@@ -1709,9 +1706,9 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
       }
 
       // remember information for conflicts checking
-      if (element is LocalElement) {
+      if (element is LocalVariableElement2) {
         // declared local elements
-        var range = ref._visibleRangeMap[element.asElement2 as LocalElement2];
+        var range = ref._visibleRangeMap[element];
         if (range != null) {
           var name = node.name.lexeme;
           var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
@@ -1726,14 +1723,14 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
 
 class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor<void> {
   final ExtractMethodRefactoringImpl ref;
-  final Element element;
+  final Element2 element;
   bool result = false;
 
   _IsUsedAfterSelectionVisitor(this.ref, this.element);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var nodeElement = node.writeOrReadElement;
+    var nodeElement = node.writeOrReadElement2;
     if (identical(nodeElement, element)) {
       var nodeOffset = node.offset;
       if (nodeOffset > ref._selectionRange.end) {
@@ -1778,10 +1775,10 @@ class _SourcePattern {
   }
 }
 
-extension on LibraryElement {
+extension on LibraryElement2 {
   /// Returns the source to reference [type] in this [CompilationUnit].
   ///
-  /// Fills [librariesToImport] with [LibraryElement]s whose elements are
+  /// Fills [librariesToImport] with library elements whose elements are
   /// used by the generated source, but not imported.
   String? getTypeSource(
     DartType type,
@@ -1792,7 +1789,7 @@ extension on LibraryElement {
     if (alias != null) {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
-        element: alias.element,
+        element: alias.element2,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
         typeArguments: alias.typeArguments,
       );
@@ -1807,15 +1804,16 @@ extension on LibraryElement {
         return 'Function';
       }
       parametersBuffer.write('(');
-      for (var parameter in type.parameters) {
+      for (var parameter in type.formalParameters) {
         var parameterType = getTypeSource(parameter.type, librariesToImport);
         if (parametersBuffer.length != 1) {
           parametersBuffer.write(', ');
         }
         parametersBuffer.write(parameterType);
-        if (parameter.name.isNotEmpty) {
+        var parameterName = parameter.name3;
+        if (parameterName != null && parameterName.isNotEmpty) {
           parametersBuffer.write(' ');
-          parametersBuffer.write(parameter.name);
+          parametersBuffer.write(parameterName);
         }
       }
       parametersBuffer.write(')');
@@ -1825,7 +1823,7 @@ extension on LibraryElement {
     if (type is InterfaceType) {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
-        element: type.element,
+        element: type.element3,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
         typeArguments: type.typeArguments,
       );
@@ -1862,10 +1860,10 @@ extension on LibraryElement {
   /// Returns the import element used to import given [element] into the
   /// library.
   ///
-  /// May be `null` if was not imported, i.e. declared in the same library.
-  LibraryImportElement? _getImportElement(Element element) {
-    for (var imp in library.definingCompilationUnit.libraryImports) {
-      var definedNames = imp.namespace.definedNames;
+  /// Returns `null` if was not imported, i.e. declared in the same library.
+  LibraryImport? _getImportElement(Element2 element) {
+    for (var imp in firstFragment.libraryImports2) {
+      var definedNames = imp.namespace.definedNames2;
       if (definedNames.containsValue(element)) {
         return imp;
       }
@@ -1875,14 +1873,14 @@ extension on LibraryElement {
 
   String? _getTypeCodeElementArguments({
     required Set<Source> librariesToImport,
-    required Element element,
+    required Element2 element,
     required bool isNullable,
     required List<DartType> typeArguments,
   }) {
     var sb = StringBuffer();
 
     // Check if imported.
-    var library = element.library;
+    var library = element.library2;
     if (library != null && library != this) {
       // No source, if private.
       if (element.isPrivate) {
@@ -1891,13 +1889,13 @@ extension on LibraryElement {
       // Ensure import.
       var importElement = _getImportElement(element);
       if (importElement != null) {
-        var prefix = importElement.prefix?.element;
+        var prefix = importElement.prefix2?.element;
         if (prefix != null) {
           sb.write(prefix.displayName);
           sb.write('.');
         }
       } else {
-        librariesToImport.add(library.source);
+        librariesToImport.add(library.firstFragment.source);
       }
     }
 
