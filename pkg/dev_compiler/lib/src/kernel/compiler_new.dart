@@ -2627,11 +2627,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// own type parameters, this will need to be changed to call
     /// [_emitFunction] instead.
     var name = node.name.text;
-    var savedTypeEnvironment = _currentTypeEnvironment;
+    final savedTypeEnvironment = _currentTypeEnvironment;
     _currentTypeEnvironment = RtiTypeEnvironment([
       ...function.typeParameters,
       ..._currentTypeEnvironment.classTypeParameters
     ]);
+
     var jsBody = js_ast.Block(_withCurrentFunction(function, () {
       var block = _emitArgumentInitializers(function, name);
       block.add(_emitFunctionScopedBody(function));
@@ -3769,7 +3770,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           var env =
               js.call('#.instanceType(this)', [_emitLibraryName(_rtiLibrary)]);
           return emitRtiEval(env, recipe);
-        case ExtendedClassTypeEnvironment():
+        case ExtendedTypeEnvironment():
           // Class type environments are already constructed and attached to the
           // instance of a generic class, but function type parameters need to
           // be bound.
