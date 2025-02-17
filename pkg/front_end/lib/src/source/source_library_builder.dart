@@ -490,12 +490,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         augmentationLibrary.buildOutlineNodes(coreLibrary);
       }
     }
+    library.setLanguageVersion(_languageVersion.version);
     compilationUnit.buildOutlineNode(library);
-    // TODO(johnniwinther): Include [LibraryPart]s from parts to support imports
-    // and exports in parts.
-    /*for (SourceCompilationUnit part in parts) {
+    for (SourceCompilationUnit part in parts) {
       part.buildOutlineNode(library);
-    }*/
+    }
 
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
@@ -531,7 +530,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void includeParts(Set<Uri> usedParts) {
-    compilationUnit.includeParts(this, _parts, usedParts);
+    compilationUnit.includeParts(_parts, usedParts);
   }
 
   void buildInitialScopes() {

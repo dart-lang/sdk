@@ -18,6 +18,8 @@ import self as self;
 import "dart:core" as core;
 
 part having_part_with_parts_and_annotation_lib1.dart;
+part having_part_with_parts_and_annotation_lib2.dart;
+part having_part_with_parts_and_annotation_lib2.dart;
 static const field core::int Foo = 42;
 static const field core::int Bar = 43 /* from org-dartlang-testcase:///having_part_with_parts_and_annotation_lib1.dart */;
 static const field core::int Baz = 44 /* from org-dartlang-testcase:///having_part_with_parts_and_annotation_lib1.dart */;

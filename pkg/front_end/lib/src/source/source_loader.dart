@@ -1231,7 +1231,9 @@ severity: $severity
     Token tokens = await tokenize(compilationUnit);
     OutlineBuilder listener = compilationUnit.createOutlineBuilder();
     new ClassMemberParser(listener,
-            allowPatterns: compilationUnit.libraryFeatures.patterns.isEnabled)
+            allowPatterns: compilationUnit.libraryFeatures.patterns.isEnabled,
+            enableFeatureEnhancedParts:
+                compilationUnit.libraryFeatures.enhancedParts.isEnabled)
         .parseUnit(tokens);
   }
 
@@ -1268,7 +1270,9 @@ severity: $severity
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_diet_parser);
         DietParser parser = new DietParser(new ForwardingListener(),
-            allowPatterns: library.libraryFeatures.patterns.isEnabled);
+            allowPatterns: library.libraryFeatures.patterns.isEnabled,
+            enableFeatureEnhancedParts:
+                library.libraryFeatures.enhancedParts.isEnabled);
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
       }
@@ -1277,7 +1281,9 @@ severity: $severity
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_parser);
         Parser parser = new Parser(new ForwardingListener(),
-            allowPatterns: library.libraryFeatures.patterns.isEnabled);
+            allowPatterns: library.libraryFeatures.patterns.isEnabled,
+            enableFeatureEnhancedParts:
+                library.libraryFeatures.enhancedParts.isEnabled);
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
       }
@@ -1286,7 +1292,9 @@ severity: $severity
     DietListener listener =
         createDietListener(library, compilationUnit.offsetMap);
     DietParser parser = new DietParser(listener,
-        allowPatterns: library.libraryFeatures.patterns.isEnabled);
+        allowPatterns: library.libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts:
+            library.libraryFeatures.enhancedParts.isEnabled);
     parser.parseUnit(tokens);
     for (SourceCompilationUnit compilationUnit in library.parts) {
       Token tokens = await tokenize(compilationUnit,
@@ -1294,7 +1302,9 @@ severity: $severity
       DietListener listener =
           createDietListener(library, compilationUnit.offsetMap);
       DietParser parser = new DietParser(listener,
-          allowPatterns: library.libraryFeatures.patterns.isEnabled);
+          allowPatterns: library.libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts:
+              library.libraryFeatures.enhancedParts.isEnabled);
       parser.parseUnit(tokens);
     }
   }
@@ -1361,7 +1371,9 @@ severity: $severity
     return listener.parseSingleExpression(
         new Parser(listener,
             useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-            allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled),
+            allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
+            enableFeatureEnhancedParts:
+                libraryBuilder.libraryFeatures.enhancedParts.isEnabled),
         token,
         procedure.function);
   }

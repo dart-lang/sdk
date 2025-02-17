@@ -1,0 +1,3 @@
+part 'part_with_parts_part1.dart';
+
+method1() {}

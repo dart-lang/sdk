@@ -30,6 +30,7 @@ CompilationUnitEnd getAST(
   bool includeComments = false,
   bool enableTripleShift = false,
   bool allowPatterns = false,
+  bool enableEnhancedParts = false,
   List<Token>? languageVersionsSeen,
   List<int>? lineStarts,
 }) {
@@ -62,13 +63,13 @@ CompilationUnitEnd getAST(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
       allowPatterns: allowPatterns,
+      enableFeatureEnhancedParts: enableEnhancedParts,
     );
   } else {
-    parser = new ClassMemberParser(
-      listener,
-      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: allowPatterns,
-    );
+    parser = new ClassMemberParser(listener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: allowPatterns,
+        enableFeatureEnhancedParts: enableEnhancedParts);
   }
   parser.parseUnit(firstToken);
   return listener.data.single as CompilationUnitEnd;

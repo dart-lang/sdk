@@ -137,8 +137,8 @@ class _Processor {
     final ScannerConfiguration configuration =
         new ScannerConfiguration(enableTripleShift: true);
     textualOutlineStopwatch.start();
-    final String? outlined =
-        textualOutline(bytes, configuration, enablePatterns: true);
+    final String? outlined = textualOutline(bytes, configuration,
+        enablePatterns: true, enableEnhancedParts: true);
     textualOutlineStopwatch.stop();
     if (outlined == null) throw "Textual outline returned null";
     final Uint8List bytes2 = utf8.encode(outlined);

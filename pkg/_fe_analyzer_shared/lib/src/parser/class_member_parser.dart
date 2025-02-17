@@ -17,7 +17,9 @@ class ClassMemberParser extends Parser {
   Parser? skipParser;
 
   ClassMemberParser(super.listener,
-      {super.useImplicitCreationExpression, super.allowPatterns});
+      {super.useImplicitCreationExpression,
+      super.allowPatterns,
+      super.enableFeatureEnhancedParts});
 
   @override
   Token parseExpression(Token token) {
@@ -37,7 +39,8 @@ class ClassMemberParser extends Parser {
     // feature together with a no-op listener instead.
     this.skipParser ??= new Parser(new ErrorDelegationListener(listener),
         useImplicitCreationExpression: useImplicitCreationExpression,
-        allowPatterns: allowPatterns);
+        allowPatterns: allowPatterns,
+        enableFeatureEnhancedParts: enableFeatureEnhancedParts);
     Parser skipParser = this.skipParser!;
     skipParser.mayParseFunctionExpressions = mayParseFunctionExpressions;
     skipParser.asyncState = asyncState;

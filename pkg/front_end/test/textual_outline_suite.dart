@@ -124,6 +124,8 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         returnNullOnError: false,
         enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
             explicitExperimentalFlags: experimentalFlags),
+        enableEnhancedParts: isExperimentEnabled(ExperimentalFlag.enhancedParts,
+            explicitExperimentalFlags: experimentalFlags),
         infoForTesting: info,
       );
       if (result == null) {
