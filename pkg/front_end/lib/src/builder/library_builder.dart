@@ -187,14 +187,38 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   void addDependencies(Library library, Set<SourceCompilationUnit> seen);
 
-  void includeParts(SourceLibraryBuilder libraryBuilder,
+  /// Runs through all part directives in this compilation unit and adds the
+  /// compilation unit for the parts to the [libraryBuilder] by adding them
+  /// to [includedParts]
+  ///
+  /// [usedParts] is used to ensure that a compilation unit is only included in
+  /// one library. If the compilation unit is part of two libraries, it is only
+  /// included in the first and reported as an error on the second.
+  ///
+  /// This should only be called on the main compilation unit for
+  /// [libraryBuilder]. Inclusion of nested parts is from within this method,
+  /// using [becomePart] for each individual subpart.
+  void includeParts(
       List<SourceCompilationUnit> includedParts, Set<Uri> usedParts);
 
-  void validatePart(
-      SourceLibraryBuilder library,
-      SourceCompilationUnit parentCompilationUnit,
+  /// Includes this compilation unit as a part of [libraryBuilder] with
+  /// [parentCompilationUnit] as the parent compilation unit.
+  ///
+  /// The parent compilation unit is used to define the compilation unit
+  /// scope of this compilation unit.
+  ///
+  /// All fragment in this compilation unit will be added to
+  /// [libraryNameSpaceBuilder].
+  ///
+  /// If parts with parts is supported (through the enhanced parts feature),
+  /// the compilation units of the part directives in this compilation unit
+  /// will be added [libraryBuilder] recursively.
+  void becomePart(
+      SourceLibraryBuilder libraryBuilder,
       LibraryNameSpaceBuilder libraryNameSpaceBuilder,
-      Set<Uri>? usedParts);
+      SourceCompilationUnit parentCompilationUnit,
+      List<SourceCompilationUnit> includedParts,
+      Set<Uri> usedParts);
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.

@@ -1181,8 +1181,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 context.options.globalFeatures.tripleShift.isEnabled);
         bool enablePatterns =
             builder.languageVersion >= ExperimentalFlag.patterns.enabledVersion;
+        bool enableEnhancedParts = builder.languageVersion >=
+            ExperimentalFlag.enhancedParts.enabledVersion;
         String? before = textualOutline(previousSource, scannerConfiguration,
-            performModelling: true, enablePatterns: enablePatterns);
+            performModelling: true,
+            enablePatterns: enablePatterns,
+            enableEnhancedParts: enableEnhancedParts);
         if (before == null) {
           // Coverage-ignore-block(suite): Not run.
           recorderForTesting?.recordAdvancedInvalidationResult(
@@ -1193,7 +1197,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         FileSystemEntity entity = c.options.fileSystem.entityForUri(uri);
         if (await entity.exists()) {
           now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
-              performModelling: true, enablePatterns: enablePatterns);
+              performModelling: true,
+              enablePatterns: enablePatterns,
+              enableEnhancedParts: enableEnhancedParts);
         }
         if (before != now) {
           recorderForTesting?.recordAdvancedInvalidationResult(

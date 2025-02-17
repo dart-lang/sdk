@@ -25,6 +25,7 @@ a() { print("hello"); }
     throwOnUnexpected: true,
     performModelling: false,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -47,6 +48,7 @@ a() { print("hello"); }
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -69,6 +71,7 @@ a() {}
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -90,6 +93,7 @@ a() {
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -110,6 +114,7 @@ class A {}
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -133,6 +138,7 @@ class A {
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -158,6 +164,7 @@ int f1, f2;
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -188,6 +195,7 @@ int f1, f2;
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -215,6 +223,7 @@ class A<T> {}
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -247,6 +256,7 @@ import "baz.dart";
     performModelling: true,
     returnNullOnError: false,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -280,6 +290,7 @@ export "baz.dart";
     performModelling: true,
     returnNullOnError: false,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -318,6 +329,7 @@ import "baz.dart";
     performModelling: true,
     returnNullOnError: false,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -352,6 +364,7 @@ bar() {
     performModelling: true,
     returnNullOnError: false,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -383,6 +396,7 @@ foo() {
     performModelling: true,
     returnNullOnError: false,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -410,6 +424,7 @@ class Class1 {
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -437,6 +452,7 @@ class D2 = Super with Mixin;
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -469,6 +485,7 @@ import "a0.dart";
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -509,6 +526,7 @@ export "a3.dart" show foo;
     performModelling: true,
     returnNullOnError: false,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=
@@ -539,6 +557,7 @@ main() {
     throwOnUnexpected: true,
     performModelling: true,
     enablePatterns: true,
+    enableEnhancedParts: true,
     infoForTesting: infoForTesting,
   );
   if (result !=

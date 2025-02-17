@@ -1,0 +1,15 @@
+library;
+import self as self;
+
+part part_with_parts_part1.dart;
+part part_with_parts_part2.dart;
+static method method1() → dynamic {
+  self::method3();
+}
+static method /* from org-dartlang-testcase:///part_with_parts_part1.dart */ method2() → dynamic {
+  self::method3();
+}
+static method /* from org-dartlang-testcase:///part_with_parts_part2.dart */ method3() → dynamic {
+  self::method1();
+  self::method2();
+}

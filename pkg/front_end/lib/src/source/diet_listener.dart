@@ -894,7 +894,8 @@ class DietListener extends StackListenerImpl {
     try {
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: libraryFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         listener.pop(); // Pops metadata constants.
@@ -1225,7 +1226,8 @@ class DietListener extends StackListenerImpl {
     try {
       Parser parser = new Parser(bodyBuilder,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: libraryFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
       token = parser.parseFormalParametersOpt(
           parser.syntheticPreviousToken(token), MemberKind.PrimaryConstructor);
       FormalParameters? formals = bodyBuilder.pop() as FormalParameters?;
@@ -1254,7 +1256,8 @@ class DietListener extends StackListenerImpl {
     try {
       Parser parser = new Parser(bodyBuilder,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: libraryFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         bodyBuilder.pop(); // Annotations.
@@ -1303,7 +1306,8 @@ class DietListener extends StackListenerImpl {
     Token token = startToken;
     Parser parser = new Parser(bodyBuilder,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
     } else {
@@ -1335,7 +1339,8 @@ class DietListener extends StackListenerImpl {
       BodyBuilder listener = createListener(bodyBuilderContext, memberScope);
       Parser parser = new Parser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-          allowPatterns: libraryFeatures.patterns.isEnabled);
+          allowPatterns: libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata(parent);
     }

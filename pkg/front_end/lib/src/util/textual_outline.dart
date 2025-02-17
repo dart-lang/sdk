@@ -433,6 +433,7 @@ String? textualOutline(
   bool performModelling = false,
   bool returnNullOnError = true,
   required bool enablePatterns,
+  required bool enableEnhancedParts,
   TextualOutlineInfoForTesting? infoForTesting,
 }) {
   List<_Chunk> parsedChunks = <_Chunk>[];
@@ -448,6 +449,9 @@ String? textualOutline(
     if (ExperimentalFlag.patterns.enabledVersion >= languageVersion) {
       enablePatterns = true;
     }
+    if (ExperimentalFlag.enhancedParts.enabledVersion >= languageVersion) {
+      enableEnhancedParts = true;
+    }
     parsedChunks.add(new _LanguageVersionChunk(
         languageVersionToken.major, languageVersionToken.minor)
       ..originalPosition = originalPosition.value++);
@@ -456,8 +460,9 @@ String? textualOutline(
   }, allowLazyStrings: false);
   Token firstToken = scanner.tokenize();
   TextualOutlineListener listener = new TextualOutlineListener();
-  ClassMemberParser classMemberParser =
-      new ClassMemberParser(listener, allowPatterns: enablePatterns);
+  ClassMemberParser classMemberParser = new ClassMemberParser(listener,
+      allowPatterns: enablePatterns,
+      enableFeatureEnhancedParts: enableEnhancedParts);
   classMemberParser.parseUnit(firstToken);
   // Coverage-ignore(suite): Not run.
   infoForTesting?.hasParserErrors = listener.gotError;
@@ -670,7 +675,10 @@ void main(List<String> args) {
   Uint8List data = f.readAsBytesSync();
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration();
   String outline = textualOutline(data, scannerConfiguration,
-      throwOnUnexpected: true, performModelling: true, enablePatterns: true)!;
+      throwOnUnexpected: true,
+      performModelling: true,
+      enablePatterns: true,
+      enableEnhancedParts: true)!;
   if (args.length > 1 && args[1] == "--overwrite") {
     f.writeAsStringSync(outline);
   } else if (args.length > 1 && args[1] == "--benchmark") {
@@ -680,7 +688,8 @@ void main(List<String> args) {
       String? outline2 = textualOutline(data, scannerConfiguration,
           throwOnUnexpected: true,
           performModelling: true,
-          enablePatterns: true);
+          enablePatterns: true,
+          enableEnhancedParts: true);
       if (outline2 != outline) throw "Not the same result every time";
     }
     stopwatch.stop();
@@ -692,7 +701,8 @@ void main(List<String> args) {
       String? outline2 = textualOutline(data, scannerConfiguration,
           throwOnUnexpected: true,
           performModelling: true,
-          enablePatterns: true);
+          enablePatterns: true,
+          enableEnhancedParts: true);
       if (outline2 != outline) throw "Not the same result every time";
     }
     stopwatch.stop();

@@ -174,7 +174,8 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
             addTrace, annotateLines, source, shortNameId);
     Parser parser = new Parser(parserTestListener,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: shouldAllowPatterns(shortName));
+        allowPatterns: shouldAllowPatterns(shortName),
+        enableFeatureEnhancedParts: shouldAllowEnhancedParts(shortName));
     parser.parseUnit(firstToken);
     return parserTestListener;
   }
@@ -233,7 +234,8 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
         new ParserTestListenerForIntertwined(
             context.addTrace, context.annotateLines, source);
     TestParser parser = new TestParser(parserTestListener, context.addTrace,
-        allowPatterns: shouldAllowPatterns(description.shortName));
+        allowPatterns: shouldAllowPatterns(description.shortName),
+        enableEnhancedParts: shouldAllowEnhancedParts(description.shortName));
     parserTestListener.parser = parser;
     parser.sb = parserTestListener.sb;
     parser.parseUnit(firstToken);
@@ -274,7 +276,9 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
         new ParserTestListener(context.addTrace);
     Parser parser = new Parser(parserTestListener,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: shouldAllowPatterns(description.shortName));
+        allowPatterns: shouldAllowPatterns(description.shortName),
+        enableFeatureEnhancedParts:
+            shouldAllowEnhancedParts(description.shortName));
     bool parserCrashed = false;
     dynamic parserCrashedE;
     StackTrace? parserCrashedSt;
@@ -409,6 +413,11 @@ Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
 bool shouldAllowPatterns(String shortName) {
   String firstDir = shortName.split("/")[0];
   return firstDir == "patterns";
+}
+
+bool shouldAllowEnhancedParts(String shortName) {
+  String firstDir = shortName.split("/")[0];
+  return firstDir == "enhanced_parts";
 }
 
 Token scanRawBytes(
