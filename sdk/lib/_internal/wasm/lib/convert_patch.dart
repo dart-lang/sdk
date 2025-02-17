@@ -8,7 +8,7 @@ import "dart:_internal"
     show patch, POWERS_OF_TEN, unsafeCast, pushWasmArray, popWasmArray;
 import "dart:_js_string_convert";
 import "dart:_js_types";
-import "dart:_js_helper" show jsStringToDartString;
+import "dart:_js_helper" show JS, jsStringToDartString, jsStringFromDartString;
 import "dart:_list"
     show GrowableList, WasmListBaseUnsafeExtensions, WasmListBase;
 import "dart:_string";
@@ -308,7 +308,7 @@ class _NumberBuffer {
   // not only working on strings, but also on char-code lists, without losing
   // performance.
   num parseNum() => num.parse(getString());
-  double parseDouble() => double.parse(getString());
+  double parseDouble() => _jsParseFloat(getString());
 }
 
 /**
@@ -719,7 +719,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    */
   double parseDouble(int start, int end) {
     const int asciiBits = 0x7f; // Double literals are ASCII only.
-    return double.parse(getString(start, end, asciiBits));
+    return _jsParseFloat(getString(start, end, asciiBits));
   }
 
   /**
@@ -1683,8 +1683,7 @@ class _JsonOneByteStringParser extends _ChunkedJsonParserState
   }
 
   double parseDouble(int start, int end) {
-    final string = chunk.substringUnchecked(start, end);
-    return double.parse(string);
+    return _jsParseFloat(chunk.substringUnchecked(start, end));
   }
 }
 
@@ -1777,8 +1776,7 @@ class _JsonTwoByteStringParser extends _ChunkedJsonParserState
   }
 
   double parseDouble(int start, int end) {
-    final string = chunk.substringUnchecked(start, end);
-    return double.parse(string);
+    return _jsParseFloat(chunk.substringUnchecked(start, end));
   }
 }
 
@@ -2044,8 +2042,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
   }
 
   double parseDouble(int start, int end) {
-    final string = getString(start, end, 0x7f);
-    return double.parse(string);
+    return _jsParseFloat(getString(start, end, 0x7f));
   }
 }
 
@@ -2786,3 +2783,8 @@ WasmArray<WasmI8> _makeI8ArrayFromWasmI8ArrayBase(
   }
   return bytes;
 }
+
+double _jsParseFloat(String string) => JS<double>(
+  '(s) => parseFloat(s)',
+  jsStringFromDartString(string).toExternRef,
+);
