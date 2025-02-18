@@ -319,11 +319,13 @@ final class BoxedDouble implements double {
   static const int CACHE_LENGTH = 1 << (CACHE_SIZE_LOG2 + 1);
   static const int CACHE_MASK = CACHE_LENGTH - 1;
   // Each cached double value, represented as it's 64-bits.
+  @pragma("wasm:initialize-at-startup")
   static final WasmArray<int> _cacheKeys = WasmArray<int>.filled(
     CACHE_LENGTH,
     doubleToIntBits(1.0),
   );
   // The toString() of the double value with same index in [_cacheKeys].
+  @pragma("wasm:initialize-at-startup")
   static final WasmArray<String> _cacheValues = WasmArray<String>.filled(
     CACHE_LENGTH,
     '1.0',

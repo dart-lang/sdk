@@ -1785,6 +1785,7 @@ class _JsonTwoByteStringParser extends _ChunkedJsonParserState
 }
 
 const int _oneByteStringInternCacheSize = 512;
+@pragma("wasm:initialize-at-startup")
 final WasmArray<OneByteString?> _oneByteStringInternCache =
     WasmArray<OneByteString?>(_oneByteStringInternCacheSize);
 OneByteString _internOneByteStringFromI8(

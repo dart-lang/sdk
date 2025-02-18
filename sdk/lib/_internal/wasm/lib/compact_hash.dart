@@ -114,6 +114,7 @@ final WasmArray<Object?> _uninitializedHashBaseData =
 
 /// The object marking deleted data in [_HashFieldBase._data] and absent values
 /// in `_getValueOrData` methods.
+@pragma("wasm:initialize-at-startup")
 final Object _deletedDataMarker = Object();
 
 /// Base class for all (immutable and mutable) linked hash map and set
