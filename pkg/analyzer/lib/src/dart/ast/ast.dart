@@ -3526,7 +3526,9 @@ final class CompilationUnitImpl extends AstNodeImpl
 
   @experimental
   @override
-  LibraryFragment? get declaredFragment => declaredElement as LibraryFragment?;
+  CompilationUnitElementImpl? get declaredFragment {
+    return declaredElement;
+  }
 
   @override
   NodeListImpl<DirectiveImpl> get directives => _directives;

@@ -673,7 +673,7 @@ class LibraryBuilder {
     required CompilationUnitElementImpl containerUnit,
     required file_state.PartIncludeState state,
   }) {
-    DirectiveUri directiveUri;
+    DirectiveUriImpl directiveUri;
     switch (state) {
       case PartIncludeWithFile():
         var includedPart = state.includedPart;
