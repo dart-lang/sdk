@@ -6,8 +6,6 @@ import '../ir/ir.dart' as ir;
 import 'builder.dart';
 import 'util.dart';
 
-part 'function.dart';
-
 /// The interface for the functions in a module.
 class FunctionsBuilder with Builder<ir.Functions> {
   final ModuleBuilder _module;

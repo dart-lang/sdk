@@ -6,8 +6,6 @@ import '../../source_map.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
-part 'instruction.dart';
-
 class Instructions implements Serializable {
   /// The locals used by this group of instructions.
   final List<Local> locals;

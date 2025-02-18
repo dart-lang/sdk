@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../builder/module.dart';
-import '../serialize/serialize.dart';
 import 'ir.dart';
-
-part 'table.dart';
+import 'table.dart';
 
 class Tables {
   /// Imported tables.
