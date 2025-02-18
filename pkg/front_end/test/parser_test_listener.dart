@@ -3331,4 +3331,16 @@ class ParserTestListener implements Listener {
     seen(equals);
     doPrint('handlePatternAssignment(' '$equals)');
   }
+
+  @override
+  void handleDotShorthandContext(Token token) {
+    seen(token);
+    doPrint('handleDotShorthandContext(' '$token)');
+  }
+
+  @override
+  void handleDotShorthandHead(Token token) {
+    seen(token);
+    doPrint('handleDotShorthandHead(' '$token)');
+  }
 }

@@ -5830,7 +5830,13 @@ class Parser {
       bool allowCascades, ConstantPatternContext constantPatternContext) {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
+
+    bool isDotShorthand = token.next!.isA(TokenType.PERIOD) &&
+        (token.next!.next!.isIdentifier || token.next!.next!.isA(Keyword.NEW));
+    // TODO(kallentu): Once the parser handles dot shorthands by default,
+    // we don't need to parse for an error here.
     token = parseUnaryExpression(token, allowCascades, constantPatternContext);
+
     Token bangToken = token;
     if (token.next!.isA(TokenType.BANG)) {
       bangToken = token.next!;
@@ -5854,6 +5860,17 @@ class Parser {
       }
     }
 
+    if (isDotShorthand) {
+      Token dot = token.next!;
+      token = _parsePrecedenceExpressionLoop(SELECTOR_PRECEDENCE, allowCascades,
+          typeArg, token, constantPatternContext,
+          isDotShorthand: true);
+
+      // The entire shorthand is parsed at this point.
+      listener.handleDotShorthandContext(dot);
+      return token;
+    }
+
     return _parsePrecedenceExpressionLoop(
         precedence, allowCascades, typeArg, token, constantPatternContext);
   }
@@ -5863,7 +5880,8 @@ class Parser {
       bool allowCascades,
       TypeParamOrArgInfo typeArg,
       Token token,
-      ConstantPatternContext constantPatternContext) {
+      ConstantPatternContext constantPatternContext,
+      {bool isDotShorthand = false}) {
     Token next = token.next!;
     TokenType type = next.type;
     int tokenLevel = _computePrecedence(next, forPattern: false);
@@ -5962,11 +5980,16 @@ class Parser {
             // should just call [parseUnaryExpression] directly. However, a
             // unary expression isn't legal after a period, so we call
             // [parsePrimary] instead.
-            token = parsePrimary(
-                token.next!,
-                IdentifierContext.expressionContinuation,
+            Token dot = token.next!;
+            token = parsePrimary(dot, IdentifierContext.expressionContinuation,
                 constantPatternContext);
-            listener.handleEndingBinaryExpression(operator, token);
+
+            if (isDotShorthand) {
+              listener.handleDotShorthandHead(dot);
+              isDotShorthand = false;
+            } else {
+              listener.handleEndingBinaryExpression(operator, token);
+            }
 
             Token bangToken = token;
             if (token.next!.isA(TokenType.BANG)) {

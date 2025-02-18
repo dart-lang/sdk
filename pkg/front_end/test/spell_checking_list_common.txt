@@ -2843,6 +2843,7 @@ shorted
 shorten
 shortened
 shorter
+shorthand
 shorthands
 shorting
 shorts

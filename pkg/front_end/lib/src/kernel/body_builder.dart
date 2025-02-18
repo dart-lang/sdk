@@ -9974,6 +9974,37 @@ class BodyBuilder extends StackListenerImpl
     push(
         forest.createPatternAssignment(equals.charOffset, pattern, expression));
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleDotShorthandContext(Token token) {
+    debugEvent("DotShorthandContext");
+    if (!libraryFeatures.dotShorthands.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.dotShorthands.name),
+          token.offset,
+          token.length);
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleDotShorthandHead(Token token) {
+    debugEvent("DotShorthandHead");
+    if (!libraryFeatures.dotShorthands.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.dotShorthands.name),
+          token.offset,
+          token.length);
+
+      // Recovery, avoid crashing with an extra selector.
+      pop();
+    }
+
+    // TODO(kallentu): Handle dot shorthands.
+  }
 }
 
 class Operator {

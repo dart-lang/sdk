@@ -248,16 +248,20 @@ void main() {
   // [analyzer] SYNTACTIC_ERROR.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
   // [cfe] A comparison expression can't be an operand of another comparison expression.
   //  ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
   // [cfe] Expected an identifier, but got '.'.
+  // [cfe] This requires the experimental 'dot-shorthands' language feature to be enabled.
 
   X<2>.any;
   // ^
   // [analyzer] SYNTACTIC_ERROR.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
   // [cfe] A comparison expression can't be an operand of another comparison expression.
   //  ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
   // [cfe] Expected an identifier, but got '.'.
+  // [cfe] This requires the experimental 'dot-shorthands' language feature to be enabled.
 
   // This would be invalid even if `X` had an `any` member. See next.
   X<X>.any; // Invalid, Class does not have any static `any` member.
