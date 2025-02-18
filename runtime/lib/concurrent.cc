@@ -25,7 +25,10 @@ DEFINE_FFI_NATIVE_ENTRY(Mutex_Initialize, void, (Dart_Handle mutex_handle)) {
   Dart_NewFinalizableHandle(mutex_handle, mutex, sizeof(Mutex), DeleteMutex);
 };
 
-DEFINE_FFI_NATIVE_ENTRY(Mutex_Lock, void, (Dart_Handle mutex_handle)) {
+DEFINE_FFI_NATIVE_ENTRY(Mutex_RunLocked,
+                        Dart_Handle,
+                        (Dart_Handle mutex_handle,
+                         Dart_Handle closure_handle)) {
   Mutex* mutex;
   Dart_Handle result = Dart_GetNativeInstanceField(
       mutex_handle, kMutexNativeField, reinterpret_cast<intptr_t*>(&mutex));
@@ -33,16 +36,12 @@ DEFINE_FFI_NATIVE_ENTRY(Mutex_Lock, void, (Dart_Handle mutex_handle)) {
     Dart_PropagateError(result);
   }
   mutex->Lock();
-}
-
-DEFINE_FFI_NATIVE_ENTRY(Mutex_Unlock, void, (Dart_Handle mutex_handle)) {
-  Mutex* mutex;
-  Dart_Handle result = Dart_GetNativeInstanceField(
-      mutex_handle, kMutexNativeField, reinterpret_cast<intptr_t*>(&mutex));
+  result = Dart_InvokeClosure(closure_handle, 0, nullptr);
+  mutex->Unlock();
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
-  mutex->Unlock();
+  return result;
 }
 
 static void DeleteConditionVariable(void* isolate_data, void* condvar_pointer) {
@@ -96,6 +95,19 @@ DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_Notify,
     Dart_PropagateError(result_condvar);
   }
   condvar->Notify();
+}
+
+DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_NotifyAll,
+                        void,
+                        (Dart_Handle condvar_handle)) {
+  ConditionVariable* condvar;
+  Dart_Handle result_condvar =
+      Dart_GetNativeInstanceField(condvar_handle, kCondVarNativeField,
+                                  reinterpret_cast<intptr_t*>(&condvar));
+  if (Dart_IsError(result_condvar)) {
+    Dart_PropagateError(result_condvar);
+  }
+  condvar->NotifyAll();
 }
 
 }  // namespace dart
