@@ -171,7 +171,8 @@ class ExpressionEvaluationTestDriver {
     htmlBootstrapper = testDir.uri.resolve('bootstrapper.html');
     var bootstrapFile = File(htmlBootstrapper.toFilePath())..createSync();
     var moduleName = compiler.metadata!.name;
-    var mainLibraryName = compiler.metadataForLibraryUri(input).name;
+    var mainLibraryName = libraryUriToImportName(
+        Uri.parse(compiler.metadataForLibraryUri(input).importUri));
     var appName = p.relative(
         p.withoutExtension(compiler.metadataForLibraryUri(input).importUri));
 
