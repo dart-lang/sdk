@@ -7149,8 +7149,6 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleNullAwareElement(Token nullAwareElement) {
     debugEvent("NullAwareElement");
-    // TODO(cstefantsova): Replace the following no-op with the node for
-    // handling null-aware elements.
     if (!libraryFeatures.nullAwareElements.isEnabled) {
       addProblem(
           templateExperimentNotEnabledOffByDefault
