@@ -83,9 +83,8 @@ class {}
     var element =
         findNode.classDeclaration('class {}').declaredFragment!.element;
     var result = await getElementDeclaration(element);
-    var node = result!.node as ClassDeclaration;
-    expect(node.name.lexeme, '');
-    expect(node.name.offset, 6);
+    // Without a name, the class declaration cannot be found.
+    expect(result, null);
   }
 
   test_classTypeAlias() async {
@@ -367,7 +366,6 @@ void f(int a) {}
     var node = result!.node as SimpleFormalParameter;
     expect(node.name!.lexeme, 'a');
   }
-
   test_parameter_missingName_named() async {
     await resolveTestCode(r'''
 void f({@a}) {}
@@ -378,8 +376,8 @@ void f({@a}) {}
     expect(element.isNamed, isTrue);
 
     var result = await getElementDeclaration(element);
-    var node = result!.node as DefaultFormalParameter;
-    expect(node.name!.lexeme, '');
+    // Without a name, the parameter declaration cannot be found.
+    expect(result, null);
   }
 
   test_parameter_missingName_required() async {
@@ -392,8 +390,8 @@ void f(@a) {}
     expect(element.isPositional, isTrue);
 
     var result = await getElementDeclaration(element);
-    var node = result!.node as SimpleFormalParameter;
-    expect(node.name!.lexeme, '');
+    // Without a name, the parameter declaration cannot be found.
+    expect(result, null);
   }
 
   test_setter_class() async {
@@ -451,7 +449,7 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
     var path = element.library2!.firstFragment.source.fullName;
     var file = getFile(path);
     var library = await _getParsedLibrary(file);
-    return library.getElementDeclaration2(element.firstFragment);
+    return library.getFragmentDeclaration(element.firstFragment);
   }
 
   Future<ParsedLibraryResult> _getParsedLibrary(File file) async {
@@ -469,7 +467,7 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
     var path = element.library2!.firstFragment.source.fullName;
     var file = getFile(path);
     var library = await _getResolvedLibrary(file);
-    return library.getElementDeclaration2(element.firstFragment);
+    return library.getFragmentDeclaration(element.firstFragment);
   }
 
   Future<ResolvedLibraryResult> _getResolvedLibrary(File file) async {

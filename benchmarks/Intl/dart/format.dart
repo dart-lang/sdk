@@ -42,14 +42,6 @@ class Base extends BenchmarkBase {
         g = formatter.format(datum);
       }
     }
-
-    // TODO(devoncarew): Duplicated for golem investigation.
-    for (var datum in data) {
-      for (var formatter in formatters) {
-        g = formatter.format(datum);
-      }
-    }
-    // TODO(devoncarew): Duplicated for golem investigation.
   }
 }
 

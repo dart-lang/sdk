@@ -1278,8 +1278,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     if (prefix == null && name.startsWith(r'_$')) {
       for (var partElement in parts) {
         var uri = partElement.uri;
-        if (uri is DirectiveUriWithSource &&
-            uri is! DirectiveUriWithUnit &&
+        if (uri is DirectiveUriWithSourceImpl &&
+            uri is! DirectiveUriWithUnitImpl &&
             file_paths.isGenerated(uri.relativeUriString)) {
           return true;
         }
@@ -9712,7 +9712,7 @@ mixin ParameterElementMixin
 class PartElementImpl extends _ExistingElementImpl
     implements PartElement, PartInclude {
   @override
-  final DirectiveUri uri;
+  final DirectiveUriImpl uri;
 
   PartElementImpl({
     required this.uri,

@@ -334,7 +334,7 @@ class DefinitionHandler
       return null;
     }
 
-    return parsedLibrary.getElementDeclaration2(fragment);
+    return parsedLibrary.getFragmentDeclaration(fragment);
   }
 }
 

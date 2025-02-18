@@ -329,7 +329,7 @@ class B {}
     var parsedLibrary = session.getParsedLibraryValid(testFile);
 
     var element = libraryResult.element2.getClass2('A')!;
-    var declaration = parsedLibrary.getElementDeclaration2(element.firstFragment)!;
+    var declaration = parsedLibrary.getFragmentDeclaration(element.firstFragment)!;
     var node = declaration.node as ClassDeclaration;
     expect(node.name.lexeme, 'A');
     expect(node.offset, 0);
@@ -348,7 +348,7 @@ class B {}
     var parsedLibrary = session.getParsedLibraryValid(testFile);
 
     expect(() {
-      parsedLibrary.getElementDeclaration2(intClass.firstFragment);
+      parsedLibrary.getFragmentDeclaration(intClass.firstFragment);
     }, throwsArgumentError);
   }
 
@@ -365,15 +365,15 @@ int foo = 0;
     expect(fooElement.name2, 'foo');
 
     // We can get the variable element declaration.
-    var fooDeclaration = parsedLibrary.getElementDeclaration2(fooElement)!;
+    var fooDeclaration = parsedLibrary.getFragmentDeclaration(fooElement)!;
     var fooNode = fooDeclaration.node as VariableDeclaration;
     expect(fooNode.name.lexeme, 'foo');
     expect(fooNode.offset, 4);
     expect(fooNode.length, 7);
 
     // Synthetic elements don't have nodes.
-    expect(parsedLibrary.getElementDeclaration2(fooElement.getter2!), isNull);
-    expect(parsedLibrary.getElementDeclaration2(fooElement.setter2!), isNull);
+    expect(parsedLibrary.getFragmentDeclaration(fooElement.getter2!), isNull);
+    expect(parsedLibrary.getFragmentDeclaration(fooElement.setter2!), isNull);
   }
 
   test_getParsedLibrary_inconsistent() async {
@@ -582,14 +582,14 @@ class B2 extends X {}
     expect(bUnitResult.unit.declarations, hasLength(2));
     expect(bUnitResult.errors, isNotEmpty);
 
-    var aDeclaration = resolvedLibrary.getElementDeclaration2(aClass.firstFragment)!;
+    var aDeclaration = resolvedLibrary.getFragmentDeclaration(aClass.firstFragment)!;
     var aNode = aDeclaration.node as ClassDeclaration;
     expect(aNode.name.lexeme, 'A');
     expect(aNode.offset, 16);
     expect(aNode.length, 16);
     expect(aNode.declaredFragment!.name2, 'A');
 
-    var bDeclaration = resolvedLibrary.getElementDeclaration2(bClass.firstFragment)!;
+    var bDeclaration = resolvedLibrary.getFragmentDeclaration(bClass.firstFragment)!;
     var bNode = bDeclaration.node as ClassDeclaration;
     expect(bNode.name.lexeme, 'B');
     expect(bNode.offset, 19);
@@ -605,7 +605,7 @@ class B2 extends X {}
 
     expect(() {
       var intClass = resolvedLibrary.typeProvider.intType.element3;
-      resolvedLibrary.getElementDeclaration2(intClass.firstFragment);
+      resolvedLibrary.getFragmentDeclaration(intClass.firstFragment);
     }, throwsArgumentError);
   }
 
@@ -622,7 +622,7 @@ int foo = 0;
     expect(fooElement.name2, 'foo');
 
     // We can get the variable element declaration.
-    var fooDeclaration = resolvedLibrary.getElementDeclaration2(fooElement)!;
+    var fooDeclaration = resolvedLibrary.getFragmentDeclaration(fooElement)!;
     var fooNode = fooDeclaration.node as VariableDeclaration;
     expect(fooNode.name.lexeme, 'foo');
     expect(fooNode.offset, 4);
@@ -630,8 +630,8 @@ int foo = 0;
     expect(fooNode.declaredFragment!.name2, 'foo');
 
     // Synthetic elements don't have nodes.
-    expect(resolvedLibrary.getElementDeclaration2(fooElement.getter2!), isNull);
-    expect(resolvedLibrary.getElementDeclaration2(fooElement.setter2!), isNull);
+    expect(resolvedLibrary.getFragmentDeclaration(fooElement.getter2!), isNull);
+    expect(resolvedLibrary.getFragmentDeclaration(fooElement.setter2!), isNull);
   }
 
   test_getResolvedLibrary_inconsistent() async {

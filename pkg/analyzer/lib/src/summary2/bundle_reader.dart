@@ -833,7 +833,7 @@ class LibraryReader {
     });
   }
 
-  DirectiveUri _readDirectiveUri({
+  DirectiveUriImpl _readDirectiveUri({
     required CompilationUnitElementImpl containerUnit,
   }) {
     DirectiveUriWithRelativeUriStringImpl readWithRelativeUriString() {

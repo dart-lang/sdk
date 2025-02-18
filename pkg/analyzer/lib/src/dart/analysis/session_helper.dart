@@ -45,7 +45,7 @@ class AnalysisSessionHelper {
       Fragment fragment) async {
     var libraryPath = fragment.libraryFragment!.source.fullName;
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
-    return resolvedLibrary?.getElementDeclaration2(fragment);
+    return resolvedLibrary?.getFragmentDeclaration(fragment);
   }
 
   /// Return the [EnumElement2] with the given [className] that is exported

@@ -62,9 +62,8 @@ abstract class ElementDeclarationResult {
   /// The [Element] that this object describes.
   Element get element;
 
-  /// The element that this object describes.
-  @experimental
-  Element2 get element2;
+  /// The [Fragment] that this object describes.
+  Fragment get fragment;
 
   /// The node that declares the [element]. Depending on whether it is returned
   /// from [ResolvedLibraryResult] or [ParsedLibraryResult] it might be resolved
@@ -212,8 +211,17 @@ abstract class ParsedLibraryResult
   /// Returns `null` if the [fragment] is synthetic.
   ///
   /// Throws [ArgumentError] if the [fragment] is not defined in this library.
+  @Deprecated('Use getFragmentDeclaration() instead')
   @experimental
   ElementDeclarationResult? getElementDeclaration2(Fragment fragment);
+
+  /// Returns the declaration of the [fragment].
+  ///
+  /// Returns `null` if the [fragment] is synthetic.
+  ///
+  /// Throws [ArgumentError] if the [fragment] is not defined in this library.
+  @experimental
+  ElementDeclarationResult? getFragmentDeclaration(Fragment fragment);
 }
 
 /// The result of parsing of a single file. The errors returned include only

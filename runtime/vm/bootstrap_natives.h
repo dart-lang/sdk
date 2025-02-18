@@ -368,11 +368,11 @@ namespace dart {
 #define BOOTSTRAP_FFI_NATIVE_LIST(V)                                           \
   V(ConditionVariable_Initialize, void, (Dart_Handle))                         \
   V(ConditionVariable_Notify, void, (Dart_Handle))                             \
+  V(ConditionVariable_NotifyAll, void, (Dart_Handle))                          \
   V(ConditionVariable_Wait, void, (Dart_Handle, Dart_Handle))                  \
   V(FinalizerEntry_SetExternalSize, void, (Dart_Handle, intptr_t))             \
   V(Mutex_Initialize, void, (Dart_Handle))                                     \
-  V(Mutex_Lock, void, (Dart_Handle))                                           \
-  V(Mutex_Unlock, void, (Dart_Handle))                                         \
+  V(Mutex_RunLocked, Dart_Handle, (Dart_Handle, Dart_Handle))                  \
   V(Pointer_asTypedListFinalizerAllocateData, void*, ())                       \
   V(Pointer_asTypedListFinalizerCallbackPointer, void*, ())
 

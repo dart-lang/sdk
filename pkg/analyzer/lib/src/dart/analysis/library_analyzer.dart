@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/file_source.dart';
@@ -254,7 +251,7 @@ class LibraryAnalyzer {
     var libraryUnit = libraryUnitAnalysis.unit;
     var libraryOverrideToken = libraryUnit.languageVersionToken;
 
-    var elementToUnit = <CompilationUnitElement, CompilationUnit>{};
+    var elementToUnit = <CompilationUnitElementImpl, CompilationUnit>{};
     for (var fileAnalysis in _libraryFiles.values) {
       elementToUnit[fileAnalysis.element] = fileAnalysis.unit;
     }
@@ -262,7 +259,7 @@ class LibraryAnalyzer {
     for (var directive in libraryUnit.directives) {
       if (directive is PartDirectiveImpl) {
         var elementUri = directive.element?.uri;
-        if (elementUri is DirectiveUriWithUnit) {
+        if (elementUri is DirectiveUriWithUnitImpl) {
           var partUnit = elementToUnit[elementUri.unit];
           if (partUnit != null) {
             var shouldReport = false;
@@ -390,7 +387,7 @@ class LibraryAnalyzer {
         errorReporter: fileAnalysis.errorReporter,
       );
       analysesToContextUnits[fileAnalysis] = linterContextUnit;
-      if (fileAnalysis.unit.declaredElement == definingUnit) {
+      if (fileAnalysis.unit.declaredFragment == definingUnit) {
         definingContextUnit = linterContextUnit;
         workspacePackage = fileAnalysis.file.workspacePackage;
       }
@@ -472,7 +469,7 @@ class LibraryAnalyzer {
     ErrorVerifier errorVerifier = ErrorVerifier(
       errorReporter,
       _libraryElement,
-      unit.declaredElement!,
+      unit.declaredFragment!,
       _typeProvider,
       _inheritance,
       _libraryVerificationContext,
