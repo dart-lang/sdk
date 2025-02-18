@@ -6,8 +6,6 @@ import '../ir/ir.dart' as ir;
 import 'builder.dart';
 import 'util.dart';
 
-part 'table.dart';
-
 /// The interface for the tables in a module.
 class TablesBuilder with Builder<ir.Tables> {
   final ModuleBuilder _module;

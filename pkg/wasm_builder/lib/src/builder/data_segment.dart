@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'data_segments.dart';
+import 'dart:typed_data';
+
+import '../ir/ir.dart' as ir;
+import 'builder.dart';
 
 /// A data segment builder in a module builder.
 class DataSegmentBuilder extends ir.BaseDataSegment

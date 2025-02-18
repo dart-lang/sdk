@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'instructions.dart';
+import '../serialize/serialize.dart';
+import 'ir.dart';
 
 abstract class Instruction implements Serializable {
   /// The [ValueType] types referenced by this instruction. Used to determine

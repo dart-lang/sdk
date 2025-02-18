@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'tables.dart';
+import '../ir/ir.dart' as ir;
+import 'builder.dart';
 
 /// A table defined in a module.
 class TableBuilder extends ir.Table with IndexableBuilder<ir.DefinedTable> {

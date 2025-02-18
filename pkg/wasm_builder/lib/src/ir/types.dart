@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../serialize/serialize.dart';
-
-part 'type.dart';
+import 'type.dart';
 
 class Types {
   /// Types defined in this module.

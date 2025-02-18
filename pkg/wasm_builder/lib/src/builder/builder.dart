@@ -4,13 +4,17 @@
 
 import '../ir/ir.dart' as ir;
 
-export 'data_segments.dart' show DataSegmentBuilder, DataSegmentsBuilder;
+export 'data_segments.dart' show DataSegmentsBuilder;
+export 'data_segment.dart' show DataSegmentBuilder;
 export 'exports.dart' show ExportsBuilder;
-export 'globals.dart' show GlobalsBuilder, GlobalBuilder;
-export 'functions.dart' show FunctionsBuilder, FunctionBuilder;
+export 'globals.dart' show GlobalsBuilder;
+export 'global.dart' show GlobalBuilder;
+export 'functions.dart' show FunctionsBuilder;
+export 'function.dart' show FunctionBuilder;
 export 'memories.dart' show MemoriesBuilder;
 export 'module.dart' show ModuleBuilder;
-export 'tables.dart' show TablesBuilder, TableBuilder;
+export 'tables.dart' show TablesBuilder;
+export 'table.dart' show TableBuilder;
 export 'tags.dart' show TagsBuilder;
 export 'types.dart' show TypesBuilder;
 export 'instructions.dart' show InstructionsBuilder, Label, ValidationError;
