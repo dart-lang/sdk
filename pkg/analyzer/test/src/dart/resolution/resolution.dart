@@ -485,10 +485,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 }
 
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
-  FindElement get findElement {
-    return FindElement(unit);
-  }
-
   FindElement2 get findElement2 {
     return FindElement2(unit);
   }

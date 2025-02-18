@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -30,7 +29,6 @@ void main() {
 class PubPackageResolutionTest extends AbstractContextTest {
   late ResolvedUnitResult result;
   late FindNode findNode;
-  late FindElement findElement;
   late FindElement2 findElement2;
 
   void addTestFile(String content) {
@@ -42,7 +40,6 @@ class PubPackageResolutionTest extends AbstractContextTest {
     result = await getResolvedUnit(file);
 
     findNode = FindNode(result.content, result.unit);
-    findElement = FindElement(result.unit);
     findElement2 = FindElement2(result.unit);
   }
 
