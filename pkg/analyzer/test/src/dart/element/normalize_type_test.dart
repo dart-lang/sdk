@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
@@ -257,7 +256,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   /// `NORM(FutureOr<T>)`
   /// * let S be NORM(T)
   test_futureOr() {
-    void check(DartType T, DartType expected) {
+    void check(TypeImpl T, TypeImpl expected) {
       var input = futureOrNone(T);
       _check(input, expected);
     }
@@ -302,7 +301,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   /// NORM(T?)
   /// * let S be NORM(T)
   test_question() {
-    void check(DartType T, DartType expected) {
+    void check(TypeImpl T, TypeImpl expected) {
       _assertNullabilityQuestion(T);
       _check(T, expected);
     }
@@ -448,17 +447,17 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     );
   }
 
-  void _assertNullability(DartType type, NullabilitySuffix expected) {
+  void _assertNullability(TypeImpl type, NullabilitySuffix expected) {
     if (type.nullabilitySuffix != expected) {
       fail('Expected $expected in ${typeString(type)}');
     }
   }
 
-  void _assertNullabilityQuestion(DartType type) {
+  void _assertNullabilityQuestion(TypeImpl type) {
     _assertNullability(type, NullabilitySuffix.question);
   }
 
-  void _check(DartType T, DartType expected) {
+  void _check(TypeImpl T, TypeImpl expected) {
     var expectedStr = typeString(expected);
 
     var result = typeSystem.normalize(T);
@@ -470,8 +469,8 @@ actual: $resultStr
     _checkFormalParametersIsCovariant(result, expected);
   }
 
-  void _checkFormalParametersIsCovariant(DartType T1, DartType T2) {
-    if (T1 is FunctionType && T2 is FunctionType) {
+  void _checkFormalParametersIsCovariant(TypeImpl T1, TypeImpl T2) {
+    if (T1 is FunctionTypeImpl && T2 is FunctionTypeImpl) {
       var parameters1 = T1.formalParameters;
       var parameters2 = T2.formalParameters;
       expect(parameters1, hasLength(parameters2.length));

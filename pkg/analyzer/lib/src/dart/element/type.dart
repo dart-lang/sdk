@@ -712,7 +712,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<InterfaceType> get interfaces {
+  List<InterfaceTypeImpl> get interfaces {
     return _instantiateSuperTypes(element.interfaces);
   }
 
@@ -820,7 +820,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       methods.map((e) => e.asElement2).toList();
 
   @override
-  List<InterfaceType> get mixins {
+  List<InterfaceTypeImpl> get mixins {
     return _instantiateSuperTypes(element.mixins);
   }
 
@@ -851,7 +851,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       .toList();
 
   @override
-  InterfaceType? get superclass {
+  InterfaceTypeImpl? get superclass {
     var supertype = element.supertype;
     if (supertype == null) {
       return null;

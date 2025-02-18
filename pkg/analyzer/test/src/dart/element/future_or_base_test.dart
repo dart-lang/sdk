@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,7 +21,7 @@ class FutureOrBaseTest extends AbstractTypeSystemTest {
   }
 
   test_futureOr() {
-    void check(DartType S, String expected) {
+    void check(TypeImpl S, String expected) {
       _check(futureOrNone(S), expected);
     }
 
@@ -51,7 +51,7 @@ class FutureOrBaseTest extends AbstractTypeSystemTest {
     _check(voidNone, 'void');
   }
 
-  void _check(DartType T, String expected) {
+  void _check(TypeImpl T, String expected) {
     var result = typeSystem.futureOrBase(T);
     expect(
       result.getDisplayString(),

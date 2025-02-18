@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/factory_type_test_helper.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -20,23 +19,23 @@ main() {
 }
 
 @reflectiveTest
-class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
+class FactorTypeTest with FactorTypeTestMixin<TypeImpl>, ElementsTypesMixin {
   @override
   late final TypeProviderImpl typeProvider;
 
   late final TypeSystemImpl typeSystem;
 
   @override
-  DartType get voidType => typeProvider.voidType;
+  TypeImpl get voidType => typeProvider.voidType;
 
   @override
   void expect(
-      DartType T, DartType S, String actualResult, String expectedResult) {
+      TypeImpl T, TypeImpl S, String actualResult, String expectedResult) {
     test.expect(actualResult, expectedResult);
   }
 
   @override
-  DartType factor(DartType T, DartType S) {
+  TypeImpl factor(TypeImpl T, TypeImpl S) {
     return typeSystem.factor(T, S);
   }
 
