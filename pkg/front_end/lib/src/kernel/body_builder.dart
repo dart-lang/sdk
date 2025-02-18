@@ -5464,8 +5464,7 @@ class BodyBuilder extends StackListenerImpl
           offsetForToken(nameToken),
           fileUri: uri,
           hasImmediatelyDeclaredInitializer: initializerStart != null,
-          isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
-              parameterName == '_');
+          isWildcard: isWildcard);
     }
     VariableDeclaration variable = parameter.build(libraryBuilder);
     Expression? initializer = name?.initializer;

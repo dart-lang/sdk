@@ -18,7 +18,7 @@ static method testStaticTypeOfConditional<T extends core::Object? = dynamic>([@v
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=1]
 static method main() → void {
-  self::testStaticTypeOfConditional<core::String>([@vm.closure-id=1](core::String _#wc0#formal) → core::bool => true);
+  self::testStaticTypeOfConditional<core::String>([@vm.closure-id=1](wildcard core::String _#wc0#formal) → core::bool => true);
 }
 constants  {
   #C1 = null
