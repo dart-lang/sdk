@@ -20,6 +20,21 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
+/// This returns the offset used for finding the corresponding AST node.
+///
+/// If the fragment is named, the [Fragment.nameOffset2] is used. If the
+/// fragment is a a [ConstructorFragment] for an unnamed constructor, the
+/// [ConstructorFragment.typeNameOffset] is used.
+int? _getFragmentNameOffset(Fragment fragment) {
+  var nameOffset = fragment.nameOffset2;
+  if (nameOffset == null) {
+    if (fragment is ConstructorFragment) {
+      nameOffset = fragment.typeNameOffset;
+    }
+  }
+  return nameOffset;
+}
+
 abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
@@ -35,11 +50,11 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
   // type of [element]. For example, for library-level elements (classes etc),
   // we can iterate over the compilation unit's declarations.
 
-  final Element element;
+  final Fragment fragment;
   final int _nameOffset;
   AstNode? result;
 
-  DeclarationByElementLocator(this.element) : _nameOffset = element.nameOffset;
+  DeclarationByElementLocator(this.fragment, this._nameOffset);
 
   @override
   void visitNode(AstNode node) {
@@ -49,7 +64,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
       return;
     }
 
-    if (element is InterfaceElement) {
+    if (fragment is InterfaceFragment) {
       if (node is ClassDeclaration) {
         if (_hasOffset2(node.name)) {
           result = node;
@@ -71,7 +86,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           result = node;
         }
       }
-    } else if (element is ConstructorElement) {
+    } else if (fragment is ConstructorFragment) {
       if (node is ConstructorDeclaration) {
         if (node.name != null) {
           if (_hasOffset2(node.name)) {
@@ -83,13 +98,13 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           }
         }
       }
-    } else if (element is ExtensionElement) {
+    } else if (fragment is ExtensionFragment) {
       if (node is ExtensionDeclaration) {
         if (_hasOffset2(node.name)) {
           result = node;
         }
       }
-    } else if (element is FieldElement) {
+    } else if (fragment is FieldFragment) {
       if (node is EnumConstantDeclaration) {
         if (_hasOffset2(node.name)) {
           result = node;
@@ -99,23 +114,27 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           result = node;
         }
       }
-    } else if (element is FunctionElement) {
+    } else if (fragment is TopLevelFunctionFragment) {
       if (node is FunctionDeclaration && _hasOffset2(node.name)) {
         result = node;
       }
-    } else if (element is LocalVariableElement) {
+    } else if (fragment is LocalFunctionFragment) {
+      if (node is FunctionDeclaration && _hasOffset2(node.name)) {
+        result = node;
+      }
+    } else if (fragment is LocalVariableFragment) {
       if (node is VariableDeclaration && _hasOffset2(node.name)) {
         result = node;
       }
-    } else if (element is MethodElement) {
+    } else if (fragment is MethodFragment) {
       if (node is MethodDeclaration && _hasOffset2(node.name)) {
         result = node;
       }
-    } else if (element is ParameterElement) {
+    } else if (fragment is FormalParameterFragment) {
       if (node is FormalParameter && _hasOffset2(node.name)) {
         result = node;
       }
-    } else if (element is PropertyAccessorElement) {
+    } else if (fragment is PropertyAccessorFragment) {
       if (node is FunctionDeclaration) {
         if (_hasOffset2(node.name)) {
           result = node;
@@ -125,11 +144,11 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           result = node;
         }
       }
-    } else if (element is TopLevelVariableElement) {
+    } else if (fragment is TopLevelVariableFragment) {
       if (node is VariableDeclaration && _hasOffset2(node.name)) {
         result = node;
       }
-    } else if (element is TypeAliasElement) {
+    } else if (fragment is TypeAliasFragment) {
       if (node is GenericTypeAlias) {
         if (_hasOffset2(node.name)) {
           result = node;
@@ -153,7 +172,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
 
 class ElementDeclarationResultImpl implements ElementDeclarationResult {
   @override
-  final Element element;
+  final Fragment fragment;
 
   @override
   final AstNode node;
@@ -165,16 +184,14 @@ class ElementDeclarationResultImpl implements ElementDeclarationResult {
   final ResolvedUnitResult? resolvedUnit;
 
   ElementDeclarationResultImpl(
-      this.element, this.node, this.parsedUnit, this.resolvedUnit);
+      this.fragment, this.node, this.parsedUnit, this.resolvedUnit);
 
   @override
-  Element2 get element2 {
-    if (element case Fragment fragment) {
-      return fragment.element;
-    } else if (element case Element2 element) {
+  Element get element {
+    if (fragment case Element element) {
       return element;
     }
-    throw UnimplementedError('Could not compute and element');
+    throw UnsupportedError('${fragment.runtimeType}');
   }
 }
 
@@ -280,24 +297,35 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
-    if (element is CompilationUnitElement ||
-        element is LibraryElement ||
-        element.isSynthetic ||
-        element.nameOffset == -1) {
+    if (element case Fragment fragment) {
+      return getFragmentDeclaration(fragment);
+    }
+    throw UnsupportedError('$runtimeType.getElementDeclaration($element)');
+  }
+
+  @override
+  ElementDeclarationResult? getElementDeclaration2(Fragment fragment) {
+    return getFragmentDeclaration(fragment);
+  }
+
+  @override
+  ElementDeclarationResult? getFragmentDeclaration(Fragment fragment) {
+    var nameOffset = _getFragmentNameOffset(fragment);
+    if (fragment is LibraryFragment || nameOffset == null) {
       return null;
     }
 
-    var elementPath = element.source!.fullName;
+    var elementPath = fragment.libraryFragment!.source.fullName;
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
-        var elementStr = element.getDisplayString();
-        throw ArgumentError('Element (${element.runtimeType}) $elementStr is '
+        var elementStr = fragment.element.displayName;
+        throw ArgumentError('Element (${fragment.runtimeType}) $elementStr is '
             'not defined in this library.');
       },
     );
 
-    var locator = DeclarationByElementLocator(element);
+    var locator = DeclarationByElementLocator(fragment, nameOffset);
     unitResult.unit.accept(locator);
     var declaration = locator.result;
 
@@ -305,15 +333,8 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
       return null;
     }
 
-    return ElementDeclarationResultImpl(element, declaration, unitResult, null);
-  }
-
-  @override
-  ElementDeclarationResult? getElementDeclaration2(Fragment fragment) {
-    if (fragment case Element element) {
-      return getElementDeclaration(element);
-    }
-    throw UnimplementedError();
+    return ElementDeclarationResultImpl(
+        fragment, declaration, unitResult, null);
   }
 }
 
@@ -414,24 +435,35 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
-    if (element is CompilationUnitElement ||
-        element is LibraryElement ||
-        element.isSynthetic ||
-        element.nameOffset == -1) {
+    if (element case Fragment fragment) {
+      return getFragmentDeclaration(fragment);
+    }
+    throw UnsupportedError('$runtimeType.getElementDeclaration($element)');
+  }
+
+  @override
+  ElementDeclarationResult? getElementDeclaration2(Fragment fragment) {
+    return getFragmentDeclaration(fragment);
+  }
+
+  @override
+  ElementDeclarationResult? getFragmentDeclaration(Fragment fragment) {
+    var nameOffset = _getFragmentNameOffset(fragment);
+    if (fragment is LibraryFragment || nameOffset == null) {
       return null;
     }
 
-    var elementPath = element.source!.fullName;
+    var elementPath = fragment.libraryFragment!.source.fullName;
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
-        var elementStr = element.getDisplayString();
-        throw ArgumentError('Element (${element.runtimeType}) $elementStr is '
+        var elementStr = fragment.element.displayName;
+        throw ArgumentError('Element (${fragment.runtimeType}) $elementStr is '
             'not defined in this library.');
       },
     );
 
-    var locator = DeclarationByElementLocator(element);
+    var locator = DeclarationByElementLocator(fragment, nameOffset);
     unitResult.unit.accept(locator);
     var declaration = locator.result;
 
@@ -439,15 +471,8 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       return null;
     }
 
-    return ElementDeclarationResultImpl(element, declaration, null, unitResult);
-  }
-
-  @override
-  ElementDeclarationResult? getElementDeclaration2(Fragment fragment) {
-    if (fragment case Element element) {
-      return getElementDeclaration(element);
-    }
-    throw UnimplementedError();
+    return ElementDeclarationResultImpl(
+        fragment, declaration, null, unitResult);
   }
 
   @override
