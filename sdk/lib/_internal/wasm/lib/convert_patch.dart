@@ -951,8 +951,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
         case QUOTE:
           if ((state & ALLOW_STRING_MASK) != 0) fail(position);
           final calculateHash =
-              isUtf16Input &&
-              (state == STATE_OBJECT_EMPTY || state == STATE_OBJECT_COMMA);
+              state == STATE_OBJECT_EMPTY || state == STATE_OBJECT_COMMA;
           state |= VALUE_READ_BITS;
           if (calculateHash) {
             position = parseStringWithHash(position + 1);
@@ -1176,11 +1175,6 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
 
   @pragma('wasm:prefer-inline')
   int _parseStringWithHashInternal(int position, bool computeHash) {
-    // If the input is utf-8 encoded bytes and we process it byte by byte but
-    // don't accumulate the utf-16 code points then we cannot easily precompute
-    // the hash.
-    assert(!computeHash || isUtf16Input);
-
     // Format: '"'([^\x00-\x1f\\\"]|'\\'[bfnrt/\\"])*'"'
     // Initial position is right after first '"'.
     int start = position;
@@ -1809,6 +1803,7 @@ OneByteString _internOneByteStringFromI8(
 
   final result = OneByteString.withLength(length);
   result.array.copy(0, array, offset, length);
+  assert(result.hashCode.toWasmI32() == stringHash.toWasmI32());
   setIdentityHashField(result, stringHash);
   _oneByteStringInternCache[index] = result;
   return result;
@@ -1842,6 +1837,7 @@ OneByteString _internOneByteStringFromI16(
   for (int start = offset, i = 0; i < length; ++i, start++) {
     result.array.write(i, array.readUnsigned(start));
   }
+  assert(result.hashCode.toWasmI32() == stringHash.toWasmI32());
   setIdentityHashField(result, stringHash);
   _oneByteStringInternCache[index] = result;
   return result;
@@ -2003,7 +1999,18 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
   }
 
   String getStringWithHash(int start, int end, int bits, int stringHash) {
-    throw 'unused';
+    // We can only rely on [stringWithHash] if [bits] tell us it was ascii (as
+    // the highest bit is used to mark continuation bytes in utf-8).
+    if (bits <= 0x7f) {
+      final offset = chunk.offsetInElements;
+      return _internOneByteStringFromI8(
+        chunk.data,
+        stringHash,
+        offset + start,
+        end - start,
+      );
+    }
+    return getString(start, end, bits);
   }
 
   void beginString() {
