@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -57,8 +54,6 @@ abstract class LinterContext {
   /// Whether the [definingUnit] is in a [package]'s "test" directory.
   bool get isInTestDirectory;
 
-  LibraryElement? get libraryElement;
-
   /// The library element representing the library that contains the compilation
   /// unit being linted.
   @experimental
@@ -98,14 +93,10 @@ final class LinterContextWithParsedResults implements LinterContext {
 
   @override
   bool get isInLibDir => LinterContext._isInLibDir(
-      definingUnit.unit.declaredElement?.source.fullName, package);
+      definingUnit.unit.declaredFragment?.source.fullName, package);
 
   @override
   bool get isInTestDirectory => false;
-
-  @override
-  LibraryElement get libraryElement => throw UnsupportedError(
-      'LinterContext with parsed results does not include a LibraryElement');
 
   @experimental
   @override
@@ -158,7 +149,7 @@ final class LinterContextWithResolvedResults implements LinterContext {
 
   @override
   bool get isInLibDir => LinterContext._isInLibDir(
-      definingUnit.unit.declaredElement?.source.fullName, package);
+      definingUnit.libraryFragment.source.fullName, package);
 
   @override
   bool get isInTestDirectory {
@@ -169,13 +160,9 @@ final class LinterContextWithResolvedResults implements LinterContext {
     return false;
   }
 
-  @override
-  LibraryElement get libraryElement =>
-      definingUnit.unit.declaredElement!.library;
-
   @experimental
   @override
-  LibraryElement2 get libraryElement2 => libraryElement as LibraryElement2;
+  LibraryElement2 get libraryElement2 => definingUnit.libraryFragment.element;
 }
 
 /// Describes a lint rule.
