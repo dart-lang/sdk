@@ -1718,6 +1718,10 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
       (firstFragment.superConstructor?.declaration as ConstructorElementImpl?)
           ?.element;
 
+  set superConstructor2(ConstructorElement2? value) {
+    firstFragment.superConstructor = value?.asElement;
+  }
+
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitConstructorElement(this);
