@@ -17,6 +17,7 @@ import '../js_model/element_map.dart';
 import '../js_model/elements.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart';
+import '../kernel/transformations/modular/late_lowering.dart' as late_lowering;
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
@@ -151,7 +152,7 @@ abstract class GlobalTypeInferenceResults {
 
   GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member);
 
-  AbstractValue resultOfParameter(Local parameter);
+  AbstractValue resultOfParameter(Local parameter, MemberEntity? member);
 
   /// Returns the type of the result of applying [selector] to a receiver with
   /// the given [receiver] type.
@@ -408,7 +409,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   }
 
   @override
-  AbstractValue resultOfParameter(Local parameter) {
+  AbstractValue resultOfParameter(Local parameter, _) {
     // TODO(sigmund,johnniwinther): Make it an error to query for results that
     // don't exist.
     /*assert(parameterResults.containsKey(parameter),
@@ -596,18 +597,26 @@ class GlobalTypeInferenceMemberResultImpl
 class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
   @override
   final JClosedWorld closedWorld;
-  final TrivialGlobalTypeInferenceMemberResult _trivialMemberResult;
-  final AbstractValue _trivialParameterResult;
+
+  final AbstractValue _trivialResult;
+  final AbstractValue _includingLateSentinelTrivialResult;
+
+  late final TrivialGlobalTypeInferenceMemberResult _trivialMemberResult =
+      TrivialGlobalTypeInferenceMemberResult(_trivialResult);
+  late final TrivialGlobalTypeInferenceMemberResult
+  _includingLateSentinelMemberResult = TrivialGlobalTypeInferenceMemberResult(
+    _includingLateSentinelTrivialResult,
+  );
+
   @override
   final InferredData inferredData = TrivialInferredData();
   @override
   final GlobalLocalsMap globalLocalsMap;
 
   TrivialGlobalTypeInferenceResults(this.closedWorld, this.globalLocalsMap)
-    : _trivialMemberResult = TrivialGlobalTypeInferenceMemberResult(
-        closedWorld.abstractValueDomain.dynamicType,
-      ),
-      _trivialParameterResult = closedWorld.abstractValueDomain.dynamicType;
+    : _trivialResult = closedWorld.abstractValueDomain.dynamicType,
+      _includingLateSentinelTrivialResult =
+          closedWorld.abstractValueDomain.internalTopType;
 
   @override
   void writeToDataSink(DataSinkWriter sink, JsToElementMap elementMap) {
@@ -616,16 +625,37 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
 
   @override
   AbstractValue resultTypeOfSelector(Selector selector, AbstractValue mask) {
-    return closedWorld.abstractValueDomain.dynamicType;
+    if (late_lowering.isNameOfLateInstanceBackingField(selector.name)) {
+      return _includingLateSentinelTrivialResult;
+    }
+    return _trivialResult;
   }
 
   @override
-  AbstractValue resultOfParameter(Local parameter) {
-    return _trivialParameterResult;
+  AbstractValue resultOfParameter(Local parameter, MemberEntity? member) {
+    if (member != null) {
+      if (closedWorld.commonElements.isIsSentinel(member) ||
+          closedWorld.commonElements.isIsJsSentinel(member)) {
+        return _includingLateSentinelTrivialResult;
+      }
+    }
+    return _trivialResult;
   }
 
   @override
   GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member) {
+    if (member is FieldEntity) {
+      if (closedWorld.fieldAnalysis.getFieldData(member).isLateBackingField) {
+        return _includingLateSentinelMemberResult;
+      }
+    }
+    if (late_lowering.isNameOfLateInstanceBackingField(member.name)) {
+      return _includingLateSentinelMemberResult;
+    }
+    if (closedWorld.commonElements.isCreateSentinel(member) ||
+        closedWorld.commonElements.isCreateJsSentinel(member)) {
+      return _includingLateSentinelMemberResult;
+    }
     return _trivialMemberResult;
   }
 
@@ -641,15 +671,15 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
 
 class TrivialGlobalTypeInferenceMemberResult
     implements GlobalTypeInferenceMemberResult {
-  final AbstractValue dynamicType;
+  final AbstractValue topType;
 
-  TrivialGlobalTypeInferenceMemberResult(this.dynamicType);
-
-  @override
-  AbstractValue get type => dynamicType;
+  TrivialGlobalTypeInferenceMemberResult(this.topType);
 
   @override
-  AbstractValue get returnType => dynamicType;
+  AbstractValue get type => topType;
+
+  @override
+  AbstractValue get returnType => topType;
 
   @override
   bool get throwsAlways => false;

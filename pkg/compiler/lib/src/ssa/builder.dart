@@ -2342,6 +2342,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         }
         parameterMap[local] = _typeInferenceMap.getInferredTypeOfParameter(
           local,
+          member,
         );
       }
 
