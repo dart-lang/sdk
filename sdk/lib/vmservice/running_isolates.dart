@@ -118,7 +118,7 @@ class RunningIsolates implements MessageRouter {
           message.params[isolate.serviceId];
       reloadKernelRequest.params['kernelFilePath'] =
           outputDill.uri.toFilePath();
-      final response = isolate.routeRequest(service, message);
+      final response = await isolate.routeRequest(service, message);
 
       tempDirectory.deleteSync(recursive: true);
       return response;
