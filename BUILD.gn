@@ -358,6 +358,7 @@ if (is_fuchsia) {
     "tests/ffi/structs_typed_data_test.dart",
     "tests/ffi/unaligned_test.dart",
     "tests/ffi/variance_function_test.dart",
+    "tests/ffi/vmspecific_callback_unwind_error_through_handle_test.dart",
     "tests/ffi/vmspecific_deprecated_funcs_test.dart",
     "tests/ffi/vmspecific_dynamic_library_test.dart",
     "tests/ffi/vmspecific_enable_ffi_test.dart",
