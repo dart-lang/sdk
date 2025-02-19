@@ -5,8 +5,8 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     show Variance;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,8 +24,8 @@ main() {
 @reflectiveTest
 class SubtypeTest extends _SubtypingTestBase with StringTypes {
   void isNotSubtype(
-    DartType T0,
-    DartType T1, {
+    TypeImpl T0,
+    TypeImpl T1, {
     String? strT0,
     String? strT1,
   }) {
@@ -51,8 +51,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   void isSubtype(
-    DartType T0,
-    DartType T1, {
+    TypeImpl T0,
+    TypeImpl T1, {
     String? strT0,
     String? strT1,
   }) {
@@ -4223,7 +4223,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_record_record2_sameShape_named_order() {
-    void check(RecordType subType, RecordType superType) {
+    void check(RecordTypeImpl subType, RecordTypeImpl superType) {
       isSubtype(subType, superType);
       isSubtype(superType, subType);
     }
@@ -5316,9 +5316,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 @reflectiveTest
 class SubtypingCompoundTest extends _SubtypingTestBase {
   test_double() {
-    var equivalents = <DartType>[doubleNone];
-    var supertypes = <DartType>[numNone];
-    var unrelated = <DartType>[intNone];
+    var equivalents = <TypeImpl>[doubleNone];
+    var supertypes = <TypeImpl>[numNone];
+    var unrelated = <TypeImpl>[intNone];
     _checkGroups(
       doubleNone,
       equivalents: equivalents,
@@ -5328,12 +5328,12 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
   }
 
   test_dynamic() {
-    var equivalents = <DartType>[
+    var equivalents = <TypeImpl>[
       voidNone,
       objectQuestion,
     ];
 
-    var subtypes = <DartType>[
+    var subtypes = <TypeImpl>[
       neverNone,
       nullNone,
       objectNone,
@@ -5347,13 +5347,13 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
   }
 
   test_dynamic_isTop() {
-    var equivalents = <DartType>[
+    var equivalents = <TypeImpl>[
       dynamicType,
       objectQuestion,
       voidNone,
     ];
 
-    var subtypes = <DartType>[
+    var subtypes = <TypeImpl>[
       intNone,
       doubleNone,
       numNone,
@@ -5393,21 +5393,21 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
   }
 
   test_intNone() {
-    var equivalents = <DartType>[
+    var equivalents = <TypeImpl>[
       intNone,
     ];
 
-    var subtypes = <DartType>[
+    var subtypes = <TypeImpl>[
       neverNone,
     ];
 
-    var supertypes = <DartType>[
+    var supertypes = <TypeImpl>[
       intQuestion,
       objectNone,
       objectQuestion,
     ];
 
-    var unrelated = <DartType>[
+    var unrelated = <TypeImpl>[
       doubleNone,
       nullNone,
       neverQuestion,
@@ -5423,23 +5423,23 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
   }
 
   test_intQuestion() {
-    var equivalents = <DartType>[
+    var equivalents = <TypeImpl>[
       intQuestion,
     ];
 
-    var subtypes = <DartType>[
+    var subtypes = <TypeImpl>[
       intNone,
       nullNone,
       neverNone,
       neverQuestion,
     ];
 
-    var supertypes = <DartType>[
+    var supertypes = <TypeImpl>[
       numQuestion,
       objectQuestion,
     ];
 
-    var unrelated = <DartType>[
+    var unrelated = <TypeImpl>[
       doubleNone,
       numNone,
       objectNone,
@@ -5455,23 +5455,23 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
   }
 
   test_null() {
-    var equivalents = <DartType>[
+    var equivalents = <TypeImpl>[
       nullNone,
       neverQuestion,
     ];
 
-    var supertypes = <DartType>[
+    var supertypes = <TypeImpl>[
       intQuestion,
       objectQuestion,
       dynamicType,
       voidNone,
     ];
 
-    var subtypes = <DartType>[
+    var subtypes = <TypeImpl>[
       neverNone,
     ];
 
-    var unrelated = <DartType>[
+    var unrelated = <TypeImpl>[
       doubleNone,
       intNone,
       numNone,
@@ -5490,10 +5490,10 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
   }
 
   test_numNone() {
-    var equivalents = <DartType>[numNone];
-    var supertypes = <DartType>[objectNone];
-    var unrelated = <DartType>[stringNone];
-    var subtypes = <DartType>[intNone, doubleNone];
+    var equivalents = <TypeImpl>[numNone];
+    var supertypes = <TypeImpl>[objectNone];
+    var unrelated = <TypeImpl>[stringNone];
+    var subtypes = <TypeImpl>[intNone, doubleNone];
     _checkGroups(
       numNone,
       equivalents: equivalents,
@@ -5504,19 +5504,19 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
   }
 
   test_object() {
-    var equivalents = <DartType>[];
+    var equivalents = <TypeImpl>[];
 
-    var supertypes = <DartType>[
+    var supertypes = <TypeImpl>[
       objectQuestion,
       dynamicType,
       voidNone,
     ];
 
-    var subtypes = <DartType>[
+    var subtypes = <TypeImpl>[
       neverNone,
     ];
 
-    var unrelated = <DartType>[
+    var unrelated = <TypeImpl>[
       doubleQuestion,
       numQuestion,
       intQuestion,
@@ -5532,63 +5532,63 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
     );
   }
 
-  void _checkEquivalent(DartType type1, DartType type2) {
+  void _checkEquivalent(TypeImpl type1, TypeImpl type2) {
     _checkIsSubtypeOf(type1, type2);
     _checkIsSubtypeOf(type2, type1);
   }
 
-  void _checkGroups(DartType t1,
-      {List<DartType>? equivalents,
-      List<DartType>? unrelated,
-      List<DartType>? subtypes,
-      List<DartType>? supertypes}) {
+  void _checkGroups(TypeImpl t1,
+      {List<TypeImpl>? equivalents,
+      List<TypeImpl>? unrelated,
+      List<TypeImpl>? subtypes,
+      List<TypeImpl>? supertypes}) {
     if (equivalents != null) {
-      for (DartType t2 in equivalents) {
+      for (TypeImpl t2 in equivalents) {
         _checkEquivalent(t1, t2);
       }
     }
     if (unrelated != null) {
-      for (DartType t2 in unrelated) {
+      for (TypeImpl t2 in unrelated) {
         _checkUnrelated(t1, t2);
       }
     }
     if (subtypes != null) {
-      for (DartType t2 in subtypes) {
+      for (TypeImpl t2 in subtypes) {
         _checkIsStrictSubtypeOf(t2, t1);
       }
     }
     if (supertypes != null) {
-      for (DartType t2 in supertypes) {
+      for (TypeImpl t2 in supertypes) {
         _checkIsStrictSubtypeOf(t1, t2);
       }
     }
   }
 
-  void _checkIsNotSubtypeOf(DartType type1, DartType type2) {
+  void _checkIsNotSubtypeOf(TypeImpl type1, TypeImpl type2) {
     var strType1 = _typeStr(type1);
     var strType2 = _typeStr(type2);
     expect(typeSystem.isSubtypeOf(type1, type2), false,
         reason: '$strType1 was not supposed to be a subtype of $strType2');
   }
 
-  void _checkIsStrictSubtypeOf(DartType type1, DartType type2) {
+  void _checkIsStrictSubtypeOf(TypeImpl type1, TypeImpl type2) {
     _checkIsSubtypeOf(type1, type2);
     _checkIsNotSubtypeOf(type2, type1);
   }
 
-  void _checkIsSubtypeOf(DartType type1, DartType type2) {
+  void _checkIsSubtypeOf(TypeImpl type1, TypeImpl type2) {
     var strType1 = _typeStr(type1);
     var strType2 = _typeStr(type2);
     expect(typeSystem.isSubtypeOf(type1, type2), true,
         reason: '$strType1 is not a subtype of $strType2');
   }
 
-  void _checkUnrelated(DartType type1, DartType type2) {
+  void _checkUnrelated(TypeImpl type1, TypeImpl type2) {
     _checkIsNotSubtypeOf(type1, type2);
     _checkIsNotSubtypeOf(type2, type1);
   }
 
-  static String _typeStr(DartType type) {
+  static String _typeStr(TypeImpl type) {
     return type.getDisplayString();
   }
 }

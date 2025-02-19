@@ -85,7 +85,7 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
   }
 
   void _checkA({
-    required List<DartType> typeArguments,
+    required List<TypeImpl> typeArguments,
     required List<String> interfaces,
     List<String> errors = const [],
   }) {

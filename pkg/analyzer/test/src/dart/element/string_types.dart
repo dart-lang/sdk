@@ -13,7 +13,7 @@ import '../../../generated/type_system_base.dart';
 mixin StringTypes on AbstractTypeSystemTest {
   final Map<String, TypeImpl> _types = {};
 
-  void assertExpectedString(DartType type, String? expectedString) {
+  void assertExpectedString(TypeImpl type, String? expectedString) {
     if (expectedString != null) {
       var typeStr = typeString(type);
 
@@ -86,17 +86,17 @@ mixin StringTypes on AbstractTypeSystemTest {
   TypeImpl typeOfString(String str) {
     var type = _types[str];
     if (type == null) {
-      fail('No DartType for: $str');
+      fail('No TypeImpl for: $str');
     }
     return type;
   }
 
-  String typesString(List<DartType> types) {
+  String typesString(List<TypeImpl> types) {
     var str = types.map(typeString).join('\n');
     return '$str\n';
   }
 
-  String typeString(DartType type) {
+  String typeString(TypeImpl type) {
     return type.getDisplayString() + _typeParametersStr(type);
   }
 
@@ -355,8 +355,8 @@ mixin StringTypes on AbstractTypeSystemTest {
 
     void mixed(
       String str,
-      List<DartType> positionalTypes,
-      Map<String, DartType> namedTypes,
+      List<TypeImpl> positionalTypes,
+      Map<String, TypeImpl> namedTypes,
     ) {
       var type = recordTypeNone(
         positionalTypes: positionalTypes,
@@ -365,11 +365,11 @@ mixin StringTypes on AbstractTypeSystemTest {
       _defineType(str, type);
     }
 
-    void allPositional(String str, List<DartType> types) {
+    void allPositional(String str, List<TypeImpl> types) {
       mixed(str, types, const {});
     }
 
-    void allPositionalQuestion(String str, List<DartType> types) {
+    void allPositionalQuestion(String str, List<TypeImpl> types) {
       var type = recordTypeQuestion(
         positionalTypes: types,
       );
@@ -395,11 +395,11 @@ mixin StringTypes on AbstractTypeSystemTest {
     allPositional('(num, String)', [numNone, stringNone]);
     allPositional('(Never, Never)', [neverNone, neverNone]);
 
-    void allNamed(String str, Map<String, DartType> types) {
+    void allNamed(String str, Map<String, TypeImpl> types) {
       mixed(str, const [], types);
     }
 
-    void allNamedQuestion(String str, Map<String, DartType> types) {
+    void allNamedQuestion(String str, Map<String, TypeImpl> types) {
       var type = recordTypeQuestion(
         namedTypes: types,
       );
@@ -453,7 +453,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     _types[str] = type;
   }
 
-  String _typeParametersStr(DartType type) {
+  String _typeParametersStr(TypeImpl type) {
     var typeStr = '';
 
     var typeParameterCollector = _TypeParameterCollector();

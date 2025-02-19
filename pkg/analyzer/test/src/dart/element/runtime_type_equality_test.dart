@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
@@ -151,8 +150,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
   test_functionType_returnType() {
     void check(
-      DartType T1_returnType,
-      DartType T2_returnType,
+      TypeImpl T1_returnType,
+      TypeImpl T2_returnType,
       bool expected,
     ) {
       var T1 = functionTypeNone(
@@ -237,11 +236,11 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   }
 
   test_interfaceType_typeArguments() {
-    void equal(DartType T1, DartType T2) {
+    void equal(TypeImpl T1, TypeImpl T2) {
       _equal(listNone(T1), listNone(T2));
     }
 
-    void notEqual(DartType T1, DartType T2) {
+    void notEqual(TypeImpl T1, TypeImpl T2) {
       _notEqual(listNone(T1), listNone(T2));
     }
 
@@ -307,7 +306,7 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
     _notEqual(voidNone, neverQuestion);
   }
 
-  void _check(DartType T1, DartType T2, bool expected) {
+  void _check(TypeImpl T1, TypeImpl T2, bool expected) {
     bool result;
 
     result = typeSystem.runtimeTypesEqual(T1, T2);
@@ -329,7 +328,7 @@ T2: ${typeString(T2)}
     }
   }
 
-  void _equal(DartType T1, DartType T2) {
+  void _equal(TypeImpl T1, TypeImpl T2) {
     _check(T1, T2, true);
   }
 
@@ -340,7 +339,7 @@ T2: ${typeString(T2)}
     );
   }
 
-  void _notEqual(DartType T1, DartType T2) {
+  void _notEqual(TypeImpl T1, TypeImpl T2) {
     _check(T1, T2, false);
   }
 
