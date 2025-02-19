@@ -4,8 +4,6 @@
 
 // It's an error to have two initializing formals named `_`.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 class C {
   var _;
 

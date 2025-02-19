@@ -4,8 +4,6 @@
 
 // A local function declaration named `_` is non-binding and cannot be accessed.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 void main() {
   void _() {}
 

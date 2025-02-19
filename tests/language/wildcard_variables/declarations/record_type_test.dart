@@ -4,8 +4,6 @@
 
 // Allow positional record fields named `_` in record types.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'dart:async';
 
 import 'package:expect/expect.dart';

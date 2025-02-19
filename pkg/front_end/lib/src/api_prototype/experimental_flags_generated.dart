@@ -198,7 +198,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag inferenceUsingBounds = const ExperimentalFlag(
       name: 'inference-using-bounds',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 7),
       experimentEnabledVersion: const Version(3, 7),
       experimentReleasedVersion: const Version(3, 7));
@@ -358,7 +358,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag wildcardVariables = const ExperimentalFlag(
       name: 'wildcard-variables',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 7),
       experimentEnabledVersion: const Version(3, 7),
       experimentReleasedVersion: const Version(3, 7));

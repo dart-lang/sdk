@@ -132,7 +132,7 @@ enum ExperimentalFlag {
   inferenceUsingBounds(
       name: 'inference-using-bounds',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 7),
       experimentReleasedVersion: const Version(3, 7)),
 
@@ -272,7 +272,7 @@ enum ExperimentalFlag {
   wildcardVariables(
       name: 'wildcard-variables',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       experimentEnabledVersion: const Version(3, 7),
       experimentReleasedVersion: const Version(3, 7)),
   ;
