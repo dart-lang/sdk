@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -18,29 +16,24 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   /// The inheritance manager used to find overridden methods.
   final InheritanceManager3 _inheritance;
 
-  /// The URI of the library being verified.
-  final Uri _libraryUri;
-
   /// The error reporter used to report errors.
   final ErrorReporter _errorReporter;
 
   /// The current class or mixin.
-  InterfaceElement? _currentClass;
+  InterfaceElement2? _currentClass;
 
-  OverrideVerifier(
-      this._inheritance, LibraryElement library, this._errorReporter)
-      : _libraryUri = library.source.uri;
+  OverrideVerifier(this._inheritance, this._errorReporter);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _currentClass = node.declaredElement;
+    _currentClass = node.declaredFragment?.element;
     super.visitClassDeclaration(node);
     _currentClass = null;
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    _currentClass = node.declaredElement;
+    _currentClass = node.declaredFragment?.element;
     super.visitEnumDeclaration(node);
     _currentClass = null;
   }
@@ -48,12 +41,12 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
-      var fieldElement = field.declaredElement as FieldElement;
-      if (fieldElement.hasOverride) {
-        var getter = fieldElement.getter;
+      var fieldElement = field.declaredFragment?.element as FieldElement2;
+      if (fieldElement.metadata2.hasOverride) {
+        var getter = fieldElement.getter2;
         if (getter != null && _isOverride(getter)) continue;
 
-        var setter = fieldElement.setter;
+        var setter = fieldElement.setter2;
         if (setter != null && _isOverride(setter)) continue;
 
         _errorReporter.atToken(
@@ -66,15 +59,15 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var element = node.declaredElement!;
-    if (element.hasOverride && !_isOverride(element)) {
-      if (element is MethodElement) {
+    var element = node.declaredFragment!.element;
+    if (element.metadata2.hasOverride && !_isOverride(element)) {
+      if (element is MethodElement2) {
         _errorReporter.atToken(
           node.name,
           WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
         );
-      } else if (element is PropertyAccessorElement) {
-        if (element.isGetter) {
+      } else if (element is PropertyAccessorElement2) {
+        if (element is GetterElement) {
           _errorReporter.atToken(
             node.name,
             WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
@@ -91,17 +84,17 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _currentClass = node.declaredElement;
+    _currentClass = node.declaredFragment?.element;
     super.visitMixinDeclaration(node);
     _currentClass = null;
   }
 
   /// Return `true` if the [member] overrides a member from a superinterface.
-  bool _isOverride(ExecutableElement member) {
-    var currentClass = _currentClass?.augmented.firstFragment;
+  bool _isOverride(ExecutableElement2 member) {
+    var currentClass = _currentClass?.firstFragment;
     if (currentClass != null) {
-      var name = Name(_libraryUri, member.name);
-      return _inheritance.getOverridden2(currentClass, name) != null;
+      var name = Name.forElement(member)!;
+      return _inheritance.getOverridden4(currentClass.element, name) != null;
     } else {
       return false;
     }

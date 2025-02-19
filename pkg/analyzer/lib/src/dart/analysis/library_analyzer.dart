@@ -510,7 +510,6 @@ class LibraryAnalyzer {
 
     unit.accept(OverrideVerifier(
       _inheritance,
-      _libraryElement,
       errorReporter,
     ));
 
