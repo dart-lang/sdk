@@ -673,7 +673,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    *
    * The [start] positions is inclusive, [end] is exclusive.
    */
-  void addSliceToString(int start, int end);
+  void addSliceToString(int start, int end, int bits);
 
   /**
    * Adds a string slice to the string being built.
@@ -1251,7 +1251,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
       }
     }
     beginString();
-    if (start < end) addSliceToString(start, end);
+    if (start < end) addSliceToString(start, end, bits);
     return chunkString(STR_PLAIN);
   }
 
@@ -1298,10 +1298,11 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
   int parseStringToBuffer(int position) {
     int end = chunkEnd;
     int start = position;
+    int bits = 0;
     while (true) {
       if (position == end) {
         if (position > start) {
-          addSliceToString(start, position);
+          addSliceToString(start, position, bits);
         }
         return chunkString(STR_PLAIN);
       }
@@ -1309,6 +1310,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
       int char = 0;
       do {
         char = getChar(position);
+        bits |= char; // Includes final '"', but that never matters.
         position++;
         if (isUtf16Input && char > 0xFF) {
           continue;
@@ -1327,7 +1329,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
       if (char == QUOTE) {
         int quotePosition = position - 1;
         if (quotePosition > start) {
-          addSliceToString(start, quotePosition);
+          addSliceToString(start, quotePosition, bits);
         }
         listener.handleString(endString());
         return position;
@@ -1339,13 +1341,14 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
 
       // Handle escape.
       if (position - 1 > start) {
-        addSliceToString(start, position - 1);
+        addSliceToString(start, position - 1, bits);
       }
 
       if (position == end) return chunkString(STR_ESCAPE);
       position = parseStringEscape(position);
       if (position == end) return position;
       start = position;
+      bits = 0;
     }
   }
 
@@ -1656,7 +1659,7 @@ class _JsonOneByteStringParser extends _ChunkedJsonParserState
     assert(stringBuffer.isEmpty);
   }
 
-  void addSliceToString(int start, int end) {
+  void addSliceToString(int start, int end, int bits) {
     addStringSliceToString(chunk.substringUnchecked(start, end));
   }
 
@@ -1710,26 +1713,18 @@ class _JsonTwoByteStringParser extends _ChunkedJsonParserState
     int length = end - start;
     if (length == 0) return '';
 
-    final WasmArray<WasmI16> sourceArray = chunk.array;
-    const int asciiBits = 0x7f;
-    if (bits <= asciiBits) {
-      final result = OneByteString.withLength(length);
-      for (int i = 0; i < length; ++i) {
-        result.array.write(i, sourceArray.readUnsigned(start++));
-      }
-      return result;
+    final sourceArray = chunk.array;
+    if (bits <= 0xff) {
+      return _oneByteStringFromI16(sourceArray, start, length);
     }
-    final result = TwoByteString.withLength(length);
-    result.array.copy(0, sourceArray, start, length);
-    return result;
+    return _twoByteStringFromI16(sourceArray, start, length);
   }
 
   String getStringWithHash(int start, int end, int bits, int stringHash) {
     final sourceArray = chunk.array;
     final length = end - start;
 
-    const asciiBits = 0x7f;
-    if (bits <= asciiBits) {
+    if (bits <= 0xff) {
       return _internOneByteStringFromI16(
         sourceArray,
         stringHash,
@@ -1738,8 +1733,7 @@ class _JsonTwoByteStringParser extends _ChunkedJsonParserState
       );
     }
 
-    final result = TwoByteString.withLength(length);
-    result.array.copy(0, sourceArray, start, length);
+    final result = _twoByteStringFromI16(sourceArray, start, length);
     assert(result.hashCode.toWasmI32() == stringHash.toWasmI32());
     setIdentityHashField(result, stringHash);
     return result;
@@ -1749,8 +1743,14 @@ class _JsonTwoByteStringParser extends _ChunkedJsonParserState
     assert(stringBuffer.isEmpty);
   }
 
-  void addSliceToString(int start, int end) {
-    addStringSliceToString(chunk.substringUnchecked(start, end));
+  void addSliceToString(int start, int end, int bits) {
+    final sourceArray = chunk.array;
+    final length = end - start;
+    addStringSliceToString(
+      bits <= 0xff
+          ? _oneByteStringFromI16(sourceArray, start, length)
+          : _twoByteStringFromI16(sourceArray, start, length),
+    );
   }
 
   void addStringSliceToString(String string) {
@@ -1812,11 +1812,21 @@ OneByteString _internOneByteStringFromI8(
     }
   }
 
-  final result = OneByteString.withLength(length);
-  result.array.copy(0, array, offset, length);
+  final result = _oneByteStringFromI8(array, offset, length);
   assert(result.hashCode.toWasmI32() == stringHash.toWasmI32());
   setIdentityHashField(result, stringHash);
   _oneByteStringInternCache[index] = result;
+  return result;
+}
+
+@pragma('wasm:prefer-inline')
+OneByteString _oneByteStringFromI8(
+  WasmArray<WasmI8> array,
+  int start,
+  int length,
+) {
+  final result = OneByteString.withLength(length);
+  result.array.copy(0, array, start, length);
   return result;
 }
 
@@ -1844,13 +1854,32 @@ OneByteString _internOneByteStringFromI16(
     }
   }
 
-  final result = OneByteString.withLength(length);
-  for (int start = offset, i = 0; i < length; ++i, start++) {
-    result.array.write(i, array.readUnsigned(start));
-  }
+  final result = _oneByteStringFromI16(array, offset, length);
   assert(result.hashCode.toWasmI32() == stringHash.toWasmI32());
   setIdentityHashField(result, stringHash);
   _oneByteStringInternCache[index] = result;
+  return result;
+}
+
+OneByteString _oneByteStringFromI16(
+  WasmArray<WasmI16> array,
+  int start,
+  int length,
+) {
+  final result = OneByteString.withLength(length);
+  for (int i = 0; i < length; ++i) {
+    result.array.write(i, array.readUnsigned(start++));
+  }
+  return result;
+}
+
+TwoByteString _twoByteStringFromI16(
+  WasmArray<WasmI16> array,
+  int start,
+  int length,
+) {
+  final result = TwoByteString.withLength(length);
+  result.array.copy(0, array, start, length);
   return result;
 }
 
@@ -1999,14 +2028,16 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
   int getChar(int position) => chunk[position];
 
   String getString(int start, int end, int bits) {
+    int length = end - start;
+    if (length == 0) return '';
+
     const int maxAsciiChar = 0x7f;
     if (bits <= maxAsciiChar) {
       return createOneByteStringFromCharacters(chunk, start, end);
     }
     beginString();
-    if (start < end) addSliceToString(start, end);
-    String result = endString();
-    return result;
+    addSliceToString(start, end, bits);
+    return endString();
   }
 
   String getStringWithHash(int start, int end, int bits, int stringHash) {
@@ -2029,8 +2060,12 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
     stringBuffer.clear();
   }
 
-  void addSliceToString(int start, int end) {
-    addStringSliceToString(decoder.convertChunked(chunk, start, end));
+  void addSliceToString(int start, int end, int bits) {
+    addStringSliceToString(
+      !decoder.expectsContinuation && bits <= 0x7f
+          ? _oneByteStringFromI8(chunk.data, start, end - start)
+          : decoder.convertChunked(chunk, start, end),
+    );
   }
 
   void addStringSliceToString(String string) {
