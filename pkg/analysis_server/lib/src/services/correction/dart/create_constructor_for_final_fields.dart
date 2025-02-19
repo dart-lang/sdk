@@ -174,13 +174,19 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
           ),
         );
         builder.write(' key');
+        var fieldsForInitializers = <_Field>[];
 
         _writeFlutterParameters(
           builder: builder,
           variableLists: fixContext.variableLists,
+          fieldsForInitializers: fieldsForInitializers,
         );
 
-        builder.write('}) : super(key: key);');
+        builder.write('}) : ');
+        if (fieldsForInitializers.isNotEmpty) {
+          builder.write('${_getInitalizersString(fieldsForInitializers)}, ');
+        }
+        builder.write('super(key: key);');
       });
     });
   }
@@ -198,15 +204,28 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         builder.write('({');
         builder.write('super.key');
 
+        var fieldsForInitializers = <_Field>[];
         _writeFlutterParameters(
           builder: builder,
           variableLists: fixContext.variableLists,
+          fieldsForInitializers: fieldsForInitializers,
         );
 
-        builder.write('});');
+        builder.write('})');
+        if (fieldsForInitializers.isNotEmpty) {
+          builder.write(' : ${_getInitalizersString(fieldsForInitializers)}');
+        }
+        builder.write(';');
       });
     });
   }
+
+  String _getInitalizersString(List<_Field> fieldsForInitializers) =>
+      fieldsForInitializers
+          .map((field) {
+            return '${field.fieldName} = ${field.namedFormalParameterName}';
+          })
+          .join(', ');
 
   Future<void> _notFlutterNamed({
     required _FixContext fixContext,
@@ -259,12 +278,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         builder.write('})');
 
         if (fieldsForInitializers.isNotEmpty) {
-          var code = fieldsForInitializers
-              .map((field) {
-                return '${field.fieldName} = ${field.namedFormalParameterName}';
-              })
-              .join(', ');
-          builder.write(' : $code');
+          builder.write(' : ${_getInitalizersString(fieldsForInitializers)}');
         }
 
         builder.write(';');
@@ -332,6 +346,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   void _writeFlutterParameters({
     required DartEditBuilder builder,
     required Iterable<VariableDeclarationList> variableLists,
+    required List<_Field> fieldsForInitializers,
   }) {
     var fields = _fieldsToWrite(variableLists);
     if (fields == null) {
@@ -345,8 +360,15 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       if (field.hasNonNullableType) {
         builder.write('required ');
       }
-      builder.write('this.');
-      builder.write(field.fieldName);
+      if (field.namedFormalParameterName == field.fieldName) {
+        builder.write('this.');
+        builder.write(field.fieldName);
+      } else {
+        builder.write(utils.getNodeText(field.typeAnnotation));
+        builder.write(' ');
+        builder.write(field.namedFormalParameterName);
+        fieldsForInitializers.add(field);
+      }
     }
   }
 }
