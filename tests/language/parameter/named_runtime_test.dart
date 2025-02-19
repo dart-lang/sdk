@@ -1,6 +1,3 @@
-// TODO(multitest): This was automatically migrated from a multitest and may
-// contain strange or dead code.
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -97,10 +94,10 @@ class C implements I {
   }
 }
 
-hello(msg, to, {from}) => '${from} sent ${msg} to ${to}';
-message() => hello("gladiolas", "possums", from: "Edna");
+String hello(msg, to, {from}) => '${from} sent ${msg} to ${to}';
+String message() => hello("gladiolas", "possums", from: "Edna");
 
-main() {
+void main() {
   NamedParametersTest.testMain();
   var i = new I();
   Expect.equals(100, i.mul(10));
