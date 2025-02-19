@@ -616,16 +616,23 @@ abstract class RenameRefactoring implements Refactoring {
       element = declaredParameterElement(node, element);
     }
 
+    Element2? element2;
     // Use the prefix offset/length when renaming an import directive.
-    if (node is ImportDirective && element is LibraryImportElement) {
-      var prefix = node.prefix;
-      if (prefix != null) {
-        offset = prefix.offset;
-        length = prefix.length;
-      } else {
-        // -1 means the name does not exist yet.
-        offset = -1;
-        length = 0;
+    if (element is LibraryImportElement) {
+      if (node is ImportDirective) {
+        var prefix = node.prefix;
+        if (prefix != null) {
+          offset = prefix.offset;
+          length = prefix.length;
+        } else {
+          // -1 means the name does not exist yet.
+          offset = -1;
+          length = 0;
+        }
+      }
+      var importNode = node.thisOrAncestorOfType<ImportDirective>();
+      if (importNode != null) {
+        element2 = MockLibraryImportElement(importNode.libraryImport!);
       }
     }
 
@@ -641,18 +648,122 @@ abstract class RenameRefactoring implements Refactoring {
       return null;
     }
 
-    return RenameRefactoringElement(element, offset, length);
+    return RenameRefactoringElement(element, element2, offset, length);
+  }
+
+  /// Returns the best element to rename based on the [node] and [element] (for
+  /// example, the class when on the `new` keyword).
+  static RenameRefactoringElement? getElementToRename2(
+    AstNode node,
+    Element2? element,
+  ) {
+    // TODO(scheglov): This is bad code.
+    SyntacticEntity? nameNode;
+    if (node is AssignedVariablePattern) {
+      nameNode = node.name;
+    } else if (node is ConstructorDeclaration) {
+      nameNode = node;
+    } else if (node is ConstructorSelector) {
+      nameNode = node;
+    } else if (node is DeclaredIdentifier) {
+      nameNode = node.name;
+    } else if (node is DeclaredVariablePattern) {
+      nameNode = node.name;
+    } else if (node is EnumConstantDeclaration) {
+      nameNode = node.name;
+    } else if (node is ExtensionDeclaration) {
+      nameNode = node.name;
+    } else if (node is ExtensionOverride) {
+      nameNode = node.name;
+    } else if (node is FieldFormalParameter) {
+      nameNode = node.name;
+    } else if (node is ImportDirective) {
+      nameNode = node;
+    } else if (node is ImportPrefixReference) {
+      nameNode = node;
+    } else if (node is InstanceCreationExpression) {
+      nameNode = node;
+    } else if (node is LibraryDirective) {
+      nameNode = node;
+    } else if (node is MethodDeclaration) {
+      nameNode = node.name;
+    } else if (node is NamedCompilationUnitMember) {
+      nameNode = node.name;
+    } else if (node is NamedType) {
+      nameNode = node.name2;
+    } else if (node is RepresentationConstructorName) {
+      nameNode = node.name;
+    } else if (node is RepresentationDeclaration) {
+      nameNode = node.fieldName;
+    } else if (node is SimpleFormalParameter) {
+      nameNode = node.name;
+    } else if (node is SimpleIdentifier) {
+      nameNode = node.token;
+    } else if (node is TypeParameter) {
+      nameNode = node.name;
+    } else if (node is VariableDeclaration) {
+      nameNode = node.name;
+    }
+    if (nameNode == null) {
+      return null;
+    }
+    var offset = nameNode.offset;
+    var length = nameNode.length;
+
+    if (node is SimpleIdentifier && element is FormalParameterElement) {
+      element = declaredParameterElement(node, element.asElement).asElement2;
+    }
+
+    // Use the prefix offset/length when renaming an import directive.
+    if (element is MockLibraryImportElement) {
+      if (node is ImportDirective) {
+        var prefix = node.prefix;
+        if (prefix != null) {
+          offset = prefix.offset;
+          length = prefix.length;
+        } else {
+          // -1 means the name does not exist yet.
+          offset = -1;
+          length = 0;
+        }
+      }
+    }
+
+    // Rename the class when on `new` in an instance creation.
+    if (node is InstanceCreationExpression) {
+      var namedType = node.constructorName.type;
+      element = namedType.element2;
+      offset = namedType.name2.offset;
+      length = namedType.name2.length;
+    }
+
+    if (element == null) {
+      return null;
+    }
+
+    return RenameRefactoringElement(
+      element.asElement!,
+      element,
+      offset,
+      length,
+    );
   }
 }
 
 class RenameRefactoringElement {
   final Element element;
+  final Element2? _element2;
   final int offset;
   final int length;
 
-  RenameRefactoringElement(this.element, this.offset, this.length);
+  RenameRefactoringElement(
+    this.element,
+    this._element2,
+    this.offset,
+    this.length,
+  );
 
   Element2 get element2 {
-    return element.asElement2!;
+    return _element2 ?? element.asElement2!;
   }
 }
