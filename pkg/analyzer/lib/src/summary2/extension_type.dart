@@ -133,7 +133,7 @@ class _Node extends graph.Node<_Node> {
 
     var dependencies = <_Node>[];
     for (var element in visitor.dependencies) {
-      var declaration = walker.linker.getLinkingNode2(element);
+      var declaration = walker.linker.getLinkingNode2(element.firstFragment);
       if (declaration is ExtensionTypeDeclarationImpl) {
         var node = walker.getNode(declaration);
         dependencies.add(node);

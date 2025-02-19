@@ -263,7 +263,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   DartType _getAliasedType(TypeAliasElementImpl2 element) {
-    var typedefNode = linker.getLinkingNode2(element);
+    var typedefNode = linker.getLinkingNode2(element.firstFragment);
 
     // If the element is not being linked, the types have already been built.
     if (typedefNode == null) {

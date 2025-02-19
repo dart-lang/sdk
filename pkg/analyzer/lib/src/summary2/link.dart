@@ -26,7 +26,6 @@ import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 
 LinkResult link({
@@ -80,15 +79,9 @@ class Linker {
     return elementNodes[element];
   }
 
-  /// If the [element] is part of a library being linked, return the node
-  /// from which it was created.
-  ast.AstNode? getLinkingNode2(Element2 element) {
-    return elementNodes[element.asElement];
-  }
-
   /// If the [fragment] is part of a library being linked, return the node
   /// from which it was created.
-  ast.AstNode? getLinkingNode3(Fragment fragment) {
+  ast.AstNode? getLinkingNode2(Fragment fragment) {
     return elementNodes[fragment];
   }
 

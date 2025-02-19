@@ -274,7 +274,8 @@ class DefaultTypesBuilder {
         } else if (visited.add(startType.element3)) {
           void recurseParameters(List<TypeParameterElement2> parameters) {
             for (var parameter in parameters) {
-              var parameterNode = _linker.getLinkingNode2(parameter);
+              var parameterNode =
+                  _linker.getLinkingNode2(parameter.firstFragment);
               if (parameterNode is TypeParameter) {
                 var bound = parameterNode.bound;
                 if (bound != null) {
