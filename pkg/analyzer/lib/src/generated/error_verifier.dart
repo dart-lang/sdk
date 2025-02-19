@@ -4511,9 +4511,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (mixinMember != null) {
         var isCorrect = CorrectOverrideHelper(
           typeSystem: typeSystem,
-          thisMember: superMember,
+          thisMember: superMember.asElement2,
         ).isCorrectOverrideOf(
-          superMember: mixinMember,
+          superMember: mixinMember.asElement2,
         );
         if (!isCorrect) {
           errorReporter.atNode(

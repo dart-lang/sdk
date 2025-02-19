@@ -351,9 +351,9 @@ class _ClassVerifier {
         //  overriding method. The classNameNode is always wrong.
         CorrectOverrideHelper(
           typeSystem: typeSystem,
-          thisMember: concreteElement,
+          thisMember: concreteElement.asElement2,
         ).verify(
-          superMember: interfaceElement,
+          superMember: interfaceElement.asElement2,
           errorReporter: reporter,
           errorNode: classNameToken,
           errorCode: concreteElement is PropertyAccessorElementOrMember &&
@@ -385,7 +385,7 @@ class _ClassVerifier {
     var name = Name(libraryUri, member.name);
     var correctOverrideHelper = CorrectOverrideHelper(
       typeSystem: typeSystem,
-      thisMember: member,
+      thisMember: member.asElement2,
     );
 
     for (var superType in directSuperInterfaces) {
@@ -405,7 +405,7 @@ class _ClassVerifier {
       }
 
       correctOverrideHelper.verify(
-          superMember: superMember,
+          superMember: superMember.asElement2,
           errorReporter: reporter,
           errorNode: node,
           errorCode: member is PropertyAccessorElement && member.isSetter
@@ -414,7 +414,7 @@ class _ClassVerifier {
     }
 
     if (mixinIndex == -1) {
-      CovariantParametersVerifier(thisMember: member).verify(
+      CovariantParametersVerifier(thisMember: member.asElement2).verify(
         errorReporter: reporter,
         errorEntity: node,
       );
