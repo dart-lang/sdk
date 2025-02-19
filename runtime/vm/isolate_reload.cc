@@ -2275,6 +2275,14 @@ class FieldInvalidator {
         continue;  // Already guarding.
       }
       const intptr_t field_id = field.field_id();
+      if (field.is_shared()) {
+        auto field_table = thread->isolate_group()->shared_field_table();
+        value_ = field_table->At(field_id);
+        if (value_.ptr() != Object::sentinel().ptr()) {
+          CheckValueType(value_, field);
+        }
+        continue;
+      }
       thread->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
         auto field_table = isolate->field_table();
         // The isolate might've just been created and is now participating in
