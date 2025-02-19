@@ -4,8 +4,6 @@
 
 // It's an error for `_` to be accessed inside an initializer list.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 class C {
   var _;
   var other;

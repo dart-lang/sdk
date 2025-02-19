@@ -5,8 +5,6 @@
 // A positional initializing formal named `_` does still initialize a field
 // named `_`, and you can still have a field with that name.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 void main() {

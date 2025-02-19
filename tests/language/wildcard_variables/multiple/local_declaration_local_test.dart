@@ -4,8 +4,6 @@
 
 // Tests multiple local wildcard variable declarations.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 void main() {
   var _ = 1;
   int _ = 2;

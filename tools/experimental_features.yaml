@@ -177,6 +177,7 @@ features:
         print('feature enabled');
       }
     help: "Use type parameter bounds more extensively in type inference."
+    expired: true
 
   wildcard-variables:
     enabledIn: '3.7.0'
@@ -187,6 +188,7 @@ features:
         print('feature enabled');
       }
     help: "Local declarations and parameters named `_` are non-binding."
+    expired: true
 
   digit-separators:
     enabledIn: '3.6.0'

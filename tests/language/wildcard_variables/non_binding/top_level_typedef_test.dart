@@ -5,8 +5,6 @@
 // Test the interactions between a wildcard typedef, which is binding, with
 // local non-binding wildcard variables.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 typedef _ = Type;

@@ -4,8 +4,6 @@
 
 // Tests that top-level const variables are still binding.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 const _ = 100;

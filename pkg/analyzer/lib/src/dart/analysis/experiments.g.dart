@@ -781,7 +781,7 @@ class IsExpired {
   static const bool inference_update_4 = false;
 
   /// Expiration status of the experiment "inference-using-bounds"
-  static const bool inference_using_bounds = false;
+  static const bool inference_using_bounds = true;
 
   /// Expiration status of the experiment "inline-class"
   static const bool inline_class = true;
@@ -841,7 +841,7 @@ class IsExpired {
   static const bool variance = false;
 
   /// Expiration status of the experiment "wildcard-variables"
-  static const bool wildcard_variables = false;
+  static const bool wildcard_variables = true;
 }
 
 mixin _CurrentState {
