@@ -229,6 +229,11 @@ void Thread::set_active_exception(const Object& value) {
   active_exception_ = value.ptr();
 }
 
+void Thread::set_active_exception(LocalHandle* value) {
+  active_exception_ = ObjectPtr(reinterpret_cast<uword>(value));
+  ASSERT(active_exception_.IsImmediateObject());  // GC won't try to visit this.
+}
+
 void Thread::set_active_stacktrace(const Object& value) {
   active_stacktrace_ = value.ptr();
 }

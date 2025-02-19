@@ -1,4 +1,4 @@
-// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,21 +7,27 @@
 import "dart:ffi";
 import "dart:isolate";
 
-import "callback_tests_utils.dart";
+import "dylib_utils.dart";
 
-typedef Type = Int32 Function(Int32, Int32);
-int unwindError(int x, int y) {
-  print("unwindError($x, $y)");
+final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
+
+Object unwindErrorThroughHandle(int x, int y) {
+  print("unwindErrorThroughHandle($x, $y)");
   Isolate.current.kill(priority: Isolate.immediate);
   return x + y;
 }
 
-final testcases = [
-  CallbackTest("UnwindError", Pointer.fromFunction<Type>(unwindError, 42)),
-];
+typedef CallbackType = Handle Function(Int32, Int32);
+typedef CalloutCType = Handle Function(Pointer);
+typedef CalloutDartType = Object Function(Pointer);
 
 void child(_) {
-  testcases.forEach((t) => t.run());
+  var callout = ffiTestFunctions.lookupFunction<CalloutCType, CalloutDartType>(
+    "TestUnwindErrorThroughHandle",
+    isLeaf: false,
+  );
+  var callback = Pointer.fromFunction<CallbackType>(unwindErrorThroughHandle);
+  var result = callout(callback);
   throw "Should not be reached";
 }
 

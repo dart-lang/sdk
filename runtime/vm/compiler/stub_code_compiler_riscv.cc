@@ -2967,11 +2967,21 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
 //
 // The arguments are stored in the Thread object.
 // Does not return.
-void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+static void GenerateRunExceptionHandler(Assembler* assembler,
+                                        bool unbox_exception) {
   // Exception object.
   ASSERT(kExceptionObjectReg == A0);
   __ LoadFromOffset(A0, THR, target::Thread::active_exception_offset());
   __ StoreToOffset(NULL_REG, THR, target::Thread::active_exception_offset());
+  if (unbox_exception) {
+    compiler::Label not_smi, done;
+    __ BranchIfNotSmi(A0, &not_smi);
+    __ SmiUntag(A0);
+    __ Jump(&done);
+    __ Bind(&not_smi);
+    __ lx(A0, FieldAddress(A0, Mint::value_offset()));
+    __ Bind(&done);
+  }
 
   // StackTrace object.
   ASSERT(kStackTraceObjectReg == A1);
@@ -2980,6 +2990,14 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
 
   __ LoadFromOffset(RA, THR, target::Thread::resume_pc_offset());
   __ ret();  // Jump to the exception handler code.
+}
+
+void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+  GenerateRunExceptionHandler(assembler, false);
+}
+
+void StubCodeCompiler::GenerateRunExceptionHandlerUnboxStub() {
+  GenerateRunExceptionHandler(assembler, true);
 }
 
 // Deoptimize a frame on the call stack before rewinding.

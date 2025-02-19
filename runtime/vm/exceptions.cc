@@ -12,6 +12,7 @@
 #include "lib/stacktrace.h"
 
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/datastream.h"
 #include "vm/debugger.h"
@@ -538,24 +539,6 @@ CatchEntryMoves* CatchEntryMovesMapReader::ReadCompressedCatchEntryMovesSuffix(
   return moves;
 }
 
-static void FindErrorHandler(uword* handler_pc,
-                             uword* handler_sp,
-                             uword* handler_fp) {
-  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
-                            Thread::Current(),
-                            StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != nullptr);
-  while (!frame->IsEntryFrame()) {
-    frame = frames.NextFrame();
-    ASSERT(frame != nullptr);
-  }
-  ASSERT(frame->IsEntryFrame());
-  *handler_pc = frame->pc();
-  *handler_sp = frame->sp();
-  *handler_fp = frame->fp();
-}
-
 static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
   if (thread->pending_deopts().HasPendingDeopts()) {
     // We may be jumping over frames scheduled for lazy deopt. Remove these
@@ -590,19 +573,40 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
   }
 }
 
+enum ExceptionType { kPassObject, kPassHandle, kPassUnboxed };
+
 static void JumpToExceptionHandler(Thread* thread,
                                    uword program_counter,
                                    uword stack_pointer,
                                    uword frame_pointer,
                                    const Object& exception_object,
-                                   const Object& stacktrace_object) {
+                                   const Object& stacktrace_object,
+                                   ExceptionType type = kPassObject) {
   bool clear_deopt = false;
   uword remapped_pc = thread->pending_deopts().RemapExceptionPCForDeopt(
       program_counter, frame_pointer, &clear_deopt);
-  thread->set_active_exception(exception_object);
+  uword run_exception_pc = StubCode::RunExceptionHandler().EntryPoint();
+  switch (type) {
+    case kPassObject:
+      thread->set_active_exception(exception_object);
+      break;
+    case kPassHandle: {
+      LocalHandle* handle =
+          thread->api_top_scope()->local_handles()->AllocateHandle();
+      handle->set_ptr(exception_object.ptr());
+      thread->set_active_exception(handle);
+      break;
+    }
+    case kPassUnboxed: {
+      thread->set_active_exception(exception_object);
+      run_exception_pc = StubCode::RunExceptionHandlerUnbox().EntryPoint();
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
   thread->set_active_stacktrace(stacktrace_object);
   thread->set_resume_pc(remapped_pc);
-  uword run_exception_pc = StubCode::RunExceptionHandler().EntryPoint();
   Exceptions::JumpToFrame(thread, run_exception_pc, stack_pointer,
                           frame_pointer, clear_deopt);
 }
@@ -1012,36 +1016,43 @@ void Exceptions::PropagateError(const Error& error) {
     const Instance& stk = Instance::Handle(zone, uhe.stacktrace());
     Exceptions::ReThrow(thread, exc, stk);
   } else {
+    const Instance& stk = StackTrace::Handle(zone);  // Null stacktrace.
     // Return to the invocation stub and return this error object.  The
     // C++ code which invoked this dart sequence can check and do the
     // appropriate thing.
-    uword handler_pc = 0;
-    uword handler_sp = 0;
-    uword handler_fp = 0;
-    FindErrorHandler(&handler_pc, &handler_sp, &handler_fp);
-    JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp, error,
-                           StackTrace::Handle(zone));  // Null stacktrace.
+    StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
+                              StackFrameIterator::kNoCrossThreadIteration);
+    StackFrame* frame = frames.NextFrame();
+    StackFrame* prev = frame;
+    ASSERT(frame != nullptr);
+    while (!frame->IsEntryFrame()) {
+      prev = frame;
+      frame = frames.NextFrame();
+      ASSERT(frame != nullptr);
+    }
+    if (frame->pc() == StubCode::InvokeDartCode().EntryPoint()) {
+      // This is an FFI callback using the invocation stub as a marker. Real use
+      // of invocation stub would be in the middle, not the entry point. Use the
+      // callback's exceptional return value instead of the error unless the
+      // return type is Dart_Handle.
+      ASSERT(prev->IsDartFrame());
+      frame = prev;
+      const Function& func =
+          Function::Handle(zone, frame->LookupDartFunction());
+      ASSERT(func.IsFfiCallbackTrampoline());
+      if (func.FfiCSignatureReturnsHandle()) {
+        JumpToExceptionHandler(thread, frame->pc(), frame->sp(), frame->fp(),
+                               error, stk, kPassHandle);
+      } else {
+        const Instance& val =
+            Instance::Handle(zone, func.FfiCallbackExceptionalReturn());
+        JumpToExceptionHandler(thread, frame->pc(), frame->sp(), frame->fp(),
+                               val, stk, kPassUnboxed);
+      }
+    }
+    JumpToExceptionHandler(thread, frame->pc(), frame->sp(), frame->fp(), error,
+                           stk);
   }
-  UNREACHABLE();
-}
-
-void Exceptions::PropagateToEntry(const Error& error) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  ASSERT(thread->top_exit_frame_info() != 0);
-  Instance& stacktrace = Instance::Handle(zone);
-  if (error.IsUnhandledException()) {
-    const UnhandledException& uhe = UnhandledException::Cast(error);
-    stacktrace = uhe.stacktrace();
-  } else {
-    stacktrace = Exceptions::CurrentStackTrace();
-  }
-  uword handler_pc = 0;
-  uword handler_sp = 0;
-  uword handler_fp = 0;
-  FindErrorHandler(&handler_pc, &handler_sp, &handler_fp);
-  JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp, error,
-                         stacktrace);
   UNREACHABLE();
 }
 

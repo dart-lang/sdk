@@ -3024,6 +3024,7 @@ class Function : public Object {
 
   bool FfiCSignatureContainsHandles() const;
   bool FfiCSignatureReturnsStruct() const;
+  bool FfiCSignatureReturnsHandle() const;
 
   // Can only be called on FFI trampolines.
   int32_t FfiCallbackId() const;

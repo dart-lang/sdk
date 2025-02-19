@@ -1469,4 +1469,9 @@ DART_EXPORT void ManyHandles(Dart_Handle o0,
 }
 #undef CHECK_STRING
 
+DART_EXPORT Dart_Handle TestUnwindErrorThroughHandle(Dart_Handle (*add)(int,
+                                                                        int)) {
+  return add(10, 20);
+}
+
 }  // namespace dart

@@ -54,6 +54,7 @@ class Interpreter;
 class Isolate;
 class IsolateGroup;
 class Library;
+class LocalHandle;
 class Object;
 class OSThread;
 class JSONObject;
@@ -874,6 +875,7 @@ class Thread : public ThreadState {
 
   ObjectPtr active_exception() const { return active_exception_; }
   void set_active_exception(const Object& value);
+  void set_active_exception(LocalHandle* value);
   static intptr_t active_exception_offset() {
     return OFFSET_OF(Thread, active_exception_);
   }
