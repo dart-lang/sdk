@@ -5,7 +5,7 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import 'common/service_test_common.dart';
 
 int? thing1;
 int? thing2;
@@ -24,6 +24,7 @@ Future<InstanceRef> evaluate(VmService service, isolate, target, x, y) async =>
     ) as InstanceRef;
 
 final evaluteWithScopeTests = <IsolateTest>[
+  hasStoppedAtExit,
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
