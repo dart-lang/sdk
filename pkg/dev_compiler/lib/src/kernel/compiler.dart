@@ -19,14 +19,16 @@ import 'package:kernel/library_index.dart';
 import 'package:kernel/src/dart_type_equivalence.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart' show SourceLocation;
 
 import '../command/options.dart' show Options;
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/js_utils.dart' as js_ast;
 import '../compiler/module_builder.dart'
-    show isSdkInternalRuntimeUri, libraryUriToJsIdentifier;
+    show
+        isSdkInternalRuntimeUri,
+        libraryUriToImportName,
+        libraryUriToJsIdentifier;
 import '../compiler/module_containers.dart' show ModuleItemContainer;
 import '../compiler/rewrite_async.dart';
 import '../js_ast/js_ast.dart' as js_ast;
@@ -818,11 +820,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return module;
   }
 
-  /// Choose a canonical name from the [library] element.
-  String _jsLibraryName(Library library) {
-    return libraryUriToJsIdentifier(library.importUri);
-  }
-
   /// Choose a module-unique name from the [library] element.
   ///
   /// Returns null if no alias exists or there are multiple output paths
@@ -834,17 +831,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var uri = library.importUri.normalizePath();
     if (uri.isScheme('dart')) return null;
 
-    Iterable<String> segments;
-    if (uri.isScheme('package')) {
-      // Strip the package name.
-      segments = uri.pathSegments.skip(1);
-    } else {
-      segments = uri.pathSegments;
-    }
-
-    var qualifiedPath =
-        js_ast.pathToJSIdentifier(p.withoutExtension(segments.join('/')));
-    return qualifiedPath == _jsLibraryName(library) ? null : qualifiedPath;
+    return libraryUriToImportName(uri);
   }
 
   /// Debugger friendly name for a Dart [library].
@@ -7751,7 +7738,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   void _setEmitIfIncrementalLibrary(Library library) {
     if (_incrementalMode) {
-      _setEmitIfIncremental(_libraryToModule(library), _jsLibraryName(library));
+      _setEmitIfIncremental(_libraryToModule(library),
+          libraryUriToJsIdentifier(library.importUri));
     }
   }
 
@@ -7994,7 +7982,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
       var libraryId = _isBuildingSdk && _isDartLibrary(library, '_rti')
           ? _rtiLibraryId
-          : js_ast.ScopedId(_jsLibraryName(library));
+          : js_ast.ScopedId(libraryUriToJsIdentifier(library.importUri));
 
       _libraries[library] = libraryId;
       var alias = _jsLibraryAlias(library);
@@ -8048,8 +8036,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // It's either one of the libraries in this module, or it's an import.
     return _libraries[library] ??
-        _imports.putIfAbsent(
-            library, () => js_ast.ScopedId(_jsLibraryName(library)));
+        _imports.putIfAbsent(library,
+            () => js_ast.ScopedId(libraryUriToJsIdentifier(library.importUri)));
   }
 
   /// Emits imports into [items].
@@ -8080,7 +8068,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var imports = <js_ast.NameSpecifier>[];
         for (var library in libraries) {
           if (!_incrementalMode ||
-              usedLibraries!.contains(_jsLibraryName(library))) {
+              usedLibraries!
+                  .contains(libraryUriToJsIdentifier(library.importUri))) {
             var alias = _jsLibraryAlias(library);
             if (alias != null) {
               var aliasId = js_ast.ScopedId(alias);
@@ -8180,7 +8169,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (usedLibraries.isNotEmpty) {
       _libraries.forEach((library, libraryId) {
-        if (usedLibraries.contains(_jsLibraryName(library))) {
+        if (usedLibraries
+            .contains(libraryUriToJsIdentifier(library.importUri))) {
           var alias = _jsLibraryAlias(library);
           var aliasId = alias == null ? libraryId : js_ast.ScopedId(alias);
           var asName = alias == null ? null : libraryId;

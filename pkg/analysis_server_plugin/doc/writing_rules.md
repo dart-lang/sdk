@@ -1,4 +1,4 @@
-# Writing Rules
+# Writing rules
 
 This package gives analyzer plugin authors the ability to write static rules
 for source code. This document describes briefly how to write such a rule, and
@@ -17,8 +17,12 @@ various syntax tree nodes that the visitor class needs to visit. Let's see an
 example:
 
 ```dart
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
+import 'package:analyzer/src/lint/linter.dart';
+
 class MyRule extends AnalysisRule {
-  static const LintCode _code = LintCode(
+  static const LintCode code = LintCode(
     'my_rule',
     'No await expressions',
     correctionMessage: "Try removing 'await'.",
@@ -31,7 +35,7 @@ class MyRule extends AnalysisRule {
         );
 
   @override
-  LintCode get lintCode => _code;
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -86,6 +90,10 @@ implementation. Let's look at a quick example:
 [SimpleAstVisitor docs]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/lib/dart/ast/visitor.dart#L1841
 
 ```dart
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/lint/linter.dart';
+
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
@@ -138,6 +146,9 @@ registered. Register an instance of an analysis rule inside a plugin's
 `register` method:
 
 ```dart
+import 'package:analysis_server_plugin/plugin.dart';
+import 'package:analysis_server_plugin/registry.dart';
+
 class SimplePlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
@@ -151,6 +162,6 @@ enabled by default. To register an analysis rule as a "lint rule," such that it
 must be specifically enabled from analysis options, use `registerLintRule`
 instead.
 
-See [writing a plugin][] for for information about the `Plugin` class.
+See [writing a plugin][] for information about the `Plugin` class.
 
 [writing a plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_rules.md

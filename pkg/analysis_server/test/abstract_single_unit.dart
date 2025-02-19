@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.g.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
@@ -25,7 +24,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late ResolvedUnitResult testAnalysisResult;
   late CompilationUnit testUnit;
   late FindNode findNode;
-  late FindElement findElement;
   late FindElement2 findElement2;
 
   late LibraryElement2 testLibraryElement;
@@ -52,7 +50,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testCode = unitResult.content;
     testUnit = unitResult.unit;
     findNode = FindNode(testCode, testUnit);
-    findElement = FindElement(testUnit);
     findElement2 = FindElement2(testUnit);
     return unitResult;
   }
@@ -83,7 +80,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
     testLibraryElement = testUnit.declaredFragment!.element;
     findNode = FindNode(testCode, testUnit);
-    findElement = FindElement(testUnit);
     findElement2 = FindElement2(testUnit);
     return testAnalysisResult;
   }

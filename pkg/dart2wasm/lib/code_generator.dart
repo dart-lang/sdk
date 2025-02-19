@@ -4063,6 +4063,26 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
   }
 }
 
+/// Will eagerly initialize a static field as part of the module's start
+/// function.
+class EagerStaticFieldInitializerCodeGenerator extends AstCodeGenerator {
+  final Field field;
+  final w.Global global;
+
+  EagerStaticFieldInitializerCodeGenerator(
+      Translator translator, this.field, this.global)
+      : super(translator, w.FunctionType([], []), field);
+
+  @override
+  void generateInternal() {
+    final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
+    setSourceMapSourceAndFileOffset(source, field.fileOffset);
+
+    translateExpression(field.initializer!, global.type.type);
+    b.global_set(global);
+  }
+}
+
 class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
   final Field field;
   final bool isImplicitGetter;

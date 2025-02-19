@@ -6,7 +6,9 @@ import 'package:kernel/ast.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
+import 'code_generator.dart' show EagerStaticFieldInitializerCodeGenerator;
 import 'translator.dart';
+import 'util.dart' as util;
 
 /// Handles lazy initialization of static fields.
 class Globals {
@@ -71,10 +73,13 @@ class Globals {
   w.Global getGlobalForStaticField(Field field) {
     assert(!field.isLate);
     return _globals.putIfAbsent(field, () {
-      final Constant? init = _getConstantInitializer(field);
       w.ValueType fieldType = translator.translateTypeOfField(field);
       final module = translator.moduleForReference(field.fieldReference);
       final memberName = field.toString();
+
+      // Maybe we can emit the initialization in the globals section. If so,
+      // then that's preferred as we can make the global as non-mutable.
+      final Constant? init = _getConstantInitializer(field);
       if (init != null &&
           !(translator.constants.ensureConstant(init, module)?.isLazy ??
               false)) {
@@ -85,32 +90,62 @@ class Globals {
             .instantiateConstant(global.initializer, init, fieldType);
         global.initializer.end();
         return global;
-      } else {
-        final w.ValueType globalType;
-        if (fieldType is w.RefType && !fieldType.nullable) {
-          // Null signals uninitialized
-          globalType = fieldType.withNullability(true);
-        } else {
-          // Explicit initialization flag
-          globalType = fieldType;
-          final flag = module.globals
-              .define(w.GlobalType(w.NumType.i32), "$memberName initialized");
-          flag.initializer.i32_const(0);
-          flag.initializer.end();
-          _globalInitializedFlag[field] = flag;
-        }
+      }
+
+      // Maybe we can emit the initialization in the start function. If so,
+      // that's preferred as we don't need to pay for lazy-init check on each
+      // access.
+      final initializer = field.initializer;
+      if (initializer != null && _initializeAtStartup(field)) {
+        // The dummy value (if needed) needs to be created before we define
+        // the global that may use it.
+        final dummyCollector =
+            translator.getDummyValuesCollectorForModule(module);
+        dummyCollector.prepareDummyValue(module, fieldType);
 
         final global =
-            module.globals.define(w.GlobalType(globalType), memberName);
-        translator
-            .getDummyValuesCollectorForModule(module)
-            .instantiateDummyValue(global.initializer, globalType);
+            module.globals.define(w.GlobalType(fieldType), memberName);
+        dummyCollector.instantiateDummyValue(global.initializer, fieldType);
         global.initializer.end();
 
-        // Add initializer function to the compilation queue.
-        translator.functions.getFunction(field.fieldReference);
+        if (module == translator.initFunction.enclosingModule) {
+          // We have to initialize the global field in the same module as where
+          // the field value is defined in.
+          // TODO: Once dynamic modules only compile code for the dynamic module
+          // and not the main module, we should turn this into an assert.
+          EagerStaticFieldInitializerCodeGenerator(translator, field, global)
+              .generate(translator.initFunction.body, [], null);
+        }
+
         return global;
       }
+
+      // We will have to initialize the global lazily, meaning each access will
+      // check if it's initialized and if not, cause initialization.
+      final w.ValueType globalType;
+      if (fieldType is w.RefType && !fieldType.nullable) {
+        // Null signals uninitialized
+        globalType = fieldType.withNullability(true);
+      } else {
+        // Explicit initialization flag
+        globalType = fieldType;
+        final flag = module.globals
+            .define(w.GlobalType(w.NumType.i32), "$memberName initialized");
+        flag.initializer.i32_const(0);
+        flag.initializer.end();
+        _globalInitializedFlag[field] = flag;
+      }
+
+      final global =
+          module.globals.define(w.GlobalType(globalType), memberName);
+      translator
+          .getDummyValuesCollectorForModule(module)
+          .instantiateDummyValue(global.initializer, globalType);
+      global.initializer.end();
+
+      // Add initializer function to the compilation queue.
+      translator.functions.getFunction(field.fieldReference);
+      return global;
     });
   }
 
@@ -120,4 +155,10 @@ class Globals {
   /// Note that [getGlobalForStaticField] must have been called for the field beforehand.
   w.Global? getGlobalInitializedFlag(Field variable) =>
       _globalInitializedFlag[variable];
+
+  bool _initializeAtStartup(Annotatable node) =>
+      util.getPragma<bool>(
+          translator.coreTypes, node, 'wasm:initialize-at-startup',
+          defaultValue: true) ??
+      false;
 }

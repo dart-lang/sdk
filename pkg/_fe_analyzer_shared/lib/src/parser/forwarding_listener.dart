@@ -2193,6 +2193,16 @@ class ForwardingListener implements Listener {
   void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
     listener?.handleNoPrimaryConstructor(token, constKeyword);
   }
+
+  @override
+  void handleDotShorthandHead(Token token) {
+    listener?.handleDotShorthandHead(token);
+  }
+
+  @override
+  void handleDotShorthandContext(Token token) {
+    listener?.handleDotShorthandContext(token);
+  }
 }
 
 class NullListener extends ForwardingListener {

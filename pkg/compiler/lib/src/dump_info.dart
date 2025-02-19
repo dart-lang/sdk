@@ -478,8 +478,8 @@ class ElementInfoCollector {
   GlobalTypeInferenceMemberResult _resultOfMember(MemberEntity e) =>
       _globalInferenceResults.resultOfMember(e);
 
-  AbstractValue _resultOfParameter(Local e) =>
-      _globalInferenceResults.resultOfParameter(e);
+  AbstractValue _resultOfParameter(Local e, MemberEntity? member) =>
+      _globalInferenceResults.resultOfParameter(e, member);
 
   FieldInfo? visitField(FieldEntity field) {
     AbstractValue inferredType = _resultOfMember(field).type;
@@ -695,7 +695,9 @@ class ElementInfoCollector {
       _globalInferenceResults.globalLocalsMap,
       function,
       (parameter) {
-        inferredParameterTypes.add('${_resultOfParameter(parameter)}');
+        inferredParameterTypes.add(
+          '${_resultOfParameter(parameter, function)}',
+        );
       },
     );
     int parameterIndex = 0;
@@ -1263,8 +1265,8 @@ class DumpInfoAnnotator {
   GlobalTypeInferenceMemberResult _resultOfMember(MemberEntity e) =>
       _globalInferenceResults.resultOfMember(e);
 
-  AbstractValue _resultOfParameter(Local e) =>
-      _globalInferenceResults.resultOfParameter(e);
+  AbstractValue _resultOfParameter(Local e, MemberEntity? member) =>
+      _globalInferenceResults.resultOfParameter(e, member);
 
   // TODO(markzipan): [parentName] is used for disambiguation, but this might
   // not always be valid. Check and validate later.
@@ -1511,7 +1513,9 @@ class DumpInfoAnnotator {
       _globalInferenceResults.globalLocalsMap,
       function,
       (parameter) {
-        inferredParameterTypes.add('${_resultOfParameter(parameter)}');
+        inferredParameterTypes.add(
+          '${_resultOfParameter(parameter, function)}',
+        );
       },
     );
     int parameterIndex = 0;

@@ -1055,11 +1055,9 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element.isFunction &&
-            // If we found out that the only target is an implicitly called
-            // `noSuchMethod` we just ignore it.
-            node
-            .selector
-            .applies(element)) {
+        // If we found out that the only target is an implicitly called
+        // `noSuchMethod` we just ignore it.
+        node.selector.applies(element)) {
       // `.isFunction` implies FunctionEntity, but not vice-versa.
       FunctionEntity method = element as FunctionEntity;
 

@@ -160,6 +160,9 @@ class AstBuilder extends StackListener {
   /// `true` if null-aware elements is enabled
   final bool enableNullAwareElements;
 
+  /// `true` if dot-shorthands is enabled
+  final bool enabledDotShorthands;
+
   /// `true` if digit-separators is enabled.
   final bool _enableDigitSeparators;
 
@@ -196,6 +199,7 @@ class AstBuilder extends StackListener {
         enableClassModifiers = _featureSet.isEnabled(Feature.class_modifiers),
         enableNullAwareElements =
             _featureSet.isEnabled(Feature.null_aware_elements),
+        enabledDotShorthands = _featureSet.isEnabled(Feature.dot_shorthands),
         _enableDigitSeparators =
             _featureSet.isEnabled(Feature.digit_separators),
         uri = uri ?? fileUri;
@@ -4036,6 +4040,35 @@ class AstBuilder extends StackListener {
         name: variable,
       ),
     );
+  }
+
+  @override
+  void handleDotShorthandContext(Token token) {
+    debugEvent("DotShorthandContext");
+    if (!enabledDotShorthands) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.dot_shorthands,
+        startToken: token,
+      );
+    }
+
+    // TODO(kallentu): Handle dot shorthands.
+  }
+
+  @override
+  void handleDotShorthandHead(Token token) {
+    debugEvent("DotShorthandHead");
+    if (!enabledDotShorthands) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.dot_shorthands,
+        startToken: token,
+      );
+
+      // Recovery.
+      pop();
+    }
+
+    // TODO(kallentu): Handle dot shorthands.
   }
 
   @override

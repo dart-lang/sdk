@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:async';
 
 import 'package:analysis_server/src/collections.dart';
@@ -18,7 +16,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 int test_resetCount = 0;
 
@@ -315,26 +312,25 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element =
-            server.getElementOfNode2(node, useMockForImport: true)?.asElement;
+        var element = server.getElementOfNode2(node, useMockForImport: true);
         if (node is RepresentationDeclaration) {
           var extensionType = node.parent;
           if (extensionType is ExtensionTypeDeclaration &&
               extensionType.name.end == offset) {
-            element = extensionType.declaredElement;
+            element = extensionType.declaredFragment?.element;
           }
         }
         if (node != null && element != null) {
-          var renameElement = RenameRefactoring.getElementToRename(
+          var renameElement = RenameRefactoring.getElementToRename2(
             node,
             element,
           );
           if (renameElement != null) {
             // do create the refactoring
-            refactoring = RenameRefactoring.create(
+            refactoring = RenameRefactoring.create2(
               refactoringWorkspace,
               resolvedUnit,
-              renameElement.element,
+              renameElement.element2,
             );
             feedback = RenameFeedback(
               renameElement.offset,

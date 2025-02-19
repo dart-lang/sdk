@@ -219,8 +219,12 @@ abstract class KernelToTypeInferenceMap {
   /// Returns the inferred type of [member].
   AbstractValue getInferredTypeOf(MemberEntity member);
 
-  /// Returns the inferred type of the [parameter].
-  AbstractValue getInferredTypeOfParameter(Local parameter);
+  /// Returns the inferred type of the [parameter]. [member] is the member that
+  /// declares [parameter], if any.
+  AbstractValue getInferredTypeOfParameter(
+    Local parameter,
+    MemberEntity? member,
+  );
 
   /// Returns the inferred result type of a dynamic [selector] access on the
   /// [receiver].

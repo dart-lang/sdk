@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -17,9 +18,8 @@ class EncapsulateField extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.ENCAPSULATE_FIELD;
@@ -38,10 +38,6 @@ class EncapsulateField extends ResolvedCorrectionProducer {
     // has a parse error
     var variableList = fieldDeclaration.fields;
     if (variableList.keyword == null && variableList.type == null) {
-      return;
-    }
-    // not interesting for final
-    if (variableList.isFinal) {
       return;
     }
     // should have exactly one field
@@ -88,6 +84,16 @@ class EncapsulateField extends ResolvedCorrectionProducer {
       }
       // rename field
       builder.addSimpleReplacement(range.token(nameToken), '_$name');
+      // Write setter.
+      if (variableList.finalKeyword case var finalKeyword?) {
+        builder.addSimpleReplacement(
+          range.startStart(
+            finalKeyword,
+            variableList.type ?? variableList.variables.first,
+          ),
+          '',
+        );
+      }
 
       String fieldTypeCode;
       var type = fieldDeclaration.fields.type;
@@ -147,6 +153,9 @@ class EncapsulateField extends ResolvedCorrectionProducer {
         builder.write('  ${typeCode}get $name => _$name;');
 
         // Write setter.
+        if (variableList.isFinal) {
+          return;
+        }
         var overriddenSetters = inheritanceManager.getOverridden4(
           parentElement,
           Name(null, '$name='),

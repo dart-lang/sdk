@@ -3202,6 +3202,20 @@ abstract class AbstractParserAstListener implements Listener {
         new PatternAssignmentHandle(ParserAstType.HANDLE, equals: equals);
     seen(data);
   }
+
+  @override
+  void handleDotShorthandContext(Token token) {
+    DotShorthandContextHandle data =
+        new DotShorthandContextHandle(ParserAstType.HANDLE, token: token);
+    seen(data);
+  }
+
+  @override
+  void handleDotShorthandHead(Token token) {
+    DotShorthandHeadHandle data =
+        new DotShorthandHeadHandle(ParserAstType.HANDLE, token: token);
+    seen(data);
+  }
 }
 
 class ArgumentsBegin extends ParserAstNode {
@@ -10112,6 +10126,36 @@ class PatternAssignmentHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitPatternAssignmentHandle(this);
 }
 
+class DotShorthandContextHandle extends ParserAstNode {
+  final Token token;
+
+  DotShorthandContextHandle(ParserAstType type, {required this.token})
+      : super("DotShorthandContext", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitDotShorthandContextHandle(this);
+}
+
+class DotShorthandHeadHandle extends ParserAstNode {
+  final Token token;
+
+  DotShorthandHeadHandle(ParserAstType type, {required this.token})
+      : super("DotShorthandHead", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitDotShorthandHeadHandle(this);
+}
+
 abstract class ParserAstVisitor<R> {
   R visitArgumentsBegin(ArgumentsBegin node);
   R visitArgumentsEnd(ArgumentsEnd node);
@@ -10506,6 +10550,8 @@ abstract class ParserAstVisitor<R> {
   R visitPatternVariableDeclarationStatementHandle(
       PatternVariableDeclarationStatementHandle node);
   R visitPatternAssignmentHandle(PatternAssignmentHandle node);
+  R visitDotShorthandContextHandle(DotShorthandContextHandle node);
+  R visitDotShorthandHeadHandle(DotShorthandHeadHandle node);
 }
 
 class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
@@ -11915,6 +11961,14 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitPatternAssignmentHandle(PatternAssignmentHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitDotShorthandContextHandle(DotShorthandContextHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitDotShorthandHeadHandle(DotShorthandHeadHandle node) =>
       node.visitChildren(this);
 }
 
@@ -13403,5 +13457,13 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
 
   @override
   Future<void> visitPatternAssignmentHandle(PatternAssignmentHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitDotShorthandContextHandle(DotShorthandContextHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitDotShorthandHeadHandle(DotShorthandHeadHandle node) =>
       defaultNode(node);
 }

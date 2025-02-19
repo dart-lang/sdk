@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
@@ -888,7 +887,6 @@ class C2 {
 class _Base extends AbstractContextTest {
   int? offset;
   late CompletionTarget target;
-  late FindElement findElement;
   late FindElement2 findElement2;
 
   void assertTarget(
@@ -956,7 +954,6 @@ class _Base extends AbstractContextTest {
     newFile(path, content);
 
     var result = await resolveFile(path);
-    findElement = FindElement(result.unit);
     findElement2 = FindElement2(result.unit);
 
     target = CompletionTarget.forOffset(result.unit, offset!);

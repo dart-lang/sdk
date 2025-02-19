@@ -2423,14 +2423,14 @@ class DummyValuesCollector {
     dummyStructGlobal = dummyStructGlobalInit;
   }
 
-  w.Global? _prepareDummyValue(w.ModuleBuilder module, w.ValueType type) {
+  w.Global? prepareDummyValue(w.ModuleBuilder module, w.ValueType type) {
     if (type is w.RefType && !type.nullable) {
       w.HeapType heapType = type.heapType;
       return _dummyValues.putIfAbsent(heapType, () {
         if (heapType is w.DefType) {
           if (heapType is w.StructType) {
             for (w.FieldType field in heapType.fields) {
-              _prepareDummyValue(module, field.type.unpacked);
+              prepareDummyValue(module, field.type.unpacked);
             }
             final global =
                 module.globals.define(w.GlobalType(type, mutable: false));
@@ -2488,7 +2488,7 @@ class DummyValuesCollector {
             b.ref_null(heapType.bottomType);
           } else {
             translator.globals
-                .readGlobal(b, _prepareDummyValue(b.module, type)!);
+                .readGlobal(b, prepareDummyValue(b.module, type)!);
           }
         } else {
           throw "Unsupported global type $type ($type)";

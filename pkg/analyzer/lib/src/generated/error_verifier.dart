@@ -318,17 +318,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
-  InterfaceElement2? get _enclosingClass2 => switch (_enclosingClass) {
-        InterfaceElement element => element.asElement2,
-        _ => null,
-      };
+  InterfaceElement2? get _enclosingClass2 => _enclosingClass?.asElement2;
 
   /// The element of the extension being visited, or `null` if we are not
   /// in the scope of an extension.
-  ExtensionElement2? get _enclosingExtension2 => switch (_enclosingExtension) {
-        ExtensionElement element => element.asElement2,
-        _ => null,
-      };
+  ExtensionElement2? get _enclosingExtension2 =>
+      _enclosingExtension?.asElement2;
 
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.

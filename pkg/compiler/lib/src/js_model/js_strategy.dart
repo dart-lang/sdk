@@ -749,9 +749,13 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
-  AbstractValue getInferredTypeOfParameter(Local parameter) {
+  AbstractValue getInferredTypeOfParameter(
+    Local parameter,
+    MemberEntity? member,
+  ) {
     return AbstractValueFactory.inferredTypeForParameter(
       parameter,
+      member,
       _globalInferenceResults,
     );
   }
