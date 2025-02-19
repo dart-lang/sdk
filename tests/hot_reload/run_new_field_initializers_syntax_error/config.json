@@ -1,0 +1,5 @@
+{
+  "expectedErrors": {
+    "1": "Error: Expected an identifier, but got '...'"
+  }
+}
