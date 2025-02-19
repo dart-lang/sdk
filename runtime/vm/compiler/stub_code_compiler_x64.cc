@@ -3392,7 +3392,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
 //
 // The arguments are stored in the Thread object.
 // No result.
-void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+static void GenerateRunExceptionHandler(Assembler* assembler,
+                                        bool unbox_exception) {
   ASSERT(kExceptionObjectReg == RAX);
   ASSERT(kStackTraceObjectReg == RDX);
   __ movq(CallingConventions::kArg1Reg,
@@ -3407,6 +3408,17 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
   Address exception_addr(THR, target::Thread::active_exception_offset());
   __ movq(kExceptionObjectReg, exception_addr);
   __ movq(exception_addr, TMP);
+  if (unbox_exception) {
+    compiler::Label not_smi, done;
+    __ BranchIfNotSmi(kExceptionObjectReg, &not_smi,
+                      compiler::Assembler::kNearJump);
+    __ SmiUntagAndSignExtend(kExceptionObjectReg);
+    __ jmp(&done, compiler::Assembler::kNearJump);
+    __ Bind(&not_smi);
+    __ movq(kExceptionObjectReg,
+            compiler::FieldAddress(kExceptionObjectReg, Mint::value_offset()));
+    __ Bind(&done);
+  }
 
   // Load the stacktrace from the current thread.
   Address stacktrace_addr(THR, target::Thread::active_stacktrace_offset());
@@ -3414,6 +3426,14 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
   __ movq(stacktrace_addr, TMP);
 
   __ jmp(CallingConventions::kArg1Reg);  // Jump to continuation point.
+}
+
+void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+  GenerateRunExceptionHandler(assembler, false);
+}
+
+void StubCodeCompiler::GenerateRunExceptionHandlerUnboxStub() {
+  GenerateRunExceptionHandler(assembler, true);
 }
 
 // Deoptimize a frame on the call stack before rewinding.
