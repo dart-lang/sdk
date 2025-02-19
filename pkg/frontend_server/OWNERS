@@ -1,5 +1,4 @@
 set noparent
-file:/tools/OWNERS_CFE
 file:/tools/OWNERS_MODEL
 # In addition to CFE and Dart Model teams allow global owners.
 file:/OWNERS
