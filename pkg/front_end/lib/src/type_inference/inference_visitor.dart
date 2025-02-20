@@ -12103,6 +12103,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitAuxiliaryStatement(AuxiliaryStatement node) {
     return _unhandledStatement(node);
   }
+
+  // Coverage-ignore(suite): Not run.
+  ExpressionInferenceResult visitDotShorthand(
+      DotShorthand node, DartType typeContext) {
+    // TODO(kallentu): Implementation needed for dot shorthands.
+    return _unhandledExpression(node, typeContext);
+  }
+
+  // Coverage-ignore(suite): Not run.
+  ExpressionInferenceResult visitDotShorthandPropertyGet(
+      DotShorthandPropertyGet node, DartType typeContext) {
+    // TODO(kallentu): Implementation needed for dot shorthands.
+    return _unhandledExpression(node, typeContext);
+  }
 }
 
 /// Offset and type information collection in [InferenceVisitor.inferMapEntry].

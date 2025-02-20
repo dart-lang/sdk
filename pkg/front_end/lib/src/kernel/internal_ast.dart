@@ -3221,3 +3221,59 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   String toString() =>
       'ExtensionTypeRepresentationFieldInitializer(${toStringInternal()})';
 }
+
+// Coverage-ignore(suite): Not run.
+/// Internal expression for a dot shorthand.
+///
+/// This node wraps around the [innerExpression] and indicates to the
+/// [InferenceVisitor] that we need to save the context type of the expression.
+class DotShorthand extends InternalExpression {
+  /// The entire dot shorthand expression (e.g. `.zero` or `.parse(input)`).
+  Expression innerExpression;
+
+  DotShorthand(this.innerExpression);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitDotShorthand(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "DotShorthand(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(innerExpression);
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+/// Internal expression for a dot shorthand head with no arguments.
+/// (e.g. `.zero`).
+///
+/// This node could represent a shorthand of a static get or a tearoff.
+class DotShorthandPropertyGet extends InternalExpression {
+  Name name;
+
+  DotShorthandPropertyGet(this.name);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitDotShorthandPropertyGet(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "DotShorthandPropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('.');
+    printer.writeName(name);
+  }
+}
