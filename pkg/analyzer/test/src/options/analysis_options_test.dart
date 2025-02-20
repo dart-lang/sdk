@@ -8,6 +8,8 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,8 +32,8 @@ class AnalysisOptionsTest {
   AnalysisOptionsImpl parseOptions(String content) =>
       AnalysisOptionsImpl.fromYaml(
         optionsMap: optionsProvider.getOptionsFromString(content),
-        file: resourceProvider.getFile(resourceProvider.convertPath(
-            '/project/analysis_options.yaml')),
+        file: resourceProvider.getFile(
+            resourceProvider.convertPath('/project/analysis_options.yaml')),
         resourceProvider: resourceProvider,
       );
 
@@ -413,5 +415,44 @@ code-style:
   format: true
 ''');
     expect(analysisOptions.codeStyleOptions.useFormatter, true);
+  }
+
+  test_signature_on_merge() {
+    var resourceProvider = MemoryResourceProvider();
+    var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
+    var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+    var otherOptions = resourceProvider.getFile(
+        resourceProvider.convertPath("/project/analysis_options_helper.yaml"));
+    otherOptions.writeAsStringSync('''
+analyzer:
+  errors:
+    a: warning
+    b: ignore
+    c: ignore
+''');
+    var mainOptions = resourceProvider.getFile(
+        resourceProvider.convertPath("/project/analysis_options.yaml"));
+    mainOptions.writeAsStringSync('''
+include: analysis_options_helper.yaml
+analyzer:
+  errors:
+    d: ignore
+''');
+
+    var options = AnalysisOptionsImpl.fromYaml(
+      optionsMap: optionsProvider.getOptionsFromFile(mainOptions),
+      file: mainOptions,
+      resourceProvider: resourceProvider,
+    );
+    var sig1 = options.signature;
+    for (var i = 0; i < 100; i++) {
+      var options2 = AnalysisOptionsImpl.fromYaml(
+        optionsMap: optionsProvider.getOptionsFromFile(mainOptions),
+        file: mainOptions,
+        resourceProvider: resourceProvider,
+      );
+      var sig2 = options2.signature;
+      expect(sig1, sig2);
+    }
   }
 }
