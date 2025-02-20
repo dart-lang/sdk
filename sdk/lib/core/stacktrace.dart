@@ -16,7 +16,6 @@ abstract interface class StackTrace {
   ///
   /// This stack trace is used as the default in situations where
   /// a stack trace is required, but the user has not supplied one.
-  @Since("2.8")
   static const empty = const _StringStackTrace("");
 
   StackTrace(); // In case existing classes extend StackTrace.

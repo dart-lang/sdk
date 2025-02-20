@@ -104,7 +104,6 @@ abstract interface class Set<E> implements Iterable<E>, _SetIterable<E> {
   /// final characters = <String>{'A', 'B', 'C'};
   /// final unmodifiableSet = Set.unmodifiable(characters);
   /// ```
-  @Since("2.12")
   factory Set.unmodifiable(Iterable<E> elements) =>
       UnmodifiableSetView<E>(<E>{...elements});
 

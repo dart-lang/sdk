@@ -181,7 +181,6 @@ abstract mixin class Stream<T> {
   ///
   /// The returned stream is effectively equivalent to one created by
   /// `(() async* { yield value; } ())` or `Future<T>.value(value).asStream()`.
-  @Since("2.5")
   factory Stream.value(T value) =>
       (_AsyncStreamController<T>(null, null, null, null)
             .._add(value)
@@ -210,7 +209,6 @@ abstract mixin class Stream<T> {
   /// `Future<T>.error(error, stackTrace).asStream()`, by or
   /// `(() async* { throw error; } ())`, except that you can control the
   /// stack trace as well.
-  @Since("2.5")
   factory Stream.error(Object error, [StackTrace? stackTrace]) {
     AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
     return (_AsyncStreamController<T>(null, null, null, null)
@@ -472,7 +470,6 @@ abstract mixin class Stream<T> {
   ///   }
   /// }
   /// ```
-  @Since("2.9")
   factory Stream.multi(
     void Function(MultiStreamController<T>) onListen, {
     bool isBroadcast = false,
@@ -2615,7 +2612,6 @@ abstract interface class StreamTransformer<S, T> {
   /// final splitDecoded = StreamTransformer<List<int>, String>.fromBind(
   ///     (stream) => stream.transform(utf8.decoder).transform(LineSplitter()));
   /// ```
-  @Since("2.1")
   factory StreamTransformer.fromBind(Stream<T> Function(Stream<S>) bind) =
       _StreamBindTransformer<S, T>;
 
@@ -2779,7 +2775,6 @@ class _ControllerEventSinkWrapper<T> implements EventSink<T> {
 /// That usually means only delivering events synchronously in response to other
 /// asynchronous events, because that is a time when an asynchronous event could
 /// happen.
-@Since("2.9")
 abstract interface class MultiStreamController<T>
     implements StreamController<T> {
   /// Adds and delivers an event.

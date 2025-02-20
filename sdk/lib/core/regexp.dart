@@ -271,8 +271,8 @@ abstract interface class RegExp implements Pattern {
     String source, {
     bool multiLine = false,
     bool caseSensitive = true,
-    @Since("2.4") bool unicode = false,
-    @Since("2.4") bool dotAll = false,
+    bool unicode = false,
+    bool dotAll = false,
   });
 
   /// Creates regular expression syntax that matches the input [text].
@@ -414,7 +414,6 @@ abstract interface class RegExp implements Pattern {
   /// regExp = RegExp(r'^..$', unicode: false);  // Matches two code units.
   /// print(regExp.hasMatch(smiley)); // true
   /// ```
-  @Since("2.4")
   bool get isUnicode;
 
   /// Whether "." in this regular expression matches line terminators.
@@ -426,7 +425,6 @@ abstract interface class RegExp implements Pattern {
   /// This feature is distinct from [isMultiLine]. They affect the behavior
   /// of different pattern characters, so they can be used together or
   /// separately.
-  @Since("2.4")
   bool get isDotAll;
 }
 
@@ -470,7 +468,6 @@ abstract interface class RegExp implements Pattern {
 ///   // This is the second message.
 /// }
 /// ```
-@Since("2.3")
 abstract interface class RegExpMatch implements Match {
   /// The string captured by the named capture group [name].
   ///

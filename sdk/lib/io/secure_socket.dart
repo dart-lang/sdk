@@ -155,7 +155,7 @@ abstract interface class SecureSocket implements Socket {
     SecurityContext? context,
     bool onBadCertificate(X509Certificate certificate)?,
     void keyLog(String line)?,
-    @Since("2.6") List<String>? supportedProtocols,
+    List<String>? supportedProtocols,
   }) {
     return socket
         ._detachRaw()
