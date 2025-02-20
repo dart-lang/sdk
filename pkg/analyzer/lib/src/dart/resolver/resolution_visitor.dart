@@ -1991,8 +1991,7 @@ class _VariableBinder
             .map((e) => e.inconsistency),
       ),
     )
-          ..enclosingElement3 =
-              first.firstFragment.enclosingFragment!.element.asElement!
+          ..enclosingFragment = first.firstFragment.enclosingFragment!
           ..type = InvalidTypeImpl.instance)
         .element;
   }

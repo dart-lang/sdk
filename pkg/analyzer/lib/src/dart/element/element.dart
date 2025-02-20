@@ -7914,6 +7914,10 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   @override
   Fragment get enclosingFragment => enclosingElement3 as Fragment;
 
+  set enclosingFragment(Fragment value) {
+    enclosingElement3 = value as Element;
+  }
+
   @override
   String get identifier {
     return '$name$nameOffset';
