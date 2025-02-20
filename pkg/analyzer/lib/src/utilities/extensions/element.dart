@@ -386,7 +386,7 @@ extension ExtensionElement2Extension on ExtensionElement2 {
 }
 
 extension ExtensionElementExtension on ExtensionElement {
-  ExtensionElement2 get asElement2 {
+  ExtensionElementImpl2 get asElement2 {
     return (this as ExtensionElementImpl).element;
   }
 }

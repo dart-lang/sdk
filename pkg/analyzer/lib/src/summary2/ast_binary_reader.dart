@@ -501,7 +501,7 @@ class AstBinaryReader {
     var node = ExtensionOverrideImpl(
       importPrefix: importPrefix,
       name: StringToken(TokenType.STRING, extensionName, -1),
-      element: element,
+      element2: element.asElement2,
       argumentList: argumentList,
       typeArguments: typeArguments,
     );

@@ -6756,6 +6756,8 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   ConstructorElement? get unnamedConstructor {
+    // TODO(scheglov): this is a hack
+    firstFragment.constructors;
     return constructors.firstWhereOrNull((element) => element.name.isEmpty);
   }
 
