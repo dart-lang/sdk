@@ -2510,7 +2510,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var element = node.declaredElement!;
     var initializer = element.constantInitializer;
-    if (initializer is InstanceCreationExpression) {
+    if (initializer is InstanceCreationExpressionImpl) {
       var constructorName = initializer.constructorName;
       var constructorElement = constructorName.staticElement;
       if (constructorElement != null) {

@@ -81,6 +81,12 @@ library
                 default a @32
                   reference: <testLibraryFragment>::@class::A::@method::X::@parameter::a
                   element: <testLibraryFragment>::@class::A::@method::X::@parameter::a#element
+                  constantInitializer: expression_0
+                    ListLiteral
+                      constKeyword: const @36
+                      leftBracket: [ @42
+                      rightBracket: ] @43
+                      staticType: List<Never>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -98,6 +104,9 @@ library
             optionalNamed a
               firstFragment: <testLibraryFragment>::@class::A::@method::X::@parameter::a
               type: List<T>
+              constantInitializer
+                fragment: <testLibraryFragment>::@class::A::@method::X::@parameter::a
+                expression: expression_0
 ''');
   }
 
@@ -209,6 +218,16 @@ library
                 default this.f @90
                   reference: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
                   element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f#element
+                  constantInitializer: expression_0
+                    FunctionReference
+                      function: SimpleIdentifier
+                        token: defaultF @93
+                        staticElement: <testLibraryFragment>::@function::defaultF
+                        element: <testLibrary>::@function::defaultF
+                        staticType: void Function<T>(T)
+                      staticType: void Function(dynamic)
+                      typeArgumentTypes
+                        dynamic
           getters
             synthetic get f
               reference: <testLibraryFragment>::@class::X::@getter::f
@@ -252,6 +271,9 @@ library
                 alias: <testLibraryFragment>::@typeAlias::F
                   typeArguments
                     dynamic
+              constantInitializer
+                fragment: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
+                expression: expression_0
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::X::@getter::f
@@ -383,6 +405,37 @@ library
                 default a @50
                   reference: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
                   element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
+                  constantInitializer: expression_0
+                    InstanceCreationExpression
+                      keyword: const @53
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: A @59
+                          typeArguments: TypeArgumentList
+                            leftBracket: < @60
+                            arguments
+                              GenericFunctionType
+                                functionKeyword: Function @61
+                                parameters: FormalParameterList
+                                  leftParenthesis: ( @69
+                                  rightParenthesis: ) @70
+                                declaredElement: GenericFunctionTypeElement
+                                  parameters
+                                  returnType: dynamic
+                                  type: dynamic Function()
+                                type: dynamic Function()
+                            rightBracket: > @71
+                          element: <testLibraryFragment>::@class::A
+                          element2: <testLibrary>::@class::A
+                          type: A<dynamic Function()>
+                        staticElement: ConstructorMember
+                          base: <testLibraryFragment>::@class::A::@constructor::new
+                          substitution: {T: dynamic Function()}
+                        element: <testLibraryFragment>::@class::A::@constructor::new#element
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @72
+                        rightParenthesis: ) @73
+                      staticType: A<dynamic Function()>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -406,6 +459,9 @@ library
             optionalNamed hasImplicitType a
               firstFragment: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
               type: dynamic
+              constantInitializer
+                fragment: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
+                expression: expression_0
 ''');
   }
 
@@ -509,6 +565,22 @@ library
           formalParameters
             default compare @22
               element: <testLibraryFragment>::@function::f::@parameter::compare#element
+              constantInitializer: expression_0
+                PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: Comparable @32
+                    staticElement: dart:core::<fragment>::@class::Comparable
+                    element: dart:core::@class::Comparable
+                    staticType: null
+                  period: . @42
+                  identifier: SimpleIdentifier
+                    token: compare @43
+                    staticElement: dart:core::<fragment>::@class::Comparable::@method::compare
+                    element: dart:core::<fragment>::@class::Comparable::@method::compare#element
+                    staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
+                  staticElement: dart:core::<fragment>::@class::Comparable::@method::compare
+                  element: dart:core::<fragment>::@class::Comparable::@method::compare#element
+                  staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
   functions
     f
       reference: <testLibrary>::@function::f
@@ -519,6 +591,8 @@ library
             alias: dart:core::<fragment>::@typeAlias::Comparator
               typeArguments
                 InvalidType
+          constantInitializer
+            expression: expression_0
       returnType: void
 ''');
   }
@@ -585,6 +659,34 @@ library
             default x @28
               reference: <testLibraryFragment>::@function::f::@parameter::x
               element: <testLibraryFragment>::@function::f::@parameter::x#element
+              constantInitializer: expression_0
+                RecordLiteral
+                  leftParenthesis: ( @32
+                  fields
+                    NamedExpression
+                      name: Label
+                        label: SimpleIdentifier
+                          token: f1 @33
+                          staticElement: <null>
+                          element: <null>
+                          staticType: null
+                        colon: : @35
+                      expression: IntegerLiteral
+                        literal: 1 @37
+                        staticType: int
+                    NamedExpression
+                      name: Label
+                        label: SimpleIdentifier
+                          token: f2 @40
+                          staticElement: <null>
+                          element: <null>
+                          staticType: null
+                        colon: : @42
+                      expression: BooleanLiteral
+                        literal: true @44
+                        staticType: bool
+                  rightParenthesis: ) @48
+                  staticType: ({int f1, bool f2})
   functions
     f
       reference: <testLibrary>::@function::f
@@ -593,6 +695,9 @@ library
         optionalNamed x
           firstFragment: <testLibraryFragment>::@function::f::@parameter::x
           type: ({int f1, bool f2})
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::f::@parameter::x
+            expression: expression_0
       returnType: void
 ''');
   }
@@ -660,6 +765,35 @@ library
             default x @28
               reference: <testLibraryFragment>::@function::f::@parameter::x
               element: <testLibraryFragment>::@function::f::@parameter::x#element
+              constantInitializer: expression_0
+                RecordLiteral
+                  constKeyword: const @32
+                  leftParenthesis: ( @38
+                  fields
+                    NamedExpression
+                      name: Label
+                        label: SimpleIdentifier
+                          token: f1 @39
+                          staticElement: <null>
+                          element: <null>
+                          staticType: null
+                        colon: : @41
+                      expression: IntegerLiteral
+                        literal: 1 @43
+                        staticType: int
+                    NamedExpression
+                      name: Label
+                        label: SimpleIdentifier
+                          token: f2 @46
+                          staticElement: <null>
+                          element: <null>
+                          staticType: null
+                        colon: : @48
+                      expression: BooleanLiteral
+                        literal: true @50
+                        staticType: bool
+                  rightParenthesis: ) @54
+                  staticType: ({int f1, bool f2})
   functions
     f
       reference: <testLibrary>::@function::f
@@ -668,6 +802,9 @@ library
         optionalNamed x
           firstFragment: <testLibraryFragment>::@function::f::@parameter::x
           type: ({int f1, bool f2})
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::f::@parameter::x
+            expression: expression_0
       returnType: void
 ''');
   }
@@ -718,6 +855,18 @@ library
             default x @20
               reference: <testLibraryFragment>::@function::f::@parameter::x
               element: <testLibraryFragment>::@function::f::@parameter::x#element
+              constantInitializer: expression_0
+                RecordLiteral
+                  leftParenthesis: ( @24
+                  fields
+                    IntegerLiteral
+                      literal: 1 @25
+                      staticType: int
+                    BooleanLiteral
+                      literal: true @28
+                      staticType: bool
+                  rightParenthesis: ) @32
+                  staticType: (int, bool)
   functions
     f
       reference: <testLibrary>::@function::f
@@ -726,6 +875,9 @@ library
         optionalNamed x
           firstFragment: <testLibraryFragment>::@function::f::@parameter::x
           type: (int, bool)
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::f::@parameter::x
+            expression: expression_0
       returnType: void
 ''');
   }
@@ -777,6 +929,19 @@ library
             default x @20
               reference: <testLibraryFragment>::@function::f::@parameter::x
               element: <testLibraryFragment>::@function::f::@parameter::x#element
+              constantInitializer: expression_0
+                RecordLiteral
+                  constKeyword: const @24
+                  leftParenthesis: ( @30
+                  fields
+                    IntegerLiteral
+                      literal: 1 @31
+                      staticType: int
+                    BooleanLiteral
+                      literal: true @34
+                      staticType: bool
+                  rightParenthesis: ) @38
+                  staticType: (int, bool)
   functions
     f
       reference: <testLibrary>::@function::f
@@ -785,6 +950,9 @@ library
         optionalNamed x
           firstFragment: <testLibraryFragment>::@function::f::@parameter::x
           type: (int, bool)
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::f::@parameter::x
+            expression: expression_0
       returnType: void
 ''');
   }
@@ -864,6 +1032,12 @@ library
               formalParameters
                 default p @75
                   element: <testLibraryFragment>::@extension::E::@method::g::@parameter::p#element
+                  constantInitializer: expression_0
+                    SimpleIdentifier
+                      token: f @79
+                      staticElement: <testLibraryFragment>::@extension::E::@method::f
+                      element: <testLibraryFragment>::@extension::E::@method::f#element
+                      staticType: void Function()
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -885,6 +1059,8 @@ library
           formalParameters
             optionalPositional p
               type: Object
+              constantInitializer
+                expression: expression_0
 ''');
   }
 
@@ -985,6 +1161,23 @@ library
               formalParameters
                 default b @70
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
+                  constantInitializer: expression_0
+                    InstanceCreationExpression
+                      keyword: const @74
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @80
+                          element: <testLibraryFragment>::@class::B
+                          element2: <testLibrary>::@class::B
+                          type: B<int, double>
+                        staticElement: ConstructorMember
+                          base: <testLibraryFragment>::@class::B::@constructor::new
+                          substitution: {T1: int, T2: double}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @81
+                        rightParenthesis: ) @82
+                      staticType: B<int, double>
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -1008,6 +1201,8 @@ library
           formalParameters
             optionalPositional b
               type: B<int, double>
+              constantInitializer
+                expression: expression_0
 ''');
   }
 
@@ -1102,6 +1297,23 @@ library
               formalParameters
                 default b @57
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::b#element
+                  constantInitializer: expression_0
+                    InstanceCreationExpression
+                      keyword: const @61
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @67
+                          element: <testLibraryFragment>::@class::B
+                          element2: <testLibrary>::@class::B
+                          type: B<Never>
+                        staticElement: ConstructorMember
+                          base: <testLibraryFragment>::@class::B::@constructor::new
+                          substitution: {T: Never}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @68
+                        rightParenthesis: ) @69
+                      staticType: B<Never>
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -1122,6 +1334,8 @@ library
           formalParameters
             optionalPositional b
               type: B<T>
+              constantInitializer
+                expression: expression_0
 ''');
   }
 
@@ -1242,6 +1456,23 @@ library
               formalParameters
                 default a @122
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
+                  constantInitializer: expression_0
+                    InstanceCreationExpression
+                      keyword: const @126
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @132
+                          element: <testLibraryFragment>::@class::B
+                          element2: <testLibrary>::@class::B
+                          type: B<Never>
+                        staticElement: ConstructorMember
+                          base: <testLibraryFragment>::@class::B::@constructor::new
+                          substitution: {T: Never}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @133
+                        rightParenthesis: ) @134
+                      staticType: B<Never>
   classes
     abstract class A
       reference: <testLibrary>::@class::A
@@ -1274,6 +1505,8 @@ library
           formalParameters
             optionalPositional a
               type: A<T>
+              constantInitializer
+                expression: expression_0
 ''');
   }
 
@@ -1359,6 +1592,23 @@ library
           formalParameters
             default b @46
               element: <testLibraryFragment>::@function::foo::@parameter::b#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  keyword: const @50
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: B @56
+                      element: <testLibraryFragment>::@class::B
+                      element2: <testLibrary>::@class::B
+                      type: B<Never>
+                    staticElement: ConstructorMember
+                      base: <testLibraryFragment>::@class::B::@constructor::new
+                      substitution: {T: Never}
+                    element: <testLibraryFragment>::@class::B::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @57
+                    rightParenthesis: ) @58
+                  staticType: B<Never>
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -1377,6 +1627,8 @@ library
       formalParameters
         optionalPositional b
           type: B<T>
+          constantInitializer
+            expression: expression_0
       returnType: void
 ''');
   }
@@ -1480,6 +1732,23 @@ library
               formalParameters
                 default b @58
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
+                  constantInitializer: expression_0
+                    InstanceCreationExpression
+                      keyword: const @62
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @68
+                          element: <testLibraryFragment>::@class::B
+                          element2: <testLibrary>::@class::B
+                          type: B<Never>
+                        staticElement: ConstructorMember
+                          base: <testLibraryFragment>::@class::B::@constructor::new
+                          substitution: {T: Never}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @69
+                        rightParenthesis: ) @70
+                      staticType: B<Never>
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -1504,6 +1773,8 @@ library
           formalParameters
             optionalPositional b
               type: B<T>
+              constantInitializer
+                expression: expression_0
 ''');
   }
 
@@ -1616,6 +1887,23 @@ library
               formalParameters
                 default b @73
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
+                  constantInitializer: expression_0
+                    InstanceCreationExpression
+                      keyword: const @77
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @83
+                          element: <testLibraryFragment>::@class::B
+                          element2: <testLibrary>::@class::B
+                          type: B<Never, Never>
+                        staticElement: ConstructorMember
+                          base: <testLibraryFragment>::@class::B::@constructor::new
+                          substitution: {T1: Never, T2: Never}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @84
+                        rightParenthesis: ) @85
+                      staticType: B<Never, Never>
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -1643,6 +1931,8 @@ library
           formalParameters
             optionalPositional b
               type: B<E1, E2>
+              constantInitializer
+                expression: expression_0
 ''');
   }
 
@@ -1745,6 +2035,23 @@ library
               formalParameters
                 default b @58
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
+                  constantInitializer: expression_0
+                    InstanceCreationExpression
+                      keyword: const @62
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @68
+                          element: <testLibraryFragment>::@class::B
+                          element2: <testLibrary>::@class::B
+                          type: B<Never>
+                        staticElement: ConstructorMember
+                          base: <testLibraryFragment>::@class::B::@constructor::new
+                          substitution: {T: Never}
+                        element: <testLibraryFragment>::@class::B::@constructor::new#element
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @69
+                        rightParenthesis: ) @70
+                      staticType: B<Never>
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -1769,6 +2076,8 @@ library
           formalParameters
             optionalPositional b
               type: B<T>
+              constantInitializer
+                expression: expression_0
 ''');
   }
 }

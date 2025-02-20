@@ -288,6 +288,18 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(element.nonSynthetic2, same(element));
   }
 
+  void _writeConstantInitializerExpression(String name, Expression expression) {
+    if (_idMap.existingExpressionId(expression) case var id?) {
+      _sink.writelnWithIndent('$name: $id');
+    } else {
+      var id = _idMap[expression];
+      _sink.writelnWithIndent('$name: $id');
+      _sink.withIndent(() {
+        _writeNode(expression);
+      });
+    }
+  }
+
   void _writeConstructorElement(ConstructorElement2 e) {
     // Check that the reference exists, and filled with the element.
     // var reference = e.reference;
@@ -510,6 +522,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFieldElement(FieldElement2 e) {
+    e as FieldElement2OrMember;
     DartType type = e.type;
     expect(type, isNotNull);
 
@@ -565,7 +578,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeTypeInferenceError(e);
       _writeType('type', e.type);
       // _writeShouldUseTypeForInitializerInference(e);
-      // _writeConstantInitializer(e);
+      _writeVariableElementConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeElementReference('getter', e.getter2);
@@ -623,7 +636,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeTypeInferenceError(f);
       // _writeType('type', f.type);
       // _writeShouldUseTypeForInitializerInference(f);
-      // _writeConstantInitializer(f);
+      _writeVariableFragmentConstantInitializer(f);
       // _writeNonSyntheticElement(f);
       // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
@@ -634,6 +647,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFormalParameterElement(FormalParameterElement e) {
+    e as FormalParameterElementMixin;
     // if (e.isNamed && e.enclosingElement2 is ExecutableElement) {
     //   expect(e.reference, isNotNull);
     // } else {
@@ -688,7 +702,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.formalParameters,
         _writeFormalParameterElement,
       );
-      // _writeConstantInitializer(e);
+      _writeVariableElementConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // _writeFieldFormalParameterField(e);
       // _writeSuperConstructorParameter(e);
@@ -739,7 +753,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeCodeRange(f);
       // _writeTypeParameterElements(e.typeParameters);
       // _writeFragmentList('parameters', f, f.parameters2, _writeFormalParameterFragments);
-      // _writeConstantInitializer(e);
+      _writeVariableFragmentConstantInitializer(f);
       // _writeNonSyntheticElement(e);
       // _writeFieldFormalParameterField(e);
       // _writeSuperConstructorParameter(e);
@@ -1626,7 +1640,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeTypeInferenceError(e);
       _writeType('type', e.type);
       // _writeShouldUseTypeForInitializerInference(e);
-      // _writeConstantInitializer(e);
+      _writeVariableElementConstantInitializer(e);
       // _writeNonSyntheticElement(e);
       // writeLinking();
       _writeElementReference('getter', e.getter2);
@@ -1682,7 +1696,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeTypeInferenceError(f);
       // _writeType('type', f.type);
       // _writeShouldUseTypeForInitializerInference(f);
-      // _writeConstantInitializer(f);
+      _writeVariableFragmentConstantInitializer(f);
       // _writeNonSyntheticElement(f);
       // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
@@ -1827,6 +1841,25 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     // _assertNonSyntheticElementSelf(f);
+  }
+
+  void _writeVariableElementConstantInitializer(VariableElement2OrMember e) {
+    if (e.constantInitializer2 case var initializer?) {
+      _sink.writelnWithIndent('constantInitializer');
+      _sink.withIndent(() {
+        _writeFragmentReference('fragment', initializer.fragment);
+        _writeConstantInitializerExpression(
+          'expression',
+          initializer.expression,
+        );
+      });
+    }
+  }
+
+  void _writeVariableFragmentConstantInitializer(VariableFragment f) {
+    if (f.constantInitializer2 case var initializer?) {
+      _writeConstantInitializerExpression('constantInitializer', initializer);
+    }
   }
 }
 
@@ -2943,24 +2976,31 @@ class _ElementWriter extends _AbstractElementWriter {
 }
 
 class _IdMap {
+  final Map<Expression, String> expressionMap = Map.identity();
   final Map<Element, String> fieldMap = Map.identity();
   final Map<Element, String> getterMap = Map.identity();
   final Map<Element, String> partMap = Map.identity();
   final Map<Element, String> setterMap = Map.identity();
 
-  String operator [](Element element) {
-    if (element is FieldElement) {
-      return fieldMap[element] ??= 'field_${fieldMap.length}';
-    } else if (element is TopLevelVariableElement) {
-      return fieldMap[element] ??= 'variable_${fieldMap.length}';
-    } else if (element is PropertyAccessorElement && element.isGetter) {
-      return getterMap[element] ??= 'getter_${getterMap.length}';
-    } else if (element is PartElementImpl) {
-      return partMap[element] ??= 'part_${partMap.length}';
-    } else if (element is PropertyAccessorElement && element.isSetter) {
-      return setterMap[element] ??= 'setter_${setterMap.length}';
+  String operator [](Object object) {
+    if (object is Expression) {
+      return expressionMap[object] ??= 'expression_${expressionMap.length}';
+    } else if (object is FieldElement) {
+      return fieldMap[object] ??= 'field_${fieldMap.length}';
+    } else if (object is TopLevelVariableElement) {
+      return fieldMap[object] ??= 'variable_${fieldMap.length}';
+    } else if (object is PropertyAccessorElement && object.isGetter) {
+      return getterMap[object] ??= 'getter_${getterMap.length}';
+    } else if (object is PartElementImpl) {
+      return partMap[object] ??= 'part_${partMap.length}';
+    } else if (object is PropertyAccessorElement && object.isSetter) {
+      return setterMap[object] ??= 'setter_${setterMap.length}';
     } else {
       return '???';
     }
+  }
+
+  String? existingExpressionId(Expression object) {
+    return expressionMap[object];
   }
 }

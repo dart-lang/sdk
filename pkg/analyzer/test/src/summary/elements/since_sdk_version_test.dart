@@ -593,14 +593,58 @@ library
             hasInitializer v1 @37
               reference: dart:foo::<fragment>::@enum::E::@field::v1
               element: dart:foo::<fragment>::@enum::E::@field::v1#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: dart:foo::<fragment>::@enum::E
+                      element2: dart:foo::@enum::E
+                      type: E
+                    staticElement: dart:foo::<fragment>::@enum::E::@constructor::new
+                    element: dart:foo::<fragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: dart:foo::<fragment>::@enum::E::@getter::v1
             hasInitializer v2 @60
               reference: dart:foo::<fragment>::@enum::E::@field::v2
               element: dart:foo::<fragment>::@enum::E::@field::v2#element
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: dart:foo::<fragment>::@enum::E
+                      element2: dart:foo::@enum::E
+                      type: E
+                    staticElement: dart:foo::<fragment>::@enum::E::@constructor::new
+                    element: dart:foo::<fragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: dart:foo::<fragment>::@enum::E::@getter::v2
             synthetic values
               reference: dart:foo::<fragment>::@enum::E::@field::values
               element: dart:foo::<fragment>::@enum::E::@field::values#element
+              constantInitializer: expression_2
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v1 @-1
+                      staticElement: dart:foo::<fragment>::@enum::E::@getter::v1
+                      element: dart:foo::<fragment>::@enum::E::@getter::v1#element
+                      staticType: E
+                    SimpleIdentifier
+                      token: v2 @-1
+                      staticElement: dart:foo::<fragment>::@enum::E::@getter::v2
+                      element: dart:foo::<fragment>::@enum::E::@getter::v2#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: dart:foo::<fragment>::@enum::E::@getter::values
           getters
             synthetic get v1
@@ -621,15 +665,24 @@ library
         static const enumConstant hasInitializer v1
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v1
           type: E
+          constantInitializer
+            fragment: dart:foo::<fragment>::@enum::E::@field::v1
+            expression: expression_0
           getter: dart:foo::<fragment>::@enum::E::@getter::v1#element
         static const enumConstant hasInitializer v2
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v2
           sinceSdkVersion: 2.15.0
           type: E
+          constantInitializer
+            fragment: dart:foo::<fragment>::@enum::E::@field::v2
+            expression: expression_1
           getter: dart:foo::<fragment>::@enum::E::@getter::v2#element
         synthetic static const values
           firstFragment: dart:foo::<fragment>::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: dart:foo::<fragment>::@enum::E::@field::values
+            expression: expression_2
           getter: dart:foo::<fragment>::@enum::E::@getter::values#element
       getters
         synthetic static get v1
@@ -709,10 +762,35 @@ library
             hasInitializer v @52
               reference: dart:foo::<fragment>::@enum::E::@field::v
               element: dart:foo::<fragment>::@enum::E::@field::v#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: dart:foo::<fragment>::@enum::E
+                      element2: dart:foo::@enum::E
+                      type: E
+                    staticElement: dart:foo::<fragment>::@enum::E::@constructor::new
+                    element: dart:foo::<fragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: dart:foo::<fragment>::@enum::E::@getter::v
             synthetic values
               reference: dart:foo::<fragment>::@enum::E::@field::values
               element: dart:foo::<fragment>::@enum::E::@field::values#element
+              constantInitializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      staticElement: dart:foo::<fragment>::@enum::E::@getter::v
+                      element: dart:foo::<fragment>::@enum::E::@getter::v#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: dart:foo::<fragment>::@enum::E::@getter::values
           getters
             synthetic get v
@@ -736,11 +814,17 @@ library
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v
           sinceSdkVersion: 2.15.0
           type: E
+          constantInitializer
+            fragment: dart:foo::<fragment>::@enum::E::@field::v
+            expression: expression_0
           getter: dart:foo::<fragment>::@enum::E::@getter::v#element
         synthetic static const values
           firstFragment: dart:foo::<fragment>::@enum::E::@field::values
           sinceSdkVersion: 2.15.0
           type: List<E>
+          constantInitializer
+            fragment: dart:foo::<fragment>::@enum::E::@field::values
+            expression: expression_1
           getter: dart:foo::<fragment>::@enum::E::@getter::values#element
       getters
         synthetic static get v

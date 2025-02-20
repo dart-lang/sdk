@@ -362,6 +362,29 @@ library
         hasInitializer x @118
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
+          constantInitializer: expression_0
+            InstanceCreationExpression
+              keyword: const @122
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @128
+                  element: <testLibraryFragment>::@class::C
+                  element2: <testLibrary>::@class::C
+                  type: C<int>
+                staticElement: ConstructorMember
+                  base: <testLibraryFragment>::@class::C::@constructor::new
+                  substitution: {V: int}
+                element: <testLibraryFragment>::@class::C::@constructor::new#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @129
+                arguments
+                  SimpleIdentifier
+                    token: f @130
+                    staticElement: <testLibraryFragment>::@function::f
+                    element: <testLibrary>::@function::f
+                    staticType: D<int, U> Function<U>()
+                rightParenthesis: ) @131
+              staticType: C<int>
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -409,6 +432,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: C<int>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -548,6 +574,27 @@ library
         hasInitializer x @101
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
+          constantInitializer: expression_0
+            InstanceCreationExpression
+              keyword: const @105
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @111
+                  element: <testLibraryFragment>::@class::C
+                  element2: <testLibrary>::@class::C
+                  type: C
+                staticElement: <testLibraryFragment>::@class::C::@constructor::new
+                element: <testLibraryFragment>::@class::C::@constructor::new#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @112
+                arguments
+                  SimpleIdentifier
+                    token: f @113
+                    staticElement: <testLibraryFragment>::@function::f
+                    element: <testLibrary>::@function::f
+                    staticType: D<T> Function<T>()
+                rightParenthesis: ) @114
+              staticType: C
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -588,6 +635,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: C
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -8464,10 +8514,35 @@ library
             hasInitializer v @20
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibraryFragment>::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
+              constantInitializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      staticElement: <testLibraryFragment>::@enum::E::@getter::v
+                      element: <testLibraryFragment>::@enum::E::@getter::v#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -8546,10 +8621,16 @@ library
         static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::v
+            expression: expression_0
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::values
+            expression: expression_1
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -8822,10 +8903,35 @@ library
             hasInitializer v @31
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
+                    element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
             synthetic values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values#element
+              constantInitializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
+                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -8859,10 +8965,16 @@ library
         static const enumConstant hasInitializer v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
           type: E
+          constantInitializer
+            fragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
+            expression: expression_0
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
         synthetic static const values
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
+            expression: expression_1
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -9085,10 +9197,35 @@ library
             hasInitializer v @46
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibraryFragment>::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
+              constantInitializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      staticElement: <testLibraryFragment>::@enum::E::@getter::v
+                      element: <testLibraryFragment>::@enum::E::@getter::v#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -9171,10 +9308,16 @@ library
         static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::v
+            expression: expression_0
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::values
+            expression: expression_1
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -9410,10 +9553,35 @@ library
             hasInitializer v @31
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
+                    element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
             synthetic values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values#element
+              constantInitializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
+                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -9496,10 +9664,16 @@ library
         static const enumConstant hasInitializer v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
           type: E
+          constantInitializer
+            fragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
+            expression: expression_0
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
         synthetic static const values
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
+            expression: expression_1
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -9726,10 +9900,35 @@ library
             hasInitializer v @31
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
+                    element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
             synthetic values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values#element
+              constantInitializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
+                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -9808,10 +10007,16 @@ library
         static const enumConstant hasInitializer v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
           type: E
+          constantInitializer
+            fragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
+            expression: expression_0
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
         synthetic static const values
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
+            expression: expression_1
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -10267,10 +10472,35 @@ library
             hasInitializer v @9
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibraryFragment>::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::v
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
+              constantInitializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      staticElement: <testLibraryFragment>::@enum::E::@getter::v
+                      element: <testLibraryFragment>::@enum::E::@getter::v#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -10310,10 +10540,16 @@ library
         static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::v
+            expression: expression_0
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::values
+            expression: expression_1
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
       constructors
         synthetic const new

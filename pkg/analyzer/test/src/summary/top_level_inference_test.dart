@@ -12050,6 +12050,9 @@ library
               formalParameters
                 default this.f @33
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
+                  constantInitializer: expression_0
+                    SimpleStringLiteral
+                      literal: 'hello' @37
           getters
             synthetic get f
               reference: <testLibraryFragment>::@class::A::@getter::f
@@ -12077,6 +12080,8 @@ library
           formalParameters
             optionalPositional final hasImplicitType f
               type: int
+              constantInitializer
+                expression: expression_0
       getters
         synthetic get f
           firstFragment: <testLibraryFragment>::@class::A::@getter::f

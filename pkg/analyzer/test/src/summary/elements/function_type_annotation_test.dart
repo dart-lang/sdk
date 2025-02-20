@@ -933,6 +933,59 @@ library
         hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          constantInitializer: expression_0
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @39
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @40
+                    arguments
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: String @41
+                          element: dart:core::<fragment>::@class::String
+                          element2: dart:core::@class::String
+                          type: String
+                        functionKeyword: Function @48
+                        parameters: FormalParameterList
+                          leftParenthesis: ( @56
+                          leftDelimiter: { @57
+                          parameter: DefaultFormalParameter
+                            parameter: SimpleFormalParameter
+                              type: NamedType
+                                name: int @58
+                                question: ? @61
+                                element: dart:core::<fragment>::@class::int
+                                element2: dart:core::@class::int
+                                type: int?
+                              name: a @63
+                              declaredElement: a@63
+                                type: int?
+                            declaredElement: a@63
+                              type: int?
+                          rightDelimiter: } @64
+                          rightParenthesis: ) @65
+                        declaredElement: GenericFunctionTypeElement
+                          parameters
+                            a
+                              kind: optional named
+                              type: int?
+                          returnType: String
+                          type: String Function({int? a})
+                        type: String Function({int? a})
+                    rightBracket: > @66
+                  element: <testLibraryFragment>::@class::A
+                  element2: <testLibrary>::@class::A
+                  type: A<String Function({int? a})>
+                staticElement: ConstructorMember
+                  base: <testLibraryFragment>::@class::A::@constructor::new
+                  substitution: {T: String Function({int? a})}
+                element: <testLibraryFragment>::@class::A::@constructor::new#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @67
+                rightParenthesis: ) @68
+              staticType: A<String Function({int? a})>
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -952,6 +1005,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function({int? a})>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -1072,6 +1128,59 @@ library
         hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          constantInitializer: expression_0
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @39
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @40
+                    arguments
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: String @41
+                          element: dart:core::<fragment>::@class::String
+                          element2: dart:core::@class::String
+                          type: String
+                        functionKeyword: Function @48
+                        parameters: FormalParameterList
+                          leftParenthesis: ( @56
+                          leftDelimiter: [ @57
+                          parameter: DefaultFormalParameter
+                            parameter: SimpleFormalParameter
+                              type: NamedType
+                                name: int @58
+                                question: ? @61
+                                element: dart:core::<fragment>::@class::int
+                                element2: dart:core::@class::int
+                                type: int?
+                              name: a @63
+                              declaredElement: a@63
+                                type: int?
+                            declaredElement: a@63
+                              type: int?
+                          rightDelimiter: ] @64
+                          rightParenthesis: ) @65
+                        declaredElement: GenericFunctionTypeElement
+                          parameters
+                            a
+                              kind: optional positional
+                              type: int?
+                          returnType: String
+                          type: String Function([int?])
+                        type: String Function([int?])
+                    rightBracket: > @66
+                  element: <testLibraryFragment>::@class::A
+                  element2: <testLibrary>::@class::A
+                  type: A<String Function([int?])>
+                staticElement: ConstructorMember
+                  base: <testLibraryFragment>::@class::A::@constructor::new
+                  substitution: {T: String Function([int?])}
+                element: <testLibraryFragment>::@class::A::@constructor::new#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @67
+                rightParenthesis: ) @68
+              staticType: A<String Function([int?])>
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -1091,6 +1200,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function([int?])>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -1211,6 +1323,59 @@ library
         hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          constantInitializer: expression_0
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @39
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @40
+                    arguments
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: String @41
+                          element: dart:core::<fragment>::@class::String
+                          element2: dart:core::@class::String
+                          type: String
+                        functionKeyword: Function @48
+                        parameters: FormalParameterList
+                          leftParenthesis: ( @56
+                          leftDelimiter: { @57
+                          parameter: DefaultFormalParameter
+                            parameter: SimpleFormalParameter
+                              requiredKeyword: required @58
+                              type: NamedType
+                                name: int @67
+                                element: dart:core::<fragment>::@class::int
+                                element2: dart:core::@class::int
+                                type: int
+                              name: a @71
+                              declaredElement: a@71
+                                type: int
+                            declaredElement: a@71
+                              type: int
+                          rightDelimiter: } @72
+                          rightParenthesis: ) @73
+                        declaredElement: GenericFunctionTypeElement
+                          parameters
+                            a
+                              kind: required named
+                              type: int
+                          returnType: String
+                          type: String Function({required int a})
+                        type: String Function({required int a})
+                    rightBracket: > @74
+                  element: <testLibraryFragment>::@class::A
+                  element2: <testLibrary>::@class::A
+                  type: A<String Function({required int a})>
+                staticElement: ConstructorMember
+                  base: <testLibraryFragment>::@class::A::@constructor::new
+                  substitution: {T: String Function({required int a})}
+                element: <testLibraryFragment>::@class::A::@constructor::new#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @75
+                rightParenthesis: ) @76
+              staticType: A<String Function({required int a})>
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -1230,6 +1395,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function({required int a})>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v
@@ -1344,6 +1512,53 @@ library
         hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
+          constantInitializer: expression_0
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @39
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @40
+                    arguments
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: String @41
+                          element: dart:core::<fragment>::@class::String
+                          element2: dart:core::@class::String
+                          type: String
+                        functionKeyword: Function @48
+                        parameters: FormalParameterList
+                          leftParenthesis: ( @56
+                          parameter: SimpleFormalParameter
+                            type: NamedType
+                              name: int @57
+                              element: dart:core::<fragment>::@class::int
+                              element2: dart:core::@class::int
+                              type: int
+                            name: a @61
+                            declaredElement: a@61
+                              type: int
+                          rightParenthesis: ) @62
+                        declaredElement: GenericFunctionTypeElement
+                          parameters
+                            a
+                              kind: required positional
+                              type: int
+                          returnType: String
+                          type: String Function(int)
+                        type: String Function(int)
+                    rightBracket: > @63
+                  element: <testLibraryFragment>::@class::A
+                  element2: <testLibrary>::@class::A
+                  type: A<String Function(int)>
+                staticElement: ConstructorMember
+                  base: <testLibraryFragment>::@class::A::@constructor::new
+                  substitution: {T: String Function(int)}
+                element: <testLibraryFragment>::@class::A::@constructor::new#element
+              argumentList: ArgumentList
+                leftParenthesis: ( @64
+                rightParenthesis: ) @65
+              staticType: A<String Function(int)>
           getter2: <testLibraryFragment>::@getter::v
       getters
         synthetic get v
@@ -1363,6 +1578,9 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function(int)>
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::v
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::v#element
   getters
     synthetic static get v

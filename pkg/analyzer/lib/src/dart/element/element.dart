@@ -1337,6 +1337,31 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 }
 
+class ConstantInitializerImpl implements ConstantInitializer {
+  @override
+  final VariableElementImpl fragment;
+
+  @override
+  final ExpressionImpl expression;
+
+  /// The cached result of [evaluate].
+  Constant? _evaluationResult;
+
+  ConstantInitializerImpl({
+    required this.fragment,
+    required this.expression,
+  });
+
+  @override
+  DartObject? evaluate() {
+    if (_evaluationResult case DartObjectImpl result) {
+      return result;
+    }
+    // TODO(scheglov): implement it
+    throw UnimplementedError();
+  }
+}
+
 /// A [FieldElement] for a 'const' or 'final' field that has an initializer.
 ///
 // TODO(paulberry): we should rename this class to reflect the fact that it's
@@ -4285,6 +4310,11 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
   }
 }
 
+/// Common base class for all analyzer-internal classes that implement
+/// `FieldElement2`.
+abstract class FieldElement2OrMember
+    implements PropertyInducingElement2OrMember, FieldElement2 {}
+
 /// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
     with AugmentableElement<FieldElementImpl>
@@ -4403,7 +4433,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
         FragmentedAnnotatableElementMixin<FieldElementImpl>,
         FragmentedElementMixin<FieldElementImpl>,
         _HasSinceSdkVersionMixin
-    implements FieldElement2 {
+    implements FieldElement2OrMember {
   @override
   final FieldElementImpl firstFragment;
 
@@ -4493,7 +4523,8 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `FieldElement`.
-abstract class FieldElementOrMember implements FieldElement {
+abstract class FieldElementOrMember
+    implements PropertyInducingElementOrMember, FieldElement {
   @override
   TypeImpl get type;
 }
@@ -11791,12 +11822,11 @@ abstract class VariableElementImpl extends ElementImpl
   /// initializers.  However, analyzer also needs to handle incorrect Dart code,
   /// in which case there might be some constant variables that lack
   /// initializers.
-  Expression? get constantInitializer => null;
+  ExpressionImpl? get constantInitializer => null;
 
   @override
-  ConstantInitializer? get constantInitializer2 {
-    // TODO(scheglov): implement it
-    throw UnimplementedError();
+  ExpressionImpl? get constantInitializer2 {
+    return constantInitializer;
   }
 
   @override
@@ -11896,10 +11926,24 @@ abstract class VariableElementImpl extends ElementImpl
 
 abstract class VariableElementImpl2 extends ElementImpl2
     implements VariableElement2OrMember {
+  ConstantInitializerImpl? _constantInitializer;
+
   @override
   ConstantInitializer? get constantInitializer2 {
-    // TODO(scheglov): implement it
-    throw UnimplementedError();
+    if (_constantInitializer case var result?) {
+      return result;
+    }
+
+    for (var fragment in fragments.reversed) {
+      if (fragment.constantInitializer2 case ExpressionImpl expression) {
+        return _constantInitializer = ConstantInitializerImpl(
+          fragment: fragment as VariableElementImpl,
+          expression: expression,
+        );
+      }
+    }
+
+    return null;
   }
 
   @override

@@ -530,12 +530,7 @@ class FieldFormalParameterMember extends ParameterMember
 /// A field element defined in a parameterized type where the values of the type
 /// parameters are known.
 class FieldMember extends VariableMember
-    implements
-        FieldElementOrMember,
-        FieldElement2,
-        VariableElement2OrMember,
-        PropertyInducingElementOrMember,
-        PropertyInducingElement2OrMember {
+    implements FieldElementOrMember, FieldElement2OrMember {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember(
@@ -563,8 +558,7 @@ class FieldMember extends VariableMember
 
   @override
   ConstantInitializer? get constantInitializer2 {
-    // TODO(scheglov): implement it
-    throw UnimplementedError();
+    return baseElement.constantInitializer2;
   }
 
   @override
@@ -1229,8 +1223,7 @@ class ParameterMember extends VariableMember
 
   @override
   ConstantInitializer? get constantInitializer2 {
-    // TODO(scheglov): implement it
-    throw UnimplementedError();
+    return baseElement.constantInitializer2;
   }
 
   @override

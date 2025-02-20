@@ -237,6 +237,12 @@ library
         hasInitializer x @27
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
+          constantInitializer: expression_0
+            SimpleIdentifier
+              token: FutureOr @31
+              staticElement: dart:async::<fragment>::@class::FutureOr
+              element: dart:async::@class::FutureOr
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -247,6 +253,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -2645,6 +2654,14 @@ library
           formalParameters
             default p @39
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
+              constantInitializer: expression_0
+                SimpleIdentifier
+                  token: V @43
+                  staticElement: <null>
+                  element: multiplyDefinedElement
+                    package:test/a.dart::@function::V
+                    package:test/b.dart::@function::V
+                  staticType: InvalidType
   functions
     foo
       reference: <testLibrary>::@function::foo
@@ -2652,6 +2669,8 @@ library
       formalParameters
         optionalPositional hasImplicitType p
           type: dynamic
+          constantInitializer
+            expression: expression_0
       returnType: dynamic
 ''');
   }
@@ -2706,6 +2725,12 @@ library
           formalParameters
             default p @22
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
+              constantInitializer: expression_0
+                SimpleIdentifier
+                  token: V @26
+                  staticElement: package:test/a.dart::<fragment>::@function::V
+                  element: package:test/a.dart::@function::V
+                  staticType: dynamic Function()
   functions
     foo
       reference: <testLibrary>::@function::foo
@@ -2713,6 +2738,8 @@ library
       formalParameters
         optionalPositional hasImplicitType p
           type: dynamic
+          constantInitializer
+            expression: expression_0
       returnType: dynamic
 ''');
   }
@@ -2795,6 +2822,12 @@ library
           formalParameters
             default p @5
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
+              constantInitializer: expression_0
+                SimpleIdentifier
+                  token: V @9
+                  staticElement: <testLibraryFragment>::@getter::V
+                  element: <testLibraryFragment>::@getter::V#element
+                  staticType: dynamic
         V @16
           reference: <testLibraryFragment>::@function::V
           element: <testLibrary>::@function::V
@@ -2821,6 +2854,8 @@ library
       formalParameters
         optionalPositional hasImplicitType p
           type: dynamic
+          constantInitializer
+            expression: expression_0
       returnType: dynamic
     V
       reference: <testLibrary>::@function::V
