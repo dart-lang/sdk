@@ -24,23 +24,11 @@ class DDSRunner {
   }) async {
     final sdkDir = dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
-    var execName = fullSdk
-        ? sdk.dartAotRuntime
-        : absolute(sdkDir, 'dartaotruntime${Platform.isWindows ? '.exe' : ''}');
-    var snapshotName = fullSdk
-        ? sdk.ddsAotSnapshot
-        : absolute(sdkDir, 'gen', 'dds_aot.dart.snapshot');
-    final isAot = Sdk.checkArtifactExists(snapshotName) ? true : false;
-    if (!isAot) {
-      // On ia32 sdks we do not have an AOT runtime and so we would be
-      // using the regular executable.
-      snapshotName = fullSdk
-          ? sdk.ddsSnapshot
-          : absolute(sdkDir, 'gen', 'dds.dart.snapshot');
-      if (!Sdk.checkArtifactExists(snapshotName)) {
-        return false;
-      }
-      execName = sdk.dart;
+    final execName = sdk.dart;
+    final snapshotName =
+        fullSdk ? sdk.ddsSnapshot : absolute(sdkDir, 'dds.dart.snapshot');
+    if (!Sdk.checkArtifactExists(snapshotName)) {
+      return false;
     }
 
     final process = await Process.start(
