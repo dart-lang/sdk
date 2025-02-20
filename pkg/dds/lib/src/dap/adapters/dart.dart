@@ -1583,7 +1583,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           // Send breakpoints back as unverified and with our generated IDs so we
           // can update them with a 'breakpoint' event when we get the
           // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
-          .map((bp) => Breakpoint(id: bp.id, verified: false))
+          .map((bp) => Breakpoint(
+              id: bp.id,
+              verified: false,
+              message: 'Breakpoint has not yet been resolved',
+              reason: 'pending'))
           .toList(),
     ));
     completer.complete();

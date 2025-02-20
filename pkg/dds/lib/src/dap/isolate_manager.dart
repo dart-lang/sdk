@@ -131,6 +131,11 @@ class IsolateManager {
   /// Any leading character matched in place of the dollar is in the first capture.
   final _braceNotPrefixedByDollarOrBackslashPattern = RegExp(r'(^|[^\\\$]){');
 
+  /// A [RegExp] to extract the useful part of an error message when adding
+  /// breakpoints so that the tooltip shown in editors can be less wordy.
+  final _terseBreakpointFailureRegex =
+      RegExp(r'Error occurred when resolving breakpoint location: (.*?)\.?$');
+
   IsolateManager(this._adapter);
 
   /// A list of all current active isolates.
@@ -853,6 +858,48 @@ class IsolateManager {
     );
   }
 
+  /// Queues a breakpoint event that passes an error reason from the VM back to
+  /// the client.
+  ///
+  /// This queue will be processed only after the client has been given the ID
+  /// of this breakpoint. If that has already happened, the event will be
+  /// processed on the next task queue iteration.
+  void queueFailedBreakpointEvent(
+    Object error,
+    ClientBreakpoint clientBreakpoint,
+  ) {
+    // Attempt to clean up the message to something that fits better in a
+    // tooltip.
+    //
+    // An example failure is:
+    //
+    //    addBreakpointWithScriptUri: Cannot add breakpoint at line 8.
+    //    Error occurred when resolving breakpoint location:
+    //    No debuggable code where breakpoint was requested.
+    var userMessage = error is vm.RPCError
+        ? error.details ?? error.toString()
+        : error.toString();
+    var terseMessageMatch =
+        _terseBreakpointFailureRegex.firstMatch(userMessage);
+    if (terseMessageMatch != null) {
+      userMessage = terseMessageMatch.group(1) ?? userMessage;
+    }
+
+    final updatedBreakpoint = Breakpoint(
+      id: clientBreakpoint.id,
+      verified: false,
+      message: userMessage,
+      reason: 'failed',
+    );
+    // Ensure we don't send the breakpoint event until the client has been
+    // given the breakpoint ID by queueing it.
+    clientBreakpoint.queueAction(
+      () => _adapter.sendEvent(
+        BreakpointEventBody(breakpoint: updatedBreakpoint, reason: 'changed'),
+      ),
+    );
+  }
+
   /// Attempts to resolve [uris] to file:/// URIs via the VM Service.
   ///
   /// This method calls the VM service directly. Most requests to resolve URIs
@@ -1017,6 +1064,7 @@ class IsolateManager {
           // request as it's very easy for editors to send us breakpoints that
           // aren't valid any more.
           _adapter.logger?.call('Failed to add breakpoint $e');
+          queueFailedBreakpointEvent(e, bp);
         }
       });
     }
