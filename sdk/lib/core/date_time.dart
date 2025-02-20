@@ -1011,13 +1011,19 @@ extension DateTimeCopyWith on DateTime {
 /// Adds methods for seconds since epoch to [DateTime] objects.
 @Since("3.8")
 extension DateTimeSecondsSinceEpoch on DateTime {
-  /// Returns the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+  /// This value is independent of the time zone.
+  ///
+  /// The value is at most 8,640,000,000,000 seconds (100,000,000 days)
+  /// from the Unix epoch.
+  /// In other words: `secondsSinceEpoch.abs() <= 8640000000000`.
   int get secondsSinceEpoch {
-    return this.millisecondsSinceEpoch ~/ 1000;
+    return this.millisecondsSinceEpoch ~/ Duration.millisecondsPerSecond;
   }
 
   /// Creates a [DateTime] instance from seconds since epoch.
   static DateTime fromSecondsSinceEpoch(int seconds) {
-    return DateTime.fromMillisecondsSinceEpoch(seconds * 1000);
+    return DateTime.fromMillisecondsSinceEpoch(
+      seconds * Duration.millisecondsPerSecond,
+    );
   }
 }
