@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -12,7 +10,6 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/change_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -38,31 +35,32 @@ class CanRenameResponse {
     this.filePath,
   );
 
-  String get oldName => refactoringElement.element.displayName;
+  String get oldName => refactoringElement.element2.displayName;
 
   CheckNameResponse? checkNewName(String name) {
-    var element = refactoringElement.element;
+    var element = refactoringElement.element2;
 
     RefactoringStatus? status;
-    if (element is ParameterElement) {
+    if (element is FormalParameterElement) {
       status = validateParameterName(name);
-    } else if (element is VariableElement) {
+    } else if (element is VariableElement2) {
       status = validateVariableName(name);
-    } else if (element is FunctionElement) {
+    } else if (element is LocalFunctionElement ||
+        element is TopLevelFunctionElement) {
       status = validateFunctionName(name);
-    } else if (element is FieldElement) {
+    } else if (element is FieldElement2) {
       status = validateFieldName(name);
-    } else if (element is MethodElement) {
+    } else if (element is MethodElement2) {
       status = validateMethodName(name);
-    } else if (element is TypeAliasElement) {
+    } else if (element is TypeAliasElement2) {
       status = validateTypeAliasName(name);
-    } else if (element is InterfaceElement) {
+    } else if (element is InterfaceElement2) {
       status = validateClassName(name);
-      _flutterWidgetState = _findFlutterStateClass(element.asElement2, name);
-    } else if (element is ConstructorElement) {
+      _flutterWidgetState = _findFlutterStateClass(element, name);
+    } else if (element is ConstructorElement2) {
       status = validateConstructorName(name);
-      _analyzePossibleConflicts(element.asElement2, status, name);
-    } else if (element is LibraryImportElement) {
+      _analyzePossibleConflicts(element, status, name);
+    } else if (element is MockLibraryImportElement) {
       status = validateImportPrefixName(name);
     }
 
@@ -127,15 +125,15 @@ class CheckNameResponse {
 
   LineInfo get lineInfo => canRename.lineInfo;
 
-  String get oldName => canRename.refactoringElement.element.displayName;
+  String get oldName => canRename.refactoringElement.element2.displayName;
 
   Future<RenameResponse?> computeRenameRanges2() async {
-    var elements = <Element>[];
-    var element = canRename.refactoringElement.element;
-    if (element is PropertyInducingElement && element.isSynthetic) {
+    var elements = <Element2>[];
+    var element = canRename.refactoringElement.element2;
+    if (element is PropertyInducingElement2 && element.isSynthetic) {
       var property = element;
-      var getter = property.getter;
-      var setter = property.setter;
+      var getter = property.getter2;
+      var setter = property.setter2;
       elements.addIfNotNull(getter);
       elements.addIfNotNull(setter);
     } else {
@@ -144,14 +142,14 @@ class CheckNameResponse {
     var fileResolver = canRename._fileResolver;
     var matches = <CiderSearchMatch>[];
     for (var element in elements) {
-      matches.addAll(await fileResolver.findReferences2(element));
+      matches.addAll(await fileResolver.findReferences(element));
     }
     FlutterWidgetRename? flutterRename;
     if (canRename._flutterWidgetState != null) {
       flutterRename = await _computeFlutterStateName();
     }
     var replaceMatches = <CiderReplaceMatch>[];
-    if (element is ConstructorElement) {
+    if (element is ConstructorElement2) {
       for (var match in matches) {
         var replaceInfo = <ReplaceInfo>[];
         for (var ref in match.references) {
@@ -176,7 +174,7 @@ class CheckNameResponse {
           replaceMatches.addMatch(result.path, result.matches.toList());
         }
       }
-    } else if (element is LibraryImportElement) {
+    } else if (element is MockLibraryImportElement) {
       var replaceInfo = <ReplaceInfo>[];
       for (var match in matches) {
         for (var ref in match.references) {
@@ -204,7 +202,7 @@ class CheckNameResponse {
           }
         }
         replaceMatches.addMatch(match.path, replaceInfo);
-        var sourcePath = element.source.fullName;
+        var sourcePath = element.libraryFragment.source.fullName;
         var infos = await _addElementDeclaration(element, sourcePath);
         replaceMatches.addMatch(sourcePath, infos);
       }
@@ -220,7 +218,7 @@ class CheckNameResponse {
         );
       }
       // add element declaration
-      var sourcePath = element.source!.fullName;
+      var sourcePath = element.library2!.firstFragment.source.fullName;
       var infos = await _addElementDeclaration(element, sourcePath);
       replaceMatches.addMatch(sourcePath, infos);
     }
@@ -233,32 +231,36 @@ class CheckNameResponse {
   }
 
   Future<List<ReplaceInfo>> _addElementDeclaration(
-    Element element,
+    Element2 element,
     String sourcePath,
   ) async {
     var infos = <ReplaceInfo>[];
-    if (element is PropertyInducingElement && element.isSynthetic) {
-      if (element.getter != null) {
+    if (element is PropertyInducingElement2 && element.isSynthetic) {
+      var getter = element.getter2;
+      if (getter != null) {
         infos.add(
           ReplaceInfo(
             newName,
-            lineInfo.getLocation(element.getter!.nameOffset),
-            element.getter!.nameLength,
+            lineInfo.getLocation(getter.firstFragment.nameOffset2!),
+            getter.name3!.length,
           ),
         );
       }
-      if (element.setter != null) {
+      var setter = element.setter2;
+      if (setter != null) {
         infos.add(
           ReplaceInfo(
             newName,
-            lineInfo.getLocation(element.setter!.nameOffset),
-            element.setter!.nameLength,
+            lineInfo.getLocation(setter.firstFragment.nameOffset2!),
+            setter.name3!.length,
           ),
         );
       }
-    } else if (element is LibraryImportElement) {
+    } else if (element is MockLibraryImportElement) {
       var unit = (await canRename._fileResolver.resolve(path: sourcePath)).unit;
-      var index = element.enclosingElement3.libraryImports.indexOf(element);
+      var index = element.libraryFragment.libraryImports2.indexOf(
+        element.import,
+      );
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);
       var prefixNode = node.prefix;
       if (newName.isEmpty) {
@@ -289,8 +291,8 @@ class CheckNameResponse {
     } else {
       var location = (await canRename._fileResolver.resolve(
         path: sourcePath,
-      )).lineInfo.getLocation(element.nameOffset);
-      infos.add(ReplaceInfo(newName, location, element.nameLength));
+      )).lineInfo.getLocation(element.firstFragment.nameOffset2!);
+      infos.add(ReplaceInfo(newName, location, element.name3!.length));
     }
     return infos;
   }
@@ -360,13 +362,15 @@ class CheckNameResponse {
   }
 
   Future<CiderReplaceMatch?> _replaceSyntheticConstructor() async {
-    var element = canRename.refactoringElement.element;
-    var interfaceElement = element.enclosingElement3;
+    var element = canRename.refactoringElement.element2;
+    var interfaceElement = element.enclosingElement2!;
 
     var fileResolver = canRename._fileResolver;
-    var libraryPath = interfaceElement!.library!.source.fullName;
+    var libraryPath = interfaceElement.library2!.firstFragment.source.fullName;
     var resolvedLibrary = await fileResolver.resolveLibrary2(path: libraryPath);
-    var result = resolvedLibrary.getElementDeclaration(interfaceElement);
+    var result = resolvedLibrary.getFragmentDeclaration(
+      interfaceElement.firstFragment,
+    );
     if (result == null) {
       return null;
     }
@@ -385,7 +389,7 @@ class CheckNameResponse {
       resolvedUnit: resolvedUnit,
       session: fileResolver.contextObjects!.analysisSession,
       (builder) => builder.writeConstructorDeclaration(
-        interfaceElement.name!,
+        interfaceElement.name3!,
         constructorName: newName,
         isConst: node is EnumDeclaration,
       ),
@@ -421,19 +425,19 @@ class CiderRenameComputer {
     var offset = lineInfo.getOffsetOfLine(line) + column;
 
     var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-    var element = getElementOfNode(node);
+    var element = getElementOfNode2(node);
 
     if (node == null || element == null) {
       return null;
     }
-    if (element.library?.isInSdk == true) {
+    if (element.library2?.isInSdk == true) {
       return null;
     }
-    if (element is MethodElement && element.isOperator) {
+    if (element is MethodElement2 && element.isOperator) {
       return null;
     }
-    if (element is PropertyAccessorElement) {
-      element = element.variable2;
+    if (element is PropertyAccessorElement2) {
+      element = element.variable3;
       if (element == null) {
         return null;
       }
@@ -441,27 +445,27 @@ class CiderRenameComputer {
     if (!_canRenameElement(element)) {
       return null;
     }
-    var refactoring = RenameRefactoring.getElementToRename(node, element);
+    var refactoring = RenameRefactoring.getElementToRename2(node, element);
     if (refactoring != null) {
       return CanRenameResponse(lineInfo, refactoring, _fileResolver, filePath);
     }
     return null;
   }
 
-  bool _canRenameElement(Element element) {
-    var enclosingElement = element.enclosingElement3;
-    if (element is ConstructorElement) {
+  bool _canRenameElement(Element2 element) {
+    var enclosingElement = element.enclosingElement2;
+    if (element is ConstructorElement2) {
       return true;
     }
-    if (element is LibraryImportElement) {
+    if (element is MockLibraryImportElement) {
       return true;
     }
-    if (element is LabelElement || element is LocalElement) {
+    if (element is LabelElement2 || element is LocalElement2) {
       return true;
     }
-    if (enclosingElement is InterfaceElement ||
-        enclosingElement is ExtensionElement ||
-        enclosingElement is CompilationUnitElement) {
+    if (enclosingElement is InterfaceElement2 ||
+        enclosingElement is ExtensionElement2 ||
+        enclosingElement is LibraryElement2) {
       return true;
     }
     return false;

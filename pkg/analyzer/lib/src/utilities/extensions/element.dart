@@ -20,10 +20,19 @@ class MockLibraryImportElement implements Element2, PrefixFragment {
       : import = import as LibraryImportElementImpl;
 
   @override
+  Element2? get enclosingElement2 => library2;
+
+  @override
   ElementKind get kind => ElementKind.IMPORT;
 
   @override
+  LibraryElement2? get library2 => libraryFragment.element;
+
+  @override
   LibraryFragment get libraryFragment => import.libraryFragment;
+
+  @override
+  String? get name3 => import.prefix2?.name2;
 
   @override
   noSuchMethod(invocation) => super.noSuchMethod(invocation);

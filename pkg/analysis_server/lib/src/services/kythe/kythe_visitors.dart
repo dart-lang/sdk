@@ -13,12 +13,13 @@ import 'package:path/path.dart' show relative;
 
 import 'schema.dart' as schema;
 
-/// Given some [ConstructorElement], this method returns '<class-name>' as the
-/// name of the constructor, unless the constructor is a named constructor in
-/// which '<class-name>.<constructor-name>' is returned.
-String _computeConstructorElementName(ConstructorElement2 element) {
-  var name = element.enclosingElement2.name3!;
-  var constructorName = element.name3;
+/// Returns the name of the [constructor].
+///
+/// This is either '<class-name>' or '<class-name>.<constructor-name>',
+/// depending on whether the constructor is a named constructor.
+String _computeConstructorElementName(ConstructorElement2 constructor) {
+  var name = constructor.enclosingElement2.name3!;
+  var constructorName = constructor.name3;
   if (constructorName != null && constructorName != 'new') {
     name = '$name.$constructorName';
   }
@@ -131,8 +132,7 @@ class CiderKytheHelper {
     return 'kythe://$corpus?lang=dart?path=${vname.path}#${vname.signature}';
   }
 
-  /// Given some [Element] and Kythe node kind, this method generates and
-  /// returns the [_KytheVName].
+  /// Returns the Kythe name for the [element].
   _KytheVName _vNameFromElement(Element2? e, String nodeKind) {
     assert(nodeKind != schema.FILE_KIND);
     // general case
@@ -199,7 +199,7 @@ class _SignatureBuilder {
       } else {
         buffer.write(element.name3);
       }
-      if (enclosingElt is ExecutableElement) {
+      if (enclosingElt is ExecutableElement2) {
         buffer
           ..write('@')
           ..write(
