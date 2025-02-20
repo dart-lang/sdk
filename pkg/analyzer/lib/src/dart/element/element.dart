@@ -5316,6 +5316,8 @@ class FunctionElementImpl extends ExecutableElementImpl
         return executableFragment;
       case LocalVariableFragment variableFragment:
         return variableFragment;
+      case ParameterElementImpl parameterFragment:
+        return parameterFragment;
       case TopLevelVariableFragment variableFragment:
         return variableFragment;
       case FieldFragment fieldFragment:
@@ -5427,8 +5429,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   GenericFunctionTypeElement2 get element => _element2;
 
   @override
-  LibraryFragment? get enclosingFragment =>
-      enclosingElement3 as LibraryFragment;
+  Fragment? get enclosingFragment => enclosingElement3 as Fragment;
 
   @override
   List<FormalParameterFragment> get formalParameters =>

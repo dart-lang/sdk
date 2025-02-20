@@ -1148,9 +1148,6 @@ abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
   GenericFunctionTypeElement2 get element;
 
   @override
-  LibraryFragment? get enclosingFragment;
-
-  @override
   GenericFunctionTypeFragment? get nextFragment;
 
   @override

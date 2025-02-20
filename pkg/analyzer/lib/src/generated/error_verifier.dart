@@ -61,7 +61,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 class EnclosingExecutableContext {
-  final ExecutableElement? element;
+  final ExecutableElement2? element;
   final bool isAsynchronous;
   final bool isConstConstructor;
   final bool isGenerativeConstructor;
@@ -89,76 +89,66 @@ class EnclosingExecutableContext {
   int catchClauseLevel = 0;
 
   EnclosingExecutableContext(this.element,
-      {bool? isAsynchronous, this.catchErrorOnErrorReturnType})
-      : isAsynchronous =
-            isAsynchronous ?? (element != null && element.isAsynchronous),
-        isConstConstructor = element is ConstructorElement && element.isConst,
+      {required this.isAsynchronous,
+      required this.isGenerator,
+      this.catchErrorOnErrorReturnType})
+      : isConstConstructor = element is ConstructorElement2 && element.isConst,
         isGenerativeConstructor =
-            element is ConstructorElement && !element.isFactory,
-        isGenerator = element != null && element.isGenerator,
+            element is ConstructorElement2 && !element.isFactory,
         inFactoryConstructor = _inFactoryConstructor(element),
         inStaticMethod = _inStaticMethod(element);
 
-  EnclosingExecutableContext.empty() : this(null);
-
-  factory EnclosingExecutableContext.tmp(ExecutableElement2? element,
-      {bool? isAsynchronous, InterfaceType? catchErrorOnErrorReturnType}) {
-    return EnclosingExecutableContext(
-      element.asElement,
-      isAsynchronous: isAsynchronous,
-      catchErrorOnErrorReturnType: catchErrorOnErrorReturnType,
-    );
-  }
+  EnclosingExecutableContext.empty()
+      : this(null, isAsynchronous: false, isGenerator: false);
 
   String? get displayName {
-    return element2?.displayName;
+    return element?.displayName;
   }
 
-  ExecutableElement2? get element2 => element.asElement2;
+  bool get isClosure => switch (element) {
+        LocalFunctionElement(:var displayName) => displayName.isEmpty,
+        _ => false,
+      };
 
-  bool get isClosure {
-    return element is FunctionElement && element!.displayName.isEmpty;
-  }
+  bool get isConstructor => element is ConstructorElement2;
 
-  bool get isConstructor => element2 is ConstructorElement2;
+  bool get isFunction => switch (element) {
+        LocalFunctionElement(:var displayName) => displayName.isNotEmpty,
+        TopLevelFunctionElement(:var displayName) => displayName.isNotEmpty,
+        PropertyAccessorElement2() => true,
+        _ => false,
+      };
 
-  bool get isFunction {
-    if (element is FunctionElement) {
-      return element!.displayName.isNotEmpty;
-    }
-    return element is PropertyAccessorElement;
-  }
-
-  bool get isMethod => element2 is MethodElement2;
+  bool get isMethod => element is MethodElement2;
 
   bool get isSynchronous => !isAsynchronous;
 
   DartType get returnType {
-    return catchErrorOnErrorReturnType ?? element2!.returnType;
+    return catchErrorOnErrorReturnType ?? element!.returnType;
   }
 
-  static bool _inFactoryConstructor(Element? element) {
-    var enclosing = element?.enclosingElement3;
+  static bool _inFactoryConstructor(Element2? element) {
+    var enclosing = element?.firstFragment.enclosingFragment;
     if (enclosing == null) {
       return false;
     }
-    if (element is ConstructorElement) {
+    if (element is ConstructorElement2) {
       return element.isFactory;
     }
-    return _inFactoryConstructor(enclosing);
+    return _inFactoryConstructor(enclosing.element);
   }
 
-  static bool _inStaticMethod(Element? element) {
-    var enclosing = element?.enclosingElement3;
+  static bool _inStaticMethod(Element2? element) {
+    var enclosing = element?.firstFragment.enclosingFragment;
     if (enclosing == null) {
       return false;
     }
-    if (enclosing is InterfaceElement || enclosing is ExtensionElement) {
-      if (element is ExecutableElement) {
+    if (enclosing is InterfaceFragment || enclosing is ExtensionFragment) {
+      if (element is ExecutableElement2) {
         return element.isStatic;
       }
     }
-    return _inStaticMethod(enclosing);
+    return _inStaticMethod(enclosing.element);
   }
 }
 
@@ -613,27 +603,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    _withEnclosingExecutable2(element, () {
-      _checkForNonConstGenerativeEnumConstructor(node);
-      _checkForInvalidModifierOnBody(
-          node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
-      if (!_checkForConstConstructorWithNonConstSuper(node)) {
-        _checkForConstConstructorWithNonFinalField(node, element);
-      }
-      _checkForRedirectingConstructorErrorCodes(node);
-      _checkForConflictingInitializerErrorCodes(node);
-      _checkForRecursiveConstructorRedirect(node, element);
-      if (!_checkForRecursiveFactoryRedirect(node, element)) {
-        _checkForAllRedirectConstructorErrorCodes(node);
-      }
-      _checkForUndefinedConstructorInInitializerImplicit(node);
-      _checkForReturnInGenerativeConstructor(node);
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: fragment,
-      );
-      super.visitConstructorDeclaration(node);
-    });
+    _withEnclosingExecutable(
+      element,
+      () {
+        _checkForNonConstGenerativeEnumConstructor(node);
+        _checkForInvalidModifierOnBody(
+            node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
+        if (!_checkForConstConstructorWithNonConstSuper(node)) {
+          _checkForConstConstructorWithNonFinalField(node, element);
+        }
+        _checkForRedirectingConstructorErrorCodes(node);
+        _checkForConflictingInitializerErrorCodes(node);
+        _checkForRecursiveConstructorRedirect(node, element);
+        if (!_checkForRecursiveFactoryRedirect(node, element)) {
+          _checkForAllRedirectConstructorErrorCodes(node);
+        }
+        _checkForUndefinedConstructorInInitializerImplicit(node);
+        _checkForReturnInGenerativeConstructor(node);
+        _checkAugmentations(
+          augmentKeyword: node.augmentKeyword,
+          element: fragment,
+        );
+        super.visitConstructorDeclaration(node);
+      },
+      isAsynchronous: fragment.isAsynchronous,
+      isGenerator: fragment.isGenerator,
+    );
   }
 
   @override
@@ -976,24 +971,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _hiddenElements!.declare(element);
     }
 
-    _withEnclosingExecutable(element, () {
-      TypeAnnotation? returnType = node.returnType;
-      if (node.isSetter) {
-        FunctionExpression functionExpression = node.functionExpression;
-        _checkForWrongNumberOfParametersForSetter(
-            node.name, functionExpression.parameters);
-        _checkForNonVoidReturnTypeForSetter(returnType);
-      }
-      _checkForTypeAnnotationDeferredClass(returnType);
-      _returnTypeVerifier.verifyReturnType(returnType);
-      _checkForMainFunction1(node.name, node.declaredElement!);
-      _checkForMainFunction2(node);
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: element,
-      );
-      super.visitFunctionDeclaration(node);
-    });
+    _withEnclosingExecutable(
+      element.asElement2,
+      () {
+        TypeAnnotation? returnType = node.returnType;
+        if (node.isSetter) {
+          FunctionExpression functionExpression = node.functionExpression;
+          _checkForWrongNumberOfParametersForSetter(
+              node.name, functionExpression.parameters);
+          _checkForNonVoidReturnTypeForSetter(returnType);
+        }
+        _checkForTypeAnnotationDeferredClass(returnType);
+        _returnTypeVerifier.verifyReturnType(returnType);
+        _checkForMainFunction1(node.name, node.declaredElement!);
+        _checkForMainFunction2(node);
+        _checkAugmentations(
+          augmentKeyword: node.augmentKeyword,
+          element: element,
+        );
+        super.visitFunctionDeclaration(node);
+      },
+      // TODO(pq): store fragment above.
+      isAsynchronous: node.declaredFragment!.isAsynchronous,
+      isGenerator: node.declaredFragment!.isGenerator,
+    );
   }
 
   @override
@@ -1003,9 +1004,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (node.parent is FunctionDeclaration) {
       super.visitFunctionExpression(node);
     } else {
-      _withEnclosingExecutable2(node.declaredFragment!.element, () {
-        super.visitFunctionExpression(node);
-      });
+      var fragment = node.declaredFragment!;
+      _withEnclosingExecutable(
+        fragment.element,
+        () {
+          super.visitFunctionExpression(node);
+        },
+        isAsynchronous: fragment.isAsynchronous,
+        isGenerator: fragment.isGenerator,
+      );
     }
 
     _isInLateLocalVariable.removeLast();
@@ -1185,31 +1192,37 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var element = node.declaredElement!;
-    _withEnclosingExecutable(element, () {
-      var returnType = node.returnType;
-      if (node.isSetter) {
-        _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
-        _checkForNonVoidReturnTypeForSetter(returnType);
-      } else if (node.isOperator) {
-        var hasWrongNumberOfParameters =
-            _checkForWrongNumberOfParametersForOperator(node);
-        if (!hasWrongNumberOfParameters) {
-          // If the operator has too many parameters including one or more
-          // optional parameters, only report one error.
-          _checkForOptionalParameterInOperator(node);
+    _withEnclosingExecutable(
+      element.asElement2,
+      () {
+        var returnType = node.returnType;
+        if (node.isSetter) {
+          _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
+          _checkForNonVoidReturnTypeForSetter(returnType);
+        } else if (node.isOperator) {
+          var hasWrongNumberOfParameters =
+              _checkForWrongNumberOfParametersForOperator(node);
+          if (!hasWrongNumberOfParameters) {
+            // If the operator has too many parameters including one or more
+            // optional parameters, only report one error.
+            _checkForOptionalParameterInOperator(node);
+          }
+          _checkForNonVoidReturnTypeForOperator(node);
         }
-        _checkForNonVoidReturnTypeForOperator(node);
-      }
-      _checkForExtensionDeclaresMemberOfObject(node);
-      _checkForTypeAnnotationDeferredClass(returnType);
-      _returnTypeVerifier.verifyReturnType(returnType);
-      _checkForWrongTypeParameterVarianceInMethod(node);
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: element,
-      );
-      super.visitMethodDeclaration(node);
-    });
+        _checkForExtensionDeclaresMemberOfObject(node);
+        _checkForTypeAnnotationDeferredClass(returnType);
+        _returnTypeVerifier.verifyReturnType(returnType);
+        _checkForWrongTypeParameterVarianceInMethod(node);
+        _checkAugmentations(
+          augmentKeyword: node.augmentKeyword,
+          element: element,
+        );
+        super.visitMethodDeclaration(node);
+      },
+      // TODO(pq): store fragment above.
+      isAsynchronous: node.declaredFragment!.isAsynchronous,
+      isGenerator: node.declaredFragment!.isGenerator,
+    );
   }
 
   @override
@@ -1474,7 +1487,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _requiredParametersVerifier.visitSuperConstructorInvocation(
       node,
-      enclosingConstructor: _enclosingExecutable.element2.ifTypeOrNull(),
+      enclosingConstructor: _enclosingExecutable.element.ifTypeOrNull(),
     );
     _constArgumentsVerifier.visitSuperConstructorInvocation(node);
     _isInConstructorInitializer = true;
@@ -6492,25 +6505,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _withEnclosingExecutable(
-    ExecutableElement element,
-    void Function() operation,
-  ) {
+    ExecutableElement2 element,
+    void Function() operation, {
+    required bool isAsynchronous,
+    required bool isGenerator,
+  }) {
     var current = _enclosingExecutable;
     try {
-      _enclosingExecutable = EnclosingExecutableContext(element);
+      _enclosingExecutable = EnclosingExecutableContext(element,
+          isAsynchronous: isAsynchronous, isGenerator: isGenerator);
       _returnTypeVerifier.enclosingExecutable = _enclosingExecutable;
       operation();
     } finally {
       _enclosingExecutable = current;
       _returnTypeVerifier.enclosingExecutable = _enclosingExecutable;
     }
-  }
-
-  void _withEnclosingExecutable2(
-    ExecutableElement2 element,
-    void Function() operation,
-  ) {
-    _withEnclosingExecutable(element.asElement, operation);
   }
 
   void _withHiddenElements(List<Statement> statements, void Function() f) {

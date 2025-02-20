@@ -3862,7 +3862,6 @@ package:analyzer/dart/element/element2.dart:
   GenericFunctionTypeFragment (class extends Object implements FunctionTypedFragment):
     new (constructor: GenericFunctionTypeFragment Function())
     element (getter: GenericFunctionTypeElement2)
-    enclosingFragment (getter: LibraryFragment?)
     nextFragment (getter: GenericFunctionTypeFragment?)
     previousFragment (getter: GenericFunctionTypeFragment?)
   GetterElement (class extends Object implements PropertyAccessorElement2):

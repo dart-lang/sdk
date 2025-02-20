@@ -226,9 +226,10 @@ class ErrorHandlerVerifier {
       var callbackType = callback.staticType as FunctionType;
       _checkErrorHandlerFunctionType(
           callback, callbackType, expectedReturnType);
-      var catchErrorOnErrorExecutable = EnclosingExecutableContext.tmp(
+      var catchErrorOnErrorExecutable = EnclosingExecutableContext(
           callback.declaredFragment!.element,
           isAsynchronous: true,
+          isGenerator: false,
           catchErrorOnErrorReturnType: expectedReturnType);
       var returnStatementVerifier =
           _ReturnStatementVerifier(_returnTypeVerifier);
