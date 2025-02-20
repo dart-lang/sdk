@@ -2887,15 +2887,15 @@ abstract class VariableElement2 implements Element2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class VariableFragment implements Fragment {
-  /// The constant initializer for this constant variable fragment, or the
-  /// default value for this formal parameter fragment.
+  @override
+  VariableElement2 get element;
+
+  /// The initializer for this constant variable fragment, or the default value
+  /// for this formal parameter fragment.
   ///
   /// Is `null` if this variable fragment is not a constant, or does not have
   /// the initializer or the default value specified.
-  Expression? get constantInitializer2;
-
-  @override
-  VariableElement2 get element;
+  Expression? get initializer;
 
   @override
   VariableFragment? get nextFragment;

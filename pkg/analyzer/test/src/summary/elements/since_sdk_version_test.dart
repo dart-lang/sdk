@@ -593,7 +593,7 @@ library
             hasInitializer v1 @37
               reference: dart:foo::<fragment>::@enum::E::@field::v1
               element: dart:foo::<fragment>::@enum::E::@field::v1#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -611,7 +611,7 @@ library
             hasInitializer v2 @60
               reference: dart:foo::<fragment>::@enum::E::@field::v2
               element: dart:foo::<fragment>::@enum::E::@field::v2#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -629,7 +629,7 @@ library
             synthetic values
               reference: dart:foo::<fragment>::@enum::E::@field::values
               element: dart:foo::<fragment>::@enum::E::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -762,7 +762,7 @@ library
             hasInitializer v @52
               reference: dart:foo::<fragment>::@enum::E::@field::v
               element: dart:foo::<fragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -780,7 +780,7 @@ library
             synthetic values
               reference: dart:foo::<fragment>::@enum::E::@field::values
               element: dart:foo::<fragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements

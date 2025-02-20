@@ -636,7 +636,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeTypeInferenceError(f);
       // _writeType('type', f.type);
       // _writeShouldUseTypeForInitializerInference(f);
-      _writeVariableFragmentConstantInitializer(f);
+      _writeVariableFragmentInitializer(f);
       // _writeNonSyntheticElement(f);
       // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
@@ -753,7 +753,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeCodeRange(f);
       // _writeTypeParameterElements(e.typeParameters);
       // _writeFragmentList('parameters', f, f.parameters2, _writeFormalParameterFragments);
-      _writeVariableFragmentConstantInitializer(f);
+      _writeVariableFragmentInitializer(f);
       // _writeNonSyntheticElement(e);
       // _writeFieldFormalParameterField(e);
       // _writeSuperConstructorParameter(e);
@@ -1696,7 +1696,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeTypeInferenceError(f);
       // _writeType('type', f.type);
       // _writeShouldUseTypeForInitializerInference(f);
-      _writeVariableFragmentConstantInitializer(f);
+      _writeVariableFragmentInitializer(f);
       // _writeNonSyntheticElement(f);
       // writeLinking();
       _writeFragmentReference('previousFragment', f.previousFragment);
@@ -1856,9 +1856,9 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeVariableFragmentConstantInitializer(VariableFragment f) {
-    if (f.constantInitializer2 case var initializer?) {
-      _writeConstantInitializerExpression('constantInitializer', initializer);
+  void _writeVariableFragmentInitializer(VariableFragment f) {
+    if (f.initializer case var initializer?) {
+      _writeConstantInitializerExpression('initializer', initializer);
     }
   }
 }

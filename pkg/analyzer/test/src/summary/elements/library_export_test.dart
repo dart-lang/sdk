@@ -1945,7 +1945,7 @@ library
         hasInitializer a @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @31
               staticType: int

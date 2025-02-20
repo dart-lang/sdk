@@ -12050,7 +12050,7 @@ library
               formalParameters
                 default this.f @33
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     SimpleStringLiteral
                       literal: 'hello' @37
           getters

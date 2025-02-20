@@ -11828,11 +11828,6 @@ abstract class VariableElementImpl extends ElementImpl
   ExpressionImpl? get constantInitializer => null;
 
   @override
-  ExpressionImpl? get constantInitializer2 {
-    return constantInitializer;
-  }
-
-  @override
   VariableElement get declaration => this;
 
   @override
@@ -11861,6 +11856,11 @@ abstract class VariableElementImpl extends ElementImpl
   /// Set whether this variable element has an implicit type.
   set hasImplicitType(bool hasImplicitType) {
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitType);
+  }
+
+  @override
+  ExpressionImpl? get initializer {
+    return constantInitializer;
   }
 
   /// Set whether this variable is abstract.
@@ -11938,7 +11938,7 @@ abstract class VariableElementImpl2 extends ElementImpl2
     }
 
     for (var fragment in fragments.reversed) {
-      if (fragment.constantInitializer2 case ExpressionImpl expression) {
+      if (fragment.initializer case ExpressionImpl expression) {
         return _constantInitializer = ConstantInitializerImpl(
           fragment: fragment as VariableElementImpl,
           expression: expression,

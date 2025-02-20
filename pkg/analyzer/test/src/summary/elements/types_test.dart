@@ -237,7 +237,7 @@ library
         hasInitializer x @27
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleIdentifier
               token: FutureOr @31
               staticElement: dart:async::<fragment>::@class::FutureOr
@@ -2654,7 +2654,7 @@ library
           formalParameters
             default p @39
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 SimpleIdentifier
                   token: V @43
                   staticElement: <null>
@@ -2725,7 +2725,7 @@ library
           formalParameters
             default p @22
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 SimpleIdentifier
                   token: V @26
                   staticElement: package:test/a.dart::<fragment>::@function::V
@@ -2822,7 +2822,7 @@ library
           formalParameters
             default p @5
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 SimpleIdentifier
                   token: V @9
                   staticElement: <testLibraryFragment>::@getter::V

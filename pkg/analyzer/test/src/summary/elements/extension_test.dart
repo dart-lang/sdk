@@ -101,7 +101,7 @@ library
             hasInitializer x @36
               reference: <testLibraryFragment>::@extension::E::@field::x
               element: <testLibraryFragment>::@extension::E::@field::x#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 0 @40
                   staticType: int
@@ -330,7 +330,7 @@ library
             hasInitializer foo @65
               reference: <testLibraryFragment>::@extension::E::@field::foo
               element: <testLibraryFragment>::@extension::E::@field::foo#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 1 @71
                   staticType: int
@@ -357,7 +357,7 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
-          constantInitializer: expression_1
+          initializer: expression_1
             IntegerLiteral
               literal: 0 @12
               staticType: int
@@ -509,7 +509,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             NullLiteral
               literal: null @10
               staticType: Null

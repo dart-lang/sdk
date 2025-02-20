@@ -1484,7 +1484,7 @@ library
         hasInitializer i @10
           reference: <testLibraryFragment>::@topLevelVariable::i
           element: <testLibrary>::@topLevelVariable::i
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @14
               staticType: int
@@ -1542,7 +1542,7 @@ library
         hasInitializer i @15
           reference: <testLibraryFragment>::@topLevelVariable::i
           element: <testLibrary>::@topLevelVariable::i
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @19
               staticType: int
@@ -2299,7 +2299,7 @@ library
         hasInitializer x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             RecordLiteral
               leftParenthesis: ( @10
               fields
@@ -2855,7 +2855,7 @@ library
         hasInitializer i @6
           reference: <testLibraryFragment>::@topLevelVariable::i
           element: <testLibrary>::@topLevelVariable::i
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -3524,7 +3524,7 @@ library
         hasInitializer a @41
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
@@ -4264,7 +4264,7 @@ library
         hasInitializer foo @25
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @31
               staticType: int
@@ -4282,7 +4282,7 @@ library
         augment hasInitializer foo @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
           element: <testLibrary>::@topLevelVariable::foo
-          constantInitializer: expression_1
+          initializer: expression_1
             BinaryExpression
               leftOperand: AugmentedExpression
                 augmentedKeyword: augmented @45

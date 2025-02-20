@@ -2106,7 +2106,7 @@ library
                 default this.x @25
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     IntegerLiteral
                       literal: 42 @28
                       staticType: int
@@ -2322,7 +2322,7 @@ library
               formalParameters
                 default this.x @25
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     IntegerLiteral
                       literal: 42 @29
                       staticType: int
@@ -2918,7 +2918,7 @@ library
               formalParameters
                 default f @41
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     IntegerLiteral
                       literal: 0 @45
                       staticType: int
@@ -5034,7 +5034,7 @@ library
                 default a @19
                   reference: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     IntegerLiteral
                       literal: 0 @23
                       staticType: int
@@ -5619,7 +5619,7 @@ library
                 default a @19
                   reference: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     IntegerLiteral
                       literal: 0 @23
                       staticType: int
@@ -10539,7 +10539,7 @@ library
             hasInitializer i @27
               reference: <testLibraryFragment>::@class::C::@field::i
               element: <testLibraryFragment>::@class::C::@field::i#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 0 @31
                   staticType: int
@@ -10621,7 +10621,7 @@ library
             hasInitializer i @32
               reference: <testLibraryFragment>::@class::C::@field::i
               element: <testLibraryFragment>::@class::C::@field::i#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 0 @36
                   staticType: int
@@ -11287,7 +11287,7 @@ library
             hasInitializer x @18
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 42 @22
                   staticType: int
@@ -11443,7 +11443,7 @@ library
             hasInitializer f @46
               reference: <testLibraryFragment>::@class::B::@field::f
               element: <testLibraryFragment>::@class::B::@field::f#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   keyword: const @50
                   constructorName: ConstructorName
@@ -12503,7 +12503,7 @@ library
             hasInitializer f @107
               reference: <testLibraryFragment>::@class::B::@field::f
               element: <testLibraryFragment>::@class::B::@field::f#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 ListLiteral
                   leftBracket: [ @111
                   elements
@@ -12530,7 +12530,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_1
+          initializer: expression_1
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -12772,7 +12772,7 @@ library
             hasInitializer foo @93
               reference: <testLibraryFragment>::@class::B::@field::foo
               element: <testLibraryFragment>::@class::B::@field::foo#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 2 @99
                   staticType: double
@@ -15213,7 +15213,7 @@ library
             hasInitializer x @25
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 0 @29
                   staticType: int
@@ -27990,7 +27990,7 @@ library
                   element: <testLibraryFragment>::@class::A::@constructor::c2::@parameter::b#element
                 default c @52
                   element: <testLibraryFragment>::@class::A::@constructor::c2::@parameter::c#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     IntegerLiteral
                       literal: 0 @56
                       staticType: int
@@ -28009,7 +28009,7 @@ library
                 default c @88
                   reference: <testLibraryFragment>::@class::A::@constructor::c3::@parameter::c
                   element: <testLibraryFragment>::@class::A::@constructor::c3::@parameter::c#element
-                  constantInitializer: expression_1
+                  initializer: expression_1
                     IntegerLiteral
                       literal: 0 @92
                       staticType: int
@@ -28056,7 +28056,7 @@ library
                   element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::b#element
                 default c
                   element: <testLibraryFragment>::@class::C::@constructor::c2::@parameter::c#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -28101,7 +28101,7 @@ library
                 default c
                   reference: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c
                   element: <testLibraryFragment>::@class::C::@constructor::c3::@parameter::c#element
-                  constantInitializer: expression_1
+                  initializer: expression_1
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -30248,7 +30248,7 @@ library
               formalParameters
                 default x
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg::@parameter::x#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     BooleanLiteral
                       literal: true @127
                       staticType: bool
@@ -30280,7 +30280,7 @@ library
               formalParameters
                 default x
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::positionalArg2::@parameter::x#element
-                  constantInitializer: expression_1
+                  initializer: expression_1
                     BooleanLiteral
                       literal: true @167
                       staticType: bool
@@ -30313,7 +30313,7 @@ library
                 default x
                   reference: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg::@parameter::x#element
-                  constantInitializer: expression_2
+                  initializer: expression_2
                     IntegerLiteral
                       literal: 42 @200
                       staticType: int
@@ -30346,7 +30346,7 @@ library
                 default x
                   reference: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x
                   element: <testLibraryFragment>::@class::MixinApp::@constructor::namedArg2::@parameter::x#element
-                  constantInitializer: expression_3
+                  initializer: expression_3
                     BooleanLiteral
                       literal: true @233
                       staticType: bool
@@ -31234,7 +31234,7 @@ library
         hasInitializer x @61
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
@@ -31876,7 +31876,7 @@ library
             hasInitializer foo @58
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 0 @64
                   staticType: int
@@ -31999,7 +31999,7 @@ library
             hasInitializer foo @58
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 0 @64
                   staticType: int
@@ -32125,7 +32125,7 @@ library
             hasInitializer foo @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@field::foo#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 0 @57
                   staticType: int
@@ -35015,7 +35015,7 @@ library
             hasInitializer foo @44
               reference: <testLibraryFragment>::@class::A::@field::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 0 @50
                   staticType: int
@@ -35043,7 +35043,7 @@ library
             augment hasInitializer foo @67
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 AugmentedInvocation
                   augmentedKeyword: augmented @73
                   arguments: ArgumentList
@@ -35339,7 +35339,7 @@ library
             hasInitializer foo @37
               reference: <testLibraryFragment>::@class::A::@field::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 0 @43
                   staticType: int
@@ -35368,7 +35368,7 @@ library
             augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 BinaryExpression
                   leftOperand: AugmentedExpression
                     augmentedKeyword: augmented @65
@@ -39451,7 +39451,7 @@ library
               formalParameters
                 default x @55
                   element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo::@parameter::x#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     IntegerLiteral
                       literal: 42 @59
                       staticType: int
