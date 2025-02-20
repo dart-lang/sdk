@@ -827,6 +827,11 @@ class _ReturnsValidatorVisitor extends RecursiveAstVisitor<void> {
   _ReturnsValidatorVisitor(this.result);
 
   @override
+  void visitFunctionExpression(FunctionExpression node) {
+    // Return statements within closures aren't counted.
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     _numReturns++;
     if (_numReturns == 2) {

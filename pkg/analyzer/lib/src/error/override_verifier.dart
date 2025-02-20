@@ -61,23 +61,22 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     var element = node.declaredFragment!.element;
     if (element.metadata2.hasOverride && !_isOverride(element)) {
-      if (element is MethodElement2) {
-        _errorReporter.atToken(
-          node.name,
-          WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
-        );
-      } else if (element is PropertyAccessorElement2) {
-        if (element is GetterElement) {
+      switch (element) {
+        case MethodElement2():
+          _errorReporter.atToken(
+            node.name,
+            WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
+          );
+        case GetterElement():
           _errorReporter.atToken(
             node.name,
             WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
           );
-        } else {
+        case SetterElement():
           _errorReporter.atToken(
             node.name,
             WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
           );
-        }
       }
     }
   }

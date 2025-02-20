@@ -10,5 +10,6 @@ Future<void> main([args = const <String>[]]) => runIsolateTests(
       evaluteWithScopeTests,
       'evaluate_with_scope_with_resident_compiler_test.dart',
       testeeBefore: testeeMain,
+      pauseOnExit: true,
       shouldTesteeBeLaunchedWithDartRunResident: true,
     );

@@ -295,8 +295,8 @@ class DiagnosticFactory {
       Source source,
       ErrorCode errorCode,
       SyntacticEntity errorNode,
-      ExecutableElement member,
-      ExecutableElement superMember,
+      ExecutableElement2 member,
+      ExecutableElement2 superMember,
       String memberName) {
     // Elements enclosing members that can participate in overrides are always
     // named, so we can safely assume `_thisMember.enclosingElement3.name` and
@@ -308,9 +308,9 @@ class DiagnosticFactory {
       errorCode: errorCode,
       arguments: [
         memberName,
-        member.enclosingElement3.name!,
+        member.enclosingElement2!.name3,
         member.type,
-        superMember.enclosingElement3.name!,
+        superMember.enclosingElement2!.name3,
         superMember.type,
       ],
       contextMessages: [
@@ -321,18 +321,18 @@ class DiagnosticFactory {
         // concrete).
         if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE)
           DiagnosticMessageImpl(
-            filePath: superMember.source.fullName,
+            filePath: superMember.asElement.source.fullName,
             message: "The member being overridden.",
-            offset: superMember.nonSynthetic.nameOffset,
-            length: superMember.nonSynthetic.nameLength,
+            offset: superMember.asElement.nonSynthetic.nameOffset,
+            length: superMember.asElement.nonSynthetic.nameLength,
             url: null,
           ),
         if (errorCode == CompileTimeErrorCode.INVALID_OVERRIDE_SETTER)
           DiagnosticMessageImpl(
-            filePath: superMember.source.fullName,
+            filePath: superMember.asElement.source.fullName,
             message: "The setter being overridden.",
-            offset: superMember.nonSynthetic.nameOffset,
-            length: superMember.nonSynthetic.nameLength,
+            offset: superMember.asElement.nonSynthetic.nameOffset,
+            length: superMember.asElement.nonSynthetic.nameLength,
             url: null,
           )
       ],
