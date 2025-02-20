@@ -218,9 +218,8 @@ class CoffHeaders {
 
   // Add a section header for the new "snapshot" section with the given length.
   //
-  // Returns offset at which the section is expected to be located in the
-  // file.
-  int addSnapshotSectionHeader(int length) {
+  // Returns the new section header.
+  CoffSectionHeader addSnapshotSectionHeader(int length) {
     final oldHeadersSize = optionalHeader.headersSize;
     final address =
         align(sectionTable.addressEnd, optionalHeader.sectionAlignment);
@@ -270,7 +269,7 @@ class CoffHeaders {
         newHeader.virtualAddress + newHeader.virtualSize,
         optionalHeader.sectionAlignment);
 
-    return offset;
+    return newHeader;
   }
 
   Future<void> write(RandomAccessFile output) async {
@@ -311,13 +310,6 @@ class PortableExecutable {
         source, headers, fileHeaderOffset, sectionContentsOffset);
   }
 
-  Future<void> _fileAlignSectionEnd(RandomAccessFile output) async {
-    final current = await output.position();
-    final padding =
-        align(current, headers.optionalHeader.fileAlignment) - current;
-    await output.writeFrom(Uint8List(padding));
-  }
-
   Future<void> appendSnapshotAndWrite(File output, File snapshot) async {
     final stream = await output.open(mode: FileMode.write);
     // Write MS-DOS stub.
@@ -325,22 +317,33 @@ class PortableExecutable {
     // Write headers with additional snapshot section.
     final snapshotBytes = await snapshot.readAsBytes();
     final oldOffsetEnd = headers.sectionTable.offsetEnd;
-    final expectedSnapshotOffset =
+    final snapshotSectionHeader =
         headers.addSnapshotSectionHeader(snapshotBytes.length);
     await headers.write(stream);
-    // Write original section contents with alignment padding.
+    // Write original section contents.
     await stream.writeFrom(source, sourceSectionContentsOffset, oldOffsetEnd);
-    await _fileAlignSectionEnd(stream);
+    var currentOffset = await stream.position();
+    // Pad the original contents to the file offset of the new section.
+    final expectedSnapshotOffset = snapshotSectionHeader.fileOffset;
+    if (currentOffset < expectedSnapshotOffset) {
+      final padding = expectedSnapshotOffset - currentOffset;
+      await stream.writeFrom(Uint8List(padding));
+      currentOffset = await stream.position();
+    }
     // Verify that snapshot section will start at the expected offset
     // and throw an error otherwise.
-    final currentOffset = await stream.position();
     if (expectedSnapshotOffset != currentOffset) {
       throw StateError('Unexpected snapshot section offset: '
           'expected $expectedSnapshotOffset, got $currentOffset');
     }
     // Write snapshot with alignment padding.
     await stream.writeFrom(snapshotBytes);
-    await _fileAlignSectionEnd(stream);
+    currentOffset = await stream.position();
+    final padding = align(currentOffset, headers.optionalHeader.fileAlignment) -
+        currentOffset;
+    if (padding > 0) {
+      await stream.writeFrom(Uint8List(padding));
+    }
     await stream.close();
   }
 }
