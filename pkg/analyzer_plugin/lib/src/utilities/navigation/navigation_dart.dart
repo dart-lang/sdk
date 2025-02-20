@@ -278,8 +278,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitComment(Comment node) {
     super.visitComment(node);
 
-    for (var link in _documentLinkVisitor.findLinks(node)) {
-      computer._addRegionForLibrary(link.offset, link.length, link.targetPath);
+    for (var link in _documentLinkVisitor
+        .findLinks(node)
+        .where((link) => link.targetUri.isScheme('file'))) {
+      computer._addRegionForLibrary(
+          link.offset, link.length, link.targetUri.toFilePath());
     }
   }
 

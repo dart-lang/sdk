@@ -27,7 +27,7 @@ void main() {
 
 @reflectiveTest
 class PubApiTest {
-  static const pubDefaultUrl = 'https://pub.dartlang.org';
+  static const pubDefaultUrl = 'https://pub.dev';
 
   Uri? lastCalledUrl;
   late MockHttpClient httpClient;
