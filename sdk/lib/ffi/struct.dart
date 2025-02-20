@@ -92,7 +92,6 @@ final class _Compound implements NativeType {
 /// [StructArray], and accessing [Struct] fields. To create an instance backed
 /// by native memory, use [StructPointer.ref]. To create an instance backed by
 /// Dart memory, use [Struct.create].
-@Since('2.12')
 abstract base class Struct extends _Compound implements SizedNativeType {
   /// Construct a reference to the [nullptr].
   ///

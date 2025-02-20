@@ -1983,7 +1983,6 @@ R runZoned<R>(
 /// Multiple attempts to use the future in a zone where the error is
 /// inaccessible will cause the error to be reported *again* in it's original
 /// error zone.
-@Since("2.8")
 R? runZonedGuarded<R>(
   R body(),
   void onError(Object error, StackTrace stack), {

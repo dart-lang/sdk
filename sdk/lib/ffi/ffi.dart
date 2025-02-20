@@ -1769,7 +1769,6 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
 }
 
 /// Extension on [Pointer] specialized for the type argument [Struct].
-@Since('2.12')
 extension StructPointer<T extends Struct> on Pointer<T> {
   /// A Dart view of the struct referenced by this pointer.
   ///
@@ -2280,7 +2279,6 @@ extension BoolAddress on bool {
 }
 
 /// Extension to retrieve the native `Dart_Port` from a [SendPort].
-@Since('2.7')
 extension NativePort on SendPort {
   /// The native port of this [SendPort].
   ///
@@ -2295,25 +2293,21 @@ extension NativePort on SendPort {
 }
 
 /// Opaque, not exposing it's members.
-@Since('2.8')
 final class Dart_CObject extends Opaque {}
 
 typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
 
 /// Utilities for accessing the Dart VM API from Dart code or
 /// from C code via `dart_api_dl.h`.
-@Since('2.8')
 abstract final class NativeApi {
   /// On breaking changes the major version is increased.
   ///
   /// The versioning covers the API surface in `dart_api_dl.h`.
-  @Since('2.9')
   external static int get majorVersion;
 
   /// On backwards compatible changes the minor version is increased.
   ///
   /// The versioning covers the API surface in `dart_api_dl.h`.
-  @Since('2.9')
   external static int get minorVersion;
 
   /// A function pointer to
@@ -2350,7 +2344,6 @@ abstract final class NativeApi {
 
   /// Pass this to `Dart_InitializeApiDL` in your native code to enable using the
   /// symbols in `dart_api_dl.h`.
-  @Since('2.9')
   external static Pointer<Void> get initializeApiDLData;
 }
 

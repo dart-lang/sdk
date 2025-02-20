@@ -20,7 +20,6 @@ abstract final class SizedNativeType implements NativeType {}
 ///
 /// [Opaque]'s subtypes are not constructible in the Dart code and serve purely
 /// as markers in type signatures.
-@Since('2.12')
 abstract base class Opaque implements NativeType {}
 
 /// [_NativeInteger]'s subtypes represent a native integer in C.

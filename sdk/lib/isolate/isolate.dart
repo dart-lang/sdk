@@ -122,7 +122,6 @@ final class Isolate {
   /// For a given isolate, this value will be the same as the values returned by
   /// `Dart_DebugName` in the C embedding API and the `debugName` property in
   /// [IsolateMirror].
-  @Since("2.3")
   external String? get debugName;
 
   /// Creates a new [Isolate] object with a restricted set of capabilities.
@@ -463,7 +462,7 @@ final class Isolate {
     bool errorsAreFatal = true,
     SendPort? onExit,
     SendPort? onError,
-    @Since("2.3") String? debugName,
+    String? debugName,
   });
 
   /// Spawns an isolate running the script file specified by [uri].
@@ -558,7 +557,7 @@ final class Isolate {
     Uri? packageRoot,
     Uri? packageConfig,
     bool automaticPackageResolution = false,
-    @Since("2.3") String? debugName,
+    String? debugName,
   });
 
   /// Requests the isolate to pause.
@@ -1060,7 +1059,6 @@ final class RemoteError implements Error {
 ///
 /// When sent this way, the local transferable can no longer be materialized,
 /// and the received object is now the only way to materialize the data.
-@Since("2.3.2")
 abstract final class TransferableTypedData {
   /// Creates a new [TransferableTypedData] containing the bytes of [list].
   ///

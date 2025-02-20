@@ -425,7 +425,6 @@ class _UnmodifiableSet<E> extends _SetBase<E> with _UnmodifiableSetMixin<E> {
 ///
 /// unmodifiableSetView.remove('Earth'); // Throws.
 /// ```
-@Since("2.12")
 class UnmodifiableSetView<E> extends SetBase<E> with _UnmodifiableSetMixin<E> {
   final Set<E> _source;
 

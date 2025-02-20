@@ -1005,7 +1005,6 @@ void unawaited(Future<void>? future) {}
 ///
 /// Adds functionality to futures which makes it easier to
 /// write well-typed asynchronous code.
-@Since("2.12")
 extension FutureExtensions<T> on Future<T> {
   /// Handles errors on this future.
   ///

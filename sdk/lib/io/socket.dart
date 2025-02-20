@@ -12,7 +12,6 @@ part of dart.io;
 final class InternetAddressType {
   static const InternetAddressType IPv4 = const InternetAddressType._(0);
   static const InternetAddressType IPv6 = const InternetAddressType._(1);
-  @Since("2.8")
   static const InternetAddressType unix = const InternetAddressType._(2);
   static const InternetAddressType any = const InternetAddressType._(-1);
 
@@ -110,10 +109,7 @@ abstract interface class InternetAddress {
   /// path.
   /// If [type] is omitted, [address] must be either a numeric IPv4 or IPv6
   /// address and the type is inferred from the format.
-  external factory InternetAddress(
-    String address, {
-    @Since("2.8") InternetAddressType? type,
-  });
+  external factory InternetAddress(String address, {InternetAddressType? type});
 
   /// Creates a new [InternetAddress] from the provided raw address bytes.
   ///
@@ -129,7 +125,7 @@ abstract interface class InternetAddress {
   /// [InternetAddressType.IPv6] respectively.
   external factory InternetAddress.fromRawAddress(
     Uint8List rawAddress, {
-    @Since("2.8") InternetAddressType? type,
+    InternetAddressType? type,
   });
 
   /// Performs a reverse DNS lookup on this [address]
@@ -416,7 +412,6 @@ enum _RawSocketOptions {
 /// It allows for fine grained control of the socket options, and its values
 /// will be passed to the underlying platform's implementation of setsockopt and
 /// getsockopt.
-@Since("2.2")
 final class RawSocketOption {
   /// Creates a [RawSocketOption] for [RawSocket.getRawOption]
   /// and [RawSocket.setRawOption].
@@ -704,7 +699,6 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// Unsupported by [RawSecureSocket].
   ///
   /// Unsupported on Android, Fuchsia, Windows.
-  @Since("2.15")
   SocketMessage? readMessage([int? count]);
 
   /// Writes up to [count] bytes of the buffer from [offset] buffer offset to
@@ -749,7 +743,6 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// Unsupported by [RawSecureSocket].
   ///
   /// Unsupported on Android, Fuchsia, Windows.
-  @Since("2.15")
   int sendMessage(
     List<SocketControlMessage> controlMessages,
     List<int> data, [
@@ -820,7 +813,6 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// Returns the [RawSocketOption.value] on success.
   ///
   /// Throws an [OSError] on failure.
-  @Since("2.2")
   Uint8List getRawOption(RawSocketOption option);
 
   /// Customizes the [RawSocket].
@@ -828,7 +820,6 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// See [RawSocketOption] for available options.
   ///
   /// Throws an [OSError] on failure.
-  @Since("2.2")
   void setRawOption(RawSocketOption option);
 }
 
