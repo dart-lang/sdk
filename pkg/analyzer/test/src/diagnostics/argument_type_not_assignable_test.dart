@@ -37,6 +37,17 @@ f() {
     expect(message.contains("_A"), isTrue);
   }
 
+  test_annotation_extensionType() async {
+    await assertErrorsInCode('''
+extension type const A(String _) {}
+
+@A(0)
+void f() {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 1),
+    ]);
+  }
+
   test_annotation_namedConstructor() async {
     await assertErrorsInCode('''
 class A {

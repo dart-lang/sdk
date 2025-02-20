@@ -657,6 +657,84 @@ D
 ''');
   }
 
+  test_value_extensionType_namedConstructor() async {
+    await assertNoErrorsInCode(r'''
+extension type const A.named(int it) {}
+
+@A.named(42)
+void f() {}
+''');
+
+    var node = findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: <testLibraryFragment>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named
+      element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+      staticType: null
+    staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named
+    element: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        parameter: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it
+        staticType: int
+    rightParenthesis: )
+  element: <testLibraryFragment>::@extensionType::A::@constructor::named
+  element2: <testLibraryFragment>::@extensionType::A::@constructor::named#element
+''');
+
+    _assertAnnotationValueText(node, r'''
+int 42
+''');
+  }
+
+  test_value_extensionType_unnamedConstructor() async {
+    await assertNoErrorsInCode(r'''
+extension type const A(int it) {}
+
+@A(42)
+void f() {}
+''');
+
+    var node = findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: <testLibraryFragment>::@extensionType::A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        parameter: <testLibraryFragment>::@extensionType::A::@constructor::new::@parameter::it
+        staticType: int
+    rightParenthesis: )
+  element: <testLibraryFragment>::@extensionType::A::@constructor::new
+  element2: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+''');
+
+    _assertAnnotationValueText(node, r'''
+int 42
+''');
+  }
+
   test_value_genericClass_downwards_inference_namedConstructor() async {
     await assertNoErrorsInCode(r'''
 class A<T> {

@@ -34,7 +34,7 @@ class AnnotationResolver {
 
   void _classConstructorInvocation(
     AnnotationImpl node,
-    ClassElement classElement,
+    InterfaceElement classElement,
     SimpleIdentifierImpl? constructorName,
     ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
@@ -237,7 +237,7 @@ class AnnotationResolver {
 
     // Class(args) or Class.CONST
     if (element1 is InterfaceElement) {
-      if (element1 is ClassElement && argumentList != null) {
+      if (argumentList != null) {
         _classConstructorInvocation(
             node, element1, name2, argumentList, whyNotPromotedArguments);
       } else {
