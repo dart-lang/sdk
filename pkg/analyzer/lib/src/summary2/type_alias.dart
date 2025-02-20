@@ -92,7 +92,7 @@ class _Finder {
         return;
       }
 
-      var typeNode = linker.getLinkingNode2(element);
+      var typeNode = linker.getLinkingNode2(element.firstFragment);
       if (typeNode != null) {
         if (typeNode == self) {
           hasSelfReference = true;

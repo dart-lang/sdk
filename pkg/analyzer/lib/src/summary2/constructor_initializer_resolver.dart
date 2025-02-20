@@ -39,7 +39,7 @@ class ConstructorInitializerResolver {
     if (element.isSynthetic) return;
 
     for (var fragment in element.fragments) {
-      var node = _linker.getLinkingNode(fragment);
+      var node = _linker.getLinkingNode2(fragment);
       if (node is! ConstructorDeclarationImpl) return;
 
       var constructorScope = LinkingNodeContext.get(node).scope;

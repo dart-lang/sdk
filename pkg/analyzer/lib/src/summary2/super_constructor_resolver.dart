@@ -39,7 +39,7 @@ class SuperConstructorResolver {
 
     var invokesDefaultSuperConstructor = true;
     for (var fragment in element.fragments) {
-      var node = _linker.getLinkingNode3(fragment);
+      var node = _linker.getLinkingNode2(fragment);
       if (node is ConstructorDeclaration) {
         for (var initializer in node.initializers) {
           if (initializer is RedirectingConstructorInvocation) {

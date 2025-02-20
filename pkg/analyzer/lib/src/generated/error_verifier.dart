@@ -1100,7 +1100,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitImportPrefixReference(ImportPrefixReference node) {
     _checkForReferenceBeforeDeclaration(
       nameToken: node.name,
-      element: node.element,
+      element: node.element2,
     );
   }
 
@@ -1448,7 +1448,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     );
     _checkForReferenceBeforeDeclaration(
       nameToken: node.token,
-      element: node.staticElement,
+      element: node.element,
     );
     _checkForInvalidInstanceMemberAccess(node);
     _checkForTypeParameterReferencedByStatic(
@@ -1490,7 +1490,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSuperFormalParameter(SuperFormalParameter node) {
     super.visitSuperFormalParameter(node);
 
-    if (_enclosingClass is ExtensionTypeElement) {
+    if (_enclosingClass2 is ExtensionTypeElement2) {
       errorReporter.atToken(
         node.superKeyword,
         CompileTimeErrorCode
@@ -1509,8 +1509,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var element = node.declaredElement as SuperFormalParameterElementImpl;
-    var superParameter = element.superConstructorParameter;
+    var element =
+        node.declaredFragment?.element as SuperFormalParameterElementImpl2;
+    var superParameter = element.superConstructorParameter2;
 
     if (superParameter == null) {
       errorReporter.atToken(
@@ -5198,16 +5199,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForReferenceBeforeDeclaration({
     required Token nameToken,
-    required Element? element,
+    required Element2? element,
   }) {
     if (element != null &&
         _hiddenElements != null &&
-        _hiddenElements!.contains(element)) {
+        _hiddenElements!.contains(element.asElement!)) {
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,
           nameToken: nameToken,
-          element2: element.asElement2!,
+          element2: element,
         ),
       );
     }
@@ -5424,13 +5425,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
   void _checkForTypeParameterBoundRecursion(List<TypeParameter> parameters) {
-    Map<TypeParameterElement, TypeParameter>? elementToNode;
+    Map<TypeParameterElement2, TypeParameter>? elementToNode;
     for (var parameter in parameters) {
       if (parameter.bound != null) {
         if (elementToNode == null) {
           elementToNode = {};
           for (var parameter in parameters) {
-            elementToNode[parameter.declaredElement!] = parameter;
+            elementToNode[parameter.declaredFragment!.element] = parameter;
           }
         }
 
@@ -5440,12 +5441,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (boundNode is NamedType) {
             var boundType = boundNode.typeOrThrow;
             boundType = boundType.extensionTypeErasure;
-            current = elementToNode[boundType.element];
+            current = elementToNode[boundType.element3];
           } else {
             current = null;
           }
           if (step == parameters.length) {
-            var element = parameter.declaredElement!;
+            var element = parameter.declaredFragment!.element;
             // This error can only occur if there is a bound, so we can safely
             // assume `element.bound` is non-`null`.
             errorReporter.atToken(
@@ -5716,31 +5717,31 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
   void _checkForUnqualifiedReferenceToNonLocalStaticMember(
       SimpleIdentifier name) {
-    var element = name.writeOrReadElement;
-    if (element == null || element is TypeParameterElement) {
+    var element = name.writeOrReadElement2;
+    if (element == null || element is TypeParameterElement2) {
       return;
     }
 
-    var enclosingElement = element.enclosingElement3;
+    var enclosingElement = element.enclosingElement2;
     if (enclosingElement == null) {
       return;
     }
 
-    if (identical(enclosingElement.augmentedDeclaration, _enclosingClass)) {
+    if (identical(enclosingElement, _enclosingClass2)) {
       return;
     }
-    if (enclosingElement is! InterfaceElement) {
+    if (enclosingElement is! InterfaceElement2) {
       return;
     }
-    if (element is ExecutableElement && !element.isStatic) {
+    if (element is ExecutableElement2 && !element.isStatic) {
       return;
     }
-    if (element is MethodElement) {
+    if (element is MethodElement2) {
       // Invalid methods are reported in
       // [MethodInvocationResolver._resolveReceiverNull].
       return;
     }
-    if (_enclosingExtension != null) {
+    if (_enclosingExtension2 != null) {
       errorReporter.atNode(
         name,
         CompileTimeErrorCode
@@ -5762,9 +5763,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         parent2?.parent is! ConstructorDeclaration) {
       return;
     }
-    ParameterElement element = parameter.declaredElement!;
-    if (element is FieldFormalParameterElement) {
-      var fieldElement = element.field;
+    var element = parameter.declaredFragment?.element;
+    if (element is FieldFormalParameterElement2) {
+      var fieldElement = element.field2;
       if (fieldElement == null || fieldElement.isSynthetic) {
         errorReporter.atNode(
           parameter,
@@ -5772,8 +5773,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [parameter.name.lexeme],
         );
       } else {
-        var parameterElement = parameter.declaredElement!;
-        if (parameterElement is FieldFormalParameterElementImpl) {
+        var parameterElement = parameter.declaredFragment?.element;
+        if (parameterElement is FieldFormalParameterElement2) {
           DartType declaredType = parameterElement.type;
           DartType fieldType = fieldElement.type;
           if (fieldElement.isSynthetic) {
