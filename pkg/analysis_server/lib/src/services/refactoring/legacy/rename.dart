@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,7 +15,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/// Helper for renaming one or more [Element]s.
+/// Helper for renaming one or more elements.
 class RenameProcessor {
   final RefactoringWorkspace workspace;
   final AnalysisSessionHelper sessionHelper;
@@ -75,22 +72,6 @@ class RenameProcessor {
 
   /// Add an edit that replaces the specified region with [code].
   /// Uses [referenceElement] to identify the file to update.
-  void replace({
-    required Element referenceElement,
-    required int offset,
-    required int length,
-    required String code,
-  }) {
-    var edit = SourceEdit(offset, length, code);
-    doSourceChange_addFragmentEdit(
-      change,
-      referenceElement.asElement2!.firstFragment,
-      edit,
-    );
-  }
-
-  /// Add an edit that replaces the specified region with [code].
-  /// Uses [referenceElement] to identify the file to update.
   void replace2({
     required Element2 referenceElement,
     required int offset,
@@ -112,7 +93,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   final RefactoringWorkspace workspace;
   final AnalysisSessionHelper sessionHelper;
   final SearchEngine searchEngine;
-  final Element _element;
+  final Element2 _element;
   @override
   final String elementKindName;
   @override
@@ -121,26 +102,18 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   late String newName;
 
-  RenameRefactoringImpl(this.workspace, this.sessionHelper, Element element)
+  RenameRefactoringImpl.c2(this.workspace, this.sessionHelper, Element2 element)
     : searchEngine = workspace.searchEngine,
       _element = element,
       elementKindName = element.kind.displayName,
       oldName = _getOldName(element);
 
-  RenameRefactoringImpl.c2(this.workspace, this.sessionHelper, Element2 element)
-    : searchEngine = workspace.searchEngine,
-      _element = element.asElement!,
-      elementKindName = element.kind.displayName,
-      oldName = _getOldName(element.asElement!);
-
-  Element get element => _element;
-
-  Element2 get element2 => _element.asElement2!;
+  Element2 get element2 => _element;
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
     var result = RefactoringStatus();
-    if (element.library?.isInSdk == true) {
+    if (element2.library2?.isInSdk == true) {
       var message = format(
         "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
         getElementKindName(element2),
@@ -148,7 +121,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
       );
       result.addFatalError(message);
     }
-    if (!workspace.containsElement(element)) {
+    if (!workspace.containsElement2(element2)) {
       var message = format(
         "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
         getElementKindName(element2),
@@ -181,11 +154,15 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   /// Adds individual edits to [change].
   Future<void> fillChange();
 
-  static String _getOldName(Element element) {
-    if (element is ConstructorElement) {
-      return element.name;
-    } else if (element is LibraryImportElement) {
-      var prefix = element.prefix?.element;
+  static String _getOldName(Element2 element) {
+    if (element is ConstructorElement2) {
+      var name = element.name3;
+      if (name == null || name == 'new') {
+        return '';
+      }
+      return name;
+    } else if (element is MockLibraryImportElement) {
+      var prefix = element.import.prefix?.element;
       if (prefix != null) {
         return prefix.displayName;
       }

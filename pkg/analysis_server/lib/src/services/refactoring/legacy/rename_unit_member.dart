@@ -46,7 +46,7 @@ Future<RefactoringStatus> validateRenameTopLevel(
 class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   final ResolvedUnitResult resolvedUnit;
 
-  /// If the [element] is a Flutter `StatefulWidget` declaration, this is the
+  /// If the element is a Flutter `StatefulWidget` declaration, this is the
   /// corresponding `State` declaration.
   ClassElement2? _flutterWidgetState;
 

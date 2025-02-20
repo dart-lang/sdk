@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -53,6 +54,53 @@ Element? declaredParameterElement(
         } else if (invocation is MethodInvocation) {
           var executable = invocation.methodName.staticElement;
           if (executable is ExecutableElement) {
+            return namedParameterElement(executable);
+          }
+        }
+      }
+    }
+  }
+
+  return element;
+}
+
+Element2? declaredParameterElement2(
+  SimpleIdentifier node,
+  Element2? element,
+) {
+  if (element == null || element.enclosingElement2 != null) {
+    return element;
+  }
+
+  /// When we instantiate the [FunctionType] of an executable, we use
+  /// synthetic [ParameterElement]s, disconnected from the rest of the
+  /// element model. But we want to index these parameter references
+  /// as references to declared parameters.
+  FormalParameterElement? namedParameterElement(
+      ExecutableElement2? executable) {
+    if (executable == null) {
+      return null;
+    }
+
+    var parameterName = node.name;
+    return executable.baseElement.formalParameters.where((parameter) {
+      return parameter.isNamed && parameter.name3 == parameterName;
+    }).first;
+  }
+
+  var parent = node.parent;
+  if (parent is Label && parent.label == node) {
+    var namedExpression = parent.parent;
+    if (namedExpression is NamedExpression && namedExpression.name == parent) {
+      var argumentList = namedExpression.parent;
+      if (argumentList is ArgumentList) {
+        var invocation = argumentList.parent;
+        if (invocation is InstanceCreationExpression) {
+          var executable = invocation.constructorName.element;
+          return namedParameterElement(executable);
+        } else if (invocation is MethodInvocation) {
+          var executable = invocation.methodName.element;
+          if (executable is ExecutableElement2) {
             return namedParameterElement(executable);
           }
         }

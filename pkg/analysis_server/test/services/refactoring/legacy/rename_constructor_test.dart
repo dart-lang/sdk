@@ -381,7 +381,7 @@ void f() {
   Future<void> test_newInstance_nullElement() async {
     await indexTestUnit('');
     var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
-    var refactoring = RenameRefactoring.create(
+    var refactoring = RenameRefactoring.create2(
       workspace,
       testAnalysisResult,
       null,
