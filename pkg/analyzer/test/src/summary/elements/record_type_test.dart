@@ -949,7 +949,7 @@ library
         hasInitializer x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             TypeLiteral
               type: NamedType
                 name: List @10
@@ -1065,7 +1065,7 @@ library
         hasInitializer x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             TypeLiteral
               type: NamedType
                 name: List @10

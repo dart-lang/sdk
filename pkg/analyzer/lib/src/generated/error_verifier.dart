@@ -944,6 +944,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
     var element = node.declaredElement!;
     if (element.enclosingElement3 is! CompilationUnitElement) {
       _hiddenElements!.declare(element);
@@ -961,7 +962,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         _checkForTypeAnnotationDeferredClass(returnType);
         _returnTypeVerifier.verifyReturnType(returnType);
-        _checkForMainFunction1(node.name, node.declaredElement!);
+        _checkForMainFunction1(node.name, element);
         _checkForMainFunction2(node);
         _checkAugmentations(
           augmentKeyword: node.augmentKeyword,
@@ -969,9 +970,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
         super.visitFunctionDeclaration(node);
       },
-      // TODO(pq): store fragment above.
-      isAsynchronous: node.declaredFragment!.isAsynchronous,
-      isGenerator: node.declaredFragment!.isGenerator,
+      isAsynchronous: fragment.isAsynchronous,
+      isGenerator: fragment.isGenerator,
     );
   }
 
@@ -1067,14 +1067,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element;
+    var importElement = node.libraryImport;
     if (node.prefix != null) {
       _checkForBuiltInIdentifierAsName(node.prefix!.token,
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME);
     }
     if (importElement != null) {
       _checkForImportInternalLibrary(node, importElement);
-      if (importElement.prefix is DeferredImportElementPrefix) {
+      if (importElement.prefix2?.isDeferred ?? false) {
         _checkForDeferredImportOfExtensions(node, importElement);
       }
     }
@@ -1169,6 +1169,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
     var element = node.declaredElement!;
     _withEnclosingExecutable(
       element.asElement2,
@@ -1197,9 +1198,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
         super.visitMethodDeclaration(node);
       },
-      // TODO(pq): store fragment above.
-      isAsynchronous: node.declaredFragment!.isAsynchronous,
-      isGenerator: node.declaredFragment!.isGenerator,
+      isAsynchronous: fragment.isAsynchronous,
+      isGenerator: fragment.isGenerator,
     );
   }
 
@@ -3079,9 +3079,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Report a diagnostic if there are any extensions in the imported library
   /// that are not hidden.
   void _checkForDeferredImportOfExtensions(
-      ImportDirective directive, LibraryImportElement importElement) {
-    for (var element in importElement.namespace.definedNames.values) {
-      if (element is ExtensionElement) {
+      ImportDirective directive, LibraryImport importElement) {
+    for (var element in importElement.namespace.definedNames2.values) {
+      if (element is ExtensionElement2) {
         errorReporter.atNode(
           directive.uri,
           CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION,
@@ -3830,19 +3830,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [LibraryImportElement] retrieved from the node, if the element in the node
   /// was `null`, then this method is not called.
   void _checkForImportInternalLibrary(
-      ImportDirective directive, LibraryImportElement importElement) {
+      ImportDirective directive, LibraryImport importElement) {
     if (_isInSystemLibrary || _isWasm(importElement)) {
       return;
     }
 
-    var importedLibrary = importElement.importedLibrary;
+    var importedLibrary = importElement.importedLibrary2;
     if (importedLibrary == null) {
       return;
     }
 
     // should be private
     var sdk = _currentLibrary.context.sourceFactory.dartSdk!;
-    var uri = importedLibrary.source.uri.toString();
+    var uri = importedLibrary.uri.toString();
     var sdkLibrary = sdk.getSdkLibrary(uri);
     if (sdkLibrary == null || !sdkLibrary.isInternal) {
       return;
@@ -6425,8 +6425,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Return `true` if the [importElement] is the internal library `dart:_wasm`
   /// and the current library is either `package:js/js.dart` or is in
   /// `package:ui`.
-  bool _isWasm(LibraryImportElement importElement) {
-    var importedUri = importElement.importedLibrary?.source.uri.toString();
+  bool _isWasm(LibraryImport importElement) {
+    var importedUri = importElement.importedLibrary2?.uri.toString();
     if (importedUri != 'dart:_wasm') {
       return false;
     }
@@ -6520,43 +6520,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Return [FieldElement]s that are declared in the [ClassDeclaration] with
+  /// Return [FieldElement2]s that are declared in the [ClassDeclaration] with
   /// the given [constructor], but are not initialized.
-  static List<FieldElement> computeNotInitializedFields(
-      ConstructorDeclaration constructor) {
-    Set<FieldElement> fields = <FieldElement>{};
-    var classDeclaration = constructor.parent as ClassDeclaration;
-    for (ClassMember fieldDeclaration in classDeclaration.members) {
-      if (fieldDeclaration is FieldDeclaration) {
-        for (VariableDeclaration field in fieldDeclaration.fields.variables) {
-          if (field.initializer == null) {
-            fields.add(field.declaredElement as FieldElement);
-          }
-        }
-      }
-    }
-
-    List<FormalParameter> parameters = constructor.parameters.parameters;
-    for (FormalParameter parameter in parameters) {
-      parameter = parameter.notDefault;
-      if (parameter is FieldFormalParameter) {
-        var element = parameter.declaredElement as FieldFormalParameterElement;
-        fields.remove(element.field);
-      }
-    }
-
-    for (ConstructorInitializer initializer in constructor.initializers) {
-      if (initializer is ConstructorFieldInitializer) {
-        fields.remove(initializer.fieldName.staticElement);
-      }
-    }
-
-    return fields.toList();
-  }
-
-  /// Return [FieldElement]s that are declared in the [ClassDeclaration] with
-  /// the given [constructor], but are not initialized.
-  static List<FieldElement2> computeNotInitializedFields2(
+  static List<FieldElement2> computeNotInitializedFields(
       ConstructorDeclaration constructor) {
     var fields = <FieldElement2>{};
     var classDeclaration = constructor.parent as ClassDeclaration;

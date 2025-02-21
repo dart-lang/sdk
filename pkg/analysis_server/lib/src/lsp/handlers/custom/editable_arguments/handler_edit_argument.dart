@@ -431,15 +431,16 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       (false, false) => '',
     };
 
-    // The suffix depends on whether there is an argument after us and whether
-    // we are multiline. If there is an argument after us, there is already
-    // the correct whitespace and comma after our insertion point.
+    // The suffix depends on whether there is an argument after us, whether
+    // we are multiline and whether there is already a comma after us.
     var codeSuffix = switch ((
       isMultiline,
       hasArgumentsAfter,
       commaFollowsInsertion,
     )) {
-      (_, true, _) => '',
+      (_, true, true) => '',
+      (true, true, false) => ',',
+      (false, true, false) => ', ',
       (true, false, false) => ',',
       (true, false, true) => '',
       (false, false, _) => '',

@@ -158,12 +158,62 @@ mixin SharedEditArgumentTests
     );
   }
 
+  test_named_addAfterNamed_beforeChild_noOthers() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? y, Widget? child })',
+      originalArgs: '(child: null)',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(y: 2, child: null)',
+    );
+  }
+
+  test_named_addAfterNamed_beforeChild_noOthers_multiline() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? y, Widget? child })',
+      originalArgs: '''\n
+      (
+        child: null
+      )''',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '''\n
+      (
+        y: 2,
+        child: null
+      )''',
+    );
+  }
+
   test_named_addAfterNamed_beforeChildAtEnd() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y, Widget? child })',
       originalArgs: '(x: 1, child: null)',
       edit: ArgumentEdit(name: 'y', newValue: 2),
       expectedArgs: '(x: 1, y: 2, child: null)',
+    );
+  }
+
+  test_named_addAfterNamed_beforeChildren_noOthers() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? y, List<Widget>? children })',
+      originalArgs: '(children: [])',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '(y: 2, children: [])',
+    );
+  }
+
+  test_named_addAfterNamed_beforeChildren_noOthers_multiline() async {
+    await _expectSimpleArgumentEdit(
+      params: '({ int? y, List<Widget>? children })',
+      originalArgs: '''\n
+      (
+        children: []
+      )''',
+      edit: ArgumentEdit(name: 'y', newValue: 2),
+      expectedArgs: '''\n
+      (
+        y: 2,
+        children: []
+      )''',
     );
   }
 

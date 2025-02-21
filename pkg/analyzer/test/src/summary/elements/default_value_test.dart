@@ -81,7 +81,7 @@ library
                 default a @32
                   reference: <testLibraryFragment>::@class::A::@method::X::@parameter::a
                   element: <testLibraryFragment>::@class::A::@method::X::@parameter::a#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     ListLiteral
                       constKeyword: const @36
                       leftBracket: [ @42
@@ -218,7 +218,7 @@ library
                 default this.f @90
                   reference: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
                   element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     FunctionReference
                       function: SimpleIdentifier
                         token: defaultF @93
@@ -405,7 +405,7 @@ library
                 default a @50
                   reference: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
                   element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @53
                       constructorName: ConstructorName
@@ -565,7 +565,7 @@ library
           formalParameters
             default compare @22
               element: <testLibraryFragment>::@function::f::@parameter::compare#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: Comparable @32
@@ -659,7 +659,7 @@ library
             default x @28
               reference: <testLibraryFragment>::@function::f::@parameter::x
               element: <testLibraryFragment>::@function::f::@parameter::x#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 RecordLiteral
                   leftParenthesis: ( @32
                   fields
@@ -765,7 +765,7 @@ library
             default x @28
               reference: <testLibraryFragment>::@function::f::@parameter::x
               element: <testLibraryFragment>::@function::f::@parameter::x#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 RecordLiteral
                   constKeyword: const @32
                   leftParenthesis: ( @38
@@ -855,7 +855,7 @@ library
             default x @20
               reference: <testLibraryFragment>::@function::f::@parameter::x
               element: <testLibraryFragment>::@function::f::@parameter::x#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 RecordLiteral
                   leftParenthesis: ( @24
                   fields
@@ -929,7 +929,7 @@ library
             default x @20
               reference: <testLibraryFragment>::@function::f::@parameter::x
               element: <testLibraryFragment>::@function::f::@parameter::x#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 RecordLiteral
                   constKeyword: const @24
                   leftParenthesis: ( @30
@@ -1032,7 +1032,7 @@ library
               formalParameters
                 default p @75
                   element: <testLibraryFragment>::@extension::E::@method::g::@parameter::p#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     SimpleIdentifier
                       token: f @79
                       staticElement: <testLibraryFragment>::@extension::E::@method::f
@@ -1161,7 +1161,7 @@ library
               formalParameters
                 default b @70
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @74
                       constructorName: ConstructorName
@@ -1297,7 +1297,7 @@ library
               formalParameters
                 default b @57
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::b#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @61
                       constructorName: ConstructorName
@@ -1456,7 +1456,7 @@ library
               formalParameters
                 default a @122
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @126
                       constructorName: ConstructorName
@@ -1592,7 +1592,7 @@ library
           formalParameters
             default b @46
               element: <testLibraryFragment>::@function::foo::@parameter::b#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   keyword: const @50
                   constructorName: ConstructorName
@@ -1732,7 +1732,7 @@ library
               formalParameters
                 default b @58
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @62
                       constructorName: ConstructorName
@@ -1887,7 +1887,7 @@ library
               formalParameters
                 default b @73
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @77
                       constructorName: ConstructorName
@@ -2035,7 +2035,7 @@ library
               formalParameters
                 default b @58
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @62
                       constructorName: ConstructorName

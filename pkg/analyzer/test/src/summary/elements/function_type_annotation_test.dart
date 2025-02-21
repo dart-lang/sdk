@@ -933,7 +933,7 @@ library
         hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
@@ -1128,7 +1128,7 @@ library
         hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
@@ -1323,7 +1323,7 @@ library
         hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
@@ -1512,7 +1512,7 @@ library
         hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType

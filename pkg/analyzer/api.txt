@@ -4297,8 +4297,8 @@ package:analyzer/dart/element/element2.dart:
     computeConstantValue (method: DartObject? Function())
   VariableFragment (class extends Object implements Fragment):
     new (constructor: VariableFragment Function())
-    constantInitializer2 (getter: Expression?)
     element (getter: VariableElement2)
+    initializer (getter: Expression?)
     nextFragment (getter: VariableFragment?)
     previousFragment (getter: VariableFragment?)
 package:analyzer/dart/element/nullability_suffix.dart:

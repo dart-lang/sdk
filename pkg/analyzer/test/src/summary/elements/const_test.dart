@@ -79,7 +79,7 @@ library
         hasInitializer a @10
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @14
               staticType: int
@@ -87,7 +87,7 @@ library
         hasInitializer b @23
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             AsExpression
               expression: SimpleIdentifier
                 token: a @27
@@ -204,7 +204,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -212,7 +212,7 @@ library
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             ParenthesizedExpression
               leftParenthesis: ( @23
               expression: AssignmentExpression
@@ -328,7 +328,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             CascadeExpression
               target: IntegerLiteral
                 literal: 0 @10
@@ -476,7 +476,7 @@ library
             hasInitializer f1 @29
               reference: <testLibraryFragment>::@class::C::@field::f1
               element: <testLibraryFragment>::@class::C::@field::f1#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 1 @34
                   staticType: int
@@ -484,7 +484,7 @@ library
             hasInitializer f2 @56
               reference: <testLibraryFragment>::@class::C::@field::f2
               element: <testLibraryFragment>::@class::C::@field::f2#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: C @61
@@ -504,7 +504,7 @@ library
             hasInitializer f3 @67
               reference: <testLibraryFragment>::@class::C::@field::f3
               element: <testLibraryFragment>::@class::C::@field::f3#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: C @72
@@ -740,7 +740,7 @@ library
         hasInitializer x @85
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @89
               constructorName: ConstructorName
@@ -765,7 +765,7 @@ library
         hasInitializer y @114
           reference: <testLibraryFragment>::@topLevelVariable::y
           element: <testLibrary>::@topLevelVariable::y
-          constantInitializer: expression_1
+          initializer: expression_1
             InstanceCreationExpression
               keyword: const @118
               constructorName: ConstructorName
@@ -936,7 +936,7 @@ library
         hasInitializer v @31
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             ConstructorReference
               constructorName: ConstructorName
                 type: NamedType
@@ -1031,7 +1031,7 @@ library
             hasInitializer f @22
               reference: <testLibraryFragment>::@class::C::@field::f
               element: <testLibraryFragment>::@class::C::@field::f#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 42 @26
                   staticType: int
@@ -1122,7 +1122,7 @@ library
         hasInitializer v @44
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             FunctionReference
               function: SimpleIdentifier
                 token: f @48
@@ -1235,7 +1235,7 @@ library
         hasInitializer v @24
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             FunctionReference
               function: SimpleIdentifier
                 token: f @28
@@ -1378,7 +1378,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               leftBracket: [ @10
               elements
@@ -1391,7 +1391,7 @@ library
         hasInitializer b @21
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             IntegerLiteral
               literal: 0 @25
               staticType: int
@@ -1399,7 +1399,7 @@ library
         hasInitializer c @34
           reference: <testLibraryFragment>::@topLevelVariable::c
           element: <testLibrary>::@topLevelVariable::c
-          constantInitializer: expression_2
+          initializer: expression_2
             IndexExpression
               target: SimpleIdentifier
                 token: a @38
@@ -1638,7 +1638,7 @@ library
         hasInitializer values @131
           reference: <testLibraryFragment>::@topLevelVariable::values
           element: <testLibrary>::@topLevelVariable::values
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               leftBracket: [ @140
               elements
@@ -1805,7 +1805,7 @@ library
             hasInitializer f @25
               reference: <testLibraryFragment>::@class::C::@field::f
               element: <testLibraryFragment>::@class::C::@field::f#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 BinaryExpression
                   leftOperand: IntegerLiteral
                     literal: 1 @29
@@ -1993,7 +1993,7 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleIdentifier
               token: _notSerializableExpression @-1
               staticElement: <null>
@@ -2304,7 +2304,7 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleIdentifier
               token: _notSerializableExpression @-1
               staticElement: <null>
@@ -2630,7 +2630,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             MethodInvocation
               target: SimpleStringLiteral
                 literal: 'abc' @10
@@ -2707,7 +2707,7 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleIdentifier
               token: _notSerializableExpression @-1
               staticElement: <null>
@@ -2792,7 +2792,7 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @10
@@ -2880,7 +2880,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleIdentifier
               token: _notSerializableExpression @-1
               staticElement: <null>
@@ -2967,7 +2967,7 @@ library
         hasInitializer a @10
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @14
               staticType: int
@@ -2975,7 +2975,7 @@ library
         hasInitializer b @28
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             BinaryExpression
               leftOperand: SimpleIdentifier
                 token: a @32
@@ -3144,7 +3144,7 @@ library
         hasInitializer V @51
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @55
               constructorName: ConstructorName
@@ -3312,7 +3312,7 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @27
               constructorName: ConstructorName
@@ -3477,7 +3477,7 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @32
               constructorName: ConstructorName
@@ -3627,7 +3627,7 @@ library
         hasInitializer V @37
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @41
               constructorName: ConstructorName
@@ -3781,7 +3781,7 @@ library
         hasInitializer a @60
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @64
               constructorName: ConstructorName
@@ -3936,7 +3936,7 @@ library
         hasInitializer V @37
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @41
               constructorName: ConstructorName
@@ -4071,7 +4071,7 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @27
               constructorName: ConstructorName
@@ -4208,7 +4208,7 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @32
               constructorName: ConstructorName
@@ -4398,7 +4398,7 @@ library
         hasInitializer V @79
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @83
               constructorName: ConstructorName
@@ -4554,7 +4554,7 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @27
               constructorName: ConstructorName
@@ -4671,7 +4671,7 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @32
               constructorName: ConstructorName
@@ -4788,7 +4788,7 @@ library
         hasInitializer V @17
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @21
               constructorName: ConstructorName
@@ -4888,7 +4888,7 @@ library
         hasInitializer V @6
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @10
               constructorName: ConstructorName
@@ -5003,7 +5003,7 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @32
               constructorName: ConstructorName
@@ -5121,7 +5121,7 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @32
               constructorName: ConstructorName
@@ -5225,7 +5225,7 @@ library
         hasInitializer V @6
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @10
               constructorName: ConstructorName
@@ -5348,7 +5348,7 @@ library
         hasInitializer V @20
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @24
               constructorName: ConstructorName
@@ -5466,7 +5466,7 @@ library
         hasInitializer V @31
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @35
               constructorName: ConstructorName
@@ -5566,7 +5566,7 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @27
               constructorName: ConstructorName
@@ -5671,7 +5671,7 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @32
               constructorName: ConstructorName
@@ -5758,7 +5758,7 @@ library
         hasInitializer V @6
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @10
               constructorName: ConstructorName
@@ -5859,7 +5859,7 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @32
               constructorName: ConstructorName
@@ -5951,7 +5951,7 @@ library
         hasInitializer V @6
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             InstanceCreationExpression
               keyword: const @10
               constructorName: ConstructorName
@@ -6051,7 +6051,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -6059,7 +6059,7 @@ library
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             IsExpression
               expression: SimpleIdentifier
                 token: a @23
@@ -6191,7 +6191,7 @@ library
             hasInitializer F @32
               reference: <testLibraryFragment>::@class::C::@field::F
               element: <testLibraryFragment>::@class::C::@field::F#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 SimpleStringLiteral
                   literal: '' @36
               getter2: <testLibraryFragment>::@class::C::@getter::F
@@ -6208,7 +6208,7 @@ library
         hasInitializer v @52
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_1
+          initializer: expression_1
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
@@ -6337,7 +6337,7 @@ library
         hasInitializer v @27
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
@@ -6463,7 +6463,7 @@ library
         hasInitializer v @32
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             PropertyAccess
               target: PropertyAccess
                 target: PrefixedIdentifier
@@ -6558,7 +6558,7 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             PropertyAccess
               target: SimpleStringLiteral
                 literal: 'abc' @10
@@ -6650,14 +6650,14 @@ library
         hasInitializer S @13
           reference: <testLibraryFragment>::@topLevelVariable::S
           element: <testLibrary>::@topLevelVariable::S
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleStringLiteral
               literal: 'abc' @17
           getter2: <testLibraryFragment>::@getter::S
         hasInitializer v @30
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_1
+          initializer: expression_1
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: S @34
@@ -6763,7 +6763,7 @@ library
         hasInitializer v @23
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: S @27
@@ -6871,7 +6871,7 @@ library
         hasInitializer v @28
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
@@ -6992,7 +6992,7 @@ library
         hasInitializer v @47
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: C @51
@@ -7097,7 +7097,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -7205,7 +7205,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -7300,7 +7300,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               constKeyword: const @17
               leftBracket: [ @23
@@ -7397,7 +7397,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -7519,7 +7519,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -7643,7 +7643,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -7751,7 +7751,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               leftBracket: { @23
@@ -7871,7 +7871,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -8027,7 +8027,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -8170,7 +8170,7 @@ library
         hasInitializer b @24
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_0
+          initializer: expression_0
             MethodInvocation
               methodName: SimpleIdentifier
                 token: f @28
@@ -8311,7 +8311,7 @@ library
                 default this.x @37
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     SimpleIdentifier
                       token: foo @40
                       staticElement: <testLibraryFragment>::@function::foo
@@ -8430,7 +8430,7 @@ library
                 default this.x @37
                   reference: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     BinaryExpression
                       leftOperand: IntegerLiteral
                         literal: 1 @40
@@ -8545,7 +8545,7 @@ library
               formalParameters
                 default this.x @37
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     BinaryExpression
                       leftOperand: IntegerLiteral
                         literal: 1 @41
@@ -8728,7 +8728,7 @@ library
               formalParameters
                 default p @32
                   element: <testLibraryFragment>::@class::C::@constructor::positional::@parameter::p#element
-                  constantInitializer: expression_0
+                  initializer: expression_0
                     BinaryExpression
                       leftOperand: IntegerLiteral
                         literal: 1 @36
@@ -8751,7 +8751,7 @@ library
                 default p @62
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::p
                   element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::p#element
-                  constantInitializer: expression_1
+                  initializer: expression_1
                     BinaryExpression
                       leftOperand: IntegerLiteral
                         literal: 1 @65
@@ -8771,7 +8771,7 @@ library
               formalParameters
                 default p @99
                   element: <testLibraryFragment>::@class::C::@method::methodPositional::@parameter::p#element
-                  constantInitializer: expression_2
+                  initializer: expression_2
                     BinaryExpression
                       leftOperand: IntegerLiteral
                         literal: 1 @103
@@ -8797,7 +8797,7 @@ library
                 default p @180
                   reference: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p
                   element: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p#element
-                  constantInitializer: expression_3
+                  initializer: expression_3
                     BinaryExpression
                       leftOperand: IntegerLiteral
                         literal: 1 @183
@@ -8936,7 +8936,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -8944,7 +8944,7 @@ library
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             PostfixExpression
               operand: SimpleIdentifier
                 token: a @23
@@ -9051,7 +9051,7 @@ library
         hasInitializer a @11
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @15
               staticType: int
@@ -9059,7 +9059,7 @@ library
         hasInitializer b @24
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             PostfixExpression
               operand: SimpleIdentifier
                 token: a @28
@@ -9160,7 +9160,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -9168,7 +9168,7 @@ library
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             PrefixExpression
               operator: - @23
               operand: SimpleIdentifier
@@ -9267,7 +9267,7 @@ library
         hasInitializer b @23
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_0
+          initializer: expression_0
             PrefixExpression
               operator: - @27
               operand: SimpleIdentifier
@@ -9361,7 +9361,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -9369,7 +9369,7 @@ library
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             PrefixExpression
               operator: ++ @23
               operand: SimpleIdentifier
@@ -9489,7 +9489,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -9497,7 +9497,7 @@ library
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             RecordLiteral
               leftParenthesis: ( @23
               fields
@@ -9625,7 +9625,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -9633,7 +9633,7 @@ library
         hasInitializer b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             RecordLiteral
               constKeyword: const @23
               leftParenthesis: ( @29
@@ -9769,7 +9769,7 @@ library
             hasInitializer F @29
               reference: <testLibraryFragment>::@class::C::@field::F
               element: <testLibraryFragment>::@class::C::@field::F#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 42 @33
                   staticType: int
@@ -9787,7 +9787,7 @@ library
         hasInitializer V @45
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_1
+          initializer: expression_1
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: C @49
@@ -9900,7 +9900,7 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: C @27
@@ -10010,7 +10010,7 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
@@ -10141,7 +10141,7 @@ library
         hasInitializer V @57
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: C @61
@@ -10252,7 +10252,7 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: C @27
@@ -10362,7 +10362,7 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
@@ -10493,7 +10493,7 @@ library
         hasInitializer x @59
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: E @63
@@ -10588,7 +10588,7 @@ library
         hasInitializer V @15
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleIdentifier
               token: foo @19
               staticElement: <testLibraryFragment>::@function::foo
@@ -10675,7 +10675,7 @@ library
         hasInitializer V @26
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleIdentifier
               token: foo @30
               staticElement: <testLibraryFragment>::@function::foo
@@ -10771,7 +10771,7 @@ library
         hasInitializer V @23
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleIdentifier
               token: foo @27
               staticElement: package:test/a.dart::<fragment>::@function::foo
@@ -10861,7 +10861,7 @@ library
         hasInitializer V @28
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: p @32
@@ -10958,7 +10958,7 @@ library
         hasInitializer A @6
           reference: <testLibraryFragment>::@topLevelVariable::A
           element: <testLibrary>::@topLevelVariable::A
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 1 @10
               staticType: int
@@ -10966,7 +10966,7 @@ library
         hasInitializer B @19
           reference: <testLibraryFragment>::@topLevelVariable::B
           element: <testLibrary>::@topLevelVariable::B
-          constantInitializer: expression_1
+          initializer: expression_1
             BinaryExpression
               leftOperand: SimpleIdentifier
                 token: A @23
@@ -11070,7 +11070,7 @@ library
         hasInitializer B @23
           reference: <testLibraryFragment>::@topLevelVariable::B
           element: <testLibrary>::@topLevelVariable::B
-          constantInitializer: expression_0
+          initializer: expression_0
             BinaryExpression
               leftOperand: SimpleIdentifier
                 token: A @27
@@ -11178,7 +11178,7 @@ library
         hasInitializer B @28
           reference: <testLibraryFragment>::@topLevelVariable::B
           element: <testLibrary>::@topLevelVariable::B
-          constantInitializer: expression_0
+          initializer: expression_0
             BinaryExpression
               leftOperand: PrefixedIdentifier
                 prefix: SimpleIdentifier
@@ -11523,7 +11523,7 @@ library
             hasInitializer a @33
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -11541,7 +11541,7 @@ library
             hasInitializer b @36
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -11559,7 +11559,7 @@ library
             hasInitializer c @39
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -11577,7 +11577,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -11625,7 +11625,7 @@ library
         hasInitializer vDynamic @76
           reference: <testLibraryFragment>::@topLevelVariable::vDynamic
           element: <testLibrary>::@topLevelVariable::vDynamic
-          constantInitializer: expression_4
+          initializer: expression_4
             SimpleIdentifier
               token: dynamic @87
               staticElement: dynamic@-1
@@ -11635,7 +11635,7 @@ library
         hasInitializer vNull @102
           reference: <testLibraryFragment>::@topLevelVariable::vNull
           element: <testLibrary>::@topLevelVariable::vNull
-          constantInitializer: expression_5
+          initializer: expression_5
             SimpleIdentifier
               token: Null @110
               staticElement: dart:core::<fragment>::@class::Null
@@ -11645,7 +11645,7 @@ library
         hasInitializer vObject @122
           reference: <testLibraryFragment>::@topLevelVariable::vObject
           element: <testLibrary>::@topLevelVariable::vObject
-          constantInitializer: expression_6
+          initializer: expression_6
             SimpleIdentifier
               token: Object @132
               staticElement: dart:core::<fragment>::@class::Object
@@ -11655,7 +11655,7 @@ library
         hasInitializer vClass @146
           reference: <testLibraryFragment>::@topLevelVariable::vClass
           element: <testLibrary>::@topLevelVariable::vClass
-          constantInitializer: expression_7
+          initializer: expression_7
             SimpleIdentifier
               token: C @155
               staticElement: <testLibraryFragment>::@class::C
@@ -11665,7 +11665,7 @@ library
         hasInitializer vGenericClass @164
           reference: <testLibraryFragment>::@topLevelVariable::vGenericClass
           element: <testLibrary>::@topLevelVariable::vGenericClass
-          constantInitializer: expression_8
+          initializer: expression_8
             SimpleIdentifier
               token: D @180
               staticElement: <testLibraryFragment>::@class::D
@@ -11675,7 +11675,7 @@ library
         hasInitializer vEnum @189
           reference: <testLibraryFragment>::@topLevelVariable::vEnum
           element: <testLibrary>::@topLevelVariable::vEnum
-          constantInitializer: expression_9
+          initializer: expression_9
             SimpleIdentifier
               token: E @197
               staticElement: <testLibraryFragment>::@enum::E
@@ -11685,7 +11685,7 @@ library
         hasInitializer vFunctionTypeAlias @206
           reference: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
-          constantInitializer: expression_10
+          initializer: expression_10
             SimpleIdentifier
               token: F @227
               staticElement: <testLibraryFragment>::@typeAlias::F
@@ -12024,7 +12024,7 @@ library
         hasInitializer vClass @23
           reference: <testLibraryFragment>::@topLevelVariable::vClass
           element: <testLibrary>::@topLevelVariable::vClass
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleIdentifier
               token: C @32
               staticElement: package:test/a.dart::<fragment>::@class::C
@@ -12034,7 +12034,7 @@ library
         hasInitializer vEnum @41
           reference: <testLibraryFragment>::@topLevelVariable::vEnum
           element: <testLibrary>::@topLevelVariable::vEnum
-          constantInitializer: expression_1
+          initializer: expression_1
             SimpleIdentifier
               token: E @49
               staticElement: package:test/a.dart::<fragment>::@enum::E
@@ -12044,7 +12044,7 @@ library
         hasInitializer vFunctionTypeAlias @58
           reference: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
-          constantInitializer: expression_2
+          initializer: expression_2
             SimpleIdentifier
               token: F @79
               staticElement: package:test/a.dart::<fragment>::@typeAlias::F
@@ -12214,7 +12214,7 @@ library
         hasInitializer vClass @28
           reference: <testLibraryFragment>::@topLevelVariable::vClass
           element: <testLibrary>::@topLevelVariable::vClass
-          constantInitializer: expression_0
+          initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: p @37
@@ -12234,7 +12234,7 @@ library
         hasInitializer vEnum @48
           reference: <testLibraryFragment>::@topLevelVariable::vEnum
           element: <testLibrary>::@topLevelVariable::vEnum
-          constantInitializer: expression_1
+          initializer: expression_1
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: p @56
@@ -12254,7 +12254,7 @@ library
         hasInitializer vFunctionTypeAlias @67
           reference: <testLibraryFragment>::@topLevelVariable::vFunctionTypeAlias
           element: <testLibrary>::@topLevelVariable::vFunctionTypeAlias
-          constantInitializer: expression_2
+          initializer: expression_2
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: p @88
@@ -12436,7 +12436,7 @@ library
         hasInitializer V @6
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleIdentifier
               token: foo @10
               staticElement: <null>
@@ -12528,7 +12528,7 @@ library
         hasInitializer V @17
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: C @21
@@ -12643,7 +12643,7 @@ library
         hasInitializer V @30
           reference: <testLibraryFragment>::@topLevelVariable::V
           element: <testLibrary>::@topLevelVariable::V
-          constantInitializer: expression_0
+          initializer: expression_0
             PropertyAccess
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
@@ -12746,7 +12746,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -12839,7 +12839,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               leftBracket: { @23
@@ -12939,7 +12939,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -13065,7 +13065,7 @@ library
         hasInitializer x @13
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @17
               typeArguments: TypeArgumentList
@@ -13558,7 +13558,7 @@ library
         hasInitializer vEqual @6
           reference: <testLibraryFragment>::@topLevelVariable::vEqual
           element: <testLibrary>::@topLevelVariable::vEqual
-          constantInitializer: expression_0
+          initializer: expression_0
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @15
@@ -13575,7 +13575,7 @@ library
         hasInitializer vAnd @29
           reference: <testLibraryFragment>::@topLevelVariable::vAnd
           element: <testLibrary>::@topLevelVariable::vAnd
-          constantInitializer: expression_1
+          initializer: expression_1
             BinaryExpression
               leftOperand: BooleanLiteral
                 literal: true @36
@@ -13592,7 +13592,7 @@ library
         hasInitializer vOr @57
           reference: <testLibraryFragment>::@topLevelVariable::vOr
           element: <testLibrary>::@topLevelVariable::vOr
-          constantInitializer: expression_2
+          initializer: expression_2
             BinaryExpression
               leftOperand: BooleanLiteral
                 literal: false @63
@@ -13609,7 +13609,7 @@ library
         hasInitializer vBitXor @84
           reference: <testLibraryFragment>::@topLevelVariable::vBitXor
           element: <testLibrary>::@topLevelVariable::vBitXor
-          constantInitializer: expression_3
+          initializer: expression_3
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @94
@@ -13626,7 +13626,7 @@ library
         hasInitializer vBitAnd @107
           reference: <testLibraryFragment>::@topLevelVariable::vBitAnd
           element: <testLibrary>::@topLevelVariable::vBitAnd
-          constantInitializer: expression_4
+          initializer: expression_4
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @117
@@ -13643,7 +13643,7 @@ library
         hasInitializer vBitOr @130
           reference: <testLibraryFragment>::@topLevelVariable::vBitOr
           element: <testLibrary>::@topLevelVariable::vBitOr
-          constantInitializer: expression_5
+          initializer: expression_5
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @139
@@ -13660,7 +13660,7 @@ library
         hasInitializer vBitShiftLeft @152
           reference: <testLibraryFragment>::@topLevelVariable::vBitShiftLeft
           element: <testLibrary>::@topLevelVariable::vBitShiftLeft
-          constantInitializer: expression_6
+          initializer: expression_6
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @168
@@ -13677,7 +13677,7 @@ library
         hasInitializer vBitShiftRight @182
           reference: <testLibraryFragment>::@topLevelVariable::vBitShiftRight
           element: <testLibrary>::@topLevelVariable::vBitShiftRight
-          constantInitializer: expression_7
+          initializer: expression_7
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @199
@@ -13694,7 +13694,7 @@ library
         hasInitializer vAdd @213
           reference: <testLibraryFragment>::@topLevelVariable::vAdd
           element: <testLibrary>::@topLevelVariable::vAdd
-          constantInitializer: expression_8
+          initializer: expression_8
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @220
@@ -13711,7 +13711,7 @@ library
         hasInitializer vSubtract @233
           reference: <testLibraryFragment>::@topLevelVariable::vSubtract
           element: <testLibrary>::@topLevelVariable::vSubtract
-          constantInitializer: expression_9
+          initializer: expression_9
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @245
@@ -13728,7 +13728,7 @@ library
         hasInitializer vMiltiply @258
           reference: <testLibraryFragment>::@topLevelVariable::vMiltiply
           element: <testLibrary>::@topLevelVariable::vMiltiply
-          constantInitializer: expression_10
+          initializer: expression_10
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @270
@@ -13745,7 +13745,7 @@ library
         hasInitializer vDivide @283
           reference: <testLibraryFragment>::@topLevelVariable::vDivide
           element: <testLibrary>::@topLevelVariable::vDivide
-          constantInitializer: expression_11
+          initializer: expression_11
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @293
@@ -13762,7 +13762,7 @@ library
         hasInitializer vFloorDivide @306
           reference: <testLibraryFragment>::@topLevelVariable::vFloorDivide
           element: <testLibrary>::@topLevelVariable::vFloorDivide
-          constantInitializer: expression_12
+          initializer: expression_12
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @321
@@ -13779,7 +13779,7 @@ library
         hasInitializer vModulo @335
           reference: <testLibraryFragment>::@topLevelVariable::vModulo
           element: <testLibrary>::@topLevelVariable::vModulo
-          constantInitializer: expression_13
+          initializer: expression_13
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @345
@@ -13796,7 +13796,7 @@ library
         hasInitializer vGreater @358
           reference: <testLibraryFragment>::@topLevelVariable::vGreater
           element: <testLibrary>::@topLevelVariable::vGreater
-          constantInitializer: expression_14
+          initializer: expression_14
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @369
@@ -13813,7 +13813,7 @@ library
         hasInitializer vGreaterEqual @382
           reference: <testLibraryFragment>::@topLevelVariable::vGreaterEqual
           element: <testLibrary>::@topLevelVariable::vGreaterEqual
-          constantInitializer: expression_15
+          initializer: expression_15
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @398
@@ -13830,7 +13830,7 @@ library
         hasInitializer vLess @412
           reference: <testLibraryFragment>::@topLevelVariable::vLess
           element: <testLibrary>::@topLevelVariable::vLess
-          constantInitializer: expression_16
+          initializer: expression_16
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @420
@@ -13847,7 +13847,7 @@ library
         hasInitializer vLessEqual @433
           reference: <testLibraryFragment>::@topLevelVariable::vLessEqual
           element: <testLibrary>::@topLevelVariable::vLessEqual
-          constantInitializer: expression_17
+          initializer: expression_17
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @446
@@ -14160,7 +14160,7 @@ library
         hasInitializer vConditional @6
           reference: <testLibraryFragment>::@topLevelVariable::vConditional
           element: <testLibrary>::@topLevelVariable::vConditional
-          constantInitializer: expression_0
+          initializer: expression_0
             ConditionalExpression
               condition: ParenthesizedExpression
                 leftParenthesis: ( @21
@@ -14266,7 +14266,7 @@ library
         hasInitializer vIdentical @6
           reference: <testLibraryFragment>::@topLevelVariable::vIdentical
           element: <testLibrary>::@topLevelVariable::vIdentical
-          constantInitializer: expression_0
+          initializer: expression_0
             ConditionalExpression
               condition: ParenthesizedExpression
                 leftParenthesis: ( @19
@@ -14358,7 +14358,7 @@ library
         hasInitializer vIfNull @6
           reference: <testLibraryFragment>::@topLevelVariable::vIfNull
           element: <testLibrary>::@topLevelVariable::vIfNull
-          constantInitializer: expression_0
+          initializer: expression_0
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @16
@@ -14629,7 +14629,7 @@ library
         hasInitializer vNull @6
           reference: <testLibraryFragment>::@topLevelVariable::vNull
           element: <testLibrary>::@topLevelVariable::vNull
-          constantInitializer: expression_0
+          initializer: expression_0
             NullLiteral
               literal: null @14
               staticType: Null
@@ -14637,7 +14637,7 @@ library
         hasInitializer vBoolFalse @26
           reference: <testLibraryFragment>::@topLevelVariable::vBoolFalse
           element: <testLibrary>::@topLevelVariable::vBoolFalse
-          constantInitializer: expression_1
+          initializer: expression_1
             BooleanLiteral
               literal: false @39
               staticType: bool
@@ -14645,7 +14645,7 @@ library
         hasInitializer vBoolTrue @52
           reference: <testLibraryFragment>::@topLevelVariable::vBoolTrue
           element: <testLibrary>::@topLevelVariable::vBoolTrue
-          constantInitializer: expression_2
+          initializer: expression_2
             BooleanLiteral
               literal: true @64
               staticType: bool
@@ -14653,7 +14653,7 @@ library
         hasInitializer vIntPositive @76
           reference: <testLibraryFragment>::@topLevelVariable::vIntPositive
           element: <testLibrary>::@topLevelVariable::vIntPositive
-          constantInitializer: expression_3
+          initializer: expression_3
             IntegerLiteral
               literal: 1 @91
               staticType: int
@@ -14661,7 +14661,7 @@ library
         hasInitializer vIntNegative @100
           reference: <testLibraryFragment>::@topLevelVariable::vIntNegative
           element: <testLibrary>::@topLevelVariable::vIntNegative
-          constantInitializer: expression_4
+          initializer: expression_4
             PrefixExpression
               operator: - @115
               operand: IntegerLiteral
@@ -14674,7 +14674,7 @@ library
         hasInitializer vIntLong1 @125
           reference: <testLibraryFragment>::@topLevelVariable::vIntLong1
           element: <testLibrary>::@topLevelVariable::vIntLong1
-          constantInitializer: expression_5
+          initializer: expression_5
             IntegerLiteral
               literal: 0x7FFFFFFFFFFFFFFF @137
               staticType: int
@@ -14682,7 +14682,7 @@ library
         hasInitializer vIntLong2 @163
           reference: <testLibraryFragment>::@topLevelVariable::vIntLong2
           element: <testLibrary>::@topLevelVariable::vIntLong2
-          constantInitializer: expression_6
+          initializer: expression_6
             IntegerLiteral
               literal: 0xFFFFFFFFFFFFFFFF @175
               staticType: int
@@ -14690,7 +14690,7 @@ library
         hasInitializer vIntLong3 @201
           reference: <testLibraryFragment>::@topLevelVariable::vIntLong3
           element: <testLibrary>::@topLevelVariable::vIntLong3
-          constantInitializer: expression_7
+          initializer: expression_7
             IntegerLiteral
               literal: 0x8000000000000000 @213
               staticType: int
@@ -14698,7 +14698,7 @@ library
         hasInitializer vDouble @239
           reference: <testLibraryFragment>::@topLevelVariable::vDouble
           element: <testLibrary>::@topLevelVariable::vDouble
-          constantInitializer: expression_8
+          initializer: expression_8
             DoubleLiteral
               literal: 2.3 @249
               staticType: double
@@ -14706,14 +14706,14 @@ library
         hasInitializer vString @260
           reference: <testLibraryFragment>::@topLevelVariable::vString
           element: <testLibrary>::@topLevelVariable::vString
-          constantInitializer: expression_9
+          initializer: expression_9
             SimpleStringLiteral
               literal: 'abc' @270
           getter2: <testLibraryFragment>::@getter::vString
         hasInitializer vStringConcat @283
           reference: <testLibraryFragment>::@topLevelVariable::vStringConcat
           element: <testLibrary>::@topLevelVariable::vStringConcat
-          constantInitializer: expression_10
+          initializer: expression_10
             AdjacentStrings
               strings
                 SimpleStringLiteral
@@ -14726,7 +14726,7 @@ library
         hasInitializer vStringInterpolation @318
           reference: <testLibraryFragment>::@topLevelVariable::vStringInterpolation
           element: <testLibrary>::@topLevelVariable::vStringInterpolation
-          constantInitializer: expression_11
+          initializer: expression_11
             StringInterpolation
               elements
                 InterpolationString
@@ -14753,7 +14753,7 @@ library
         hasInitializer vSymbol @372
           reference: <testLibraryFragment>::@topLevelVariable::vSymbol
           element: <testLibrary>::@topLevelVariable::vSymbol
-          constantInitializer: expression_12
+          initializer: expression_12
             SymbolLiteral
               poundSign: # @382
               components
@@ -15003,7 +15003,7 @@ library
         hasInitializer a @11
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @15
               staticType: int
@@ -15011,7 +15011,7 @@ library
         hasInitializer b @24
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             MethodInvocation
               target: SimpleIdentifier
                 token: a @28
@@ -15129,7 +15129,7 @@ library
         hasInitializer a @11
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @15
               staticType: int
@@ -15137,7 +15137,7 @@ library
         hasInitializer b @24
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             CascadeExpression
               target: SimpleIdentifier
                 token: a @28
@@ -15258,14 +15258,14 @@ library
         hasInitializer a @14
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             SimpleStringLiteral
               literal: '' @18
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @40
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
-          constantInitializer: expression_1
+          initializer: expression_1
             ListLiteral
               leftBracket: [ @44
               elements
@@ -15440,7 +15440,7 @@ library
         hasInitializer v1 @10
           reference: <testLibraryFragment>::@topLevelVariable::v1
           element: <testLibrary>::@topLevelVariable::v1
-          constantInitializer: expression_0
+          initializer: expression_0
             BinaryExpression
               leftOperand: ParenthesizedExpression
                 leftParenthesis: ( @15
@@ -15470,7 +15470,7 @@ library
         hasInitializer v2 @38
           reference: <testLibraryFragment>::@topLevelVariable::v2
           element: <testLibrary>::@topLevelVariable::v2
-          constantInitializer: expression_1
+          initializer: expression_1
             PrefixExpression
               operator: - @43
               operand: ParenthesizedExpression
@@ -15496,7 +15496,7 @@ library
         hasInitializer v3 @63
           reference: <testLibraryFragment>::@topLevelVariable::v3
           element: <testLibrary>::@topLevelVariable::v3
-          constantInitializer: expression_2
+          initializer: expression_2
             PropertyAccess
               target: ParenthesizedExpression
                 leftParenthesis: ( @68
@@ -15667,7 +15667,7 @@ library
         hasInitializer vNotEqual @6
           reference: <testLibraryFragment>::@topLevelVariable::vNotEqual
           element: <testLibrary>::@topLevelVariable::vNotEqual
-          constantInitializer: expression_0
+          initializer: expression_0
             BinaryExpression
               leftOperand: IntegerLiteral
                 literal: 1 @18
@@ -15684,7 +15684,7 @@ library
         hasInitializer vNot @32
           reference: <testLibraryFragment>::@topLevelVariable::vNot
           element: <testLibrary>::@topLevelVariable::vNot
-          constantInitializer: expression_1
+          initializer: expression_1
             PrefixExpression
               operator: ! @39
               operand: BooleanLiteral
@@ -15697,7 +15697,7 @@ library
         hasInitializer vNegate @52
           reference: <testLibraryFragment>::@topLevelVariable::vNegate
           element: <testLibrary>::@topLevelVariable::vNegate
-          constantInitializer: expression_2
+          initializer: expression_2
             PrefixExpression
               operator: - @62
               operand: IntegerLiteral
@@ -15710,7 +15710,7 @@ library
         hasInitializer vComplement @72
           reference: <testLibraryFragment>::@topLevelVariable::vComplement
           element: <testLibrary>::@topLevelVariable::vComplement
-          constantInitializer: expression_3
+          initializer: expression_3
             PrefixExpression
               operator: ~ @86
               operand: IntegerLiteral
@@ -15814,7 +15814,7 @@ library
         hasInitializer vSuper @6
           reference: <testLibraryFragment>::@topLevelVariable::vSuper
           element: <testLibrary>::@topLevelVariable::vSuper
-          constantInitializer: expression_0
+          initializer: expression_0
             SuperExpression
               superKeyword: super @15
               staticType: InvalidType
@@ -15874,7 +15874,7 @@ library
         hasInitializer vThis @6
           reference: <testLibraryFragment>::@topLevelVariable::vThis
           element: <testLibrary>::@topLevelVariable::vThis
-          constantInitializer: expression_0
+          initializer: expression_0
             ThisExpression
               thisKeyword: this @14
               staticType: dynamic
@@ -15937,7 +15937,7 @@ library
         hasInitializer c @6
           reference: <testLibraryFragment>::@topLevelVariable::c
           element: <testLibrary>::@topLevelVariable::c
-          constantInitializer: expression_0
+          initializer: expression_0
             ThrowExpression
               throwKeyword: throw @10
               expression: IntegerLiteral
@@ -16188,7 +16188,7 @@ library
         hasInitializer vNull @6
           reference: <testLibraryFragment>::@topLevelVariable::vNull
           element: <testLibrary>::@topLevelVariable::vNull
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               constKeyword: const @14
               typeArguments: TypeArgumentList
@@ -16207,7 +16207,7 @@ library
         hasInitializer vDynamic @36
           reference: <testLibraryFragment>::@topLevelVariable::vDynamic
           element: <testLibrary>::@topLevelVariable::vDynamic
-          constantInitializer: expression_1
+          initializer: expression_1
             ListLiteral
               constKeyword: const @47
               typeArguments: TypeArgumentList
@@ -16236,7 +16236,7 @@ library
         hasInitializer vInterfaceNoTypeParameters @79
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceNoTypeParameters
           element: <testLibrary>::@topLevelVariable::vInterfaceNoTypeParameters
-          constantInitializer: expression_2
+          initializer: expression_2
             ListLiteral
               constKeyword: const @108
               typeArguments: TypeArgumentList
@@ -16265,7 +16265,7 @@ library
         hasInitializer vInterfaceNoTypeArguments @136
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceNoTypeArguments
           element: <testLibrary>::@topLevelVariable::vInterfaceNoTypeArguments
-          constantInitializer: expression_3
+          initializer: expression_3
             ListLiteral
               constKeyword: const @164
               typeArguments: TypeArgumentList
@@ -16284,7 +16284,7 @@ library
         hasInitializer vInterfaceWithTypeArguments @186
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
           element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
-          constantInitializer: expression_4
+          initializer: expression_4
             ListLiteral
               constKeyword: const @216
               typeArguments: TypeArgumentList
@@ -16312,7 +16312,7 @@ library
         hasInitializer vInterfaceWithTypeArguments2 @246
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments2
           element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments2
-          constantInitializer: expression_5
+          initializer: expression_5
             ListLiteral
               constKeyword: const @277
               typeArguments: TypeArgumentList
@@ -16489,7 +16489,7 @@ library
         hasInitializer v @23
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               constKeyword: const @27
               typeArguments: TypeArgumentList
@@ -16590,7 +16590,7 @@ library
         hasInitializer v @28
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               constKeyword: const @32
               typeArguments: TypeArgumentList
@@ -16692,7 +16692,7 @@ library
         hasInitializer v @32
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               constKeyword: const @36
               typeArguments: TypeArgumentList
@@ -16887,7 +16887,7 @@ library
         hasInitializer vDynamic1 @6
           reference: <testLibraryFragment>::@topLevelVariable::vDynamic1
           element: <testLibrary>::@topLevelVariable::vDynamic1
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @18
               typeArguments: TypeArgumentList
@@ -16912,7 +16912,7 @@ library
         hasInitializer vDynamic2 @48
           reference: <testLibraryFragment>::@topLevelVariable::vDynamic2
           element: <testLibrary>::@topLevelVariable::vDynamic2
-          constantInitializer: expression_1
+          initializer: expression_1
             SetOrMapLiteral
               constKeyword: const @60
               typeArguments: TypeArgumentList
@@ -16937,7 +16937,7 @@ library
         hasInitializer vInterface @90
           reference: <testLibraryFragment>::@topLevelVariable::vInterface
           element: <testLibrary>::@topLevelVariable::vInterface
-          constantInitializer: expression_2
+          initializer: expression_2
             SetOrMapLiteral
               constKeyword: const @103
               typeArguments: TypeArgumentList
@@ -16962,7 +16962,7 @@ library
         hasInitializer vInterfaceWithTypeArguments @132
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
           element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
-          constantInitializer: expression_3
+          initializer: expression_3
             SetOrMapLiteral
               constKeyword: const @162
               typeArguments: TypeArgumentList
@@ -17160,7 +17160,7 @@ library
         hasInitializer vDynamic1 @6
           reference: <testLibraryFragment>::@topLevelVariable::vDynamic1
           element: <testLibrary>::@topLevelVariable::vDynamic1
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @18
               typeArguments: TypeArgumentList
@@ -17180,7 +17180,7 @@ library
         hasInitializer vInterface @43
           reference: <testLibraryFragment>::@topLevelVariable::vInterface
           element: <testLibrary>::@topLevelVariable::vInterface
-          constantInitializer: expression_1
+          initializer: expression_1
             SetOrMapLiteral
               constKeyword: const @56
               typeArguments: TypeArgumentList
@@ -17200,7 +17200,7 @@ library
         hasInitializer vInterfaceWithTypeArguments @77
           reference: <testLibraryFragment>::@topLevelVariable::vInterfaceWithTypeArguments
           element: <testLibrary>::@topLevelVariable::vInterfaceWithTypeArguments
-          constantInitializer: expression_2
+          initializer: expression_2
             SetOrMapLiteral
               constKeyword: const @107
               typeArguments: TypeArgumentList
@@ -17319,7 +17319,7 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             ListLiteral
               constKeyword: const @10
               leftBracket: [ @16
@@ -17416,7 +17416,7 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @10
               leftBracket: { @16
@@ -17514,7 +17514,7 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             SetOrMapLiteral
               constKeyword: const @10
               leftBracket: { @16
@@ -17600,7 +17600,7 @@ library
         hasInitializer v @6
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
-          constantInitializer: expression_0
+          initializer: expression_0
             TypeLiteral
               type: NamedType
                 name: List @10
@@ -17803,7 +17803,7 @@ library
             hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -17821,7 +17821,7 @@ library
             hasInitializer b @11
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -17839,7 +17839,7 @@ library
             hasInitializer c @14
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -17857,7 +17857,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -18082,7 +18082,7 @@ library
             hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -18100,7 +18100,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -18239,7 +18239,7 @@ library
             hasInitializer a @25
               reference: <testLibraryFragment>::@class::C::@field::a
               element: <testLibraryFragment>::@class::C::@field::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 SimpleIdentifier
                   token: b @29
                   staticElement: <testLibraryFragment>::@class::C::@getter::b
@@ -18249,7 +18249,7 @@ library
             hasInitializer b @47
               reference: <testLibraryFragment>::@class::C::@field::b
               element: <testLibraryFragment>::@class::C::@field::b#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 NullLiteral
                   literal: null @51
                   staticType: Null
@@ -18354,7 +18354,7 @@ library
             hasInitializer a @25
               reference: <testLibraryFragment>::@class::C::@field::a
               element: <testLibraryFragment>::@class::C::@field::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 SimpleIdentifier
                   token: m @29
                   staticElement: <testLibraryFragment>::@class::C::@method::m

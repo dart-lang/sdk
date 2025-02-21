@@ -167,7 +167,7 @@ library
             hasInitializer f01 @25
               reference: <testLibraryFragment>::@class::A::@def::0::@field::f01
               element: <testLibraryFragment>::@class::A::@def::0::@field::f01#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 0 @31
                   staticType: int
@@ -175,7 +175,7 @@ library
             hasInitializer f02 @49
               reference: <testLibraryFragment>::@class::A::@def::0::@field::f02
               element: <testLibraryFragment>::@class::A::@def::0::@field::f02#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 SimpleIdentifier
                   token: f01 @55
                   staticElement: <testLibraryFragment>::@class::A::@def::0::@getter::f01
@@ -201,7 +201,7 @@ library
             hasInitializer f11 @88
               reference: <testLibraryFragment>::@class::A::@def::1::@field::f11
               element: <testLibraryFragment>::@class::A::@def::1::@field::f11#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 0 @94
                   staticType: int
@@ -209,7 +209,7 @@ library
             hasInitializer f12 @112
               reference: <testLibraryFragment>::@class::A::@def::1::@field::f12
               element: <testLibraryFragment>::@class::A::@def::1::@field::f12#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 SimpleIdentifier
                   token: f11 @118
                   staticElement: <testLibraryFragment>::@class::A::@def::1::@getter::f11
@@ -235,7 +235,7 @@ library
             hasInitializer f21 @151
               reference: <testLibraryFragment>::@class::A::@def::2::@field::f21
               element: <testLibraryFragment>::@class::A::@def::2::@field::f21#element
-              constantInitializer: expression_4
+              initializer: expression_4
                 IntegerLiteral
                   literal: 0 @157
                   staticType: int
@@ -243,7 +243,7 @@ library
             hasInitializer f22 @175
               reference: <testLibraryFragment>::@class::A::@def::2::@field::f22
               element: <testLibraryFragment>::@class::A::@def::2::@field::f22#element
-              constantInitializer: expression_5
+              initializer: expression_5
                 SimpleIdentifier
                   token: f21 @181
                   staticElement: <testLibraryFragment>::@class::A::@def::2::@getter::f21
@@ -1025,7 +1025,7 @@ library
             hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::a
               element: <testLibraryFragment>::@enum::E::@def::0::@field::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1043,7 +1043,7 @@ library
             hasInitializer b @11
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::b
               element: <testLibraryFragment>::@enum::E::@def::0::@field::b#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1061,7 +1061,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::values
               element: <testLibraryFragment>::@enum::E::@def::0::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -1100,7 +1100,7 @@ library
             hasInitializer c @22
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::c
               element: <testLibraryFragment>::@enum::E::@def::1::@field::c#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1118,7 +1118,7 @@ library
             hasInitializer d @25
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::d
               element: <testLibraryFragment>::@enum::E::@def::1::@field::d#element
-              constantInitializer: expression_4
+              initializer: expression_4
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1136,7 +1136,7 @@ library
             hasInitializer e @28
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::e
               element: <testLibraryFragment>::@enum::E::@def::1::@field::e#element
-              constantInitializer: expression_5
+              initializer: expression_5
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1154,7 +1154,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::values
               element: <testLibraryFragment>::@enum::E::@def::1::@field::values#element
-              constantInitializer: expression_6
+              initializer: expression_6
                 ListLiteral
                   leftBracket: [ @0
                   elements

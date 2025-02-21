@@ -163,7 +163,7 @@ library
             hasInitializer aaa @11
               reference: <testLibraryFragment>::@enum::E::@field::aaa
               element: <testLibraryFragment>::@enum::E::@field::aaa#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -181,7 +181,7 @@ library
             hasInitializer bbb @16
               reference: <testLibraryFragment>::@enum::E::@field::bbb
               element: <testLibraryFragment>::@enum::E::@field::bbb#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -199,7 +199,7 @@ library
             hasInitializer ccc @21
               reference: <testLibraryFragment>::@enum::E::@field::ccc
               element: <testLibraryFragment>::@enum::E::@field::ccc#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -217,7 +217,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -435,7 +435,7 @@ library
             hasInitializer int @14
               reference: <testLibraryFragment>::@enum::E::@field::int
               element: <testLibraryFragment>::@enum::E::@field::int#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -459,7 +459,7 @@ library
             hasInitializer string @22
               reference: <testLibraryFragment>::@enum::E::@field::string
               element: <testLibraryFragment>::@enum::E::@field::string#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -482,7 +482,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -644,7 +644,7 @@ library
             hasInitializer _name @11
               reference: <testLibraryFragment>::@enum::E::@field::_name
               element: <testLibraryFragment>::@enum::E::@field::_name#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -662,7 +662,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -822,7 +822,7 @@ library
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -855,7 +855,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -999,7 +999,7 @@ library
             hasInitializer _ @11
               reference: <testLibraryFragment>::@enum::E::@field::_
               element: <testLibraryFragment>::@enum::E::@field::_#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1017,7 +1017,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -1158,7 +1158,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1176,7 +1176,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -1320,7 +1320,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1338,7 +1338,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -1491,7 +1491,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1509,7 +1509,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -1691,7 +1691,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1709,7 +1709,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -1882,7 +1882,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1900,7 +1900,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -2070,7 +2070,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -2088,7 +2088,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -2114,7 +2114,7 @@ library
                 default this.x @45
                   reference: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::x#element
-                  constantInitializer: expression_2
+                  initializer: expression_2
                     BinaryExpression
                       leftOperand: IntegerLiteral
                         literal: 1 @49
@@ -2275,7 +2275,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -2293,7 +2293,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -2462,7 +2462,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -2480,7 +2480,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -2649,7 +2649,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -2667,7 +2667,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -2838,7 +2838,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -2866,7 +2866,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -3017,7 +3017,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -3039,7 +3039,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -3230,7 +3230,7 @@ library
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -3250,7 +3250,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -3437,7 +3437,7 @@ library
             hasInitializer v @69
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -3455,7 +3455,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -3605,7 +3605,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -3623,7 +3623,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -3638,7 +3638,7 @@ library
             hasInitializer foo @22
               reference: <testLibraryFragment>::@enum::E::@field::foo
               element: <testLibraryFragment>::@enum::E::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 42 @28
                   staticType: int
@@ -3898,7 +3898,7 @@ library
             hasInitializer v @10
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -3916,7 +3916,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -4084,7 +4084,7 @@ library
             hasInitializer v @35
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -4102,7 +4102,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -4255,7 +4255,7 @@ library
             hasInitializer v @78
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -4273,7 +4273,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -4472,7 +4472,7 @@ library
             hasInitializer v @44
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -4492,7 +4492,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -4677,7 +4677,7 @@ library
             hasInitializer v @52
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -4695,7 +4695,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -4868,7 +4868,7 @@ library
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -4888,7 +4888,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -5054,7 +5054,7 @@ library
             hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -5072,7 +5072,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -5213,7 +5213,7 @@ library
             hasInitializer v @6
               reference: <testLibraryFragment>::@enum::0::@field::v
               element: <testLibraryFragment>::@enum::0::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -5231,7 +5231,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::0::@field::values
               element: <testLibraryFragment>::@enum::0::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -5375,7 +5375,7 @@ library
             hasInitializer v @29
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -5393,7 +5393,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -5549,7 +5549,7 @@ library
             hasInitializer v @72
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -5567,7 +5567,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -5754,7 +5754,7 @@ library
             hasInitializer v @67
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -5772,7 +5772,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -5950,7 +5950,7 @@ library
             hasInitializer v @10
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -5968,7 +5968,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -6132,7 +6132,7 @@ library
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -6152,7 +6152,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -6303,7 +6303,7 @@ library
             hasInitializer v @39
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -6323,7 +6323,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -6439,7 +6439,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -6545,7 +6545,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -6645,7 +6645,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -6740,7 +6740,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -6834,7 +6834,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -6928,7 +6928,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -7030,7 +7030,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -7185,7 +7185,7 @@ library
             hasInitializer a @32
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -7203,7 +7203,7 @@ library
             hasInitializer b @47
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -7221,7 +7221,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -7447,7 +7447,7 @@ library
             hasInitializer a @46
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -7465,7 +7465,7 @@ library
             hasInitializer b @75
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -7483,7 +7483,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -7519,7 +7519,7 @@ library
         hasInitializer annotation @91
           reference: <testLibraryFragment>::@topLevelVariable::annotation
           element: <testLibrary>::@topLevelVariable::annotation
-          constantInitializer: expression_3
+          initializer: expression_3
             IntegerLiteral
               literal: 0 @104
               staticType: int
@@ -7686,7 +7686,7 @@ library
             hasInitializer v @8
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -7704,7 +7704,7 @@ library
             hasInitializer <null-name>
               reference: <testLibraryFragment>::@enum::E::@field::0
               element: <testLibraryFragment>::@enum::E::@field::0#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -7722,7 +7722,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -7898,7 +7898,7 @@ library
             hasInitializer v1 @9
               reference: <testLibraryFragment>::@enum::E::@field::v1
               element: <testLibraryFragment>::@enum::E::@field::v1#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -7916,7 +7916,7 @@ library
             hasInitializer v2 @13
               reference: <testLibraryFragment>::@enum::E::@field::v2
               element: <testLibraryFragment>::@enum::E::@field::v2#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -7934,7 +7934,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -8134,7 +8134,7 @@ library
             hasInitializer v1 @10
               reference: <testLibraryFragment>::@enum::E1::@field::v1
               element: <testLibraryFragment>::@enum::E1::@field::v1#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -8152,7 +8152,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E1::@field::values
               element: <testLibraryFragment>::@enum::E1::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -8183,7 +8183,7 @@ library
             hasInitializer v2 @25
               reference: <testLibraryFragment>::@enum::E2::@field::v2
               element: <testLibraryFragment>::@enum::E2::@field::v2#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -8201,7 +8201,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E2::@field::values
               element: <testLibraryFragment>::@enum::E2::@field::values#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -8561,7 +8561,7 @@ library
             hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -8579,7 +8579,7 @@ library
             hasInitializer b @11
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -8597,7 +8597,7 @@ library
             hasInitializer c @14
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -8615,7 +8615,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -8856,7 +8856,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -8874,7 +8874,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -8902,7 +8902,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_2
+          initializer: expression_2
             IntegerLiteral
               literal: 42 @10
               staticType: int
@@ -9175,7 +9175,7 @@ library
             hasInitializer a @78
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -9193,7 +9193,7 @@ library
             hasInitializer b @83
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -9211,7 +9211,7 @@ library
             hasInitializer c @96
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -9229,7 +9229,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -9427,7 +9427,7 @@ library
             hasInitializer v @16
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -9445,7 +9445,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -9608,7 +9608,7 @@ library
             hasInitializer v @25
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -9626,7 +9626,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -9665,7 +9665,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_2
+          initializer: expression_2
             IntegerLiteral
               literal: 42 @10
               staticType: int
@@ -9840,7 +9840,7 @@ library
             hasInitializer v @25
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -9858,7 +9858,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -9900,7 +9900,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_2
+          initializer: expression_2
             IntegerLiteral
               literal: 42 @10
               staticType: int
@@ -10133,7 +10133,7 @@ library
             hasInitializer v @40
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -10153,7 +10153,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -10168,7 +10168,7 @@ library
             hasInitializer foo @58
               reference: <testLibraryFragment>::@enum::E::@field::foo
               element: <testLibraryFragment>::@enum::E::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 1 @64
                   staticType: int
@@ -10206,7 +10206,7 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
-          constantInitializer: expression_3
+          initializer: expression_3
             IntegerLiteral
               literal: 0 @12
               staticType: int
@@ -10417,7 +10417,7 @@ library
             hasInitializer v @31
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -10437,7 +10437,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -10465,7 +10465,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_2
+          initializer: expression_2
             IntegerLiteral
               literal: 42 @10
               staticType: int
@@ -10630,7 +10630,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -10648,7 +10648,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -10676,7 +10676,7 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_2
+          initializer: expression_2
             IntegerLiteral
               literal: 42 @10
               staticType: int
@@ -10840,7 +10840,7 @@ library
             hasInitializer v @33
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -10858,7 +10858,7 @@ library
             synthetic values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -11119,7 +11119,7 @@ library
             hasInitializer v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -11137,7 +11137,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -11395,7 +11395,7 @@ library
             synthetic values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@field::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@field::values#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -11422,7 +11422,7 @@ library
             hasInitializer v @71
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -11440,7 +11440,7 @@ library
             synthetic values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -11647,7 +11647,7 @@ library
             synthetic values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::values#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -11869,7 +11869,7 @@ library
             hasInitializer v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -11887,7 +11887,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -11929,7 +11929,7 @@ library
             hasInitializer v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -12206,7 +12206,7 @@ library
             hasInitializer v1 @41
               reference: <testLibraryFragment>::@enum::A::@field::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -12224,7 +12224,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -12273,7 +12273,7 @@ library
             hasInitializer v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -12305,7 +12305,7 @@ library
             hasInitializer v3 @40
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3
               element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -12557,7 +12557,7 @@ library
             hasInitializer v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -12575,7 +12575,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -12617,7 +12617,7 @@ library
             hasInitializer v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -12636,7 +12636,7 @@ library
             augment hasInitializer v2 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -12912,7 +12912,7 @@ library
             hasInitializer v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -12930,7 +12930,7 @@ library
             hasInitializer v2 @30
               reference: <testLibraryFragment>::@enum::A::@field::v2
               element: <testLibraryFragment>::@enum::A::@field::v2#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -12949,7 +12949,7 @@ library
             hasInitializer v3 @34
               reference: <testLibraryFragment>::@enum::A::@field::v3
               element: <testLibraryFragment>::@enum::A::@field::v3#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -12967,7 +12967,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -13020,7 +13020,7 @@ library
             augment hasInitializer v2 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
               element: <testLibraryFragment>::@enum::A::@field::v2#element
-              constantInitializer: expression_4
+              initializer: expression_4
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -13282,7 +13282,7 @@ library
             hasInitializer v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -13305,7 +13305,7 @@ library
             hasInitializer v2 @33
               reference: <testLibraryFragment>::@enum::A::@field::v2
               element: <testLibraryFragment>::@enum::A::@field::v2#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -13327,7 +13327,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -13376,7 +13376,7 @@ library
             augment hasInitializer v1 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -13552,7 +13552,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -13571,7 +13571,7 @@ library
             hasInitializer v2 @29
               reference: <testLibraryFragment>::@enum::A::@field::v2
               element: <testLibraryFragment>::@enum::A::@field::v2#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -13589,7 +13589,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -13632,7 +13632,7 @@ library
             augment hasInitializer v @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -13776,7 +13776,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -13800,7 +13800,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -13973,7 +13973,7 @@ library
             hasInitializer v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -14012,7 +14012,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -14188,7 +14188,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -14206,7 +14206,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -14371,7 +14371,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -14389,7 +14389,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -14553,7 +14553,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -14571,7 +14571,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -14753,7 +14753,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -14775,7 +14775,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -14975,7 +14975,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -14993,7 +14993,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -15209,7 +15209,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -15227,7 +15227,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -15242,7 +15242,7 @@ library
             hasInitializer foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 0 @47
                   staticType: int
@@ -15276,7 +15276,7 @@ library
             augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 IntegerLiteral
                   literal: 1 @65
                   staticType: int
@@ -15476,7 +15476,7 @@ library
             hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -15494,7 +15494,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -15509,7 +15509,7 @@ library
             hasInitializer foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 0 @62
                   staticType: int
@@ -15545,7 +15545,7 @@ library
             augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 IntegerLiteral
                   literal: 1 @65
                   staticType: int
@@ -15564,7 +15564,7 @@ library
             augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_4
+              initializer: expression_4
                 IntegerLiteral
                   literal: 2 @65
                   staticType: int
@@ -15764,7 +15764,7 @@ library
             hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -15782,7 +15782,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -15797,7 +15797,7 @@ library
             hasInitializer foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 0 @62
                   staticType: int
@@ -15848,7 +15848,7 @@ library
             augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 IntegerLiteral
                   literal: 2 @65
                   staticType: int
@@ -16051,7 +16051,7 @@ library
             hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -16069,7 +16069,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -16084,7 +16084,7 @@ library
             hasInitializer foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 0 @62
                   staticType: int
@@ -16136,7 +16136,7 @@ library
             augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 IntegerLiteral
                   literal: 2 @65
                   staticType: int
@@ -16313,7 +16313,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -16331,7 +16331,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -16346,7 +16346,7 @@ library
             hasInitializer foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 0 @47
                   staticType: int
@@ -16380,7 +16380,7 @@ library
             augment hasInitializer foo @62
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 DoubleLiteral
                   literal: 1.2 @68
                   staticType: double
@@ -16576,7 +16576,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -16594,7 +16594,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -16609,7 +16609,7 @@ library
             hasInitializer foo @52
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 SimpleIdentifier
                   token: _notSerializableExpression @-1
                   staticElement: <null>
@@ -16645,7 +16645,7 @@ library
             augment hasInitializer foo @70
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 SimpleIdentifier
                   token: _notSerializableExpression @-1
                   staticElement: <null>
@@ -16819,7 +16819,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -16837,7 +16837,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -16882,7 +16882,7 @@ library
             augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 1 @65
                   staticType: int
@@ -17061,7 +17061,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -17079,7 +17079,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -17094,7 +17094,7 @@ library
             hasInitializer foo1 @41
               reference: <testLibraryFragment>::@enum::A::@field::foo1
               element: <testLibraryFragment>::@enum::A::@field::foo1#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 0 @48
                   staticType: int
@@ -17127,7 +17127,7 @@ library
             hasInitializer foo2 @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2#element
-              constantInitializer: expression_3
+              initializer: expression_3
                 IntegerLiteral
                   literal: 0 @58
                   staticType: int
@@ -17330,7 +17330,7 @@ library
             hasInitializer v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -17359,7 +17359,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -17564,7 +17564,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -17586,7 +17586,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -17787,7 +17787,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -17805,7 +17805,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -18028,7 +18028,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -18046,7 +18046,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -18283,7 +18283,7 @@ library
             hasInitializer v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -18312,7 +18312,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -18535,7 +18535,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -18553,7 +18553,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -18568,7 +18568,7 @@ library
             hasInitializer foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 0 @47
                   staticType: int
@@ -18798,7 +18798,7 @@ library
             hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -18816,7 +18816,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -18831,7 +18831,7 @@ library
             hasInitializer foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 0 @62
                   staticType: int
@@ -19063,7 +19063,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -19081,7 +19081,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -19311,7 +19311,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -19329,7 +19329,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -19571,7 +19571,7 @@ library
             hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -19589,7 +19589,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -19793,7 +19793,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -19811,7 +19811,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -19996,7 +19996,7 @@ library
             hasInitializer v @40
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -20014,7 +20014,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -20257,7 +20257,7 @@ library
             hasInitializer v @40
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -20275,7 +20275,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -20526,7 +20526,7 @@ library
             hasInitializer v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -20555,7 +20555,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -20790,7 +20790,7 @@ library
             hasInitializer v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -20810,7 +20810,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -21015,7 +21015,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -21033,7 +21033,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -21241,7 +21241,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -21259,7 +21259,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -21299,7 +21299,7 @@ library
               formalParameters
                 default x @55
                   element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo::@parameter::x#element
-                  constantInitializer: expression_2
+                  initializer: expression_2
                     IntegerLiteral
                       literal: 42 @59
                       staticType: int
@@ -21455,7 +21455,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -21473,7 +21473,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -21670,7 +21670,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -21688,7 +21688,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -21892,7 +21892,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -21910,7 +21910,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -22133,7 +22133,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -22151,7 +22151,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -22362,7 +22362,7 @@ library
             hasInitializer v @29
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -22391,7 +22391,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -22592,7 +22592,7 @@ library
             hasInitializer v @29
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -22621,7 +22621,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -22814,7 +22814,7 @@ library
             hasInitializer v @34
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -22832,7 +22832,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -23077,7 +23077,7 @@ library
             hasInitializer v @57
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -23106,7 +23106,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -23374,7 +23374,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -23392,7 +23392,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -23627,7 +23627,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -23645,7 +23645,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -23660,7 +23660,7 @@ library
             hasInitializer foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 IntegerLiteral
                   literal: 0 @47
                   staticType: int
@@ -23854,7 +23854,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -23872,7 +23872,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -24098,7 +24098,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -24116,7 +24116,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -24323,7 +24323,7 @@ library
             hasInitializer v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -24341,7 +24341,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -24513,7 +24513,7 @@ library
             hasInitializer v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -24531,7 +24531,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -24571,7 +24571,7 @@ library
             synthetic values
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::values
               element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::values#element
-              constantInitializer: expression_2
+              initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -24758,7 +24758,7 @@ library
             hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -24782,7 +24782,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -25009,7 +25009,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -25033,7 +25033,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -25230,7 +25230,7 @@ library
             hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -25248,7 +25248,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -25439,7 +25439,7 @@ library
             hasInitializer v @57
               reference: <testLibraryFragment>::@enum::B::@field::v
               element: <testLibraryFragment>::@enum::B::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -25457,7 +25457,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::B::@field::values
               element: <testLibraryFragment>::@enum::B::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -25652,7 +25652,7 @@ library
             hasInitializer v @27
               reference: <testLibraryFragment>::@enum::B::@field::v
               element: <testLibraryFragment>::@enum::B::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -25670,7 +25670,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::B::@field::values
               element: <testLibraryFragment>::@enum::B::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -25867,7 +25867,7 @@ library
             hasInitializer v @27
               reference: <testLibraryFragment>::@enum::B::@field::v
               element: <testLibraryFragment>::@enum::B::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -25885,7 +25885,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::B::@field::values
               element: <testLibraryFragment>::@enum::B::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
@@ -26085,7 +26085,7 @@ library
             hasInitializer v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -26105,7 +26105,7 @@ library
             synthetic values
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements

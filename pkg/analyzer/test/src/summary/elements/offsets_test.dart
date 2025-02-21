@@ -3173,7 +3173,7 @@ library
             default a @10
               reference: <testLibraryFragment>::@function::main::@parameter::a
               element: <testLibraryFragment>::@function::main::@parameter::a#element
-              constantInitializer: expression_0
+              initializer: expression_0
                 IntegerLiteral
                   literal: 1 @14
                   staticType: int
@@ -3183,7 +3183,7 @@ library
             default c @28
               reference: <testLibraryFragment>::@function::main::@parameter::c
               element: <testLibraryFragment>::@function::main::@parameter::c#element
-              constantInitializer: expression_1
+              initializer: expression_1
                 IntegerLiteral
                   literal: 2 @32
                   staticType: int

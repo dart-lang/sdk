@@ -1535,7 +1535,7 @@ library
         hasInitializer a @29
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @33
               staticType: int
@@ -1645,7 +1645,7 @@ library
         hasInitializer a @42
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer: expression_0
+          initializer: expression_0
             IntegerLiteral
               literal: 0 @46
               staticType: int

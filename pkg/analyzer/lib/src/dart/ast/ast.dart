@@ -6698,7 +6698,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   final Token name;
 
   @override
-  final ExtensionElement element;
+  final ExtensionElementImpl2 element2;
 
   TypeArgumentListImpl? _typeArguments;
 
@@ -6715,7 +6715,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     required this.name,
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
-    required this.element,
+    required this.element2,
   })  : _typeArguments = typeArguments,
         _argumentList = argumentList {
     _becomeParentOf(importPrefix);
@@ -6733,10 +6733,9 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   Token get beginToken => importPrefix?.name ?? name;
 
-  @experimental
   @override
-  ExtensionElementImpl2 get element2 =>
-      (element as ExtensionElementImpl).element;
+  ExtensionElementImpl get element =>
+      element2.firstFragment;
 
   @override
   Token get endToken => _argumentList.endToken;
