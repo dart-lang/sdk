@@ -170,6 +170,8 @@ class FlutterOutlineComputer {
             // Ignored. It's possible that we might be able to extract
             // some information from some spread expressions, but it seems
             // unlikely enough that we're not handling it at the moment.
+          } else if (element is NullAwareElement) {
+            addChildrenFrom(element.value);
           }
         }
 

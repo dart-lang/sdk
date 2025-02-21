@@ -355,6 +355,30 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_children_withNullAwareElements() async {
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Column(children: [
+      const Text('aaa'),
+      ?const Text('bbb'),
+    ]);
+  }
+}
+''');
+
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) build
+    Column
+      Text
+      Text
+''');
+  }
+
   Future<void> test_codeOffsetLength() async {
     var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
