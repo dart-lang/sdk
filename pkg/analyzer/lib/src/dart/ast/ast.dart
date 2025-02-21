@@ -332,6 +332,10 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     return element?.asElement2;
   }
 
+  set element2(Element2? value) {
+    element = value?.asElement;
+  }
+
   @override
   Token get endToken {
     if (arguments case var arguments?) {
