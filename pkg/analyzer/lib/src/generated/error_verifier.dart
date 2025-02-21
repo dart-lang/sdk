@@ -944,14 +944,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = node.declaredElement!;
-    if (element.enclosingElement3 is! CompilationUnitElement) {
+    var fragment =  node.declaredFragment!;
+    var element = fragment.element;
+    if (element.enclosingElement2 is! LibraryElement2) {
       _hiddenElements!.declare(element);
     }
 
     _withEnclosingExecutable(
-      element.asElement2,
+      element,
       () {
         TypeAnnotation? returnType = node.returnType;
         if (node.isSetter) {
@@ -962,11 +962,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         _checkForTypeAnnotationDeferredClass(returnType);
         _returnTypeVerifier.verifyReturnType(returnType);
-        _checkForMainFunction1(node.name, element);
+        _checkForMainFunction1(node.name, fragment);
         _checkForMainFunction2(node);
         _checkAugmentations(
           augmentKeyword: node.augmentKeyword,
-          element: element,
+          element: fragment,
         );
         super.visitFunctionDeclaration(node);
       },
@@ -1326,7 +1326,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     super.visitPatternVariableDeclarationStatement(node);
     for (var variable in node.declaration.elements) {
-      _hiddenElements?.declare(variable);
+      _hiddenElements?.declare(variable.asElement2);
     }
   }
 
@@ -1642,7 +1642,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     AstNode grandparent = node.parent!.parent!;
     if (grandparent is! TopLevelVariableDeclaration &&
         grandparent is! FieldDeclaration) {
-      VariableElement element = node.declaredElement!;
+      var element = node.declaredFragment!.element;
       // There is no hidden elements if we are outside of a function body,
       // which will happen for variables declared in control flow elements.
       _hiddenElements?.declare(element);
@@ -5194,7 +5194,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     if (element != null &&
         _hiddenElements != null &&
-        _hiddenElements!.contains(element.asElement!)) {
+        _hiddenElements!.contains(element)) {
+      _hiddenElements!.contains(element);
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,
@@ -6584,7 +6585,7 @@ class HiddenElements {
 
   /// A set containing the elements that will be declared in this scope, but are
   /// not yet declared.
-  final Set<Element> _elements = HashSet<Element>();
+  final Set<Element2> _elements = {};
 
   /// Initialize a newly created set of hidden elements to include all of the
   /// elements defined in the set of [outerElements] and all of the elements
@@ -6600,11 +6601,11 @@ class HiddenElements {
     this.outerElements,
     GuardedPatternImpl guardedPattern,
   ) {
-    _elements.addAll(guardedPattern.variables.values.map((e) => e.asElement!));
+    _elements.addAll(guardedPattern.variables.values);
   }
 
   /// Return `true` if this set of elements contains the given [element].
-  bool contains(Element element) {
+  bool contains(Element2 element) {
     if (_elements.contains(element)) {
       return true;
     } else if (outerElements != null) {
@@ -6615,7 +6616,7 @@ class HiddenElements {
 
   /// Record that the given [element] has been declared, so it is no longer
   /// hidden.
-  void declare(Element element) {
+  void declare(Element2 element) {
     _elements.remove(element);
   }
 

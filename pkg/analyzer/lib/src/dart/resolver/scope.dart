@@ -20,7 +20,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 class BlockScope {
   /// Return the elements that are declared directly in the given [statements].
   /// This does not include elements declared in nested blocks.
-  static Iterable<Element> elementsInStatements(
+  static Iterable<Element2> elementsInStatements(
     List<Statement> statements,
   ) sync* {
     int statementCount = statements.length;
@@ -31,16 +31,16 @@ class BlockScope {
       }
       if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
-          yield variable;
+          yield variable.asElement2;
         }
       } else if (statement is VariableDeclarationStatement) {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {
-          yield variables[j].declaredElement!;
+          yield variables[j].declaredFragment!.element;
         }
       } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.declaredElement!;
+        yield statement.functionDeclaration.declaredFragment!.element;
       }
     }
   }
