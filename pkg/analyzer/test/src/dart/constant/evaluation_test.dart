@@ -1351,7 +1351,7 @@ const void Function(int p) h = b ? g : g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function(int, {int? q})
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::h
@@ -1467,7 +1467,7 @@ const c = C<int>.foo;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::foo
+  element: <testLibraryFragment>::@class::C::@constructor::foo#element
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::c
@@ -1484,7 +1484,7 @@ const c = C<int>.new;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::new
+  element: <testLibraryFragment>::@class::C::@constructor::new#element
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::c
@@ -1776,7 +1776,7 @@ const c = C<int>.foo;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::foo
+  element: <testLibraryFragment>::@class::C::@constructor::foo#element
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::c
@@ -1793,7 +1793,7 @@ const c = C<int>.new;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::new
+  element: <testLibraryFragment>::@class::C::@constructor::new#element
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::c
@@ -1824,7 +1824,7 @@ const g = (b ? foo : bar)<int>;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function(int)
-  element: <testLibraryFragment>::@function::foo
+  element: <testLibrary>::@function::foo
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::g
@@ -1841,7 +1841,7 @@ const g = (b ? foo : bar)<int>;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function(String, int)
-  element: <testLibraryFragment>::@function::foo
+  element: <testLibrary>::@function::foo
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::g
@@ -1856,7 +1856,7 @@ const g = f<int>;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function(int)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::g
@@ -1873,7 +1873,7 @@ const g = f<String>;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function(String)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   typeArguments
     String
   variable: <testLibraryFragment>::@topLevelVariable::g
@@ -2136,7 +2136,7 @@ const g = b ? foo : bar;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function<T>(T)
-  element: <testLibraryFragment>::@function::foo
+  element: <testLibrary>::@function::foo
   variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
@@ -2149,7 +2149,7 @@ const g = f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
 void Function<T>(T)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
@@ -2713,7 +2713,7 @@ const g = self.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
@@ -2727,7 +2727,7 @@ const void Function(int) g = self.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::g
@@ -2745,7 +2745,7 @@ const void Function(int) h = b ? g1 : g2;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::h
@@ -2762,7 +2762,7 @@ const void Function(int) h = self.g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::h
@@ -2779,7 +2779,7 @@ const h = self.g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function<T>(T)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   variable: <testLibraryFragment>::@topLevelVariable::h
 ''');
   }
@@ -2937,7 +2937,7 @@ const g = self.C.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@class::C::@method::f
+  element: <testLibraryFragment>::@class::C::@method::f#element
   variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
@@ -2953,7 +2953,7 @@ const void Function(int) g = self.C.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@class::C::@method::f
+  element: <testLibraryFragment>::@class::C::@method::f#element
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::g
@@ -2971,7 +2971,7 @@ const g = self.E.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 int Function(String)
-  element: <testLibraryFragment>::@extension::E::@method::f
+  element: <testLibraryFragment>::@extension::E::@method::f#element
   variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
@@ -2987,7 +2987,7 @@ const g = self.ET.f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 int Function(String)
-  element: <testLibraryFragment>::@extensionType::ET::@method::f
+  element: <testLibraryFragment>::@extensionType::ET::@method::f#element
   variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
@@ -3156,7 +3156,7 @@ Map
       value: int 1
     entry
       key: void Function()
-        element: <testLibraryFragment>::@function::fn
+        element: <testLibrary>::@function::fn
       value: int 2
   variable: <testLibraryFragment>::@topLevelVariable::x
 ''');
@@ -3374,7 +3374,7 @@ const g = f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
@@ -3387,7 +3387,7 @@ const void Function(int) g = f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::g
@@ -3402,7 +3402,7 @@ const void Function(int) g = f;
     var result = _topLevelVar('g');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   variable: <testLibraryFragment>::@topLevelVariable::g
 ''');
   }
@@ -3416,7 +3416,7 @@ const void Function(int) h = g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function(int)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::h
@@ -3432,7 +3432,7 @@ const h = g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function<T>(T)
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   variable: <testLibraryFragment>::@topLevelVariable::h
 ''');
   }
@@ -3449,7 +3449,7 @@ class C {
     var result = _field('h');
     assertDartObjectText(result, '''
 void Function(int, {int? b})
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   typeArguments
     int
   variable: <testLibraryFragment>::@class::C::@field::h
@@ -3471,7 +3471,7 @@ const c = C(f);
     assertDartObjectText(result, '''
 C
   h: void Function(int, {int? b})
-    element: <testLibraryFragment>::@function::f
+    element: <testLibrary>::@function::f
     typeArguments
       int
   variable: <testLibraryFragment>::@topLevelVariable::c
@@ -3489,7 +3489,7 @@ const void Function(int a) h = g;
     var result = _topLevelVar('h');
     assertDartObjectText(result, '''
 void Function(int, {int? b})
-  element: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
   typeArguments
     int
   variable: <testLibraryFragment>::@topLevelVariable::h
@@ -5588,7 +5588,7 @@ const a = const A<int>();
     assertDartObjectText(result, '''
 A<int>
   f: void Function(int)
-    element: <testLibraryFragment>::@function::g
+    element: <testLibrary>::@function::g
     typeArguments
       T
   variable: <testLibraryFragment>::@topLevelVariable::a
