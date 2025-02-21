@@ -93,7 +93,7 @@ class LabelScope {
   final String _label;
 
   /// The element to which the label resolves.
-  final LabelElement element;
+  final LabelElement2 element;
 
   /// The AST node to which the label resolves.
   final AstNode node;

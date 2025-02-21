@@ -1012,7 +1012,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           _labelScope,
           labelNameNode.name,
           unlabeled,
-          labelNameNode.staticElement as LabelElement,
+          labelNameNode.element as LabelElement2,
         );
       }
       unlabeled.accept(this);
