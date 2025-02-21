@@ -14,6 +14,7 @@ import 'package:native_assets_builder/native_assets_builder.dart';
 import 'package:native_assets_cli/code_assets_builder.dart';
 import 'package:native_assets_cli/data_assets_builder.dart';
 import 'package:package_config/package_config.dart' as package_config;
+import 'package:yaml/yaml.dart' show loadYaml;
 
 import 'core.dart';
 
@@ -305,10 +306,13 @@ class DartNativeAssetsBuilder {
   ///
   /// Returns `null` if package cannnot be determined.
   static Future<String?> findRootPackageName(Uri uri) async {
-    final pubspec = await _findPubspec(uri);
-    if (pubspec == null) {
+    final pubspecUri = await _findPubspec(uri);
+    if (pubspecUri == null) {
       return null;
     }
-    return pubspec.resolve('./').pathSegments.lastWhere((e) => e.isNotEmpty);
+    final pubspecFile = File.fromUri(pubspecUri);
+    final contents = await pubspecFile.readAsString();
+    final pubspec = loadYaml(contents);
+    return pubspec['name'];
   }
 }
