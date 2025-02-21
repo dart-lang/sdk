@@ -5500,8 +5500,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       var enclosedScope = LocalScope(nameScope);
       for (var statement in BlockScope.elementsInStatements(statements)) {
-        if (!statement.isWildcardFunction) {
-          enclosedScope.add(statement.asElement2!);
+        if (!statement.asElement!.isWildcardFunction) {
+          enclosedScope.add(statement);
         }
       }
 

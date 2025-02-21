@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -636,11 +637,8 @@ class MethodInvocationInferrer
     var argumentContextType = super._computeContextForArgument(parameterType);
     var targetType = node.realTarget?.staticType;
     if (targetType != null) {
-      argumentContextType = resolver.typeSystem.refineNumericInvocationContext(
-          targetType,
-          node.methodName.staticElement,
-          contextType,
-          parameterType);
+      argumentContextType = resolver.typeSystem.refineNumericInvocationContext2(
+          targetType, node.methodName.element, contextType, parameterType);
     }
     return argumentContextType;
   }
@@ -651,7 +649,7 @@ class MethodInvocationInferrer
     if (targetType != null) {
       returnType = resolver.typeSystem.refineNumericInvocationType(
         targetType,
-        node.methodName.staticElement,
+        node.methodName.element,
         [
           for (var argument in node.argumentList.arguments) argument.typeOrThrow
         ],
@@ -691,6 +689,10 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
       List<_ParamInfo> undeferredParamInfo)
       : super(deferredParamInfo, _typeVariables, undeferredParamInfo);
 
+  Set<TypeParameterElement2> get _typeVariables2 {
+    return _typeVariables.map((e) => e.asElement2).toSet();
+  }
+
   @override
   Iterable<TypeParameterElement> typeVarsFreeInParamParams(
       _DeferredParamInfo paramInfo) {
@@ -702,8 +704,11 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
       Set<TypeParameterElement> result = {};
       for (var entry in parameterMap.entries) {
         if (explicitlyTypedParameters.contains(entry.key)) continue;
-        result.addAll(_typeSystem.getFreeParameters(entry.value.type,
-                candidates: _typeVariables) ??
+        result.addAll(_typeSystem
+                .getFreeParameters2(entry.value.type,
+                    candidates: _typeVariables2)
+                ?.map((e) => e.asElement)
+                .toList() ??
             const []);
       }
       return result;
@@ -717,11 +722,16 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
       _ParamInfo paramInfo) {
     var type = paramInfo.parameter?.type;
     if (type is FunctionTypeImpl) {
-      return _typeSystem.getFreeParameters(type.returnType,
-              candidates: _typeVariables) ??
+      return _typeSystem
+              .getFreeParameters2(type.returnType, candidates: _typeVariables2)
+              ?.map((e) => e.asElement)
+              .toList() ??
           const [];
     } else if (type != null) {
-      return _typeSystem.getFreeParameters(type, candidates: _typeVariables) ??
+      return _typeSystem
+              .getFreeParameters2(type, candidates: _typeVariables2)
+              ?.map((e) => e.asElement)
+              .toList() ??
           const [];
     } else {
       return const [];

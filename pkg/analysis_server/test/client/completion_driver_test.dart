@@ -38,7 +38,7 @@ abstract class AbstractCompletionDriverTest
   ///
   /// The default filter, initialized in [setUp], prints
   /// - identifier suggestions consisting of a single letter followed by one or
-  ///   more digits,
+  ///   more digits as per [identifierRegExp],
   /// - identifier suggestions that are in the set of [allowedIdentifiers], and
   /// - non-identifier suggestions.
   ///
@@ -49,6 +49,13 @@ abstract class AbstractCompletionDriverTest
   /// A set of identifiers that will be included in the printed version of the
   /// suggestions. Individual tests can replace the default set.
   Set<String> allowedIdentifiers = const {};
+
+  /// The regular expression used to validate identifier names on the expected
+  /// completion list.
+  ///
+  /// If the expected name(s) is(are) invalid, fill [allowedIdentifiers] with
+  /// the expected name(s).
+  RegExp identifierRegExp = RegExp(r'^_?[a-zA-Z][0-9]+$');
 
   /// A set of completion kinds that should be included in the printed version
   /// of the suggestions. Individual tests can replace the default set.
@@ -101,6 +108,10 @@ abstract class AbstractCompletionDriverTest
 
   /// Asserts that the [response] has the [expected] textual dump produced
   /// using [printerConfiguration].
+  ///
+  /// If the expected response contains an identifier/invocation where
+  /// the name(s) is(are) invalid to [identifierRegExp], add the expected name
+  /// to [allowedIdentifiers].
   void assertResponse(String expected, {String where = ''}) {
     var buffer = StringBuffer();
     printer.CompletionResponsePrinter(
@@ -204,7 +215,7 @@ name: test
           if (periodIndex > 0) {
             completion = completion.substring(0, periodIndex);
           }
-          return RegExp(r'^_?[a-zA-Z][0-9]+$').hasMatch(completion) ||
+          return identifierRegExp.hasMatch(completion) ||
               allowedIdentifiers.contains(completion);
         } else if (kind == CompletionSuggestionKind.KEYWORD) {
           return includeKeywords;
