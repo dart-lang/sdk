@@ -180,57 +180,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     super.accessors = accessors;
   }
 
-  /// If we can find all possible subtypes of this class, return them.
-  ///
-  /// If the class is final, all its subtypes are declared in this library.
-  ///
-  /// If the class is sealed, and all its subtypes are either final or sealed,
-  /// then these subtypes are all subtypes that are possible.
-  List<InterfaceType>? get allSubtypes {
-    if (isFinal) {
-      var result = <InterfaceType>[];
-      for (var element in library.topLevelElements) {
-        if (element is InterfaceElement && element != this) {
-          var elementThis = element.thisType;
-          if (elementThis.asInstanceOf(this) != null) {
-            result.add(elementThis);
-          }
-        }
-      }
-      return result;
-    }
-
-    if (isSealed) {
-      var result = <InterfaceType>[];
-      for (var element in library.topLevelElements) {
-        if (element is! InterfaceElement || identical(element, this)) {
-          continue;
-        }
-
-        var elementThis = element.thisType;
-        if (elementThis.asInstanceOf(this) == null) {
-          continue;
-        }
-
-        switch (element) {
-          case ClassElement _:
-            if (element.isFinal || element.isSealed) {
-              result.add(elementThis);
-            } else {
-              return null;
-            }
-          case EnumElement _:
-            result.add(elementThis);
-          case MixinElement _:
-            return null;
-        }
-      }
-      return result;
-    }
-
-    return null;
-  }
-
   @override
   ClassElementImpl2 get augmented {
     return element;
@@ -657,6 +606,57 @@ class ClassElementImpl2 extends InterfaceElementImpl2
   ClassElementImpl2(this.reference, this.firstFragment) {
     reference.element2 = this;
     firstFragment.augmentedInternal = this;
+  }
+
+  /// If we can find all possible subtypes of this class, return them.
+  ///
+  /// If the class is final, all its subtypes are declared in this library.
+  ///
+  /// If the class is sealed, and all its subtypes are either final or sealed,
+  /// then these subtypes are all subtypes that are possible.
+  List<InterfaceType>? get allSubtypes {
+    if (isFinal) {
+      var result = <InterfaceType>[];
+      for (var element in library2.children2) {
+        if (element is InterfaceElement2 && element != this) {
+          var elementThis = element.thisType;
+          if (elementThis.asInstanceOf2(this) != null) {
+            result.add(elementThis);
+          }
+        }
+      }
+      return result;
+    }
+
+    if (isSealed) {
+      var result = <InterfaceType>[];
+      for (var element in library2.children2) {
+        if (element is! InterfaceElement2 || identical(element, this)) {
+          continue;
+        }
+
+        var elementThis = element.thisType;
+        if (elementThis.asInstanceOf2(this) == null) {
+          continue;
+        }
+
+        switch (element) {
+          case ClassElement2 _:
+            if (element.isFinal || element.isSealed) {
+              result.add(elementThis);
+            } else {
+              return null;
+            }
+          case EnumElement2 _:
+            result.add(elementThis);
+          case MixinElement2 _:
+            return null;
+        }
+      }
+      return result;
+    }
+
+    return null;
   }
 
   @override

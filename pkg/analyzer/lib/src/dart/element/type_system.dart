@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -66,19 +63,6 @@ class ExtensionTypeErasure extends ReplacementVisitor {
 
     return super.visitInterfaceType(type);
   }
-}
-
-/// Fresh type parameters created to unify two lists of type parameters.
-class RelatedTypeParameters {
-  static final _empty = RelatedTypeParameters._(const [], const []);
-
-  final List<TypeParameterElement> typeParameters;
-  final List<TypeParameterType> typeParameterTypes;
-
-  RelatedTypeParameters._(
-    this.typeParameters,
-    this.typeParameterTypes,
-  );
 }
 
 /// Fresh type parameters created to unify two lists of type parameters.
@@ -147,10 +131,6 @@ class TypeSystemImpl implements TypeSystem {
     return t is FunctionType || t.isDartCoreFunction;
   }
 
-  bool anyParameterType(FunctionType ft, bool Function(DartType t) predicate) {
-    return ft.parameters.any((p) => predicate(p.type));
-  }
-
   /// Checks if an instance of [left] could possibly also be an instance of
   /// [right]. For example, an instance of `num` could be `int`, so
   /// canBeSubtypeOf(`num`, `int`) would return `true`, even though `num` is
@@ -212,8 +192,8 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
-      var leftElement = left.element;
-      var rightElement = right.element;
+      var leftElement = left.element3;
+      var rightElement = right.element3;
 
       // Can happen in JavaScript.
       if (left.isDartCoreInt && right.isDartCoreDouble ||
@@ -222,7 +202,7 @@ class TypeSystemImpl implements TypeSystem {
       }
 
       bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {
-        assert(left.element == right.element);
+        assert(left.element3 == right.element3);
         var leftArguments = left.typeArguments;
         var rightArguments = right.typeArguments;
         assert(leftArguments.length == rightArguments.length);
@@ -236,8 +216,8 @@ class TypeSystemImpl implements TypeSystem {
       }
 
       // If the left is enum, we know types of all its instances.
-      if (leftElement is EnumElementImpl) {
-        for (var constant in leftElement.constants) {
+      if (leftElement is EnumElementImpl2) {
+        for (var constant in leftElement.constants2) {
           var constantType = constant.type;
           if (isSubtypeOf(constantType, right)) {
             return true;
@@ -250,12 +230,12 @@ class TypeSystemImpl implements TypeSystem {
         return canBeSubtypeOfInterfaces(left, right);
       }
 
-      if (leftElement is ClassElementImpl) {
+      if (leftElement is ClassElementImpl2) {
         // If we know all subtypes, only they can implement the right.
         var allSubtypes = leftElement.allSubtypes;
         if (allSubtypes != null) {
           for (var candidate in [left, ...allSubtypes]) {
-            var asRight = candidate.asInstanceOf(rightElement);
+            var asRight = candidate.asInstanceOf2(rightElement);
             if (asRight != null) {
               if (_canBeEqualArguments(asRight, right)) {
                 return true;
@@ -266,12 +246,12 @@ class TypeSystemImpl implements TypeSystem {
         }
       }
 
-      if (rightElement is ClassElementImpl) {
+      if (rightElement is ClassElementImpl2) {
         // If we know all subtypes, only they can implement the left.
         var allSubtypes = rightElement.allSubtypes;
         if (allSubtypes != null) {
           for (var candidate in [right, ...allSubtypes]) {
-            var asLeft = candidate.asInstanceOf(leftElement);
+            var asLeft = candidate.asInstanceOf2(leftElement);
             if (asLeft != null) {
               if (canBeSubtypeOfInterfaces(left, asLeft)) {
                 return true;
@@ -432,8 +412,8 @@ class TypeSystemImpl implements TypeSystem {
         }
         // * otherwise, flatten(T) = flatten(X)
         return flatten(
-          TypeParameterTypeImpl(
-            element: T.element,
+          TypeParameterTypeImpl.v2(
+            element: T.element3,
             nullabilitySuffix: nullabilitySuffix,
           ),
         );
@@ -541,7 +521,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
     return candidates
-        .where((type) => type.element.typeParameters.isNotEmpty)
+        .where((type) => type.element3.typeParameters2.isNotEmpty)
         .toList();
   }
 
@@ -554,57 +534,10 @@ class TypeSystemImpl implements TypeSystem {
   FunctionType? getCallMethodType(DartType t) {
     if (t is InterfaceType) {
       return t
-          .lookUpMethod2(FunctionElement.CALL_METHOD_NAME, t.element.library)
+          .lookUpMethod3(MethodElement2.CALL_METHOD_NAME, t.element3.library2)
           ?.type;
     }
     return null;
-  }
-
-  /// Computes the set of free type parameters appearing in [rootType].
-  ///
-  /// If a non-null [candidates] set is given, then only type parameters
-  /// appearing in it are considered; otherwise all type parameters are
-  /// considered.
-  List<TypeParameterElement>? getFreeParameters(DartType rootType,
-      {Set<TypeParameterElement>? candidates}) {
-    List<TypeParameterElement>? parameters;
-    Set<DartType> visitedTypes = HashSet<DartType>();
-    Set<TypeParameterElement> boundTypeParameters =
-        HashSet<TypeParameterElement>();
-
-    void appendParameters(DartType? type) {
-      if (type == null) {
-        return;
-      }
-      if (visitedTypes.contains(type)) {
-        return;
-      }
-      visitedTypes.add(type);
-      if (type is TypeParameterType) {
-        var element = type.element;
-        if ((candidates == null || candidates.contains(element)) &&
-            !boundTypeParameters.contains(element)) {
-          parameters ??= <TypeParameterElement>[];
-          parameters!.add(element);
-        }
-      } else if (type is FunctionType) {
-        assert(!type.typeFormals.any((t) => boundTypeParameters.contains(t)));
-        boundTypeParameters.addAll(type.typeFormals);
-        appendParameters(type.returnType);
-        type.parameters.map((p) => p.type).forEach(appendParameters);
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/44218
-        type.alias?.typeArguments.forEach(appendParameters);
-        boundTypeParameters.removeAll(type.typeFormals);
-      } else if (type is InterfaceType) {
-        type.typeArguments.forEach(appendParameters);
-      } else if (type is RecordType) {
-        type.positionalFields.map((f) => f.type).forEach(appendParameters);
-        type.namedFields.map((f) => f.type).forEach(appendParameters);
-      }
-    }
-
-    appendParameters(rootType);
-    return parameters;
   }
 
   /// Computes the set of free type parameters appearing in [rootType].
@@ -639,7 +572,7 @@ class TypeSystemImpl implements TypeSystem {
             !type.typeParameters.any((t) => boundTypeParameters.contains(t)));
         boundTypeParameters.addAll(type.typeParameters);
         appendParameters(type.returnType);
-        type.parameters.map((p) => p.type).forEach(appendParameters);
+        type.formalParameters.map((p) => p.type).forEach(appendParameters);
         // TODO(scheglov): https://github.com/dart-lang/sdk/issues/44218
         type.alias?.typeArguments.forEach(appendParameters);
         boundTypeParameters.removeAll(type.typeParameters);
@@ -760,6 +693,7 @@ class TypeSystemImpl implements TypeSystem {
     );
   }
 
+  @override
   InterfaceTypeImpl instantiateInterfaceToBounds2({
     required covariant InterfaceElementImpl2 element,
     required NullabilitySuffix nullabilitySuffix,
@@ -781,7 +715,7 @@ class TypeSystemImpl implements TypeSystem {
       return type.instantiate(typeArguments);
     } else if (type is InterfaceTypeImpl) {
       // TODO(scheglov): Use `ClassElement.instantiate()`, don't use raw types.
-      return type.element.instantiate(
+      return type.element3.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: type.nullabilitySuffix,
       );
@@ -801,6 +735,7 @@ class TypeSystemImpl implements TypeSystem {
     );
   }
 
+  @override
   TypeImpl instantiateTypeAliasToBounds2({
     required covariant TypeAliasElementImpl2 element,
     required NullabilitySuffix nullabilitySuffix,
@@ -900,14 +835,14 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartCoreNull) {
         return true;
       }
-      var element = type.element;
-      if (element is EnumElement) {
+      var element = type.element3;
+      if (element is EnumElement2) {
         return true;
       }
-      if (element is ClassElement && element.isSealed) {
+      if (element is ClassElement2 && element.isSealed) {
         return true;
       }
-      if (element is ExtensionTypeElement) {
+      if (element is ExtensionTypeElement2) {
         return isAlwaysExhaustive(type.extensionTypeErasure);
       }
       if (type.isDartAsyncFutureOr) {
@@ -919,7 +854,7 @@ class TypeSystemImpl implements TypeSystem {
       if (promotedBound != null && isAlwaysExhaustive(promotedBound)) {
         return true;
       }
-      var bound = type.element.bound;
+      var bound = type.element3.bound;
       if (bound != null && isAlwaysExhaustive(bound)) {
         return true;
       }
@@ -979,7 +914,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (type is TypeParameterTypeImpl) {
-      var bound = type.element.bound;
+      var bound = type.element3.bound;
       if (bound != null && isDynamicBounded(bound)) {
         return true;
       }
@@ -1015,7 +950,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (type is TypeParameterTypeImpl) {
-      var bound = type.element.bound;
+      var bound = type.element3.bound;
       if (bound != null && isFunctionBounded(bound)) {
         return true;
       }
@@ -1041,7 +976,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // `T` is an extension type that does not implement `Future`.
-    if (T.element is ExtensionTypeElement) {
+    if (T.element3 is ExtensionTypeElement2) {
       var anyFuture = typeProvider.futureType(objectQuestion);
       if (!isSubtypeOf(T, anyFuture)) {
         return true;
@@ -1055,7 +990,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       // `T` is a type variable with bound `S`, and `S` is incompatible
       // with await.
-      if (T.element.bound case var S?) {
+      if (T.element3.bound case var S?) {
         return isIncompatibleWithAwait(S);
       }
     }
@@ -1070,7 +1005,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (type is TypeParameterTypeImpl) {
-      var bound = type.element.bound;
+      var bound = type.element3.bound;
       if (bound != null && isInvalidBounded(bound)) {
         return true;
       }
@@ -1138,8 +1073,8 @@ class TypeSystemImpl implements TypeSystem {
       // is anything except none by this point.
       assert(T_nullability == NullabilitySuffix.none);
       assert(S_nullability == NullabilitySuffix.none);
-      var T_element = T.element;
-      var S_element = S.element;
+      var T_element = T.element3;
+      var S_element = S.element3;
 
       // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
       var T_promotedBound = T.promotedBound;
@@ -1260,11 +1195,11 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isNonNullable(type.typeArguments[0]);
       }
-      if (type.element is ExtensionTypeElement) {
+      if (type.element3 is ExtensionTypeElement2) {
         return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
-      var bound = type.element.bound;
+      var bound = type.element3.bound;
       return bound != null && isNonNullable(bound);
     }
     return true;
@@ -1354,7 +1289,7 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isStrictlyNonNullable(type.typeArguments[0]);
       }
-      if (type.element is ExtensionTypeElement) {
+      if (type.element3 is ExtensionTypeElement2) {
         return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
@@ -1559,12 +1494,12 @@ class TypeSystemImpl implements TypeSystem {
     if (type.isDartCoreNull) return NeverTypeImpl.instance;
 
     if (type is TypeParameterTypeImpl) {
-      var element = type.element;
+      var element = type.element3;
 
       // NonNull(X & T) = X & NonNull(T)
       if (type.promotedBound != null) {
         var promotedBound = promoteToNonNull(type.promotedBound!);
-        return TypeParameterTypeImpl(
+        return TypeParameterTypeImpl.v2(
           element: element,
           nullabilitySuffix: NullabilitySuffix.none,
           promotedBound: promotedBound,
@@ -1578,7 +1513,7 @@ class TypeSystemImpl implements TypeSystem {
       if (identical(promotedBound, element.bound)) {
         promotedBound = null;
       }
-      return TypeParameterTypeImpl(
+      return TypeParameterTypeImpl.v2(
         element: element,
         nullabilitySuffix: NullabilitySuffix.none,
         promotedBound: promotedBound,
@@ -1599,26 +1534,7 @@ class TypeSystemImpl implements TypeSystem {
       MethodElement2? operatorElement) {
     if (operatorElement == null) return currentType;
     return _refineNumericInvocationTypeNullSafe(
-        leftType, operatorElement.asElement, [rightType], currentType);
-  }
-
-  /// Determines the context type for the parameters of a method invocation
-  /// where the type of the target is [targetType], the method being invoked is
-  /// [methodElement], the context surrounding the method invocation is
-  /// [invocationContext], and the context type produced so far by resolution is
-  /// [currentType].
-  TypeImpl refineNumericInvocationContext(
-      DartType? targetType,
-      Element? methodElement,
-      DartType invocationContext,
-      TypeImpl currentType) {
-    if (targetType != null && methodElement is MethodElement) {
-      return _refineNumericInvocationContextNullSafe(
-          targetType, methodElement, invocationContext, currentType);
-    } else {
-      // No special rules apply.
-      return currentType;
-    }
+        leftType, operatorElement, [rightType], currentType);
   }
 
   /// Determines the context type for the parameters of a method invocation
@@ -1631,8 +1547,13 @@ class TypeSystemImpl implements TypeSystem {
       Element2? methodElement,
       DartType invocationContext,
       TypeImpl currentType) {
-    return refineNumericInvocationContext(
-        targetType, methodElement?.asElement, invocationContext, currentType);
+    if (targetType != null && methodElement is MethodElement2) {
+      return _refineNumericInvocationContextNullSafe(
+          targetType, methodElement, invocationContext, currentType);
+    } else {
+      // No special rules apply.
+      return currentType;
+    }
   }
 
   /// Determines the type of a method invocation where the type of the target is
@@ -1643,81 +1564,16 @@ class TypeSystemImpl implements TypeSystem {
   // TODO(scheglov): I expected that [methodElement] is [MethodElement].
   DartType refineNumericInvocationType(
       DartType targetType,
-      Element? methodElement,
+      Element2? methodElement,
       List<DartType> argumentTypes,
       DartType currentType) {
-    if (methodElement is MethodElement) {
+    if (methodElement is MethodElement2) {
       return _refineNumericInvocationTypeNullSafe(
           targetType, methodElement, argumentTypes, currentType);
     } else {
       // No special rules apply.
       return currentType;
     }
-  }
-
-  /// Given two lists of type parameters, check that they have the same
-  /// number of elements, and their bounds are equal.
-  ///
-  /// The return value will be a new list of fresh type parameters, that can
-  /// be used to instantiate both function types, allowing further comparison.
-  RelatedTypeParameters? relateTypeParameters(
-    List<TypeParameterElement> typeParameters1,
-    List<TypeParameterElement> typeParameters2,
-  ) {
-    if (typeParameters1.length != typeParameters2.length) {
-      return null;
-    }
-    if (typeParameters1.isEmpty) {
-      return RelatedTypeParameters._empty;
-    }
-
-    var length = typeParameters1.length;
-    var freshTypeParameters = List.generate(length, (index) {
-      return TypeParameterElementImpl(
-        typeParameters1[index].name,
-        -1,
-      );
-    }, growable: false);
-
-    var freshTypeParameterTypes = List.generate(length, (index) {
-      return TypeParameterTypeImpl(
-        element: freshTypeParameters[index],
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }, growable: false);
-
-    var substitution1 = Substitution.fromPairs(
-      typeParameters1,
-      freshTypeParameterTypes,
-    );
-    var substitution2 = Substitution.fromPairs(
-      typeParameters2,
-      freshTypeParameterTypes,
-    );
-
-    for (var i = 0; i < typeParameters1.length; i++) {
-      var bound1 = typeParameters1[i].bound;
-      var bound2 = typeParameters2[i].bound;
-      if (bound1 == null && bound2 == null) {
-        continue;
-      }
-      bound1 ??= DynamicTypeImpl.instance;
-      bound2 ??= DynamicTypeImpl.instance;
-      bound1 = substitution1.substituteType(bound1);
-      bound2 = substitution2.substituteType(bound2);
-      if (!isEqualTo(bound1, bound2)) {
-        return null;
-      }
-
-      if (bound1 is! DynamicType) {
-        freshTypeParameters[i].bound = bound1;
-      }
-    }
-
-    return RelatedTypeParameters._(
-      freshTypeParameters,
-      freshTypeParameterTypes,
-    );
   }
 
   /// Given two lists of type parameters, check that they have the same
@@ -1804,7 +1660,7 @@ class TypeSystemImpl implements TypeSystem {
         return resolveToBound(promotedBound);
       }
 
-      var bound = type.element.bound;
+      var bound = type.element3.bound;
       if (bound == null) {
         return objectQuestion;
       }
@@ -1906,8 +1762,8 @@ class TypeSystemImpl implements TypeSystem {
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
       if (isSubtypeOf(to, from.bound)) {
-        var declaration = from.element.declaration;
-        return TypeParameterTypeImpl(
+        var declaration = from.element3.baseElement;
+        return TypeParameterTypeImpl.v2(
           element: declaration,
           nullabilitySuffix: _promotedTypeParameterTypeNullability(
             from.nullabilitySuffix,
@@ -1925,7 +1781,7 @@ class TypeSystemImpl implements TypeSystem {
   /// the type arguments of [right]. Both types must be instantiations of the
   /// same element.
   bool _canBeEqualArguments(InterfaceType left, InterfaceType right) {
-    assert(left.element == right.element);
+    assert(left.element3 == right.element3);
     var leftArguments = left.typeArguments;
     var rightArguments = right.typeArguments;
     assert(leftArguments.length == rightArguments.length);
@@ -1942,7 +1798,7 @@ class TypeSystemImpl implements TypeSystem {
   /// Optimistically estimates, if [left] can be equal to [right].
   bool _canBeEqualTo(DartType left, DartType right) {
     if (left is InterfaceType && right is InterfaceType) {
-      if (left.element != right.element) {
+      if (left.element3 != right.element3) {
         return false;
       }
     }
@@ -1982,7 +1838,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (T is TypeParameterTypeImpl) {
-      var bound = T.element.bound;
+      var bound = T.element3.bound;
       if (bound != null) {
         var result = _futureTypeOfBounded(bound);
         if (result != null) {
@@ -2004,20 +1860,20 @@ class TypeSystemImpl implements TypeSystem {
 
   TypeImpl _refineNumericInvocationContextNullSafe(
       DartType targetType,
-      MethodElement methodElement,
+      MethodElement2 methodElement,
       DartType invocationContext,
       TypeImpl currentType) {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement3 is ExtensionElement ||
-        methodElement.enclosingElement3 is ExtensionTypeElement) {
+    if (methodElement.enclosingElement2 is ExtensionElement2 ||
+        methodElement.enclosingElement2 is ExtensionTypeElement2) {
       return currentType;
     }
 
     // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2 or
     // e1.remainder(e2)...
-    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name)) {
+    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name3)) {
       // ...where C is the context type of e and T is the static type of e1, and
       // where T is a non-Never subtype of num...
       // Notes:
@@ -2059,7 +1915,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
     // If e is an expression of the form e1.clamp(e2, e3)...
-    if (methodElement.name == 'clamp') {
+    if (methodElement.name3 == 'clamp') {
       // ...where C is the context type of e and T is the static type of e1
       // where T is a non-Never subtype of num...
       // Notes:
@@ -2106,20 +1962,20 @@ class TypeSystemImpl implements TypeSystem {
 
   DartType _refineNumericInvocationTypeNullSafe(
       DartType targetType,
-      MethodElement methodElement,
+      MethodElement2 methodElement,
       List<DartType> argumentTypes,
       DartType currentType) {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement3 is ExtensionElement ||
-        methodElement.enclosingElement3 is ExtensionTypeElement) {
+    if (methodElement.enclosingElement2 is ExtensionElement2 ||
+        methodElement.enclosingElement2 is ExtensionTypeElement2) {
       return currentType;
     }
 
     // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
     // e1 % e2 or e1.remainder(e2)...
-    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name)) {
+    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name3)) {
       // ...where the static type of e1 is a non-Never type T and T <: num...
       // Notes:
       // - We don't have to check for Never because if T is Never, the method
@@ -2168,7 +2024,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
     // Let e be a normal invocation of the form e1.clamp(e2, e3)...
-    if (methodElement.name == 'clamp') {
+    if (methodElement.name3 == 'clamp') {
       // ...where the static types of e1, e2 and e3 are T1, T2 and T3
       // respectively...
       var t1 = targetType;
