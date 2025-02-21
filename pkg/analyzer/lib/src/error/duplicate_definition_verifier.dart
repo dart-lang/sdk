@@ -170,8 +170,8 @@ class DuplicateDefinitionVerifier {
         _errorReporter.reportError(
           _diagnosticFactory.duplicateDefinition(
             CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
-            importPrefix,
-            existing.asElement!,
+            importPrefix.asElement2,
+            existing,
             [name],
           ),
         );
@@ -260,8 +260,8 @@ class DuplicateDefinitionVerifier {
       if (!_isGetterSetterPair(element, previous)) {
         _errorReporter.reportError(_diagnosticFactory.duplicateDefinition(
           getError(previous, element),
-          element,
-          previous,
+          element.asElement2!,
+          previous.asElement2!,
           [name],
         ));
       }
@@ -275,8 +275,8 @@ class DuplicateDefinitionVerifier {
         if (previous != null) {
           _errorReporter.reportError(_diagnosticFactory.duplicateDefinition(
             getError(previous, element),
-            element,
-            previous,
+            element.asElement2,
+            previous.asElement2!,
             [name],
           ));
         } else {
@@ -545,8 +545,8 @@ class MemberDuplicateDefinitionVerifier {
         _errorReporter.reportError(
           _diagnosticFactory.duplicateDefinition(
             CompileTimeErrorCode.DUPLICATE_DEFINITION,
-            element,
-            previous,
+            element.asElement2!,
+            previous.asElement2!,
             [name],
           ),
         );
@@ -562,8 +562,8 @@ class MemberDuplicateDefinitionVerifier {
           _errorReporter.reportError(
             _diagnosticFactory.duplicateDefinition(
               CompileTimeErrorCode.DUPLICATE_DEFINITION,
-              element,
-              previous,
+              element.asElement2,
+              previous.asElement2!,
               [name],
             ),
           );
