@@ -161,6 +161,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     var lineInfo = node.lineInfo;
     var lineCount = lineInfo.lineCount;
     var longLines = <_LineInfo>[];
+    assert(context.currentUnit?.unit == node);
+    var content = context.currentUnit?.content;
     for (var i = 0; i < lineCount; i++) {
       var start = lineInfo.getOffsetOfLine(i);
       int end;
@@ -170,7 +172,6 @@ class _Visitor extends SimpleAstVisitor<void> {
         end = lineInfo.getOffsetOfLine(i + 1) - 1;
         var length = end - start;
         if (length > 80) {
-          var content = node.declaredFragment?.source.contents.data;
           if (content != null &&
               content[end] == _lf &&
               content[end - 1] == _cr) {
