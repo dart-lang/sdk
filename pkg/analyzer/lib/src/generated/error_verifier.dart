@@ -1326,7 +1326,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     super.visitPatternVariableDeclarationStatement(node);
     for (var variable in node.declaration.elements) {
-      _hiddenElements?.declare(variable.asElement2);
+      _hiddenElements?.declare(variable);
     }
   }
 

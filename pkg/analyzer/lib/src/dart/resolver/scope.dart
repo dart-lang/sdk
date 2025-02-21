@@ -31,7 +31,7 @@ class BlockScope {
       }
       if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
-          yield variable.asElement2;
+          yield variable;
         }
       } else if (statement is VariableDeclarationStatement) {
         NodeList<VariableDeclaration> variables = statement.variables.variables;

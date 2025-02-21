@@ -1165,7 +1165,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variablesMap = _patternVariables.casePatternFinish();
     node.elements = variablesMap.values
         .whereType<BindPatternVariableElementImpl2>()
-        .map((e) => e.asElement)
         .toList();
   }
 

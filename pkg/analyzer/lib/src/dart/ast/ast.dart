@@ -14170,7 +14170,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   TypeImpl? patternTypeSchema;
 
   /// Variables declared in [pattern].
-  late final List<BindPatternVariableElementImpl> elements;
+  late final List<BindPatternVariableElementImpl2> elements;
 
   PatternVariableDeclarationImpl({
     required this.keyword,

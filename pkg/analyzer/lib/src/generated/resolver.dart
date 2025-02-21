@@ -5186,7 +5186,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     covariant PatternVariableDeclarationImpl node,
   ) {
     for (var variable in node.elements) {
-      _define(variable.asElement2);
+      _define(variable);
     }
 
     super.visitPatternVariableDeclaration(node);
