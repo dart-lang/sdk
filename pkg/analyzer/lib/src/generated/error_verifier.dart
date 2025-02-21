@@ -6668,7 +6668,11 @@ class LibraryVerificationContext {
 
 /// Signals the kind of the null-aware element or entry observed in list, set,
 /// or map literals.
-enum _NullAwareElementOrMapEntryKind { element, mapEntryKey, mapEntryValue }
+enum _NullAwareElementOrMapEntryKind {
+  element,
+  mapEntryKey,
+  mapEntryValue,
+}
 
 /// Recursively visits a type annotation, looking uninstantiated bounds.
 class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {

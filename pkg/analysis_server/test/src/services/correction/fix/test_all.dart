@@ -286,6 +286,8 @@ import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
 import 'replace_with_is_nan_test.dart' as replace_with_is_nan;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_named_constant_test.dart' as replace_with_named_constant;
+import 'replace_with_not_null_aware_element_or_entry_test.dart'
+    as replace_with_not_null_aware_element_or_entry;
 import 'replace_with_not_null_aware_test.dart' as replace_with_not_null_aware;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_part_of_uri_test.dart' as replace_with_part_of_uri;
@@ -558,6 +560,7 @@ void main() {
     replace_with_is_not_empty.main();
     replace_with_named_constant.main();
     replace_with_not_null_aware.main();
+    replace_with_not_null_aware_element_or_entry.main();
     replace_with_null_aware.main();
     replace_with_part_of_uri.main();
     replace_with_tear_off.main();
