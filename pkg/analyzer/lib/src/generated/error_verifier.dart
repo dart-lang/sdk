@@ -61,7 +61,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 class EnclosingExecutableContext {
-  final ExecutableElement? element;
+  final ExecutableElement2? element;
   final bool isAsynchronous;
   final bool isConstConstructor;
   final bool isGenerativeConstructor;
@@ -89,76 +89,66 @@ class EnclosingExecutableContext {
   int catchClauseLevel = 0;
 
   EnclosingExecutableContext(this.element,
-      {bool? isAsynchronous, this.catchErrorOnErrorReturnType})
-      : isAsynchronous =
-            isAsynchronous ?? (element != null && element.isAsynchronous),
-        isConstConstructor = element is ConstructorElement && element.isConst,
+      {required this.isAsynchronous,
+      required this.isGenerator,
+      this.catchErrorOnErrorReturnType})
+      : isConstConstructor = element is ConstructorElement2 && element.isConst,
         isGenerativeConstructor =
-            element is ConstructorElement && !element.isFactory,
-        isGenerator = element != null && element.isGenerator,
+            element is ConstructorElement2 && !element.isFactory,
         inFactoryConstructor = _inFactoryConstructor(element),
         inStaticMethod = _inStaticMethod(element);
 
-  EnclosingExecutableContext.empty() : this(null);
-
-  factory EnclosingExecutableContext.tmp(ExecutableElement2? element,
-      {bool? isAsynchronous, InterfaceType? catchErrorOnErrorReturnType}) {
-    return EnclosingExecutableContext(
-      element.asElement,
-      isAsynchronous: isAsynchronous,
-      catchErrorOnErrorReturnType: catchErrorOnErrorReturnType,
-    );
-  }
+  EnclosingExecutableContext.empty()
+      : this(null, isAsynchronous: false, isGenerator: false);
 
   String? get displayName {
-    return element2?.displayName;
+    return element?.displayName;
   }
 
-  ExecutableElement2? get element2 => element.asElement2;
+  bool get isClosure => switch (element) {
+        LocalFunctionElement(:var displayName) => displayName.isEmpty,
+        _ => false,
+      };
 
-  bool get isClosure {
-    return element is FunctionElement && element!.displayName.isEmpty;
-  }
+  bool get isConstructor => element is ConstructorElement2;
 
-  bool get isConstructor => element2 is ConstructorElement2;
+  bool get isFunction => switch (element) {
+        LocalFunctionElement(:var displayName) => displayName.isNotEmpty,
+        TopLevelFunctionElement(:var displayName) => displayName.isNotEmpty,
+        PropertyAccessorElement2() => true,
+        _ => false,
+      };
 
-  bool get isFunction {
-    if (element is FunctionElement) {
-      return element!.displayName.isNotEmpty;
-    }
-    return element is PropertyAccessorElement;
-  }
-
-  bool get isMethod => element2 is MethodElement2;
+  bool get isMethod => element is MethodElement2;
 
   bool get isSynchronous => !isAsynchronous;
 
   DartType get returnType {
-    return catchErrorOnErrorReturnType ?? element2!.returnType;
+    return catchErrorOnErrorReturnType ?? element!.returnType;
   }
 
-  static bool _inFactoryConstructor(Element? element) {
-    var enclosing = element?.enclosingElement3;
+  static bool _inFactoryConstructor(Element2? element) {
+    var enclosing = element?.firstFragment.enclosingFragment;
     if (enclosing == null) {
       return false;
     }
-    if (element is ConstructorElement) {
+    if (element is ConstructorElement2) {
       return element.isFactory;
     }
-    return _inFactoryConstructor(enclosing);
+    return _inFactoryConstructor(enclosing.element);
   }
 
-  static bool _inStaticMethod(Element? element) {
-    var enclosing = element?.enclosingElement3;
+  static bool _inStaticMethod(Element2? element) {
+    var enclosing = element?.firstFragment.enclosingFragment;
     if (enclosing == null) {
       return false;
     }
-    if (enclosing is InterfaceElement || enclosing is ExtensionElement) {
-      if (element is ExecutableElement) {
+    if (enclosing is InterfaceFragment || enclosing is ExtensionFragment) {
+      if (element is ExecutableElement2) {
         return element.isStatic;
       }
     }
-    return _inStaticMethod(enclosing);
+    return _inStaticMethod(enclosing.element);
   }
 }
 
@@ -226,11 +216,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
-  InterfaceElement? _enclosingClass;
+  InterfaceElement2? _enclosingClass;
 
   /// The element of the extension being visited, or `null` if we are not
   /// in the scope of an extension.
-  ExtensionElement? _enclosingExtension;
+  ExtensionElement2? _enclosingExtension;
 
   /// Whether the current location has access to `this`.
   bool _hasAccessToThis = false;
@@ -297,38 +287,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     );
   }
 
-  InterfaceElement? get enclosingClass => _enclosingClass;
-
-  /// For consumers of error verification as a library, (currently just the
-  /// angular plugin), expose a setter that can make the errors reported more
-  /// accurate when dangling code snippets are being resolved from a class
-  /// context. Note that this setter is very defensive for potential misuse; it
-  /// should not be modified in the middle of visiting a tree and requires an
-  /// analyzer-provided Impl instance to work.
-  set enclosingClass(InterfaceElement? interfaceElement) {
-    assert(_enclosingClass == null);
-    assert(_enclosingExecutable.element == null);
-  }
-
   @override
   InheritanceManager3 get inheritance => _inheritanceManager;
 
   @override
   bool get strictCasts => options.strictCasts;
 
-  /// The class containing the AST nodes being visited, or `null` if we are not
-  /// in the scope of a class.
-  InterfaceElement2? get _enclosingClass2 => _enclosingClass?.asElement2;
-
-  /// The element of the extension being visited, or `null` if we are not
-  /// in the scope of an extension.
-  ExtensionElement2? get _enclosingExtension2 =>
-      _enclosingExtension?.asElement2;
-
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.
   bool get _isEnclosingClassFfiStruct {
-    var superClass = _enclosingClass2?.supertype?.element3;
+    var superClass = _enclosingClass?.supertype?.element3;
     return superClass != null &&
         _isDartFfiLibrary(superClass.library2) &&
         superClass.name3 == 'Struct';
@@ -337,7 +305,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.
   bool get _isEnclosingClassFfiUnion {
-    var superClass = _enclosingClass2?.supertype?.element3;
+    var superClass = _enclosingClass?.supertype?.element3;
     return superClass != null &&
         _isDartFfiLibrary(superClass.library2) &&
         superClass.name3 == 'Union';
@@ -501,7 +469,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       var augmented = declaredFragment.element;
       var declarationElement = augmented.firstFragment;
-      _enclosingClass = declarationElement;
+      _enclosingClass = declarationElement.asElement2;
 
       List<ClassMember> members = node.members;
       if (!declarationElement.isDartCoreFunctionImpl) {
@@ -562,7 +530,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     try {
-      _enclosingClass = declarationElement;
+      _enclosingClass = declarationElement.asElement2;
       _checkClassInheritance(declarationElement, node, node.superclass,
           node.withClause, node.implementsClause);
       _checkForMainFunction1(node.name, node.declaredElement!);
@@ -613,27 +581,32 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    _withEnclosingExecutable2(element, () {
-      _checkForNonConstGenerativeEnumConstructor(node);
-      _checkForInvalidModifierOnBody(
-          node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
-      if (!_checkForConstConstructorWithNonConstSuper(node)) {
-        _checkForConstConstructorWithNonFinalField(node, element);
-      }
-      _checkForRedirectingConstructorErrorCodes(node);
-      _checkForConflictingInitializerErrorCodes(node);
-      _checkForRecursiveConstructorRedirect(node, element);
-      if (!_checkForRecursiveFactoryRedirect(node, element)) {
-        _checkForAllRedirectConstructorErrorCodes(node);
-      }
-      _checkForUndefinedConstructorInInitializerImplicit(node);
-      _checkForReturnInGenerativeConstructor(node);
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: fragment,
-      );
-      super.visitConstructorDeclaration(node);
-    });
+    _withEnclosingExecutable(
+      element,
+      () {
+        _checkForNonConstGenerativeEnumConstructor(node);
+        _checkForInvalidModifierOnBody(
+            node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
+        if (!_checkForConstConstructorWithNonConstSuper(node)) {
+          _checkForConstConstructorWithNonFinalField(node, element);
+        }
+        _checkForRedirectingConstructorErrorCodes(node);
+        _checkForConflictingInitializerErrorCodes(node);
+        _checkForRecursiveConstructorRedirect(node, element);
+        if (!_checkForRecursiveFactoryRedirect(node, element)) {
+          _checkForAllRedirectConstructorErrorCodes(node);
+        }
+        _checkForUndefinedConstructorInInitializerImplicit(node);
+        _checkForReturnInGenerativeConstructor(node);
+        _checkAugmentations(
+          augmentKeyword: node.augmentKeyword,
+          element: fragment,
+        );
+        super.visitConstructorDeclaration(node);
+      },
+      isAsynchronous: fragment.isAsynchronous,
+      isGenerator: fragment.isGenerator,
+    );
   }
 
   @override
@@ -710,7 +683,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       var augmented = declaredFragment.augmented;
       var declarationElement = augmented.firstFragment;
-      _enclosingClass = declarationElement;
+      _enclosingClass = declarationElement.asElement2;
 
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
@@ -795,7 +768,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    _enclosingExtension = declaredFragment;
+    _enclosingExtension = declaredFragment.asElement2;
     _checkForConflictingExtensionTypeVariableErrorCodes();
     _checkForFinalNotInitializedInClass(declaredFragment, node.members);
 
@@ -835,7 +808,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
 
-      _enclosingClass = firstFragment;
+      _enclosingClass = firstFragment.asElement2;
 
       _checkForBuiltInIdentifierAsName(node.name,
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME);
@@ -976,24 +949,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _hiddenElements!.declare(element);
     }
 
-    _withEnclosingExecutable(element, () {
-      TypeAnnotation? returnType = node.returnType;
-      if (node.isSetter) {
-        FunctionExpression functionExpression = node.functionExpression;
-        _checkForWrongNumberOfParametersForSetter(
-            node.name, functionExpression.parameters);
-        _checkForNonVoidReturnTypeForSetter(returnType);
-      }
-      _checkForTypeAnnotationDeferredClass(returnType);
-      _returnTypeVerifier.verifyReturnType(returnType);
-      _checkForMainFunction1(node.name, node.declaredElement!);
-      _checkForMainFunction2(node);
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: element,
-      );
-      super.visitFunctionDeclaration(node);
-    });
+    _withEnclosingExecutable(
+      element.asElement2,
+      () {
+        TypeAnnotation? returnType = node.returnType;
+        if (node.isSetter) {
+          FunctionExpression functionExpression = node.functionExpression;
+          _checkForWrongNumberOfParametersForSetter(
+              node.name, functionExpression.parameters);
+          _checkForNonVoidReturnTypeForSetter(returnType);
+        }
+        _checkForTypeAnnotationDeferredClass(returnType);
+        _returnTypeVerifier.verifyReturnType(returnType);
+        _checkForMainFunction1(node.name, node.declaredElement!);
+        _checkForMainFunction2(node);
+        _checkAugmentations(
+          augmentKeyword: node.augmentKeyword,
+          element: element,
+        );
+        super.visitFunctionDeclaration(node);
+      },
+      // TODO(pq): store fragment above.
+      isAsynchronous: node.declaredFragment!.isAsynchronous,
+      isGenerator: node.declaredFragment!.isGenerator,
+    );
   }
 
   @override
@@ -1003,9 +982,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (node.parent is FunctionDeclaration) {
       super.visitFunctionExpression(node);
     } else {
-      _withEnclosingExecutable2(node.declaredFragment!.element, () {
-        super.visitFunctionExpression(node);
-      });
+      var fragment = node.declaredFragment!;
+      _withEnclosingExecutable(
+        fragment.element,
+        () {
+          super.visitFunctionExpression(node);
+        },
+        isAsynchronous: fragment.isAsynchronous,
+        isGenerator: fragment.isGenerator,
+      );
     }
 
     _isInLateLocalVariable.removeLast();
@@ -1185,31 +1170,37 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var element = node.declaredElement!;
-    _withEnclosingExecutable(element, () {
-      var returnType = node.returnType;
-      if (node.isSetter) {
-        _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
-        _checkForNonVoidReturnTypeForSetter(returnType);
-      } else if (node.isOperator) {
-        var hasWrongNumberOfParameters =
-            _checkForWrongNumberOfParametersForOperator(node);
-        if (!hasWrongNumberOfParameters) {
-          // If the operator has too many parameters including one or more
-          // optional parameters, only report one error.
-          _checkForOptionalParameterInOperator(node);
+    _withEnclosingExecutable(
+      element.asElement2,
+      () {
+        var returnType = node.returnType;
+        if (node.isSetter) {
+          _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
+          _checkForNonVoidReturnTypeForSetter(returnType);
+        } else if (node.isOperator) {
+          var hasWrongNumberOfParameters =
+              _checkForWrongNumberOfParametersForOperator(node);
+          if (!hasWrongNumberOfParameters) {
+            // If the operator has too many parameters including one or more
+            // optional parameters, only report one error.
+            _checkForOptionalParameterInOperator(node);
+          }
+          _checkForNonVoidReturnTypeForOperator(node);
         }
-        _checkForNonVoidReturnTypeForOperator(node);
-      }
-      _checkForExtensionDeclaresMemberOfObject(node);
-      _checkForTypeAnnotationDeferredClass(returnType);
-      _returnTypeVerifier.verifyReturnType(returnType);
-      _checkForWrongTypeParameterVarianceInMethod(node);
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: element,
-      );
-      super.visitMethodDeclaration(node);
-    });
+        _checkForExtensionDeclaresMemberOfObject(node);
+        _checkForTypeAnnotationDeferredClass(returnType);
+        _returnTypeVerifier.verifyReturnType(returnType);
+        _checkForWrongTypeParameterVarianceInMethod(node);
+        _checkAugmentations(
+          augmentKeyword: node.augmentKeyword,
+          element: element,
+        );
+        super.visitMethodDeclaration(node);
+      },
+      // TODO(pq): store fragment above.
+      isAsynchronous: node.declaredFragment!.isAsynchronous,
+      isGenerator: node.declaredFragment!.isGenerator,
+    );
   }
 
   @override
@@ -1261,7 +1252,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       var augmented = declaredFragment.augmented;
       var declarationElement = augmented.firstFragment;
-      _enclosingClass = declarationElement;
+      _enclosingClass = declarationElement.asElement2;
 
       List<ClassMember> members = node.members;
       _checkForBuiltInIdentifierAsName(
@@ -1474,7 +1465,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _requiredParametersVerifier.visitSuperConstructorInvocation(
       node,
-      enclosingConstructor: _enclosingExecutable.element2.ifTypeOrNull(),
+      enclosingConstructor: _enclosingExecutable.element.ifTypeOrNull(),
     );
     _constArgumentsVerifier.visitSuperConstructorInvocation(node);
     _isInConstructorInitializer = true;
@@ -1490,7 +1481,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitSuperFormalParameter(SuperFormalParameter node) {
     super.visitSuperFormalParameter(node);
 
-    if (_enclosingClass2 is ExtensionTypeElement2) {
+    if (_enclosingClass is ExtensionTypeElement2) {
       errorReporter.atToken(
         node.superKeyword,
         CompileTimeErrorCode
@@ -2391,7 +2382,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
   /// [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
   void _checkForConflictingClassMembers(InterfaceElement fragment) {
-    var enclosingClass = _enclosingClass;
+    var enclosingClass = _enclosingClass.asElement as InterfaceElement?;
     if (enclosingClass == null) {
       return;
     }
@@ -2560,7 +2551,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify all conflicts between type variable and enclosing class.
   void _checkForConflictingClassTypeVariableErrorCodes() {
-    var enclosingClass = _enclosingClass2!;
+    var enclosingClass = _enclosingClass!;
     for (TypeParameterElement2 typeParameter
         in enclosingClass.typeParameters2) {
       if (typeParameter.isWildcardVariable) continue;
@@ -2658,12 +2649,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION].
   void _checkForConflictingExtensionTypeVariableErrorCodes() {
     for (TypeParameterElement2 typeParameter
-        in _enclosingExtension2!.typeParameters2) {
+        in _enclosingExtension!.typeParameters2) {
       var name = typeParameter.name3;
       if (name == null) continue;
 
       // name is same as the name of the enclosing class
-      if (_enclosingExtension!.name == name) {
+      if (_enclosingExtension!.name3 == name) {
         errorReporter.atElement2(
           typeParameter,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
@@ -2671,9 +2662,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
       // check members
-      if (_enclosingExtension2!.getMethod2(name) != null ||
-          _enclosingExtension2!.getGetter2(name) != null ||
-          _enclosingExtension2!.getSetter2(name) != null) {
+      if (_enclosingExtension!.getMethod2(name) != null ||
+          _enclosingExtension!.getGetter2(name) != null ||
+          _enclosingExtension!.getSetter2(name) != null) {
         errorReporter.atElement2(
           typeParameter,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
@@ -2701,7 +2692,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
           arguments: [
             _enclosingClass!.kind.displayName,
-            _enclosingClass!.name,
+            _enclosingClass!.name3!,
             error.first.getDisplayString(),
             error.second.getDisplayString(),
           ],
@@ -2717,7 +2708,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// field initializers, and assert initializers.
   void _checkForConflictingInitializerErrorCodes(
       ConstructorDeclaration declaration) {
-    var enclosingClass = _enclosingClass2;
+    var enclosingClass = _enclosingClass;
     if (enclosingClass == null) {
       return;
     }
@@ -2840,7 +2831,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD].
   bool _checkForConstConstructorWithNonConstSuper(
       ConstructorDeclaration constructor) {
-    var enclosingClass = _enclosingClass2;
+    var enclosingClass = _enclosingClass;
     if (enclosingClass == null || !_enclosingExecutable.isConstConstructor) {
       return false;
     }
@@ -3416,7 +3407,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
-    if (_enclosingExtension2 != null) {
+    if (_enclosingExtension != null) {
       if (node.hasObjectMemberName) {
         errorReporter.atToken(
           node.name,
@@ -3425,7 +3416,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    if (_enclosingClass2 is ExtensionTypeElement2) {
+    if (_enclosingClass is ExtensionTypeElement2) {
       if (node.hasObjectMemberName) {
         errorReporter.atToken(
           node.name,
@@ -3438,7 +3429,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForExtensionTypeConstructorWithSuperInvocation(
     SuperConstructorInvocation node,
   ) {
-    if (_enclosingClass2 is ExtensionTypeElement2) {
+    if (_enclosingClass is ExtensionTypeElement2) {
       errorReporter.atToken(
         node.superKeyword,
         CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
@@ -3447,7 +3438,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForExtensionTypeDeclaresInstanceField(FieldDeclaration node) {
-    if (_enclosingClass2 is! ExtensionTypeElement2) {
+    if (_enclosingClass is! ExtensionTypeElement2) {
       return;
     }
 
@@ -4119,7 +4110,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var lateKeyword = variableList.lateKeyword;
     if (lateKeyword == null) return;
 
-    var enclosingClass = _enclosingClass2;
+    var enclosingClass = _enclosingClass;
     if (enclosingClass == null) {
       // The field is in an extension and should be handled elsewhere.
       return;
@@ -4439,14 +4430,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       int mixinIndex, NamedType mixinName) {
     InterfaceType mixinType = mixinName.type as InterfaceType;
     for (var constraint in mixinType.superclassConstraints) {
-      var superType = _enclosingClass2!.supertype as InterfaceTypeImpl;
+      var superType = _enclosingClass!.supertype as InterfaceTypeImpl;
       superType = superType.withNullability(NullabilitySuffix.none);
 
       bool isSatisfied = typeSystem.isSubtypeOf(superType, constraint);
       if (!isSatisfied) {
         for (int i = 0; i < mixinIndex && !isSatisfied; i++) {
           isSatisfied =
-              typeSystem.isSubtypeOf(_enclosingClass2!.mixins[i], constraint);
+              typeSystem.isSubtypeOf(_enclosingClass!.mixins[i], constraint);
         }
       }
       if (!isSatisfied) {
@@ -4482,7 +4473,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var nameObject = Name(mixinLibraryUri, name);
 
       var superMember = _inheritanceManager.getMember2(
-          _enclosingClass!, nameObject,
+          _enclosingClass!.asElement, nameObject,
           forMixinIndex: mixinIndex, concrete: true, forSuper: true);
 
       if (superMember == null) {
@@ -4723,11 +4714,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   bool _checkForNoGenerativeConstructorsInSuperclass(NamedType? superclass) {
-    var superType = _enclosingClass2!.supertype;
+    var superType = _enclosingClass!.supertype;
     if (superType == null) {
       return false;
     }
-    if (_enclosingClass2!.constructors2
+    if (_enclosingClass!.constructors2
         .every((constructor) => constructor.isFactory)) {
       // A class with no generative constructors *can* be extended if the
       // subclass has only factory constructors.
@@ -4745,7 +4736,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.atNode(
         superclass!,
         CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
-        arguments: [_enclosingClass2!.name3!, superElement.name3!],
+        arguments: [_enclosingClass!.name3!, superElement.name3!],
       );
       return true;
     }
@@ -4753,7 +4744,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForNonConstGenerativeEnumConstructor(ConstructorDeclaration node) {
-    if (_enclosingClass2 is EnumElement2 &&
+    if (_enclosingClass is EnumElement2 &&
         node.constKeyword == null &&
         node.factoryKeyword == null) {
       errorReporter.atConstructorDeclaration(
@@ -4830,7 +4821,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var variableList = node.fields;
     if (variableList.isFinal) return;
 
-    var enclosingClass = _enclosingClass2;
+    var enclosingClass = _enclosingClass;
     if (enclosingClass == null || enclosingClass is! EnumElement2) {
       return;
     }
@@ -5163,7 +5154,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         redirectedClass.isAbstract &&
         redirectedElement != null &&
         !redirectedElement.isFactory) {
-      String enclosingNamedType = _enclosingClass2!.displayName;
+      String enclosingNamedType = _enclosingClass!.displayName;
       String constructorStrName = enclosingNamedType;
       if (declaration.name != null) {
         constructorStrName += ".${declaration.name!.lexeme}";
@@ -5488,7 +5479,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
   void _checkForUndefinedConstructorInInitializerImplicit(
       ConstructorDeclaration constructor) {
-    if (_enclosingClass2 == null) {
+    if (_enclosingClass == null) {
       return;
     }
 
@@ -5515,7 +5506,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // Check to see whether the superclass has a non-factory unnamed
     // constructor.
-    var superType = _enclosingClass2!.supertype;
+    var superType = _enclosingClass!.supertype;
     if (superType == null) {
       return;
     }
@@ -5727,7 +5718,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (identical(enclosingElement, _enclosingClass2)) {
+    if (identical(enclosingElement, _enclosingClass)) {
       return;
     }
     if (enclosingElement is! InterfaceElement2) {
@@ -5741,7 +5732,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // [MethodInvocationResolver._resolveReceiverNull].
       return;
     }
-    if (_enclosingExtension2 != null) {
+    if (_enclosingExtension != null) {
       errorReporter.atNode(
         name,
         CompileTimeErrorCode
@@ -5905,7 +5896,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForWrongTypeParameterVarianceInField(FieldDeclaration node) {
     if (_enclosingClass != null) {
-      for (var typeParameter in _enclosingClass!.typeParameters) {
+      for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
         // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.
         if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
@@ -5935,7 +5926,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    for (var typeParameter in _enclosingClass!.typeParameters) {
+    for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
       // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
       if ((typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
@@ -5985,7 +5976,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForWrongTypeParameterVarianceInSuperinterfaces() {
     void checkOne(DartType? superInterface) {
       if (superInterface != null) {
-        for (var typeParameter in _enclosingClass!.typeParameters) {
+        for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
           // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
           // variance is added to the interface.
           var typeParameterElementImpl =
@@ -6032,7 +6023,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _enclosingClass!.interfaces.forEach(checkOne);
     _enclosingClass!.mixins.forEach(checkOne);
 
-    var enclosingClass = _enclosingClass;
+    var enclosingClass = _enclosingClass.asElement;
     if (enclosingClass is MixinElement) {
       enclosingClass.superclassConstraints.forEach(checkOne);
     }
@@ -6077,7 +6068,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var superElement = _enclosingClass2!.supertype?.element3;
+    var superElement = _enclosingClass!.supertype?.element3;
     if (superElement == null) {
       return;
     }
@@ -6181,7 +6172,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var superElement = _enclosingClass2!.supertype?.element3;
+    var superElement = _enclosingClass!.supertype?.element3;
     if (superElement == null) {
       return;
     }
@@ -6200,14 +6191,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkUseOfCovariantInParameters(FormalParameterList node) {
     var parent = node.parent;
-    if (_enclosingClass2 != null && parent is MethodDeclaration) {
+    if (_enclosingClass != null && parent is MethodDeclaration) {
       // Either [parent] is a static method, in which case `EXTRANEOUS_MODIFIER`
       // is reported by the parser, or [parent] is an instance method, in which
       // case any use of `covariant` is legal.
       return;
     }
 
-    if (_enclosingExtension2 != null) {
+    if (_enclosingExtension != null) {
       // `INVALID_USE_OF_COVARIANT_IN_EXTENSION` is reported by the parser.
       return;
     }
@@ -6492,25 +6483,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _withEnclosingExecutable(
-    ExecutableElement element,
-    void Function() operation,
-  ) {
+    ExecutableElement2 element,
+    void Function() operation, {
+    required bool isAsynchronous,
+    required bool isGenerator,
+  }) {
     var current = _enclosingExecutable;
     try {
-      _enclosingExecutable = EnclosingExecutableContext(element);
+      _enclosingExecutable = EnclosingExecutableContext(element,
+          isAsynchronous: isAsynchronous, isGenerator: isGenerator);
       _returnTypeVerifier.enclosingExecutable = _enclosingExecutable;
       operation();
     } finally {
       _enclosingExecutable = current;
       _returnTypeVerifier.enclosingExecutable = _enclosingExecutable;
     }
-  }
-
-  void _withEnclosingExecutable2(
-    ExecutableElement2 element,
-    void Function() operation,
-  ) {
-    _withEnclosingExecutable(element.asElement, operation);
   }
 
   void _withHiddenElements(List<Statement> statements, void Function() f) {

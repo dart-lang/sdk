@@ -501,6 +501,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -533,6 +537,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -661,6 +668,10 @@ library
             hasInitializer foo @54
               reference: <testLibraryFragment>::@class::C::@field::foo
               element: <testLibraryFragment>::@class::C::@field::foo#element
+              constantInitializer: expression_0
+                IntegerLiteral
+                  literal: 1 @60
+                  staticType: int
               getter2: <testLibraryFragment>::@class::C::@getter::foo
           constructors
             synthetic new
@@ -689,6 +700,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_1
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -714,6 +729,9 @@ library
         static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@class::C::@field::foo
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::C::@field::foo
+            expression: expression_0
           getter: <testLibraryFragment>::@class::C::@getter::foo#element
       constructors
         synthetic new
@@ -740,6 +758,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -835,10 +856,18 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @22
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          constantInitializer: expression_1
+            NullLiteral
+              literal: null @26
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -859,11 +888,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -986,6 +1021,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -1019,6 +1058,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -2882,6 +2924,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -2909,6 +2955,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -2988,6 +3037,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -3015,6 +3068,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -3090,6 +3146,10 @@ library
         hasInitializer a @28
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @32
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -3100,6 +3160,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -3202,6 +3265,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -3234,6 +3301,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -3360,6 +3430,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -3405,6 +3479,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -3515,6 +3592,10 @@ library
                         staticType: null
                       element: <testLibraryFragment>::@getter::a
                       element2: <testLibraryFragment>::@getter::a#element
+                  constantInitializer: expression_0
+                    NullLiteral
+                      literal: null @48
+                      staticType: Null
           getters
             synthetic get x
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -3530,6 +3611,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_1
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -3561,6 +3646,8 @@ library
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
+              constantInitializer
+                expression: expression_0
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
@@ -3575,6 +3662,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -3635,6 +3725,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -3659,6 +3753,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -3733,6 +3830,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
         synthetic f
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -3760,6 +3861,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     synthetic f
       reference: <testLibrary>::@topLevelVariable::f
@@ -3839,6 +3943,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
         synthetic f
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -3870,6 +3978,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     synthetic f
       reference: <testLibrary>::@topLevelVariable::f
@@ -3962,6 +4073,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -3986,6 +4101,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -4045,6 +4163,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -4072,6 +4194,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -4153,6 +4278,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -4175,11 +4304,18 @@ library
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
+              constantInitializer: expression_1
+                NullLiteral
+                  literal: null @28
+                  staticType: null
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -4201,6 +4337,8 @@ library
                 staticType: null
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
+          constantInitializer
+            expression: expression_1
       returnType: dynamic
 ''');
   }
@@ -4305,10 +4443,18 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @22
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          constantInitializer: expression_1
+            NullLiteral
+              literal: null @26
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -4345,11 +4491,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -4419,6 +4571,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 42 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -4433,6 +4589,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -4503,6 +4662,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 42 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -4517,6 +4680,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -4586,6 +4752,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 42 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -4600,6 +4770,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -4828,6 +5001,10 @@ library
         hasInitializer a @20
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @24
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -4838,6 +5015,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -4936,6 +5116,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -4971,6 +5155,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -5097,10 +5284,18 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @22
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          constantInitializer: expression_1
+            NullLiteral
+              literal: null @26
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -5144,11 +5339,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -5270,10 +5471,18 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @22
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          constantInitializer: expression_1
+            NullLiteral
+              literal: null @26
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -5316,11 +5525,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -5432,6 +5647,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -5470,6 +5689,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -5596,6 +5818,10 @@ library
             hasInitializer foo @54
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
+              constantInitializer: expression_0
+                IntegerLiteral
+                  literal: 1 @60
+                  staticType: int
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
             synthetic get foo
@@ -5619,6 +5845,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_1
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -5646,6 +5876,9 @@ library
         static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@mixin::M::@field::foo
+            expression: expression_0
           getter: <testLibraryFragment>::@mixin::M::@getter::foo#element
       getters
         synthetic static get foo
@@ -5669,6 +5902,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -5757,10 +5993,18 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer b @22
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
+          constantInitializer: expression_1
+            NullLiteral
+              literal: null @26
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::b
       getters
         synthetic get a
@@ -5780,11 +6024,17 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     const hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::b
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::b#element
   getters
     synthetic static get a
@@ -5886,6 +6136,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -5915,6 +6169,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -6027,6 +6284,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -6067,6 +6328,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -6171,6 +6435,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -6206,6 +6474,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -6352,6 +6623,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -6408,6 +6683,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -6538,6 +6816,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -6586,6 +6868,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -6734,6 +7019,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -6779,6 +7068,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -6972,18 +7264,81 @@ library
             hasInitializer e1 @37
               reference: <testLibraryFragment>::@enum::E::@field::e1
               element: <testLibraryFragment>::@enum::E::@field::e1#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibraryFragment>::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::e1
             hasInitializer e2 @43
               reference: <testLibraryFragment>::@enum::E::@field::e2
               element: <testLibraryFragment>::@enum::E::@field::e2#element
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibraryFragment>::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::e2
             hasInitializer e3 @54
               reference: <testLibraryFragment>::@enum::E::@field::e3
               element: <testLibraryFragment>::@enum::E::@field::e3#element
+              constantInitializer: expression_2
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibraryFragment>::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::e3
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
+              constantInitializer: expression_3
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: e1 @-1
+                      staticElement: <testLibraryFragment>::@enum::E::@getter::e1
+                      element: <testLibraryFragment>::@enum::E::@getter::e1#element
+                      staticType: E
+                    SimpleIdentifier
+                      token: e2 @-1
+                      staticElement: <testLibraryFragment>::@enum::E::@getter::e2
+                      element: <testLibraryFragment>::@enum::E::@getter::e2#element
+                      staticType: E
+                    SimpleIdentifier
+                      token: e3 @-1
+                      staticElement: <testLibraryFragment>::@enum::E::@getter::e3
+                      element: <testLibraryFragment>::@enum::E::@getter::e3#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -7007,6 +7362,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_4
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -7021,18 +7380,30 @@ library
         static const enumConstant hasInitializer e1
           firstFragment: <testLibraryFragment>::@enum::E::@field::e1
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::e1
+            expression: expression_0
           getter: <testLibraryFragment>::@enum::E::@getter::e1#element
         static const enumConstant hasInitializer e2
           firstFragment: <testLibraryFragment>::@enum::E::@field::e2
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::e2
+            expression: expression_1
           getter: <testLibraryFragment>::@enum::E::@getter::e2#element
         static const enumConstant hasInitializer e3
           firstFragment: <testLibraryFragment>::@enum::E::@field::e3
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::e3
+            expression: expression_2
           getter: <testLibraryFragment>::@enum::E::@getter::e3#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::values
+            expression: expression_3
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -7051,6 +7422,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_4
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -7142,6 +7516,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -7168,6 +7546,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -7316,6 +7697,10 @@ library
             hasInitializer isStaticConst @79
               reference: <testLibraryFragment>::@class::A::@field::isStaticConst
               element: <testLibraryFragment>::@class::A::@field::isStaticConst#element
+              constantInitializer: expression_0
+                IntegerLiteral
+                  literal: 2 @95
+                  staticType: int
               getter2: <testLibraryFragment>::@class::A::@getter::isStaticConst
             hasInitializer isInstance @112
               reference: <testLibraryFragment>::@class::A::@field::isInstance
@@ -7354,6 +7739,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_1
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -7372,6 +7761,9 @@ library
         static const hasInitializer isStaticConst
           firstFragment: <testLibraryFragment>::@class::A::@field::isStaticConst
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::A::@field::isStaticConst
+            expression: expression_0
           getter: <testLibraryFragment>::@class::A::@getter::isStaticConst#element
         hasInitializer isInstance
           firstFragment: <testLibraryFragment>::@class::A::@field::isInstance
@@ -7404,6 +7796,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -7476,6 +7871,10 @@ library
         hasInitializer foo @52
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @58
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -7486,6 +7885,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -7578,6 +7980,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -7606,6 +8012,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -7721,6 +8130,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -7757,6 +8170,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -7884,6 +8300,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -7920,6 +8340,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -8016,6 +8439,10 @@ library
         hasInitializer foo @65
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @71
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -8035,6 +8462,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -8127,6 +8557,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -8173,11 +8607,18 @@ library
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
+              constantInitializer: expression_1
+                IntegerLiteral
+                  literal: 42 @51
+                  staticType: int
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -8222,6 +8663,9 @@ library
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::f::@parameter::a
+            expression: expression_1
       returnType: void
 ''');
   }
@@ -8283,6 +8727,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
         synthetic getter
           reference: <testLibraryFragment>::@topLevelVariable::getter
@@ -8310,6 +8758,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
     synthetic getter
       reference: <testLibrary>::@topLevelVariable::getter
@@ -8404,6 +8855,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
         synthetic setter
           reference: <testLibraryFragment>::@topLevelVariable::setter
@@ -8445,6 +8900,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
     synthetic setter
       reference: <testLibrary>::@topLevelVariable::setter
@@ -8574,6 +9032,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
         hasInitializer isNotConst @25
           reference: <testLibraryFragment>::@topLevelVariable::isNotConst
@@ -8603,6 +9065,10 @@ library
                 staticType: null
               element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
+          constantInitializer: expression_1
+            IntegerLiteral
+              literal: 2 @63
+              staticType: int
           getter2: <testLibraryFragment>::@getter::isConst
       getters
         synthetic get foo
@@ -8626,6 +9092,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::foo#element
     hasInitializer isNotConst
       reference: <testLibrary>::@topLevelVariable::isNotConst
@@ -8657,6 +9126,9 @@ library
           element: <testLibraryFragment>::@getter::foo
           element2: <testLibraryFragment>::@getter::foo#element
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::isConst
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::isConst#element
   getters
     synthetic static get foo
@@ -8734,6 +9206,10 @@ library
         hasInitializer a @37
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @41
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -8748,6 +9224,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -9147,6 +9626,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -9174,6 +9657,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -9291,6 +9777,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -9325,6 +9815,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -9391,6 +9884,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
         synthetic foo
           reference: <testLibraryFragment>::@topLevelVariable::foo
@@ -9422,6 +9919,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -9506,6 +10006,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -9528,11 +10032,18 @@ library
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
+              constantInitializer: expression_1
+                NullLiteral
+                  literal: null @26
+                  staticType: Null
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -9554,6 +10065,8 @@ library
                 staticType: null
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
+          constantInitializer
+            expression: expression_1
       returnType: dynamic
 ''');
   }
@@ -9672,6 +10185,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -9713,6 +10230,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -9779,6 +10299,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
         v @23
           reference: <testLibraryFragment>::@topLevelVariable::v
@@ -9814,6 +10338,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     v
       reference: <testLibrary>::@topLevelVariable::v
@@ -9922,6 +10449,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -9951,6 +10482,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -10090,6 +10624,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -10135,6 +10673,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -10194,6 +10735,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -10221,6 +10766,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -10315,6 +10863,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -10341,6 +10893,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -10416,6 +10971,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
         hasInitializer x @20
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -10451,6 +11010,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -10561,6 +11123,10 @@ library
             hasInitializer x @25
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
+              constantInitializer: expression_0
+                IntegerLiteral
+                  literal: 0 @29
+                  staticType: int
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
             synthetic new
@@ -10587,6 +11153,9 @@ library
         static const hasInitializer x
           firstFragment: <testLibraryFragment>::@class::A::@field::x
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@class::A::@field::x
+            expression: expression_0
           getter: <testLibraryFragment>::@class::A::@getter::x#element
       constructors
         synthetic new
@@ -10776,18 +11345,81 @@ library
             hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
+              constantInitializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibraryFragment>::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::a
             hasInitializer b @11
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibraryFragment>::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::b
             hasInitializer c @14
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
+              constantInitializer: expression_2
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibraryFragment>::@enum::E
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
+                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               getter2: <testLibraryFragment>::@enum::E::@getter::c
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
+              constantInitializer: expression_3
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: a @-1
+                      staticElement: <testLibraryFragment>::@enum::E::@getter::a
+                      element: <testLibraryFragment>::@enum::E::@getter::a#element
+                      staticType: E
+                    SimpleIdentifier
+                      token: b @-1
+                      staticElement: <testLibraryFragment>::@enum::E::@getter::b
+                      element: <testLibraryFragment>::@enum::E::@getter::b#element
+                      staticType: E
+                    SimpleIdentifier
+                      token: c @-1
+                      staticElement: <testLibraryFragment>::@enum::E::@getter::c
+                      element: <testLibraryFragment>::@enum::E::@getter::c#element
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
             synthetic const new
@@ -10823,18 +11455,30 @@ library
         static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::a
+            expression: expression_0
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
         static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::b
+            expression: expression_1
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
         static const enumConstant hasInitializer c
           firstFragment: <testLibraryFragment>::@enum::E::@field::c
           type: E
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::c
+            expression: expression_2
           getter: <testLibraryFragment>::@enum::E::@getter::c#element
         synthetic static const values
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
+          constantInitializer
+            fragment: <testLibraryFragment>::@enum::E::@field::values
+            expression: expression_3
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
       constructors
         synthetic const new
@@ -10937,6 +11581,10 @@ library
             hasInitializer x @36
               reference: <testLibraryFragment>::@extension::E::@field::x
               element: <testLibraryFragment>::@extension::E::@field::x#element
+              constantInitializer: expression_0
+                IntegerLiteral
+                  literal: 0 @40
+                  staticType: int
               getter2: <testLibraryFragment>::@extension::E::@getter::x
           getters
             synthetic get x
@@ -10957,6 +11605,9 @@ library
         static const hasInitializer x
           firstFragment: <testLibraryFragment>::@extension::E::@field::x
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@extension::E::@field::x
+            expression: expression_0
           getter: <testLibraryFragment>::@extension::E::@getter::x#element
       getters
         synthetic static get x

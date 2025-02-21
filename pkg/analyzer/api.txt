@@ -3635,6 +3635,7 @@ package:analyzer/dart/element/element2.dart:
   ConstantInitializer (class extends Object):
     new (constructor: ConstantInitializer Function())
     expression (getter: Expression)
+    fragment (getter: VariableFragment)
     evaluate (method: DartObject? Function())
   ConstructorElement2 (class extends Object implements ExecutableElement2, HasSinceSdkVersion):
     new (constructor: ConstructorElement2 Function())
@@ -3861,7 +3862,6 @@ package:analyzer/dart/element/element2.dart:
   GenericFunctionTypeFragment (class extends Object implements FunctionTypedFragment):
     new (constructor: GenericFunctionTypeFragment Function())
     element (getter: GenericFunctionTypeElement2)
-    enclosingFragment (getter: LibraryFragment?)
     nextFragment (getter: GenericFunctionTypeFragment?)
     previousFragment (getter: GenericFunctionTypeFragment?)
   GetterElement (class extends Object implements PropertyAccessorElement2):
@@ -4297,7 +4297,7 @@ package:analyzer/dart/element/element2.dart:
     computeConstantValue (method: DartObject? Function())
   VariableFragment (class extends Object implements Fragment):
     new (constructor: VariableFragment Function())
-    constantInitializer2 (getter: ConstantInitializer?)
+    constantInitializer2 (getter: Expression?)
     element (getter: VariableElement2)
     nextFragment (getter: VariableFragment?)
     previousFragment (getter: VariableFragment?)

@@ -266,7 +266,7 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
   bool isAvailable();
 }
 
-/// [Refactoring] to inline a local [VariableElement].
+/// [Refactoring] to inline a local variable.
 abstract class InlineLocalRefactoring implements Refactoring {
   /// Returns a new [InlineLocalRefactoring] instance.
   factory InlineLocalRefactoring(
@@ -277,7 +277,7 @@ abstract class InlineLocalRefactoring implements Refactoring {
     return InlineLocalRefactoringImpl(searchEngine, resolveResult, offset);
   }
 
-  /// Returns the number of references to the [VariableElement].
+  /// Returns the number of references to the variable.
   int get referenceCount;
 
   /// Returns the name of the variable being inlined.
@@ -294,7 +294,7 @@ abstract class InlineLocalRefactoring implements Refactoring {
   bool isAvailable();
 }
 
-/// [Refactoring] to inline an [ExecutableElement].
+/// [Refactoring] to inline an executable element.
 abstract class InlineMethodRefactoring implements Refactoring {
   /// Returns a new [InlineMethodRefactoring] instance.
   factory InlineMethodRefactoring(
@@ -400,12 +400,10 @@ class RefactoringWorkspace {
   RefactoringWorkspace(this.drivers, this.searchEngine);
 
   /// Whether the [element] is defined in a file that is in a context root.
-  bool containsElement(Element element) {
-    return containsFile(element.source!.fullName);
-  }
-
-  /// Whether the [element] is defined in a file that is in a context root.
   bool containsElement2(Element2 element) {
+    if (element is MockLibraryImportElement) {
+      return containsFile(element.libraryFragment.source.fullName);
+    }
     return containsFile(element.firstFragment.libraryFragment!.source.fullName);
   }
 
@@ -424,122 +422,26 @@ class RefactoringWorkspace {
   }
 }
 
-/// Abstract [Refactoring] for renaming some [Element].
+/// Abstract [Refactoring] for renaming some element.
 abstract class RenameRefactoring implements Refactoring {
   /// Returns the human-readable description of the kind of element being
   /// renamed (such as “class” or “function type alias”).
   String get elementKindName;
 
-  /// Sets the new name for the [Element].
+  /// Sets the new name for the element.
   set newName(String newName);
 
-  /// Returns the old name of the [Element] being renamed.
+  /// Returns the old name of the element being renamed.
   String get oldName;
 
   /// Validates that the [newName] is a valid identifier and is appropriate for
-  /// the type of the [Element] being renamed.
+  /// the type of the element being renamed.
   ///
   /// It does not perform all the checks (such as checking for conflicts with
   /// any existing names in any of the scopes containing the current name), as
   /// many of these checks require search engine. Use [checkFinalConditions] for
   /// this level of checking.
   RefactoringStatus checkNewName();
-
-  /// Returns a new [RenameRefactoring] instance for renaming [element],
-  /// maybe `null` if there is no support for renaming [Element]s of the given
-  /// type.
-  static RenameRefactoring? create(
-    RefactoringWorkspace workspace,
-    ResolvedUnitResult resolvedUnit,
-    Element? element,
-  ) {
-    if (element == null) {
-      return null;
-    }
-    var session = resolvedUnit.session;
-    var sessionHelper = AnalysisSessionHelper(session);
-    if (element is PropertyAccessorElement) {
-      element = element.variable2;
-      if (element == null) {
-        return null;
-      }
-    }
-    if (element is LibraryImportElement) {
-      return RenameImportRefactoringImpl(
-        workspace,
-        sessionHelper,
-        element.asElement2,
-      );
-    }
-    var enclosingElement = element.enclosingElement3;
-    if (enclosingElement is CompilationUnitElement) {
-      return RenameUnitMemberRefactoringImpl(
-        workspace,
-        sessionHelper,
-        resolvedUnit,
-        element.asElement2!,
-      );
-    }
-    if (element is ConstructorElement) {
-      return RenameConstructorRefactoringImpl(
-        workspace,
-        sessionHelper,
-        element.asElement2,
-      );
-    }
-    if (element is LabelElement) {
-      return RenameLabelRefactoringImpl(
-        workspace,
-        sessionHelper,
-        element.asElement2 as LabelElement2,
-      );
-    }
-    if (element is LibraryElement) {
-      return RenameLibraryRefactoringImpl(
-        workspace,
-        sessionHelper,
-        element.asElement2,
-      );
-    }
-    if (element is ParameterElement) {
-      return RenameParameterRefactoringImpl(
-        workspace,
-        sessionHelper,
-        element.asElement2,
-      );
-    }
-    if (element is LocalElement) {
-      return RenameLocalRefactoringImpl(
-        workspace,
-        sessionHelper,
-        element.asElement2 as LocalElement2,
-      );
-    }
-    if (element is TypeParameterElement) {
-      return RenameTypeParameterRefactoringImpl(
-        workspace,
-        sessionHelper,
-        element.asElement2,
-      );
-    }
-    if (enclosingElement is InterfaceElement) {
-      return RenameClassMemberRefactoringImpl(
-        workspace,
-        sessionHelper,
-        enclosingElement.asElement2,
-        element.asElement2!,
-      );
-    }
-    if (enclosingElement is ExtensionElement) {
-      return RenameExtensionMemberRefactoringImpl(
-        workspace,
-        sessionHelper,
-        enclosingElement.asElement2,
-        element.asElement2!,
-      );
-    }
-    return null;
-  }
 
   /// Returns a new [RenameRefactoring] instance for renaming the [element].
   ///
@@ -550,105 +452,79 @@ abstract class RenameRefactoring implements Refactoring {
     ResolvedUnitResult resolvedUnit,
     Element2? element,
   ) {
-    return create(workspace, resolvedUnit, element.asElement);
-  }
-
-  /// Given a node/element, finds the best element to rename (for example
-  /// the class when on the `new` keyword).
-  static RenameRefactoringElement? getElementToRename(
-    AstNode node,
-    Element? element,
-  ) {
-    // TODO(scheglov): This is bad code.
-    SyntacticEntity? nameNode;
-    if (node is AssignedVariablePattern) {
-      nameNode = node.name;
-    } else if (node is ConstructorDeclaration) {
-      nameNode = node;
-    } else if (node is ConstructorSelector) {
-      nameNode = node;
-    } else if (node is DeclaredIdentifier) {
-      nameNode = node.name;
-    } else if (node is DeclaredVariablePattern) {
-      nameNode = node.name;
-    } else if (node is EnumConstantDeclaration) {
-      nameNode = node.name;
-    } else if (node is ExtensionDeclaration) {
-      nameNode = node.name;
-    } else if (node is ExtensionOverride) {
-      nameNode = node.name;
-    } else if (node is FieldFormalParameter) {
-      nameNode = node.name;
-    } else if (node is ImportDirective) {
-      nameNode = node;
-    } else if (node is ImportPrefixReference) {
-      nameNode = node;
-    } else if (node is InstanceCreationExpression) {
-      nameNode = node;
-    } else if (node is LibraryDirective) {
-      nameNode = node;
-    } else if (node is MethodDeclaration) {
-      nameNode = node.name;
-    } else if (node is NamedCompilationUnitMember) {
-      nameNode = node.name;
-    } else if (node is NamedType) {
-      nameNode = node.name2;
-    } else if (node is RepresentationConstructorName) {
-      nameNode = node.name;
-    } else if (node is RepresentationDeclaration) {
-      nameNode = node.fieldName;
-    } else if (node is SimpleFormalParameter) {
-      nameNode = node.name;
-    } else if (node is SimpleIdentifier) {
-      nameNode = node.token;
-    } else if (node is TypeParameter) {
-      nameNode = node.name;
-    } else if (node is VariableDeclaration) {
-      nameNode = node.name;
-    }
-    if (nameNode == null) {
-      return null;
-    }
-    var offset = nameNode.offset;
-    var length = nameNode.length;
-
-    if (node is SimpleIdentifier && element is ParameterElement) {
-      element = declaredParameterElement(node, element);
-    }
-
-    Element2? element2;
-    // Use the prefix offset/length when renaming an import directive.
-    if (element is LibraryImportElement) {
-      if (node is ImportDirective) {
-        var prefix = node.prefix;
-        if (prefix != null) {
-          offset = prefix.offset;
-          length = prefix.length;
-        } else {
-          // -1 means the name does not exist yet.
-          offset = -1;
-          length = 0;
-        }
-      }
-      var importNode = node.thisOrAncestorOfType<ImportDirective>();
-      if (importNode != null) {
-        element2 = MockLibraryImportElement(importNode.libraryImport!);
-      }
-    }
-
-    // Rename the class when on `new` in an instance creation.
-    if (node is InstanceCreationExpression) {
-      var namedType = node.constructorName.type;
-      element = namedType.element;
-      offset = namedType.name2.offset;
-      length = namedType.name2.length;
-    }
-
     if (element == null) {
       return null;
     }
-
-    return RenameRefactoringElement(element, element2, offset, length);
+    var session = resolvedUnit.session;
+    var sessionHelper = AnalysisSessionHelper(session);
+    if (element is PropertyAccessorElement2) {
+      element = element.variable3;
+      if (element == null) {
+        return null;
+      }
+    }
+    if (element is MockLibraryImportElement) {
+      return RenameImportRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element.import,
+      );
+    }
+    var enclosingElement = element.enclosingElement2;
+    if (element is PrefixElement2) {
+      enclosingElement = element.library2;
+    }
+    if (enclosingElement is LibraryElement2) {
+      return RenameUnitMemberRefactoringImpl(
+        workspace,
+        sessionHelper,
+        resolvedUnit,
+        element,
+      );
+    }
+    if (element is ConstructorElement2) {
+      return RenameConstructorRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element,
+      );
+    }
+    if (element is LabelElement2) {
+      return RenameLabelRefactoringImpl(workspace, sessionHelper, element);
+    }
+    if (element is LibraryElement2) {
+      return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
+    }
+    if (element is FormalParameterElement) {
+      return RenameParameterRefactoringImpl(workspace, sessionHelper, element);
+    }
+    if (element is LocalElement2) {
+      return RenameLocalRefactoringImpl(workspace, sessionHelper, element);
+    }
+    if (element is TypeParameterElement2) {
+      return RenameTypeParameterRefactoringImpl(
+        workspace,
+        sessionHelper,
+        element,
+      );
+    }
+    if (enclosingElement is InterfaceElement2) {
+      return RenameClassMemberRefactoringImpl(
+        workspace,
+        sessionHelper,
+        enclosingElement,
+        element,
+      );
+    }
+    if (enclosingElement is ExtensionElement2) {
+      return RenameExtensionMemberRefactoringImpl(
+        workspace,
+        sessionHelper,
+        enclosingElement,
+        element,
+      );
+    }
+    return null;
   }
 
   /// Returns the best element to rename based on the [node] and [element] (for
@@ -711,7 +587,7 @@ abstract class RenameRefactoring implements Refactoring {
     var length = nameNode.length;
 
     if (node is SimpleIdentifier && element is FormalParameterElement) {
-      element = declaredParameterElement(node, element.asElement).asElement2;
+      element = declaredParameterElement2(node, element);
     }
 
     // Use the prefix offset/length when renaming an import directive.
@@ -741,29 +617,20 @@ abstract class RenameRefactoring implements Refactoring {
       return null;
     }
 
-    return RenameRefactoringElement(
-      element.asElement!,
-      element,
-      offset,
-      length,
-    );
+    return RenameRefactoringElement(element, offset, length);
   }
 }
 
 class RenameRefactoringElement {
-  final Element element;
-  final Element2? _element2;
+  final Element2 _element2;
   final int offset;
   final int length;
 
-  RenameRefactoringElement(
-    this.element,
-    this._element2,
-    this.offset,
-    this.length,
-  );
+  RenameRefactoringElement(this._element2, this.offset, this.length);
+
+  Element get element => element2.asElement!;
 
   Element2 get element2 {
-    return _element2 ?? element.asElement2!;
+    return _element2;
   }
 }

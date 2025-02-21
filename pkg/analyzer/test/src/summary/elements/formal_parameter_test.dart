@@ -931,6 +931,10 @@ library
               formalParameters
                 default x @26
                   element: <testLibraryFragment>::@class::C::@constructor::positional::@parameter::x#element
+                  constantInitializer: expression_0
+                    IntegerLiteral
+                      literal: 1 @30
+                      staticType: int
             named @39
               reference: <testLibraryFragment>::@class::C::@constructor::named
               element: <testLibraryFragment>::@class::C::@constructor::named#element
@@ -941,6 +945,10 @@ library
                 default x @46
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
                   element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+                  constantInitializer: expression_1
+                    IntegerLiteral
+                      literal: 1 @49
+                      staticType: int
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -951,12 +959,17 @@ library
           formalParameters
             optionalPositional hasImplicitType x
               type: dynamic
+              constantInitializer
+                expression: expression_0
         named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
           formalParameters
             optionalNamed hasImplicitType x
               firstFragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
               type: dynamic
+              constantInitializer
+                fragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
+                expression: expression_1
 ''');
   }
 
@@ -1052,6 +1065,10 @@ library
               formalParameters
                 default this.x @40
                   element: <testLibraryFragment>::@class::C::@constructor::positional::@parameter::x#element
+                  constantInitializer: expression_0
+                    IntegerLiteral
+                      literal: 1 @44
+                      staticType: int
             named @53
               reference: <testLibraryFragment>::@class::C::@constructor::named
               element: <testLibraryFragment>::@class::C::@constructor::named#element
@@ -1062,6 +1079,10 @@ library
                 default this.x @65
                   reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
                   element: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+                  constantInitializer: expression_1
+                    IntegerLiteral
+                      literal: 1 @68
+                      staticType: int
           getters
             synthetic get x
               reference: <testLibraryFragment>::@class::C::@getter::x
@@ -1089,12 +1110,17 @@ library
           formalParameters
             optionalPositional final hasImplicitType x
               type: dynamic
+              constantInitializer
+                expression: expression_0
         named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
           formalParameters
             optionalNamed final hasImplicitType x
               firstFragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
               type: dynamic
+              constantInitializer
+                fragment: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
+                expression: expression_1
       getters
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
@@ -1177,6 +1203,10 @@ library
               formalParameters
                 default x @36
                   element: <testLibraryFragment>::@class::C::@method::positional::@parameter::x#element
+                  constantInitializer: expression_0
+                    IntegerLiteral
+                      literal: 1 @40
+                      staticType: int
             named @61
               reference: <testLibraryFragment>::@class::C::@method::named
               element: <testLibraryFragment>::@class::C::@method::named#element
@@ -1184,6 +1214,10 @@ library
                 default x @68
                   reference: <testLibraryFragment>::@class::C::@method::named::@parameter::x
                   element: <testLibraryFragment>::@class::C::@method::named::@parameter::x#element
+                  constantInitializer: expression_1
+                    IntegerLiteral
+                      literal: 1 @71
+                      staticType: int
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1198,6 +1232,8 @@ library
           formalParameters
             optionalPositional hasImplicitType x
               type: dynamic
+              constantInitializer
+                expression: expression_0
         static named
           reference: <testLibrary>::@class::C::@method::named
           firstFragment: <testLibraryFragment>::@class::C::@method::named
@@ -1205,6 +1241,9 @@ library
             optionalNamed hasImplicitType x
               firstFragment: <testLibraryFragment>::@class::C::@method::named::@parameter::x
               type: dynamic
+              constantInitializer
+                fragment: <testLibraryFragment>::@class::C::@method::named::@parameter::x
+                expression: expression_1
 ''');
   }
 
@@ -1260,6 +1299,10 @@ library
           formalParameters
             default x @17
               element: <testLibraryFragment>::@function::positional::@parameter::x#element
+              constantInitializer: expression_0
+                IntegerLiteral
+                  literal: 1 @21
+                  staticType: int
         named @33
           reference: <testLibraryFragment>::@function::named
           element: <testLibrary>::@function::named
@@ -1267,6 +1310,10 @@ library
             default x @40
               reference: <testLibraryFragment>::@function::named::@parameter::x
               element: <testLibraryFragment>::@function::named::@parameter::x#element
+              constantInitializer: expression_1
+                IntegerLiteral
+                  literal: 1 @43
+                  staticType: int
   functions
     positional
       reference: <testLibrary>::@function::positional
@@ -1274,6 +1321,8 @@ library
       formalParameters
         optionalPositional hasImplicitType x
           type: dynamic
+          constantInitializer
+            expression: expression_0
       returnType: void
     named
       reference: <testLibrary>::@function::named
@@ -1282,6 +1331,9 @@ library
         optionalNamed hasImplicitType x
           firstFragment: <testLibraryFragment>::@function::named::@parameter::x
           type: dynamic
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::named::@parameter::x
+            expression: expression_1
       returnType: void
 ''');
   }

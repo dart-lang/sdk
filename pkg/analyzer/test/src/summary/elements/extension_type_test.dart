@@ -961,6 +961,10 @@ library
             hasInitializer foo @46
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
+              constantInitializer: expression_0
+                IntegerLiteral
+                  literal: 0 @52
+                  staticType: int
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             synthetic get it
@@ -984,6 +988,9 @@ library
         static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@extensionType::A::@field::foo
+            expression: expression_0
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
       getters
         synthetic get it
@@ -1056,6 +1063,10 @@ library
             hasInitializer foo @42
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
+              constantInitializer: expression_0
+                IntegerLiteral
+                  literal: 0 @48
+                  staticType: int
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             synthetic get it
@@ -1079,6 +1090,9 @@ library
         static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@extensionType::A::@field::foo
+            expression: expression_0
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
       getters
         synthetic get it
@@ -2473,6 +2487,10 @@ library
                 default a @43
                   reference: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
                   element: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a#element
+                  constantInitializer: expression_0
+                    IntegerLiteral
+                      literal: 0 @47
+                      staticType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2496,6 +2514,9 @@ library
             optionalNamed a
               firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
               type: int
+              constantInitializer
+                fragment: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
+                expression: expression_0
 ''');
   }
 

@@ -264,6 +264,11 @@ abstract class ConstantInitializer {
   /// have the default value.
   Expression get expression;
 
+  /// The [VariableFragment] that has [expression].
+  ///
+  /// The offsets are inside the [LibraryFragment] that contains [fragment].
+  VariableFragment get fragment;
+
   /// Returns the result of evaluating [expression], computes it if necessary.
   ///
   /// Returns `null` if the value could not be computed because of errors.
@@ -1141,9 +1146,6 @@ abstract class GenericFunctionTypeElement2 implements FunctionTypedElement2 {
 abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
   @override
   GenericFunctionTypeElement2 get element;
-
-  @override
-  LibraryFragment? get enclosingFragment;
 
   @override
   GenericFunctionTypeFragment? get nextFragment;
@@ -2890,7 +2892,7 @@ abstract class VariableFragment implements Fragment {
   ///
   /// Is `null` if this variable fragment is not a constant, or does not have
   /// the initializer or the default value specified.
-  ConstantInitializer? get constantInitializer2;
+  Expression? get constantInitializer2;
 
   @override
   VariableElement2 get element;

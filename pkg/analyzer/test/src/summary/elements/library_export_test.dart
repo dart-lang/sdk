@@ -1945,6 +1945,10 @@ library
         hasInitializer a @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          constantInitializer: expression_0
+            IntegerLiteral
+              literal: 0 @31
+              staticType: int
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
       getters
         synthetic get a
@@ -1955,6 +1959,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
   getters
     synthetic static get a

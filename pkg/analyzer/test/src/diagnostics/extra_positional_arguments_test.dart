@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class ExtraPositionalArgumentsCouldBeNamedTest
     extends PubPackageResolutionTest {
-  test_constConstructor() async {
+  test_class_constConstructor() async {
     await assertErrorsInCode(r'''
 class A {
   const A({int x = 0});
@@ -31,7 +31,7 @@ main() {
     ]);
   }
 
-  test_constConstructor_super() async {
+  test_class_constConstructor_super() async {
     await assertErrorsInCode(r'''
 class A {
   const A({int x = 0});
@@ -45,7 +45,7 @@ class B extends A {
     ]);
   }
 
-  test_constConstructor_typedef() async {
+  test_class_constConstructor_typedef() async {
     await assertErrorsInCode(r'''
 class A {
   const A({int x = 0});
@@ -77,7 +77,18 @@ main() {
         findNode.methodInvocation('f()').typeArgumentTypes!.single, 'dynamic');
   }
 
-  test_enumConstant() async {
+  test_functionExpressionInvocation() async {
+    await assertErrorsInCode('''
+main() {
+  (int x, {int y = 0}) {} (0, 1);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 39,
+          1),
+    ]);
+  }
+
+  test_metadata_enumConstant() async {
     await assertErrorsInCode(r'''
 enum E {
   v(0);
@@ -90,14 +101,14 @@ enum E {
     ]);
   }
 
-  test_functionExpressionInvocation() async {
-    await assertErrorsInCode('''
-main() {
-  (int x, {int y = 0}) {} (0, 1);
-}
+  test_metadata_extensionType() async {
+    await assertErrorsInCode(r'''
+extension type const A(int it) {}
+
+@A(0, 1)
+void f() {}
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 39,
-          1),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 41, 1),
     ]);
   }
 

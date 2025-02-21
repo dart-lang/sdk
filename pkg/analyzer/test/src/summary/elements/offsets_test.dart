@@ -3173,12 +3173,20 @@ library
             default a @10
               reference: <testLibraryFragment>::@function::main::@parameter::a
               element: <testLibraryFragment>::@function::main::@parameter::a#element
+              constantInitializer: expression_0
+                IntegerLiteral
+                  literal: 1 @14
+                  staticType: int
             default b @21
               reference: <testLibraryFragment>::@function::main::@parameter::b
               element: <testLibraryFragment>::@function::main::@parameter::b#element
             default c @28
               reference: <testLibraryFragment>::@function::main::@parameter::c
               element: <testLibraryFragment>::@function::main::@parameter::c#element
+              constantInitializer: expression_1
+                IntegerLiteral
+                  literal: 2 @32
+                  staticType: int
   functions
     main
       reference: <testLibrary>::@function::main
@@ -3187,12 +3195,18 @@ library
         optionalNamed a
           firstFragment: <testLibraryFragment>::@function::main::@parameter::a
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::main::@parameter::a
+            expression: expression_0
         optionalNamed b
           firstFragment: <testLibraryFragment>::@function::main::@parameter::b
           type: int
         optionalNamed c
           firstFragment: <testLibraryFragment>::@function::main::@parameter::c
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::main::@parameter::c
+            expression: expression_1
       returnType: dynamic
 ''');
   }

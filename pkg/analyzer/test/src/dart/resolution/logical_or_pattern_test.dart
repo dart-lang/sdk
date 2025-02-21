@@ -76,4 +76,41 @@ LogicalOrPattern
   matchedValueType: dynamic
 ''');
   }
+
+  test_switchCase_topLevel3() async {
+    // https://github.com/dart-lang/sdk/issues/60168
+    await resolveTestCode(r'''
+var _ = switch (0) {
+  var a || var a || var a => 0,
+};
+''');
+
+    var node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
+    leftOperand: DeclaredVariablePattern
+      keyword: var
+      name: a
+      declaredElement: hasImplicitType a@27
+        type: int
+      matchedValueType: int
+    operator: ||
+    rightOperand: DeclaredVariablePattern
+      keyword: var
+      name: a
+      declaredElement: hasImplicitType a@36
+        type: int
+      matchedValueType: int
+    matchedValueType: int
+  operator: ||
+  rightOperand: DeclaredVariablePattern
+    keyword: var
+    name: a
+    declaredElement: hasImplicitType a@45
+      type: int
+    matchedValueType: int
+  matchedValueType: int
+''');
+  }
 }

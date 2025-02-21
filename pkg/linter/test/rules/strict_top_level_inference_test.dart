@@ -1014,4 +1014,63 @@ var f;
       ],
     );
   }
+
+  test_wildcardVariable_constructorParameter() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C(_) {}
+}
+''');
+  }
+
+  test_wildcardVariable_constructorParameter_preWildcards() async {
+    await assertDiagnostics(
+      r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+class C {
+  C(_) {}
+}
+''',
+      [lint(57, 1)],
+    );
+  }
+
+  test_wildcardVariable_function() async {
+    await assertNoDiagnostics(r'''
+void m(_) {}
+''');
+  }
+
+  test_wildcardVariable_function_preWildcards() async {
+    await assertDiagnostics(
+      r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+void m(_) {}
+''',
+      [lint(50, 1)],
+    );
+  }
+
+  test_wildcardVariable_method() async {
+    await assertNoDiagnostics(r'''
+class C {
+  void m(_) {}
+}
+''');
+  }
+
+  test_wildcardVariable_method_preWilcards() async {
+    await assertDiagnostics(
+      r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+class C {
+  void m(_) {}
+}
+''',
+      [lint(62, 1)],
+    );
+  }
 }

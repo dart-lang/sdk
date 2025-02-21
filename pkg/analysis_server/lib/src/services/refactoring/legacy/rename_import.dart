@@ -129,7 +129,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     }
   }
 
-  /// Return the [ImportDirective] node that corresponds to the [element].
+  /// Return the [ImportDirective] node that corresponds to the element.
   Future<ImportDirective?> _findNode() async {
     var libraryFragment = element2.libraryFragment;
     var path = libraryFragment.source.fullName;

@@ -459,6 +459,10 @@ library
             default this.a @17
               reference: <testLibraryFragment>::@function::f::@parameter::a
               element: <testLibraryFragment>::@function::f::@parameter::a#element
+              constantInitializer: expression_0
+                IntegerLiteral
+                  literal: 42 @20
+                  staticType: int
   functions
     f
       reference: <testLibrary>::@function::f
@@ -467,6 +471,9 @@ library
         optionalNamed final a
           firstFragment: <testLibraryFragment>::@function::f::@parameter::a
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::f::@parameter::a
+            expression: expression_0
       returnType: void
 ''');
   }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -40,11 +41,17 @@ class StrictTopLevelInference extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  final bool _wildCardVariablesEnabled;
+
   final LintRule rule;
 
   final LinterContext context;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule, this.context)
+    : _wildCardVariablesEnabled = context.isEnabled(Feature.wildcard_variables);
+
+  bool isWildcardIdentifier(String lexeme) =>
+      _wildCardVariablesEnabled && lexeme == '_';
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -125,6 +132,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }) {
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
+      var parameterName = parameter.name;
+      if (parameterName != null && isWildcardIdentifier(parameterName.lexeme)) {
+        continue;
+      }
+
       if (parameter is DefaultFormalParameter) {
         parameter = parameter.parameter;
       }
@@ -142,20 +154,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       if (parameter.type != null) return;
       if (overriddenMember == null) {
-        _report(parameter.name, keyword: parameter.keyword);
+        _report(parameterName, keyword: parameter.keyword);
       } else {
         if (parameter.isPositional) {
           if (overriddenMember.formalParameters.length <= i ||
               overriddenMember.formalParameters[i].isNamed) {
             // The overridden member does not have a corresponding parameter.
-            _report(parameter.name, keyword: parameter.keyword);
+            _report(parameterName, keyword: parameter.keyword);
           }
         } else {
           var overriddenParameter = overriddenMember.formalParameters
               .firstWhereOrNull((p) => p.isNamed);
           if (overriddenParameter == null) {
             // The overridden member does not have a corresponding parameter.
-            _report(parameter.name, keyword: parameter.keyword);
+            _report(parameterName, keyword: parameter.keyword);
           }
         }
       }

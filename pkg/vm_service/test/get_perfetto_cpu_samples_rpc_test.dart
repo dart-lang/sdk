@@ -19,7 +19,7 @@ int fib(n) {
 
 void testeeDo() {
   print('Testee doing something.');
-  fib(44);
+  fib(21);
   print('Testee did something.');
 }
 
