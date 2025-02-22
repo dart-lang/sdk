@@ -5269,7 +5269,7 @@ package:analyzer/src/dart/resolver/scope.dart:
   Namespace (class extends Object):
     EMPTY (static getter: Namespace)
     EMPTY= (static setter: Namespace)
-    new (constructor: Namespace Function(Map<String, Element>))
+    new (constructor: Namespace Function(Map<String, Element2>))
     definedNames (getter: Map<String, Element>)
     definedNames2 (getter: Map<String, Element2>)
     get (method: Element? Function(String))

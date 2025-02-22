@@ -88,7 +88,7 @@ class LinkedElementFactory {
     Uri uri,
     List<ExportedReference> exportedReferences,
   ) {
-    var exportedNames = <String, Element>{};
+    var exportedNames = <String, Element2>{};
 
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference.reference);
@@ -101,7 +101,7 @@ class LinkedElementFactory {
           '[exportedReference: $exportedReference]',
         );
       }
-      exportedNames[element.name!] = element;
+      exportedNames[element.name!] = element.asElement2!;
     }
 
     return Namespace(exportedNames);

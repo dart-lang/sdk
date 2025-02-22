@@ -5955,7 +5955,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @experimental
   @override
-  LibraryExport? get libraryExport => element as LibraryExport?;
+  LibraryExportElementImpl? get libraryExport => element;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -9973,7 +9973,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @experimental
   @override
-  LibraryImport? get libraryImport => element as LibraryImport?;
+  LibraryImportElementImpl? get libraryImport => element;
 
   @override
   SimpleIdentifierImpl? get prefix => _prefix;
