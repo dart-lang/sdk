@@ -1326,7 +1326,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     super.visitPatternVariableDeclarationStatement(node);
     for (var variable in node.declaration.elements) {
-      _hiddenElements?.declare(variable.asElement2);
+      _hiddenElements?.declare(variable);
     }
   }
 
@@ -6668,7 +6668,11 @@ class LibraryVerificationContext {
 
 /// Signals the kind of the null-aware element or entry observed in list, set,
 /// or map literals.
-enum _NullAwareElementOrMapEntryKind { element, mapEntryKey, mapEntryValue }
+enum _NullAwareElementOrMapEntryKind {
+  element,
+  mapEntryKey,
+  mapEntryValue,
+}
 
 /// Recursively visits a type annotation, looking uninstantiated bounds.
 class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {

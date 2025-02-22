@@ -226,6 +226,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_is_emp
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_named_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
@@ -1243,6 +1244,15 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveUnexpectedUnderscores.new,
   ],
   StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [RemoveDeadIfNull.new],
+  StaticWarningCode.INVALID_NULL_AWARE_ELEMENT: [
+    ReplaceWithNotNullAwareElementOrEntry.entry,
+  ],
+  StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY: [
+    ReplaceWithNotNullAwareElementOrEntry.mapKey,
+  ],
+  StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE: [
+    ReplaceWithNotNullAwareElementOrEntry.mapValue,
+  ],
   StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [ReplaceWithNotNullAware.new],
   StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
     ReplaceWithNotNullAware.new,

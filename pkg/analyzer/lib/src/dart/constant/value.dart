@@ -146,7 +146,7 @@ sealed class Constant {}
 /// Information about a const constructor invocation.
 class ConstructorInvocation {
   /// The constructor that was called.
-  final ConstructorElement constructor;
+  final ConstructorElement2 constructor2;
 
   /// Values of specified arguments, actual values for positional, and `null`
   /// for named (which are provided as [namedArguments]).
@@ -156,10 +156,9 @@ class ConstructorInvocation {
   final Map<String, DartObjectImpl> namedArguments;
 
   ConstructorInvocation(
-      this.constructor, this._argumentValues, this.namedArguments);
+      this.constructor2, this._argumentValues, this.namedArguments);
 
-  /// The constructor that was called.
-  ConstructorElement2 get constructor2 => constructor.asElement2;
+  ConstructorElement get constructor => constructor2.asElement;
 
   /// The positional arguments passed to the constructor.
   List<DartObjectImpl> get positionalArguments {
@@ -906,13 +905,13 @@ class DartObjectImpl implements DartObject, Constant {
 
   @override
   ExecutableElement? toFunctionValue() {
-    var state = this.state;
-    return state is FunctionState ? state.element : null;
+    return toFunctionValue2().asElement;
   }
 
   @override
   ExecutableElement2? toFunctionValue2() {
-    return toFunctionValue().asElement2;
+    var state = this.state;
+    return state is FunctionState ? state.element : null;
   }
 
   @override
@@ -1354,7 +1353,7 @@ class EvaluationException {
 /// The state of an object representing a function.
 class FunctionState extends InstanceState {
   /// The element representing the function being modeled.
-  final ExecutableElementImpl element;
+  final ExecutableElementImpl2 element;
 
   final List<DartType>? typeArguments;
 
@@ -1366,12 +1365,12 @@ class FunctionState extends InstanceState {
   /// aliased class.
   ///
   /// Otherwise null.
-  final TypeDefiningElement? _viaTypeAlias;
+  final TypeDefiningElement2? _viaTypeAlias;
 
   /// Initialize a newly created state to represent the function with the given
   /// [element].
   FunctionState(this.element,
-      {this.typeArguments, TypeDefiningElement? viaTypeAlias})
+      {this.typeArguments, TypeDefiningElement2? viaTypeAlias})
       : _viaTypeAlias = viaTypeAlias;
 
   @override
@@ -1408,7 +1407,7 @@ class FunctionState extends InstanceState {
   }
 
   @override
-  StringState convertToString() => StringState(element.name);
+  StringState convertToString() => StringState(element.name3);
 
   @override
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
@@ -1422,7 +1421,7 @@ class FunctionState extends InstanceState {
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (rightOperand is FunctionState) {
       var otherElement = rightOperand.element;
-      if (element.declaration != otherElement.declaration) {
+      if (element.baseElement != otherElement.baseElement) {
         return BoolState.FALSE_STATE;
       }
       if (_viaTypeAlias != rightOperand._viaTypeAlias) {
@@ -1451,7 +1450,7 @@ class FunctionState extends InstanceState {
   }
 
   @override
-  String toString() => element.name;
+  String toString() => element.name3 ?? '<unnamed>';
 }
 
 /// The state of an object representing a Dart object for which there is no more
@@ -1526,21 +1525,21 @@ class GenericState extends InstanceState {
   bool hasPrimitiveEquality(FeatureSet featureSet) {
     var type = _object.type;
     if (type is InterfaceType) {
-      bool isFromDartCoreObject(ExecutableElement? element) {
-        var enclosing = element?.enclosingElement3;
-        return enclosing is ClassElement && enclosing.isDartCoreObject;
+      bool isFromDartCoreObject(ExecutableElement2? element) {
+        var enclosing = element?.enclosingElement2;
+        return enclosing is ClassElement2 && enclosing.isDartCoreObject;
       }
 
-      var element = type.element;
-      var library = element.library;
+      var element = type.element3;
+      var library = element.library2;
 
-      var eqEq = type.lookUpMethod2('==', library, concrete: true);
+      var eqEq = type.lookUpMethod3('==', library, concrete: true);
       if (!isFromDartCoreObject(eqEq)) {
         return false;
       }
 
       if (featureSet.isEnabled(Feature.patterns)) {
-        var hash = type.lookUpGetter2('hashCode', library, concrete: true);
+        var hash = type.lookUpGetter3('hashCode', library, concrete: true);
         if (!isFromDartCoreObject(hash)) {
           return false;
         }
@@ -2462,15 +2461,15 @@ class InvalidConstant implements Constant {
   }
 
   /// Creates a constant evaluation error associated with an [element].
-  InvalidConstant.forElement(Element element, ErrorCode errorCode,
+  InvalidConstant.forElement(Element2 element, ErrorCode errorCode,
       {List<Object>? arguments,
       List<DiagnosticMessage>? contextMessages,
       bool avoidReporting = false,
       bool isUnresolved = false,
       bool isRuntimeException = false})
       : this._(
-          element.nameLength,
-          element.nameOffset,
+          element.name3!.length,
+          element.firstFragment.nameOffset2 ?? -1,
           errorCode,
           arguments: arguments,
           contextMessages: contextMessages,

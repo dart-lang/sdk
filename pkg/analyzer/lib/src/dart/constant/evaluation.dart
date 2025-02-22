@@ -426,8 +426,8 @@ class ConstantEvaluationEngine {
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
       );
       (constant as VariableElementImpl).evaluationResult =
-          InvalidConstant.forElement(
-              constant, CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
+          InvalidConstant.forElement(constant.asElement2!,
+              CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
     } else if (constant is ConstructorElement) {
       // We don't report cycle errors on constructor declarations here since
       // there is nowhere to put the error information.
@@ -842,8 +842,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     return DartObjectImpl(
       typeSystem,
       node.typeOrThrow,
-      FunctionState(constructorElement,
-          typeArguments: typeArguments, viaTypeAlias: viaTypeAlias),
+      FunctionState(constructorElement.asElement2,
+          typeArguments: typeArguments,
+          viaTypeAlias: viaTypeAlias.asElement2 as TypeDefiningElement2?),
     );
   }
 
@@ -1778,14 +1779,14 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return DartObjectImpl(
         typeSystem,
         expression.typeOrThrow,
-        FunctionState(variableElement),
+        FunctionState(variableElement.asElement2),
       );
     } else if (variableElement is ExecutableElementImpl) {
       if (variableElement.isStatic) {
         var rawType = DartObjectImpl(
           typeSystem,
           variableElement.type,
-          FunctionState(variableElement),
+          FunctionState(variableElement.asElement2),
         );
         if (identifier == null) {
           return InvalidConstant.forEntity(
@@ -2710,7 +2711,7 @@ class _InstanceCreationEvaluator {
               if (field == null) {
                 return _InitializersEvaluationResult(
                   InvalidConstant.forElement(
-                    getter,
+                    getter.asElement2,
                     CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
                   ),
                   evaluationIsComplete: true,
@@ -3120,7 +3121,7 @@ class _InstanceCreationEvaluator {
     }
 
     invocation ??= ConstructorInvocation(
-      constructor,
+      constructor.asElement2,
       argumentValues,
       namedValues,
     );

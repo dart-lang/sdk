@@ -1003,7 +1003,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     covariant PatternVariableDeclarationImpl node,
   ) {
     for (var variable in node.elements) {
-      assignedVariables.declare(variable.element);
+      assignedVariables.declare(variable);
     }
     super.visitPatternVariableDeclaration(node);
   }

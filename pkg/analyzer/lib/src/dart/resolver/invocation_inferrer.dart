@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -24,7 +21,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 Set<Object> _computeExplicitlyTypedParameterSet(
     FunctionExpression functionExpression) {
@@ -46,15 +42,12 @@ Set<Object> _computeExplicitlyTypedParameterSet(
 /// Given an iterable of parameters, computes a map whose keys are either the
 /// parameter name (for named parameters) or the zero-based integer index (for
 /// unnamed parameters), and whose values are the parameters themselves.
-Map<Object, ParameterElementMixin> _computeParameterMap(
-    Iterable<ParameterElement> parameters) {
+Map<Object, FormalParameterElementMixin> _computeParameterMap(
+    Iterable<FormalParameterElementMixin> parameters) {
   int unnamedParameterIndex = 0;
   return {
     for (var parameter in parameters)
-      parameter.isNamed ? parameter.name : unnamedParameterIndex++:
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
-          parameter as ParameterElementMixin
+      parameter.isNamed ? parameter.name3! : unnamedParameterIndex++: parameter
   };
 }
 
@@ -94,16 +87,16 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
 
   @override
-  List<ParameterElement>? _storeResult(
+  List<FormalParameterElement>? _storeResult(
       List<DartType>? typeArgumentTypes, FunctionType? invokeType) {
     if (invokeType != null) {
-      var constructorElement = ConstructorMember.from(
-        node.element as ConstructorElement,
+      var constructorElement = ConstructorMember.from2(
+        node.element2 as ConstructorElement2,
         invokeType.returnType as InterfaceType,
       );
-      constructorName?.staticElement = constructorElement;
-      node.element = constructorElement;
-      return constructorElement.parameters;
+      constructorName?.element = constructorElement;
+      node.element2 = constructorElement;
+      return constructorElement.formalParameters;
     }
     return null;
   }
@@ -183,7 +176,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     } else if (typeArgumentList != null) {
       if (rawType != null &&
           typeArgumentList.arguments.length != rawType.typeFormals.length) {
-        var typeParameters = rawType.typeFormals;
+        var typeParameters = rawType.typeParameters;
         _reportWrongNumberOfTypeArguments(
             typeArgumentList, rawType, typeParameters);
         typeArgumentTypes = List.filled(
@@ -253,7 +246,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
     List<_IdenticalArgumentInfo?>? identicalArgumentInfo =
         _isIdentical ? [] : null;
-    var parameterMap = _computeParameterMap(rawType?.parameters ?? const []);
+    var parameterMap =
+        _computeParameterMap(rawType?.formalParameters ?? const []);
     var deferredFunctionLiterals = _visitArguments(
         parameterMap: parameterMap,
         identicalArgumentInfo: identicalArgumentInfo,
@@ -264,7 +258,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       for (var stage in _FunctionLiteralDependencies(
               resolver.typeSystem,
               deferredFunctionLiterals,
-              rawType?.typeFormals.toSet() ?? const {},
+              rawType?.typeParameters.toSet() ?? const {},
               _computeUndeferredParamInfo(
                   rawType, parameterMap, deferredFunctionLiterals))
           .planReconciliationStages()) {
@@ -293,7 +287,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       argumentList.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
         argumentList: argumentList,
-        formalParameters: parameters.map((e) => e.asElement2).toList(),
+        formalParameters: parameters,
         errorReporter: resolver.errorReporter,
       );
     }
@@ -307,7 +301,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   /// parameters that were *not* deferred.
   List<_ParamInfo> _computeUndeferredParamInfo(
       FunctionType? rawType,
-      Map<Object, ParameterElementMixin> parameterMap,
+      Map<Object, FormalParameterElementMixin> parameterMap,
       List<_DeferredParamInfo> deferredFunctionLiterals) {
     if (rawType == null) return const [];
     var parameterKeysAlreadyCovered = {
@@ -324,7 +318,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   DartType _refineReturnType(DartType returnType) => returnType;
 
   void _reportWrongNumberOfTypeArguments(TypeArgumentList typeArgumentList,
-      FunctionType rawType, List<TypeParameterElement> typeParameters) {
+      FunctionType rawType, List<TypeParameterElement2> typeParameters) {
     resolver.errorReporter.atNode(
       typeArgumentList,
       _wrongNumberOfTypeArgumentsErrorCode,
@@ -336,9 +330,9 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     );
   }
 
-  List<ParameterElement>? _storeResult(
+  List<FormalParameterElement>? _storeResult(
       List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
-    return invokeType?.parameters;
+    return invokeType?.formalParameters;
   }
 }
 
@@ -388,22 +382,22 @@ class InstanceCreationInferrer
 
   @override
   void _reportWrongNumberOfTypeArguments(TypeArgumentList typeArgumentList,
-      FunctionType rawType, List<TypeParameterElement> typeParameters) {
+      FunctionType rawType, List<TypeParameterElement2> typeParameters) {
     // Error reporting for instance creations is done elsewhere.
   }
 
   @override
-  List<ParameterElement>? _storeResult(
+  List<FormalParameterElement>? _storeResult(
       List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
     if (invokeType != null) {
       var constructedType = invokeType.returnType;
       node.constructorName.type.type = constructedType;
-      var constructorElement = ConstructorMember.from(
-        node.constructorName.staticElement!,
+      var constructorElement = ConstructorMember.from2(
+        node.constructorName.element!,
         constructedType as InterfaceType,
       );
-      node.constructorName.staticElement = constructorElement;
-      return constructorElement.parameters;
+      node.constructorName.element = constructorElement;
+      return constructorElement.formalParameters;
     }
     return null;
   }
@@ -429,7 +423,7 @@ abstract class InvocationExpressionInferrer<
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
 
   @override
-  List<ParameterElement>? _storeResult(
+  List<FormalParameterElement>? _storeResult(
       List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
     node.typeArgumentTypes = typeArgumentTypes;
     node.staticInvokeType = invokeType ?? DynamicTypeImpl.instance;
@@ -467,7 +461,8 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// arguments not applied yet).
   void resolveInvocation({required FunctionTypeImpl? rawType}) {
     var deferredFunctionLiterals = _visitArguments(
-        parameterMap: _computeParameterMap(rawType?.parameters ?? const []));
+        parameterMap:
+            _computeParameterMap(rawType?.formalParameters ?? const []));
     if (deferredFunctionLiterals != null) {
       _resolveDeferredFunctionLiterals(
           deferredFunctionLiterals: deferredFunctionLiterals);
@@ -528,7 +523,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       }
       if (parameter != null) {
         inferrer?.constrainArgument(
-            argument.typeOrThrow, parameter.type, parameter.name,
+            argument.typeOrThrow, parameter.type, parameter.name3!,
             nodeForTesting: node);
       }
     }
@@ -538,7 +533,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// be deferred due to the `inference-update-1` feature, a list of them is
   /// returned.
   List<_DeferredParamInfo>? _visitArguments(
-      {required Map<Object, ParameterElementMixin> parameterMap,
+      {required Map<Object, FormalParameterElementMixin> parameterMap,
       List<_IdenticalArgumentInfo?>? identicalArgumentInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
@@ -551,7 +546,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
       Expression value;
-      ParameterElementMixin? parameter;
+      FormalParameterElementMixin? parameter;
       Object parameterKey;
       if (argument is NamedExpressionImpl) {
         value = argument.expression;
@@ -593,7 +588,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         }
         if (parameter != null) {
           inferrer?.constrainArgument(
-              argument.typeOrThrow, parameter.type, parameter.name,
+              argument.typeOrThrow, parameter.type, parameter.name3!,
               nodeForTesting: node);
         }
       }
@@ -626,8 +621,8 @@ class MethodInvocationInferrer
 
   @override
   bool get _isIdentical {
-    var invokedMethod = node.methodName.staticElement;
-    return invokedMethod is FunctionElement &&
+    var invokedMethod = node.methodName.element;
+    return invokedMethod is TopLevelFunctionElement &&
         invokedMethod.isDartCoreIdentical &&
         node.argumentList.arguments.length == 2;
   }
@@ -677,10 +672,10 @@ class _DeferredParamInfo extends _ParamInfo {
 }
 
 class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
-    TypeParameterElement, _ParamInfo, _DeferredParamInfo> {
+    TypeParameterElement2, _ParamInfo, _DeferredParamInfo> {
   final TypeSystemImpl _typeSystem;
 
-  final Set<TypeParameterElement> _typeVariables;
+  final Set<TypeParameterElement2> _typeVariables;
 
   _FunctionLiteralDependencies(
       this._typeSystem,
@@ -689,26 +684,19 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
       List<_ParamInfo> undeferredParamInfo)
       : super(deferredParamInfo, _typeVariables, undeferredParamInfo);
 
-  Set<TypeParameterElement2> get _typeVariables2 {
-    return _typeVariables.map((e) => e.asElement2).toSet();
-  }
-
   @override
-  Iterable<TypeParameterElement> typeVarsFreeInParamParams(
+  Iterable<TypeParameterElement2> typeVarsFreeInParamParams(
       _DeferredParamInfo paramInfo) {
     var type = paramInfo.parameter?.type;
     if (type is FunctionTypeImpl) {
-      var parameterMap = _computeParameterMap(type.parameters);
+      var parameterMap = _computeParameterMap(type.formalParameters);
       var explicitlyTypedParameters =
           _computeExplicitlyTypedParameterSet(paramInfo.value);
-      Set<TypeParameterElement> result = {};
+      Set<TypeParameterElement2> result = {};
       for (var entry in parameterMap.entries) {
         if (explicitlyTypedParameters.contains(entry.key)) continue;
-        result.addAll(_typeSystem
-                .getFreeParameters2(entry.value.type,
-                    candidates: _typeVariables2)
-                ?.map((e) => e.asElement)
-                .toList() ??
+        result.addAll(_typeSystem.getFreeParameters2(entry.value.type,
+                candidates: _typeVariables) ??
             const []);
       }
       return result;
@@ -718,20 +706,15 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
   }
 
   @override
-  Iterable<TypeParameterElement> typeVarsFreeInParamReturns(
+  Iterable<TypeParameterElement2> typeVarsFreeInParamReturns(
       _ParamInfo paramInfo) {
     var type = paramInfo.parameter?.type;
     if (type is FunctionTypeImpl) {
-      return _typeSystem
-              .getFreeParameters2(type.returnType, candidates: _typeVariables2)
-              ?.map((e) => e.asElement)
-              .toList() ??
+      return _typeSystem.getFreeParameters2(type.returnType,
+              candidates: _typeVariables) ??
           const [];
     } else if (type != null) {
-      return _typeSystem
-              .getFreeParameters2(type, candidates: _typeVariables2)
-              ?.map((e) => e.asElement)
-              .toList() ??
+      return _typeSystem.getFreeParameters2(type, candidates: _typeVariables) ??
           const [];
     } else {
       return const [];
@@ -759,7 +742,7 @@ class _IdenticalArgumentInfo {
 class _ParamInfo {
   /// The function parameter corresponding to the argument, or `null` if we are
   /// resolving a dynamic invocation.
-  final ParameterElementMixin? parameter;
+  final FormalParameterElementMixin? parameter;
 
   _ParamInfo(this.parameter);
 }

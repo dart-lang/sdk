@@ -1980,6 +1980,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     "Replace with '{0}'",
   );
+  static const REPLACE_WITH_NOT_NULL_AWARE_ELEMENT_OR_ENTRY = FixKind(
+    'dart.fix.replace.withNotNullAwareElementOrEntry',
+    DartFixKindPriority.standard,
+    "Remove the '?'",
+  );
+  static const REPLACE_WITH_NOT_NULL_AWARE_ELEMENT_OR_ENTRY_MULTI = FixKind(
+    'dart.fix.replace.withNotNullAwareElementOrEntry.multi',
+    DartFixKindPriority.inFile,
+    "Remove the '?' everywhere in file",
+  );
   static const REPLACE_WITH_NOT_NULL_AWARE_MULTI = FixKind(
     'dart.fix.replace.withNotNullAware.multi',
     DartFixKindPriority.inFile,

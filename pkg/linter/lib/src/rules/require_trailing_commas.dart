@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 
@@ -12,6 +13,9 @@ const _desc =
     r'Use trailing commas for all parameter lists and argument lists.';
 
 class RequireTrailingCommas extends LintRule {
+  /// The version when tall-style was introduced in the formatter.
+  static final Version language37 = Version(3, 7, 0);
+
   RequireTrailingCommas()
     : super(name: LintNames.require_trailing_commas, description: _desc);
 
@@ -23,6 +27,10 @@ class RequireTrailingCommas extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
+    // Don't report if tall-style is enforced by the formatter.
+    var languageVersion = context.libraryElement2?.languageVersion.effective;
+    if (languageVersion != null && languageVersion >= language37) return;
+
     var visitor = _Visitor(this);
     registry
       ..addArgumentList(this, visitor)

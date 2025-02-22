@@ -103,7 +103,7 @@ class DuplicateDefinitionVerifier {
       } else if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
           _checkDuplicateIdentifier(definedNames, variable.node.name,
-              element: variable);
+              element: variable.asElement);
         }
       }
     }

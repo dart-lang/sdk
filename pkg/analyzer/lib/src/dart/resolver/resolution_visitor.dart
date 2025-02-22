@@ -1012,7 +1012,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           _labelScope,
           labelNameNode.name,
           unlabeled,
-          labelNameNode.staticElement as LabelElement,
+          labelNameNode.element as LabelElement2,
         );
       }
       unlabeled.accept(this);
@@ -1165,7 +1165,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variablesMap = _patternVariables.casePatternFinish();
     node.elements = variablesMap.values
         .whereType<BindPatternVariableElementImpl2>()
-        .map((e) => e.asElement)
         .toList();
   }
 

@@ -332,6 +332,10 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     return element?.asElement2;
   }
 
+  set element2(Element2? value) {
+    element = value?.asElement;
+  }
+
   @override
   Token get endToken {
     if (arguments case var arguments?) {
@@ -14166,7 +14170,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   TypeImpl? patternTypeSchema;
 
   /// Variables declared in [pattern].
-  late final List<BindPatternVariableElementImpl> elements;
+  late final List<BindPatternVariableElementImpl2> elements;
 
   PatternVariableDeclarationImpl({
     required this.keyword,

@@ -5186,7 +5186,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     covariant PatternVariableDeclarationImpl node,
   ) {
     for (var variable in node.elements) {
-      _define(variable.asElement2);
+      _define(variable);
     }
 
     super.visitPatternVariableDeclaration(node);
@@ -5296,7 +5296,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       for (var member in node.members) {
         for (var label in member.labels) {
           var labelName = label.label;
-          var labelElement = labelName.staticElement as LabelElement;
+          var labelElement = labelName.element as LabelElement2;
           _labelScope =
               LabelScope(_labelScope, labelName.name, member, labelElement);
         }
@@ -5366,7 +5366,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     for (var label in labels) {
       var labelNameNode = label.label;
       var labelName = labelNameNode.name;
-      var labelElement = labelNameNode.staticElement as LabelElement;
+      var labelElement = labelNameNode.element as LabelElement2;
       _labelScope = LabelScope(_labelScope, labelName, node, labelElement);
     }
     return outerScope;
@@ -5409,9 +5409,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         return null;
       }
       // The target has been found.
-      labelNode.staticElement = definingScope.element;
-      ExecutableElement? labelContainer =
-          definingScope.element.thisOrAncestorOfType();
+      labelNode.element = definingScope.element;
+      var labelContainer =
+          definingScope.element.firstFragment.enclosingFragment;
       if (_enclosingClosure != null &&
           !identical(labelContainer, _enclosingClosure)) {
         errorReporter.atNode(

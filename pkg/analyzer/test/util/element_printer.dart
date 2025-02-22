@@ -224,6 +224,11 @@ class ElementPrinter {
     writeElement(element);
   }
 
+  void writeNamedElement2(String name, Element2? element) {
+    _sink.writeWithIndent('$name: ');
+    writeElement2(element);
+  }
+
   void writeNamedType(String name, DartType? type) {
     _sink.writeWithIndent('$name: ');
     writeType(type);
