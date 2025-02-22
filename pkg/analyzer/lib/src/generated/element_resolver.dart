@@ -173,7 +173,7 @@ class ElementResolver {
     _resolveAnnotations(node.metadata);
   }
 
-  void visitExportDirective(ExportDirective node) {
+  void visitExportDirective(ExportDirectiveImpl node) {
     var exportElement = node.libraryExport;
     if (exportElement != null) {
       // The element is null when the URI is invalid
@@ -459,7 +459,7 @@ class ElementResolver {
   /// Resolve the names in the given [combinators] in the scope of the given
   /// [library].
   void _resolveCombinators(
-      LibraryElement2? library, NodeList<Combinator> combinators) {
+      LibraryElementImpl? library, NodeList<Combinator> combinators) {
     if (library == null) {
       //
       // The library will be null if the directive containing the combinators

@@ -326,7 +326,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitExportDirective(ExportDirective node) {
+  void visitExportDirective(covariant ExportDirectiveImpl node) {
     _deprecatedVerifier.exportDirective(node);
     _checkForInternalExport(node);
     super.visitExportDirective(node);
@@ -949,11 +949,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// Check that the namespace exported by [node] does not include any elements
   /// annotated with `@internal`.
-  void _checkForInternalExport(ExportDirective node) {
+  void _checkForInternalExport(ExportDirectiveImpl node) {
     if (!_inPackagePublicApi) return;
 
-    var libraryElement = node.libraryExport?.exportedLibrary2;
+    var libraryExport = node.libraryExport;
+    if (libraryExport == null) return;
+
+    var libraryElement = libraryExport.exportedLibrary2;
     if (libraryElement == null) return;
+
     if (libraryElement.metadata2.hasInternal) {
       _errorReporter.atNode(
         node,
@@ -961,8 +965,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         arguments: [libraryElement.displayName],
       );
     }
-    var exportNamespace = NamespaceBuilder()
-        .createExportNamespaceForDirective2(node.libraryExport!);
+    var exportNamespace =
+        NamespaceBuilder().createExportNamespaceForDirective2(libraryExport);
     exportNamespace.definedNames2.forEach((String name, Element2 element) {
       if (element case Annotatable annotatable) {
         if (annotatable.metadata2.hasInternal) {

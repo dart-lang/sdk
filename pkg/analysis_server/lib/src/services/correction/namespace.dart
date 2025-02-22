@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// Returns the [Element2] exported from the given [LibraryElement2].
@@ -11,6 +12,7 @@ Element2? getExportedElement(LibraryElement2? library, String name) {
   if (library == null) {
     return null;
   }
+  library as LibraryElementImpl;
   var namespace = NamespaceBuilder().createExportNamespaceForLibrary(library);
   return namespace.definedNames2[name];
 }

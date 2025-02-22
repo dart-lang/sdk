@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -11,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -51,11 +51,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitExportDirective(ExportDirective node) {
+  void visitExportDirective(covariant ExportDirectiveImpl node) {
     var libraryExport = node.libraryExport;
     if (libraryExport != null) {
       // The element is null when the URI is invalid.
-      LibraryElement2? library = libraryExport.exportedLibrary2;
+      var library = libraryExport.exportedLibrary2;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
@@ -78,12 +78,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitImportDirective(ImportDirective node) {
+  void visitImportDirective(covariant ImportDirectiveImpl node) {
     var libraryImport = node.libraryImport;
     if (libraryImport != null) {
       // The element is null when the URI is invalid, but not when the URI is
       // valid but refers to a nonexistent file.
-      LibraryElement2? library = libraryImport.importedLibrary2;
+      var library = libraryImport.importedLibrary2;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
           _checkCombinator(library, combinator);
@@ -130,7 +130,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   /// Resolve the names in the given [combinator] in the scope of the given
   /// [library].
-  void _checkCombinator(LibraryElement2 library, Combinator combinator) {
+  void _checkCombinator(LibraryElementImpl library, Combinator combinator) {
     Namespace namespace =
         NamespaceBuilder().createExportNamespaceForLibrary(library);
     NodeList<SimpleIdentifier> names;

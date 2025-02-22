@@ -2606,7 +2606,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitExportDirective(ExportDirective node) {
+  void visitExportDirective(covariant ExportDirectiveImpl node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitExportDirective(node);

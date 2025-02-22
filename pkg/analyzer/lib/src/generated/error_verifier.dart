@@ -725,7 +725,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitExportDirective(ExportDirective node) {
+  void visitExportDirective(covariant ExportDirectiveImpl node) {
     var libraryExport = node.libraryExport;
     if (libraryExport != null) {
       var exportedLibrary = libraryExport.exportedLibrary2;
@@ -2106,8 +2106,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [exportedLibrary] is the library element containing the exported element.
   ///
   /// See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
-  void _checkForAmbiguousExport(ExportDirective directive,
-      LibraryExport libraryExport, LibraryElement2? exportedLibrary) {
+  void _checkForAmbiguousExport(ExportDirectiveImpl directive,
+      LibraryExportElementImpl libraryExport, LibraryElementImpl? exportedLibrary) {
     if (exportedLibrary == null) {
       return;
     }

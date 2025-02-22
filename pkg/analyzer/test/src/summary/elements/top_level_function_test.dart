@@ -2196,7 +2196,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@function::foo
   exportNamespace
-    foo: <testLibraryFragment>::@function::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -2224,7 +2224,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@function::foo
   exportNamespace
-    foo: <testLibraryFragment>::@function::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
 ''');
   }
 
@@ -2268,7 +2268,7 @@ library
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@function::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@function::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -2295,7 +2295,7 @@ library
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@function::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@function::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
 ''');
   }
 
@@ -2795,7 +2795,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@getter::foo
   exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -2834,7 +2834,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@getter::foo
   exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
 ''');
   }
 
@@ -3070,7 +3070,7 @@ library
     declared <testLibraryFragment>::@getter::foo
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
     foo=: <testLibraryFragment>::@setter::foo
 ----------------------------------------
 library
@@ -3126,7 +3126,7 @@ library
     declared <testLibraryFragment>::@getter::foo
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
     foo=: <testLibraryFragment>::@setter::foo
 ''');
   }
@@ -3463,7 +3463,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo=: <testLibraryFragment>::@setter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -3511,7 +3511,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo=: <testLibraryFragment>::@setter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
 ''');
   }
 
@@ -3585,7 +3585,7 @@ library
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
     foo: <testLibraryFragment>::@getter::foo
-    foo=: <testLibraryFragment>::@setter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -3644,7 +3644,7 @@ library
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
     foo: <testLibraryFragment>::@getter::foo
-    foo=: <testLibraryFragment>::@setter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
 ''');
   }
 }

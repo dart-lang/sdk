@@ -7697,7 +7697,7 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   }
 
   @override
-  LibraryElement2? get exportedLibrary2 => exportedLibrary;
+  LibraryElementImpl? get exportedLibrary2 => exportedLibrary;
 
   @override
   String get identifier => 'export@$nameOffset';
@@ -7769,7 +7769,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   }
 
   @override
-  LibraryElement2? get importedLibrary2 => importedLibrary;
+  LibraryElementImpl? get importedLibrary2 => importedLibrary;
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
@@ -7783,12 +7783,12 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   @override
   Namespace get namespace {
     var uri = this.uri;
-    if (uri is DirectiveUriWithLibrary) {
+    if (uri is DirectiveUriWithLibraryImpl) {
       return _namespace ??=
           NamespaceBuilder().createImportNamespaceForDirective(
         importedLibrary: uri.library,
         combinators: combinators,
-        prefix: prefix?.element,
+        prefix: prefix2,
       );
     }
     return Namespace.EMPTY;
