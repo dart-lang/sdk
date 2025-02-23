@@ -264,10 +264,10 @@ class SearchMatchImpl implements SearchMatch {
   final Source unitSource;
 
   @override
-  final LibraryElement2 libraryElement2;
+  final LibraryElement2 libraryElement;
 
   @override
-  final Element2 element2;
+  final Element2 element;
 
   @override
   final bool isResolved;
@@ -285,8 +285,8 @@ class SearchMatchImpl implements SearchMatch {
     this.file,
     this.librarySource,
     this.unitSource,
-    this.libraryElement2,
-    this.element2,
+    this.libraryElement,
+    this.element,
     this.isResolved,
     this.isQualified,
     this.kind,

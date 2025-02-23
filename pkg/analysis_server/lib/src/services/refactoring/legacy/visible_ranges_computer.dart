@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Computer of local elements and source ranges in which they are visible.
 class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
-  final Map<LocalElement2, SourceRange> _map2 = {};
+  final Map<LocalElement2, SourceRange> _map = {};
 
   @override
   void visitCatchClause(CatchClause node) {
@@ -25,9 +25,9 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     if (element is FormalParameterElement) {
       var body = _getFunctionBody(node);
       if (body is BlockFunctionBody) {
-        _map2[element] = range.node(body);
+        _map[element] = range.node(body);
       } else if (body is ExpressionFunctionBody) {
-        _map2[element] = range.node(body);
+        _map[element] = range.node(body);
       }
     }
   }
@@ -48,7 +48,7 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     var block = node.parent?.parent;
     if (block is Block) {
       var element = node.declaredFragment?.element as LocalFunctionElement;
-      _map2[element] = range.node(block);
+      _map[element] = range.node(block);
     }
 
     super.visitFunctionDeclaration(node);
@@ -83,14 +83,14 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     // TODO(brianwilkerson): Figure out whether this should be testing for
     //  `PromotableElement`. The test is missing parameter elements.
     if (element is LocalElement2) {
-      _map2[element] = range.node(scopeNode);
+      _map[element] = range.node(scopeNode);
     }
   }
 
   static Map<LocalElement2, SourceRange> forNode(AstNode unit) {
     var computer = VisibleRangesComputer();
     unit.accept(computer);
-    return computer._map2;
+    return computer._map;
   }
 
   /// Return the body of the function that contains the given [parameter], or

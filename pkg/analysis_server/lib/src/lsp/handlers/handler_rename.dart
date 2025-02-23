@@ -64,21 +64,18 @@ class PrepareRenameHandler
     return (unit, offset).mapResults((unit, offset) async {
       var node = NodeLocator(offset).searchWithin(unit.unit);
       node = _tweakLocatedNode(node, offset);
-      var element = server.getElementOfNode2(node, useMockForImport: true);
+      var element = server.getElementOfNode(node, useMockForImport: true);
 
       if (node == null || element == null) {
         return success(null);
       }
 
-      var refactorDetails = RenameRefactoring.getElementToRename2(
-        node,
-        element,
-      );
+      var refactorDetails = RenameRefactoring.getElementToRename(node, element);
       if (refactorDetails == null) {
         return success(null);
       }
 
-      var refactoring = RenameRefactoring.create2(
+      var refactoring = RenameRefactoring.create(
         server.refactoringWorkspace,
         unit,
         refactorDetails.element2,
@@ -163,20 +160,17 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
     ) async {
       var node = NodeLocator(offset).searchWithin(unit.unit);
       node = _tweakLocatedNode(node, offset);
-      var element = server.getElementOfNode2(node, useMockForImport: true);
+      var element = server.getElementOfNode(node, useMockForImport: true);
       if (node == null || element == null) {
         return success(null);
       }
 
-      var refactorDetails = RenameRefactoring.getElementToRename2(
-        node,
-        element,
-      );
+      var refactorDetails = RenameRefactoring.getElementToRename(node, element);
       if (refactorDetails == null) {
         return success(null);
       }
 
-      var refactoring = RenameRefactoring.create2(
+      var refactoring = RenameRefactoring.create(
         server.refactoringWorkspace,
         unit,
         refactorDetails.element2,
@@ -282,7 +276,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
         // class which is not necessarily the one where the rename was invoked.
         var declaringFile =
             (refactoring as RenameUnitMemberRefactoringImpl)
-                .element2
+                .element
                 .firstFragment
                 .libraryFragment
                 ?.source
@@ -326,7 +320,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
 
   bool _isClassRename(RenameRefactoring refactoring) =>
       refactoring is RenameUnitMemberRefactoringImpl &&
-      refactoring.element2 is InterfaceElement2;
+      refactoring.element is InterfaceElement2;
 
   /// Asks the user whether they would like to rename the file along with the
   /// class.

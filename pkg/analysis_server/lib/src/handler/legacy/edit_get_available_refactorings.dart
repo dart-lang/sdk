@@ -75,7 +75,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
     var resolvedUnit = await server.getResolvedUnit(file);
     if (resolvedUnit != null) {
       var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-      var element = server.getElementOfNode2(node);
+      var element = server.getElementOfNode(node);
       if (element != null) {
         var refactoringWorkspace = server.refactoringWorkspace;
         // try CONVERT_METHOD_TO_GETTER
@@ -89,7 +89,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
           }
         }
         // try RENAME
-        var renameRefactoring = RenameRefactoring.create2(
+        var renameRefactoring = RenameRefactoring.create(
           refactoringWorkspace,
           resolvedUnit,
           element,

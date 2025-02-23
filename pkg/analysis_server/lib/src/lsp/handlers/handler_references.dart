@@ -66,7 +66,7 @@ class ReferencesHandler
     var node = NodeLocator(offset).searchWithin(result.unit);
     node = _getReferenceTargetNode(node);
 
-    var element = switch (server.getElementOfNode2(node)) {
+    var element = switch (server.getElementOfNode(node)) {
       FieldFormalParameterElement2(:var field2?) => field2,
       PropertyAccessorElement2(:var variable3?) => variable3,
       (var element) => element,

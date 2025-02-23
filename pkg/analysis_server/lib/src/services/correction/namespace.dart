@@ -20,12 +20,12 @@ Element2? getExportedElement(LibraryElement2? library, String name) {
 /// Return the [LibraryImport] that is referenced by [prefixNode], or
 /// `null` if the node does not reference a prefix or if we cannot determine
 /// which import is being referenced.
-LibraryImport? getImportElement2(SimpleIdentifier prefixNode) {
+LibraryImport? getImportElement(SimpleIdentifier prefixNode) {
   var parent = prefixNode.parent;
   if (parent is ImportDirective) {
     return parent.libraryImport;
   }
-  return _getImportElementInfo2(prefixNode);
+  return _getImportElementInfo(prefixNode);
 }
 
 /// Return the [LibraryImport] that declared [prefix] and imports [element].
@@ -33,7 +33,7 @@ LibraryImport? getImportElement2(SimpleIdentifier prefixNode) {
 /// [libraryElement] - the [LibraryElement2] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
-LibraryImport? _getImportElement2(
+LibraryImport? _getImportElement(
   LibraryElement2 libraryElement,
   String prefix,
   Element2 element,
@@ -98,7 +98,7 @@ LibraryImport? _getImportElement2(
 
 /// Returns the [LibraryImport] that is referenced by [prefixNode] with a
 /// [PrefixElement2], maybe `null`.
-LibraryImport? _getImportElementInfo2(SimpleIdentifier prefixNode) {
+LibraryImport? _getImportElementInfo(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent;
   var unit = prefixNode.thisOrAncestorOfType<CompilationUnit>();
@@ -125,5 +125,5 @@ LibraryImport? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   }
   // find ImportElement
   var prefix = prefixNode.name;
-  return _getImportElement2(libraryElement, prefix, usedElement);
+  return _getImportElement(libraryElement, prefix, usedElement);
 }

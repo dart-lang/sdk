@@ -199,7 +199,7 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
   var colorPreviewHex =
       capabilities.completionItemKinds.contains(lsp.CompletionItemKind.Color) &&
               suggestion is ElementBasedSuggestion
-          ? server.getColorHexString2(element)
+          ? server.getColorHexString(element)
           : null;
 
   var completionKind =
@@ -560,7 +560,7 @@ CompletionDetail _getCompletionDetail(
     if (element is FormalParameterElement) {
       parameterType = element.type.getDisplayString();
     }
-    returnType = server.getReturnTypeString2(element) ?? parameterType;
+    returnType = server.getReturnTypeString(element) ?? parameterType;
 
     // Extract the type from setters to be shown in the place a return type
     // would usually be shown.

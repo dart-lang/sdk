@@ -54,7 +54,7 @@ void doSourceChange_addSourceEdit(
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
-String? getAliasedTypeString2(engine.Element2 element) {
+String? getAliasedTypeString(engine.Element2 element) {
   if (element is engine.TypeAliasElement2) {
     var aliasedType = element.aliasedType;
     return aliasedType.getDisplayString();
@@ -64,7 +64,7 @@ String? getAliasedTypeString2(engine.Element2 element) {
 
 /// Returns a color hex code (in the form '#FFFFFF')  if [element] represents
 /// a color.
-String? getColorHexString2(engine.Element2? element) {
+String? getColorHexString(engine.Element2? element) {
   if (element is engine.VariableElement2) {
     var dartValue = element.computeConstantValue();
     if (dartValue != null) {
@@ -81,7 +81,7 @@ String? getColorHexString2(engine.Element2? element) {
   return null;
 }
 
-String? getReturnTypeString2(engine.Element2 element) {
+String? getReturnTypeString(engine.Element2 element) {
   if (element is engine.ExecutableElement2) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
@@ -233,7 +233,7 @@ DiagnosticMessage newDiagnosticMessage(
 }
 
 /// Create a Location based on an [engine.Element2].
-Location? newLocation_fromElement2(engine.Element2? element) {
+Location? newLocation_fromElement(engine.Element2? element) {
   if (element == null) {
     return null;
   }
@@ -272,7 +272,7 @@ Location? newLocation_fromFragment(engine.Fragment? fragment) {
 
 /// Create a Location based on an [engine.SearchMatch].
 Location newLocation_fromMatch(engine.SearchMatch match) {
-  var libraryFragment = _getUnitElement(match.element2);
+  var libraryFragment = _getUnitElement(match.element);
   return _locationForArgs(libraryFragment, match.sourceRange);
 }
 
@@ -303,7 +303,7 @@ OverriddenMember newOverriddenMember_fromEngine(engine.Element2 member) {
 SearchResult newSearchResult_fromMatch(engine.SearchMatch match) {
   var kind = newSearchResultKind_fromEngine(match.kind);
   var location = newLocation_fromMatch(match);
-  var path = _computePath(match.element2);
+  var path = _computePath(match.element);
   return SearchResult(location, kind, !match.isResolved, path);
 }
 

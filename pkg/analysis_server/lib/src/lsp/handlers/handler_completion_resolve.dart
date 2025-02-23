@@ -88,7 +88,7 @@ class CompletionResolveHandler
 
         var element =
             elementReference != null
-                ? await ElementLocation2.decode(
+                ? await ElementLocation.decode(
                   elementReference,
                 ).locateIn(session)
                 : null;

@@ -14,10 +14,10 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
     super.workspace,
     super.sessionHelper,
     LibraryElement2 super.element2,
-  ) : super.c2();
+  ) : super();
 
   @override
-  LibraryElement2 get element2 => super.element2 as LibraryElement2;
+  LibraryElement2 get element => super.element as LibraryElement2;
 
   @override
   String get refactoringName {
@@ -40,6 +40,6 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() async {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    await processor.renameElement2(element2);
+    await processor.renameElement(element);
   }
 }

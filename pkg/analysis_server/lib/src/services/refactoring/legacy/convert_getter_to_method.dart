@@ -81,7 +81,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
 
   /// Checks if [element] is valid to perform this refactor.
   RefactoringStatus _checkElement() {
-    if (!workspace.containsElement2(element)) {
+    if (!workspace.containsElement(element)) {
       return RefactoringStatus.fatal(
         'Only getters in your workspace can be converted.',
       );

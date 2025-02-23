@@ -25,10 +25,10 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     super.workspace,
     super.sessionHelper,
     ConstructorElement2 super.element,
-  ) : super.c2();
+  ) : super();
 
   @override
-  ConstructorElement2 get element2 => super.element2 as ConstructorElement2;
+  ConstructorElement2 get element => super.element as ConstructorElement2;
 
   @override
   String get refactoringName {
@@ -52,7 +52,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() async {
     // prepare references
-    var matches = await searchEngine.searchReferences(element2);
+    var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     // update references
     for (var reference in references) {
@@ -86,12 +86,12 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       reference.addEdit(change, replacement);
     }
     // Update the declaration.
-    if (element2.isSynthetic) {
+    if (element.isSynthetic) {
       await _replaceSynthetic();
     } else {
       doSourceChange_addSourceEdit(
         change,
-        element2.firstFragment.libraryFragment.source,
+        element.firstFragment.libraryFragment.source,
         newSourceEdit_range(
           _declarationNameRange(),
           newName.isNotEmpty ? '.$newName' : '',
@@ -133,7 +133,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _analyzePossibleConflicts(RefactoringStatus result) {
-    var parentClass = element2.enclosingElement2;
+    var parentClass = element.enclosingElement2;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name3 == newName) {
       result.addError(
@@ -150,12 +150,12 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         getElementKindName(newNameMember),
         newName,
       );
-      result.addError(message, newLocation_fromElement2(newNameMember));
+      result.addError(message, newLocation_fromElement(newNameMember));
     }
   }
 
   SourceRange _declarationNameRange() {
-    var fragment = element2.firstFragment;
+    var fragment = element.firstFragment;
     var offset = fragment.periodOffset;
     if (offset != null) {
       var name = fragment.name2;
@@ -170,7 +170,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<AstNode?> _nodeCoveringReference(SourceReference reference) async {
-    var element = reference.element2;
+    var element = reference.element;
     var unitResult = await sessionHelper.getResolvedUnitByElement(element);
     return unitResult?.unit
         .select(offset: reference.range.offset, length: 0)
@@ -184,13 +184,13 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }) {
     doSourceChange_addFragmentEdit(
       change,
-      reference.element2.firstFragment,
+      reference.element.firstFragment,
       newSourceEdit_range(range, replacement),
     );
   }
 
   Future<void> _replaceSynthetic() async {
-    var classElement = element2.enclosingElement2;
+    var classElement = element.enclosingElement2;
 
     var fragment = classElement.firstFragment;
     var result = await sessionHelper.getElementDeclaration(fragment);

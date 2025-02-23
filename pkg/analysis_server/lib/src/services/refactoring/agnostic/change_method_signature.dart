@@ -684,7 +684,7 @@ class _SignatureUpdater {
 
   /// Returns the resolved unit with [reference].
   Future<ResolvedUnitResult?> referenceUnitResult(SearchMatch reference) async {
-    var element = reference.element2;
+    var element = reference.element;
     return await sessionHelper.getResolvedUnitByElement(element);
   }
 

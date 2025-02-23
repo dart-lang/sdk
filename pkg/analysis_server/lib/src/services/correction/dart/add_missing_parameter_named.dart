@@ -16,9 +16,8 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_parameterName];
@@ -79,11 +78,11 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
 
     if (context.named.isNotEmpty) {
       var lastFirst = context.named.last.firstFragment;
-      var prevNode = await context.getParameterNode2(lastFirst);
+      var prevNode = await context.getParameterNode(lastFirst);
       await addParameter(prevNode?.end, ', ', '');
     } else if (context.required.isNotEmpty) {
       var lastFirst = context.required.last.firstFragment;
-      var prevNode = await context.getParameterNode2(lastFirst);
+      var prevNode = await context.getParameterNode(lastFirst);
       await addParameter(prevNode?.end, ', {', '}');
     } else {
       var parameterList = await context.getParameterList();

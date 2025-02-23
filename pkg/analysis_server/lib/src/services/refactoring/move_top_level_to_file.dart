@@ -156,7 +156,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       var matches = await searchEngine.searchReferences(element);
       for (var match in matches) {
         if (match.isResolved) {
-          libraries.putIfAbsent(match.libraryElement2, () => {}).add(element2);
+          libraries.putIfAbsent(match.libraryElement, () => {}).add(element2);
         }
       }
     }
