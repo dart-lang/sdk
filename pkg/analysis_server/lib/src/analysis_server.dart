@@ -646,7 +646,7 @@ abstract class AnalysisServer {
   /// Return a [Future] that completes with the [Element2] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
-  Future<Element2?> getElementAtOffset2(String file, int offset) async {
+  Future<Element2?> getElementAtOffset(String file, int offset) async {
     if (!priorityFiles.contains(file)) {
       var driver = getAnalysisDriver(file);
       if (driver == null) {
@@ -668,7 +668,7 @@ abstract class AnalysisServer {
     }
 
     var node = await getNodeAtOffset(file, offset);
-    return getElementOfNode2(node);
+    return getElementOfNode(node);
   }
 
   /// Returns the element associated with the [node].
@@ -679,7 +679,7 @@ abstract class AnalysisServer {
   /// this work-around.
   ///
   /// Returns `null` if [node] is `null` or doesn't have an element.
-  Element2? getElementOfNode2(AstNode? node, {bool useMockForImport = false}) {
+  Element2? getElementOfNode(AstNode? node, {bool useMockForImport = false}) {
     if (node == null) {
       return null;
     }
@@ -702,7 +702,7 @@ abstract class AnalysisServer {
     if (useMockForImport &&
         node is SimpleIdentifier &&
         element is PrefixElement2) {
-      element = MockLibraryImportElement(getImportElement2(node)!);
+      element = MockLibraryImportElement(getImportElement(node)!);
     }
     return element;
   }

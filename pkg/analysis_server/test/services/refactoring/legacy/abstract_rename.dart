@@ -52,7 +52,7 @@ class RenameRefactoringTest extends RefactoringTest {
     }
 
     if (node is SimpleIdentifier && element is PrefixElement2) {
-      element = MockLibraryImportElement(getImportElement2(node)!);
+      element = MockLibraryImportElement(getImportElement(node)!);
     }
 
     createRenameRefactoringForElement2(element);
@@ -62,7 +62,7 @@ class RenameRefactoringTest extends RefactoringTest {
   /// Fails if no [RenameRefactoring] can be created.
   void createRenameRefactoringForElement2(Element2? element) {
     var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
-    var refactoring = RenameRefactoring.create2(
+    var refactoring = RenameRefactoring.create(
       workspace,
       testAnalysisResult,
       element,

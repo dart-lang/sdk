@@ -9,7 +9,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/element_location2.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element2.dart' hide ElementLocation;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -37,7 +37,7 @@ class DartLazyTypeHierarchyComputer {
 
   /// Finds subtypes for the [Element2] at [location].
   Future<List<TypeHierarchyRelatedItem>?> findSubtypes(
-    ElementLocation2 location,
+    ElementLocation location,
     SearchEngine searchEngine,
   ) async {
     var targetElement = await _findTargetElement(location);
@@ -57,7 +57,7 @@ class DartLazyTypeHierarchyComputer {
   /// Anchors are included in returned types (where necessary to preserve type
   /// arguments) that can be used when calling for the next level of types.
   Future<List<TypeHierarchyRelatedItem>?> findSupertypes(
-    ElementLocation2 location, {
+    ElementLocation location, {
     TypeHierarchyAnchor? anchor,
   }) async {
     var targetElement = await _findTargetElement(location);
@@ -106,7 +106,7 @@ class DartLazyTypeHierarchyComputer {
 
   /// Locate the [Element2] referenced by [location].
   Future<InterfaceElement2?> _findTargetElement(
-    ElementLocation2 location,
+    ElementLocation location,
   ) async {
     var element = await location.locateIn(_result.session);
     return element is InterfaceElement2 ? element : null;
@@ -119,7 +119,7 @@ class DartLazyTypeHierarchyComputer {
   ) async {
     /// Helper to convert a [SearchMatch] to a [TypeHierarchyRelatedItem].
     TypeHierarchyRelatedItem? toHierarchyItem(SearchMatch match) {
-      var element = match.element2 as InterfaceElement2;
+      var element = match.element as InterfaceElement2;
       var type = element.thisType;
       switch (match.kind) {
         case MatchKind.REFERENCE_IN_EXTENDS_CLAUSE:
@@ -142,7 +142,7 @@ class DartLazyTypeHierarchyComputer {
     );
     var seenElements = <Element2>{};
     return matches
-        .where((match) => seenElements.add(match.element2))
+        .where((match) => seenElements.add(match.element))
         .map(toHierarchyItem)
         .nonNulls
         .toList();
@@ -220,7 +220,7 @@ class DartLazyTypeHierarchyComputer {
 
 class TypeHierarchyAnchor {
   /// The location of the anchor element.
-  final ElementLocation2 location;
+  final ElementLocation location;
 
   /// The supertype path from [location] to the target element.
   final List<int> path;
@@ -239,7 +239,7 @@ class TypeHierarchyItem {
   /// `findSubtypes`/`findSupertypes` so that if code has been modified since
   /// the `findTarget` call the element can still be located (provided the
   /// names/identifiers have not changed).
-  final ElementLocation2 location;
+  final ElementLocation location;
 
   /// The type being displayed.
   final InterfaceType _type;
@@ -272,7 +272,7 @@ class TypeHierarchyItem {
        file = type.element3.firstFragment.libraryFragment.source.fullName;
 
   static TypeHierarchyItem? forType(InterfaceType type) {
-    var location = ElementLocation2.forElement(type.element3);
+    var location = ElementLocation.forElement(type.element3);
     if (location == null) return null;
 
     return TypeHierarchyItem._forType(type: type, location: location);
@@ -356,7 +356,7 @@ class TypeHierarchyRelatedItem extends TypeHierarchyItem {
     InterfaceType type, {
     required TypeHierarchyItemRelationship relationship,
   }) {
-    var location = ElementLocation2.forElement(type.element3);
+    var location = ElementLocation.forElement(type.element3);
     if (location == null) return null;
 
     return TypeHierarchyRelatedItem.forType(

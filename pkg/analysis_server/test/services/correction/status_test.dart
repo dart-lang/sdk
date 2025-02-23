@@ -26,7 +26,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     await resolveTestCode('class MyClass {}');
     var element = findElement2.class_('MyClass');
     // check
-    var location = newLocation_fromElement2(element)!;
+    var location = newLocation_fromElement(element)!;
     expect(location.file, testFile.path);
     expect(location.offset, 6);
     expect(location.length, 7);

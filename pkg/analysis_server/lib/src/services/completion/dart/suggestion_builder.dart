@@ -1475,8 +1475,8 @@ class SuggestionBuilder {
       }
     }
 
-    var returnType = getReturnTypeString2(element);
-    var colorHex = getColorHexString2(element);
+    var returnType = getReturnTypeString(element);
+    var colorHex = getColorHexString(element);
 
     List<String>? parameterNames;
     List<String>? parameterTypes;

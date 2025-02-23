@@ -58,7 +58,7 @@ class ExecutableParameters {
 
   /// Return the [FormalParameter] of the [fragment] in [FormalParameterList],
   /// or `null` if it can't be found.
-  Future<FormalParameter?> getParameterNode2(
+  Future<FormalParameter?> getParameterNode(
     FormalParameterFragment fragment,
   ) async {
     var result = await sessionHelper.getElementDeclaration(fragment);

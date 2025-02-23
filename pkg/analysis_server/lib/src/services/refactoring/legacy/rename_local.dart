@@ -89,7 +89,7 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
         conflictingLocals.add(declaredElement);
         var nodeKind = declaredElement.kind.displayName;
         var message = "Duplicate $nodeKind '$newName'.";
-        result.addError(message, newLocation_fromElement2(declaredElement));
+        result.addError(message, newLocation_fromElement(declaredElement));
         return;
       }
     }
@@ -122,14 +122,14 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     super.workspace,
     super.sessionHelper,
     LocalElement2 super.element,
-  ) : super.c2();
+  ) : super();
 
   @override
-  LocalElement2 get element2 => super.element2 as LocalElement2;
+  LocalElement2 get element => super.element as LocalElement2;
 
   @override
   String get refactoringName {
-    if (element2 is LocalFunctionElement) {
+    if (element is LocalFunctionElement) {
       return 'Rename Local Function';
     }
     return 'Rename Local Variable';
@@ -138,13 +138,13 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
-    var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element2);
+    var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
     var unit = resolvedUnit?.unit;
     unit?.accept(
       ConflictValidatorVisitor(
         result,
         newName,
-        element2,
+        element,
         VisibleRangesComputer.forNode(unit),
       ),
     );
@@ -154,9 +154,9 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   @override
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
-    if (element2 is LocalVariableElement2) {
+    if (element is LocalVariableElement2) {
       result.addStatus(validateVariableName(newName));
-    } else if (element2 is LocalFunctionElement) {
+    } else if (element is LocalFunctionElement) {
       result.addStatus(validateFunctionName(newName));
     }
     return result;
@@ -166,7 +166,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   Future<void> fillChange() async {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
 
-    var element = element2;
+    var element = this.element;
     if (element is PatternVariableElement2) {
       var rootVariable =
           (element.firstFragment as PatternVariableElementImpl).rootVariable;
@@ -177,13 +177,13 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
                   .toList()
               : [element.firstFragment];
       for (var declaredFragment in declaredFragments) {
-        processor.addDeclarationEdit2(declaredFragment.element);
+        processor.addDeclarationEdit(declaredFragment.element);
         if (declaredFragment is BindPatternVariableElementImpl) {
           // If a variable is used to resolve a named field with an implicit
           // name, we need to make the field name explicit.
           var fieldName = declaredFragment.node.fieldNameWithImplicitName;
           if (fieldName != null) {
-            processor.replace2(
+            processor.replace(
               referenceElement: element,
               offset: fieldName.colon.offset,
               length: 0,
@@ -193,7 +193,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
         }
       }
     } else {
-      processor.addDeclarationEdit2(element);
+      processor.addDeclarationEdit(element);
     }
 
     var references = await searchEngine.searchReferences(element);

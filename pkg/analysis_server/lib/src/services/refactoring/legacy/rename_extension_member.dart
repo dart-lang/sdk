@@ -26,17 +26,17 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   late _ExtensionMemberValidator _validator;
 
   RenameExtensionMemberRefactoringImpl(
-    RefactoringWorkspace workspace,
-    AnalysisSessionHelper sessionHelper,
+    super.workspace,
+    super.sessionHelper,
     this.extensionElement,
-    Element2 element,
-  ) : super.c2(workspace, sessionHelper, element);
+    super.element,
+  ) : super();
 
   @override
   String get refactoringName {
-    if (element2 is TypeParameterElement2) {
+    if (element is TypeParameterElement2) {
       return 'Rename Type Parameter';
-    } else if (element2 is FieldElement2) {
+    } else if (element is FieldElement2) {
       return 'Rename Field';
     }
     return 'Rename Method';
@@ -48,7 +48,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
       searchEngine,
       sessionHelper,
       extensionElement,
-      element2,
+      element,
       newName,
     );
     return _validator.validate();
@@ -57,7 +57,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
     var result = await super.checkInitialConditions();
-    if (element2 is MethodElement2 && (element2 as MethodElement2).isOperator) {
+    if (element is MethodElement2 && (element as MethodElement2).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
     return result;
@@ -66,9 +66,9 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
-    if (element2 is FieldElement2) {
+    if (element is FieldElement2) {
       result.addStatus(validateFieldName(newName));
-    } else if (element2 is MethodElement2) {
+    } else if (element is MethodElement2) {
       result.addStatus(validateMethodName(newName));
     }
     return result;
@@ -79,12 +79,12 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
 
     // Update the declaration.
-    var renameElement = element2;
+    var renameElement = element;
     if (renameElement.isSynthetic && renameElement is FieldElement2) {
-      processor.addDeclarationEdit2(renameElement.getter2);
-      processor.addDeclarationEdit2(renameElement.setter2);
+      processor.addDeclarationEdit(renameElement.getter2);
+      processor.addDeclarationEdit(renameElement.setter2);
     } else {
-      processor.addDeclarationEdit2(renameElement);
+      processor.addDeclarationEdit(renameElement);
     }
 
     // Update references.
@@ -127,7 +127,7 @@ class _ExtensionMemberValidator {
           getElementKindName(newNameMember),
           name,
         ),
-        newLocation_fromElement2(newNameMember),
+        newLocation_fromElement(newNameMember),
       );
     }
 
@@ -190,7 +190,7 @@ class _ExtensionMemberValidator {
         continue;
       }
       // Check local elements that might shadow the reference.
-      var localElements = await getLocalElements(match.element2);
+      var localElements = await getLocalElements(match.element);
       for (var localElement in localElements) {
         var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&

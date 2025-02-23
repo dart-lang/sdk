@@ -91,7 +91,7 @@ class CanRenameResponse {
         getElementKindName(newNameMember),
         newName,
       );
-      result.addError(message, newLocation_fromElement2(newNameMember));
+      result.addError(message, newLocation_fromElement(newNameMember));
     }
   }
 
@@ -445,7 +445,7 @@ class CiderRenameComputer {
     if (!_canRenameElement(element)) {
       return null;
     }
-    var refactoring = RenameRefactoring.getElementToRename2(node, element);
+    var refactoring = RenameRefactoring.getElementToRename(node, element);
     if (refactoring != null) {
       return CanRenameResponse(lineInfo, refactoring, _fileResolver, filePath);
     }

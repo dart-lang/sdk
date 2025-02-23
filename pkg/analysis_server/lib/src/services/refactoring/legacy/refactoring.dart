@@ -400,7 +400,7 @@ class RefactoringWorkspace {
   RefactoringWorkspace(this.drivers, this.searchEngine);
 
   /// Whether the [element] is defined in a file that is in a context root.
-  bool containsElement2(Element2 element) {
+  bool containsElement(Element2 element) {
     if (element is MockLibraryImportElement) {
       return containsFile(element.libraryFragment.source.fullName);
     }
@@ -447,7 +447,7 @@ abstract class RenameRefactoring implements Refactoring {
   ///
   /// Returns `null` if there is no support for renaming elements of the given
   /// kind.
-  static RenameRefactoring? create2(
+  static RenameRefactoring? create(
     RefactoringWorkspace workspace,
     ResolvedUnitResult resolvedUnit,
     Element2? element,
@@ -529,7 +529,7 @@ abstract class RenameRefactoring implements Refactoring {
 
   /// Returns the best element to rename based on the [node] and [element] (for
   /// example, the class when on the `new` keyword).
-  static RenameRefactoringElement? getElementToRename2(
+  static RenameRefactoringElement? getElementToRename(
     AstNode node,
     Element2? element,
   ) {

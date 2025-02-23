@@ -2260,7 +2260,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
               mustBeAssignable: mustBeAssignable,
               preferNonInvocation:
                   element is InterfaceElement2 &&
-                  state.request.shouldSuggestTearOff2(element),
+                  state.request.shouldSuggestTearOff(element),
             ).addStaticMembersOfElement(element);
           }
         }

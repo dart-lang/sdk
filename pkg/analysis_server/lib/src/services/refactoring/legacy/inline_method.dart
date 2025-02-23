@@ -529,7 +529,7 @@ class _ReferenceProcessor {
   _ReferenceProcessor(this.ref, this.reference);
 
   Future<void> init() async {
-    refElement = reference.element2;
+    refElement = reference.element;
 
     // prepare CorrectionUtils
     var result = await ref.sessionHelper.getResolvedUnitByElement(refElement);

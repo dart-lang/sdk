@@ -1258,8 +1258,8 @@ parent3: ${node.parent?.parent?.parent}
     if (type is! InterfaceType) {
       return null;
     }
-    var declaredElement2 = field.element2?.library2;
-    var uri = declaredElement2?.uri;
+    var declaredElement = field.element2?.library2;
+    var uri = declaredElement?.uri;
     var manager = InheritanceManager3();
     var member = manager.getMember3(type, Name(uri, name));
     if (member is GetterElement) {

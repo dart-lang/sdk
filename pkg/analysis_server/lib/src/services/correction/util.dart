@@ -179,7 +179,7 @@ FormalParameterElement? getFormalParameterElement(SimpleIdentifier node) {
 }
 
 /// Returns the namespace of the given [LibraryImport].
-Map<String, Element2> getImportNamespace2(LibraryImport imp) {
+Map<String, Element2> getImportNamespace(LibraryImport imp) {
   return imp.namespace.definedNames2;
 }
 

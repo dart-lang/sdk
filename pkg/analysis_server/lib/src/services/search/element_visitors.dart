@@ -14,19 +14,19 @@ Fragment? findFragmentByNameOffset(LibraryFragment fragment, int nameOffset) {
 
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
-void visitChildren2(Element2 element, BoolElementProcessor2 processor) {
-  element.visitChildren2(_ElementVisitorAdapter2(processor));
+void visitChildren(Element2 element, BoolElementProcessor processor) {
+  element.visitChildren2(_ElementVisitorAdapter(processor));
 }
 
 /// An [Element2] processor function type.
 /// If `true` is returned, children of [element] will be visited.
-typedef BoolElementProcessor2 = bool Function(Element2 element);
+typedef BoolElementProcessor = bool Function(Element2 element);
 
-/// A [GeneralizingElementVisitor] adapter for [BoolElementProcessor2].
-class _ElementVisitorAdapter2 extends GeneralizingElementVisitor2<void> {
-  final BoolElementProcessor2 processor;
+/// A [GeneralizingElementVisitor] adapter for [BoolElementProcessor].
+class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
+  final BoolElementProcessor processor;
 
-  _ElementVisitorAdapter2(this.processor);
+  _ElementVisitorAdapter(this.processor);
 
   @override
   void visitElement(Element2 element) {

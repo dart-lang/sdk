@@ -17,9 +17,9 @@ Element convertElement(engine.Element2 element) {
   var kind = convertElementToElementKind(element);
   var name = getElementDisplayName(element);
   var elementTypeParameters = _getTypeParametersString(element);
-  var aliasedType = getAliasedTypeString2(element);
+  var aliasedType = getAliasedTypeString(element);
   var elementParameters = getParametersString(element);
-  var elementReturnType = getReturnTypeString2(element);
+  var elementReturnType = getReturnTypeString(element);
   return Element(
     kind,
     name,
@@ -33,7 +33,7 @@ Element convertElement(engine.Element2 element) {
       isFinal: _isFinal(element),
       isStatic: _isStatic(element),
     ),
-    location: newLocation_fromElement2(element),
+    location: newLocation_fromElement(element),
     typeParameters: elementTypeParameters,
     aliasedType: aliasedType,
     parameters: elementParameters,
@@ -137,9 +137,9 @@ Element convertLibraryFragment(CompilationUnitElementImpl fragment) {
   var kind = convertElementToElementKind(fragment);
   var name = getElementDisplayName(fragment);
   var elementTypeParameters = _getTypeParametersString(fragment);
-  var aliasedType = getAliasedTypeString2(fragment);
+  var aliasedType = getAliasedTypeString(fragment);
   var elementParameters = getParametersString(fragment);
-  var elementReturnType = getReturnTypeString2(fragment);
+  var elementReturnType = getReturnTypeString(fragment);
   return Element(
     kind,
     name,

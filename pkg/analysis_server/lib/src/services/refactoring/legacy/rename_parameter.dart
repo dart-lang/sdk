@@ -20,11 +20,10 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
     super.workspace,
     super.sessionHelper,
     FormalParameterElement super.element,
-  ) : super.c2();
+  ) : super();
 
   @override
-  FormalParameterElement get element2 =>
-      super.element2 as FormalParameterElement;
+  FormalParameterElement get element => super.element as FormalParameterElement;
 
   @override
   String get refactoringName {
@@ -74,13 +73,13 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
       if (element is FieldFormalParameterElement2) {
         var field = element.field2;
         if (field != null) {
-          await processor.renameElement2(field);
+          await processor.renameElement(field);
           fieldRenamed = true;
         }
       }
 
       if (!fieldRenamed) {
-        processor.addDeclarationEdit2(element);
+        processor.addDeclarationEdit(element);
       }
       var references = await searchEngine.searchReferences(element);
 
@@ -93,7 +92,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
       // References to positional parameters from super-formal.
       if (element.isPositional) {
         references.removeWhere(
-          (match) => match.element2 is SuperFormalParameterElement2,
+          (match) => match.element is SuperFormalParameterElement2,
         );
       }
 
@@ -103,7 +102,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
 
   /// Fills [elements] with [Element2]s to rename.
   Future<void> _prepareElements() async {
-    var element = element2;
+    var element = this.element;
     if (element.isNamed) {
       elements =
           (await getHierarchyNamedParameters(searchEngine, element)).toList();

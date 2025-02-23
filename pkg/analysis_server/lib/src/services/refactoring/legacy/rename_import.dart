@@ -19,8 +19,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// A [Refactoring] for renaming [LibraryImport]s.
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
-  @override
-  final MockLibraryImportElement element2;
+  final MockLibraryImportElement importElement;
 
   factory RenameImportRefactoringImpl(
     RefactoringWorkspace workspace,
@@ -40,8 +39,11 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     super.workspace,
     super.sessionHelper,
     super.element,
-    this.element2,
-  ) : super.c2();
+    this.importElement,
+  ) : super();
+
+  @override
+  MockLibraryImportElement get element => importElement;
 
   @override
   String get refactoringName {
@@ -92,12 +94,12 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         }
       }
       if (edit != null) {
-        doSourceChange_addFragmentEdit(change, element2, edit);
+        doSourceChange_addFragmentEdit(change, element, edit);
       }
     }
     // update references
     var references = await searchEngine.searchLibraryImportReferences(
-      element2.import,
+      element.import,
     );
     for (var reference in references) {
       if (newName.isEmpty) {
@@ -131,14 +133,14 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
 
   /// Return the [ImportDirective] node that corresponds to the element.
   Future<ImportDirective?> _findNode() async {
-    var libraryFragment = element2.libraryFragment;
+    var libraryFragment = element.libraryFragment;
     var path = libraryFragment.source.fullName;
     var unitResult = sessionHelper.session.getParsedUnit(path);
     if (unitResult is! ParsedUnitResult) {
       return null;
     }
     var unit = unitResult.unit;
-    var index = libraryFragment.libraryImports2.indexOf(element2.import);
+    var index = libraryFragment.libraryImports2.indexOf(element.import);
     return unit.directives.whereType<ImportDirective>().elementAt(index);
   }
 

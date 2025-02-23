@@ -30,7 +30,7 @@ class RenameProcessor {
   );
 
   /// Add the edit that updates the [element] declaration.
-  void addDeclarationEdit2(Element2? element) {
+  void addDeclarationEdit(Element2? element) {
     if (element == null) {
       return;
     } else if (element is LibraryElementImpl) {
@@ -42,7 +42,7 @@ class RenameProcessor {
       );
       var edit = newSourceEdit_range(nameRange, newName);
       doSourceChange_addFragmentEdit(change, element.firstFragment, edit);
-    } else if (workspace.containsElement2(element)) {
+    } else if (workspace.containsElement(element)) {
       Fragment? fragment = element.firstFragment;
       while (fragment != null) {
         var edit = newSourceEdit_range(range.fragmentName(fragment)!, newName);
@@ -56,7 +56,7 @@ class RenameProcessor {
   void addReferenceEdits(List<SearchMatch> matches) {
     var references = getSourceReferences(matches);
     for (var reference in references) {
-      if (!workspace.containsElement2(reference.element2)) {
+      if (!workspace.containsElement(reference.element)) {
         continue;
       }
       reference.addEdit(change, newName);
@@ -64,15 +64,15 @@ class RenameProcessor {
   }
 
   /// Update the [element] declaration and references to it.
-  Future<void> renameElement2(Element2 element) async {
-    addDeclarationEdit2(element);
+  Future<void> renameElement(Element2 element) async {
+    addDeclarationEdit(element);
     var matches = await workspace.searchEngine.searchReferences(element);
     addReferenceEdits(matches);
   }
 
   /// Add an edit that replaces the specified region with [code].
   /// Uses [referenceElement] to identify the file to update.
-  void replace2({
+  void replace({
     required Element2 referenceElement,
     required int offset,
     required int length,
@@ -102,30 +102,30 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   late String newName;
 
-  RenameRefactoringImpl.c2(this.workspace, this.sessionHelper, Element2 element)
+  RenameRefactoringImpl(this.workspace, this.sessionHelper, Element2 element)
     : searchEngine = workspace.searchEngine,
       _element = element,
       elementKindName = element.kind.displayName,
       oldName = _getOldName(element);
 
-  Element2 get element2 => _element;
+  Element2 get element => _element;
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
     var result = RefactoringStatus();
-    if (element2.library2?.isInSdk == true) {
+    if (element.library2?.isInSdk == true) {
       var message = format(
         "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
-        getElementKindName(element2),
-        getElementQualifiedName(element2),
+        getElementKindName(element),
+        getElementQualifiedName(element),
       );
       result.addFatalError(message);
     }
-    if (!workspace.containsElement2(element2)) {
+    if (!workspace.containsElement(element)) {
       var message = format(
         "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
-        getElementKindName(element2),
-        getElementQualifiedName(element2),
+        getElementKindName(element),
+        getElementQualifiedName(element),
       );
       result.addFatalError(message);
     }

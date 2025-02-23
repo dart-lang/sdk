@@ -219,7 +219,7 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode2(node);
+        var element = server.getElementOfNode(node);
         if (element is GetterElement) {
           refactoring = ConvertGetterToMethodRefactoring(
             refactoringWorkspace,
@@ -232,7 +232,7 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode2(node);
+        var element = server.getElementOfNode(node);
         if (element is ExecutableElement2) {
           refactoring = ConvertMethodToGetterRefactoring(
             refactoringWorkspace,
@@ -312,7 +312,7 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode2(node, useMockForImport: true);
+        var element = server.getElementOfNode(node, useMockForImport: true);
         if (node is RepresentationDeclaration) {
           var extensionType = node.parent;
           if (extensionType is ExtensionTypeDeclaration &&
@@ -321,13 +321,13 @@ class RefactoringManager {
           }
         }
         if (node != null && element != null) {
-          var renameElement = RenameRefactoring.getElementToRename2(
+          var renameElement = RenameRefactoring.getElementToRename(
             node,
             element,
           );
           if (renameElement != null) {
             // do create the refactoring
-            refactoring = RenameRefactoring.create2(
+            refactoring = RenameRefactoring.create(
               refactoringWorkspace,
               resolvedUnit,
               renameElement.element2,

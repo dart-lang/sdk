@@ -49,13 +49,13 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     AnalysisSessionHelper sessionHelper,
     this.interfaceElement,
     Element2 element,
-  ) : super.c2(workspace, sessionHelper, element);
+  ) : super(workspace, sessionHelper, element);
 
   @override
   String get refactoringName {
-    if (element2 is TypeParameterElement2) {
+    if (element is TypeParameterElement2) {
       return 'Rename Type Parameter';
-    } else if (element2 is FieldElement2) {
+    } else if (element is FieldElement2) {
       return 'Rename Field';
     }
     return 'Rename Method';
@@ -67,7 +67,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       searchEngine,
       sessionHelper,
       interfaceElement,
-      element2,
+      element,
       newName,
     );
     return _validator.validate();
@@ -76,7 +76,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
     var result = await super.checkInitialConditions();
-    if (element2 is MethodElement2 && (element2 as MethodElement2).isOperator) {
+    if (element is MethodElement2 && (element as MethodElement2).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
     return result;
@@ -85,9 +85,9 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   RefactoringStatus checkNewName() {
     var result = super.checkNewName();
-    if (element2 is FieldElement2) {
+    if (element is FieldElement2) {
       result.addStatus(validateFieldName(newName));
-    } else if (element2 is MethodElement2) {
+    } else if (element is MethodElement2) {
       result.addStatus(validateMethodName(newName));
     }
     return result;
@@ -99,10 +99,10 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     // update declarations
     for (var renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement2) {
-        processor.addDeclarationEdit2(renameElement.getter2);
-        processor.addDeclarationEdit2(renameElement.setter2);
+        processor.addDeclarationEdit(renameElement.getter2);
+        processor.addDeclarationEdit(renameElement.setter2);
       } else {
-        processor.addDeclarationEdit2(renameElement);
+        processor.addDeclarationEdit(renameElement);
         if (!newName.startsWith('_')) {
           var interfaceElement = renameElement.enclosingElement2;
           if (interfaceElement is InterfaceElement2) {
@@ -127,11 +127,11 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       var nameRefs = getSourceReferences(nameMatches);
       for (var reference in nameRefs) {
         // ignore references from SDK and pub cache
-        if (!workspace.containsElement2(reference.element2)) {
+        if (!workspace.containsElement(reference.element)) {
           continue;
         }
         // check the element being renamed is accessible
-        if (!element2.isAccessibleIn2(reference.libraryElement2)) {
+        if (!element.isAccessibleIn2(reference.libraryElement)) {
           continue;
         }
         // add edit
@@ -182,8 +182,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     var references = getSourceReferences(_validator.references);
 
     for (var reference in references) {
-      var element = reference.element2;
-      if (!workspace.containsElement2(element)) {
+      var element = reference.element;
+      if (!workspace.containsElement(element)) {
         continue;
       }
 
@@ -230,7 +230,7 @@ class _BaseClassMemberValidator {
           getElementKindName(newNameMember),
           name,
         ),
-        newLocation_fromElement2(newNameMember),
+        newLocation_fromElement(newNameMember),
       );
     }
   }
@@ -244,7 +244,7 @@ class _BaseClassMemberValidator {
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
-      var nameElement = getSyntheticAccessorVariable(declaration.element2);
+      var nameElement = getSyntheticAccessorVariable(declaration.element);
       var nameClass = nameElement.enclosingElement2;
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
@@ -257,7 +257,7 @@ class _BaseClassMemberValidator {
             getElementKindName(nameElement),
             getElementQualifiedName(nameElement),
           ),
-          newLocation_fromElement2(nameElement),
+          newLocation_fromElement(nameElement),
         );
       }
       // the renamed Element is shadowed by a member of a subclass
@@ -269,7 +269,7 @@ class _BaseClassMemberValidator {
             getElementKindName(nameElement),
             getElementQualifiedName(nameElement),
           ),
-          newLocation_fromElement2(nameElement),
+          newLocation_fromElement(nameElement),
         );
       }
     }
@@ -305,7 +305,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
       result.addError(
         'Created ${elementKind.displayName} has the same name as the '
         "declaring ${interfaceElement.kind.displayName} '$name'.",
-        newLocation_fromElement2(interfaceElement),
+        newLocation_fromElement(interfaceElement),
       );
     }
     // check shadowing in the hierarchy
@@ -398,7 +398,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         result.addError(
           'Renamed ${elementKind.displayName} has the same name as the '
           "declaring ${enclosingElement.kind.displayName} '$name'.",
-          newLocation_fromElement2(element),
+          newLocation_fromElement(element),
         );
       }
     }
@@ -463,7 +463,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         continue;
       }
       // Check local elements that might shadow the reference.
-      var localElements = await getLocalElements(match.element2);
+      var localElements = await getLocalElements(match.element);
       for (var localElement in localElements) {
         var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
@@ -500,7 +500,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       return;
     }
     for (var reference in references) {
-      var refElement = reference.element2;
+      var refElement = reference.element;
       var refLibrary = refElement.library2!;
       if (refLibrary != library) {
         var message = format(

@@ -38,13 +38,4 @@ extension DartCompletionRequestExtensions on DartCompletionRequest {
       contextType.returnType,
     );
   }
-
-  /// Return `true` if the constructor tear-offs feature is enabled, and the
-  /// context type is a function type that matches an instantiation of the
-  /// [element].
-  ///
-  // TODO(scheglov): Validate that suggesting a tear-off instead of invocation
-  // is statistically a good choice.
-  bool shouldSuggestTearOff2(InterfaceElement2 element) =>
-      shouldSuggestTearOff(element);
 }
