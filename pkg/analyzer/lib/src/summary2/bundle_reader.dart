@@ -2146,7 +2146,7 @@ class ResolutionReader {
     );
   }
 
-  FunctionType? readOptionalFunctionType() {
+  FunctionTypeImpl? readOptionalFunctionType() {
     var type = readType();
     return type is FunctionTypeImpl ? type : null;
   }

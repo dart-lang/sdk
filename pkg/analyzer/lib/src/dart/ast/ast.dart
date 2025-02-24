@@ -886,7 +886,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   ExpressionImpl _rightHandSide;
 
   @override
-  MethodElement? staticElement;
+  MethodElementOrMember? staticElement;
 
   /// Initializes a newly created assignment expression.
   AssignmentExpressionImpl({
@@ -904,9 +904,9 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => staticElement?.asElement2;
+  MethodElement2OrMember? get element => staticElement?.asElement2;
 
-  set element(MethodElement2? element) {
+  set element(MethodElement2OrMember? element) {
     staticElement = element?.asElement;
   }
 
@@ -1837,7 +1837,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   MethodElement? staticElement;
 
   @override
-  FunctionType? staticInvokeType;
+  FunctionTypeImpl? staticInvokeType;
 
   /// Initializes a newly created binary expression.
   BinaryExpressionImpl({
