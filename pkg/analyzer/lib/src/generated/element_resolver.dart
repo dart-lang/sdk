@@ -248,7 +248,7 @@ class ElementResolver {
     var parameters =
         _resolveArgumentsToFunction(argumentList, invokedConstructor);
     if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
+      argumentList.correspondingStaticParameters2 = parameters;
     }
   }
 
@@ -323,7 +323,7 @@ class ElementResolver {
     var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
     if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
+      argumentList.correspondingStaticParameters2 = parameters;
     }
   }
 
@@ -397,7 +397,7 @@ class ElementResolver {
       enclosingConstructor: node.thisOrAncestorOfType<ConstructorDeclaration>(),
     );
     if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
+      argumentList.correspondingStaticParameters2 = parameters;
     }
   }
 
@@ -440,7 +440,7 @@ class ElementResolver {
   /// the list of arguments. An error will be reported if any of the arguments
   /// cannot be matched to a parameter. Return the parameters that correspond to
   /// the arguments, or `null` if no correspondence could be computed.
-  List<ParameterElementMixin?>? _resolveArgumentsToFunction(
+  List<FormalParameterElementMixin?>? _resolveArgumentsToFunction(
     ArgumentList argumentList,
     ExecutableElement2? executableElement, {
     ConstructorDeclaration? enclosingConstructor,

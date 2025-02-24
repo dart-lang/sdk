@@ -284,7 +284,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
     var parameters = _storeResult(typeArgumentTypes, invokeType);
     if (parameters != null) {
-      argumentList.correspondingStaticParameters =
+      argumentList.correspondingStaticParameters2 =
           ResolverVisitor.resolveArgumentsToParameters(
         argumentList: argumentList,
         formalParameters: parameters,
