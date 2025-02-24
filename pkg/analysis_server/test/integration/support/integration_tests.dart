@@ -212,7 +212,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     writeTestPackageConfig();
 
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: ['macros']),
+      analysisOptionsContent(experiments: ['macros', 'null-aware-elements']),
     );
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
