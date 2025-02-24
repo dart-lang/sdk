@@ -10,6 +10,8 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -417,8 +419,72 @@ code-style:
     expect(analysisOptions.codeStyleOptions.useFormatter, true);
   }
 
+  test_signature_on_different_error_ordering() {
+    var options = parseOptions('''
+analyzer:
+  errors:
+    a: warning
+    b: ignore
+    c: ignore
+''');
+    var sig1 = options.signature;
+    for (var i = 0; i < 10; i++) {
+      var options2 = parseOptions('''
+analyzer:
+  errors:
+    b: ignore
+    a: warning
+    c: ignore
+''');
+      var sig2 = options2.signature;
+      expect(sig1, sig2);
+    }
+  }
+
+  test_signature_on_different_lints_ordering() {
+    registerLintRules();
+    var knownRules = Registry.ruleRegistry.rules
+        .map((rule) => "    - ${rule.name}")
+        .toList(growable: false);
+    var options = parseOptions('''
+linter:
+  rules:
+${knownRules.reversed.join("\n")}
+''');
+    var sig1 = options.signature;
+    for (var i = 0; i < 10; i++) {
+      knownRules.shuffle();
+      var options2 = parseOptions('''
+linter:
+  rules:
+${knownRules.join("\n")}
+''');
+      var sig2 = options2.signature;
+      expect(sig1, sig2);
+    }
+  }
+
+  test_signature_on_different_plugin_ordering() {
+    var options = parseOptions('''
+plugins:
+  plugin_one: ^1.2.3
+  plugin_two: ^1.2.3
+  plugin_three: ^1.2.3
+''');
+    var sig1 = options.signature;
+    for (var i = 0; i < 10; i++) {
+      var options2 = parseOptions('''
+plugins:
+  plugin_three: ^1.2.3
+  plugin_one: ^1.2.3
+  plugin_two: ^1.2.3
+''');
+      var sig2 = options2.signature;
+      expect(sig1, sig2);
+    }
+  }
+
   test_signature_on_merge() {
-    var resourceProvider = MemoryResourceProvider();
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);
     var otherOptions = resourceProvider.getFile(
