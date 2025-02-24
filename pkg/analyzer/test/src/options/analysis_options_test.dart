@@ -418,7 +418,6 @@ code-style:
   }
 
   test_signature_on_merge() {
-    var resourceProvider = MemoryResourceProvider();
     var sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     var optionsProvider = AnalysisOptionsProvider(sourceFactory);
     var otherOptions = resourceProvider.getFile(
