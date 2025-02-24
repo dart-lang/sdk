@@ -21,7 +21,7 @@ class ConvertToWildcardVariableTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_TO_WILDCARD_VARIABLE;
 
-  Future<void> test_convertUnusedLocalVariable() async {
+  Future<void> test_basic() async {
     await resolveTestCode('''
 void f() {
   var x = '';
@@ -34,7 +34,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_convertUnusedLocalVariable_list() async {
+  Future<void> test_list() async {
     await resolveTestCode('''
 void f() {
   int? x, y;
@@ -49,7 +49,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_convertUnusedLocalVariable_listPatternAssignment() async {
+  Future<void> test_listPatternAssignment() async {
     await resolveTestCode('''
 void f() {
   var x = 0;
@@ -64,7 +64,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_convertUnusedLocalVariable_preWildcards() async {
+  Future<void> test_preWildcards() async {
     await resolveTestCode('''
 // @dart = 3.4
 // (pre wildcard-variables)
@@ -76,7 +76,7 @@ void f() {
     await assertNoFix();
   }
 
-  Future<void> test_convertUnusedLocalVariable_recordAssignment() async {
+  Future<void> test_recordAssignment() async {
     await resolveTestCode('''
 void f() {
   var x = 0;
@@ -91,8 +91,7 @@ void f() {
 ''');
   }
 
-  Future<void>
-  test_convertUnusedLocalVariable_recordAssignment_parenthesized() async {
+  Future<void> test_recordAssignment_parenthesized() async {
     await resolveTestCode('''
 void f() {
   var x = 0;
@@ -107,7 +106,62 @@ void f() {
 ''');
   }
 
-  Future<void> test_convertUnusedLocalVariable_reference() async {
+  Future<void> test_recordDestructure() async {
+    await resolveTestCode('''
+void f() {
+  var (a) = (0);
+}
+''');
+    await assertHasFix('''
+void f() {
+  var (_) = (0);
+}
+''');
+  }
+
+  Future<void> test_recordDestructure_implicitName() async {
+    await resolveTestCode('''
+void f() {
+  var (:a) = (a: "x");
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_recordDestructure_implicitName_multiple() async {
+    await resolveTestCode('''
+void f() {
+  var (:a, _) = (a: "x", 1);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_recordDestructure_multiple() async {
+    await resolveTestCode('''
+void f() {
+  var (a, _) = (0, 1);
+}
+''');
+    await assertHasFix('''
+void f() {
+  var (_, _) = (0, 1);
+}
+''');
+  }
+
+  Future<void> test_recordDestructure_preWildcards() async {
+    await resolveTestCode('''
+// @dart = 3.4
+// (pre wildcard-variables)
+void f() {
+  var (a) = (0);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_reference() async {
     await resolveTestCode('''
 void f() {
   var x = '';
