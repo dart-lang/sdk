@@ -432,6 +432,7 @@ List<LspEntity> getCustomClasses() {
         type: 'string',
         comment: 'The name of the corresponding parameter.',
       ),
+      field('documentation', type: 'string', canBeUndefined: true),
       field(
         'type',
         type: 'string',

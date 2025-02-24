@@ -117,6 +117,7 @@ class EditableArgumentsHandler
     var editableArguments = [
       for (var parameter in parameters)
         _toEditableArgument(
+          result,
           parameter,
           parameterArguments[parameter],
           positionalIndex: positionalParameterIndexes[parameter],
@@ -148,6 +149,7 @@ class EditableArgumentsHandler
   /// Converts a [parameter]/[argument] pair into an [EditableArgument] if it
   /// is an argument that can be edited.
   EditableArgument? _toEditableArgument(
+    ResolvedUnitResult result,
     FormalParameterElement parameter,
     Expression? argument, {
     int? positionalIndex,
@@ -223,8 +225,11 @@ class EditableArgumentsHandler
       displayValue = null;
     }
 
+    var documentation = getDocumentation(result, parameter);
+
     return EditableArgument(
       name: parameter.displayName,
+      documentation: documentation,
       type: type,
       value: value,
       displayValue: displayValue,
