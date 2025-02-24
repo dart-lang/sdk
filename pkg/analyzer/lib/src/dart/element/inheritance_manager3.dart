@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -174,7 +175,8 @@ class InheritanceManager3 {
   /// This is equivalent to `getInheritedMap(type)[name]`.
   // This is a replacement for `getInherited2`.
   @experimental
-  ExecutableElement2OrMember? getInherited4(InterfaceElement2 element, Name name) {
+  ExecutableElement2OrMember? getInherited4(
+      InterfaceElement2 element, Name name) {
     var oldElement = getInheritedMap2(element.asElement)[name];
     return oldElement?.asElement2;
   }
@@ -320,6 +322,8 @@ class InheritanceManager3 {
     int forMixinIndex = -1,
     bool forSuper = false,
   }) {
+    linkingBundleManifest?.notifyInterfaceRequest(
+        element: element.asElement2, nameObj: name);
     var interface = getInterface(element);
     if (forSuper) {
       if (element is ExtensionTypeElement) {

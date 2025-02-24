@@ -24,6 +24,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/analysis/flags.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -49,6 +50,7 @@ import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
+import 'package:analyzer/src/summary2/bundle_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -7237,6 +7239,9 @@ class LibraryElementImpl extends ElementImpl
 
   /// The map of top-level declarations, from all units.
   LibraryDeclarations? _libraryDeclarations;
+
+  /// If [withFineDependencies] is `true`, the manifest of the library.
+  LibraryManifest? manifest;
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].

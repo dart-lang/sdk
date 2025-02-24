@@ -59,6 +59,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
   dataStore.addBundle('', sdkBundle);
 
   var logger = PerformanceLog(null);
+  byteStore ??= MemoryByteStore();
   var scheduler = AnalysisDriverScheduler(logger);
   var sharedOptions = analysisOptions as AnalysisOptionsImpl;
   var optionsMap = AnalysisOptionsMap.forSharedOptions(sharedOptions);
@@ -66,7 +67,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
     scheduler: scheduler,
     logger: logger,
     resourceProvider: resourceProvider,
-    byteStore: byteStore ?? MemoryByteStore(),
+    byteStore: byteStore,
     sourceFactory: sourceFactory,
     analysisOptionsMap: optionsMap,
     fileContentCache: fileContentCache,

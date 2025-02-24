@@ -204,6 +204,11 @@ class SummaryDataReader {
     return result;
   }
 
+  Uri readUri() {
+    var uriStr = readStringUtf8();
+    return Uri.parse(uriStr);
+  }
+
   String stringOfIndex(int index) {
     return _stringTable[index];
   }
