@@ -369,7 +369,7 @@ void Thread::EnterIsolate(Isolate* isolate) {
 
   auto group = isolate->group();
   if (!(is_nested_reenter && isolate->mutator_thread()->OwnsSafepoint())) {
-    group->IncreaseMutatorCount(isolate, is_nested_reenter);
+    group->IncreaseMutatorCount(nullptr, is_nested_reenter, false);
   }
 
   // Two threads cannot enter isolate at same time.
@@ -1366,7 +1366,8 @@ void Thread::UnwindScopes(uword stack_marker) {
 }
 
 void Thread::HandleStolen() {
-  isolate_group()->ReincreaseMutatorCount(this);
+  isolate_group()->IncreaseMutatorCount(this, /*is_nested_reenter=*/false,
+                                        /*was_stolen=*/true);
 }
 
 void Thread::EnterSafepointUsingLock() {

@@ -54,6 +54,7 @@ class ThreadPool {
   // Mark the current thread as being blocked (e.g. in native code). This might
   // temporarily increase the max thread pool size.
   void MarkCurrentWorkerAsBlocked();
+  void MarkWorkerAsBlocked(OSThread* thread);
 
   // Mark the current thread as being unblocked. Must be called iff
   // [MarkCurrentWorkerAsBlocked] was called before and the thread is now ready

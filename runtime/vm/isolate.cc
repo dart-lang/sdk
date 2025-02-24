@@ -94,7 +94,7 @@ DEFINE_FLAG_HANDLER(DeterministicModeHandler,
 
 DEFINE_FLAG(bool,
             disable_thread_pool_limit,
-            true,
+            false,
             "Disables the limit of the thread pool (simulates custom embedder "
             "with custom message handler on unlimited number of threads).");
 
@@ -380,10 +380,17 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 {
   FlagsCopyFrom(api_flags);
   if (!is_vm_isolate) {
-    thread_pool_.reset(
-        new MutatorThreadPool(this, FLAG_disable_thread_pool_limit
-                                        ? 0
-                                        : Scavenger::MaxMutatorThreadCount()));
+    intptr_t max_worker_threads;
+    if (FLAG_disable_thread_pool_limit) {
+      max_worker_threads = 0;
+    } else {
+      // There needs to be at least one more thread than active mutators slots
+      // so that there is a thread waiting in IncreaseMutatorCount (instead of
+      // unscheduled task sitting in the thread pool's queue) to eventually
+      // timeout and trigger StealActiveMutators.
+      max_worker_threads = Scavenger::MaxMutatorThreadCount() + 2;
+    }
+    thread_pool_.reset(new MutatorThreadPool(this, max_worker_threads));
   }
   {
     WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
@@ -587,14 +594,12 @@ void IsolateGroup::set_saved_unlinked_calls(const Array& saved_unlinked_calls) {
 
 static constexpr intptr_t kActiveMutatorPreemptionTimeout = 120;
 
-void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
-                                        bool is_nested_reenter) {
-  ASSERT(mutator->group() == this);
-
+void IsolateGroup::IncreaseMutatorCount(Thread* thread,
+                                        bool is_nested_reenter,
+                                        bool was_stolen) {
   // If the mutator was temporarily blocked on a worker thread, we have to
   // unblock the worker thread again.
-  if (is_nested_reenter) {
-    ASSERT(mutator->mutator_thread() != nullptr);
+  if (is_nested_reenter || was_stolen) {
     thread_pool()->MarkCurrentWorkerAsUnBlocked();
   }
 
@@ -610,17 +615,28 @@ void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
       waiting_mutators_++;
       bool timed_out = false;
       if (has_timeout_waiter_) {
-        ml.Wait();
+        if (was_stolen) {
+          ml.WaitWithSafepointCheck(thread);
+        } else {
+          ml.Wait();
+        }
       } else {
         has_timeout_waiter_ = true;
-        timed_out =
-            ml.Wait(kActiveMutatorPreemptionTimeout) == Monitor::kTimedOut;
+        if (was_stolen) {
+          timed_out = ml.WaitWithSafepointCheck(
+                          thread, kActiveMutatorPreemptionTimeout) ==
+                      Monitor::kTimedOut;
+        } else {
+          timed_out =
+              ml.Wait(kActiveMutatorPreemptionTimeout) == Monitor::kTimedOut;
+        }
         has_timeout_waiter_ = false;
       }
       waiting_mutators_--;
 
       if (timed_out) {
-        active_mutators_ -= thread_registry()->StealActiveMutators();
+        active_mutators_ -=
+            thread_registry()->StealActiveMutators(thread_pool());
         ASSERT(active_mutators_ >= 0);
       }
     }
@@ -633,39 +649,6 @@ void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
     if ((active_mutators_ != max_active_mutators_) && (waiting_mutators_ > 0)) {
       ml.Notify();
     }
-  }
-}
-
-void IsolateGroup::ReincreaseMutatorCount(Thread* thread) {
-  MonitorLocker ml(active_mutators_monitor_.get());
-  ASSERT(active_mutators_ <= max_active_mutators_);
-  while (active_mutators_ == max_active_mutators_) {
-    waiting_mutators_++;
-    bool timed_out = false;
-    if (has_timeout_waiter_) {
-      ml.WaitWithSafepointCheck(thread);
-    } else {
-      has_timeout_waiter_ = true;
-      timed_out =
-          ml.WaitWithSafepointCheck(thread, kActiveMutatorPreemptionTimeout) ==
-          Monitor::kTimedOut;
-      has_timeout_waiter_ = false;
-    }
-    waiting_mutators_--;
-
-    if (timed_out) {
-      active_mutators_ -= thread_registry()->StealActiveMutators();
-      ASSERT(active_mutators_ >= 0);
-    }
-  }
-  active_mutators_++;
-
-  // StealActiveMutators may cause multiple slots to become available, but
-  // does not do a NotifyAll to prevent the case of thousands of threads
-  // waking up to claim a ~dozen slots, so we keep notifying while there are
-  // both available slots and waiters.
-  if ((active_mutators_ != max_active_mutators_) && (waiting_mutators_ > 0)) {
-    ml.Notify();
   }
 }
 
