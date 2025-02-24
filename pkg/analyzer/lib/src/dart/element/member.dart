@@ -48,7 +48,8 @@ class ConstructorMember extends ExecutableMember
   ConstructorElement2 get baseElement => _element2;
 
   @override
-  ConstructorElement get declaration => super.declaration as ConstructorElement;
+  ConstructorElementImpl get declaration =>
+      _declaration as ConstructorElementImpl;
 
   @override
   String get displayName => declaration.displayName;
@@ -254,7 +255,8 @@ abstract class ExecutableMember extends Member
       children.map((fragment) => fragment.asElement2).nonNulls.toList();
 
   @override
-  ExecutableElement get declaration => super.declaration as ExecutableElement;
+  ExecutableElementImpl get declaration =>
+      _declaration as ExecutableElementImpl;
 
   @override
   String get displayName => declaration.displayName;
@@ -327,11 +329,11 @@ abstract class ExecutableMember extends Member
   @override
   List<ParameterElement> get parameters {
     return declaration.parameters.map<ParameterElement>((p) {
-      if (p is FieldFormalParameterElement) {
+      if (p is FieldFormalParameterElementImpl) {
         return FieldFormalParameterMember(
             p, augmentationSubstitution, _substitution);
       }
-      if (p is SuperFormalParameterElement) {
+      if (p is SuperFormalParameterElementImpl) {
         return SuperFormalParameterMember(
             p, augmentationSubstitution, _substitution);
       }
@@ -344,9 +346,7 @@ abstract class ExecutableMember extends Member
     var result = declaration.returnType;
     result = augmentationSubstitution.substituteType(result);
     result = _substitution.substituteType(result);
-    // TODO(paulberry): eliminate this cast by changing the type of
-    // `declaration`.
-    return result as TypeImpl;
+    return result;
   }
 
   @override
@@ -562,7 +562,7 @@ class FieldMember extends VariableMember
   }
 
   @override
-  FieldElement get declaration => super.declaration as FieldElement;
+  FieldElementImpl get declaration => _declaration as FieldElementImpl;
 
   @override
   String get displayName => declaration.displayName;
@@ -838,7 +838,7 @@ abstract class Member implements Element {
   AnalysisContext get context => _declaration.context;
 
   @override
-  Element get declaration => _declaration;
+  ElementImpl get declaration => _declaration as ElementImpl;
 
   @override
   String get displayName => _declaration.displayName;
@@ -1094,7 +1094,7 @@ class MethodMember extends ExecutableMember
   MethodElement2 get baseElement => _element2;
 
   @override
-  MethodElement get declaration => super.declaration as MethodElement;
+  MethodElementImpl get declaration => _declaration as MethodElementImpl;
 
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
@@ -1227,8 +1227,7 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  ParameterElementImpl get declaration =>
-      super.declaration as ParameterElementImpl;
+  ParameterElementImpl get declaration => _declaration as ParameterElementImpl;
 
   @override
   String? get defaultValueCode => declaration.defaultValueCode;
@@ -1457,7 +1456,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyAccessorElementImpl get declaration =>
-      super.declaration as PropertyAccessorElementImpl;
+      _declaration as PropertyAccessorElementImpl;
 
   @override
   Element2 get enclosingElement2 {
@@ -1660,8 +1659,8 @@ class TopLevelVariableMember extends VariableMember
   }
 
   @override
-  TopLevelVariableElement get declaration =>
-      _declaration as TopLevelVariableElement;
+  TopLevelVariableElementImpl get declaration =>
+      _declaration as TopLevelVariableElementImpl;
 
   @override
   String get displayName => declaration.displayName;
@@ -1731,7 +1730,7 @@ abstract class VariableMember extends Member
   );
 
   @override
-  VariableElement get declaration => super.declaration as VariableElement;
+  VariableElementImpl get declaration => _declaration as VariableElementImpl;
 
   @override
   bool get hasImplicitType => declaration.hasImplicitType;
@@ -1758,9 +1757,7 @@ abstract class VariableMember extends Member
     var result = declaration.type;
     result = augmentationSubstitution.substituteType(result);
     result = _substitution.substituteType(result);
-    // TODO(paulberry): remove this cast by changing the type of `declaration`
-    // and the return type of `substituteType`
-    return _type = result as TypeImpl;
+    return _type = result;
   }
 
   @override

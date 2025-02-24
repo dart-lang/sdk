@@ -565,6 +565,12 @@ extension MethodElementExtension on MethodElement {
   }
 }
 
+extension MethodElementImplExtension on MethodElementImpl {
+  MethodElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension MethodElementOrMemberExtension on MethodElementOrMember {
   MethodElement2OrMember get asElement2 {
     return switch (this) {
