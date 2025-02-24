@@ -7,8 +7,6 @@ updates:
     directory: /
     schedule:
       interval: monthly
-    labels:
-      - autosubmit
     groups:
       github-actions:
         patterns:
