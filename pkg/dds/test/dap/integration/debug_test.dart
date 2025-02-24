@@ -18,7 +18,9 @@ main() {
   group('debug mode', () {
     late DapTestSession dap;
     setUp(() async {
-      dap = await DapTestSession.setUp();
+      // Temporarily enable verbose logging to debug some flakes on the bots
+      // https://github.com/dart-lang/sdk/issues/60187
+      dap = await DapTestSession.setUp(forceVerboseLogging: true);
     });
     tearDown(() => dap.tearDown());
 
