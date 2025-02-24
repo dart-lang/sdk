@@ -271,6 +271,9 @@ mixin TypeAnalyzer<
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
     implements TypeAnalysisNullShortingInterface<Expression, SharedTypeView> {
+  /// Cached context types used to resolve dot shorthand heads.
+  final _dotShorthands = <SharedTypeSchemaView>[];
+
   TypeAnalyzerErrors<Node, Statement, Expression, Variable, SharedTypeView,
       Pattern, Error> get errors;
 
@@ -533,6 +536,17 @@ mixin TypeAnalyzer<
     return declaredType == null
         ? operations.unknownType
         : operations.typeToSchema(declaredType);
+  }
+
+  /// Analyzes a dot shorthand.
+  /// Saves the [context] for when we resolve the dot shorthand head.
+  SharedTypeView analyzeDotShorthand(
+      Expression node, SharedTypeSchemaView context) {
+    _dotShorthands.add(context);
+    ExpressionTypeAnalysisResult analysisResult =
+        dispatchExpression(node, context);
+    _dotShorthands.removeLast();
+    return analysisResult.type;
   }
 
   /// Analyzes an expression.  [node] is the expression to analyze, and
@@ -2145,6 +2159,9 @@ mixin TypeAnalyzer<
     required bool isFinal,
     required SharedTypeView type,
   });
+
+  /// Returns the most recently cached dot shorthand context type.
+  SharedTypeSchemaView getDotShorthandContext() => _dotShorthands.last;
 
   /// If the [element] is a map pattern entry, returns it.
   MapPatternEntry<Expression, Pattern>? getMapPatternEntry(Node element);
