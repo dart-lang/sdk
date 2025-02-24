@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart'
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
@@ -89,9 +90,13 @@ class ContextBuilderImpl {
     InfoDeclarationStore? infoDeclarationStore,
     OwnedFiles? ownedFiles,
     bool enableLintRuleTiming = false,
+    LinkedBundleProvider? linkedBundleProvider,
   }) {
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(null);
+    linkedBundleProvider ??= LinkedBundleProvider(
+      byteStore: byteStore,
+    );
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
@@ -145,6 +150,7 @@ class ContextBuilderImpl {
       logger: performanceLog,
       resourceProvider: resourceProvider,
       byteStore: byteStore,
+      linkedBundleProvider: linkedBundleProvider,
       sourceFactory: sourceFactory,
       analysisOptionsMap: analysisOptionsMap,
       packages: _createPackageMap(

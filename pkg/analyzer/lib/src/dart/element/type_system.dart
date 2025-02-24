@@ -1526,11 +1526,11 @@ class TypeSystemImpl implements TypeSystem {
   /// Determine the type of a binary expression with the given [operator] whose
   /// left operand has the type [leftType] and whose right operand has the type
   /// [rightType], given that resolution has so far produced the [currentType].
-  DartType refineBinaryExpressionType(
+  TypeImpl refineBinaryExpressionType(
       DartType leftType,
       TokenType operator,
       DartType rightType,
-      DartType currentType,
+      TypeImpl currentType,
       MethodElement2? operatorElement) {
     if (operatorElement == null) return currentType;
     return _refineNumericInvocationTypeNullSafe(
@@ -1562,11 +1562,11 @@ class TypeSystemImpl implements TypeSystem {
   /// produced so far by resolution is [currentType].
   ///
   // TODO(scheglov): I expected that [methodElement] is [MethodElement].
-  DartType refineNumericInvocationType(
+  TypeImpl refineNumericInvocationType(
       DartType targetType,
       Element2? methodElement,
       List<DartType> argumentTypes,
-      DartType currentType) {
+      TypeImpl currentType) {
     if (methodElement is MethodElement2) {
       return _refineNumericInvocationTypeNullSafe(
           targetType, methodElement, argumentTypes, currentType);
@@ -1960,11 +1960,11 @@ class TypeSystemImpl implements TypeSystem {
     return currentType;
   }
 
-  DartType _refineNumericInvocationTypeNullSafe(
+  TypeImpl _refineNumericInvocationTypeNullSafe(
       DartType targetType,
       MethodElement2 methodElement,
       List<DartType> argumentTypes,
-      DartType currentType) {
+      TypeImpl currentType) {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.

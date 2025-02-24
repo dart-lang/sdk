@@ -291,12 +291,7 @@ class BinaryExpressionResolver {
       // using the operator method's parameter type.
       var rightParam = invokeType.formalParameters[0];
       rightContextType = _typeSystem.refineNumericInvocationContext2(
-          left.staticType,
-          node.element,
-          contextType,
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
-          rightParam.type as TypeImpl);
+          left.staticType, node.element, contextType, rightParam.type);
     } else {
       rightContextType = UnknownInferredType.instance;
     }
@@ -370,7 +365,7 @@ class BinaryExpressionResolver {
     left.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
 
     switch (augmentationTarget) {
-      case MethodFragment fragment:
+      case MethodElementImpl fragment:
         left.fragment = fragment;
         left.setPseudoExpressionStaticType(
             _resolver.thisType ?? InvalidTypeImpl.instance);

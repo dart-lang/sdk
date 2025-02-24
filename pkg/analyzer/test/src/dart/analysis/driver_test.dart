@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as driver_events;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/flags.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -35,6 +36,7 @@ main() {
     defineReflectiveTests(AnalysisDriver_PubPackageTest);
     defineReflectiveTests(AnalysisDriver_BlazeWorkspaceTest);
     defineReflectiveTests(AnalysisDriver_LintTest);
+    defineReflectiveTests(FineAnalysisDriverTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -135,49 +137,22 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
 }
 
 @reflectiveTest
-class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
-  final DriverEventsPrinterConfiguration configuration =
-      DriverEventsPrinterConfiguration();
-
+class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest
+    with _EventsMixin {
   @override
   bool get retainDataForTesting => true;
-
-  Future<void> assertEventsText(
-    DriverEventCollector collector,
-    String expected,
-  ) async {
-    await pumpEventQueue(times: 5000);
-
-    var buffer = StringBuffer();
-    var sink = TreeStringSink(sink: buffer, indent: '');
-
-    var elementPrinter = ElementPrinter(
-      sink: sink,
-      configuration: ElementPrinterConfiguration(),
-    );
-
-    var events = collector.take();
-    DriverEventsPrinter(
-      configuration: configuration,
-      sink: sink,
-      elementPrinter: elementPrinter,
-      idProvider: collector.idProvider,
-    ).write(events);
-
-    var actual = buffer.toString();
-    if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
-      NodeTextExpectationsCollector.add(actual);
-    }
-    expect(actual, expected);
-  }
 
   @override
   void setUp() {
     super.setUp();
     registerLintRules();
     useEmptyByteStore();
+  }
+
+  @override
+  Future<void> tearDown() async {
+    withFineDependencies = false;
+    return super.tearDown();
   }
 
   test_addedFiles() async {
@@ -1507,9 +1482,6 @@ var v = 0
     collector.getErrors('A1', a);
     await assertEventsText(collector, r'''
 [status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
 [future] getErrors A1
   ErrorsResult #0
     path: /home/test/lib/a.dart
@@ -1517,6 +1489,9 @@ var v = 0
     flags: isLibrary
     errors
       8 +1 EXPECTED_TOKEN
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/a.dart
@@ -1563,9 +1538,6 @@ part of 'a.dart';
     // Note, both `getErrors()` returned during the library analysis.
     await assertEventsText(collector, r'''
 [status] working
-[operation] analyzeFile
-  file: /home/test/lib/a.dart
-  library: /home/test/lib/a.dart
 [future] getErrors A1
   ErrorsResult #0
     path: /home/test/lib/a.dart
@@ -1576,6 +1548,9 @@ part of 'a.dart';
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #2
     path: /home/test/lib/a.dart
@@ -3401,14 +3376,14 @@ final a = A();
     collector.getErrors('A1', a);
     await assertEventsText(collector, r'''
 [status] working
-[operation] analyzeFile
-  file: /home/test/lib/hidden/a.dart
-  library: /home/test/lib/hidden/a.dart
 [future] getErrors A1
   ErrorsResult #0
     path: /home/test/lib/hidden/a.dart
     uri: package:test/hidden/a.dart
     flags: isLibrary
+[operation] analyzeFile
+  file: /home/test/lib/hidden/a.dart
+  library: /home/test/lib/hidden/a.dart
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/hidden/a.dart
@@ -3467,14 +3442,14 @@ final a = A();
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
 [status] working
-[operation] analyzeFile
-  file: /home/test/lib/b.dart
-  library: /home/test/lib/hidden/a.dart
 [future] getErrors B1
   ErrorsResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/hidden/a.dart
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/hidden/a.dart
@@ -3514,14 +3489,14 @@ final a = new A();
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
 [status] working
-[operation] analyzeFile
-  file: /home/test/lib/b.dart
-  library: /home/test/lib/a.dart
 [future] getErrors B1
   ErrorsResult #0
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isPart
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/a.dart
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/a.dart
@@ -3560,9 +3535,6 @@ final a = new A();
     collector.getErrors('B1', b);
     await assertEventsText(collector, r'''
 [status] working
-[operation] analyzeFile
-  file: /home/test/lib/b.dart
-  library: /home/test/lib/b.dart
 [future] getErrors B1
   ErrorsResult #0
     path: /home/test/lib/b.dart
@@ -3570,6 +3542,9 @@ final a = new A();
     flags: isPart
     errors
       60 +1 CREATION_WITH_NON_TYPE
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
 [stream]
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
@@ -5181,18 +5156,22 @@ class A2 {}
 /// requests. We are interested in relative orders, identity of the objects,
 /// absence of duplicate events, etc.
 class DriverEventCollector {
-  final idProvider = IdProvider();
+  final IdProvider idProvider;
   late AnalysisDriver driver;
   List<DriverEvent> events = [];
   final List<Completer<void>> statusIdleCompleters = [];
 
-  DriverEventCollector(this.driver) {
+  DriverEventCollector(
+    this.driver, {
+    IdProvider? idProvider,
+  }) : idProvider = idProvider ?? IdProvider() {
     _listenSchedulerEvents(driver.scheduler);
   }
 
   DriverEventCollector.forCollection(
-    AnalysisContextCollectionImpl collection,
-  ) {
+    AnalysisContextCollectionImpl collection, {
+    IdProvider? idProvider,
+  }) : idProvider = idProvider ?? IdProvider() {
     _listenSchedulerEvents(collection.scheduler);
   }
 
@@ -5309,7 +5288,7 @@ class DriverEventCollector {
   }
 
   void _listenSchedulerEvents(AnalysisDriverScheduler scheduler) {
-    scheduler.events.listen((event) {
+    scheduler.eventsBroadcast.listen((event) {
       switch (event) {
         case AnalysisStatus():
           events.add(
@@ -5320,7 +5299,13 @@ class DriverEventCollector {
             statusIdleCompleters.clear();
           }
         case driver_events.AnalyzeFile():
+        case driver_events.AnalyzedLibrary():
+        case driver_events.CannotReuseLinkedBundle():
+        case driver_events.GetErrorsCannotReuse():
         case driver_events.GetErrorsFromBytes():
+        case driver_events.LinkLibraryCycle():
+        case driver_events.ProduceErrorsCannotReuse():
+        case driver_events.ReuseLinkLibraryCycleBundle():
         case ErrorsResult():
         case ResolvedUnitResult():
           events.add(
@@ -5330,6 +5315,5773 @@ class DriverEventCollector {
           );
       }
     });
+  }
+}
+
+@reflectiveTest
+class FineAnalysisDriverTest extends PubPackageResolutionTest
+    with _EventsMixin {
+  @override
+  bool get retainDataForTesting => true;
+
+  @override
+  void setUp() {
+    super.setUp();
+    registerLintRules();
+    useEmptyByteStore();
+  }
+
+  @override
+  Future<void> tearDown() async {
+    withFineDependencies = false;
+    return super.tearDown();
+  }
+
+  test_class_add() async {
+    await _runChangeScenarioTA(
+      initialA: '',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    functions
+      foo
+        returnType: InvalidType
+[operation] linkLibraryCycle
+  package:test/a.dart
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[future] getLibraryByUri T2
+  library
+    functions
+      foo
+        returnType: A
+[operation] cannotReuseLinkedBundle
+  topLevelPresent
+    libraryUri: package:test/a.dart
+    name: A
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+    );
+  }
+
+  test_class_add_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    functions
+      foo
+        returnType: A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      // Add not used `B`.
+      updatedA: r'''
+class A {}
+class B {}
+''',
+      // Not linked.
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+    functions
+      foo
+        returnType: A
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_class_extendsAdd_direct() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    functions
+      foo
+        returnType: A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: r'''
+class A extends B {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M2
+      B: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+    functions
+      foo
+        returnType: A
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_class_extendsAdd_indirect() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A extends B {}
+class B {}
+class C {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    functions
+      foo
+        returnType: A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: r'''
+class A extends B {}
+class B extends C {}
+class C {}
+''',
+      // The same id for `C`.
+      // New ids for `B` and `A`.
+      // `test.dart` was linked, now requires new `A` id.
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M3
+      B: #M4
+      C: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    functions
+      foo
+        returnType: A
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_class_extendsAdd_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+class C {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    functions
+      foo
+        returnType: A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      // Set the supertype for `B`, not used.
+      updatedA: r'''
+class A {}
+class B extends C {}
+class C {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M3
+      C: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    functions
+      foo
+        returnType: A
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_class_extendsChange() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A extends B {}
+class B {}
+class C {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() {}
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    functions
+      foo
+        returnType: A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: r'''
+class A extends C {}
+class B {}
+class C {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M3
+      B: #M1
+      C: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    functions
+      foo
+        returnType: A
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_class_getter_add_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int get foo => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo;
+}
+''',
+      operation: _FineOperationAddTestFile(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  int get foo => 0;
+  int get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        bar: #M3
+        foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''',
+    );
+  }
+
+  test_class_getter_remove_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int get foo => 0;
+  int get bar => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo;
+}
+''',
+      operation: _FineOperationAddTestFile(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M2
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''',
+    );
+  }
+
+  test_class_getter_returnType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int get foo => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo;
+}
+''',
+      operation: _FineOperationAddTestFile(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  double get foo => 1.2;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] produceErrorsCannotReuse
+  instanceMemberIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    memberName: foo
+    expectedId: #M1
+    actualId: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M3
+          foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_class_interfacesAdd() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() => throw 0;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    functions
+      foo
+        returnType: A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: r'''
+class A implements B {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M2
+      B: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+    functions
+      foo
+        returnType: A
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_class_interfacesRemove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A implements B {}
+class B {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() => throw 0;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    functions
+      foo
+        returnType: A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: r'''
+class A {}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M2
+      B: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+    functions
+      foo
+        returnType: A
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_class_interfacesReplace() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A implements B {}
+class B {}
+class C {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() => throw 0;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    functions
+      foo
+        returnType: A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+      B: #M1
+      C: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: r'''
+class A implements C {}
+class B {}
+class C {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M3
+      B: #M1
+      C: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    functions
+      foo
+        returnType: A
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_class_method_add_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationAddTestFile(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        bar: #M2
+        foo: #M1
+  requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''',
+    );
+  }
+
+  test_class_method_add_notUsed_extended() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a, B b) {
+  a.foo();
+  b.foo();
+}
+''',
+      operation: _FineOperationAddTestFile(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M1
+      B: #M2
+        foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        B: <null>
+      package:test/a.dart
+        A: #M0
+        B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        B: <null>
+      package:test/a.dart
+        A: #M0
+        B: #M2
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M1
+          foo=: <null>
+        B
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+
+class B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        bar: #M3
+        foo: #M1
+      B: #M2
+        bar: #M3
+        foo: #M1
+  requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''',
+    );
+  }
+
+  test_class_method_add_notUsed_extended_generic() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  T foo() {}
+}
+
+class B extends A<int> {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A<int> a, B b) {
+  a.foo();
+  b.foo();
+}
+''',
+      operation: _FineOperationAddTestFile(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M1
+      B: #M2
+        foo: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        B: <null>
+        int: #M4
+      package:test/a.dart
+        A: #M0
+        B: #M2
+        int: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        B: <null>
+        int: #M4
+      package:test/a.dart
+        A: #M0
+        B: #M2
+        int: <null>
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M1
+          foo=: <null>
+        B
+          foo: #M3
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  T foo() {}
+  void bar() {}
+}
+
+class B extends A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        bar: #M5
+        foo: #M1
+      B: #M2
+        bar: #M6
+        foo: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''',
+    );
+  }
+
+  test_class_method_remove_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationAddTestFile(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        bar: #M1
+        foo: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M2
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M2
+  requirements
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[status] idle
+''',
+    );
+  }
+
+  test_class_method_returnType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationAddTestFile(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] produceErrorsCannotReuse
+  instanceMemberIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    memberName: foo
+    expectedId: #M1
+    actualId: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M3
+          foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_class_method_returnType_getErrors() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMemberIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    memberName: foo
+    expectedId: #M1
+    actualId: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M3
+          foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_class_method_typeParameter() async {
+    configuration.withElementManifests = true;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A<T> {
+  Map<T, U> foo<U>() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+final x = A<int>().foo;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: Map<int, U> Function<U>()
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        typeParameters
+          bound: <null>
+        supertype: Object @ dart:core
+        foo: #M1
+          typeParameters
+            bound: <null>
+          returnType: Map @ dart:core
+            typeParameter#1
+            typeParameter#0
+  requirements
+    topLevels
+      dart:core
+        Map: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+        int: #M4
+      package:test/a.dart
+        A: #M0
+        int: <null>
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A<T> {
+  Map<T, U> foo<U>() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        typeParameters
+          bound: <null>
+        supertype: Object @ dart:core
+        bar: #M5
+          returnType: void
+        foo: #M1
+          typeParameters
+            bound: <null>
+          returnType: Map @ dart:core
+            typeParameter#1
+            typeParameter#0
+  requirements
+    topLevels
+      dart:core
+        Map: #M2
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: Map<int, U> Function<U>()
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_class_method_typeParameter_add() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo<T>() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+final x = A().foo;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function<T>()
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  void foo<T, U>() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M3
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function<T, U>()
+[operation] cannotReuseLinkedBundle
+  instanceMemberIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    memberName: foo
+    expectedId: #M1
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M3
+          foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_class_method_typeParameter_remove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo<T, U>() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+final x = A().foo;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function<T, U>()
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M1
+          foo=: <null>
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  void foo<T>() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+        foo: #M3
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function<T>()
+[operation] cannotReuseLinkedBundle
+  instanceMemberIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    memberName: foo
+    expectedId: #M1
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaceMembers
+      package:test/a.dart
+        A
+          foo: #M3
+          foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_class_remove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+A foo() => throw 0;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    functions
+      foo
+        returnType: A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[status] idle
+''',
+      updatedA: '',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+  requirements
+[future] getLibraryByUri T2
+  library
+    functions
+      foo
+        returnType: InvalidType
+[operation] cannotReuseLinkedBundle
+  topLevelMissing
+    libraryUri: package:test/a.dart
+    name: A
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_add() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 0;
+final b = 0;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+[operation] cannotReuseLinkedBundle
+  exportIdMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/a.dart
+    name: b
+    expectedId: <null>
+    actualId: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+    exportRequirements
+      package:test/a.dart
+        a: #M0
+        b: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_add_combinators_hide_false() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart' hide b;
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        combinators
+          hide b
+        a: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 0;
+final b = 0;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_add_combinators_hide_true() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart' hide c;
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        combinators
+          hide c
+        a: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 0;
+final b = 0;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+[operation] cannotReuseLinkedBundle
+  exportIdMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/a.dart
+    name: b
+    expectedId: <null>
+    actualId: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+    exportRequirements
+      package:test/a.dart
+        combinators
+          hide c
+        a: #M0
+        b: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_add_combinators_show_false() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart' show a;
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        combinators
+          show a
+        a: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 0;
+final b = 0;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_add_combinators_show_true() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart' show a, b;
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        combinators
+          show a, b
+        a: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 0;
+final b = 0;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+[operation] cannotReuseLinkedBundle
+  exportIdMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/a.dart
+    name: b
+    expectedId: <null>
+    actualId: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+    exportRequirements
+      package:test/a.dart
+        combinators
+          show a, b
+        a: #M0
+        b: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_add_combinators_showHide_true() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart' show a, b hide c;
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        combinators
+          show a, b
+          hide c
+        a: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 0;
+final b = 0;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+[future] getLibraryByUri T2
+  library
+[operation] cannotReuseLinkedBundle
+  exportIdMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/a.dart
+    name: b
+    expectedId: <null>
+    actualId: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+    exportRequirements
+      package:test/a.dart
+        combinators
+          show a, b
+          hide c
+        a: #M0
+        b: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_add_private() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 0;
+final _b = 0;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      _b: #M1
+      a: #M0
+  requirements
+[future] getLibraryByUri T2
+  library
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_remove() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+final b = 0;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+    exportRequirements
+      package:test/a.dart
+        a: #M0
+        b: #M1
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 0;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[future] getLibraryByUri T2
+  library
+[operation] cannotReuseLinkedBundle
+  exportCountMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/a.dart
+    actual: 1
+    required: 2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_remove_show_false() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+final b = 0;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart' show a;
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        combinators
+          show a
+        a: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 0;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[future] getLibraryByUri T2
+  library
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_replace() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+final b = 0;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+  requirements
+    exportRequirements
+      package:test/a.dart
+        a: #M0
+        b: #M1
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 0;
+final c = 0;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      c: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+[operation] cannotReuseLinkedBundle
+  exportIdMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/a.dart
+    name: c
+    expectedId: <null>
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      c: #M2
+  requirements
+    exportRequirements
+      package:test/a.dart
+        a: #M0
+        c: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_export_topLevelVariable_type() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    // Uses exported `a`.
+    newFile('$testPackageLibPath/test.dart', r'''
+import 'b.dart';
+final x = a;
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/b.dart
+    manifest
+      a: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        a: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/b.dart
+        a: #M0
+[status] idle
+''',
+      // Change the initializer, now `double`.
+      updateFiles: () {
+        modifyFile2(a, r'''
+final a = 1.2;
+''');
+        return [a];
+      },
+      // Linked, `x` has type `double`.
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
+[operation] cannotReuseLinkedBundle
+  exportIdMismatch
+    fragmentUri: package:test/b.dart
+    exportedUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/b.dart
+    manifest
+      a: #M2
+  requirements
+    exportRequirements
+      package:test/a.dart
+        a: #M2
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/b.dart
+    name: a
+    expectedId: #M0
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/b.dart
+        a: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_topLevelVariable_add() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+final a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      // Add unused `b`.
+      updatedA: r'''
+final a = 0;
+final b = 1;
+''',
+      // Not linked.
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_topLevelVariable_initializer_int() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+final a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      // Change the initializer, still `int`.
+      updatedA: r'''
+final a = 1;
+''',
+      // Not linked.
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_topLevelVariable_initializer_int_double() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+final a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      // Change the initializer, now `double`.
+      updatedA: r'''
+final a = 1.2;
+''',
+      // Linked, `x` has type `double`.
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_topLevelVariable_int_remove_add_double() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+final a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      // Remove `a`.
+      updatedA: '',
+      // Linked, `x` has type `InvalidType`.
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: InvalidType
+[operation] cannotReuseLinkedBundle
+  topLevelMissing
+    libraryUri: package:test/a.dart
+    name: a
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: <null>
+[status] idle
+''',
+    );
+
+    await _runChangeScenarioUA(
+      operation: _FineOperationGetTestLibrary(),
+      // Restore `a`.
+      updatedA: r'''
+final a = 1.2;
+''',
+      // Linked, `x` has type `double`.
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
+[operation] cannotReuseLinkedBundle
+  topLevelPresent
+    libraryUri: package:test/a.dart
+    name: a
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_dynamicType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+dynamic a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: dynamic
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        dynamic: <null>
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+dynamic a = 0;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M2
+  requirements
+    topLevels
+      dart:core
+        dynamic: <null>
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: dynamic
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_type_dynamicType_to_interfaceType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+dynamic a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: dynamic
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        dynamic: <null>
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+int a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+int Function() a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int Function()
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+int Function() a;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int Function()
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_named() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function({int p1}) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({int p1})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function({int p1}) a;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({int p1})
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_named_add() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function({int p1}) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({int p1})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function({int p1, double p2}) a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({int p1, double p2})
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_named_remove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function({int p1, double p2}) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({int p1, double p2})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        double: #M1
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function({int p1}) a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({int p1})
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_named_toRequiredFalse() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function({required int p1}) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({required int p1})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function({int p1}) a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({int p1})
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_named_toRequiredTrue() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function({int p1}) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({int p1})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function({required int p1}) a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({required int p1})
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_named_type() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function({int p1}) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({int p1})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function({double p1}) a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function({double p1})
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_nullabilitySuffix() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+int Function() a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int Function()
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+int Function()? a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int Function()?
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_positional() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function(int p1) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function(int)
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function(int p1) a;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function(int)
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_positional_add() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function(int p1) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function(int)
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function(int p1, double p2) a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function(int, double)
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_positional_remove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function(int p1, double p2) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function(int, double)
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        double: #M1
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function(int p1) a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function(int)
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_positional_toRequiredFalse() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function(int p1) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function(int)
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function([int p1]) a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function([int])
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_positional_toRequiredTrue() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function([int p1]) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function([int])
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function(int p1) a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function(int)
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_positional_type() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function(int p1) a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function(int)
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function(double p1) a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function(double)
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_returnType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+int Function() a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int Function()
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+double Function() a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double Function()
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_typeParameter() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+T Function<T>() a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: T Function<T>()
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+T Function<T>() a;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: T Function<T>()
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_typeParameter_add() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function<E1>() a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function<E1>()
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function<E1, E2>() a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function<E1, E2>()
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_typeParameter_bound() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+T Function<T extends int>() a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: T Function<T extends int>()
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+T Function<T extends double>() a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: T Function<T extends double>()
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_functionType_typeParameter_remove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void Function<E1, E2>() a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function<E1, E2>()
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void Function<E1>() a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void Function<E1>()
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_type_interfaceType_element() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+int a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+double a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_interfaceType_nullabilitySuffix() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+int a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+int? a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int?
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_interfaceType_typeArguments() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+List<int> a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: List<int>
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        List: #M1
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+List<double> a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M4
+  requirements
+    topLevels
+      dart:core
+        List: #M1
+        double: #M5
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: List<double>
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M6
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_type_invalidType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+NotType a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: InvalidType
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        NotType: <null>
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+NotType a = 0;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M2
+  requirements
+    topLevels
+      dart:core
+        NotType: <null>
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: InvalidType
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_type_neverType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+Never a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: Never
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        Never: <null>
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+Never a;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M2
+  requirements
+    topLevels
+      dart:core
+        Never: <null>
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: Never
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_type_neverType_nullabilitySuffix() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+Never a;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: Never
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        Never: <null>
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+Never? a;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M2
+  requirements
+    topLevels
+      dart:core
+        Never: <null>
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: dynamic
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_type_recordType_namedFields_add() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+({int f1}) a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: ({int f1})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+({int f1, double f2}) a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: ({int f1, double f2})
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_recordType_namedFields_name() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+({int f1}) a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: ({int f1})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+({int f2}) a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: ({int f2})
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_recordType_namedFields_remove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+({int f1, double f2}) a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: ({int f1, double f2})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        double: #M1
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+({int f1}) a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: ({int f1})
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_type_recordType_namedFields_reorder() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+({int f1, double f2}) a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: ({int f1, double f2})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        double: #M1
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+({double f2, int f1}) a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        double: #M1
+        int: #M2
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: ({int f1, double f2})
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_type_recordType_namedFields_type() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+({int f1}) a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: ({int f1})
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+({double f1}) a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: ({double f1})
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_recordType_nullabilitySuffix() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+(int,) a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: (int,)
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+(int,)? a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: (int,)?
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M4
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_recordType_positionalFields_add() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+(int,) a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: (int,)
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+(int, double) a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+        int: #M1
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: (int, double)
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_recordType_positionalFields_remove() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+(int, double) a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: (int, double)
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        double: #M1
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+(int,) a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: (int,)
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_type_recordType_positionalFields_type() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+(int,) a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: (int,)
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+(double,) a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: (double,)
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_type_voidType() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+void a = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M1
+  requirements
+    topLevels
+      dart:core
+        a: <null>
+      package:test/a.dart
+        a: #M0
+[status] idle
+''',
+      updatedA: r'''
+void a = 0;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      a: #M0
+      b: #M2
+  requirements
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: void
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  Future<void> _runChangeScenario({
+    required _FineOperation operation,
+    String? expectedInitialEvents,
+    required List<File> Function() updateFiles,
+    required String expectedUpdatedEvents,
+  }) async {
+    void setId(String id) {
+      NodeTextExpectationsCollector.intraInvocationId = id;
+    }
+
+    withFineDependencies = true;
+    configuration
+      ..withBundleRequirements = true
+      ..withLibraryManifest = true
+      ..withLinkBundleEvents = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(
+      driver,
+      idProvider: idProvider,
+    );
+
+    configuration.elementTextConfiguration
+      ..withLibraryFragments = false
+      ..withReferences = false
+      ..withSyntheticGetters = false
+      ..withV1 = false;
+
+    switch (operation) {
+      case _FineOperationAddTestFile():
+        driver.addFile2(testFile);
+      case _FineOperationTestFileGetErrors():
+        collector.getErrors('T1', testFile);
+      case _FineOperationGetTestLibrary():
+        collector.getLibraryByUri('T1', 'package:test/test.dart');
+    }
+
+    if (expectedInitialEvents != null) {
+      setId('expectedInitialEvents');
+      await assertEventsText(collector, expectedInitialEvents);
+    } else {
+      await collector.nextStatusIdle();
+      collector.take();
+    }
+
+    var updatedFiles = updateFiles();
+    for (var updatedFile in updatedFiles) {
+      driver.changeFile2(updatedFile);
+    }
+
+    switch (operation) {
+      case _FineOperationAddTestFile():
+        // Nothing to do here, wait for analysis of previous added files.
+        break;
+      case _FineOperationTestFileGetErrors():
+        collector.getErrors('T2', testFile);
+      case _FineOperationGetTestLibrary():
+        collector.getLibraryByUri('T2', 'package:test/test.dart');
+    }
+
+    setId('expectedUpdatedEvents');
+    await assertEventsText(collector, expectedUpdatedEvents);
+  }
+
+  Future<void> _runChangeScenarioTA({
+    required String initialA,
+    required String testCode,
+    required _FineOperation operation,
+    String? expectedInitialEvents,
+    required String updatedA,
+    required String expectedUpdatedEvents,
+  }) async {
+    var a = newFile('$testPackageLibPath/a.dart', initialA);
+    newFile('$testPackageLibPath/test.dart', testCode);
+
+    await _runChangeScenario(
+      operation: operation,
+      expectedInitialEvents: expectedInitialEvents,
+      updateFiles: () {
+        modifyFile2(a, updatedA);
+        return [a];
+      },
+      expectedUpdatedEvents: expectedUpdatedEvents,
+    );
+  }
+
+  Future<void> _runChangeScenarioUA({
+    required _FineOperation operation,
+    required String updatedA,
+    required String expectedUpdatedEvents,
+  }) async {
+    await _runChangeScenario(
+      operation: operation,
+      updateFiles: () {
+        var a = getFile('$testPackageLibPath/a.dart');
+        modifyFile2(a, updatedA);
+        return [a];
+      },
+      expectedUpdatedEvents: expectedUpdatedEvents,
+    );
   }
 }
 
@@ -5369,6 +11121,59 @@ class _AlwaysReportedLintVisitor extends SimpleAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     rule.reportLintForOffset(0, 0);
   }
+}
+
+mixin _EventsMixin {
+  final IdProvider idProvider = IdProvider();
+  final DriverEventsPrinterConfiguration configuration =
+      DriverEventsPrinterConfiguration();
+
+  Future<void> assertEventsText(
+    DriverEventCollector collector,
+    String expected,
+  ) async {
+    await pumpEventQueue(times: 5000);
+
+    var buffer = StringBuffer();
+    var sink = TreeStringSink(sink: buffer, indent: '');
+
+    var elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration(),
+    );
+
+    var events = collector.take();
+    DriverEventsPrinter(
+      configuration: configuration,
+      sink: sink,
+      elementPrinter: elementPrinter,
+      idProvider: collector.idProvider,
+    ).write(events);
+
+    var actual = buffer.toString();
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+}
+
+sealed class _FineOperation {
+  const _FineOperation();
+}
+
+final class _FineOperationAddTestFile extends _FineOperation {
+  const _FineOperationAddTestFile();
+}
+
+final class _FineOperationGetTestLibrary extends _FineOperation {
+  const _FineOperationGetTestLibrary();
+}
+
+final class _FineOperationTestFileGetErrors extends _FineOperation {
+  const _FineOperationTestFileGetErrors();
 }
 
 extension on AnalysisDriver {

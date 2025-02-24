@@ -23,31 +23,47 @@ import 'resolved_ast_printer.dart';
 String getLibraryText({
   required LibraryElementImpl library,
   required ElementTextConfiguration configuration,
+  String indent = '',
 }) {
   var buffer = StringBuffer();
   var sink = TreeStringSink(
     sink: buffer,
     indent: '',
   );
+  writeLibrary(
+    sink: sink,
+    library: library,
+    configuration: configuration,
+  );
+  return buffer.toString();
+}
+
+void writeLibrary({
+  required TreeStringSink sink,
+  required LibraryElementImpl library,
+  required ElementTextConfiguration configuration,
+}) {
   var elementPrinter = ElementPrinter(
     sink: sink,
     configuration: configuration.elementPrinterConfiguration,
   );
-  var writer = _ElementWriter(
-    sink: sink,
-    elementPrinter: elementPrinter,
-    configuration: configuration,
-  );
-  writer.writeLibraryElement(library);
 
-  sink.writeln('-' * 40);
+  if (configuration.withV1) {
+    var writer = _ElementWriter(
+      sink: sink,
+      elementPrinter: elementPrinter,
+      configuration: configuration,
+    );
+    writer.writeLibraryElement(library);
+    sink.writeln('-' * 40);
+  }
+
   var writer2 = _Element2Writer(
     sink: sink,
     elementPrinter: elementPrinter,
     configuration: configuration,
   );
   writer2.writeLibraryElement(library);
-  return buffer.toString();
 }
 
 class ElementTextConfiguration {
@@ -64,12 +80,16 @@ class ElementTextConfiguration {
   bool withFunctionTypeParameters = false;
   bool withImports = true;
   bool withLibraryAugmentations = false;
+  bool withLibraryFragments = true;
   bool withMetadata = true;
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
   bool withRedirectedConstructors = false;
+  bool withReferences = true;
   bool withReturnType = true;
   bool withSyntheticDartCoreImport = false;
+  bool withSyntheticGetters = true;
+  bool withV1 = true;
 
   ElementTextConfiguration({
     this.filter = _filterTrue,
@@ -201,6 +221,10 @@ abstract class _AbstractElementWriter {
   }
 
   void _writeReference(ElementImpl e) {
+    if (!configuration.withReferences) {
+      return;
+    }
+
     if (e.reference case var reference?) {
       _sink.writeIndentedLine(() {
         _sink.write('reference: ');
@@ -210,6 +234,10 @@ abstract class _AbstractElementWriter {
   }
 
   void _writeReference2(ElementImpl2 e) {
+    if (!configuration.withReferences) {
+      return;
+    }
+
     var reference = e.reference;
     if (reference != null) {
       _sink.writeIndentedLine(() {
@@ -250,7 +278,14 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeLibraryExportElement,
       // );
 
-      _writeFragmentList('fragments', null, e.fragments, _writeLibraryFragment);
+      if (configuration.withLibraryFragments) {
+        _writeFragmentList(
+          'fragments',
+          null,
+          e.fragments,
+          _writeLibraryFragment,
+        );
+      }
 
       _writeElementList('classes', e, e.classes, _writeInstanceElement);
       _writeElementList('enums', e, e.enums, _writeInstanceElement);
@@ -263,7 +298,19 @@ class _Element2Writer extends _AbstractElementWriter {
 
       _writeElementList('topLevelVariables', e, e.topLevelVariables,
           _writeTopLevelVariableElement);
-      _writeElementList('getters', e, e.getters, _writeGetterElement);
+
+      _writeElementList(
+        'getters',
+        e,
+        e.getters.where((getter) {
+          if (!configuration.withSyntheticGetters && getter.isSynthetic) {
+            return false;
+          }
+          return true;
+        }).toList(),
+        _writeGetterElement,
+      );
+
       _writeElementList('setters', e, e.setters, _writeSetterElement);
       _writeElementList(
           'functions', e, e.topLevelFunctions, _writeTopLevelFunctionElement);
@@ -506,6 +553,10 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeElementReference(String name, Element2? e) {
+    if (!configuration.withReferences) {
+      return;
+    }
+
     if (e == null) {
       return;
     }
@@ -822,9 +873,14 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFragmentReference(String name, Fragment? f) {
+    if (!configuration.withReferences) {
+      return;
+    }
+
     if (f == null) {
       return;
     }
+
     if (f is CompilationUnitElementImpl) {
       _sink.writeIndentedLine(() {
         _sink.write(name);

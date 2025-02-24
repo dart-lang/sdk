@@ -456,6 +456,16 @@ extension FormalParameterElementImplExtension on FormalParameterElementImpl {
   }
 }
 
+extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
+  ParameterElementMixin get asElement {
+    return switch (this) {
+      FormalParameterElementImpl(:var firstFragment) => firstFragment,
+      ParameterMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
+  }
+}
+
 extension InstanceElement2Extension on InstanceElement2 {
   InstanceElement get asElement {
     return firstFragment as InstanceElement;
@@ -555,6 +565,15 @@ extension MethodElement2Extension on MethodElement2 {
   }
 }
 
+extension MethodElement2OrMemberExtension on MethodElement2OrMember {
+  MethodElementOrMember get asElement {
+    if (this case MethodMember member) {
+      return member;
+    }
+    return (this as MethodElementImpl2).lastFragment;
+  }
+}
+
 extension MethodElementExtension on MethodElement {
   MethodElement2 get asElement2 {
     return switch (this) {
@@ -562,6 +581,12 @@ extension MethodElementExtension on MethodElement {
       MethodMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
+  }
+}
+
+extension MethodElementImplExtension on MethodElementImpl {
+  MethodElementImpl2 get asElement2 {
+    return element;
   }
 }
 

@@ -28,6 +28,7 @@ import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
+import 'package:analyzer/src/summary2/bundle_manifest.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
@@ -52,10 +53,13 @@ class BundleReader {
     required Uint8List resolutionBytes,
     Map<Uri, Uint8List> unitsInformativeBytes = const {},
     required InfoDeclarationStore infoDeclarationStore,
+    required Map<Uri, LibraryManifest> libraryManifests,
   })  : _reader = SummaryDataReader(resolutionBytes),
         _unitsInformativeBytes = unitsInformativeBytes,
         _infoDeclarationStore = infoDeclarationStore {
-    _reader.offset = _reader.bytes.length - 4 * 4;
+    const bytesOfU32 = 4;
+    const countOfU32 = 4;
+    _reader.offset = _reader.bytes.length - bytesOfU32 * countOfU32;
     var baseResolutionOffset = _reader.readUInt32();
     var librariesOffset = _reader.readUInt32();
     var referencesOffset = _reader.readUInt32();
@@ -91,6 +95,7 @@ class BundleReader {
         offset: libraryHeader.offset,
         classMembersLengths: libraryHeader.classMembersLengths,
         infoDeclarationStore: _infoDeclarationStore,
+        manifest: libraryManifests[uri],
       );
     }
   }
@@ -618,6 +623,7 @@ class LibraryReader {
   final Reference _reference;
   final int _offset;
   final InfoDeclarationStore _deserializedDataStore;
+  final LibraryManifest? manifest;
 
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
@@ -636,6 +642,7 @@ class LibraryReader {
     required int offset,
     required Uint32List classMembersLengths,
     required InfoDeclarationStore infoDeclarationStore,
+    required this.manifest,
   })  : _elementFactory = elementFactory,
         _reader = reader,
         _unitsInformativeBytes = unitsInformativeBytes,
@@ -678,6 +685,8 @@ class LibraryReader {
     _libraryElement.nameUnion = ElementNameUnion.read(
       _reader.readUInt30List(),
     );
+
+    _libraryElement.manifest = manifest;
 
     _libraryElement.loadLibraryProvider = LoadLibraryFunctionProvider(
       fragmentReference: _readReference(),
@@ -2146,7 +2155,7 @@ class ResolutionReader {
     );
   }
 
-  FunctionType? readOptionalFunctionType() {
+  FunctionTypeImpl? readOptionalFunctionType() {
     var type = readType();
     return type is FunctionTypeImpl ? type : null;
   }

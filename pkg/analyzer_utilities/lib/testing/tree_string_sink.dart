@@ -77,6 +77,15 @@ class TreeStringSink {
     _sink.writeln(object);
   }
 
+  /// Writes name to simple value map, useful when no nested properties.
+  void writeProperties(Map<String, Object> properties) {
+    withIndent(() {
+      for (var entry in properties.entries) {
+        writelnWithIndent('${entry.key}: ${entry.value}');
+      }
+    });
+  }
+
   void writeWithIndent(Object object) {
     _sink.write(_indent);
     _sink.write(object);

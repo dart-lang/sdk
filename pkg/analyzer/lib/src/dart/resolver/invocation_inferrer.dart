@@ -284,7 +284,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
     var parameters = _storeResult(typeArgumentTypes, invokeType);
     if (parameters != null) {
-      argumentList.correspondingStaticParameters =
+      argumentList.correspondingStaticParameters2 =
           ResolverVisitor.resolveArgumentsToParameters(
         argumentList: argumentList,
         formalParameters: parameters,
@@ -315,7 +315,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     ];
   }
 
-  DartType _refineReturnType(DartType returnType) => returnType;
+  TypeImpl _refineReturnType(TypeImpl returnType) => returnType;
 
   void _reportWrongNumberOfTypeArguments(TypeArgumentList typeArgumentList,
       FunctionType rawType, List<TypeParameterElement2> typeParameters) {
@@ -639,7 +639,7 @@ class MethodInvocationInferrer
   }
 
   @override
-  DartType _refineReturnType(DartType returnType) {
+  TypeImpl _refineReturnType(TypeImpl returnType) {
     var targetType = node.realTarget?.staticType;
     if (targetType != null) {
       returnType = resolver.typeSystem.refineNumericInvocationType(

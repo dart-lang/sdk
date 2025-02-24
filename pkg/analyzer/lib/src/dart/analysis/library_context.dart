@@ -7,6 +7,7 @@
 /// @docImport 'package:analyzer/src/generated/engine.dart';
 library;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
@@ -17,16 +18,22 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_event.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/flags.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary2/bundle_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/data_reader.dart';
+import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -41,6 +48,7 @@ class LibraryContext {
   final LibraryContextTestData? testData;
   final PerformanceLog logger;
   final ByteStore byteStore;
+  final StreamController<Object>? eventsController;
   final InfoDeclarationStore infoDeclarationStore;
   final FileSystemState fileSystemState;
   final File? packagesFile;
@@ -50,14 +58,17 @@ class LibraryContext {
   late final LinkedElementFactory elementFactory;
 
   Set<LibraryCycle> loadedBundles = Set.identity();
+  final LinkedBundleProvider linkedBundleProvider;
 
   LibraryContext({
     required this.testData,
     required AnalysisSessionImpl analysisSession,
     required this.logger,
     required this.byteStore,
+    required this.eventsController,
     required this.infoDeclarationStore,
     required this.fileSystemState,
+    required this.linkedBundleProvider,
     required AnalysisOptionsMap analysisOptionsMap,
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
@@ -83,6 +94,7 @@ class LibraryContext {
             resolutionBytes: bundle.resolutionBytes,
             unitsInformativeBytes: {},
             infoDeclarationStore: infoDeclarationStore,
+            libraryManifests: {},
           ),
         );
       }
@@ -122,7 +134,6 @@ class LibraryContext {
     required LibraryFileKind targetLibrary,
     required OperationPerformanceImpl performance,
   }) {
-    addToLogRing('[load][targetLibrary: ${targetLibrary.file}]');
     var librariesTotal = 0;
     var librariesLoaded = 0;
     var librariesLinked = 0;
@@ -132,6 +143,7 @@ class LibraryContext {
 
     void loadBundle(LibraryCycle cycle) {
       if (!loadedBundles.add(cycle)) return;
+      addToLogRing('[load][cycle: $cycle]');
 
       performance.getDataInt('cycleCount').increment();
       performance.getDataInt('libraryCount').add(cycle.libraries.length);
@@ -149,50 +161,167 @@ class LibraryContext {
         }
       }
 
-      var linkedBytes = byteStore.get(cycle.linkedKey);
+      var bundleEntry = linkedBundleProvider.get(cycle.linkedKey);
 
-      if (linkedBytes == null) {
+      var inputLibraryManifests = <Uri, LibraryManifest>{};
+      if (withFineDependencies && bundleEntry != null) {
+        var isSatisfied = performance.run(
+          'libraryContext(isSatisfied)',
+          (performance) {
+            inputLibraryManifests = bundleEntry!.libraryManifests;
+            // If anything change in the API signature, relink the cycle.
+            // But use previous manifests to reuse item versions.
+            if (bundleEntry.apiSignature != cycle.nonTransitiveApiSignature) {
+              return false;
+            } else {
+              var requirements = bundleEntry.requirements;
+              var failure = requirements.isSatisfied(
+                elementFactory: elementFactory,
+                libraryManifests: elementFactory.libraryManifests,
+              );
+              if (failure != null) {
+                eventsController?.add(
+                  CannotReuseLinkedBundle(
+                    elementFactory: elementFactory,
+                    cycle: cycle,
+                    failure: failure,
+                  ),
+                );
+                return false;
+              }
+            }
+            return true;
+          },
+        );
+        if (!isSatisfied) {
+          bundleEntry = null;
+        }
+      }
+
+      if (bundleEntry == null) {
         librariesLinkedTimer.start();
 
         testData?.linkedCycles.add(
           cycle.libraries.map((e) => e.file.path).toSet(),
         );
 
-        LinkResult linkResult;
+        Uint8List linkedBytes;
         try {
-          linkResult = performance.run('link', (performance) {
-            return link(
-              elementFactory: elementFactory,
-              performance: performance,
-              inputLibraries: cycle.libraries,
+          if (withFineDependencies) {
+            var requirementsManifest = BundleRequirementsManifest();
+            linkingBundleManifest = requirementsManifest;
+
+            var linkResult = performance.run('link', (performance) {
+              return link(
+                elementFactory: elementFactory,
+                apiSignature: cycle.nonTransitiveApiSignature,
+                performance: performance,
+                inputLibraries: cycle.libraries,
+                inputLibraryManifests: inputLibraryManifests,
+              );
+            });
+            linkingBundleManifest = null;
+            linkedBytes = linkResult.resolutionBytes;
+
+            var newLibraryManifests = <Uri, LibraryManifest>{};
+            performance.run('computeManifests', (performance) {
+              newLibraryManifests = BundleManifest(
+                elementFactory: elementFactory,
+                inputLibraries: cycle.libraries,
+                inputLibraryManifests: inputLibraryManifests,
+                requirementsManifest: requirementsManifest,
+              ).computeManifests(
+                performance: performance,
+              );
+              elementFactory.libraryManifests.addAll(newLibraryManifests);
+            });
+
+            requirementsManifest.removeReqForLibs(cycle.libraryUris);
+
+            bundleEntry = LinkedBundleEntry(
+              apiSignature: cycle.nonTransitiveApiSignature,
+              libraryManifests: newLibraryManifests,
+              requirements: requirementsManifest,
+              linkedBytes: linkedBytes,
             );
-          });
+            linkedBundleProvider.put(
+              key: cycle.linkedKey,
+              entry: bundleEntry,
+            );
+
+            eventsController?.add(
+              LinkLibraryCycle(
+                elementFactory: elementFactory,
+                cycle: cycle,
+                requirementsManifest: requirementsManifest,
+              ),
+            );
+          } else {
+            var linkResult = performance.run('link', (performance) {
+              return link(
+                elementFactory: elementFactory,
+                apiSignature: cycle.nonTransitiveApiSignature,
+                performance: performance,
+                inputLibraries: cycle.libraries,
+                inputLibraryManifests: inputLibraryManifests,
+              );
+            });
+            linkedBytes = linkResult.resolutionBytes;
+
+            bundleEntry = LinkedBundleEntry(
+              apiSignature: cycle.nonTransitiveApiSignature,
+              libraryManifests: {},
+              requirements: BundleRequirementsManifest(),
+              linkedBytes: linkedBytes,
+            );
+            linkedBundleProvider.put(
+              key: cycle.linkedKey,
+              entry: bundleEntry,
+            );
+
+            eventsController?.add(
+              LinkLibraryCycle(
+                elementFactory: elementFactory,
+                cycle: cycle,
+                requirementsManifest: null,
+              ),
+            );
+          }
           librariesLinked += cycle.libraries.length;
         } catch (exception, stackTrace) {
           _throwLibraryCycleLinkException(cycle, exception, stackTrace);
         }
 
-        linkedBytes = linkResult.resolutionBytes;
-        byteStore.putGet(cycle.linkedKey, linkedBytes);
         performance.getDataInt('bytesPut').add(linkedBytes.length);
         testData?.forCycle(cycle).putKeys.add(cycle.linkedKey);
         bytesPut += linkedBytes.length;
 
         librariesLinkedTimer.stop();
       } else {
+        var linkedBytes = bundleEntry.linkedBytes;
         testData?.forCycle(cycle).getKeys.add(cycle.linkedKey);
         performance.getDataInt('bytesGet').add(linkedBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
         // TODO(scheglov): Take / clear parsed units in files.
         bytesGet += linkedBytes.length;
         librariesLoaded += cycle.libraries.length;
-        var bundleReader = BundleReader(
-          elementFactory: elementFactory,
-          unitsInformativeBytes: unitsInformativeBytes,
-          resolutionBytes: linkedBytes,
-          infoDeclarationStore: infoDeclarationStore,
+        eventsController?.add(
+          ReuseLinkLibraryCycleBundle(cycle: cycle),
         );
+        var bundleReader = performance.run('bundleReader', (performance) {
+          return BundleReader(
+            elementFactory: elementFactory,
+            unitsInformativeBytes: unitsInformativeBytes,
+            resolutionBytes: linkedBytes,
+            infoDeclarationStore: infoDeclarationStore,
+            libraryManifests: bundleEntry!.libraryManifests,
+          );
+        });
         elementFactory.addBundle(bundleReader);
+        elementFactory.libraryManifests.addAll(
+          bundleEntry.libraryManifests,
+        );
+        addToLogRing('[load][addedBundle][cycle: $cycle]');
       }
     }
 
@@ -320,4 +449,107 @@ class LibraryContextTestData {
 class LibraryCycleTestData {
   final List<String> getKeys = [];
   final List<String> putKeys = [];
+}
+
+/// The entry in [LinkedBundleProvider].
+class LinkedBundleEntry {
+  /// See [LibraryCycle.nonTransitiveApiSignature].
+  final String apiSignature;
+
+  /// The manifests of libraries in [linkedBytes].
+  ///
+  /// If we have to relink libraries, we will match new elements against
+  /// these old manifests, and reuse IDs for not affected elements.
+  final Map<Uri, LibraryManifest> libraryManifests;
+
+  /// The requirements of libraries in [linkedBytes].
+  ///
+  /// These requirements are to the libraries in dependencies.
+  ///
+  /// If [withFineDependencies] is `false`, the requirements are empty.
+  final BundleRequirementsManifest requirements;
+
+  /// The serialized libraries, for [BundleReader].
+  final Uint8List linkedBytes;
+
+  LinkedBundleEntry({
+    required this.apiSignature,
+    required this.libraryManifests,
+    required this.requirements,
+    required this.linkedBytes,
+  });
+}
+
+/// The cache of serialized libraries.
+///
+/// It is used for performance reasons to avoid reading requirements again
+/// and again. Currently after a change to a file with many transitive clients
+/// we discard all libraries, and then try to load them again, checking the
+/// requirements.
+///
+/// We also use [BundleReader] to read library headers (not full libraries),
+/// but this is relatively cheap.
+class LinkedBundleProvider {
+  final ByteStore byteStore;
+
+  /// The keys are [LibraryCycle.linkedKey].
+  final Map<String, LinkedBundleEntry> map = {};
+
+  LinkedBundleProvider({
+    required this.byteStore,
+  });
+
+  LinkedBundleEntry? get(String key) {
+    if (map[key] case var entry?) {
+      return entry;
+    }
+
+    var bytes = byteStore.get(key);
+    if (bytes == null) {
+      return null;
+    }
+
+    var reader = SummaryDataReader(bytes);
+    var apiSignature = reader.readStringUtf8();
+    var libraryManifests = reader.readMap(
+      readKey: () => reader.readUri(),
+      readValue: () => LibraryManifest.read(reader),
+    );
+    var requirements = BundleRequirementsManifest.read(reader);
+    var linkedBytes = reader.readUint8List();
+
+    var result = map[key] = LinkedBundleEntry(
+      apiSignature: apiSignature,
+      libraryManifests: libraryManifests,
+      requirements: requirements,
+      linkedBytes: linkedBytes,
+    );
+
+    // We have copies of all data.
+    byteStore.release([key]);
+
+    return result;
+  }
+
+  void put({
+    required String key,
+    required LinkedBundleEntry entry,
+  }) {
+    var byteSink = ByteSink();
+    var sink = BufferedSink(byteSink);
+
+    sink.writeStringUtf8(entry.apiSignature);
+    sink.writeMap(
+      entry.libraryManifests,
+      writeKey: (uri) => sink.writeUri(uri),
+      writeValue: (manifest) => manifest.write(sink),
+    );
+    entry.requirements.write(sink);
+    sink.writeUint8List(entry.linkedBytes);
+
+    var bytes = sink.flushAndTake();
+    byteStore.putGet(key, bytes);
+
+    map[key] = entry;
+  }
 }

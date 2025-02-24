@@ -252,6 +252,11 @@ class BufferedSink {
     writeUInt30(bytes.length);
     addBytes(bytes);
   }
+
+  void writeUri(Uri uri) {
+    var uriStr = uri.toString();
+    writeStringUtf8(uriStr);
+  }
 }
 
 /// A [Sink] that directly writes data into a byte builder.

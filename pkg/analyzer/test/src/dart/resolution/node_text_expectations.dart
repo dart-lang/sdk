@@ -32,11 +32,6 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
-      className: 'AnalysisDriver_PubPackageTest',
-      methodName: 'assertEventsText',
-      argument: _ArgumentIndex(1),
-    ),
-    _AssertMethod(
       className: 'AnalysisSessionImplTest',
       methodName: '_assertFileUnitElementResultText',
       argument: _ArgumentIndex(1),
@@ -65,6 +60,46 @@ class NodeTextExpectationsCollector {
       className: 'FileResolutionTest',
       methodName: 'assertStateString',
       argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
+      className: 'FineAnalysisDriverTest',
+      methodName: '_runChangeScenarioTA',
+      argument: _ArgumentNamed(
+        'expectedInitialEvents',
+        shouldCheckIntraInvocationId: true,
+      ),
+    ),
+    _AssertMethod(
+      className: 'FineAnalysisDriverTest',
+      methodName: '_runChangeScenarioTA',
+      argument: _ArgumentNamed(
+        'expectedUpdatedEvents',
+        shouldCheckIntraInvocationId: true,
+      ),
+    ),
+    _AssertMethod(
+      className: 'FineAnalysisDriverTest',
+      methodName: '_runChangeScenarioUA',
+      argument: _ArgumentNamed(
+        'expectedUpdatedEvents',
+        shouldCheckIntraInvocationId: true,
+      ),
+    ),
+    _AssertMethod(
+      className: 'FineAnalysisDriverTest',
+      methodName: '_runChangeScenario',
+      argument: _ArgumentNamed(
+        'expectedInitialEvents',
+        shouldCheckIntraInvocationId: true,
+      ),
+    ),
+    _AssertMethod(
+      className: 'FineAnalysisDriverTest',
+      methodName: '_runChangeScenario',
+      argument: _ArgumentNamed(
+        'expectedUpdatedEvents',
+        shouldCheckIntraInvocationId: true,
+      ),
     ),
     _AssertMethod(
       className: 'IndexTest',
@@ -141,7 +176,16 @@ class NodeTextExpectationsCollector {
       methodName: 'assertUnresolvedMemberReferencesText',
       argument: _ArgumentIndex(1),
     ),
+    _AssertMethod(
+      className: '_EventsMixin',
+      methodName: 'assertEventsText',
+      argument: _ArgumentIndex(1),
+    ),
   ];
+
+  /// Some top-level "assert" have multiple expectations.
+  /// They set this field, so that [_ArgumentNamed] can disambiguate.
+  static String? intraInvocationId;
 
   static final Map<String, _File> _files = {};
 
@@ -152,6 +196,16 @@ class NodeTextExpectationsCollector {
 
     var traceLines = '${StackTrace.current}'.split('\n');
     for (var assertMethod in assertMethods) {
+      // Disambiguate multi-expectation arguments.
+      if (assertMethod.argument case _ArgumentNamed namedArgument) {
+        if (namedArgument.shouldCheckIntraInvocationId) {
+          var id = NodeTextExpectationsCollector.intraInvocationId;
+          if (namedArgument.name != id) {
+            continue;
+          }
+        }
+      }
+
       for (var traceIndex = 0; traceIndex < traceLines.length; traceIndex++) {
         var traceLine = traceLines[traceIndex];
         if (!traceLine.contains(' ${assertMethod.stackTracePattern} ')) {
@@ -249,8 +303,12 @@ final class _ArgumentIndex extends _Argument {
 
 final class _ArgumentNamed extends _Argument {
   final String name;
+  final bool shouldCheckIntraInvocationId;
 
-  _ArgumentNamed(this.name);
+  _ArgumentNamed(
+    this.name, {
+    this.shouldCheckIntraInvocationId = false,
+  });
 
   @override
   Expression get(ArgumentList argumentList) {

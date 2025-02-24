@@ -458,10 +458,15 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     _correspondingStaticParameters = parameters;
   }
 
-  List<FormalParameterElement?>? get correspondingStaticParameters2 =>
+  List<FormalParameterElementMixin?>? get correspondingStaticParameters2 =>
       _correspondingStaticParameters
           ?.map((parameter) => parameter?.asElement2)
           .toList();
+
+  set correspondingStaticParameters2(
+      List<FormalParameterElementMixin?>? value) {
+    _correspondingStaticParameters = value?.map((e) => e?.asElement).toList();
+  }
 
   @override
   Token get endToken => rightParenthesis;
@@ -886,7 +891,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   ExpressionImpl _rightHandSide;
 
   @override
-  MethodElement? staticElement;
+  MethodElementOrMember? staticElement;
 
   /// Initializes a newly created assignment expression.
   AssignmentExpressionImpl({
@@ -904,9 +909,9 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => staticElement?.asElement2;
+  MethodElement2OrMember? get element => staticElement?.asElement2;
 
-  set element(MethodElement2? element) {
+  set element(MethodElement2OrMember? element) {
     staticElement = element?.asElement;
   }
 
@@ -1837,7 +1842,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   MethodElement? staticElement;
 
   @override
-  FunctionType? staticInvokeType;
+  FunctionTypeImpl? staticInvokeType;
 
   /// Initializes a newly created binary expression.
   BinaryExpressionImpl({
@@ -3743,17 +3748,20 @@ base mixin CompoundAssignmentExpressionImpl
   @experimental
   @override
   Element2? get readElement2 {
-    if (readElement is Fragment) {
-      return (readElement as Fragment).element;
-    } else if (readElement is Element2) {
-      return readElement as Element2;
-    }
-    return null;
+    return readElement?.asElement2;
+  }
+
+  set readElement2(Element2? value) {
+    readElement = value?.asElement;
   }
 
   @experimental
   @override
   Element2? get writeElement2 => writeElement.asElement2;
+
+  set writeElement2(Element2? value) {
+    writeElement = value?.asElement;
+  }
 }
 
 /// A conditional expression.
@@ -5179,7 +5187,7 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @experimental
   @override
-  FormalParameterFragment? get declaredFragment => _parameter.declaredFragment;
+  ParameterElementImpl? get declaredFragment => _parameter.declaredFragment;
 
   @override
   ExpressionImpl? get defaultValue => _defaultValue;
@@ -5699,9 +5707,13 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   ConstructorElement2? get constructorElement2 =>
       constructorElement?.asElement2;
 
+  set constructorElement2(ConstructorElement2? value) {
+    constructorElement = value?.asElement;
+  }
+
   @experimental
   @override
-  FieldFragment? get declaredFragment => declaredElement as FieldFragment?;
+  FieldElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => arguments?.endToken ?? name;
@@ -6738,8 +6750,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   Token get beginToken => importPrefix?.name ?? name;
 
   @override
-  ExtensionElementImpl get element =>
-      element2.firstFragment;
+  ExtensionElementImpl get element => element2.firstFragment;
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -7685,8 +7696,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
 
   @experimental
   @override
-  FormalParameterFragment? get declaredFragment =>
-      declaredElement as FormalParameterFragment?;
+  ParameterElementImpl? get declaredFragment => declaredElement;
 
   @override
   bool get isNamed => kind.isNamed;
@@ -10259,6 +10269,10 @@ final class IndexExpressionImpl extends ExpressionImpl
   @experimental
   @override
   MethodElement2? get element => staticElement?.asElement2;
+
+  set element(MethodElement2? value) {
+    staticElement = value?.asElement;
+  }
 
   @override
   Token get endToken => rightBracket;

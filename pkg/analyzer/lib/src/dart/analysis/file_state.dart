@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -39,6 +40,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary2/bundle_manifest.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -383,6 +385,7 @@ abstract class FileKind {
   @mustCallSuper
   void dispose() {
     disposeLibraryCycle();
+    library?.discardResolvedKey();
 
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
@@ -1874,6 +1877,23 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   LibraryCycle? _libraryCycle;
 
+  /// The cached value of [resolvedKey].
+  String? _resolvedKey;
+
+  /// The last known resolution result for the library.
+  ///
+  /// It might be still valid, but might be not.
+  /// We check its requirements to decide.
+  ///
+  /// We keep it in memory for performance. There are cases when we edit a
+  /// file with many transitive clients, and we don't want to deserialize
+  /// requirements every time. They are almost always satisfied, so we don't
+  /// analyze libraries, and so deserialization cost would dominate.
+  ///
+  /// There might be a way in the future to collapse these requirements to
+  /// reduce heap usage.
+  LibraryResolutionResult? lastResolutionResult;
+
   LibraryFileKind({
     required super.file,
     required this.name,
@@ -1940,9 +1960,36 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     return _libraryCycle!;
   }
 
+  /// The key to store a resolved library result.
+  ///
+  /// The key is based on the path, URI, and content of the library files.
+  ///
+  /// The result contains the fine grained requirements, and map with
+  /// diagnostics for each file.
+  String get resolvedKey {
+    if (_resolvedKey case var result?) {
+      return result;
+    }
+
+    var keyBuilder = ApiSignature();
+    keyBuilder.addInt(AnalysisDriver.DATA_VERSION);
+    var sortedFiles = library.files.sortedBy((f) => f.path);
+    for (var file in sortedFiles) {
+      keyBuilder.addString(file.path);
+      keyBuilder.addString(file.uriStr);
+      keyBuilder.addString(file.contentHash);
+    }
+
+    return _resolvedKey = '${keyBuilder.toHex()}.resolved2';
+  }
+
   @override
   List<UnlinkedLibraryImportDirective> get _unlinkedDocImports {
     return file.unlinked2.libraryDirective?.docImports ?? const [];
+  }
+
+  void discardResolvedKey() {
+    _resolvedKey = null;
   }
 
   @override
@@ -2083,6 +2130,20 @@ final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
 abstract class LibraryOrAugmentationFileKind extends FileKind {
   LibraryOrAugmentationFileKind({
     required super.file,
+  });
+}
+
+/// The resolution result for a library.
+class LibraryResolutionResult {
+  final BundleRequirementsManifest requirements;
+
+  /// Approximately serialized map of file URIs to diagnostics.
+  /// See uses for precise details.
+  final Uint8List bytes;
+
+  LibraryResolutionResult({
+    required this.requirements,
+    required this.bytes,
   });
 }
 

@@ -273,7 +273,7 @@ class AstBinaryReader {
       operator: Tokens.fromType(operatorType),
       rightHandSide: rightHandSide,
     );
-    node.staticElement = _reader.readElement() as MethodElement?;
+    node.staticElement = _reader.readElement() as MethodElementOrMember?;
     node.readElement = _reader.readElement();
     node.readType = _reader.readType();
     node.writeElement = _reader.readElement();

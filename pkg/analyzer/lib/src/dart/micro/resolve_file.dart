@@ -793,6 +793,7 @@ class FileResolver {
       libraryContext = LibraryContext(
         declaredVariables: contextObjects!.declaredVariables,
         byteStore: byteStore,
+        eventsController: null,
         infoDeclarationStore: const NoOpInfoDeclarationStore(),
         analysisOptionsMap: AnalysisOptionsMap.forSharedOptions(
             contextObjects!.analysisOptions),
@@ -803,6 +804,9 @@ class FileResolver {
         externalSummaries: SummaryDataStore(),
         packagesFile: null,
         testData: testData?.libraryContext,
+        linkedBundleProvider: LinkedBundleProvider(
+          byteStore: byteStore,
+        ),
       );
 
       contextObjects!.analysisSession.elementFactory =

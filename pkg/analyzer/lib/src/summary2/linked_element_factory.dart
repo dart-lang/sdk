@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/summary2/bundle_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -38,6 +39,7 @@ class LinkedElementFactory {
   final Reference rootReference;
   final Map<Uri, LibraryReader> _libraryReaders = {};
   bool isApplyingInformativeData = false;
+  final Map<Uri, LibraryManifest> libraryManifests = {};
 
   LinkedElementFactory(
     this.analysisContext,
@@ -246,6 +248,7 @@ class LinkedElementFactory {
     addToLogRing('[removeLibraries][uriSet: $uriSet][${StackTrace.current}]');
     for (var uri in uriSet) {
       _libraryReaders.remove(uri);
+      libraryManifests.remove(uri);
       var libraryReference = rootReference.removeChild('$uri');
       _disposeLibrary(libraryReference?.element);
     }

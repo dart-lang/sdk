@@ -24,6 +24,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/analysis/flags.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -49,6 +50,7 @@ import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
+import 'package:analyzer/src/summary2/bundle_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -1468,7 +1470,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ConstructorElement get declaration => this;
+  ConstructorElementImpl get declaration => this;
 
   @override
   String get displayName {
@@ -1769,6 +1771,9 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
 /// Common implementation for methods defined in [ConstructorElement].
 mixin ConstructorElementMixin
     implements ConstructorElement, ExecutableElementOrMember {
+  @override
+  ConstructorElementImpl get declaration;
+
   @override
   bool get isDefaultConstructor {
     // unnamed
@@ -2649,7 +2654,7 @@ abstract class ElementImpl implements Element, Element2 {
   }
 
   @override
-  Element get declaration => this;
+  ElementImpl get declaration => this;
 
   @override
   String get displayName => _name ?? '';
@@ -3791,6 +3796,9 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
       ];
 
   @override
+  ExecutableElementImpl get declaration => this;
+
+  @override
   ExecutableElementImpl2 get element;
 
   @override
@@ -4336,7 +4344,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  FieldElement get declaration => this;
+  FieldElementImpl get declaration => this;
 
   @override
   FieldElementImpl2 get element {
@@ -5304,7 +5312,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ExecutableElement get declaration => this;
+  ExecutableElementImpl get declaration => this;
 
   @override
   Fragment? get enclosingFragment {
@@ -5979,7 +5987,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
-  MethodElement2? getMethod2(String name) {
+  MethodElement2OrMember? getMethod2(String name) {
     return methods2.firstWhereOrNull((e) => e.lookupName == name);
   }
 
@@ -7232,6 +7240,9 @@ class LibraryElementImpl extends ElementImpl
   /// The map of top-level declarations, from all units.
   LibraryDeclarations? _libraryDeclarations;
 
+  /// If [withFineDependencies] is `true`, the manifest of the library.
+  LibraryManifest? manifest;
+
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
@@ -8464,7 +8475,7 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  MethodElement get declaration => this;
+  MethodElementImpl get declaration => this;
 
   @override
   String get displayName {
@@ -8893,7 +8904,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @override
-  Element? get declaration => null;
+  ElementImpl? get declaration => null;
 
   @override
   String get displayName => name;
@@ -9511,7 +9522,7 @@ class ParameterElementImpl extends VariableElementImpl
   List<Fragment> get children3 => const [];
 
   @override
-  ParameterElement get declaration => this;
+  ParameterElementImpl get declaration => this;
 
   @override
   FormalParameterElementImpl get element {
@@ -9696,6 +9707,9 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 /// [ParameterElement].
 mixin ParameterElementMixin
     implements ParameterElement, VariableElementOrMember {
+  @override
+  ParameterElementImpl get declaration;
+
   @override
   FormalParameterElementImpl get element;
 
@@ -10151,7 +10165,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       correspondingSetter as SetterFragment?;
 
   @override
-  PropertyAccessorElement get declaration => this;
+  PropertyAccessorElementImpl get declaration => this;
 
   @override
   PropertyAccessorElementImpl2 get element {
@@ -10964,7 +10978,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  TopLevelVariableElement get declaration => this;
+  TopLevelVariableElementImpl get declaration => this;
 
   @override
   bool get isExternal {
@@ -11484,7 +11498,7 @@ class TypeParameterElementImpl extends ElementImpl
   List<Fragment> get children3 => const [];
 
   @override
-  TypeParameterElement get declaration => this;
+  TypeParameterElementImpl get declaration => this;
 
   @override
   String get displayName => name;
@@ -11828,7 +11842,7 @@ abstract class VariableElementImpl extends ElementImpl
   ExpressionImpl? get constantInitializer => null;
 
   @override
-  VariableElement get declaration => this;
+  VariableElementImpl get declaration => this;
 
   @override
   String get displayName => name;

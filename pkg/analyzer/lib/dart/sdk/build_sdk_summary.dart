@@ -51,11 +51,12 @@ Future<Uint8List> buildSdkSummary({
   var logger = PerformanceLog(StringBuffer());
   var scheduler = AnalysisDriverScheduler(logger);
   var optionsMap = AnalysisOptionsMap.forSharedOptions(AnalysisOptionsImpl());
+  var byteStore = MemoryByteStore();
   var analysisDriver = AnalysisDriver(
     scheduler: scheduler,
     logger: logger,
     resourceProvider: resourceProvider,
-    byteStore: MemoryByteStore(),
+    byteStore: byteStore,
     sourceFactory: SourceFactory([
       DartUriResolver(sdk),
     ]),

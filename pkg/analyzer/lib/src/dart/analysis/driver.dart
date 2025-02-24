@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
+import 'package:analyzer/src/dart/analysis/flags.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
@@ -36,6 +37,7 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
@@ -50,7 +52,10 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
+import 'package:analyzer/src/summary2/bundle_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
+import 'package:analyzer/src/summary2/data_reader.dart';
+import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -97,7 +102,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 431;
+  static const int DATA_VERSION = 432;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -122,6 +127,8 @@ class AnalysisDriver {
   ///
   /// It can be shared with other [AnalysisDriver]s.
   final InfoDeclarationStore _infoDeclarationStore;
+
+  final LinkedBundleProvider linkedBundleProvider;
 
   /// The optional store with externally provided unlinked and corresponding
   /// linked summaries. These summaries are always added to the store for any
@@ -276,6 +283,7 @@ class AnalysisDriver {
     required ByteStore byteStore,
     required SourceFactory sourceFactory,
     required Packages packages,
+    LinkedBundleProvider? linkedBundleProvider,
     this.ownedFiles,
     this.analysisContext,
     @Deprecated("Use 'analysisOptionsMap' instead")
@@ -301,6 +309,10 @@ class AnalysisDriver {
             infoDeclarationStore ?? NoOpInfoDeclarationStore(),
         _logger = logger,
         _packages = packages,
+        linkedBundleProvider = linkedBundleProvider ??
+            LinkedBundleProvider(
+              byteStore: byteStore,
+            ),
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
         declaredVariables = declaredVariables ?? DeclaredVariables(),
@@ -384,6 +396,7 @@ class AnalysisDriver {
       analysisSession: AnalysisSessionImpl(this),
       logger: _logger,
       byteStore: _byteStore,
+      eventsController: _scheduler.eventsController,
       infoDeclarationStore: _infoDeclarationStore,
       analysisOptionsMap: analysisOptionsMap,
       declaredVariables: declaredVariables,
@@ -391,6 +404,7 @@ class AnalysisDriver {
       packagesFile: analysisContext?.contextRoot.packagesFile,
       externalSummaries: _externalSummaries,
       fileSystemState: _fsState,
+      linkedBundleProvider: linkedBundleProvider,
     );
   }
 
@@ -1357,6 +1371,12 @@ class AnalysisDriver {
             libraryElement.typeSystem,
             strictCasts: analysisOptions.strictCasts);
 
+        BundleRequirementsManifest? libraryRequirements;
+        if (withFineDependencies) {
+          libraryRequirements = BundleRequirementsManifest();
+          linkingBundleManifest = libraryRequirements;
+        }
+
         var results = performance.run('LibraryAnalyzer', (performance) {
           return LibraryAnalyzer(
             analysisOptions,
@@ -1371,7 +1391,12 @@ class AnalysisDriver {
           ).analyze();
         });
 
+        if (withFineDependencies) {
+          linkingBundleManifest = null;
+        }
+
         var isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
+        var fileResultBytesMap = <Uri, Uint8List>{};
 
         var resolvedUnits = <ResolvedUnitResultImpl>[];
         for (var unitResult in results) {
@@ -1412,6 +1437,7 @@ class AnalysisDriver {
               index: index,
             ).toBuffer();
             _byteStore.putGet(unitKey, unitBytes);
+            fileResultBytesMap[unitFile.uri] = unitBytes;
           }
 
           _fileTracker.fileWasAnalyzed(unitFile.path);
@@ -1423,6 +1449,39 @@ class AnalysisDriver {
           }
 
           _updateHasErrorOrWarningFlag(unitFile, resolvedUnit.errors);
+        }
+
+        if (withFineDependencies && libraryRequirements != null) {
+          performance.run('writeResolvedLibrary', (_) {
+            var mapSink = BufferedSink(ByteSink());
+            mapSink.writeMap(
+              fileResultBytesMap,
+              writeKey: (uri) => mapSink.writeUri(uri),
+              writeValue: (bytes) => mapSink.writeUint8List(bytes),
+            );
+            var mapBytes = mapSink.flushAndTake();
+
+            library.lastResolutionResult = LibraryResolutionResult(
+              requirements: libraryRequirements!,
+              bytes: mapBytes,
+            );
+
+            var byteSink = ByteSink();
+            var sink = BufferedSink(byteSink);
+            libraryRequirements.write(sink);
+            sink.writeUint8List(mapBytes);
+            var allBytes = sink.flushAndTake();
+
+            var key = library.resolvedKey;
+            _byteStore.putGet(key, allBytes);
+          });
+
+          _scheduler.eventsController.add(
+            events.AnalyzedLibrary(
+              library: library,
+              requirements: libraryRequirements,
+            ),
+          );
         }
 
         var libraryResult = ResolvedLibraryResultImpl(
@@ -1644,6 +1703,97 @@ class AnalysisDriver {
     var kind = file.kind;
     var library = kind.library ?? kind.asLibrary;
 
+    // TODO(scheglov): this is duplicate
+    if (!_hasLibraryByUri('dart:core')) {
+      _errorsRequestedFiles.completeAll(
+        path,
+        _newMissingDartLibraryResult(file, 'dart:core'),
+      );
+      return;
+    }
+
+    // TODO(scheglov): this is duplicate
+    if (!_hasLibraryByUri('dart:async')) {
+      _errorsRequestedFiles.completeAll(
+        path,
+        _newMissingDartLibraryResult(file, 'dart:async'),
+      );
+      return;
+    }
+
+    // Errors are based on elements, so load them.
+    scheduler.accumulatedPerformance.run('libraryContext', (performance) {
+      libraryContext.load(
+        targetLibrary: library,
+        performance: performance,
+      );
+
+      for (var import in library.docLibraryImports) {
+        if (import is LibraryImportWithFile) {
+          if (import.importedLibrary case var libraryFileKind?) {
+            libraryContext.load(
+              targetLibrary: libraryFileKind,
+              performance: OperationPerformanceImpl('<root>'),
+            );
+          }
+        }
+      }
+    });
+
+    if (withFineDependencies) {
+      var performance = OperationPerformanceImpl('<root>');
+      var fileResultBytesMap = performance.run(
+        'errors(isSatisfied)',
+        (performance) {
+          var reqAndUnitBytes = performance.run('getBytes', (_) {
+            return _byteStore.get(library.resolvedKey);
+          });
+
+          if (reqAndUnitBytes != null) {
+            var elementFactory = libraryContext.elementFactory;
+
+            var reader = SummaryDataReader(reqAndUnitBytes);
+            var requirements = performance.run('readRequirements', (_) {
+              return BundleRequirementsManifest.read(reader);
+            });
+
+            var failure = requirements.isSatisfied(
+              elementFactory: elementFactory,
+              libraryManifests: elementFactory.libraryManifests,
+            );
+            if (failure == null) {
+              var mapBytes = reader.readUint8List();
+              library.lastResolutionResult = LibraryResolutionResult(
+                requirements: requirements,
+                bytes: mapBytes,
+              );
+
+              var reader2 = SummaryDataReader(mapBytes);
+              return reader2.readMap(
+                readKey: () => reader2.readUri(),
+                readValue: () => reader2.readUint8List(),
+              );
+            } else {
+              scheduler.eventsController.add(
+                events.GetErrorsCannotReuse(
+                  library: library,
+                  failure: failure,
+                ),
+              );
+            }
+          }
+          return null;
+        },
+      );
+
+      if (fileResultBytesMap != null) {
+        var bytes = fileResultBytesMap[file.uri]!;
+        var result = _createErrorsResultFromBytes(file, library, bytes);
+        _errorsRequestedFiles.completeAll(path, result);
+        return;
+      }
+    }
+
     // Prepare the signature and key.
     var signature = _getResolvedUnitSignature(library, file);
     var key = _getResolvedUnitKey(signature);
@@ -1864,58 +2014,160 @@ class AnalysisDriver {
   }
 
   void _produceErrors(String path) {
-    var file = _fsState.getFileForPath(path);
+    scheduler.accumulatedPerformance.run(
+      'produceErrors',
+      (performance) {
+        var file = _fsState.getFileForPath(path);
 
-    // Prepare the library - the file itself, or the known library.
-    var kind = file.kind;
-    var library = kind.library ?? kind.asLibrary;
+        // Prepare the library - the file itself, or the known library.
+        var kind = file.kind;
+        var library = kind.library ?? kind.asLibrary;
 
-    // Check if we have cached errors for all library files.
-    List<(FileState, String, Uint8List)>? forAllFiles = [];
-    for (var file in library.files) {
-      // If the file is priority, we need the resolved unit.
-      // So, the cached errors is not enough.
-      if (priorityFiles.contains(file.path)) {
-        forAllFiles = null;
-        break;
-      }
+        // Errors are based on elements, so load them.
+        performance.run('libraryContext', (performance) {
+          libraryContext.load(
+            targetLibrary: library,
+            performance: performance,
+          );
 
-      var signature = _getResolvedUnitSignature(library, file);
-      var key = _getResolvedUnitKey(signature);
+          for (var import in library.docLibraryImports) {
+            if (import is LibraryImportWithFile) {
+              if (import.importedLibrary case var libraryFileKind?) {
+                libraryContext.load(
+                  targetLibrary: libraryFileKind,
+                  performance: OperationPerformanceImpl('<root>'),
+                );
+              }
+            }
+          }
+        });
 
-      var bytes = _byteStore.get(key);
-      if (bytes == null) {
-        forAllFiles = null;
-        break;
-      }
+        if (withFineDependencies) {
+          var fileResultBytesMap = performance.run(
+            'errors(isSatisfied)',
+            (performance) {
+              var elementFactory = libraryContext.elementFactory;
 
-      // Will not be `null` here.
-      forAllFiles?.add((file, signature, bytes));
-    }
+              if (library.lastResolutionResult case var lastResult?) {
+                var failure = lastResult.requirements.isSatisfied(
+                  elementFactory: elementFactory,
+                  libraryManifests: elementFactory.libraryManifests,
+                );
+                if (failure == null) {
+                  var reader = SummaryDataReader(lastResult.bytes);
+                  return reader.readMap(
+                    readKey: () => reader.readUri(),
+                    readValue: () => reader.readUint8List(),
+                  );
+                }
+              }
 
-    // If we have results for all library files, produce them.
-    if (forAllFiles != null) {
-      for (var (file, signature, bytes) in forAllFiles) {
-        // We have the result for this file.
-        _fileTracker.fileWasAnalyzed(file.path);
+              var reqAndUnitBytes = performance.run('getBytes', (_) {
+                return _byteStore.get(library.resolvedKey);
+              });
 
-        // Don't produce the result if the signature is the same.
-        if (_lastProducedSignatures[file.path] == signature) {
-          continue;
+              if (reqAndUnitBytes != null) {
+                var reader = SummaryDataReader(reqAndUnitBytes);
+                var requirements = performance.run('readRequirements', (_) {
+                  return BundleRequirementsManifest.read(reader);
+                });
+
+                var failure = requirements.isSatisfied(
+                  elementFactory: elementFactory,
+                  libraryManifests: elementFactory.libraryManifests,
+                );
+                if (failure == null) {
+                  var mapBytes = reader.readUint8List();
+                  library.lastResolutionResult = LibraryResolutionResult(
+                    requirements: requirements,
+                    bytes: mapBytes,
+                  );
+
+                  var reader2 = SummaryDataReader(mapBytes);
+                  return reader2.readMap(
+                    readKey: () => reader2.readUri(),
+                    readValue: () => reader2.readUint8List(),
+                  );
+                } else {
+                  scheduler.eventsController.add(
+                    events.ProduceErrorsCannotReuse(
+                      library: library,
+                      failure: failure,
+                    ),
+                  );
+                }
+              }
+              return null;
+            },
+          );
+
+          if (fileResultBytesMap != null) {
+            for (var fileEntry in fileResultBytesMap.entries) {
+              var file = library.files
+                  .where((file) => file.uri == fileEntry.key)
+                  .single;
+              _fileTracker.fileWasAnalyzed(file.path);
+              var result =
+                  _createErrorsResultFromBytes(file, library, fileEntry.value);
+              _errorsRequestedFiles.completeAll(file.path, result);
+              _scheduler.eventsController.add(result);
+            }
+            return;
+          }
         }
 
-        // Produce the result from bytes.
-        var result = _createErrorsResultFromBytes(file, library, bytes);
-        _lastProducedSignatures[file.path] = signature;
-        _errorsRequestedFiles.completeAll(file.path, result);
-        _scheduler.eventsController.add(result);
-      }
-      // We produced all results for the library.
-      return;
-    }
+        // Check if we have cached errors for all library files.
+        List<(FileState, String, Uint8List)>? forAllFiles = [];
+        for (var file in library.files) {
+          // If the file is priority, we need the resolved unit.
+          // So, the cached errors is not enough.
+          if (priorityFiles.contains(file.path)) {
+            forAllFiles = null;
+            break;
+          }
 
-    // Analyze, will produce results into the stream.
-    _analyzeFile(path);
+          var signature = _getResolvedUnitSignature(library, file);
+          var key = _getResolvedUnitKey(signature);
+
+          var bytes = _byteStore.get(key);
+          if (bytes == null) {
+            forAllFiles = null;
+            break;
+          }
+
+          // Will not be `null` here.
+          forAllFiles?.add((file, signature, bytes));
+        }
+
+        // If we have results for all library files, produce them.
+        if (forAllFiles != null) {
+          for (var (file, signature, bytes) in forAllFiles) {
+            // We have the result for this file.
+            _fileTracker.fileWasAnalyzed(file.path);
+
+            // Don't produce the result if the signature is the same.
+            if (_lastProducedSignatures[file.path] == signature) {
+              continue;
+            }
+
+            // Produce the result from bytes.
+            var result = _createErrorsResultFromBytes(file, library, bytes);
+            _lastProducedSignatures[file.path] = signature;
+            _errorsRequestedFiles.completeAll(file.path, result);
+            _scheduler.eventsController.add(result);
+          }
+          // We produced all results for the library.
+          return;
+        }
+
+        performance.run('analyzeFile', (performance) {
+          _analyzeFileImpl(
+            path: path,
+            performance: performance,
+          );
+        });
+      },
+    );
   }
 
   void _removePotentiallyAffectedLibraries(
@@ -2206,6 +2458,10 @@ class AnalysisDriverScheduler {
 
   /// The cached instance of [events] stream.
   late final Stream<Object> _events = eventsController.stream;
+
+  /// The broadcast version of [events] stream.
+  @visibleForTesting
+  late final Stream<Object> eventsBroadcast = _events.asBroadcastStream();
 
   final List<AnalysisDriver> _drivers = [];
   final Monitor _hasWork = Monitor();
