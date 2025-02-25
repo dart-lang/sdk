@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -24,7 +25,7 @@ class NormalizeHelper {
 
   NormalizeHelper(this.typeSystem) : typeProvider = typeSystem.typeProvider;
 
-  DartType normalize(DartType T) {
+  TypeImpl normalize(TypeImpl T) {
     return _normalize(T);
   }
 
@@ -32,7 +33,7 @@ class NormalizeHelper {
   ///   * where R1 = NORM(R)
   ///   * and B1 = NORM(B)
   ///   * and S1 = NORM(S)
-  FunctionTypeImpl _functionType(FunctionType functionType) {
+  FunctionTypeImpl _functionType(FunctionTypeImpl functionType) {
     var fresh = getFreshTypeParameters2(functionType.typeParameters);
     for (var typeParameter in fresh.freshTypeParameters) {
       var bound = typeParameter.firstFragment.bound;
@@ -56,7 +57,7 @@ class NormalizeHelper {
   }
 
   /// `NORM(FutureOr<T>)`
-  DartType _futureOr(InterfaceType T) {
+  TypeImpl _futureOr(InterfaceTypeImpl T) {
     // * let S be NORM(T)
     var S = _normalize(T.typeArguments[0]);
     var S_nullability = S.nullabilitySuffix;
@@ -96,7 +97,7 @@ class NormalizeHelper {
     );
   }
 
-  DartType _normalize(DartType T) {
+  TypeImpl _normalize(TypeImpl T) {
     var T_nullability = T.nullabilitySuffix;
 
     // NORM(T) = T if T is primitive
@@ -105,14 +106,14 @@ class NormalizeHelper {
         identical(T, NeverTypeImpl.instance) ||
         identical(T, VoidTypeImpl.instance) ||
         T_nullability == NullabilitySuffix.none &&
-            T is InterfaceType &&
+            T is InterfaceTypeImpl &&
             T.typeArguments.isEmpty) {
       return T;
     }
 
     // NORM(FutureOr<T>)
     if (T_nullability == NullabilitySuffix.none &&
-        T is InterfaceType &&
+        T is InterfaceTypeImpl &&
         T.isDartAsyncFutureOr) {
       return _futureOr(T);
     }
@@ -131,7 +132,7 @@ class NormalizeHelper {
     }
 
     // NORM(C<T0, ..., Tn>) = C<R0, ..., Rn> where Ri is NORM(Ti)
-    if (T is InterfaceType) {
+    if (T is InterfaceTypeImpl) {
       return T.element3.instantiate(
         typeArguments: T.typeArguments.map(_normalize).toFixedList(),
         nullabilitySuffix: NullabilitySuffix.none,
@@ -157,13 +158,13 @@ class NormalizeHelper {
     }
 
     // NORM(R Function<X extends B>(S)) = R1 Function(X extends B1>(S1)
-    return _functionType(T as FunctionType);
+    return _functionType(T as FunctionTypeImpl);
   }
 
   /// NORM(T?)
-  DartType _nullabilityQuestion(DartType T) {
+  TypeImpl _nullabilityQuestion(TypeImpl T) {
     // * let S be NORM(T)
-    var T_none = (T as TypeImpl).withNullability(NullabilitySuffix.none);
+    var T_none = T.withNullability(NullabilitySuffix.none);
     var S = _normalize(T_none);
     var S_nullability = S.nullabilitySuffix;
 
@@ -184,7 +185,7 @@ class NormalizeHelper {
 
     // * if S is FutureOr<R> and R is nullable then S
     if (S_nullability == NullabilitySuffix.none &&
-        S is InterfaceType &&
+        S is InterfaceTypeImpl &&
         S.isDartAsyncFutureOr) {
       var R = S.typeArguments[0];
       if (typeSystem.isNullable(R)) {
@@ -194,12 +195,12 @@ class NormalizeHelper {
 
     // * if S is R? then R?
     // * else S?
-    return (S as TypeImpl).withNullability(NullabilitySuffix.question);
+    return S.withNullability(NullabilitySuffix.question);
   }
 
   /// NORM(X & T)
   /// NORM(X extends T)
-  DartType _typeParameterType(TypeParameterTypeImpl T) {
+  TypeImpl _typeParameterType(TypeParameterTypeImpl T) {
     var element = T.element3;
 
     // NORM(X & T)
@@ -235,7 +236,8 @@ class NormalizeHelper {
 
   /// NORM(X & T)
   /// * let S be NORM(T)
-  DartType _typeParameterType_promoted(TypeParameterElement2 X, DartType S) {
+  TypeImpl _typeParameterType_promoted(
+      TypeParameterElementImpl2 X, DartType S) {
     // * if S is Never then Never
     if (identical(S, NeverTypeImpl.instance)) {
       return NeverTypeImpl.instance;

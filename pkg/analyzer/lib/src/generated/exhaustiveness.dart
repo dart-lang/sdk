@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -772,7 +773,7 @@ class TypeParameterReplacer extends ReplacementVisitor {
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType node) {
+  TypeImpl? visitTypeParameterType(TypeParameterType node) {
     if (_variance == Variance.contravariant) {
       return _replaceTypeParameterTypes(_typeSystem.typeProvider.neverType);
     } else {
@@ -782,7 +783,9 @@ class TypeParameterReplacer extends ReplacementVisitor {
     }
   }
 
-  DartType _replaceTypeParameterTypes(DartType type) {
+  TypeImpl _replaceTypeParameterTypes(DartType type) {
+    // TODO(scheglov): remove this cast
+    type as TypeImpl;
     return type.accept(this) ?? type;
   }
 

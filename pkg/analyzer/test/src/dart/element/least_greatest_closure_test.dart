@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
@@ -20,7 +19,7 @@ main() {
 class GreatestClosureTest extends AbstractTypeSystemTest {
   late final TypeParameterElementImpl2 T;
   late final TypeParameterTypeImpl T_none;
-  late final TypeParameterType T_question;
+  late final TypeParameterTypeImpl T_question;
 
   @override
   void setUp() {
@@ -121,7 +120,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   }
 
   void _check(
-    DartType type, {
+    TypeImpl type, {
     required String greatest,
     required String least,
   }) {
@@ -138,7 +137,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     );
   }
 
-  void _check1(DartType type, String expected) {
+  void _check1(TypeImpl type, String expected) {
     _check(type, greatest: expected, least: expected);
   }
 }

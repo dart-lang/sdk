@@ -43,13 +43,11 @@ class ExtensionTypeErasure extends ReplacementVisitor {
   const ExtensionTypeErasure();
 
   TypeImpl perform(TypeImpl type) {
-    // TODO(paulberry): eliminate this cast by changing `ReplacementVisitor` so
-    // that it implements `TypeVisitor<TypeImpl?>`.
-    return (type.accept(this) ?? type) as TypeImpl;
+    return type.accept(this) ?? type;
   }
 
   @override
-  DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
+  TypeImpl? visitInterfaceType(covariant InterfaceTypeImpl type) {
     if (type.representationType case var representationType?) {
       var erased = representationType.accept(this) ?? representationType;
       erased as TypeImpl;
@@ -593,7 +591,7 @@ class TypeSystemImpl implements TypeSystem {
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/inference.md`
   TypeImpl greatestClosure(
-    DartType type,
+    TypeImpl type,
     List<TypeParameterElementImpl2> typeParameters,
   ) {
     var typeParameterSet = Set<TypeParameterElementImpl2>.identity();
@@ -622,15 +620,13 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// Note that the greatest closure of a type schema is always a supertype of
   /// any type which matches the schema.
-  TypeImpl greatestClosureOfSchema(DartType schema) {
-    // TODO(paulberry): remove this cast by making `ReplacementVisitor`
-    // implement `TypeVisitor<TypeImpl?>`.
+  TypeImpl greatestClosureOfSchema(TypeImpl schema) {
     return TypeSchemaEliminationVisitor.run(
       topType: objectQuestion,
       bottomType: NeverTypeImpl.instance,
       isLeastClosure: false,
       schema: schema,
-    ) as TypeImpl;
+    );
   }
 
   @override
@@ -1382,7 +1378,7 @@ class TypeSystemImpl implements TypeSystem {
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/inference.md`
   TypeImpl leastClosure(
-    DartType type,
+    TypeImpl type,
     List<TypeParameterElementImpl2> typeParameters,
   ) {
     var typeParameterSet = Set<TypeParameterElementImpl2>.identity();
@@ -1410,15 +1406,13 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// Note that the least closure of a type schema is always a subtype of any
   /// type which matches the schema.
-  TypeImpl leastClosureOfSchema(DartType schema) {
-    // TODO(paulberry): remove this cast by making `ReplacementVisitor`
-    // implement `TypeVisitor<TypeImpl?>`.
+  TypeImpl leastClosureOfSchema(TypeImpl schema) {
     return TypeSchemaEliminationVisitor.run(
       topType: objectQuestion,
       bottomType: NeverTypeImpl.instance,
       isLeastClosure: true,
       schema: schema,
-    ) as TypeImpl;
+    );
   }
 
   @override
@@ -1482,9 +1476,8 @@ class TypeSystemImpl implements TypeSystem {
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/normalization.md`
   TypeImpl normalize(DartType T) {
-    // TODO(paulberry): eliminate this cast by changing the return type of
-    // `NormalizeHelper.normalize`.
-    return NormalizeHelper(this).normalize(T) as TypeImpl;
+    // TODO(scheglov): remove this cast
+    return NormalizeHelper(this).normalize(T as TypeImpl);
   }
 
   /// Returns a non-nullable version of [type].  This is equivalent to the

@@ -40,7 +40,7 @@ class AssignmentExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(AssignmentExpressionImpl node, {required DartType contextType}) {
+  void resolve(AssignmentExpressionImpl node, {required TypeImpl contextType}) {
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
@@ -265,7 +265,7 @@ class AssignmentExpressionResolver {
   void _resolveTypes(AssignmentExpressionImpl node,
       {required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted,
-      required DartType contextType}) {
+      required TypeImpl contextType}) {
     DartType assignedType;
 
     var rightHandSide = node.rightHandSide;
