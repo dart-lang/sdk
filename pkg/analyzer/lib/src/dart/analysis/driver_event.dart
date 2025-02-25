@@ -5,7 +5,8 @@
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
-import 'package:analyzer/src/summary2/bundle_manifest.dart';
+import 'package:analyzer/src/fine/requirement_failure.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 /// An event that happened inside the [AnalysisDriver].

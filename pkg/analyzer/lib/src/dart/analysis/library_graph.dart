@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/flags.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';

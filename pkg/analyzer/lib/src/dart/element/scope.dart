@@ -6,16 +6,11 @@ import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
-import 'package:analyzer/src/dart/analysis/flags.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/summary2/bundle_manifest.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-
-/// When [withFineDependencies], this variable might be set to accumulate
-/// requirements for the analysis result being computed.
-BundleRequirementsManifest? linkingBundleManifest;
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
