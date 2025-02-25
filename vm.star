@@ -494,6 +494,18 @@ _vm_builder(
     category = "vm|ffi|qr",
     dimensions = jammy,  # The bit-manipulation extensions are only available starting with Noble, but Noble is suspected to have a bug that leads to flaky crashes
 )
+_vm_builder(
+    "vm-ffi-mac-debug-simarm64_arm64",
+    category = "vm|ffi|ad",
+    channels = ["try"],
+    dimensions = [mac, arm64],
+)
+_nightly_builder(
+    "vm-ffi-mac-release-simarm64_arm64",
+    category = "vm|ffi|ar",
+    channels = ["try"],
+    dimensions = [mac, arm64],
+)
 
 # Isolate stress test builder
 _vm_builder(
