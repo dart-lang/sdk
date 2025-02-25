@@ -116,9 +116,37 @@ extension ConstructorElementExtension on ConstructorElement {
   }
 }
 
+extension ConstructorElementImpl2Extension on ConstructorElementImpl2 {
+  ConstructorElementMixin get asElement {
+    if (this case ConstructorMember member) {
+      return member;
+    }
+    return lastFragment;
+  }
+}
+
 extension ConstructorElementImplExtension on ConstructorElementImpl {
   ConstructorElementImpl2 get asElement2 {
     return element;
+  }
+}
+
+extension ConstructorElementMixin2Extension on ConstructorElementMixin2 {
+  ConstructorElementMixin get asElement {
+    if (this case ConstructorMember member) {
+      return member;
+    }
+    return (this as ConstructorElementImpl2).lastFragment;
+  }
+}
+
+extension ConstructorElementMixinExtension on ConstructorElementMixin {
+  ConstructorElementMixin2 get asElement2 {
+    return switch (this) {
+      ConstructorElementImpl(:var element) => element,
+      ConstructorMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
   }
 }
 
@@ -370,6 +398,16 @@ extension ExecutableElementExtension on ExecutableElement {
 extension ExecutableElementImplExtension on ExecutableElementImpl {
   ExecutableElementImpl2 get asElement2 {
     return element;
+  }
+}
+
+extension ExecutableElementOrMemberExtension on ExecutableElementOrMember {
+  ExecutableElement2OrMember get asElement2 {
+    return switch (this) {
+      ExecutableElementImpl(:var element) => element,
+      ExecutableMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
   }
 }
 

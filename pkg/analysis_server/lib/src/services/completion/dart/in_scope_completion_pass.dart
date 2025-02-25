@@ -678,6 +678,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitComment(Comment node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitCommentReference(CommentReference node) {
     collector.completionLocation = 'CommentReference_identifier';
     declarationHelper(preferNonInvocation: true).addLexicalDeclarations(node);
@@ -1128,6 +1133,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset == node.offset) {
       _forCompilationUnitMemberBefore(node);
       return;
+    } else if (node.documentationComment.coversOffset(offset)) {
+      return node.documentationComment?.accept(this);
     } else if (offset < node.extensionKeyword.offset) {
       // There are no modifiers for extensions.
       return;
@@ -1519,6 +1526,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (offset >= node.equals.end && offset <= node.semicolon.offset) {
       collector.completionLocation = 'GenericTypeAlias_type';
       _forTypeAnnotation(node);
+    } else if (node.documentationComment.coversOffset(offset)) {
+      node.documentationComment?.accept(this);
     }
   }
 

@@ -2512,6 +2512,8 @@ LintCode.use_late_for_private_fields_and_variables:
   status: needsFix
 LintCode.use_named_constants:
   status: hasFix
+LintCode.use_null_aware_elements:
+  status: needsFix
 LintCode.use_raw_strings:
   status: hasFix
 LintCode.use_rethrow_when_possible:

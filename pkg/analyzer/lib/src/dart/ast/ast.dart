@@ -6216,9 +6216,7 @@ sealed class ExpressionImpl extends AstNodeImpl
       if (identical(parent.rightOperand, this)) {
         var parameters = parent.staticInvokeType?.parameters;
         if (parameters != null && parameters.isNotEmpty) {
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `BinaryExpressionImpl.staticInvokeType` to `FunctionTypeImpl`.
-          return parameters[0] as ParameterElementMixin;
+          return parameters[0];
         }
         return null;
       }
@@ -15241,7 +15239,7 @@ final class RedirectingConstructorInvocationImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElement? staticElement;
+  ConstructorElementMixin? staticElement;
 
   /// Initializes a newly created redirecting invocation to invoke the
   /// constructor with the given name with the given arguments.
@@ -15278,9 +15276,9 @@ final class RedirectingConstructorInvocationImpl
 
   @experimental
   @override
-  ConstructorElement2? get element => staticElement?.asElement2;
+  ConstructorElementMixin2? get element => staticElement?.asElement2;
 
-  set element(ConstructorElement2? value) {
+  set element(ConstructorElementMixin2? value) {
     staticElement = value?.asElement;
   }
 

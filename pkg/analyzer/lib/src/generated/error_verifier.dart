@@ -1280,7 +1280,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitNamedType(NamedType node) {
+  void visitNamedType(covariant NamedTypeImpl node) {
     _checkForAmbiguousImport(
       name: node.name2,
       element: node.element2,

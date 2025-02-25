@@ -14220,6 +14220,50 @@ LintCode:
       ```dart
       Duration.zero;
       ```
+  use_null_aware_elements:
+    problemMessage: "Use the null-aware marker '?' rather than a null check via an 'if'."
+    correctionMessage: "Try using '?'."
+    state:
+      stable: "3.8"
+    categories: [brevity, style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a null check is used instead
+      of a null-aware marker inside of a collection literal.
+
+      #### Example
+
+      The following code produces this diagnostic because a null check is used
+      to decide whether `x` should be inserted into the list, while the
+      null-aware marker '?' would be less brittle and less verbose.
+
+      ```dart
+      %experiments=null-aware-elements
+      f(int? x) => [[!if!] (x != null) x];
+      ```
+
+      #### Common fixes
+
+      Replace the null-check with the null-aware marker '?':
+
+      ```dart
+      %experiments=null-aware-elements
+      f(int? x) => [?x];
+      ```
+    deprecatedDetails: |-
+      Where possible, use null-aware elements in collection literals.
+
+      **BAD:**
+      ```dart
+      f(String? key) => {if (key != null) key: "value"};
+      ```
+
+      **GOOD:**
+      ```dart
+      f(String? key) => {?key: "value"};
+      ```
   use_raw_strings:
     problemMessage: "Use a raw string to avoid using escapes."
     correctionMessage: "Try making the string a raw string and removing the escapes."

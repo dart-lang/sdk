@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -34,12 +35,12 @@ class AnnotationResolver {
 
   void _classConstructorInvocation(
     AnnotationImpl node,
-    InterfaceElement classElement,
+    InterfaceElementImpl classElement,
     SimpleIdentifierImpl? constructorName,
     ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
-    ConstructorElement? constructorElement;
+    ConstructorElementMixin? constructorElement;
     if (constructorName != null) {
       constructorElement = classElement.getNamedConstructor(
         constructorName.name,
@@ -102,8 +103,8 @@ class AnnotationResolver {
     AnnotationImpl node,
     String typeDisplayName,
     SimpleIdentifierImpl? constructorName,
-    List<TypeParameterElement> typeParameters,
-    ConstructorElement? constructorElement,
+    List<TypeParameterElementImpl> typeParameters,
+    ConstructorElementMixin? constructorElement,
     ArgumentListImpl argumentList,
     InterfaceType Function(List<DartType> typeArguments) instantiateElement,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
@@ -236,7 +237,7 @@ class AnnotationResolver {
     }
 
     // Class(args) or Class.CONST
-    if (element1 is InterfaceElement) {
+    if (element1 is InterfaceElementImpl) {
       if (argumentList != null) {
         _classConstructorInvocation(
             node, element1, name2, argumentList, whyNotPromotedArguments);
@@ -258,7 +259,7 @@ class AnnotationResolver {
         var element = element1.scope.lookup(name2.name).getter;
         name2.staticElement = element;
         // prefix.Class(args) or prefix.Class.CONST
-        if (element is InterfaceElement) {
+        if (element is InterfaceElementImpl) {
           if (element is ClassElement && argumentList != null) {
             _classConstructorInvocation(
                 node, element, name3, argumentList, whyNotPromotedArguments);
@@ -280,10 +281,10 @@ class AnnotationResolver {
         }
 
         // prefix.TypeAlias(args) or prefix.TypeAlias.CONST
-        if (element is TypeAliasElement) {
+        if (element is TypeAliasElementImpl) {
           var aliasedType = element.aliasedType;
           var argumentList = node.arguments;
-          if (aliasedType is InterfaceType && argumentList != null) {
+          if (aliasedType is InterfaceTypeImpl && argumentList != null) {
             _typeAliasConstructorInvocation(node, element, name3, aliasedType,
                 argumentList, whyNotPromotedArguments,
                 dataForTesting: _resolver.inferenceHelper.dataForTesting);
@@ -313,10 +314,10 @@ class AnnotationResolver {
     }
 
     // TypeAlias(args) or TypeAlias.CONST
-    if (element1 is TypeAliasElement) {
+    if (element1 is TypeAliasElementImpl) {
       var aliasedType = element1.aliasedType;
       var argumentList = node.arguments;
-      if (aliasedType is InterfaceType && argumentList != null) {
+      if (aliasedType is InterfaceTypeImpl && argumentList != null) {
         _typeAliasConstructorInvocation(node, element1, name2, aliasedType,
             argumentList, whyNotPromotedArguments,
             dataForTesting: _resolver.inferenceHelper.dataForTesting);
@@ -361,9 +362,9 @@ class AnnotationResolver {
 
   void _typeAliasConstructorInvocation(
       AnnotationImpl node,
-      TypeAliasElement typeAliasElement,
+      TypeAliasElementImpl typeAliasElement,
       SimpleIdentifierImpl? constructorName,
-      InterfaceType aliasedType,
+      InterfaceTypeImpl aliasedType,
       ArgumentListImpl argumentList,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
       {required TypeConstraintGenerationDataForTesting? dataForTesting}) {

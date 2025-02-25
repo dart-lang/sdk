@@ -1934,6 +1934,12 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
+  static const LintCode use_null_aware_elements = LinterLintCode(
+    LintNames.use_null_aware_elements,
+    "Use the null-aware marker '?' rather than a null check via an 'if'.",
+    correctionMessage: "Try using '?'.",
+  );
+
   static const LintCode use_raw_strings = LinterLintCode(
     LintNames.use_raw_strings,
     "Use a raw string to avoid using escapes.",

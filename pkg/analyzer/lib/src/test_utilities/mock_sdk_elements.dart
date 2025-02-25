@@ -1030,13 +1030,13 @@ class _MockSdkElementsBuilder {
   }
 
   FunctionTypeImpl _functionType({
-    required DartType returnType,
-    List<TypeParameterElement> typeFormals = const [],
+    required TypeImpl returnType,
+    List<TypeParameterElementImpl> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
     return FunctionTypeImpl(
       typeFormals: typeFormals,
-      parameters: parameters,
+      parameters: parameters.cast(),
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );

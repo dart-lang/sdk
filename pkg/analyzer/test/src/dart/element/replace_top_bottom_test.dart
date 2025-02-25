@@ -97,7 +97,7 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     _check(F_dynamic, 'Never Function(Never)');
   }
 
-  void _check(DartType type, String expectedStr, {String? typeStr}) {
+  void _check(TypeImpl type, String expectedStr, {String? typeStr}) {
     if (typeStr != null) {
       expect(_typeString(type), typeStr);
     }

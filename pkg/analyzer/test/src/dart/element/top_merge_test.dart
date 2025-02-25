@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -294,7 +294,7 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(voidNone, dynamicType, objectQuestion);
   }
 
-  void _check(DartType T, DartType S, DartType expected) {
+  void _check(TypeImpl T, TypeImpl S, TypeImpl expected) {
     var result = typeSystem.topMerge(T, S);
     if (result != expected) {
       var expectedStr = expected.getDisplayString();
@@ -310,7 +310,7 @@ class TopMergeTest extends AbstractTypeSystemTest {
     }
   }
 
-  void _checkThrows(DartType T, DartType S) {
+  void _checkThrows(TypeImpl T, TypeImpl S) {
     expect(() {
       return typeSystem.topMerge(T, S);
     }, throwsA(anything));

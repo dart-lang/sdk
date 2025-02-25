@@ -20,14 +20,14 @@ import 'package:analyzer/src/error/codes.dart';
 class CorrectOverrideHelper {
   final TypeSystemImpl _typeSystem;
 
-  final ExecutableElement2 _thisMember;
+  final ExecutableElement2OrMember _thisMember;
   FunctionType? _thisTypeForSubtype;
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
   CorrectOverrideHelper({
     required TypeSystemImpl typeSystem,
-    required ExecutableElement2 thisMember,
+    required ExecutableElement2OrMember thisMember,
   })  : _typeSystem = typeSystem,
         _thisMember = thisMember {
     _computeThisTypeForSubtype();
@@ -72,7 +72,7 @@ class CorrectOverrideHelper {
     var type = _thisMember.type;
     var parameters = type.formalParameters;
 
-    List<FormalParameterElement>? newParameters;
+    List<FormalParameterElementMixin>? newParameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       if (parameter.isCovariant) {

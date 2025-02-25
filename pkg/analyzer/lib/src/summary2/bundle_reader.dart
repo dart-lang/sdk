@@ -25,10 +25,10 @@ import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/inference_error.dart';
+import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
-import 'package:analyzer/src/summary2/bundle_manifest.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
@@ -243,7 +243,7 @@ class ConstructorElementLinkedData
     );
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
-    element.superConstructor = reader.readElement() as ConstructorElement?;
+    element.superConstructor = reader.readElement() as ConstructorElementMixin?;
     element.redirectedConstructor = reader.readElement() as ConstructorElement?;
     element.constantInitializers = reader._readNodeList();
     applyConstantOffsets?.perform();
@@ -335,7 +335,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
         }
       }
       if (parameter is FieldFormalParameterElementImpl) {
-        parameter.field = reader.readElement() as FieldElement?;
+        parameter.field = reader.readElement() as FieldElementOrMember?;
       }
     }
   }
@@ -2517,7 +2517,7 @@ class ResolutionReader {
     return astReader.readNode();
   }
 
-  List<DartType> _readTypeList() {
+  List<TypeImpl> _readTypeList() {
     return readTypedList(() {
       return readRequiredType();
     });

@@ -10,9 +10,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -416,7 +417,7 @@ class InheritanceManager3 {
   /// Return all members of mixins, superclasses, and interfaces that a member
   /// with the given [name], defined in the [element], would override; or `null`
   /// if no members would be overridden.
-  List<ExecutableElement>? getOverridden2(InterfaceElement element, Name name) {
+  List<ExecutableElementOrMember>? getOverridden2(InterfaceElement element, Name name) {
     var interface = getInterface(element);
     return interface.overridden[name];
   }
@@ -439,7 +440,7 @@ class InheritanceManager3 {
   }
 
   void _addCandidates({
-    required Map<Name, List<ExecutableElement>> namedCandidates,
+    required Map<Name, List<ExecutableElementOrMember>> namedCandidates,
     required MapSubstitution substitution,
     required Interface interface,
   }) {
@@ -452,7 +453,7 @@ class InheritanceManager3 {
 
       var candidates = namedCandidates[name];
       if (candidates == null) {
-        candidates = <ExecutableElement>[];
+        candidates = <ExecutableElementOrMember>[];
         namedCandidates[name] = candidates;
       }
 
@@ -576,7 +577,7 @@ class InheritanceManager3 {
   Interface _getInterfaceClass(InterfaceElementImpl element) {
     var augmented = element.augmented;
 
-    var namedCandidates = <Name, List<ExecutableElement>>{};
+    var namedCandidates = <Name, List<ExecutableElementOrMember>>{};
     var superImplemented = <Map<Name, ExecutableElementOrMember>>[];
     var implemented = <Name, ExecutableElementOrMember>{};
 
@@ -657,7 +658,7 @@ class InheritanceManager3 {
 
       // Merge members from the superclass and the mixin interface.
       {
-        var map = <Name, ExecutableElement>{};
+        var map = <Name, ExecutableElementOrMember>{};
         _findMostSpecificFromNamedCandidates(
           element,
           map,
@@ -956,7 +957,7 @@ class InheritanceManager3 {
   Interface _getInterfaceMixin(MixinElementImpl element) {
     var augmented = element.augmented;
 
-    var superCandidates = <Name, List<ExecutableElement>>{};
+    var superCandidates = <Name, List<ExecutableElementOrMember>>{};
     for (var constraint in augmented.superclassConstraints) {
       var substitution = Substitution.fromInterfaceType(constraint);
       var interfaceObj = getInterface(constraint.element);
@@ -1143,9 +1144,9 @@ class InheritanceManager3 {
     }
 
     var resultType = validOverrides.map((e) {
-      return typeSystem.normalize(e.type) as FunctionType;
+      return typeSystem.normalize(e.type) as FunctionTypeImpl;
     }).reduce((previous, next) {
-      return typeSystem.topMerge(previous, next) as FunctionType;
+      return typeSystem.topMerge(previous, next) as FunctionTypeImpl;
     });
 
     for (var executable in validOverrides) {
@@ -1162,11 +1163,8 @@ class InheritanceManager3 {
       result.name2 = fragmentName;
       result.typeParameters = resultType.typeFormals.cast();
       result.returnType = resultType.returnType;
-      // `resultType` is guaranteed to have been produced by
-      // `TypeSystemImpl.topMerge`; when that function merges function types, it
-      // always produces a `FunctionType` whose parameter list is a
-      // `List<ParameterElementImpl>`.
-      result.parameters = resultType.parameters as List<ParameterElementImpl>;
+      // TODO(scheglov): check if can type cast instead
+      result.parameters = resultType.parameters.cast();
       result.element = MethodElementImpl2(
         Reference.root(), // TODO(scheglov): wrong
         firstMethod.name,
@@ -1184,11 +1182,8 @@ class InheritanceManager3 {
       result.isGetter = firstAccessor.isGetter;
       result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
-      // `resultType` is guaranteed to have been produced by
-      // `TypeSystemImpl.topMerge`; when that function merges function types, it
-      // always produces a `FunctionType` whose parameter list is a
-      // `List<ParameterElementImpl>`.
-      result.parameters = resultType.parameters as List<ParameterElementImpl>;
+      // TODO(scheglov): check if can type cast instead
+      result.parameters = resultType.parameters.cast();
 
       var field = FieldElementImpl(variableName, -1);
       field.enclosingElement3 = targetClass;
@@ -1268,7 +1263,7 @@ class Interface {
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
-  final Map<Name, List<ExecutableElement>> overridden;
+  final Map<Name, List<ExecutableElementOrMember>> overridden;
 
   /// The map of names to the signatures from superinterfaces that a member
   /// declaration in this extension type redeclares.

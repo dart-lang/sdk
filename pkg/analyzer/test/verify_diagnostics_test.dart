@@ -503,8 +503,8 @@ class _SnippetTest extends PubPackageResolutionTest {
   void _createAnalysisOptionsFile() {
     var lintCode = snippet.lintCode;
     if (lintCode != null) {
-      writeTestPackageAnalysisOptionsFile(
-          analysisOptionsContent(rules: [lintCode]));
+      writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
+          rules: [lintCode], experiments: snippet.experiments));
     }
   }
 

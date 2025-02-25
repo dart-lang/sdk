@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -11,6 +10,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -111,7 +111,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   ClassDeclaration? compound;
 
   /// The `Void` type from `dart:ffi`, or `null` if unresolved.
-  InterfaceType? ffiVoidType;
+  InterfaceTypeImpl? ffiVoidType;
 
   /// Initialize a newly created verifier.
   FfiVerifier(this.typeSystem, this._errorReporter,
@@ -332,7 +332,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(covariant MethodInvocationImpl node) {
     var element = node.methodName.element;
     if (element is MethodElement2) {
       var enclosingElement = element.enclosingElement2;
@@ -453,7 +453,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var annotationType = annotationValue?.type; // Native<T>
 
       if (annotationValue == null ||
-          annotationType is! InterfaceType ||
+          annotationType is! InterfaceTypeImpl ||
           !annotationValue.isNative) {
         continue;
       }
@@ -478,8 +478,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
       var ffiSignature = annotationType.typeArguments[0]; // The T in @Native<T>
 
-      if (ffiSignature is FunctionType) {
-        if (declarationElement is ExecutableElement2) {
+      if (ffiSignature is FunctionTypeImpl) {
+        if (declarationElement is ExecutableElement2OrMember) {
           _checkFfiNativeFunction(
             errorNode,
             declarationElement,
@@ -498,7 +498,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       } else {
         if (declarationElement
             case TopLevelFunctionElement() || MethodElement2()) {
-          declarationElement = declarationElement as ExecutableElement2;
+          declarationElement = declarationElement as ExecutableElement2OrMember;
           var dartSignature = declarationElement.type;
 
           if (declarationElement.isStatic && ffiSignature is DynamicType) {
@@ -629,7 +629,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _checkFfiNativeFunction(
     Token errorToken,
     ExecutableElement2 declarationElement,
-    FunctionType ffiSignature,
+    FunctionTypeImpl ffiSignature,
     DartObject annotationValue,
     List<FormalParameter> formalParameters,
   ) {
@@ -1711,7 +1711,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validate the invocation of `Native.addressOf`.
-  void _validateNativeAddressOf(MethodInvocation node) {
+  void _validateNativeAddressOf(MethodInvocationImpl node) {
     var typeArguments = node.typeArgumentTypes;
     var arguments = node.argumentList.arguments;
     if (typeArguments == null ||
@@ -1727,7 +1727,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var validTarget = false;
 
     var referencedElement = switch (argument) {
-      Identifier() => argument.element?.nonSynthetic2,
+      IdentifierImpl() => argument.element?.nonSynthetic2,
       _ => null,
     };
 
@@ -1736,7 +1736,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         var value = annotation.computeConstantValue();
         var annotationType = value?.type;
 
-        if (annotationType is InterfaceType &&
+        if (annotationType is InterfaceTypeImpl &&
             annotationType.element3.isNative) {
           var nativeType = annotationType.typeArguments[0];
 
@@ -1765,7 +1765,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                 when nativeType is DynamicType) {
               // No type argument was given on the @Native annotation, so we try
               // to infer the native type from the Dart signature.
-              if (staticType is FunctionType) {
+              if (staticType is FunctionTypeImpl) {
                 if (staticType.returnType is VoidType) {
                   // The Dart signature has a `void` return type, so we create a
                   // new `FunctionType` with FFI's `Void` as the return type.

@@ -64,9 +64,9 @@ FreshTypeParameters getFreshTypeParameters2(
 /// Given a generic function [type] of a class member (so that it does not
 /// carry its element and type arguments), substitute its type parameters with
 /// the [newTypeParameters] in the formal parameters and return type.
-FunctionType replaceTypeParameters(
+FunctionTypeImpl replaceTypeParameters(
   FunctionTypeImpl type,
-  List<TypeParameterElement2> newTypeParameters,
+  List<TypeParameterElementImpl2> newTypeParameters,
 ) {
   assert(newTypeParameters.length == type.typeFormals.length);
   if (newTypeParameters.isEmpty) {
@@ -78,7 +78,8 @@ FunctionType replaceTypeParameters(
       .toList();
   var substitution = Substitution.fromPairs(type.typeFormals, typeArguments);
 
-  FormalParameterElement transformParameter(FormalParameterElement p) {
+  FormalParameterElementMixin transformParameter(
+      FormalParameterElementMixin p) {
     var type = substitution.substituteType(p.type);
     return p.copyWith(type: type);
   }
@@ -166,7 +167,7 @@ abstract class Substitution {
 
   TypeImpl substituteType(DartType type, {bool contravariant = false}) {
     var visitor = _TopSubstitutor(this, contravariant);
-    return type.accept(visitor) as TypeImpl;
+    return type.accept(visitor);
   }
 
   /// Substitutes both variables from [first] and [second], favoring those from
@@ -247,16 +248,14 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
   _FreshTypeParametersSubstitutor(_TypeSubstitutor super.outer);
 
   @override
-  List<TypeParameterElement2> freshTypeParameters(
-      List<TypeParameterElement2> elements) {
+  List<TypeParameterElementImpl2> freshTypeParameters(
+      List<TypeParameterElementImpl2> elements) {
     if (elements.isEmpty) {
-      return const <TypeParameterElement2>[];
+      return const <TypeParameterElementImpl2>[];
     }
 
     var freshElements = List.generate(elements.length, (index) {
-      // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
-      // variance is added to the interface.
-      var element = elements[index] as TypeParameterElementImpl2;
+      var element = elements[index];
       var freshElement = TypeParameterElementImpl(element.name3!, -1);
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
@@ -335,8 +334,8 @@ class _TopSubstitutor extends _TypeSubstitutor {
   }
 
   @override
-  List<TypeParameterElement2> freshTypeParameters(
-      List<TypeParameterElement2> parameters) {
+  List<TypeParameterElementImpl2> freshTypeParameters(
+      List<TypeParameterElementImpl2> parameters) {
     throw 'Create a fresh environment first';
   }
 
@@ -348,9 +347,9 @@ class _TopSubstitutor extends _TypeSubstitutor {
 
 abstract class _TypeSubstitutor
     implements
-        TypeVisitor<DartType>,
-        InferenceTypeVisitor<DartType>,
-        LinkingTypeVisitor<DartType> {
+        TypeVisitor<TypeImpl>,
+        InferenceTypeVisitor<TypeImpl>,
+        LinkingTypeVisitor<TypeImpl> {
   final _TypeSubstitutor? outer;
   bool covariantContext = true;
 
@@ -375,8 +374,8 @@ abstract class _TypeSubstitutor
     target.useCounter++;
   }
 
-  List<TypeParameterElement2> freshTypeParameters(
-      List<TypeParameterElement2> elements);
+  List<TypeParameterElementImpl2> freshTypeParameters(
+      List<TypeParameterElementImpl2> elements);
 
   DartType? getSubstitute(TypeParameterElement2 parameter) {
     _TypeSubstitutor? environment = this;
@@ -402,10 +401,10 @@ abstract class _TypeSubstitutor
   }
 
   @override
-  DartType visitDynamicType(DynamicType type) => type;
+  TypeImpl visitDynamicType(covariant DynamicTypeImpl type) => type;
 
   @override
-  DartType visitFunctionType(FunctionType type) {
+  TypeImpl visitFunctionType(covariant FunctionTypeImpl type) {
     // This is a bit tricky because we have to generate fresh type parameters
     // in order to change the bounds.  At the same time, if the function type
     // was unaltered, we have to return the [type] object (not a copy!).
@@ -451,7 +450,7 @@ abstract class _TypeSubstitutor
   }
 
   @override
-  DartType visitFunctionTypeBuilder(FunctionTypeBuilder type) {
+  TypeImpl visitFunctionTypeBuilder(FunctionTypeBuilder type) {
     // This is a bit tricky because we have to generate fresh type parameters
     // in order to change the bounds.  At the same time, if the function type
     // was unaltered, we have to return the [type] object (not a copy!).
@@ -485,9 +484,7 @@ abstract class _TypeSubstitutor
 
     inner.invertVariance();
 
-    // TODO(paulberry): eliminate this cast by changing `_TypeSubstitutor` to
-    // implement `TypeVisitor<TypeImpl>`.
-    var returnType = type.returnType.accept(inner) as TypeImpl;
+    var returnType = type.returnType.accept(inner);
 
     if (useCounter == before) return type;
 
@@ -500,7 +497,7 @@ abstract class _TypeSubstitutor
   }
 
   @override
-  DartType visitInterfaceType(covariant InterfaceTypeImpl type) {
+  TypeImpl visitInterfaceType(covariant InterfaceTypeImpl type) {
     if (type.typeArguments.isEmpty && type.alias == null) {
       return type;
     }
@@ -521,10 +518,10 @@ abstract class _TypeSubstitutor
   }
 
   @override
-  DartType visitInvalidType(InvalidType type) => type;
+  TypeImpl visitInvalidType(covariant InvalidTypeImpl type) => type;
 
   @override
-  DartType visitNamedTypeBuilder(NamedTypeBuilder type) {
+  TypeImpl visitNamedTypeBuilder(NamedTypeBuilder type) {
     if (type.arguments.isEmpty) {
       return type;
     }
@@ -545,10 +542,10 @@ abstract class _TypeSubstitutor
   }
 
   @override
-  DartType visitNeverType(NeverType type) => type;
+  TypeImpl visitNeverType(covariant NeverTypeImpl type) => type;
 
   @override
-  DartType visitRecordType(covariant RecordTypeImpl type) {
+  TypeImpl visitRecordType(covariant RecordTypeImpl type) {
     var before = useCounter;
 
     var positionalFields = type.positionalFields.map((field) {
@@ -578,13 +575,13 @@ abstract class _TypeSubstitutor
   }
 
   @override
-  DartType visitRecordTypeBuilder(RecordTypeBuilder type) {
+  TypeImpl visitRecordTypeBuilder(RecordTypeBuilder type) {
     // TODO(scheglov): implement visitRecordTypeBuilder
     throw UnimplementedError();
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType type) {
+  TypeImpl visitTypeParameterType(covariant TypeParameterTypeImpl type) {
     var argument = getSubstitute(type.element3);
     if (argument == null) {
       return type;
@@ -597,13 +594,13 @@ abstract class _TypeSubstitutor
   }
 
   @override
-  DartType visitUnknownInferredType(UnknownInferredType type) => type;
+  TypeImpl visitUnknownInferredType(UnknownInferredType type) => type;
 
   @override
-  DartType visitVoidType(VoidType type) => type;
+  TypeImpl visitVoidType(covariant VoidTypeImpl type) => type;
 
   InstantiatedTypeAliasElementImpl? _mapAlias(
-    InstantiatedTypeAliasElement? alias,
+    InstantiatedTypeAliasElementImpl? alias,
   ) {
     if (alias == null) {
       return null;
@@ -614,7 +611,7 @@ abstract class _TypeSubstitutor
     );
   }
 
-  List<DartType> _mapList(List<DartType> types) {
+  List<TypeImpl> _mapList(List<TypeImpl> types) {
     return types.map((e) => e.accept(this)).toFixedList();
   }
 }

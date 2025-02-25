@@ -494,7 +494,7 @@ abstract class ResolvedCorrectionProducer
           return FunctionTypeImpl(
             typeFormals: const [],
             parameters: const [],
-            returnType: typeProvider.dynamicType,
+            returnType: DynamicTypeImpl.instance,
             nullabilitySuffix: NullabilitySuffix.none,
           );
         }

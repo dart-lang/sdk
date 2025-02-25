@@ -1161,7 +1161,7 @@ class AstBinaryReader {
       constructorName: constructorName,
       argumentList: argumentList,
     );
-    node.staticElement = _reader.readElement() as ConstructorElement?;
+    node.staticElement = _reader.readElement() as ConstructorElementMixin?;
     _resolveNamedExpressions(node.staticElement, node.argumentList);
     return node;
   }

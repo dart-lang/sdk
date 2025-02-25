@@ -512,6 +512,13 @@ class CompletionTarget {
               containingNode.parent.ifTypeOrNull() ??
                   // SimpleString -> Configuration -> Directive
                   containingNode.parent?.parent.ifTypeOrNull();
+        } else if (containingNode is Comment) {
+          for (var reference in containingNode.references) {
+            if (reference.offset <= requestOffset &&
+                reference.end >= requestOffset) {
+              return SourceRange(reference.offset, reference.length);
+            }
+          }
         }
         // Replacement range for a URI.
         if (directive != null && uri is SimpleStringLiteral) {

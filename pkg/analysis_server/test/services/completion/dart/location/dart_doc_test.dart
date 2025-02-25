@@ -61,7 +61,6 @@ suggestions
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/59724')
   Future<void> test_extension() async {
     allowedIdentifiers = const {'MyExt'};
     await computeSuggestions('''
@@ -73,7 +72,7 @@ replacement
   left: 3
 suggestions
   MyExt
-    kind: extension
+    kind: extensionInvocation
 ''');
   }
 
@@ -304,7 +303,6 @@ suggestions
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/59724')
   Future<void> test_typedef() async {
     allowedIdentifiers = const {'MyTypedef'};
     await computeSuggestions('''
@@ -316,7 +314,7 @@ replacement
   left: 3
 suggestions
   MyTypedef
-    kind: typedef
+    kind: typeAlias
 ''');
   }
 

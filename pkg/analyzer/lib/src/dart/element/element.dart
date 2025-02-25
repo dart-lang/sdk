@@ -24,7 +24,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/analysis/flags.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -45,12 +44,12 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart'
     show Namespace, NamespaceBuilder;
 import 'package:analyzer/src/error/inference_error.dart';
+import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
-import 'package:analyzer/src/summary2/bundle_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -1403,7 +1402,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ///
   // TODO(scheglov): We cannot have both super and redirecting constructors.
   // So, ideally we should have some kind of "either" or "variant" here.
-  ConstructorElement? _superConstructor;
+  ConstructorElementMixin? _superConstructor;
 
   /// The constructor to which this constructor is redirecting.
   ConstructorElement? _redirectedConstructor;
@@ -1598,12 +1597,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ConstructorElement? get superConstructor {
+  ConstructorElementMixin? get superConstructor {
     linkedData?.read(this);
     return _superConstructor;
   }
 
-  set superConstructor(ConstructorElement? superConstructor) {
+  set superConstructor(ConstructorElementMixin? superConstructor) {
     _superConstructor = superConstructor;
   }
 
@@ -1653,6 +1652,7 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
         FragmentedTypeParameterizedElementMixin<ConstructorFragment>,
         FragmentedAnnotatableElementMixin<ConstructorFragment>,
         FragmentedElementMixin<ConstructorFragment>,
+        ConstructorElementMixin2,
         _HasSinceSdkVersionMixin
     implements ConstructorElement2 {
   @override
@@ -1670,7 +1670,7 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   }
 
   @override
-  ConstructorElement2 get baseElement => this;
+  ConstructorElementImpl2 get baseElement => this;
 
   @override
   String get displayName {
@@ -1741,11 +1741,10 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   }
 
   @override
-  ConstructorElement2? get superConstructor2 =>
-      (firstFragment.superConstructor?.declaration as ConstructorElementImpl?)
-          ?.element;
+  ConstructorElementMixin2? get superConstructor2 =>
+      firstFragment.superConstructor?.declaration.element;
 
-  set superConstructor2(ConstructorElement2? value) {
+  set superConstructor2(ConstructorElementMixin2? value) {
     firstFragment.superConstructor = value?.asElement;
   }
 
@@ -1794,6 +1793,16 @@ mixin ConstructorElementMixin
   bool get isGenerative {
     return !isFactory;
   }
+
+  @override
+  InterfaceTypeImpl get returnType;
+}
+
+/// Common implementation for methods defined in [ConstructorElement2].
+mixin ConstructorElementMixin2
+    implements ExecutableElement2OrMember, ConstructorElement2 {
+  @override
+  ConstructorElementImpl2 get baseElement;
 
   @override
   InterfaceTypeImpl get returnType;
@@ -4007,6 +4016,9 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 /// `ExecutableElement`.
 abstract class ExecutableElementOrMember implements ExecutableElement {
   @override
+  List<ParameterElementMixin> get parameters;
+
+  @override
   TypeImpl get returnType;
 
   @override
@@ -4542,7 +4554,7 @@ abstract class FieldElementOrMember
 class FieldFormalParameterElementImpl extends ParameterElementImpl
     implements FieldFormalParameterElement, FieldFormalParameterFragment {
   @override
-  FieldElement? field;
+  FieldElementOrMember? field;
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
@@ -4649,9 +4661,8 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  List<FormalParameterElement> get formalParameters => wrappedElement.parameters
-      .map((fragment) => (fragment as ParameterElementImpl).element)
-      .toList();
+  List<FormalParameterElement> get formalParameters =>
+      wrappedElement.parameters.map((fragment) => fragment.element).toList();
 
   @override
   List<ParameterElementImpl> get fragments {
@@ -5404,7 +5415,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   TypeImpl? _returnType;
 
   /// The elements representing the parameters of the function.
-  List<ParameterElement> _parameters = const [];
+  List<ParameterElementImpl> _parameters = const [];
 
   /// Is `true` if the type has the question mark, so is nullable.
   bool isNullable = false;
@@ -5462,13 +5473,13 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   GenericFunctionTypeElementImpl? get nextFragment => null;
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElementImpl> get parameters {
     return _parameters;
   }
 
   /// Set the parameters defined by this function type element to the given
   /// [parameters].
-  set parameters(List<ParameterElement> parameters) {
+  set parameters(List<ParameterElementImpl> parameters) {
     for (ParameterElement parameter in parameters) {
       (parameter as ParameterElementImpl).enclosingElement3 = this;
     }
@@ -6373,7 +6384,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  ConstructorElement? get unnamedConstructor {
+  ConstructorElementMixin? get unnamedConstructor {
     return constructors.firstWhereOrNull((element) => element.name.isEmpty);
   }
 
@@ -6403,7 +6414,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  ConstructorElement? getNamedConstructor(String name) {
+  ConstructorElementMixin? getNamedConstructor(String name) {
     if (name == 'new') {
       // A constructor declared as `C.new` is unnamed, and is modeled as such.
       name = '';
@@ -6663,7 +6674,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   List<InterfaceTypeImpl> _mixins = [];
 
   @override
-  List<ConstructorElement> constructors = [];
+  List<ConstructorElementMixin> constructors = [];
 
   InterfaceTypeImpl? _thisType;
 
@@ -6682,8 +6693,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   List<ConstructorElementImpl2> get constructors2 {
     _readMembers();
     return constructors
-        .map((constructor) =>
-            (constructor.declaration as ConstructorElementImpl).element)
+        .map((constructor) => constructor.declaration.element)
         .toList();
   }
 
@@ -6763,24 +6773,24 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   @override
-  ConstructorElement? get unnamedConstructor {
+  ConstructorElementMixin? get unnamedConstructor {
     // TODO(scheglov): this is a hack
     firstFragment.constructors;
     return constructors.firstWhereOrNull((element) => element.name.isEmpty);
   }
 
   @override
-  ConstructorElement2? get unnamedConstructor2 =>
+  ConstructorElementMixin2? get unnamedConstructor2 =>
       unnamedConstructor?.asElement2;
 
   @override
-  ConstructorElement? getNamedConstructor(String name) {
+  ConstructorElementMixin? getNamedConstructor(String name) {
     name = name.ifEqualThen('new', '');
     return constructors.firstWhereOrNull((element) => element.name == name);
   }
 
   @override
-  ConstructorElement2? getNamedConstructor2(String name) {
+  ConstructorElementMixin2? getNamedConstructor2(String name) {
     return constructors2.firstWhereOrNull((e) => e.name3 == name);
   }
 
@@ -9462,12 +9472,12 @@ class ParameterElementImpl extends VariableElementImpl
   /// A list containing all of the parameters defined by this parameter element.
   /// There will only be parameters if this parameter is a function typed
   /// parameter.
-  List<ParameterElement> _parameters = const [];
+  List<ParameterElementImpl> _parameters = const [];
 
   /// A list containing all of the type parameters defined for this parameter
   /// element. There will only be parameters if this parameter is a function
   /// typed parameter.
-  List<TypeParameterElement> _typeParameters = const [];
+  List<TypeParameterElementImpl> _typeParameters = const [];
 
   @override
   final ParameterKind parameterKind;
@@ -9590,15 +9600,15 @@ class ParameterElementImpl extends VariableElementImpl
   ParameterElementImpl? get nextFragment => null;
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElementImpl> get parameters {
     return _parameters;
   }
 
   /// Set the parameters defined by this executable element to the given
   /// [parameters].
-  set parameters(List<ParameterElement> parameters) {
-    for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement3 = this;
+  set parameters(List<ParameterElementImpl> parameters) {
+    for (var parameter in parameters) {
+      parameter.enclosingElement3 = this;
     }
     _parameters = parameters;
   }
@@ -9608,15 +9618,15 @@ class ParameterElementImpl extends VariableElementImpl
   ParameterElementImpl? get previousFragment => null;
 
   @override
-  List<TypeParameterElement> get typeParameters {
+  List<TypeParameterElementImpl> get typeParameters {
     return _typeParameters;
   }
 
   /// Set the type parameters defined by this parameter element to the given
   /// [typeParameters].
-  set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement parameter in typeParameters) {
-      (parameter as TypeParameterElementImpl).enclosingElement3 = this;
+  set typeParameters(List<TypeParameterElementImpl> typeParameters) {
+    for (var parameter in typeParameters) {
+      parameter.enclosingElement3 = this;
     }
     _typeParameters = typeParameters;
   }
@@ -10363,8 +10373,8 @@ class PropertyAccessorElementImpl_ImplicitGetter
   @override
   FunctionTypeImpl get type {
     return _type ??= FunctionTypeImpl(
-      typeFormals: const <TypeParameterElement>[],
-      parameters: const <ParameterElement>[],
+      typeFormals: const <TypeParameterElementImpl>[],
+      parameters: const <ParameterElementImpl>[],
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -10429,7 +10439,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
   @override
   FunctionTypeImpl get type {
     return _type ??= FunctionTypeImpl(
-      typeFormals: const <TypeParameterElement>[],
+      typeFormals: const <TypeParameterElementImpl>[],
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
@@ -10825,7 +10835,7 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
       super.previousFragment as SuperFormalParameterElementImpl?;
 
   @override
-  ParameterElement? get superConstructorParameter {
+  ParameterElementMixin? get superConstructorParameter {
     var enclosingElement = enclosingElement3;
     if (enclosingElement is ConstructorElementImpl) {
       var superConstructor = enclosingElement.superConstructor;
@@ -11146,7 +11156,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   }
 
   /// The aliased type, might be `null` if not yet linked.
-  DartType? get aliasedTypeRaw => _aliasedType;
+  TypeImpl? get aliasedTypeRaw => _aliasedType;
 
   @override
   List<Element2> get children2 {
@@ -11287,7 +11297,8 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element: this,
-          typeArguments: typeArguments,
+          // TODO(scheglov): remove this cast
+          typeArguments: typeArguments.cast(),
         ),
       );
     } else if (type is InterfaceTypeImpl) {
@@ -11297,7 +11308,8 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element: this,
-          typeArguments: typeArguments,
+          // TODO(scheglov): remove this cast
+          typeArguments: typeArguments.cast(),
         ),
       );
     } else if (type is RecordTypeImpl) {
@@ -11307,7 +11319,8 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element: this,
-          typeArguments: typeArguments,
+          // TODO(scheglov): remove this cast
+          typeArguments: typeArguments.cast(),
         ),
       );
     } else if (type is TypeParameterTypeImpl) {
@@ -11316,7 +11329,8 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element: this,
-          typeArguments: typeArguments,
+          // TODO(scheglov): remove this cast
+          typeArguments: typeArguments.cast(),
         ),
       );
     } else {
@@ -11377,7 +11391,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   }
 
   /// The aliased type, might be `null` if not yet linked.
-  DartType? get aliasedTypeRaw => firstFragment.aliasedTypeRaw;
+  TypeImpl? get aliasedTypeRaw => firstFragment.aliasedTypeRaw;
 
   @override
   TypeAliasElementImpl2 get baseElement => this;
@@ -11450,7 +11464,7 @@ class TypeParameterElementImpl extends ElementImpl
   /// The default value of the type parameter. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference.
-  DartType? defaultType;
+  TypeImpl? defaultType;
 
   /// The type representing the bound associated with this parameter, or `null`
   /// if this parameter does not have an explicit bound.
@@ -11666,7 +11680,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   /// The default value of the type parameter. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference.
-  DartType? get defaultType => firstFragment.defaultType;
+  TypeImpl? get defaultType => firstFragment.defaultType;
 
   @override
   List<TypeParameterElementImpl> get fragments {

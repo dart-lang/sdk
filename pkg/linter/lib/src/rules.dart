@@ -242,6 +242,7 @@ import 'rules/use_is_even_rather_than_modulo.dart';
 import 'rules/use_key_in_widget_constructors.dart';
 import 'rules/use_late_for_private_fields_and_variables.dart';
 import 'rules/use_named_constants.dart';
+import 'rules/use_null_aware_elements.dart';
 import 'rules/use_raw_strings.dart';
 import 'rules/use_rethrow_when_possible.dart';
 import 'rules/use_setters_to_change_properties.dart';
@@ -493,6 +494,7 @@ void registerLintRules() {
     ..registerLintRule(UseKeyInWidgetConstructors())
     ..registerLintRule(UseLateForPrivateFieldsAndVariables())
     ..registerLintRule(UseNamedConstants())
+    ..registerLintRule(UseNullAwareElements())
     ..registerLintRule(UseRawStrings())
     ..registerLintRule(UseRethrowWhenPossible())
     ..registerLintRule(UseSettersToChangeProperties())
