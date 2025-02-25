@@ -5446,7 +5446,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 
   @override
-  GenericFunctionTypeElement2 get element => _element2;
+  GenericFunctionTypeElementImpl2 get element => _element2;
 
   @override
   Fragment? get enclosingFragment => enclosingElement3 as Fragment;
@@ -9868,6 +9868,10 @@ class PatternVariableElementImpl2 extends LocalVariableElementImpl2
         fragment,
     ];
   }
+
+  /// This flag is set to `true` while we are visiting the [WhenClause] of
+  /// the [GuardedPattern] that declares this variable.
+  bool get isVisitingWhenClause => _wrappedElement.isVisitingWhenClause;
 
   /// This flag is set to `true` while we are visiting the [WhenClause] of
   /// the [GuardedPattern] that declares this variable.

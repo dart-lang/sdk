@@ -8287,24 +8287,16 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 
   @override
   bool isPotentiallyMutatedInScope(VariableElement variable) {
+    var v2 = (variable as VariableElementImpl).element;
+    return isPotentiallyMutatedInScope2(v2);
+  }
+
+  @override
+  bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
     if (localVariableInfo == null) {
       throw StateError('Resolution has not been performed');
     }
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
-  }
-
-  @experimental
-  @override
-  bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
-    return switch (variable) {
-      LocalVariableElementImpl2() =>
-        isPotentiallyMutatedInScope(variable.wrappedElement),
-      VariableElement() =>
-        isPotentiallyMutatedInScope(variable as VariableElement),
-      FormalParameterElement(:VariableElement firstFragment) =>
-        isPotentiallyMutatedInScope(firstFragment),
-      _ => false,
-    };
   }
 
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
@@ -9155,6 +9147,10 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   @override
   Token get beginToken => _returnType?.beginToken ?? functionKeyword;
+
+  GenericFunctionTypeElementImpl? get declaredFragment {
+    return declaredElement;
+  }
 
   @override
   Token get endToken => question ?? _parameters.endToken;
@@ -11480,7 +11476,7 @@ sealed class LiteralImpl extends ExpressionImpl implements Literal {
 class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
-  final Set<VariableElement> potentiallyMutatedInScope = <VariableElement>{};
+  final Set<VariableElement2> potentiallyMutatedInScope = {};
 }
 
 /// A logical-and pattern.
@@ -14075,13 +14071,11 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   @experimental
   @override
   Element2? get element2 {
-    var element = this.element;
-    if (element case Fragment fragment) {
-      return fragment.element;
-    } else if (element case Element2 element) {
-      return element;
-    }
-    return null;
+    return element?.asElement2;
+  }
+
+  set element2(Element2? value) {
+    element = value?.asElement;
   }
 
   @override
@@ -15353,6 +15347,10 @@ final class RelationalPatternImpl extends DartPatternImpl
       return fragment.element;
     }
     return null;
+  }
+
+  set element2(MethodElement2? value) {
+    element = value?.asElement;
   }
 
   @override
