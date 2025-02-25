@@ -197,13 +197,7 @@ class AssignmentExpressionResolver {
           var parameters = method.formalParameters;
           if (parameters.isNotEmpty) {
             return _typeSystem.refineNumericInvocationContext2(
-                leftType,
-                method,
-                leftType,
-                // TODO(paulberry): eliminate this cast by changing the type of
-                // `MethodElementOrMember.parameters` to
-                // `List<ParameterElementMixin>`.
-                parameters[0].type as TypeImpl);
+                leftType, method, leftType, parameters[0].type);
           }
         }
         return UnknownInferredType.instance;

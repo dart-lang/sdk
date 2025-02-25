@@ -1647,11 +1647,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
 class ConstructorElementImpl2 extends ExecutableElementImpl2
     with
-        FragmentedExecutableElementMixin<ConstructorFragment>,
-        FragmentedFunctionTypedElementMixin<ConstructorFragment>,
-        FragmentedTypeParameterizedElementMixin<ConstructorFragment>,
-        FragmentedAnnotatableElementMixin<ConstructorFragment>,
-        FragmentedElementMixin<ConstructorFragment>,
+        FragmentedExecutableElementMixin<ConstructorElementImpl>,
+        FragmentedFunctionTypedElementMixin<ConstructorElementImpl>,
+        FragmentedTypeParameterizedElementMixin<ConstructorElementImpl>,
+        FragmentedAnnotatableElementMixin<ConstructorElementImpl>,
+        FragmentedElementMixin<ConstructorElementImpl>,
         ConstructorElementMixin2,
         _HasSinceSdkVersionMixin
     implements ConstructorElement2 {
@@ -3770,6 +3770,9 @@ class EnumElementImpl2 extends InterfaceElementImpl2
 /// `ExecutableElement2`.
 abstract class ExecutableElement2OrMember implements ExecutableElement2 {
   @override
+  List<FormalParameterElementMixin> get formalParameters;
+
+  @override
   TypeImpl get returnType;
 
   @override
@@ -5189,11 +5192,11 @@ mixin FragmentedElementMixin<E extends Fragment> implements _Fragmented<E> {
   }
 }
 
-mixin FragmentedExecutableElementMixin<E extends ExecutableFragment>
+mixin FragmentedExecutableElementMixin<E extends ExecutableElementImpl>
     implements FragmentedElementMixin<E> {
-  List<FormalParameterElement> get formalParameters {
+  List<FormalParameterElementMixin> get formalParameters {
     return firstFragment.formalParameters
-        .map((fragment) => fragment.element)
+        .map((fragment) => fragment.asElement2)
         .toList();
   }
 
@@ -5235,15 +5238,13 @@ mixin FragmentedFunctionTypedElementMixin<E extends ExecutableFragment>
   // TODO(augmentations): This might be wrong. The parameters need to be a
   //  merge of the parameters of all of the fragments, but this probably doesn't
   //  account for missing data (such as the parameter types).
-  List<FormalParameterElement> get formalParameters {
+  List<FormalParameterElementMixin> get formalParameters {
     var fragment = firstFragment;
     return switch (fragment) {
-      FunctionTypedElementImpl(:var parameters) => parameters
-          .map((fragment) => (fragment as FormalParameterFragment).element)
-          .toList(),
-      ExecutableElementImpl(:var parameters) => parameters
-          .map((fragment) => (fragment as FormalParameterFragment).element)
-          .toList(),
+      FunctionTypedElementImpl(:var parameters) =>
+        parameters.map((fragment) => fragment.asElement2).toList(),
+      ExecutableElementImpl(:var parameters) =>
+        parameters.map((fragment) => fragment.asElement2).toList(),
       _ => throw UnsupportedError(
           'Cannot get formal parameters for ${fragment.runtimeType}'),
     };
@@ -5451,8 +5452,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   Fragment? get enclosingFragment => enclosingElement3 as Fragment;
 
   @override
-  List<FormalParameterFragment> get formalParameters =>
-      parameters.cast<FormalParameterFragment>();
+  List<ParameterElementImpl> get formalParameters => parameters;
 
   @override
   String get identifier => '-';
@@ -5607,11 +5607,11 @@ abstract class GetterElement2OrMember
 
 class GetterElementImpl extends PropertyAccessorElementImpl2
     with
-        FragmentedExecutableElementMixin<GetterFragment>,
-        FragmentedFunctionTypedElementMixin<GetterFragment>,
-        FragmentedTypeParameterizedElementMixin<GetterFragment>,
-        FragmentedAnnotatableElementMixin<GetterFragment>,
-        FragmentedElementMixin<GetterFragment>,
+        FragmentedExecutableElementMixin<PropertyAccessorElementImpl>,
+        FragmentedFunctionTypedElementMixin<PropertyAccessorElementImpl>,
+        FragmentedTypeParameterizedElementMixin<PropertyAccessorElementImpl>,
+        FragmentedAnnotatableElementMixin<PropertyAccessorElementImpl>,
+        FragmentedElementMixin<PropertyAccessorElementImpl>,
         _HasSinceSdkVersionMixin
     implements GetterElement2OrMember {
   @override
@@ -7879,7 +7879,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   FunctionElementImpl get firstFragment => _wrappedElement;
 
   @override
-  List<FormalParameterElement> get formalParameters =>
+  List<FormalParameterElementMixin> get formalParameters =>
       _wrappedElement.formalParameters
           .map((fragment) => fragment.element)
           .toList();
@@ -8550,11 +8550,11 @@ class MethodElementImpl extends ExecutableElementImpl
 
 class MethodElementImpl2 extends ExecutableElementImpl2
     with
-        FragmentedExecutableElementMixin<MethodFragment>,
-        FragmentedFunctionTypedElementMixin<MethodFragment>,
-        FragmentedTypeParameterizedElementMixin<MethodFragment>,
-        FragmentedAnnotatableElementMixin<MethodFragment>,
-        FragmentedElementMixin<MethodFragment>,
+        FragmentedExecutableElementMixin<MethodElementImpl>,
+        FragmentedFunctionTypedElementMixin<MethodElementImpl>,
+        FragmentedTypeParameterizedElementMixin<MethodElementImpl>,
+        FragmentedAnnotatableElementMixin<MethodElementImpl>,
+        FragmentedElementMixin<MethodElementImpl>,
         _HasSinceSdkVersionMixin
     implements MethodElement2OrMember {
   @override
@@ -10703,11 +10703,11 @@ abstract class SetterElement2OrMember
 
 class SetterElementImpl extends PropertyAccessorElementImpl2
     with
-        FragmentedExecutableElementMixin<SetterFragment>,
-        FragmentedFunctionTypedElementMixin<SetterFragment>,
-        FragmentedTypeParameterizedElementMixin<SetterFragment>,
-        FragmentedAnnotatableElementMixin<SetterFragment>,
-        FragmentedElementMixin<SetterFragment>,
+        FragmentedExecutableElementMixin<PropertyAccessorElementImpl>,
+        FragmentedFunctionTypedElementMixin<PropertyAccessorElementImpl>,
+        FragmentedTypeParameterizedElementMixin<PropertyAccessorElementImpl>,
+        FragmentedAnnotatableElementMixin<PropertyAccessorElementImpl>,
+        FragmentedElementMixin<PropertyAccessorElementImpl>,
         _HasSinceSdkVersionMixin
     implements SetterElement2OrMember {
   @override
@@ -10909,11 +10909,11 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
 
 class TopLevelFunctionElementImpl extends ExecutableElementImpl2
     with
-        FragmentedExecutableElementMixin<TopLevelFunctionFragment>,
-        FragmentedFunctionTypedElementMixin<TopLevelFunctionFragment>,
-        FragmentedTypeParameterizedElementMixin<TopLevelFunctionFragment>,
-        FragmentedAnnotatableElementMixin<TopLevelFunctionFragment>,
-        FragmentedElementMixin<TopLevelFunctionFragment>,
+        FragmentedExecutableElementMixin<FunctionElementImpl>,
+        FragmentedFunctionTypedElementMixin<FunctionElementImpl>,
+        FragmentedTypeParameterizedElementMixin<FunctionElementImpl>,
+        FragmentedAnnotatableElementMixin<FunctionElementImpl>,
+        FragmentedElementMixin<FunctionElementImpl>,
         _HasSinceSdkVersionMixin
     implements TopLevelFunctionElement {
   @override

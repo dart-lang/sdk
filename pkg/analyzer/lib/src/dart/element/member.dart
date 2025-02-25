@@ -265,7 +265,7 @@ abstract class ExecutableMember extends Member
   Element2? get enclosingElement2 => _element2.enclosingElement2;
 
   @override
-  List<FormalParameterElement> get formalParameters =>
+  List<FormalParameterElementMixin> get formalParameters =>
       parameters.map((fragment) => fragment.asElement2).toList();
 
   @override

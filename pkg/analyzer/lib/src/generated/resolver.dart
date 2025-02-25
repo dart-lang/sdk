@@ -1713,20 +1713,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (node is AugmentedExpression) {
       if (element is SetterElement2OrMember) {
         if (element.formalParameters case [var valueParameter]) {
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `PropertyAccessorElementOrMember.parameters` to
-          // `List<ParameterElementMixin>`.
-          writeType = valueParameter.type as TypeImpl;
+          writeType = valueParameter.type;
         }
       }
     } else if (node is IndexExpression) {
-      if (element is MethodElement2) {
+      if (element is MethodElement2OrMember) {
         var parameters = element.formalParameters;
         if (parameters.length == 2) {
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `PropertyAccessorElementOrMember.parameters` to
-          // `List<ParameterElementMixin>`.
-          writeType = parameters[1].type as TypeImpl;
+          writeType = parameters[1].type;
         }
       }
     } else if (node is PrefixedIdentifier ||
@@ -1741,10 +1735,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         } else {
           var parameters = element.formalParameters;
           if (parameters.length == 1) {
-            // TODO(paulberry): eliminate this cast by changing the type of
-            // `PropertyAccessorElementOrMember.parameters` to
-            // `List<ParameterElementMixin>`.
-            writeType = parameters[0].type as TypeImpl;
+            writeType = parameters[0].type;
           }
         }
       } else if (element is VariableElement2OrMember) {
