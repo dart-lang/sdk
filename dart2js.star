@@ -70,14 +70,6 @@ dart.ci_sandbox_builder(
     properties = [chrome, no_android],
 )
 dart.ci_sandbox_builder(
-    "dart2js-hostasserts-linux-unsound",
-    category = "dart2js|chrome|un",
-    channels = ["try"],
-    location_filters = paths.to_location_filters(paths.dart2js),
-    properties = [chrome, no_android],
-    triggered_by = ["dart2js-gitiles-trigger-%s"],
-)
-dart.ci_sandbox_builder(
     "dart2js-linux-firefox",
     category = "dart2js|firefox|l",
     properties = [firefox, no_android],
