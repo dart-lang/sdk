@@ -1244,8 +1244,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // Make the static type of `node` (or whatever it was rewritten to)
         // nullable.
         rewrittenExpression ??= node;
-        rewrittenExpression.setPseudoExpressionStaticType(typeSystem
-            .makeNullable(rewrittenExpression.staticType as TypeImpl));
+        rewrittenExpression.setPseudoExpressionStaticType(
+            typeSystem.makeNullable(rewrittenExpression.typeOrThrow));
       }
     }
   }
@@ -1711,7 +1711,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var writeType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
     if (node is AugmentedExpression) {
-      if (element is SetterElement) {
+      if (element is SetterElement2OrMember) {
         if (element.formalParameters case [var valueParameter]) {
           // TODO(paulberry): eliminate this cast by changing the type of
           // `PropertyAccessorElementOrMember.parameters` to
@@ -3534,10 +3534,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             argumentList: node.argumentList,
             contextType: UnknownInferredType.instance,
             whyNotPromotedArguments: whyNotPromotedArguments)
-        .resolveInvocation(
-            // TODO(paulberry): eliminate this cast by changing the type of
-            // `RedirectingConstructorInvocationImpl.staticElement`.
-            rawType: node.element?.type as FunctionTypeImpl?);
+        .resolveInvocation(rawType: node.element?.type);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedArguments);
   }

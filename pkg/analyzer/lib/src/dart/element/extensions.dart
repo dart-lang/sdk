@@ -223,9 +223,7 @@ extension ExecutableElementOrMemberQuestionExtension
   TypeImpl? get firstParameterType {
     var self = this;
     if (self is MethodElementOrMember) {
-      // TODO(paulberry): eliminate this cast by changing this extension to
-      // apply to `ExecutableElementOrMember?`.
-      return self.parameters.firstOrNull?.type as TypeImpl?;
+      return self.parameters.firstOrNull?.type;
     }
     return null;
   }

@@ -2768,7 +2768,7 @@ class _InstanceCreationEvaluator {
         }
         superArguments = initializer.argumentList.arguments.toList();
         _addImplicitArgumentsFromSuperFormals(superArguments);
-      } else if (initializer is RedirectingConstructorInvocation) {
+      } else if (initializer is RedirectingConstructorInvocationImpl) {
         // This is a redirecting constructor, so just evaluate the constructor
         // it redirects to.
         var constructor = initializer.staticElement;

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
@@ -33,10 +34,10 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 /// are the type parameters of the alias.
 class ConstructorElementToInfer {
   /// The type parameters used in [element].
-  final List<TypeParameterElement> typeParameters;
+  final List<TypeParameterElementImpl> typeParameters;
 
   /// The element, might be [ConstructorMember].
-  final ConstructorElement element;
+  final ConstructorElementMixin element;
 
   ConstructorElementToInfer(this.typeParameters, this.element);
 
@@ -89,12 +90,12 @@ class InvocationInferenceHelper {
     required ConstructorName constructorName,
     required LibraryElement definingLibrary,
   }) {
-    List<TypeParameterElement> typeParameters;
-    ConstructorElement? rawElement;
+    List<TypeParameterElementImpl> typeParameters;
+    ConstructorElementMixin? rawElement;
 
     var typeName = constructorName.type;
     var typeElement = typeName.element;
-    if (typeElement is InterfaceElement) {
+    if (typeElement is InterfaceElementImpl) {
       var augmented = typeElement.augmented;
       typeParameters = typeElement.typeParameters;
       var constructorIdentifier = constructorName.name;
@@ -107,10 +108,10 @@ class InvocationInferenceHelper {
           rawElement = null;
         }
       }
-    } else if (typeElement is TypeAliasElement) {
+    } else if (typeElement is TypeAliasElementImpl) {
       typeParameters = typeElement.typeParameters;
       var aliasedType = typeElement.aliasedType;
-      if (aliasedType is InterfaceType) {
+      if (aliasedType is InterfaceTypeImpl) {
         var constructorIdentifier = constructorName.name;
         rawElement = aliasedType.lookUpConstructor(
           constructorIdentifier?.name,

@@ -6,13 +6,14 @@ import "dart:math" as math;
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
@@ -216,7 +217,7 @@ class TypeArgumentsVerifier {
     );
   }
 
-  void checkNamedType(NamedType node) {
+  void checkNamedType(NamedTypeImpl node) {
     _checkForTypeArgumentNotMatchingBounds(node);
     var parent = node.parent;
     if (parent is! ConstructorName ||
@@ -286,7 +287,7 @@ class TypeArgumentsVerifier {
 
   /// Verify that the type arguments in the given [namedType] are all within
   /// their bounds.
-  void _checkForTypeArgumentNotMatchingBounds(NamedType namedType) {
+  void _checkForTypeArgumentNotMatchingBounds(NamedTypeImpl namedType) {
     var type = namedType.type;
     if (type == null) {
       return;
@@ -300,7 +301,7 @@ class TypeArgumentsVerifier {
       elementName = alias.element2.name3;
       typeParameters = alias.element2.typeParameters2;
       typeArguments = alias.typeArguments;
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       elementName = type.element3.name3;
       typeParameters = type.element3.typeParameters2;
       typeArguments = type.typeArguments;
@@ -424,7 +425,7 @@ class TypeArgumentsVerifier {
     var invertedAlias = invertedType.alias;
     if (invertedAlias != null) {
       invertedTypeArguments = invertedAlias.typeArguments;
-    } else if (invertedType is InterfaceType) {
+    } else if (invertedType is InterfaceTypeImpl) {
       invertedTypeArguments = invertedType.typeArguments;
     } else {
       return;

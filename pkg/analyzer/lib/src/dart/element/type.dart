@@ -99,7 +99,7 @@ class FunctionTypeImpl extends TypeImpl
   final List<TypeParameterElementImpl> typeFormals;
 
   @override
-  final List<ParameterElement> parameters;
+  final List<ParameterElementMixin> parameters;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -114,16 +114,16 @@ class FunctionTypeImpl extends TypeImpl
   final List<ParameterElementMixin> sortedNamedParameters;
 
   factory FunctionTypeImpl({
-    required List<TypeParameterElement> typeFormals,
-    required List<ParameterElement> parameters,
-    required DartType returnType,
+    required List<TypeParameterElementImpl> typeFormals,
+    required List<ParameterElementMixin> parameters,
+    required TypeImpl returnType,
     required NullabilitySuffix nullabilitySuffix,
-    InstantiatedTypeAliasElement? alias,
+    InstantiatedTypeAliasElementImpl? alias,
   }) {
     int? firstNamedParameterIndex;
     var requiredPositionalParameterCount = 0;
     var positionalParameterTypes = <TypeImpl>[];
-    List<ParameterElement> sortedNamedParameters;
+    List<ParameterElementMixin> sortedNamedParameters;
 
     // Check if already sorted.
     var namedParametersAlreadySorted = true;
@@ -139,9 +139,7 @@ class FunctionTypeImpl extends TypeImpl
         }
         lastNamedParameterName = name;
       } else {
-        // TODO(paulberry): get rid of this cast by changing the type of
-        // `parameters` to `List<ParameterElementMixin>`.
-        positionalParameterTypes.add(parameter.type as TypeImpl);
+        positionalParameterTypes.add(parameter.type);
         if (parameter.isRequiredPositional) {
           requiredPositionalParameterCount++;
         }
@@ -160,34 +158,26 @@ class FunctionTypeImpl extends TypeImpl
           firstNamedParameterIndex!, parameters.length, sortedNamedParameters);
     }
     return FunctionTypeImpl._(
-        // TODO(paulberry): eliminate this cast by changing the type of the
-        // `typeFormals` parameter.
-        typeFormals: typeFormals.cast(),
+        typeFormals: typeFormals,
         parameters: parameters,
-        // TODO(paulberry): eliminate this cast by changing the type of
-        // `returnType`.
-        returnType: returnType as TypeImpl,
+        returnType: returnType,
         nullabilitySuffix: nullabilitySuffix,
         positionalParameterTypes: positionalParameterTypes,
         requiredPositionalParameterCount: requiredPositionalParameterCount,
-        // TODO(paulberry): avoid the cast by changing the type of
-        // `sortedNamedParameters`.
-        sortedNamedParameters: sortedNamedParameters.cast(),
+        sortedNamedParameters: sortedNamedParameters,
         alias: alias);
   }
 
   factory FunctionTypeImpl.v2({
-    required List<TypeParameterElement2> typeParameters,
-    required List<FormalParameterElement> formalParameters,
-    required DartType returnType,
+    required List<TypeParameterElementImpl2> typeParameters,
+    required List<FormalParameterElementMixin> formalParameters,
+    required TypeImpl returnType,
     required NullabilitySuffix nullabilitySuffix,
-    InstantiatedTypeAliasElement? alias,
+    InstantiatedTypeAliasElementImpl? alias,
   }) {
     return FunctionTypeImpl(
       typeFormals: typeParameters.map((e) => e.asElement).toList(),
-      parameters: formalParameters is List<FormalParameterElementImpl>
-          ? formalParameters.map((e) => e.asElement).toList()
-          : formalParameters.map((e) => e.asElement).toList(),
+      parameters: formalParameters.map((e) => e.asElement).toList(),
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
       alias: alias,
@@ -343,7 +333,7 @@ class FunctionTypeImpl extends TypeImpl
     }
 
     if (this.parameters.any((element) {
-      var type = element.type as TypeImpl;
+      var type = element.type;
       return type.referencesAny(parameters);
     })) {
       return true;
@@ -369,7 +359,7 @@ class FunctionTypeImpl extends TypeImpl
     }
 
     if (this.parameters.any((element) {
-      var type = element.type as TypeImpl;
+      var type = element.type;
       return type.referencesAny2(parameters);
     })) {
       return true;
@@ -550,7 +540,7 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
   final TypeAliasElement element;
 
   @override
-  final List<DartType> typeArguments;
+  final List<TypeImpl> typeArguments;
 
   InstantiatedTypeAliasElementImpl({
     required this.element,
@@ -559,7 +549,7 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
 
   factory InstantiatedTypeAliasElementImpl.v2({
     required TypeAliasElement2 element,
-    required List<DartType> typeArguments,
+    required List<TypeImpl> typeArguments,
   }) {
     return InstantiatedTypeAliasElementImpl(
       element: element.asElement,
@@ -568,7 +558,8 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
   }
 
   @override
-  TypeAliasElement2 get element2 => (element as TypeAliasFragment).element;
+  TypeAliasElementImpl2 get element2 =>
+      (element as TypeAliasFragment).element as TypeAliasElementImpl2;
 }
 
 /// A concrete implementation of an [InterfaceType].
@@ -595,7 +586,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required InterfaceElementImpl2 element,
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
-    InstantiatedTypeAliasElement? alias,
+    InstantiatedTypeAliasElementImpl? alias,
   }) {
     if (element.name3 == 'FutureOr' && element.library2.isDartAsync) {
       return FutureOrTypeImpl(
@@ -681,9 +672,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<ConstructorElement2> get constructors2 => constructors
+  List<ConstructorElementMixin2> get constructors2 => constructors
       .map((fragment) => switch (fragment) {
-            ConstructorFragment(:var element) => element,
+            ConstructorElementImpl(:var element) => element,
             ConstructorMember() => fragment,
             _ => throw StateError(
                 'unexpected fragment type: ${fragment.runtimeType}',
@@ -963,12 +954,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       PropertyAccessorMember.from(element.getSetter(setterName), this);
 
   @override
-  ConstructorElement? lookUpConstructor(
+  ConstructorElementMixin? lookUpConstructor(
       String? constructorName, LibraryElement library) {
     var augmented = element.augmented;
 
     // prepare base ConstructorElement
-    ConstructorElement? constructorElement;
+    ConstructorElementMixin? constructorElement;
     if (constructorName == null) {
       constructorElement = augmented.unnamedConstructor;
     } else {
@@ -1541,7 +1532,7 @@ class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
 /// representing the declared type of elements in the element model.
 abstract class TypeImpl implements DartType, SharedType {
   @override
-  final InstantiatedTypeAliasElement? alias;
+  final InstantiatedTypeAliasElementImpl? alias;
 
   /// Initialize a newly created type.
   const TypeImpl({this.alias});
@@ -1721,7 +1712,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     required TypeParameterElement2 element,
     required NullabilitySuffix nullabilitySuffix,
     DartType? promotedBound,
-    InstantiatedTypeAliasElement? alias,
+    InstantiatedTypeAliasElementImpl? alias,
   }) {
     return TypeParameterTypeImpl(
       element: element.asElement,

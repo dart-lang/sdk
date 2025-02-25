@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/scope.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -99,7 +98,7 @@ class AstResolver {
 
   void resolveExpression(
     ExpressionImpl Function() getNode, {
-    DartType contextType = UnknownInferredType.instance,
+    TypeImpl contextType = UnknownInferredType.instance,
   }) {
     ExpressionImpl node = getNode();
     node.accept(_resolutionVisitor);
@@ -108,8 +107,7 @@ class AstResolver {
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.bodyOrInitializer_enter(node.parent as AstNodeImpl, null);
-    _resolverVisitor.analyzeExpression(
-        node, SharedTypeSchemaView(contextType as TypeImpl));
+    _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();

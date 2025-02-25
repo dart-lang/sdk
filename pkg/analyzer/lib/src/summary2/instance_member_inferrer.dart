@@ -52,8 +52,10 @@ class InstanceMemberInferrer {
   /// Given a method, return the parameter in the method that corresponds to the
   /// given [parameter]. If the parameter is positional, then it appears at the
   /// given [index] in its enclosing element's list of parameters.
-  ParameterElement? _getCorrespondingParameter(ParameterElement parameter,
-      int index, List<ParameterElement> methodParameters) {
+  ParameterElementMixin? _getCorrespondingParameter(
+      ParameterElementMixin parameter,
+      int index,
+      List<ParameterElementMixin> methodParameters) {
     //
     // Find the corresponding parameter.
     //
@@ -62,10 +64,8 @@ class InstanceMemberInferrer {
       // If we're looking for a named parameter, only a named parameter with
       // the same name will be matched.
       //
-      return methodParameters.lastWhereOrNull(
-          (ParameterElement methodParameter) =>
-              methodParameter.isNamed &&
-              methodParameter.name == parameter.name);
+      return methodParameters.lastWhereOrNull((methodParameter) =>
+          methodParameter.isNamed && methodParameter.name == parameter.name);
     }
     //
     // If we're looking for a positional parameter we ignore the difference
@@ -115,7 +115,7 @@ class InstanceMemberInferrer {
     );
     if (overriddenGetters != null) {
       overriddenGetters = overriddenGetters.where((e) {
-        return e is PropertyAccessorElement && e.isGetter;
+        return e is PropertyAccessorElementOrMember && e.isGetter;
       }).toList();
     } else {
       overriddenGetters = const [];
@@ -151,9 +151,7 @@ class InstanceMemberInferrer {
       if (combinedSetter != null) {
         var parameters = combinedSetter.parameters;
         if (parameters.isNotEmpty) {
-          // TODO(paulberry): eliminate this cast by changing the return type of
-          // `InheritanceManager3.combineSignatures`.
-          return parameters[0].type as TypeImpl;
+          return parameters[0].type;
         }
       }
       return DynamicTypeImpl.instance;
@@ -376,16 +374,12 @@ class InstanceMemberInferrer {
         if (parameter is FieldFormalParameterElementImpl) {
           var field = parameter.field;
           if (field != null) {
-            // TODO(paulberry): eliminate this cast by changing the type of
-            // `FieldFormalParameterElementImpl.field`.
-            parameter.type = field.type as TypeImpl;
+            parameter.type = field.type;
           }
         } else if (parameter is SuperFormalParameterElementImpl) {
           var superParameter = parameter.superConstructorParameter;
           if (superParameter != null) {
-            // TODO(paulberry): eliminate this cast by changing the type of
-            // `SuperFormalParameterElementImpl.superConstructorParameter`.
-            parameter.type = superParameter.type as TypeImpl;
+            parameter.type = superParameter.type;
           } else {
             parameter.type = DynamicTypeImpl.instance;
           }
@@ -417,7 +411,7 @@ class InstanceMemberInferrer {
       return;
     }
 
-    FunctionType? combinedSignatureType;
+    FunctionTypeImpl? combinedSignatureType;
     var hasImplicitType = element.hasImplicitReturnType ||
         element.parameters.any((e) => e.hasImplicitType);
     if (hasImplicitType) {
@@ -532,7 +526,7 @@ class InstanceMemberInferrer {
 
   /// If a parameter is covariant, any parameters that override it are too.
   void _inferParameterCovariance(ParameterElementImpl parameter, int index,
-      Iterable<ExecutableElement> overridden) {
+      Iterable<ExecutableElementOrMember> overridden) {
     parameter.inheritsCovariant = overridden.any((f) {
       var param = _getCorrespondingParameter(parameter, index, f.parameters);
       return param != null && param.isCovariant;
@@ -543,7 +537,7 @@ class InstanceMemberInferrer {
   /// [combinedSignatureType], which might be `null` if there is no valid
   /// combined signature for signatures from direct superinterfaces.
   void _inferParameterType(ParameterElementImpl parameter, int index,
-      FunctionType? combinedSignatureType) {
+      FunctionTypeImpl? combinedSignatureType) {
     if (combinedSignatureType != null) {
       var matchingParameter = _getCorrespondingParameter(
         parameter,
@@ -551,9 +545,7 @@ class InstanceMemberInferrer {
         combinedSignatureType.parameters,
       );
       if (matchingParameter != null) {
-        // TODO(paulberry): eliminate this cast by changing the return type of
-        // `_getCorrespondingParameter`.
-        parameter.type = matchingParameter.type as TypeImpl;
+        parameter.type = matchingParameter.type;
       } else {
         parameter.type = DynamicTypeImpl.instance;
       }
@@ -708,8 +700,8 @@ class InstanceMemberInferrer {
   /// we must express its parameter and return types in terms of its own
   /// parameters. For example, given `m<T>(t)` overriding `m<S>(S s)` we
   /// should infer this as `m<T>(T t)`.
-  FunctionType? _toOverriddenFunctionType(
-      ExecutableElement element, ExecutableElement overriddenElement) {
+  FunctionTypeImpl? _toOverriddenFunctionType(ExecutableElementOrMember element,
+      ExecutableElementOrMember overriddenElement) {
     var elementTypeParameters = element.asElement2.typeParameters2;
     var overriddenTypeParameters = overriddenElement.typeParameters;
 
@@ -717,12 +709,16 @@ class InstanceMemberInferrer {
       return null;
     }
 
-    var overriddenType = overriddenElement.type as FunctionTypeImpl;
+    var overriddenType = overriddenElement.type;
     if (elementTypeParameters.isEmpty) {
       return overriddenType;
     }
 
-    return replaceTypeParameters(overriddenType, elementTypeParameters);
+    return replaceTypeParameters(
+      overriddenType,
+      // TODO(scheglov): remove this cast
+      elementTypeParameters.cast(),
+    );
   }
 
   static bool _isCovariantSetter(ExecutableElement element) {

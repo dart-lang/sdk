@@ -304,7 +304,7 @@ class ElementResolver {
       // TODO(brianwilkerson): Report this error.
       return;
     }
-    ConstructorElement2? element;
+    ConstructorElementMixin2? element;
     var name = node.constructorName;
     if (name == null) {
       element = enclosingClass.unnamedConstructor2;

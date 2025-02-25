@@ -98,8 +98,8 @@ class TypesBuilder {
   }
 
   FunctionTypeImpl _buildFunctionType(
-    TypeParameterList? typeParameterList,
-    TypeAnnotation? returnTypeNode,
+    TypeParameterListImpl? typeParameterList,
+    TypeAnnotationImpl? returnTypeNode,
     FormalParameterList parameterList,
     NullabilitySuffix nullabilitySuffix,
   ) {
@@ -182,7 +182,7 @@ class TypesBuilder {
       element.returnType = returnType;
     } else if (node is FunctionTypeAlias) {
       _functionTypeAlias(node);
-    } else if (node is FunctionTypedFormalParameter) {
+    } else if (node is FunctionTypedFormalParameterImpl) {
       _functionTypedFormalParameter(node);
     } else if (node is GenericFunctionTypeImpl) {
       _genericFunctionType(node);
@@ -276,7 +276,7 @@ class TypesBuilder {
     }
   }
 
-  List<ParameterElement> _formalParameters(FormalParameterList node) {
+  List<ParameterElementMixin> _formalParameters(FormalParameterList node) {
     return node.parameters.asImpl.map((parameter) {
       return parameter.declaredElement!;
     }).toFixedList();
@@ -289,7 +289,7 @@ class TypesBuilder {
     element.aliasedType = function.type;
   }
 
-  void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void _functionTypedFormalParameter(FunctionTypedFormalParameterImpl node) {
     var type = _buildFunctionType(
       node.typeParameters,
       node.returnType,
@@ -363,14 +363,12 @@ class TypesBuilder {
     element.bound = node.bound?.type;
   }
 
-  List<TypeParameterElement> _typeParameters(TypeParameterList? node) {
+  List<TypeParameterElementImpl> _typeParameters(TypeParameterListImpl? node) {
     if (node == null) {
-      return const <TypeParameterElement>[];
+      return const <TypeParameterElementImpl>[];
     }
 
-    return node.typeParameters
-        .map<TypeParameterElement>((p) => p.declaredElement!)
-        .toFixedList();
+    return node.typeParameters.map((p) => p.declaredElement!).toFixedList();
   }
 
   void _updatedAugmented(

@@ -481,8 +481,8 @@ actual: $resultStr
           fail('''
 parameter1: $parameter1, isCovariant: ${parameter1.isCovariant}
 parameter2: $parameter2, isCovariant: ${parameter2.isCovariant}
-T1: ${typeString(T1 as TypeImpl)}
-T2: ${typeString(T2 as TypeImpl)}
+T1: ${typeString(T1)}
+T2: ${typeString(T2)}
 ''');
         }
         _checkFormalParametersIsCovariant(parameter1.type, parameter2.type);

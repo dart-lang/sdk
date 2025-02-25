@@ -646,7 +646,7 @@ class LeastUpperBoundHelper {
     var fParameters = f.formalParameters;
     var gParameters = g.formalParameters;
 
-    var parameters = <FormalParameterElement>[];
+    var parameters = <FormalParameterElementMixin>[];
     var fIndex = 0;
     var gIndex = 0;
     while (fIndex < fParameters.length && gIndex < gParameters.length) {

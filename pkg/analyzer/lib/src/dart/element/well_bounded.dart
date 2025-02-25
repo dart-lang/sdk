@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
@@ -61,7 +62,7 @@ class TypeBoundedHelper {
   TypeBoundedHelper(this.typeSystem);
 
   TypeBoundedResult isWellBounded(
-    DartType type, {
+    TypeImpl type, {
     required bool allowSuperBounded,
   }) {
     var result = _isRegularBounded(type);
@@ -121,7 +122,7 @@ class TypeBoundedHelper {
     }
   }
 
-  TypeBoundedResult _isSuperBounded(DartType type) {
+  TypeBoundedResult _isSuperBounded(TypeImpl type) {
     var invertedType = typeSystem.replaceTopAndBottom(type);
     var result = _isRegularBounded(invertedType);
     if (result is RegularBoundedTypeResult) {

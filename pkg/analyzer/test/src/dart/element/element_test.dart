@@ -2063,11 +2063,11 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   }
 
   void _assert_asInstanceOf(
-    DartType type,
+    TypeImpl type,
     ClassElement element,
     String? expected,
   ) {
-    var result = (type as TypeImpl).asInstanceOf(element);
+    var result = type.asInstanceOf(element);
     expect(
       result?.getDisplayString(),
       expected,

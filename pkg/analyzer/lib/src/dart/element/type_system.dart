@@ -67,8 +67,8 @@ class ExtensionTypeErasure extends ReplacementVisitor {
 class RelatedTypeParameters2 {
   static final _empty = RelatedTypeParameters2._(const [], const []);
 
-  final List<TypeParameterElement2> typeParameters;
-  final List<TypeParameterType> typeParameterTypes;
+  final List<TypeParameterElementImpl2> typeParameters;
+  final List<TypeParameterTypeImpl> typeParameterTypes;
 
   RelatedTypeParameters2._(
     this.typeParameters,
@@ -1364,7 +1364,7 @@ class TypeSystemImpl implements TypeSystem {
 
   /// See `15.2 Super-bounded types` in the language specification.
   TypeBoundedResult isWellBounded(
-    DartType type, {
+    TypeImpl type, {
     required bool allowSuperBounded,
   }) {
     return TypeBoundedHelper(this).isWellBounded(
@@ -1633,7 +1633,7 @@ class TypeSystemImpl implements TypeSystem {
   /// Replaces all covariant occurrences of `dynamic`, `void`, and `Object` or
   /// `Object?` with `Null` or `Never` and all contravariant occurrences of
   /// `Null` or `Never` with `Object` or `Object?`.
-  DartType replaceTopAndBottom(DartType dartType) {
+  TypeImpl replaceTopAndBottom(TypeImpl dartType) {
     return ReplaceTopBottomVisitor.run(
       topType: objectQuestion,
       bottomType: NeverTypeImpl.instance,
@@ -1728,7 +1728,7 @@ class TypeSystemImpl implements TypeSystem {
   /// https://github.com/dart-lang/language/
   /// See `accepted/future-releases/nnbd/feature-specification.md`
   /// See `#classes-defined-in-opted-in-libraries`
-  DartType topMerge(DartType T, DartType S) {
+  TypeImpl topMerge(TypeImpl T, TypeImpl S) {
     return TopMergeHelper(this).topMerge(T, S);
   }
 

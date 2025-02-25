@@ -99,7 +99,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         parameterType = FunctionTypeImpl(
           typeFormals: const [],
           parameters: const [],
-          returnType: typeProvider.dynamicType,
+          returnType: DynamicTypeImpl.instance,
           nullabilitySuffix: NullabilitySuffix.none,
         );
       }

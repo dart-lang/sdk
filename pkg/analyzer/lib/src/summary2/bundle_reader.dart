@@ -243,7 +243,7 @@ class ConstructorElementLinkedData
     );
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
-    element.superConstructor = reader.readElement() as ConstructorElement?;
+    element.superConstructor = reader.readElement() as ConstructorElementMixin?;
     element.redirectedConstructor = reader.readElement() as ConstructorElement?;
     element.constantInitializers = reader._readNodeList();
     applyConstantOffsets?.perform();
@@ -335,7 +335,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
         }
       }
       if (parameter is FieldFormalParameterElementImpl) {
-        parameter.field = reader.readElement() as FieldElement?;
+        parameter.field = reader.readElement() as FieldElementOrMember?;
       }
     }
   }
@@ -2517,7 +2517,7 @@ class ResolutionReader {
     return astReader.readNode();
   }
 
-  List<DartType> _readTypeList() {
+  List<TypeImpl> _readTypeList() {
     return readTypedList(() {
       return readRequiredType();
     });

@@ -23,7 +23,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
 class ConstructorMember extends ExecutableMember
-    with ConstructorElementMixin
+    with ConstructorElementMixin, ConstructorElementMixin2
     implements ConstructorElement, ConstructorElement2 {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
@@ -45,7 +45,7 @@ class ConstructorMember extends ExecutableMember
   }
 
   @override
-  ConstructorElement2 get baseElement => _element2;
+  ConstructorElementImpl2 get baseElement => _element2;
 
   @override
   ConstructorElementImpl get declaration =>
@@ -131,7 +131,7 @@ class ConstructorMember extends ExecutableMember
   ConstructorElement2? get superConstructor2 => superConstructor?.asElement2;
 
   @override
-  ConstructorElement2 get _element2 => declaration.asElement2;
+  ConstructorElementImpl2 get _element2 => declaration.asElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
@@ -180,8 +180,8 @@ class ConstructorMember extends ExecutableMember
   /// arguments from the [definingType], create a constructor member
   /// representing the given constructor. Return the member that was created, or
   /// the original constructor if no member was created.
-  static ConstructorElement from(
-      ConstructorElement constructor, InterfaceType definingType) {
+  static ConstructorElementMixin from(
+      ConstructorElementMixin constructor, InterfaceType definingType) {
     if (definingType.typeArguments.isEmpty) {
       return constructor;
     }
@@ -327,8 +327,8 @@ abstract class ExecutableMember extends Member
   Element2 get nonSynthetic2 => _element2;
 
   @override
-  List<ParameterElement> get parameters {
-    return declaration.parameters.map<ParameterElement>((p) {
+  List<ParameterElementMixin> get parameters {
+    return declaration.parameters.map<ParameterElementMixin>((p) {
       if (p is FieldFormalParameterElementImpl) {
         return FieldFormalParameterMember(
             p, augmentationSubstitution, _substitution);
@@ -1356,8 +1356,8 @@ class ParameterMember extends VariableMember
     _element2.visitChildren2(visitor);
   }
 
-  static ParameterElement from(
-      ParameterElement element, MapSubstitution substitution) {
+  static ParameterElementMixin from(
+      ParameterElementMixin element, MapSubstitution substitution) {
     var combined = substitution;
     if (element is ParameterMember) {
       var member = element;
@@ -1624,7 +1624,8 @@ class SuperFormalParameterMember extends ParameterMember
   @override
   ParameterElement? get superConstructorParameter {
     var superConstructorParameter =
-        (declaration as SuperFormalParameterElement).superConstructorParameter;
+        (declaration as SuperFormalParameterElementImpl)
+            .superConstructorParameter;
     if (superConstructorParameter == null) {
       return null;
     }
