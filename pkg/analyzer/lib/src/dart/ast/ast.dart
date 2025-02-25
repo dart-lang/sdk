@@ -4502,7 +4502,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   SimpleIdentifierImpl? _name;
 
   @override
-  ConstructorElement? staticElement;
+  ConstructorElementMixin? staticElement;
 
   /// Initializes a newly created constructor name.
   ///
@@ -4523,9 +4523,9 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @experimental
   @override
-  ConstructorElement2? get element => staticElement?.asElement2;
+  ConstructorElementMixin2? get element => staticElement?.asElement2;
 
-  set element(ConstructorElement2? element) {
+  set element(ConstructorElementMixin2? element) {
     staticElement = element?.asElement;
   }
 
@@ -12578,9 +12578,9 @@ final class NamedExpressionImpl extends ExpressionImpl
   Token get beginToken => _name.beginToken;
 
   @override
-  ParameterElement? get element {
+  ParameterElementMixin? get element {
     var element = _name.label.staticElement;
-    if (element is ParameterElement) {
+    if (element is ParameterElementMixin) {
       return element;
     }
     return null;
@@ -16814,7 +16814,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElement? staticElement;
+  ConstructorElementMixin? staticElement;
 
   /// Initializes a newly created super invocation to invoke the inherited
   /// constructor with the given name with the given arguments.
@@ -16851,9 +16851,9 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @experimental
   @override
-  ConstructorElement2? get element => staticElement?.asElement2;
+  ConstructorElementMixin2? get element => staticElement?.asElement2;
 
-  set element(ConstructorElement2? value) {
+  set element(ConstructorElementMixin2? value) {
     staticElement = value?.asElement;
   }
 

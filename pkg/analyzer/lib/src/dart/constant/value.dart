@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/constant/has_invalid_type.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -179,7 +180,7 @@ class DartObjectImpl implements DartObject, Constant {
   final TypeSystemImpl _typeSystem;
 
   @override
-  final DartType type;
+  final TypeImpl type;
 
   /// The state of the object.
   final InstanceState state;
@@ -190,7 +191,7 @@ class DartObjectImpl implements DartObject, Constant {
   /// Initialize a newly created object to have the given [type] and [state].
   factory DartObjectImpl(
     TypeSystemImpl typeSystem,
-    DartType type,
+    TypeImpl type,
     InstanceState state, {
     VariableElementImpl? variable,
   }) {
@@ -212,7 +213,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(
-      TypeSystemImpl typeSystem, DartType type) {
+      TypeSystemImpl typeSystem, TypeImpl type) {
     if (type.isDartCoreBool) {
       return DartObjectImpl(typeSystem, type, BoolState.UNKNOWN_VALUE);
     } else if (type.isDartCoreDouble) {
@@ -387,7 +388,7 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl convertToBool(TypeSystemImpl typeSystem) {
-    InterfaceType boolType = typeSystem.typeProvider.boolType;
+    var boolType = typeSystem.typeProvider.boolType;
     if (identical(type, boolType)) {
       return this;
     }
@@ -789,7 +790,7 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the object cannot be converted to a
   /// 'String'.
   DartObjectImpl performToString(TypeSystemImpl typeSystem) {
-    InterfaceType stringType = typeSystem.typeProvider.stringType;
+    var stringType = typeSystem.typeProvider.stringType;
     if (identical(type, stringType)) {
       return this;
     }
@@ -904,12 +905,12 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   @override
-  ExecutableElement? toFunctionValue() {
-    return toFunctionValue2().asElement;
+  ExecutableElementOrMember? toFunctionValue() {
+    return toFunctionValue2()?.asElement;
   }
 
   @override
-  ExecutableElement2? toFunctionValue2() {
+  ExecutableElement2OrMember? toFunctionValue2() {
     var state = this.state;
     return state is FunctionState ? state.element : null;
   }
@@ -997,7 +998,7 @@ class DartObjectImpl implements DartObject, Constant {
   /// [typeArguments] are the type arguments used in the instantiation.
   DartObjectImpl typeInstantiate(
     TypeSystemImpl typeSystem,
-    FunctionType type,
+    FunctionTypeImpl type,
     List<DartType> typeArguments,
   ) {
     var functionState = state as FunctionState;
@@ -1524,7 +1525,7 @@ class GenericState extends InstanceState {
   @override
   bool hasPrimitiveEquality(FeatureSet featureSet) {
     var type = _object.type;
-    if (type is InterfaceType) {
+    if (type is InterfaceTypeImpl) {
       bool isFromDartCoreObject(ExecutableElement2? element) {
         var enclosing = element?.enclosingElement2;
         return enclosing is ClassElement2 && enclosing.isDartCoreObject;

@@ -3661,10 +3661,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             argumentList: node.argumentList,
             contextType: UnknownInferredType.instance,
             whyNotPromotedArguments: whyNotPromotedArguments)
-        .resolveInvocation(
-            // TODO(paulberry): eliminate this cast by changing the type of
-            // `SuperConstructorInvocationImpl.staticElement`.
-            rawType: node.element?.type as FunctionTypeImpl?);
+        .resolveInvocation(rawType: node.element?.type);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedArguments);
   }

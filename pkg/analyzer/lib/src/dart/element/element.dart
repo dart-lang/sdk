@@ -1405,7 +1405,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ConstructorElementMixin? _superConstructor;
 
   /// The constructor to which this constructor is redirecting.
-  ConstructorElement? _redirectedConstructor;
+  ConstructorElementMixin? _redirectedConstructor;
 
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
@@ -1570,12 +1570,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ConstructorFragment? get previousFragment => augmentationTarget;
 
   @override
-  ConstructorElement? get redirectedConstructor {
+  ConstructorElementMixin? get redirectedConstructor {
     linkedData?.read(this);
     return _redirectedConstructor;
   }
 
-  set redirectedConstructor(ConstructorElement? redirectedConstructor) {
+  set redirectedConstructor(ConstructorElementMixin? redirectedConstructor) {
     _redirectedConstructor = redirectedConstructor;
   }
 
@@ -1727,11 +1727,11 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   }
 
   @override
-  ConstructorElement2? get redirectedConstructor2 {
+  ConstructorElementMixin2? get redirectedConstructor2 {
     return firstFragment.redirectedConstructor?.asElement2;
   }
 
-  set redirectedConstructor2(ConstructorElement2? value) {
+  set redirectedConstructor2(ConstructorElementMixin2? value) {
     firstFragment.redirectedConstructor = value?.asElement;
   }
 
@@ -1793,6 +1793,9 @@ mixin ConstructorElementMixin
   bool get isGenerative {
     return !isFactory;
   }
+
+  @override
+  ConstructorElementMixin? get redirectedConstructor;
 
   @override
   InterfaceTypeImpl get returnType;
