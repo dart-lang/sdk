@@ -5480,8 +5480,8 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   /// Set the parameters defined by this function type element to the given
   /// [parameters].
   set parameters(List<ParameterElementImpl> parameters) {
-    for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement3 = this;
+    for (var parameter in parameters) {
+      parameter.enclosingElement3 = this;
     }
     _parameters = parameters;
   }
