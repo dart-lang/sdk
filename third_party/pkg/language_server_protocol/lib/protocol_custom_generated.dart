@@ -1449,6 +1449,8 @@ class EditableArgument implements ToJsonable {
   /// same as the value field, for example an expression or named constant.
   final String? displayValue;
 
+  final String? documentation;
+
   /// Whether an explicit argument exists for this parameter in the code.
   ///
   /// This will be true even if the explicit argument is the same value as the
@@ -1499,6 +1501,7 @@ class EditableArgument implements ToJsonable {
   EditableArgument({
     this.defaultValue,
     this.displayValue,
+    this.documentation,
     required this.hasArgument,
     required this.isEditable,
     required this.isNullable,
@@ -1513,6 +1516,7 @@ class EditableArgument implements ToJsonable {
   int get hashCode => Object.hash(
         defaultValue,
         displayValue,
+        documentation,
         hasArgument,
         isEditable,
         isNullable,
@@ -1530,6 +1534,7 @@ class EditableArgument implements ToJsonable {
         other.runtimeType == EditableArgument &&
         defaultValue == other.defaultValue &&
         displayValue == other.displayValue &&
+        documentation == other.documentation &&
         hasArgument == other.hasArgument &&
         isEditable == other.isEditable &&
         isNullable == other.isNullable &&
@@ -1549,6 +1554,9 @@ class EditableArgument implements ToJsonable {
     }
     if (displayValue != null) {
       result['displayValue'] = displayValue;
+    }
+    if (documentation != null) {
+      result['documentation'] = documentation;
     }
     result['hasArgument'] = hasArgument;
     result['isEditable'] = isEditable;
@@ -1574,6 +1582,10 @@ class EditableArgument implements ToJsonable {
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
       if (!_canParseString(obj, reporter, 'displayValue',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'documentation',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -1618,6 +1630,8 @@ class EditableArgument implements ToJsonable {
     final defaultValue = defaultValueJson;
     final displayValueJson = json['displayValue'];
     final displayValue = displayValueJson as String?;
+    final documentationJson = json['documentation'];
+    final documentation = documentationJson as String?;
     final hasArgumentJson = json['hasArgument'];
     final hasArgument = hasArgumentJson as bool;
     final isEditableJson = json['isEditable'];
@@ -1640,6 +1654,7 @@ class EditableArgument implements ToJsonable {
     return EditableArgument(
       defaultValue: defaultValue,
       displayValue: displayValue,
+      documentation: documentation,
       hasArgument: hasArgument,
       isEditable: isEditable,
       isNullable: isNullable,

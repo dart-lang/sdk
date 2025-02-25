@@ -12107,8 +12107,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitDotShorthand(
       DotShorthand node, DartType typeContext) {
-    // TODO(kallentu): Implementation needed for dot shorthands.
-    return _unhandledExpression(node, typeContext);
+    DartType rewrittenType = analyzeDotShorthand(
+            node.innerExpression, new SharedTypeSchemaView(typeContext))
+        .unwrapTypeView();
+    Expression rewrittenExpr = popRewrite() as Expression;
+    return new ExpressionInferenceResult(rewrittenType, rewrittenExpr);
   }
 
   // Coverage-ignore(suite): Not run.

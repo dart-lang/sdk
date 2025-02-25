@@ -40,7 +40,7 @@ $content
     return hasArgs(contains(matcher));
   }
 
-  Matcher hasArgNamed(String argumentName) {
+  Matcher hasArgNamed(String argumentName, {String? doc}) {
     return hasArg(isArg(argumentName));
   }
 
@@ -70,6 +70,7 @@ $content
 
   Matcher isArg(
     String name, {
+    Object? documentation = anything,
     Object? type = anything,
     Object? value = anything,
     Object? displayValue = anything,
@@ -83,6 +84,7 @@ $content
   }) {
     return isA<EditableArgument>()
         .having((arg) => arg.name, 'name', name)
+        .having((arg) => arg.documentation, 'documentation', documentation)
         .having((arg) => arg.type, 'type', type)
         .having((arg) => arg.value, 'value', value)
         .having((arg) => arg.displayValue, 'displayValue', displayValue)
@@ -221,6 +223,41 @@ class MyWidget extends StatelessWidget {
 }
 ''');
     expect(result, hasArg(isArg('a', defaultValue: null)));
+  }
+
+  test_documentation_fieldParameter_literal() async {
+    var result = await getEditableArgumentsFor('''
+class MyWidget extends StatelessWidget {
+  /// Documentation for x.
+  final int x;
+
+  /// Creates a MyWidget.
+  const MyWidget(this.x);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(result, hasArg(isArg('x', documentation: 'Documentation for x.')));
+  }
+
+  test_documentation_fieldParameter_macro() async {
+    var result = await getEditableArgumentsFor('''
+/// {@template shared_docs}
+/// Shared docs.
+/// {@endtemplate}
+class MyWidget extends StatelessWidget {
+  /// {@macro shared_docs}
+  final int x;
+
+  /// Creates a MyWidget.
+  const MyWidget(this.x);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(result, hasArg(isArg('x', documentation: 'Shared docs.')));
   }
 
   test_documentation_literal() async {

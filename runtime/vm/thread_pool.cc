@@ -139,8 +139,11 @@ bool ThreadPool::CurrentThreadIsWorker() {
 }
 
 void ThreadPool::MarkCurrentWorkerAsBlocked() {
-  auto worker =
-      static_cast<Worker*>(OSThread::Current()->owning_thread_pool_worker_);
+  MarkWorkerAsBlocked(OSThread::Current());
+}
+
+void ThreadPool::MarkWorkerAsBlocked(OSThread* thread) {
+  auto worker = static_cast<Worker*>(thread->owning_thread_pool_worker_);
   Worker* new_worker = nullptr;
   if (worker != nullptr) {
     MutexLocker ml(&pool_mutex_);
@@ -152,7 +155,7 @@ void ThreadPool::MarkCurrentWorkerAsBlocked() {
       // If we have pending tasks and there are no idle workers, we will spawn a
       // new thread (temporarily allow exceeding the maximum pool size) to
       // handle the pending tasks.
-      if (idle_workers_.IsEmpty() && pending_tasks_ > 0) {
+      if (pending_tasks_ > count_idle_) {
         new_worker = new Worker(this);
         idle_workers_.Append(new_worker);
         count_idle_++;
@@ -169,6 +172,7 @@ void ThreadPool::MarkCurrentWorkerAsUnBlocked() {
       static_cast<Worker*>(OSThread::Current()->owning_thread_pool_worker_);
   if (worker != nullptr) {
     MutexLocker ml(&pool_mutex_);
+    ASSERT(worker->is_blocked_);
     if (worker->is_blocked_) {
       worker->is_blocked_ = false;
       if (max_pool_size_ > 0) {

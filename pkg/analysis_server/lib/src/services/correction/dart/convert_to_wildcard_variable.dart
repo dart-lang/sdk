@@ -6,8 +6,9 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -32,7 +33,13 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     var node = this.node;
 
     if (node is FormalParameter) {
-      await computeFormalParameterConversion(builder, node);
+      await computeVariableConversion(builder, node.name!);
+      return;
+    }
+
+    if (node is DeclaredVariablePatternImpl &&
+        node.fieldNameWithImplicitName == null) {
+      await computeVariableConversion(builder, node.name);
       return;
     }
 
@@ -62,12 +69,12 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     });
   }
 
-  Future<void> computeFormalParameterConversion(
+  Future<void> computeVariableConversion(
     ChangeBuilder builder,
-    FormalParameter node,
+    Token name,
   ) async {
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.token(node.name!), '_');
+      builder.addSimpleReplacement(range.token(name), '_');
     });
   }
 }

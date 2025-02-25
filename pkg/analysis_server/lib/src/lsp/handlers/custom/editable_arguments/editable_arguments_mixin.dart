@@ -28,6 +28,14 @@ typedef EditableInvocationInfo =
 mixin EditableArgumentsMixin {
   DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result);
 
+  String? getDocumentation(ResolvedUnitResult result, Element2 element) {
+    var dartDocInfo = getDartdocDirectiveInfoFor(result);
+    var dartDocComputer = DartDocumentationComputer(dartDocInfo);
+    var dartDoc = dartDocComputer.compute(element);
+
+    return dartDoc?.full;
+  }
+
   /// Gets the argument list at [offset] that can be edited.
   EditableInvocationInfo? getInvocationInfo(
     ResolvedUnitResult result,
@@ -48,19 +56,11 @@ mixin EditableArgumentsMixin {
       widgetName = invocation.constructorName.type.name2.lexeme;
 
       if (invocation.constructorName.element case var element?) {
-        var dartDocInfo = getDartdocDirectiveInfoFor(result);
-        var dartDocComputer = DartDocumentationComputer(dartDocInfo);
-        var dartDoc = dartDocComputer.compute(element);
-
-        widgetDocumentation = dartDoc?.full;
+        widgetDocumentation = getDocumentation(result, element);
       }
     } else if (invocation is InvocationExpression) {
       if (invocation.function case Identifier(:var element?)) {
-        var dartDocInfo = getDartdocDirectiveInfoFor(result);
-        var dartDocComputer = DartDocumentationComputer(dartDocInfo);
-        var dartDoc = dartDocComputer.compute(element);
-
-        widgetDocumentation = dartDoc?.full;
+        widgetDocumentation = getDocumentation(result, element);
       }
     }
 
