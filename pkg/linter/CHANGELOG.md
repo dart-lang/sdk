@@ -1,5 +1,6 @@
 # 3.8.0-wip
 
+- new lint: `use_null_aware_elements`
 - new _(experimental)_ lint: `unnecessary_ignore`
 
 # 3.7.0
