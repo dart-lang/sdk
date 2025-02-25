@@ -1308,7 +1308,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   }
 
   @override
-  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
+  NeverTypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     switch (nullabilitySuffix) {
       case NullabilitySuffix.question:
         return instanceNullable;

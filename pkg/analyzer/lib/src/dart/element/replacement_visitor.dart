@@ -22,14 +22,14 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 /// otherwise returns `null`.
 class ReplacementVisitor
     implements
-        TypeVisitor<DartType?>,
-        InferenceTypeVisitor<DartType?>,
-        LinkingTypeVisitor<DartType?> {
+        TypeVisitor<TypeImpl?>,
+        InferenceTypeVisitor<TypeImpl?>,
+        LinkingTypeVisitor<TypeImpl?> {
   const ReplacementVisitor();
 
   void changeVariance() {}
 
-  DartType? createFunctionType({
+  FunctionTypeImpl? createFunctionType({
     required FunctionType type,
     required InstantiatedTypeAliasElement? newAlias,
     required List<TypeParameterElement2>? newTypeParameters,
@@ -53,7 +53,7 @@ class ReplacementVisitor
     );
   }
 
-  DartType? createFunctionTypeBuilder({
+  FunctionTypeBuilder? createFunctionTypeBuilder({
     required FunctionTypeBuilder type,
     required List<TypeParameterElementImpl2>? newTypeParameters,
     required List<FormalParameterElementImpl>? newFormalParameters,
@@ -74,7 +74,7 @@ class ReplacementVisitor
     );
   }
 
-  DartType? createInterfaceType({
+  InterfaceTypeImpl? createInterfaceType({
     required InterfaceTypeImpl type,
     required InstantiatedTypeAliasElement? newAlias,
     required List<DartType>? newTypeArguments,
@@ -112,18 +112,18 @@ class ReplacementVisitor
     );
   }
 
-  DartType? createNeverType({
-    required NeverType type,
+  NeverTypeImpl? createNeverType({
+    required NeverTypeImpl type,
     required NullabilitySuffix? newNullability,
   }) {
     if (newNullability == null) {
       return null;
     }
 
-    return (type as TypeImpl).withNullability(newNullability);
+    return type.withNullability(newNullability);
   }
 
-  DartType? createPromotedTypeParameterType({
+  TypeParameterTypeImpl? createPromotedTypeParameterType({
     required TypeParameterType type,
     required NullabilitySuffix? newNullability,
     required DartType? newPromotedBound,
@@ -141,7 +141,7 @@ class ReplacementVisitor
     );
   }
 
-  DartType? createTypeParameterType({
+  TypeParameterTypeImpl? createTypeParameterType({
     required TypeParameterType type,
     required NullabilitySuffix? newNullability,
   }) {
@@ -157,12 +157,12 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitDynamicType(DynamicType type) {
+  TypeImpl? visitDynamicType(DynamicType type) {
     return null;
   }
 
   @override
-  DartType? visitFunctionType(FunctionType node) {
+  TypeImpl? visitFunctionType(FunctionType node) {
     // TODO(scheglov): avoid this cast
     node as FunctionTypeImpl;
     var newNullability = visitNullability(node);
@@ -272,7 +272,7 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitFunctionTypeBuilder(FunctionTypeBuilder node) {
+  TypeImpl? visitFunctionTypeBuilder(FunctionTypeBuilder node) {
     var newNullability = visitNullability(node);
 
     List<TypeParameterElementImpl2>? newTypeParameters;
@@ -321,9 +321,7 @@ class ReplacementVisitor
       if (substitution != null) {
         result = substitution.substituteType(result ?? type);
       }
-      // TODO(paulberry): eliminate this cast by changing `ReplacementVisitor`
-      // to implement `TypeVisitor<TypeImpl?>`.
-      return result as TypeImpl?;
+      return result;
     }
 
     var newReturnType = visitType(node.returnType);
@@ -361,7 +359,7 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
+  TypeImpl? visitInterfaceType(covariant InterfaceTypeImpl type) {
     var newNullability = visitNullability(type);
 
     InstantiatedTypeAliasElement? newAlias;
@@ -393,12 +391,12 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitInvalidType(InvalidType type) {
+  TypeImpl? visitInvalidType(InvalidType type) {
     return null;
   }
 
   @override
-  DartType? visitNamedTypeBuilder(NamedTypeBuilder type) {
+  TypeImpl? visitNamedTypeBuilder(NamedTypeBuilder type) {
     var newNullability = visitNullability(type);
 
     var parameters = const <TypeParameterElement2>[];
@@ -418,7 +416,7 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitNeverType(NeverType type) {
+  TypeImpl? visitNeverType(covariant NeverTypeImpl type) {
     var newNullability = visitNullability(type);
 
     return createNeverType(
@@ -436,7 +434,7 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitRecordType(covariant RecordTypeImpl type) {
+  TypeImpl? visitRecordType(covariant RecordTypeImpl type) {
     var newNullability = visitNullability(type);
 
     InstantiatedTypeAliasElement? newAlias;
@@ -497,7 +495,7 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitRecordTypeBuilder(RecordTypeBuilder type) {
+  TypeImpl? visitRecordTypeBuilder(RecordTypeBuilder type) {
     List<DartType>? newFieldTypes;
     var fieldTypes = type.fieldTypes;
     for (var i = 0; i < fieldTypes.length; i++) {
@@ -535,7 +533,7 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType type) {
+  TypeImpl? visitTypeParameterType(TypeParameterType type) {
     // TODO(scheglov): avoid this cast
     type as TypeParameterTypeImpl;
     var newNullability = visitNullability(type);
@@ -557,12 +555,12 @@ class ReplacementVisitor
   }
 
   @override
-  DartType? visitUnknownInferredType(UnknownInferredType type) {
+  TypeImpl? visitUnknownInferredType(UnknownInferredType type) {
     return null;
   }
 
   @override
-  DartType? visitVoidType(VoidType type) {
+  TypeImpl? visitVoidType(VoidType type) {
     return null;
   }
 

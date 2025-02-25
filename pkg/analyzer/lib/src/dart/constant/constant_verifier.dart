@@ -518,7 +518,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// equality.
   bool _canBeEqual(DartType constantType, DartType valueType) {
     if (constantType is InterfaceType) {
-      if (valueType is InterfaceType) {
+      if (valueType is InterfaceTypeImpl) {
         if (constantType.isDartCoreInt && valueType.isDartCoreDouble) {
           return true;
         }

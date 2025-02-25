@@ -846,7 +846,7 @@ class LeastUpperBoundHelper {
   }
 
   /// Return the promoted or declared bound of the type parameter.
-  DartType _typeParameterBound(TypeParameterTypeImpl type) {
+  TypeImpl _typeParameterBound(TypeParameterTypeImpl type) {
     var bound = type.promotedBound ?? type.element3.bound;
     if (bound != null) {
       return bound;

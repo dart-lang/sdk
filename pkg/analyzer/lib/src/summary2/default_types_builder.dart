@@ -211,8 +211,8 @@ class DefaultTypesBuilder {
     var graph = _TypeParametersGraph(elements, bounds);
     var stronglyConnected = computeStrongComponents(graph);
     for (var component in stronglyConnected) {
-      var dynamicSubstitution = <TypeParameterElement2, DartType>{};
-      var nullSubstitution = <TypeParameterElement2, DartType>{};
+      var dynamicSubstitution = <TypeParameterElement2, TypeImpl>{};
+      var nullSubstitution = <TypeParameterElement2, TypeImpl>{};
       for (var i in component) {
         var element = elements[i];
         dynamicSubstitution[element] = dynamicType;
@@ -231,10 +231,11 @@ class DefaultTypesBuilder {
     }
 
     for (var i = 0; i < length; i++) {
-      var thisSubstitution = <TypeParameterElement2, DartType>{};
-      var nullSubstitution = <TypeParameterElement2, DartType>{};
+      var thisSubstitution = <TypeParameterElement2, TypeImpl>{};
+      var nullSubstitution = <TypeParameterElement2, TypeImpl>{};
       var element = elements[i];
-      thisSubstitution[element] = bounds[i];
+      // TODO(scheglov): remove this cast
+      thisSubstitution[element] = bounds[i] as TypeImpl;
       nullSubstitution[element] = bottomType;
 
       for (var j = 0; j < length; j++) {
@@ -419,13 +420,13 @@ class _TypeParametersGraph implements Graph<int> {
 }
 
 class _UpperLowerReplacementVisitor extends ReplacementVisitor {
-  final Map<TypeParameterElement2, DartType> _upper;
-  final Map<TypeParameterElement2, DartType> _lower;
+  final Map<TypeParameterElement2, TypeImpl> _upper;
+  final Map<TypeParameterElement2, TypeImpl> _lower;
   Variance _variance;
 
   _UpperLowerReplacementVisitor({
-    required Map<TypeParameterElement2, DartType> upper,
-    required Map<TypeParameterElement2, DartType> lower,
+    required Map<TypeParameterElement2, TypeImpl> upper,
+    required Map<TypeParameterElement2, TypeImpl> lower,
     required Variance variance,
   })  : _upper = upper,
         _lower = lower,
@@ -461,7 +462,7 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType type) {
+  TypeImpl? visitTypeParameterType(TypeParameterType type) {
     if (_variance == Variance.contravariant) {
       return _lower[type.element3];
     } else {

@@ -146,13 +146,13 @@ vars = {
   "shelf_rev": "b39e61196ce555dc1d3a0c3da695228fa6bdebb8",
   "sync_http_rev": "47e6b264a209d0d806cfe9cdad8b6c69ce231986",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "test_rev": "17609bf90c9d5ef47707f5796763629450382474",
+  "test_rev": "a833663e56b6182f8372180f5c95d1c01b531150",
   "tools_rev": "b51f39d01f5a4af33428a0189cd62595c01e23de",
   "vector_math_rev": "533c513771d35312dcd0f69e662d729979882df1",
   "web_rev": "c2d5f63e9ea4c1409d6e159fc7b92dbcf4dc0d4d",
   "web_socket_channel_rev": "f335e52affa5c70a725401394bf265fc4384e62f",
-  "webdev_rev": "718c39c3b10f6e77f767d70d1f30f8a6c8262d6f",
-  "webdriver_rev": "e84e9ccbee3e0c38a149b7d964eb7ab6ccc78384",
+  "webdev_rev": "718c39c3b10f6e77f767d70d1f30f8a6c8262d6f", # b/398884799
+  "webdriver_rev": "b4fd8592fb9b1405fea3979cab88bcd857f2addb",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 
   # Windows deps
