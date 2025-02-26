@@ -71,12 +71,13 @@ mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     _recordUse(name, charOffset);
-    Builder? builder;
     if (_local != null) {
-      builder = lookupGetableIn(name, charOffset, fileUri, _local!);
-      if (builder != null) return builder;
+      Builder? builder = lookupGetableIn(name, charOffset, fileUri, _local!);
+      if (builder != null) {
+        return builder;
+      }
     }
-    return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
+    return _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
@@ -87,8 +88,13 @@ mixin LocalScopeMixin implements LookupScopeMixin, LocalScope {
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     _recordUse(name, charOffset);
-    Builder? builder = lookupSetableIn(name, charOffset, fileUri, _local);
-    return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
+    if (_local != null) {
+      Builder? builder = lookupSetableIn(name, charOffset, fileUri, _local);
+      if (builder != null) {
+        return builder;
+      }
+    }
+    return _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
   void _recordUse(String name, int charOffset) {}

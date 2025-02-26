@@ -35,6 +35,11 @@ class GetterFragment implements Fragment, FunctionFragment {
   /// parameters.
   final List<TypeParameterFragment>? declaredTypeParameters;
 
+  /// The scope in which the getter is declared.
+  ///
+  /// This is the scope used for resolving the [metadata].
+  final LookupScope enclosingScope;
+
   /// The scope that introduces type parameters on this getter.
   ///
   /// This is based on [typeParameterNameSpace] and initially doesn't introduce
@@ -51,27 +56,34 @@ class GetterFragment implements Fragment, FunctionFragment {
   final AsyncMarker asyncModifier;
   final String? nativeMethodName;
 
+  final DeclarationFragment? enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
   SourcePropertyBuilder? _builder;
 
   late final _GetterEncoding _encoding;
 
-  GetterFragment(
-      {required this.name,
-      required this.fileUri,
-      required this.startOffset,
-      required this.nameOffset,
-      required this.formalsOffset,
-      required this.endOffset,
-      required this.isTopLevel,
-      required this.metadata,
-      required this.modifiers,
-      required this.returnType,
-      required this.declaredTypeParameters,
-      required this.typeParameterNameSpace,
-      required this.typeParameterScope,
-      required this.declaredFormals,
-      required this.asyncModifier,
-      required this.nativeMethodName});
+  GetterFragment({
+    required this.name,
+    required this.fileUri,
+    required this.startOffset,
+    required this.nameOffset,
+    required this.formalsOffset,
+    required this.endOffset,
+    required this.isTopLevel,
+    required this.metadata,
+    required this.modifiers,
+    required this.returnType,
+    required this.declaredTypeParameters,
+    required this.typeParameterNameSpace,
+    required this.enclosingScope,
+    required this.typeParameterScope,
+    required this.declaredFormals,
+    required this.asyncModifier,
+    required this.nativeMethodName,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  });
 
   @override
   SourcePropertyBuilder get builder {

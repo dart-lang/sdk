@@ -54,6 +54,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_for_each_to
 import 'package:analysis_server/src/services/correction/dart/convert_into_block_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_null_check_to_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_related_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_expression.dart';
@@ -535,6 +536,9 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
   LinterLintCode.use_key_in_widget_constructors: [AddKeyToConstructors.new],
   LinterLintCode.use_named_constants: [ReplaceWithNamedConstant.new],
+  LinterLintCode.use_null_aware_elements: [
+    ConvertNullCheckToNullAwareElementOrEntry.new,
+  ],
   LinterLintCode.use_raw_strings: [ConvertToRawString.new],
   LinterLintCode.use_rethrow_when_possible: [UseRethrow.new],
   LinterLintCode.use_string_in_part_of_directives: [

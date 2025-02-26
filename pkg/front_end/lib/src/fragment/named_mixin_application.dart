@@ -18,7 +18,8 @@ class NamedMixinApplicationFragment implements Fragment {
   final TypeBuilder? supertype;
   final List<TypeBuilder> mixins;
   final List<TypeBuilder>? interfaces;
-  final LookupScope compilationUnitScope;
+  final LookupScope enclosingScope;
+  final LibraryFragment enclosingCompilationUnit;
 
   SourceClassBuilder? _builder;
 
@@ -34,7 +35,8 @@ class NamedMixinApplicationFragment implements Fragment {
       required this.supertype,
       required this.mixins,
       required this.interfaces,
-      required this.compilationUnitScope});
+      required this.enclosingScope,
+      required this.enclosingCompilationUnit});
 
   @override
   // Coverage-ignore(suite): Not run.

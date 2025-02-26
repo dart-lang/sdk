@@ -407,6 +407,17 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Convert to expression bodies everywhere in file',
   );
+  static const CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY = FixKind(
+    'dart.fix.convert.nullCheckToNullAwareElement',
+    DartFixKindPriority.standard,
+    'Convert null check to null-aware element',
+  );
+  static const CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY_MULTI =
+      FixKind(
+        'dart.fix.convert.nullCheckToNullAwareElement.multi',
+        DartFixKindPriority.inFile,
+        'Convert null check to null-aware element in file',
+      );
   static const CONVERT_QUOTES = FixKind(
     'dart.fix.convert.quotes',
     DartFixKindPriority.standard,

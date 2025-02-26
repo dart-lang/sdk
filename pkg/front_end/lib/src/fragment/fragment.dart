@@ -23,6 +23,7 @@ import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
+import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
@@ -102,4 +103,20 @@ sealed class Fragment {
   /// The builder is shared between introductory fragments and augmenting
   /// fragments, as well as between getters, setters, and fields.
   Builder get builder;
+}
+
+/// Interface for a compilation unit as a fragment.
+///
+/// This is only implemented by [SourceCompilationUnit] but added to avoid
+/// dependency on the whole [SourceCompilationUnit] interface.
+abstract interface class LibraryFragment {
+  /// Returns `true` if this is a patch library or patch part.
+  bool get isPatch;
+}
+
+/// Common interface for declaration fragments such as
+/// [ClassFragment], [ExtensionFragment], [ExtensionTypeFragment], etc.
+abstract interface class DeclarationFragment {
+  /// Returns `true` if this is a patch declaration.
+  bool get isPatch;
 }

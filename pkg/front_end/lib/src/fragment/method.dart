@@ -32,6 +32,11 @@ class MethodFragment implements Fragment, FunctionFragment {
   /// The declared type parameters on this method.
   final List<NominalParameterBuilder>? declaredTypeParameters;
 
+  /// The scope in which the method is declared.
+  ///
+  /// This is the scope used for resolving the [metadata].
+  final LookupScope enclosingScope;
+
   /// The scope that introduces type parameters on this method.
   ///
   /// This is based on [typeParameterNameSpace] and initially this contains only
@@ -47,28 +52,35 @@ class MethodFragment implements Fragment, FunctionFragment {
   final AsyncMarker asyncModifier;
   final String? nativeMethodName;
 
+  final DeclarationFragment? enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
   SourceMethodBuilder? _builder;
 
   late final _MethodEncoding _encoding;
 
-  MethodFragment(
-      {required this.name,
-      required this.fileUri,
-      required this.startOffset,
-      required this.nameOffset,
-      required this.formalsOffset,
-      required this.endOffset,
-      required this.isTopLevel,
-      required this.metadata,
-      required this.modifiers,
-      required this.returnType,
-      required this.declaredTypeParameters,
-      required this.typeParameterNameSpace,
-      required this.typeParameterScope,
-      required this.declaredFormals,
-      required this.isOperator,
-      required this.asyncModifier,
-      required this.nativeMethodName});
+  MethodFragment({
+    required this.name,
+    required this.fileUri,
+    required this.startOffset,
+    required this.nameOffset,
+    required this.formalsOffset,
+    required this.endOffset,
+    required this.isTopLevel,
+    required this.metadata,
+    required this.modifiers,
+    required this.returnType,
+    required this.declaredTypeParameters,
+    required this.typeParameterNameSpace,
+    required this.enclosingScope,
+    required this.typeParameterScope,
+    required this.declaredFormals,
+    required this.isOperator,
+    required this.asyncModifier,
+    required this.nativeMethodName,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  });
 
   @override
   SourceMethodBuilder get builder {

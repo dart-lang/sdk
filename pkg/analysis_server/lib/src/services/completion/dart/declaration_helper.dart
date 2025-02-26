@@ -403,6 +403,8 @@ class DeclarationHelper {
     if (parent is ClassMember) {
       assert(node is CommentReference);
       parent = parent.parent;
+    } else if (parent is Directive) {
+      parent = parent.parent;
     } else if (parent is CompilationUnit) {
       parent = containingMember;
     }

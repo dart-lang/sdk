@@ -29,7 +29,7 @@ class RegularClassDeclaration implements ClassDeclaration {
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
-  LookupScope get compilationUnitScope => _fragment.compilationUnitScope;
+  LookupScope get compilationUnitScope => _fragment.enclosingScope;
 
   @override
   Uri get fileUri => _fragment.fileUri;
@@ -75,7 +75,7 @@ class EnumDeclaration implements ClassDeclaration {
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
-  LookupScope get compilationUnitScope => _fragment.compilationUnitScope;
+  LookupScope get compilationUnitScope => _fragment.enclosingScope;
 
   @override
   Uri get fileUri => _fragment.fileUri;
@@ -118,7 +118,7 @@ class NamedMixinApplication implements ClassDeclaration {
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
-  LookupScope get compilationUnitScope => _fragment.compilationUnitScope;
+  LookupScope get compilationUnitScope => _fragment.enclosingScope;
 
   @override
   Uri get fileUri => _fragment.fileUri;
@@ -207,7 +207,7 @@ class MixinDeclaration implements ClassDeclaration {
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
-  LookupScope get compilationUnitScope => _fragment.compilationUnitScope;
+  LookupScope get compilationUnitScope => _fragment.enclosingScope;
 
   @override
   Uri get fileUri => _fragment.fileUri;

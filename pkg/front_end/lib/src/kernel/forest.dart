@@ -928,13 +928,11 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  // Coverage-ignore(suite): Not run.
   DotShorthand createDotShorthandContext(
       int fileOffset, Expression innerExpression) {
     return new DotShorthand(innerExpression)..fileOffset = fileOffset;
   }
 
-  // Coverage-ignore(suite): Not run.
   DotShorthandPropertyGet createDotShorthandPropertyGet(
       int fileOffset, Name name) {
     return new DotShorthandPropertyGet(name)..fileOffset = fileOffset;

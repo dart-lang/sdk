@@ -133,12 +133,9 @@ vars = {
   "dartdoc_rev": "34561d6ebf5fa89ca1f93b981de96a75ff573562",
   "ecosystem_rev": "fe4979bc6466de62eaf30b2bf59a78b4bffa3c5b",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
-  "glob_rev": "043796be996190473b397fa2fecfa34bb91376fb",
   "http_rev": "900da9fe7d576caa4882053cf26d3a70bd3106e0",
   "i18n_rev": "06a664f7beaab1f8eaf82a60b722982c03c8657c",
-  "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
-  "markdown_rev": "62f78c64d963ba6f73bd70ed65630dc934a264e6",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "c817a5e41220de370cbea6e6445e63cdc7087544", # rolled manually while native assets are experimental
   "protobuf_rev": "610943a3bed70c1c2079af5fca02462df10d223f",
@@ -150,7 +147,6 @@ vars = {
   "tools_rev": "b51f39d01f5a4af33428a0189cd62595c01e23de",
   "vector_math_rev": "533c513771d35312dcd0f69e662d729979882df1",
   "web_rev": "c2d5f63e9ea4c1409d6e159fc7b92dbcf4dc0d4d",
-  "web_socket_channel_rev": "f335e52affa5c70a725401394bf265fc4384e62f",
   "webdev_rev": "718c39c3b10f6e77f767d70d1f30f8a6c8262d6f", # b/398884799
   "webdriver_rev": "b4fd8592fb9b1405fea3979cab88bcd857f2addb",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
@@ -347,19 +343,13 @@ deps = {
     "url": Var("dart_git") + "flute.git" + "@" + Var("flute_rev"),
     "condition": "checkout_flute",
   },
-  Var("dart_root") + "/third_party/pkg/glob":
-      Var("dart_git") + "glob.git" + "@" + Var("glob_rev"),
 
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + "@" + Var("http_rev"),
   Var("dart_root") + "/third_party/pkg/i18n":
       Var("dart_git") + "i18n.git" + "@" + Var("i18n_rev"),
-  Var("dart_root") + "/third_party/pkg/intl":
-      Var("dart_git") + "intl.git" + "@" + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/leak_tracker":
       Var("dart_git") + "leak_tracker.git" + "@" + Var("leak_tracker_rev"),
-  Var("dart_root") + "/third_party/pkg/markdown":
-      Var("dart_git") + "markdown.git" + "@" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/material_color_utilities": {
     "url": Var("dart_git") +
            "external/github.com/material-foundation/material-color-utilities.git" +
@@ -396,9 +386,6 @@ deps = {
       "@" + Var("webkit_inspection_protocol_rev"),
   Var("dart_root") + "/third_party/pkg/web":
       Var("dart_git") + "web.git" + "@" + Var("web_rev"),
-  Var("dart_root") + "/third_party/pkg/web_socket_channel":
-      Var("dart_git") + "web_socket_channel.git" +
-      "@" + Var("web_socket_channel_rev"),
 
   Var("dart_root") + "/buildtools/sysroot/linux": {
       "packages": [

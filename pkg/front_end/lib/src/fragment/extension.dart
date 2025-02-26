@@ -4,7 +4,7 @@
 
 part of 'fragment.dart';
 
-class ExtensionFragment extends DeclarationFragment implements Fragment {
+class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
   final ExtensionName extensionName;
 
   @override
@@ -19,14 +19,16 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
   late final int nameOrExtensionOffset;
   late final int endOffset;
 
-  ExtensionFragment(
-      String? name,
-      super.fileUri,
-      this.fileOffset,
-      super.typeParameters,
-      super.typeParameterScope,
-      super._nominalParameterNameSpace)
-      : extensionName = name != null
+  ExtensionFragment({
+    required String? name,
+    required super.fileUri,
+    required this.fileOffset,
+    required super.typeParameters,
+    required super.enclosingScope,
+    required super.typeParameterScope,
+    required super.nominalParameterNameSpace,
+    required super.enclosingCompilationUnit,
+  }) : extensionName = name != null
             ? new FixedExtensionName(name)
             : new UnnamedExtensionName();
 
@@ -42,6 +44,10 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isPatch => enclosingCompilationUnit.isPatch && modifiers.isAugment;
 
   @override
   String get name => extensionName.name;

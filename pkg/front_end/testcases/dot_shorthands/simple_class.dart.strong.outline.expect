@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Color extends core::Object {
+  final field core::int x;
+  constructor •(core::int x) → self::Color
+    ;
+  static get red() → self::Color
+    ;
+}
+static method main() → void
+  ;

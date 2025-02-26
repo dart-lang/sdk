@@ -921,6 +921,32 @@ void f() {
     assertHasResult(SearchResultKind.READ, 'vvv();');
   }
 
+  Future<void> test_localVariable_inNullAwareElements() async {
+    await setPriorityFiles2([testFile]);
+    addTestFile('''
+void f(bool t) {
+  int? vvv = t ? 0 : null;
+  List<int> list = [?vvv];
+  Set<int> set = {?vvv};
+  Map<int, String> mapKey = {?vvv: "value"};
+  Map<String, int> mapValue = {"key": ?vvv, /* mapValue */};
+  Map<int, int> mapKeyValue1 = {?vvv: vvv, /* mapKeyValue1 */}; // Using promotion.
+  Map<int, int> mapKeyValue2 = {?vvv: ?vvv, /* mapKeyValue2 */}; // Ignoring promotion.
+}
+''');
+    await findElementReferences(search: 'vvv = t ? 0 : null', false);
+    expect(searchElement!.kind, ElementKind.LOCAL_VARIABLE);
+    expect(results, hasLength(8));
+    assertHasResult(SearchResultKind.READ, 'vvv];');
+    assertHasResult(SearchResultKind.READ, 'vvv};');
+    assertHasResult(SearchResultKind.READ, 'vvv: "value"');
+    assertHasResult(SearchResultKind.READ, 'vvv, /* mapValue */};');
+    assertHasResult(SearchResultKind.READ, 'vvv: vvv');
+    assertHasResult(SearchResultKind.READ, 'vvv, /* mapKeyValue1 */};');
+    assertHasResult(SearchResultKind.READ, 'vvv: ?vvv');
+    assertHasResult(SearchResultKind.READ, 'vvv, /* mapKeyValue2 */};');
+  }
+
   Future<void> test_mixin() async {
     addTestFile('''
 mixin A {}

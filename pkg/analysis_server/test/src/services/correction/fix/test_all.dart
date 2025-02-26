@@ -68,6 +68,8 @@ import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
+import 'convert_null_check_to_null_aware_element_or_entry_test.dart'
+    as convert_null_check_to_null_aware_element_or_entry;
 import 'convert_quotes_test.dart' as convert_quotes;
 import 'convert_related_to_cascade_test.dart' as convert_related_to_cascade;
 import 'convert_to_block_function_body_test.dart'
@@ -371,6 +373,7 @@ void main() {
     convert_into_block_body.main();
     convert_into_expression_body.main();
     convert_into_is_not.main();
+    convert_null_check_to_null_aware_element_or_entry.main();
     convert_quotes.main();
     convert_related_to_cascade.main();
     convert_to_block_function_body.main();

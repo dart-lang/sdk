@@ -14,28 +14,40 @@ class FactoryFragment implements Fragment, FunctionFragment {
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final NominalParameterNameSpace typeParameterNameSpace;
+
+  /// The scope in which the factory is declared.
+  ///
+  /// This is the scope used for resolving the [metadata].
+  final LookupScope enclosingScope;
+
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final AsyncMarker asyncModifier;
   final String? nativeMethodName;
   final ConstructorReferenceBuilder? redirectionTarget;
+  final DeclarationFragment enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
 
   SourceFactoryBuilder? _builder;
 
-  FactoryFragment(
-      {required this.constructorName,
-      required this.fileUri,
-      required this.startOffset,
-      required this.formalsOffset,
-      required this.endOffset,
-      required this.modifiers,
-      required this.metadata,
-      required this.typeParameterNameSpace,
-      required this.typeParameterScope,
-      required this.formals,
-      required this.asyncModifier,
-      required this.nativeMethodName,
-      required this.redirectionTarget});
+  FactoryFragment({
+    required this.constructorName,
+    required this.fileUri,
+    required this.startOffset,
+    required this.formalsOffset,
+    required this.endOffset,
+    required this.modifiers,
+    required this.metadata,
+    required this.typeParameterNameSpace,
+    required this.enclosingScope,
+    required this.typeParameterScope,
+    required this.formals,
+    required this.asyncModifier,
+    required this.nativeMethodName,
+    required this.redirectionTarget,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  });
 
   @override
   String get name => constructorName.name;

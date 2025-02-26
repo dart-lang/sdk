@@ -1181,7 +1181,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType, Name name, int fileOffset,
       {required bool isSetter,
       bool instrumented = true,
-      bool includeExtensionMethods = false}) {
+      bool includeExtensionMethods = false,
+      bool isDotShorthand = false}) {
     assert(isKnown(receiverType));
 
     DartType receiverBound = receiverType.nonTypeParameterBound;
@@ -1200,6 +1201,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             classNode: classNode,
             receiverBound: receiverBound,
             hasNonObjectMemberAccess: hasNonObjectMemberAccess,
+            isDotShorthand: isDotShorthand,
             isSetter: isSetter,
             fileOffset: fileOffset);
 
@@ -3732,6 +3734,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
   }
 
+  Member? _getStaticMember(Class class_, Name name, bool setter) {
+    Member? member =
+        engine.membersBuilder.getStaticMember(class_, name, setter: setter);
+    return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
+  }
+
   ClassMember? _getExtensionTypeMember(
       ExtensionTypeDeclaration extensionTypeDeclaration,
       Name name,
@@ -4617,6 +4625,7 @@ class _ObjectAccessDescriptor {
   final DartType receiverBound;
   final Class classNode;
   final bool hasNonObjectMemberAccess;
+  final bool isDotShorthand;
   final bool isSetter;
   final int fileOffset;
 
@@ -4626,6 +4635,7 @@ class _ObjectAccessDescriptor {
       required this.receiverBound,
       required this.classNode,
       required this.hasNonObjectMemberAccess,
+      required this.isDotShorthand,
       required this.isSetter,
       required this.fileOffset});
 
@@ -4717,8 +4727,9 @@ class _ObjectAccessDescriptor {
     }
 
     ObjectAccessTarget? target;
-    Member? interfaceMember =
-        visitor._getInterfaceMember(classNode, name, isSetter);
+    Member? interfaceMember = isDotShorthand
+        ? visitor._getStaticMember(classNode, name, isSetter)
+        : visitor._getInterfaceMember(classNode, name, isSetter);
     if (interfaceMember != null) {
       target = new ObjectAccessTarget.interfaceMember(
           receiverType, interfaceMember,

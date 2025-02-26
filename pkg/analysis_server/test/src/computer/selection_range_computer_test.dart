@@ -264,6 +264,98 @@ augment class Foo {
     ]);
   }
 
+  Future<void> test_method_withNullAwareElements_inList() async {
+    var content = TestCode.parse('''
+class Foo<T> {
+  List<int> a(String b) {
+    return [?(1 ^+ 2) * 3];
+  }
+}
+''');
+
+    var regions = await _computeSelectionRanges(content);
+    _expectRegions(regions, content, [
+      '1 + 2',
+      '(1 + 2)',
+      '(1 + 2) * 3',
+      '?(1 + 2) * 3',
+      '[?(1 + 2) * 3]',
+      'return [?(1 + 2) * 3];',
+      '{\n    return [?(1 + 2) * 3];\n  }',
+      'List<int> a(String b) {\n    return [?(1 + 2) * 3];\n  }',
+      'class Foo<T> {\n  List<int> a(String b) {\n    return [?(1 + 2) * 3];\n  }\n}',
+    ]);
+  }
+
+  Future<void> test_method_withNullAwareElements_inMapKey() async {
+    var content = TestCode.parse('''
+class Foo<T> {
+  Map<int, String> a(String b) {
+    return {?(1 ^+ 2) * 3: b};
+  }
+}
+''');
+
+    var regions = await _computeSelectionRanges(content);
+    _expectRegions(regions, content, [
+      '1 + 2',
+      '(1 + 2)',
+      '(1 + 2) * 3',
+      '?(1 + 2) * 3: b',
+      '{?(1 + 2) * 3: b}',
+      'return {?(1 + 2) * 3: b};',
+      '{\n    return {?(1 + 2) * 3: b};\n  }',
+      'Map<int, String> a(String b) {\n    return {?(1 + 2) * 3: b};\n  }',
+      'class Foo<T> {\n  Map<int, String> a(String b) {\n    return {?(1 + 2) * 3: b};\n  }\n}',
+    ]);
+  }
+
+  Future<void> test_method_withNullAwareElements_inMapValue() async {
+    var content = TestCode.parse('''
+class Foo<T> {
+  Map<String, int> a(String b) {
+    return {b: ?(1 ^+ 2) * 3};
+  }
+}
+''');
+
+    var regions = await _computeSelectionRanges(content);
+    _expectRegions(regions, content, [
+      '1 + 2',
+      '(1 + 2)',
+      '(1 + 2) * 3',
+      'b: ?(1 + 2) * 3',
+      '{b: ?(1 + 2) * 3}',
+      'return {b: ?(1 + 2) * 3};',
+      '{\n    return {b: ?(1 + 2) * 3};\n  }',
+      'Map<String, int> a(String b) {\n    return {b: ?(1 + 2) * 3};\n  }',
+      'class Foo<T> {\n  Map<String, int> a(String b) {\n    return {b: ?(1 + 2) * 3};\n  }\n}',
+    ]);
+  }
+
+  Future<void> test_method_withNullAwareElements_inSet() async {
+    var content = TestCode.parse('''
+class Foo<T> {
+  Set<int> a(String b) {
+    return {?(1 ^+ 2) * 3};
+  }
+}
+''');
+
+    var regions = await _computeSelectionRanges(content);
+    _expectRegions(regions, content, [
+      '1 + 2',
+      '(1 + 2)',
+      '(1 + 2) * 3',
+      '?(1 + 2) * 3',
+      '{?(1 + 2) * 3}',
+      'return {?(1 + 2) * 3};',
+      '{\n    return {?(1 + 2) * 3};\n  }',
+      'Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }',
+      'class Foo<T> {\n  Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }\n}',
+    ]);
+  }
+
   Future<void> test_methodLambda() async {
     var content = TestCode.parse('''
 class Foo<T> {

@@ -17,6 +17,7 @@ class FieldFragment
   final int nameOffset;
 
   final int endOffset;
+
   Token? _initializerToken;
   Token? _constInitializerToken;
 
@@ -32,23 +33,31 @@ class FieldFragment
   // fields.
   final bool isPrimaryConstructorField;
 
+  final LookupScope enclosingScope;
+
+  final DeclarationFragment? enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
   SourcePropertyBuilder? _builder;
 
   late final _FieldEncoding _encoding;
 
-  FieldFragment(
-      {required this.name,
-      required this.fileUri,
-      required this.nameOffset,
-      required this.endOffset,
-      required Token? initializerToken,
-      required Token? constInitializerToken,
-      required this.metadata,
-      required this.type,
-      required this.isTopLevel,
-      required this.modifiers,
-      required this.isPrimaryConstructorField})
-      : _initializerToken = initializerToken,
+  FieldFragment({
+    required this.name,
+    required this.fileUri,
+    required this.nameOffset,
+    required this.endOffset,
+    required Token? initializerToken,
+    required Token? constInitializerToken,
+    required this.metadata,
+    required this.type,
+    required this.isTopLevel,
+    required this.modifiers,
+    required this.isPrimaryConstructorField,
+    required this.enclosingScope,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  })  : _initializerToken = initializerToken,
         _constInitializerToken = constInitializerToken;
 
   @override

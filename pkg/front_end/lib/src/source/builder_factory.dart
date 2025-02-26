@@ -363,7 +363,7 @@ abstract class BuilderFactory {
       required AsyncMarker asyncModifier});
 
   ConstructorName computeAndValidateConstructorName(
-      DeclarationFragment enclosingDeclaration, Identifier identifier,
+      DeclarationFragmentImpl enclosingDeclaration, Identifier identifier,
       {isFactory = false});
 
   void addMethod(

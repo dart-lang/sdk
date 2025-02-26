@@ -1,0 +1,7 @@
+class Color {
+  Color(this.x);
+  final int x;
+  static Color get red => Color(1);
+}
+
+void main() {}

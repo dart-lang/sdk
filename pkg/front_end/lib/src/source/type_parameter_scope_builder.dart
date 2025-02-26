@@ -1295,7 +1295,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
 
         LookupScope typeParameterScope = TypeParameterScope.fromList(
-            fragment.compilationUnitScope, fragment.typeParameters?.builders);
+            fragment.enclosingScope, fragment.typeParameters?.builders);
         DeclarationNameSpaceBuilder nameSpaceBuilder =
             new DeclarationNameSpaceBuilder.empty();
         SourceClassBuilder classBuilder = new SourceClassBuilder(
@@ -2133,18 +2133,34 @@ enum DeclarationFragmentKind {
   extensionTypeDeclaration,
 }
 
-abstract class DeclarationFragment {
+abstract class DeclarationFragmentImpl implements DeclarationFragment {
   final Uri fileUri;
+
+  /// The scope in which the declaration is declared.
+  ///
+  /// This is the scope of the enclosing compilation unit and it's used for
+  /// resolving metadata on the declaration.
+  final LookupScope enclosingScope;
+
   final LookupScope typeParameterScope;
-  final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
+  final DeclarationBuilderScope bodyScope;
   final List<Fragment> _fragments = [];
 
   final List<TypeParameterFragment>? typeParameters;
 
   final NominalParameterNameSpace _nominalParameterNameSpace;
 
-  DeclarationFragment(this.fileUri, this.typeParameters,
-      this.typeParameterScope, this._nominalParameterNameSpace);
+  final LibraryFragment enclosingCompilationUnit;
+
+  DeclarationFragmentImpl({
+    required this.fileUri,
+    required this.typeParameters,
+    required this.enclosingScope,
+    required this.typeParameterScope,
+    required NominalParameterNameSpace nominalParameterNameSpace,
+    required this.enclosingCompilationUnit,
+  })  : _nominalParameterNameSpace = nominalParameterNameSpace,
+        bodyScope = new DeclarationBuilderScope(typeParameterScope);
 
   String get name;
 
@@ -2386,38 +2402,6 @@ class TypeScope {
 
   @override
   String toString() => 'TypeScope($kind,$_unresolvedNamedTypes)';
-}
-
-class DeclarationBuilderScope implements LookupScope {
-  DeclarationBuilder? _declarationBuilder;
-
-  DeclarationBuilderScope();
-
-  @override
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _declarationBuilder?.scope.forEachExtension(f);
-  }
-
-  void set declarationBuilder(DeclarationBuilder value) {
-    assert(_declarationBuilder == null,
-        "declarationBuilder has already been set.");
-    _declarationBuilder = value;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ScopeKind get kind =>
-      _declarationBuilder?.scope.kind ?? ScopeKind.declaration;
-
-  @override
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    return _declarationBuilder?.scope.lookupGetable(name, charOffset, fileUri);
-  }
-
-  @override
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    return _declarationBuilder?.scope.lookupSetable(name, charOffset, fileUri);
-  }
 }
 
 bool isDuplicatedDeclaration(Builder? existing, Builder other) {
