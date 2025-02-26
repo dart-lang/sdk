@@ -200,7 +200,7 @@ extension ExpressionExtension on Expression {
     if (element == null || !element.isConst) return false;
 
     // Ensure that dependencies (e.g. default parameter values) are computed.
-    var implElement = element.baseElement as ConstructorElementImpl2;
+    var implElement = element.baseElement;
     implElement.computeConstantDependencies();
 
     // Verify that the evaluation of the constructor would not produce an

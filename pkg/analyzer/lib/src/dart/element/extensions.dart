@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:meta/meta_meta.dart';
 
@@ -79,7 +80,7 @@ extension Element2Extension on Element2 {
             (this is FormalParameterElement &&
                 this is! FieldFormalParameterElement2 &&
                 this is! SuperFormalParameterElement2)) &&
-        library2.hasWildcardVariablesFeatureEnabled2;
+        library2.hasWildcardVariablesFeatureEnabled;
   }
 }
 
@@ -193,7 +194,7 @@ extension ElementExtension on Element {
             (this is ParameterElement &&
                 this is! FieldFormalParameterElement &&
                 this is! SuperFormalParameterElement)) &&
-        library.hasWildcardVariablesFeatureEnabled;
+        library.asElement2.hasWildcardVariablesFeatureEnabled;
   }
 }
 
@@ -202,9 +203,7 @@ extension ExecutableElement2OrMemberQuestionExtension
   TypeImpl? get firstParameterType {
     var self = this;
     if (self is MethodElement2OrMember) {
-      // TODO(paulberry): eliminate this cast by changing this extension to
-      // apply to `ExecutableElementOrMember?`.
-      return self.formalParameters.firstOrNull?.type as TypeImpl?;
+      return self.formalParameters.firstOrNull?.type;
     }
     return null;
   }
@@ -254,15 +253,8 @@ extension InterfaceTypeExtension on InterfaceType {
   }
 }
 
-extension LibraryExtension on LibraryElement? {
-  bool get hasWildcardVariablesFeatureEnabled {
-    var self = this;
-    return self?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
-  }
-}
-
 extension LibraryExtension2 on LibraryElement2? {
-  bool get hasWildcardVariablesFeatureEnabled2 =>
+  bool get hasWildcardVariablesFeatureEnabled =>
       this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 }
 

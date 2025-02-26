@@ -4502,7 +4502,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   SimpleIdentifierImpl? _name;
 
   @override
-  ConstructorElement? staticElement;
+  ConstructorElementMixin? staticElement;
 
   /// Initializes a newly created constructor name.
   ///
@@ -4523,9 +4523,9 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @experimental
   @override
-  ConstructorElement2? get element => staticElement?.asElement2;
+  ConstructorElementMixin2? get element => staticElement?.asElement2;
 
-  set element(ConstructorElement2? element) {
+  set element(ConstructorElementMixin2? element) {
     staticElement = element?.asElement;
   }
 
@@ -8287,24 +8287,16 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 
   @override
   bool isPotentiallyMutatedInScope(VariableElement variable) {
+    var v2 = (variable as VariableElementImpl).element;
+    return isPotentiallyMutatedInScope2(v2);
+  }
+
+  @override
+  bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
     if (localVariableInfo == null) {
       throw StateError('Resolution has not been performed');
     }
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
-  }
-
-  @experimental
-  @override
-  bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
-    return switch (variable) {
-      LocalVariableElementImpl2() =>
-        isPotentiallyMutatedInScope(variable.wrappedElement),
-      VariableElement() =>
-        isPotentiallyMutatedInScope(variable as VariableElement),
-      FormalParameterElement(:VariableElement firstFragment) =>
-        isPotentiallyMutatedInScope(firstFragment),
-      _ => false,
-    };
   }
 
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
@@ -9155,6 +9147,10 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   @override
   Token get beginToken => _returnType?.beginToken ?? functionKeyword;
+
+  GenericFunctionTypeElementImpl? get declaredFragment {
+    return declaredElement;
+  }
 
   @override
   Token get endToken => question ?? _parameters.endToken;
@@ -11480,7 +11476,7 @@ sealed class LiteralImpl extends ExpressionImpl implements Literal {
 class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
-  final Set<VariableElement> potentiallyMutatedInScope = <VariableElement>{};
+  final Set<VariableElement2> potentiallyMutatedInScope = {};
 }
 
 /// A logical-and pattern.
@@ -12582,9 +12578,9 @@ final class NamedExpressionImpl extends ExpressionImpl
   Token get beginToken => _name.beginToken;
 
   @override
-  ParameterElement? get element {
+  ParameterElementMixin? get element {
     var element = _name.label.staticElement;
-    if (element is ParameterElement) {
+    if (element is ParameterElementMixin) {
       return element;
     }
     return null;
@@ -14075,13 +14071,11 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   @experimental
   @override
   Element2? get element2 {
-    var element = this.element;
-    if (element case Fragment fragment) {
-      return fragment.element;
-    } else if (element case Element2 element) {
-      return element;
-    }
-    return null;
+    return element?.asElement2;
+  }
+
+  set element2(Element2? value) {
+    element = value?.asElement;
   }
 
   @override
@@ -15353,6 +15347,10 @@ final class RelationalPatternImpl extends DartPatternImpl
       return fragment.element;
     }
     return null;
+  }
+
+  set element2(MethodElement2? value) {
+    element = value?.asElement;
   }
 
   @override
@@ -16816,7 +16814,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElement? staticElement;
+  ConstructorElementMixin? staticElement;
 
   /// Initializes a newly created super invocation to invoke the inherited
   /// constructor with the given name with the given arguments.
@@ -16853,9 +16851,9 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @experimental
   @override
-  ConstructorElement2? get element => staticElement?.asElement2;
+  ConstructorElementMixin2? get element => staticElement?.asElement2;
 
-  set element(ConstructorElement2? value) {
+  set element(ConstructorElementMixin2? value) {
     staticElement = value?.asElement;
   }
 

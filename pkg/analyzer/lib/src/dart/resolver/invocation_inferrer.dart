@@ -91,7 +91,7 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
       List<DartType>? typeArgumentTypes, FunctionType? invokeType) {
     if (invokeType != null) {
       var constructorElement = ConstructorMember.from2(
-        node.element2 as ConstructorElement2,
+        node.element2 as ConstructorElementMixin2,
         invokeType.returnType as InterfaceType,
       );
       constructorName?.element = constructorElement;

@@ -5,8 +5,8 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,7 +27,7 @@ final Matcher throwsEvaluationException =
 
 @reflectiveTest
 class DartObjectImplTest {
-  late final TypeProvider _typeProvider;
+  late final TypeProviderImpl _typeProvider;
   late final TypeSystemImpl _typeSystem;
   FeatureSet _featureSet = FeatureSets.latestWithExperiments;
 

@@ -552,6 +552,12 @@ extension LibraryElementExtension on LibraryElement {
   }
 }
 
+extension LibraryElementOrNullExtension on LibraryElement? {
+  LibraryElement2? get asElement2 {
+    return this as LibraryElement2?;
+  }
+}
+
 extension LibraryExportElementExtension on LibraryExportElement {
   LibraryExport get asElement2 {
     var index = enclosingElement3.libraryExports.indexOf(this);

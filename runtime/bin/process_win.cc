@@ -573,13 +573,45 @@ class ProcessStarter {
   }
 
   int StartForExec() {
+    ASSERT(mode_ == kInheritStdio);
+    ASSERT(Process::ModeIsAttached(mode_));
+    ASSERT(!Process::ModeHasStdio(mode_));
+
     // Setup info
     STARTUPINFOEXW startup_info;
     ZeroMemory(&startup_info, sizeof(startup_info));
     startup_info.StartupInfo.cb = sizeof(startup_info);
-    ASSERT(mode_ == kInheritStdio);
-    ASSERT(Process::ModeIsAttached(mode_));
-    ASSERT(!Process::ModeHasStdio(mode_));
+
+    // Setup the handles to inherit. We only want to inherit the three
+    // handles for stdin, stdout and stderr.
+    HANDLE stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
+    HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    HANDLE stderr_handle = GetStdHandle(STD_ERROR_HANDLE);
+    startup_info.StartupInfo.hStdInput = stdin_handle;
+    startup_info.StartupInfo.hStdOutput = stdout_handle;
+    startup_info.StartupInfo.hStdError = stderr_handle;
+    startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+    SIZE_T size = 0;
+    // The call to determine the size of an attribute list always fails with
+    // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
+    if (!InitializeProcThreadAttributeList(nullptr, 1, 0, &size) &&
+        (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
+      return CleanupAndReturnError();
+    }
+    attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
+        Dart_ScopeAllocate(size));
+    ZeroMemory(attribute_list_, size);
+    if (!InitializeProcThreadAttributeList(attribute_list_, 1, 0, &size)) {
+      return CleanupAndReturnError();
+    }
+    inherited_handles_ = {stdin_handle, stdout_handle, stderr_handle};
+    if (!UpdateProcThreadAttribute(
+            attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+            inherited_handles_.data(),
+            inherited_handles_.size() * sizeof(HANDLE), nullptr, nullptr)) {
+      return CleanupAndReturnError();
+    }
+    startup_info.lpAttributeList = attribute_list_;
 
     PROCESS_INFORMATION process_info;
     ZeroMemory(&process_info, sizeof(process_info));
@@ -601,6 +633,9 @@ class ProcessStarter {
     }
     child_process_handle_ = process_info.hProcess;
     CloseHandle(process_info.hThread);
+    CloseHandle(stdin_handle);
+    CloseHandle(stdout_handle);
+    CloseHandle(stderr_handle);
 
     // Return process id.
     *id_ = process_info.dwProcessId;

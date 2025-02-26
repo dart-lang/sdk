@@ -119,25 +119,23 @@ class ElementResolver {
     _commentReferenceResolver.resolve(node);
   }
 
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclarationImpl node) {
     var element = node.declaredFragment!.element;
-    if (element is ConstructorElementImpl2) {
-      var redirectedNode = node.redirectedConstructor;
-      if (redirectedNode != null) {
-        // set redirected factory constructor
-        var redirectedElement = redirectedNode.element;
-        element.redirectedConstructor2 = redirectedElement;
-      } else {
-        // set redirected generative constructor
-        for (ConstructorInitializer initializer in node.initializers) {
-          if (initializer is RedirectingConstructorInvocation) {
-            var redirectedElement = initializer.element;
-            element.redirectedConstructor2 = redirectedElement;
-          }
+    var redirectedNode = node.redirectedConstructor;
+    if (redirectedNode != null) {
+      // set redirected factory constructor
+      var redirectedElement = redirectedNode.element;
+      element.redirectedConstructor2 = redirectedElement;
+    } else {
+      // set redirected generative constructor
+      for (ConstructorInitializer initializer in node.initializers) {
+        if (initializer is RedirectingConstructorInvocationImpl) {
+          var redirectedElement = initializer.element;
+          element.redirectedConstructor2 = redirectedElement;
         }
       }
-      _resolveAnnotations(node.metadata);
     }
+    _resolveAnnotations(node.metadata);
   }
 
   void visitConstructorName(covariant ConstructorNameImpl node) {
@@ -149,7 +147,7 @@ class ElementResolver {
       // Nothing to do.
     } else if (type is InterfaceTypeImpl) {
       // look up ConstructorElement
-      ConstructorElement2? constructor;
+      ConstructorElementMixin2? constructor;
       var name = node.name;
       if (name == null) {
         constructor = type.lookUpConstructor2(null, _definingLibrary);

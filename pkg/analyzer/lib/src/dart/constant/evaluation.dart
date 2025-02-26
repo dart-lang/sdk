@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -30,6 +29,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -182,7 +182,7 @@ class ConstantEvaluationEngine {
           // ignore it here.
           constant.evaluationResult = null;
         }
-      } else if (element is ConstructorElement &&
+      } else if (element is ConstructorElementMixin &&
           element.isConst &&
           constNode.arguments != null) {
         var errorListener = RecordingErrorListener();
@@ -342,7 +342,7 @@ class ConstantEvaluationEngine {
     AstNode node,
     List<DartType>? typeArguments,
     List<Expression> arguments,
-    ConstructorElement constructor,
+    ConstructorElementMixin constructor,
     ConstantVisitor constantVisitor, {
     ConstructorInvocation? invocation,
   }) {
@@ -387,7 +387,7 @@ class ConstantEvaluationEngine {
     AstNode node,
     List<DartType>? typeArguments,
     List<Expression> arguments,
-    ConstructorElement constructor,
+    ConstructorElementMixin constructor,
     ConstantVisitor constantVisitor, {
     ConstructorInvocation? invocation,
   }) {
@@ -446,8 +446,8 @@ class ConstantEvaluationEngine {
 
   /// If [constructor] redirects to another const constructor, return the
   /// const constructor it redirects to.  Otherwise return `null`.
-  static ConstructorElement? getConstRedirectedConstructor(
-      ConstructorElement constructor) {
+  static ConstructorElementMixin? getConstRedirectedConstructor(
+      ConstructorElementMixin constructor) {
     if (!constructor.isFactory) {
       return null;
     }
@@ -500,7 +500,7 @@ class ConstantEvaluationEngine {
   /// Returns the representation of a constant expression which has an
   /// [InvalidType], with the given [defaultType].
   static DartObjectImpl _unresolvedObject(
-      LibraryElementImpl library, DartType defaultType) {
+      LibraryElementImpl library, TypeImpl defaultType) {
     // TODO(kallentu): Use a better representation of an unresolved object that
     // doesn't need to rely on NullState.
     return DartObjectImpl(
@@ -582,7 +582,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   TypeSystemImpl get typeSystem => _library.typeSystem;
 
   /// Convenience getter to access the [_evaluationEngine]'s type provider.
-  TypeProvider get _typeProvider => _library.typeProvider;
+  TypeProviderImpl get _typeProvider => _library.typeProvider;
 
   /// Evaluates and reports an error if the evaluation result of [node] is an
   /// [InvalidConstant].
@@ -929,7 +929,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant visitInstanceCreationExpression(InstanceCreationExpression node) {
+  Constant visitInstanceCreationExpression(
+      covariant InstanceCreationExpressionImpl node) {
     if (!node.isConst) {
       // TODO(srawlins): Use a specific error code.
       // https://github.com/dart-lang/sdk/issues/47061
@@ -1235,7 +1236,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
-    var nodeType = RecordType(
+    var nodeType = RecordTypeImpl.fromApi(
       positional: positionalFields.map((e) => e.type).toList(),
       named: namedFields.map((name, value) => MapEntry(name, value.type)),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -1271,7 +1272,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       var keyType = _typeProvider.dynamicType;
       var valueType = _typeProvider.dynamicType;
       var nodeType = node.staticType;
-      if (nodeType is InterfaceType) {
+      if (nodeType is InterfaceTypeImpl) {
         var typeArguments = nodeType.typeArguments;
         if (typeArguments.length >= 2) {
           keyType = typeArguments[0];
@@ -1364,7 +1365,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     List<DartObjectImpl> list,
     List<CollectionElement> elements,
     TypeSystemImpl typeSystem,
-    InterfaceType listType,
+    InterfaceTypeImpl listType,
   ) {
     for (var element in elements) {
       switch (element) {
@@ -1458,7 +1459,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     Map<DartObjectImpl, DartObjectImpl> map,
     List<CollectionElement> elements,
     TypeSystemImpl typeSystem,
-    InterfaceType mapType,
+    InterfaceTypeImpl mapType,
   ) {
     for (var element in elements) {
       switch (element) {
@@ -1552,7 +1553,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     Set<DartObjectImpl> set,
     List<CollectionElement> elements,
     TypeSystemImpl typeSystem,
-    InterfaceType setType,
+    InterfaceTypeImpl setType,
   ) {
     for (var element in elements) {
       switch (element) {
@@ -1929,7 +1930,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   DartObjectImpl _instantiateFunctionType(
       FunctionReference node, DartObjectImpl value) {
     var functionElement = value.toFunctionValue();
-    if (functionElement is! ExecutableElement) {
+    if (functionElement is! ExecutableElementOrMember) {
       return value;
     }
     var valueType = functionElement.type;
@@ -1941,7 +1942,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         var substitution = _substitution;
         if (substitution != null) {
           instantiatedType =
-              substitution.substituteType(instantiatedType) as FunctionType;
+              substitution.substituteType(instantiatedType) as FunctionTypeImpl;
         }
         return value.typeInstantiate(
             typeSystem, instantiatedType, typeArgumentTypes);
@@ -1959,7 +1960,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     // TODO(srawlins): When all code uses [FunctionReference]s generated via
     // generic function instantiation, remove this method and all call sites.
     var functionElement = value.toFunctionValue();
-    if (functionElement is! ExecutableElement) {
+    if (functionElement is! ExecutableElementOrMember) {
       return value;
     }
     var valueType = functionElement.type;
@@ -1992,7 +1993,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   /// Return the value of the given [expression], or a representation of a fake
   /// constant to continue the evaluation if the expression is unresolved.
-  Constant _valueOf(Expression expression, DartType defaultType) {
+  Constant _valueOf(Expression expression, TypeImpl defaultType) {
     var expressionValue = evaluateConstant(expression);
     switch (expressionValue) {
       // TODO(kallentu): g3 relies on reporting errors found here, but also
@@ -2302,7 +2303,7 @@ class DartObjectComputer {
     TypeArgumentList typeArgumentsErrorNode,
   ) {
     var rawType = function.type;
-    if (rawType is FunctionType) {
+    if (rawType is FunctionTypeImpl) {
       if (typeArguments.length != rawType.typeFormals.length) {
         if (node is SimpleIdentifier) {
           return InvalidConstant.forEntity(typeArgumentsErrorNode,
@@ -2427,7 +2428,7 @@ class _InstanceCreationEvaluator {
   /// The node used for most error reporting.
   final AstNode _errorNode;
 
-  final ConstructorElement _constructor;
+  final ConstructorElementMixin _constructor;
 
   final List<DartType>? _typeArguments;
 
@@ -2466,11 +2467,11 @@ class _InstanceCreationEvaluator {
         _argumentValues = argumentValues,
         _invocation = invocation;
 
-  InterfaceType get definingType => _constructor.returnType;
+  InterfaceTypeImpl get definingType => _constructor.returnType;
 
   DartObjectImpl? get firstArgument => _argumentValues[0];
 
-  TypeProvider get typeProvider => _library.typeProvider;
+  TypeProviderImpl get typeProvider => _library.typeProvider;
 
   TypeSystemImpl get typeSystem => _library.typeSystem;
 
@@ -2649,7 +2650,7 @@ class _InstanceCreationEvaluator {
   /// `null`. Returns `true` if the arguments are correct, `false` otherwise.
   bool _checkFromEnvironmentArguments(
     List<Expression> arguments,
-    InterfaceType expectedDefaultValueType,
+    InterfaceTypeImpl expectedDefaultValueType,
   ) {
     var argumentCount = arguments.length;
     if (argumentCount < 1 || argumentCount > 2) {
@@ -2685,7 +2686,7 @@ class _InstanceCreationEvaluator {
   /// redirecting constructor invocation, an [InvalidConstant], or an
   /// incomplete state for further evaluation.
   _InitializersEvaluationResult _checkInitializers() {
-    var constructorBase = _constructor.declaration as ConstructorElementImpl;
+    var constructorBase = _constructor.declaration;
     // If we encounter a superinitializer, store the name of the constructor,
     // and the arguments.
     String? superName;
@@ -2876,9 +2877,7 @@ class _InstanceCreationEvaluator {
       // are handling an optional parameter that wasn't specified.  So just
       // direct error messages to the constructor call.
       errorTarget ??= _errorNode;
-      if (argumentValue == null &&
-          baseParameter is ParameterElementImpl &&
-          baseParameter.isOptional) {
+      if (argumentValue == null && baseParameter.isOptional) {
         // The parameter is an optional positional parameter for which no value
         // was provided, so use the default value.
         var evaluationResult = baseParameter.evaluationResult;
@@ -3056,7 +3055,7 @@ class _InstanceCreationEvaluator {
     DeclaredVariables declaredVariables,
     LibraryElementImpl library,
     AstNode node,
-    ConstructorElement constructor,
+    ConstructorElementMixin constructor,
     List<DartType>? typeArguments,
     List<Expression> arguments,
     ConstantVisitor constantVisitor, {
@@ -3074,7 +3073,7 @@ class _InstanceCreationEvaluator {
           node, CompileTimeErrorCode.CONST_WITH_NON_CONST);
     }
 
-    if (!(constructor.declaration as ConstructorElementImpl).isCycleFree) {
+    if (!constructor.declaration.isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       //
       // Instead of reporting an error at the call-sites, we will report an
@@ -3095,7 +3094,7 @@ class _InstanceCreationEvaluator {
       // Use the corresponding parameter type as the default value if
       // an unresolved expression is evaluated. We do this to continue the
       // rest of the evaluation without producing unrelated errors.
-      if (argument is NamedExpression) {
+      if (argument is NamedExpressionImpl) {
         var parameterType = argument.element?.type ?? InvalidTypeImpl.instance;
         var argumentConstant =
             constantVisitor._valueOf(argument.expression, parameterType);
@@ -3156,8 +3155,8 @@ class _InstanceCreationEvaluator {
   /// chain terminates. If there is a problem (e.g. a redirection can't be
   /// found, or a cycle is encountered), the chain will be followed as far as
   /// possible and then a const factory constructor will be returned.
-  static ConstructorElement _followConstantRedirectionChain(
-      ConstructorElement constructor) {
+  static ConstructorElementMixin _followConstantRedirectionChain(
+      ConstructorElementMixin constructor) {
     var constructorsVisited = <ConstructorElement>{};
     while (true) {
       var redirectedConstructor =

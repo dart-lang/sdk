@@ -147,6 +147,9 @@ config("dart_arch_config") {
     print("Invalid dart_target_arch: $dart_target_arch")
     assert(false)
   }
+  if (dart_force_simulator) {
+    defines += [ "USING_SIMULATOR" ]
+  }
 }
 
 config("dart_config") {

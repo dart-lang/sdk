@@ -98,7 +98,7 @@ class ConstructorMember extends ExecutableMember
   int? get periodOffset => declaration.periodOffset;
 
   @override
-  ConstructorElement? get redirectedConstructor {
+  ConstructorElementMixin? get redirectedConstructor {
     var element = declaration.redirectedConstructor;
     return _from2(element);
   }
@@ -204,8 +204,8 @@ class ConstructorMember extends ExecutableMember
   /// arguments from the [definingType], create a constructor member
   /// representing the given constructor. Return the member that was created, or
   /// the original constructor if no member was created.
-  static ConstructorElement2 from2(
-      ConstructorElement2 constructor, InterfaceType definingType) {
+  static ConstructorElementMixin2 from2(
+      ConstructorElementMixin2 constructor, InterfaceType definingType) {
     if (definingType.typeArguments.isEmpty) {
       return constructor;
     }
@@ -265,7 +265,7 @@ abstract class ExecutableMember extends Member
   Element2? get enclosingElement2 => _element2.enclosingElement2;
 
   @override
-  List<FormalParameterElement> get formalParameters =>
+  List<FormalParameterElementMixin> get formalParameters =>
       parameters.map((fragment) => fragment.asElement2).toList();
 
   @override

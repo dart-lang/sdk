@@ -31,6 +31,9 @@ declare_args() {
   # Available options are: arm, arm64, x64, ia32, riscv32, riscv64.
   dart_target_arch = target_cpu
 
+  # Force use of the simulator even when the Dart target arch matches the current cpu.
+  dart_force_simulator = false
+
   # The optimization level to use for debug builds. Defaults to 0 for builds with
   # code coverage enabled.
   dart_debug_optimization_level = "2"

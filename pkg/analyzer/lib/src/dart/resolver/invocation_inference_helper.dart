@@ -58,7 +58,7 @@ class ConstructorElementToInfer {
           );
   }
 
-  ConstructorElement2 get element2 => element.asElement2;
+  ConstructorElementMixin2 get element2 => element.asElement2;
 
   List<TypeParameterElement2> get typeParameters2 {
     return typeParameters.map((e) => e.asElement2).toList();

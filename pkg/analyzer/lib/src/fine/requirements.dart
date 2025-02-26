@@ -93,11 +93,11 @@ class BundleRequirementsManifest {
           switch (combinator) {
             case HideElementCombinator():
               return ExportRequirementHideCombinator(
-                hiddenBaseNames: combinator.hiddenNames.toSet(),
+                hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
               );
             case ShowElementCombinator():
               return ExportRequirementShowCombinator(
-                shownBaseNames: combinator.shownNames.toSet(),
+                shownBaseNames: combinator.shownNames.toBaseNameSet(),
               );
           }
         }).toList();
@@ -376,14 +376,14 @@ final class ExportRequirementHideCombinator
 
   factory ExportRequirementHideCombinator.read(SummaryDataReader reader) {
     return ExportRequirementHideCombinator(
-      hiddenBaseNames: reader.readStringUtf8Set(),
+      hiddenBaseNames: reader.readBaseNameSet(),
     );
   }
 
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ExportRequirementCombinatorKind.hide);
-    sink.writeStringUtf8Iterable(hiddenBaseNames);
+    sink.writeBaseNameIterable(hiddenBaseNames);
   }
 }
 
@@ -398,14 +398,14 @@ final class ExportRequirementShowCombinator
 
   factory ExportRequirementShowCombinator.read(SummaryDataReader reader) {
     return ExportRequirementShowCombinator(
-      shownBaseNames: reader.readStringUtf8Set(),
+      shownBaseNames: reader.readBaseNameSet(),
     );
   }
 
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ExportRequirementCombinatorKind.show);
-    sink.writeStringUtf8Iterable(shownBaseNames);
+    sink.writeBaseNameIterable(shownBaseNames);
   }
 }
 

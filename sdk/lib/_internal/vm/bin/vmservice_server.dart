@@ -149,20 +149,43 @@ class _DebuggingSession {
     bool disableServiceAuthCodes,
     bool enableDevTools,
   ) async {
+    // This code is part of the SDK and it is ok to have a reference to the
+    // internals of the Dart SDK in terms of location of the snapshot etc.
+    // It is more efficient doing it this way instead of invoking the Dart CLI
+    // with the 'development-service' command which would then dispatch to the
+    // Dart AOT runtime.
     final dartDir = File(Platform.executable).parent.path;
-    final dart = 'dart${Platform.isWindows ? '.exe' : ''}';
-    var executable = [dartDir, dart].join(Platform.pathSeparator);
+    final suffix = Platform.isWindows ? '.exe' : '';
+    final dartAotRuntime = 'dartaotruntime${suffix}';
+    final dart = 'dart${suffix}';
+    var executable = [dartDir, dartAotRuntime].join(Platform.pathSeparator);
+    var script = [
+      dartDir,
+      'snapshots',
+      'dds_aot.dart.snapshot',
+    ].join(Platform.pathSeparator);
+    if (FileSystemEntity.typeSync(script) == FileSystemEntityType.notFound) {
+      script = [
+        dartDir,
+        'gen',
+        'dds_aot.dart.snapshot',
+      ].join(Platform.pathSeparator);
+      if (FileSystemEntity.typeSync(script) == FileSystemEntityType.notFound) {
+        executable = [dartDir, dart].join(Platform.pathSeparator);
+        script = 'development-service';
+      }
+    }
 
     // If the directory of dart is '.' it's likely that dart is on the user's
     // PATH. If so, './dart' might not exist and we should be using 'dart'
     // instead.
     if (dartDir == '.' &&
-        (await FileSystemEntity.type(executable)) ==
+        (FileSystemEntity.typeSync(executable)) ==
             FileSystemEntityType.notFound) {
       executable = dart;
     }
-    _process = await Process.start(executable, [
-      'development-service',
+    var process = await Process.start(executable, [
+      script,
       '--vm-service-uri=$serverAddress',
       '--bind-address=$host',
       '--bind-port=$port',
@@ -170,9 +193,14 @@ class _DebuggingSession {
       if (enableDevTools) '--serve-devtools',
       if (_enableServicePortFallback) '--enable-service-port-fallback',
     ], mode: ProcessStartMode.detachedWithStdio);
+    if (process == null) {
+      stderr.writeln('Could not start the VM service: Process.start failed\n');
+      return false;
+    }
+    _process = process;
 
     // DDS will close stderr once it's finished launching.
-    final launchResult = await _process!.stderr.transform(utf8.decoder).join();
+    final launchResult = await _process.stderr.transform(utf8.decoder).join();
 
     void printError(String details) =>
         stderr.writeln('Could not start the VM service:\n$details');
@@ -203,9 +231,9 @@ class _DebuggingSession {
     return true;
   }
 
-  void shutdown() => _process!.kill();
+  void shutdown() => _process.kill();
 
-  Process? _process;
+  late Process _process;
 }
 
 class Server {

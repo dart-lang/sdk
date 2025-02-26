@@ -333,7 +333,7 @@
         "builder-tag": "ffi"
       }
     },
-    "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simarm64_arm64|simriscv32|simriscv64)": {
       "options": {}
     },
     "vm-checked-(linux|mac|win|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
@@ -844,6 +844,31 @@
           ],
           "fileset": "vm",
           "shards": 1
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-ffi-mac-debug-simarm64_arm64",
+        "vm-ffi-mac-release-simarm64_arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used for running FFI tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm ffi tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}",
+            "ffi"
+          ]
         }
       ]
     },

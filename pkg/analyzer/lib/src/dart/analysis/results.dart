@@ -17,6 +17,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
@@ -519,7 +520,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   LibraryFragment get libraryFragment => unit.declaredFragment!;
 
   @override
-  TypeProvider get typeProvider => libraryElement.typeProvider;
+  TypeProviderImpl get typeProvider => libraryElement.typeProvider;
 
   @override
   TypeSystemImpl get typeSystem => libraryElement.typeSystem;
