@@ -8772,7 +8772,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   TypeArgumentListImpl? _typeArguments;
 
   @override
-  List<DartType>? typeArgumentTypes;
+  List<TypeImpl>? typeArgumentTypes;
 
   FunctionReferenceImpl({
     required ExpressionImpl function,
@@ -16114,7 +16114,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   Element? _staticElement;
 
   @override
-  List<DartType>? tearOffTypeArgumentTypes;
+  List<TypeImpl>? tearOffTypeArgumentTypes;
 
   /// If this identifier is meant to be looked up in the enclosing scope, the
   /// raw result the scope lookup, prior to figuring out whether a write or a

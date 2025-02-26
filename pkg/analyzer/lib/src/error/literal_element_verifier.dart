@@ -23,11 +23,11 @@ class LiteralElementVerifier {
 
   final bool forList;
   final bool forSet;
-  final DartType? elementType;
+  final TypeImpl? elementType;
 
   final bool forMap;
-  final DartType? mapKeyType;
-  final DartType? mapValueType;
+  final TypeImpl? mapKeyType;
+  final TypeImpl? mapValueType;
 
   LiteralElementVerifier(
     this.typeProvider,

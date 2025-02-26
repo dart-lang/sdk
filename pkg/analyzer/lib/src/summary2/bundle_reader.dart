@@ -2165,7 +2165,7 @@ class ResolutionReader {
     return _reader.readOptionalObject(read);
   }
 
-  List<DartType>? readOptionalTypeList() {
+  List<TypeImpl>? readOptionalTypeList() {
     if (_reader.readBool()) {
       return _readTypeList();
     } else {

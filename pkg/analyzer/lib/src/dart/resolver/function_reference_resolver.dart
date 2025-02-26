@@ -115,7 +115,7 @@ class FunctionReferenceResolver {
     return false;
   }
 
-  List<DartType> _checkTypeArguments(
+  List<TypeImpl> _checkTypeArguments(
     TypeArgumentList typeArgumentList,
     String? name,
     List<TypeParameterElement2> typeParameters,

@@ -38,7 +38,7 @@ class PostfixExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(PostfixExpressionImpl node, {required DartType contextType}) {
+  void resolve(PostfixExpressionImpl node, {required TypeImpl contextType}) {
     if (node.operator.type == TokenType.BANG) {
       _resolveNullCheck(node, contextType: contextType);
       return;
@@ -198,7 +198,7 @@ class PostfixExpressionResolver {
   }
 
   void _resolveNullCheck(PostfixExpressionImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var operand = node.operand;
 
     if (operand is SuperExpression) {

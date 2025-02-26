@@ -1175,8 +1175,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return expression;
     }
 
-    List<DartType> typeArgumentTypes =
-        typeSystem.inferFunctionTypeInstantiation(
+    var typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
       context,
       staticType,
       errorReporter: errorReporter,

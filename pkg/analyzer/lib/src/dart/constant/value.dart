@@ -985,7 +985,7 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   @override
-  DartType? toTypeValue() {
+  TypeImpl? toTypeValue() {
     var state = this.state;
     if (state is TypeState) {
       return state._type;
@@ -999,7 +999,7 @@ class DartObjectImpl implements DartObject, Constant {
   DartObjectImpl typeInstantiate(
     TypeSystemImpl typeSystem,
     FunctionTypeImpl type,
-    List<DartType> typeArguments,
+    List<TypeImpl> typeArguments,
   ) {
     var functionState = state as FunctionState;
     return DartObjectImpl(
@@ -1356,7 +1356,7 @@ class FunctionState extends InstanceState {
   /// The element representing the function being modeled.
   final ExecutableElementImpl2 element;
 
-  final List<DartType>? typeArguments;
+  final List<TypeImpl>? typeArguments;
 
   /// The type alias which was referenced when tearing off a constructor,
   /// if this function is a constructor tear-off, referenced via a type alias,
@@ -2527,20 +2527,20 @@ class InvalidConstant implements Constant {
 
 /// The state of an object representing a list.
 class ListState extends InstanceState {
-  final DartType elementType;
+  final TypeImpl elementType;
   final List<DartObjectImpl> elements;
 
   @override
   final bool isUnknown;
 
   ListState({
-    required DartType elementType,
+    required TypeImpl elementType,
     required this.elements,
     this.isUnknown = false,
   }) : elementType = elementType.extensionTypeErasure;
 
   /// Creates a state that represents a list whose value is not known.
-  factory ListState.unknown(DartType elementType) =>
+  factory ListState.unknown(TypeImpl elementType) =>
       ListState(elementType: elementType, elements: [], isUnknown: true);
 
   @override
@@ -2620,9 +2620,9 @@ class ListState extends InstanceState {
 
 /// The state of an object representing a map.
 class MapState extends InstanceState {
-  final DartType _keyType;
+  final TypeImpl _keyType;
 
-  final DartType _valueType;
+  final TypeImpl _valueType;
 
   /// The entries in the map.
   final Map<DartObjectImpl, DartObjectImpl> entries;
@@ -2633,8 +2633,8 @@ class MapState extends InstanceState {
   /// Initializes a newly created state to represent a set with the given
   /// [entries].
   MapState({
-    required DartType keyType,
-    required DartType valueType,
+    required TypeImpl keyType,
+    required TypeImpl valueType,
     required this.entries,
     bool isUnknown = false,
   })  : _keyType = keyType.extensionTypeErasure,
@@ -2642,7 +2642,7 @@ class MapState extends InstanceState {
         _isUnknown = isUnknown;
 
   /// Creates a state that represents a map whose value is not known.
-  factory MapState.unknown(DartType keyType, DartType valueType) => MapState(
+  factory MapState.unknown(TypeImpl keyType, TypeImpl valueType) => MapState(
       keyType: keyType, valueType: valueType, entries: {}, isUnknown: true);
 
   @override
@@ -2923,7 +2923,7 @@ class RecordState extends InstanceState {
 
 /// The state of an object representing a set.
 class SetState extends InstanceState {
-  final DartType _elementType;
+  final TypeImpl _elementType;
 
   /// The elements of the set.
   final Set<DartObjectImpl> elements;
@@ -2934,14 +2934,14 @@ class SetState extends InstanceState {
   /// Initializes a newly created state to represent a set with the given
   /// [elements].
   SetState({
-    required DartType elementType,
+    required TypeImpl elementType,
     required this.elements,
     bool isUnknown = false,
   })  : _elementType = elementType.extensionTypeErasure,
         _isUnknown = isUnknown;
 
   /// Creates a state that represents a list whose value is not known.
-  factory SetState.unknown(DartType elementType) =>
+  factory SetState.unknown(TypeImpl elementType) =>
       SetState(elementType: elementType, elements: {}, isUnknown: true);
 
   @override
@@ -3158,9 +3158,9 @@ class SymbolState extends InstanceState {
 /// The state of an object representing a type.
 class TypeState extends InstanceState {
   /// The element representing the type being modeled.
-  final DartType? _type;
+  final TypeImpl? _type;
 
-  factory TypeState(DartType? type) {
+  factory TypeState(TypeImpl? type) {
     type = type?.extensionTypeErasure;
     return TypeState._(type);
   }
