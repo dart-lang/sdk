@@ -102,7 +102,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/implementation | ✅ | | |
 | textDocument/inlayHint | ✅ | | |
 |   inlayHint/resolve | | | |
-| textDocument/inlineValue | | | |
+| textDocument/inlineValue | ✅ | | |
 | textDocument/linkedEditingRange | | | |
 | textDocument/moniker | | | |
 | textDocument/prepareCallHierarchy | ✅ | | |

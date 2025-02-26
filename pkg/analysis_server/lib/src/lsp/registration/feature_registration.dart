@@ -24,6 +24,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_formatting.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_hover.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_implementation.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_inlay_hint.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_inline_value.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_selection_range.dart';
@@ -100,6 +101,7 @@ class LspFeatures {
   final HoverRegistrations hover;
   final ImplementationRegistrations implementation;
   final InlayHintRegistrations inlayHint;
+  final InlineValueRegistrations inlineValue;
   final ReferencesRegistrations references;
   final RenameRegistrations rename;
   final SelectionRangeRegistrations selectionRange;
@@ -134,6 +136,7 @@ class LspFeatures {
       hover = HoverRegistrations(context),
       implementation = ImplementationRegistrations(context),
       inlayHint = InlayHintRegistrations(context),
+      inlineValue = InlineValueRegistrations(context),
       references = ReferencesRegistrations(context),
       rename = RenameRegistrations(context),
       selectionRange = SelectionRangeRegistrations(context),
@@ -168,6 +171,7 @@ class LspFeatures {
     hover,
     implementation,
     inlayHint,
+    inlineValue,
     references,
     rename,
     selectionRange,
