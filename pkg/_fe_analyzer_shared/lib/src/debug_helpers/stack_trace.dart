@@ -36,7 +36,7 @@ class StackTraceValue<T> {
   T get value => _value;
 
   void set value(T v) {
-    _stackTraces.add((_value, StackTrace.current));
+    _stackTraces.add((v, StackTrace.current));
     _value = v;
   }
 }
@@ -85,7 +85,7 @@ class StackTraceList<T> with ListMixin<T> implements List<T> {
 
   @override
   void addAll(Iterable<T> iterable) {
-    _stackTraces.add(('add', iterable.toList(), StackTrace.current));
+    _stackTraces.add(('addAll', iterable.toList(), StackTrace.current));
     _list.addAll(iterable);
   }
 
