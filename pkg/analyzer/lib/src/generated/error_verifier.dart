@@ -342,11 +342,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(covariant AssignmentExpressionImpl node) {
     TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
     if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      _checkForDeadNullCoalesce(node.readType as TypeImpl, node.rightHandSide);
+      _checkForDeadNullCoalesce(node.readType!, node.rightHandSide);
     }
     _checkForAssignmentToFinal(lhs);
 
@@ -369,7 +369,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(covariant BinaryExpressionImpl node) {
     Token operator = node.operator;
     TokenType type = operator.type;
     if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
@@ -380,7 +380,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     if (type == TokenType.QUESTION_QUESTION) {
       _checkForDeadNullCoalesce(
-          node.leftOperand.staticType as TypeImpl, node.rightOperand);
+          node.leftOperand.staticType!, node.rightOperand);
     }
 
     checkForUseOfVoidResult(node.leftOperand);
@@ -944,7 +944,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var fragment =  node.declaredFragment!;
+    var fragment = node.declaredFragment!;
     var element = fragment.element;
     if (element.enclosingElement2 is! LibraryElement2) {
       _hiddenElements!.declare(element);
@@ -2106,8 +2106,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [exportedLibrary] is the library element containing the exported element.
   ///
   /// See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
-  void _checkForAmbiguousExport(ExportDirectiveImpl directive,
-      LibraryExportElementImpl libraryExport, LibraryElementImpl? exportedLibrary) {
+  void _checkForAmbiguousExport(
+      ExportDirectiveImpl directive,
+      LibraryExportElementImpl libraryExport,
+      LibraryElementImpl? exportedLibrary) {
     if (exportedLibrary == null) {
       return;
     }
