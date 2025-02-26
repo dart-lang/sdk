@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 /// Defines the elements and fragments that are part of the element model.
 ///
 /// The element model describes the semantic (as opposed to syntactic) structure
@@ -25,7 +23,7 @@
 ///
 /// Some elements, such as a [LocalVariableElement2] are declared by a single
 /// declaration, but most elements can be declared by multiple declarations. A
-/// fragment represents a single declararation when the corresponding element
+/// fragment represents a single declaration when the corresponding element
 /// can have multiple declarations. There is no fragment for an element that can
 /// only have one declaration.
 ///
@@ -463,7 +461,7 @@ abstract class Element2 {
   /// Library that contains this element.
   ///
   /// This will be the element itself if it's a library element. This will be
-  /// `null` if this element is a [MultiplyDefinedElement] that isn't contained
+  /// `null` if this element is a [MultiplyDefinedElement2] that isn't contained
   /// in a single library.
   LibraryElement2? get library2;
 
@@ -1350,7 +1348,7 @@ abstract class InterfaceElement2 implements InstanceElement2 {
 
   /// The constructors defined for this element.
   ///
-  /// The list is empty for [MixinElement].
+  /// The list is empty for [MixinElement2].
   List<ConstructorElement2> get constructors2;
 
   @override
@@ -1371,9 +1369,9 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// The mixins that are applied to the class being extended in order to
   /// derive the superclass of this class.
   ///
-  /// [ClassElement] and [EnumElement] can have mixins.
+  /// [ClassElement2] and [EnumElement2] can have mixins.
   ///
-  /// [MixinElement] cannot have mixins, so an empty list is returned.
+  /// [MixinElement2] cannot have mixins, so an empty list is returned.
   ///
   /// <b>Note:</b> Because the element model represents the state of the code,
   /// it is possible for it to be semantically invalid. In particular, it is not
@@ -1384,13 +1382,13 @@ abstract class InterfaceElement2 implements InstanceElement2 {
 
   /// The superclass of this element.
   ///
-  /// For [ClassElement] returns `null` only if this class is `Object`. If the
+  /// For [ClassElement2] returns `null` only if this class is `Object`. If the
   /// superclass is not explicitly specified, or the superclass cannot be
   /// resolved, then the implicit superclass `Object` is returned.
   ///
-  /// For [EnumElement] returns `Enum` from `dart:core`.
+  /// For [EnumElement2] returns `Enum` from `dart:core`.
   ///
-  /// For [MixinElement] always returns `null`.
+  /// For [MixinElement2] always returns `null`.
   ///
   /// <b>Note:</b> Because the element model represents the state of the code,
   /// it is possible for it to be semantically invalid. In particular, it is not
@@ -1756,7 +1754,7 @@ abstract class LibraryExport implements ElementDirective {
   /// The combinators are in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
-  /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  /// The [LibraryElement2], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement2? get exportedLibrary2;
 
   /// The offset of the `export` keyword.
@@ -1852,7 +1850,7 @@ abstract class LibraryImport implements ElementDirective {
   /// The combinators are in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
-  /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  /// The [LibraryElement2], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement2? get importedLibrary2;
 
   /// The offset of the `import` keyword.
@@ -1875,7 +1873,7 @@ abstract class LibraryImport implements ElementDirective {
 }
 
 /// An element that can be (but is not required to be) defined within a method
-/// or function (an [ExecutableElement]).
+/// or function (an [ExecutableFragment]).
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalElement2 implements Element2 {}
@@ -2379,14 +2377,14 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 /// explicitly defined getters and setters. The following rules apply:
 ///
 /// * Every explicit variable is represented by a non-synthetic
-///   [PropertyInducingElement].
-/// * Every explicit variable induces a getter and possibly a setter, both of
-///   which are represented by synthetic [PropertyAccessorElement]s.
-/// * Every explicit getter or setter is represented by a non-synthetic
-///   [PropertyAccessorElement].
+///   [PropertyInducingElement2].
+/// * Every explicit variable induces a synthetic [GetterElement],
+///   possibly a synthetic [SetterElement.
+/// * Every explicit getter by a non-synthetic [GetterElement].
+/// * Every explicit setter by a non-synthetic [SetterElement].
 /// * Every explicit getter or setter (or pair thereof if they have the same
 ///   name) induces a variable that is represented by a synthetic
-///   [PropertyInducingElement].
+///   [PropertyInducingElement2].
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement2
@@ -2650,7 +2648,7 @@ abstract class TypeAliasElement2
         TypeDefiningElement2,
         HasSinceSdkVersion {
   /// If the aliased type has structure, return the corresponding element.
-  /// For example, it could be [GenericFunctionTypeElement].
+  /// For example, it could be [GenericFunctionTypeElement2].
   ///
   /// If there is no structure, return `null`.
   Element2? get aliasedElement2;
