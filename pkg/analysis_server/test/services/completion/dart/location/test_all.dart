@@ -20,7 +20,7 @@ import 'compilation_unit_test.dart' as compilation_unit;
 import 'conditional_expression_test.dart' as conditional_expression;
 import 'constructor_declaration_test.dart' as constructor_declaration;
 import 'constructor_invocation_test.dart' as constructor_invocation;
-import 'dart_doc_test.dart' as dart_doc_test;
+import 'dart_doc_test.dart' as dart_doc;
 import 'directive_uri_test.dart' as directive_uri;
 import 'enum_constant_test.dart' as enum_constant;
 import 'enum_declaration_test.dart' as enum_declaration;
@@ -102,7 +102,7 @@ void main() {
     conditional_expression.main();
     constructor_declaration.main();
     constructor_invocation.main();
-    dart_doc_test.main();
+    dart_doc.main();
     directive_uri.main();
     enum_constant.main();
     enum_declaration.main();
