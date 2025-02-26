@@ -23,7 +23,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -558,7 +557,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitIsExpression(IsExpression node) {
+  void visitIsExpression(covariant IsExpressionImpl node) {
     _checkAllTypeChecks(node);
     super.visitIsExpression(node);
   }
@@ -770,12 +769,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// [WarningCode.TYPE_CHECK_IS_NULL],
   /// [WarningCode.UNNECESSARY_TYPE_CHECK_TRUE], and
   /// [WarningCode.UNNECESSARY_TYPE_CHECK_FALSE].
-  bool _checkAllTypeChecks(IsExpression node) {
+  bool _checkAllTypeChecks(IsExpressionImpl node) {
     var leftNode = node.expression;
     var leftType = leftNode.typeOrThrow;
 
     var rightNode = node.type;
-    var rightType = rightNode.type as TypeImpl;
+    var rightType = rightNode.typeOrThrow;
 
     void report() {
       _errorReporter.atNode(

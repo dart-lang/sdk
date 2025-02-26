@@ -211,7 +211,7 @@ class FunctionTypeImpl extends TypeImpl
   String? get name => null;
 
   @override
-  Map<String, DartType> get namedParameterTypes => {
+  Map<String, TypeImpl> get namedParameterTypes => {
         for (var parameter in sortedNamedParameters)
           parameter.name: parameter.type
       };
