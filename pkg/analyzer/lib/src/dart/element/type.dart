@@ -580,7 +580,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<PropertyAccessorElement>? _accessors;
 
   /// Cached [MethodElement]s - members or raw elements.
-  List<MethodElement>? _methods;
+  List<MethodElementOrMember>? _methods;
 
   factory InterfaceTypeImpl({
     required InterfaceElementImpl2 element,
@@ -686,10 +686,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   InterfaceElementImpl get element => element3.asElement;
 
   @override
-  List<GetterElement> get getters => accessors
+  List<GetterElement2OrMember> get getters => accessors
       .where((accessor) => accessor.isGetter)
       .map((fragment) => switch (fragment) {
-            GetterFragment(:var element) => element as GetterElement,
+            PropertyAccessorElementImpl(:var element) =>
+              element as GetterElement2OrMember,
             GetterMember() => fragment,
             _ => throw StateError(
                 'unexpected fragment type: ${fragment.runtimeType}',
@@ -794,10 +795,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<MethodElement> get methods {
+  List<MethodElementOrMember> get methods {
     if (_methods == null) {
-      List<MethodElement> methods = element.methods;
-      var members = <MethodElement>[];
+      var members = <MethodElementOrMember>[];
+      var methods = element.methods;
       for (int i = 0; i < methods.length; i++) {
         members.add(MethodMember.from(methods[i], this)!);
       }
@@ -807,7 +808,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<MethodElement2> get methods2 =>
+  List<MethodElement2OrMember> get methods2 =>
       methods.map((e) => e.asElement2).toList();
 
   @override
