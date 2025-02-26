@@ -1395,10 +1395,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (node is AugmentedExpressionImpl) {
       var augmentation = enclosingAugmentation;
       var augmentationTarget = augmentation?.augmentationTarget;
-      if (augmentation is PropertyAccessorElementImpl &&
-          augmentation.isSetter &&
-          augmentationTarget is PropertyAccessorElementImpl &&
-          augmentationTarget.isSetter) {
+      if (augmentation is SetterFragmentImpl &&
+          augmentationTarget is SetterFragmentImpl) {
         node.element = augmentationTarget;
         inferenceLogWriter?.exitLValue(node);
         return PropertyElementResolverResult(
@@ -1912,8 +1910,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     if (enclosingAugmentation case var augmentation?) {
       var augmentedFragment = augmentation.augmentationTarget;
-      if (augmentation is PropertyAccessorElementImpl &&
-          augmentation.isGetter &&
+      if (augmentation is GetterFragmentImpl &&
           augmentedFragment is PropertyAccessorElementImpl &&
           augmentedFragment.isGetter) {
         node.element = augmentedFragment;

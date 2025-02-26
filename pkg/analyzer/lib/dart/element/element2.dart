@@ -1181,22 +1181,14 @@ abstract class GetterFragment implements PropertyAccessorFragment {
   /// `null` if there is no corresponding setter.
   SetterFragment? get correspondingSetter2;
 
-  // TODO(brianwilkerson): This should override `nextFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // GetterFragment? get nextFragment;
+  @override
+  GetterElement get element;
 
-  // TODO(brianwilkerson): This should override `previousFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // GetterFragment? get previousFragment;
+  @override
+  GetterFragment? get nextFragment;
 
-  // TODO(brianwilkerson): This should override `element` to be more specific,
-  //  but can't because the Impl class supports both getters and setters.
-  // @override
-  // GetterElement get element;
+  @override
+  GetterFragment? get previousFragment;
 }
 
 /// The interface that is implemented by elements that can have `@Since()`
@@ -2502,22 +2494,14 @@ abstract class SetterFragment implements PropertyAccessorFragment {
   /// `null` if there is no corresponding getter.
   GetterFragment? get correspondingGetter2;
 
-  // TODO(brianwilkerson): This should override `element` to be more specific,
-  //  but can't because the Impl class supports both getters and setters.
-  // @override
-  // SetterElement get element;
+  @override
+  SetterElement get element;
 
-  // TODO(brianwilkerson): This should override `nextFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // SetterFragment? get nextFragment;
+  @override
+  SetterFragment? get nextFragment;
 
-  // TODO(brianwilkerson): This should override `previousFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // SetterFragment? get previousFragment;
+  @override
+  SetterFragment? get previousFragment;
 }
 
 /// A super formal parameter.

@@ -614,7 +614,12 @@ class BundleWriter {
     _writeReference(fragment);
     _writeFragmentName(fragment);
     PropertyAccessorElementFlags.write(_sink, fragment);
-    _writeAugmentationTargetAny(fragment);
+    switch (fragment) {
+      case SetterFragmentImpl():
+        _writeAugmentationTargetAny(fragment);
+      case GetterFragmentImpl():
+        _writeAugmentationTargetAny(fragment);
+    }
 
     _resolutionSink._writeAnnotationList(fragment.metadata);
     _resolutionSink.writeType(fragment.returnType);

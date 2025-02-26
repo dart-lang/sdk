@@ -3873,6 +3873,9 @@ package:analyzer/dart/element/element2.dart:
   GetterFragment (class extends Object implements PropertyAccessorFragment):
     new (constructor: GetterFragment Function())
     correspondingSetter2 (getter: SetterFragment?)
+    element (getter: GetterElement)
+    nextFragment (getter: GetterFragment?)
+    previousFragment (getter: GetterFragment?)
   HasSinceSdkVersion (class extends Object):
     new (constructor: HasSinceSdkVersion Function())
     sinceSdkVersion (getter: Version?)
@@ -4203,6 +4206,9 @@ package:analyzer/dart/element/element2.dart:
   SetterFragment (class extends Object implements PropertyAccessorFragment):
     new (constructor: SetterFragment Function())
     correspondingGetter2 (getter: GetterFragment?)
+    element (getter: SetterElement)
+    nextFragment (getter: SetterFragment?)
+    previousFragment (getter: SetterFragment?)
   ShowElementCombinator (see above)
   SuperFormalParameterElement2 (class extends Object implements FormalParameterElement):
     new (constructor: SuperFormalParameterElement2 Function())

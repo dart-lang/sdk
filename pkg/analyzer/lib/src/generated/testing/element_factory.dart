@@ -186,16 +186,15 @@ class ElementFactory {
     _objectElement = null;
   }
 
-  static PropertyAccessorElementImpl getterElement(
+  static GetterFragmentImpl getterElement(
       String name, bool isStatic, TypeImpl type) {
     FieldElementImpl field = FieldElementImpl(name, -1);
     field.isStatic = isStatic;
     field.isSynthetic = true;
     field.type = type;
     field.isFinal = true;
-    PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, 0);
+    GetterFragmentImpl getter = GetterFragmentImpl(name, 0);
     getter.isSynthetic = false;
-    getter.isGetter = true;
     getter.variable2 = field;
     getter.returnType = type;
     getter.isStatic = isStatic;
@@ -345,14 +344,12 @@ class ElementFactory {
     field.isStatic = isStatic;
     field.isSynthetic = true;
     field.type = type;
-    PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, -1);
-    getter.isGetter = true;
+    GetterFragmentImpl getter = GetterFragmentImpl(name, -1);
     getter.variable2 = field;
     getter.returnType = type;
     field.getter = getter;
     ParameterElementImpl parameter = requiredParameter2("a", type);
-    PropertyAccessorElementImpl setter = PropertyAccessorElementImpl(name, -1);
-    setter.isSetter = true;
+    SetterFragmentImpl setter = SetterFragmentImpl(name, -1);
     setter.isSynthetic = true;
     setter.variable2 = field;
     setter.parameters = [parameter];
