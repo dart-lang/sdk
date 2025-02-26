@@ -153,6 +153,9 @@ Builder? normalizeLookup(
     required String classNameOrDebugName,
     required bool isSetter,
     bool forStaticAccess = false}) {
+  if (getable == null && setable == null) {
+    return null;
+  }
   Builder? thisBuilder;
   Builder? otherBuilder;
   if (isSetter) {
@@ -230,8 +233,12 @@ mixin LookupScopeMixin implements LookupScope {
 
   Builder? lookupGetableIn(
       String name, int charOffset, Uri fileUri, Map<String, Builder> getables) {
+    Builder? getable = getables[name];
+    if (getable == null) {
+      return null;
+    }
     return normalizeLookup(
-        getable: getables[name],
+        getable: getable,
         setable: null,
         name: name,
         charOffset: charOffset,
@@ -242,8 +249,13 @@ mixin LookupScopeMixin implements LookupScope {
 
   Builder? lookupSetableIn(String name, int charOffset, Uri fileUri,
       Map<String, Builder>? getables) {
+    Builder? getable = getables?[name];
+    if (getable == null) {
+      return null;
+    }
+    // Coverage-ignore(suite): Not run.
     return normalizeLookup(
-        getable: getables?[name],
+        getable: getable,
         setable: null,
         name: name,
         charOffset: charOffset,
@@ -271,27 +283,37 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
 
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: _nameSpace.lookupLocalMember(name, setter: false),
-        setable: _nameSpace.lookupLocalMember(name, setter: true),
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: false);
+    Builder? getable = _nameSpace.lookupLocalMember(name, setter: false);
+    Builder? setable = _nameSpace.lookupLocalMember(name, setter: true);
+    Builder? builder;
+    if (getable != null || setable != null) {
+      builder = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: false);
+    }
     return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: _nameSpace.lookupLocalMember(name, setter: false),
-        setable: _nameSpace.lookupLocalMember(name, setter: true),
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: true);
+    Builder? getable = _nameSpace.lookupLocalMember(name, setter: false);
+    Builder? setable = _nameSpace.lookupLocalMember(name, setter: true);
+    Builder? builder;
+    if (getable != null || setable != null) {
+      builder = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: true);
+    }
     return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
@@ -330,27 +352,36 @@ abstract class AbstractTypeParameterScope implements LookupScope {
 
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: getTypeParameter(name),
-        setable: null,
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: false);
+    Builder? typeParameter = getTypeParameter(name);
+    Builder? builder;
+    if (typeParameter != null) {
+      builder = normalizeLookup(
+          getable: typeParameter,
+          setable: null,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: false);
+    }
     return builder ?? _parent.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: getTypeParameter(name),
-        setable: null,
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: true);
+    Builder? typeParameter = getTypeParameter(name);
+    Builder? builder;
+    if (typeParameter != null) {
+      // Coverage-ignore-block(suite): Not run.
+      builder = normalizeLookup(
+          getable: typeParameter,
+          setable: null,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: true);
+    }
     return builder ?? _parent.lookupSetable(name, charOffset, fileUri);
   }
 
@@ -404,27 +435,37 @@ class FixedLookupScope implements LookupScope {
 
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: _getables?[name],
-        setable: _setables?[name],
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: false);
+    Builder? getable = _getables?[name];
+    Builder? setable = _setables?[name];
+    Builder? builder;
+    if (getable != null || setable != null) {
+      builder = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: false);
+    }
     return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: _getables?[name],
-        setable: _setables?[name],
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: true);
+    Builder? getable = _getables?[name];
+    Builder? setable = _setables?[name];
+    Builder? builder;
+    if (getable != null || setable != null) {
+      builder = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: true);
+    }
     return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
   }
 

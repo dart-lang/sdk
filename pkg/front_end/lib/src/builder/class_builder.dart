@@ -192,15 +192,20 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         name.startsWith("_")) {
       return null;
     }
-    Builder? declaration = normalizeLookup(
-        getable: nameSpace.lookupLocalMember(name, setter: false),
-        setable: nameSpace.lookupLocalMember(name, setter: true),
-        name: name,
-        charOffset: fileOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: this.name,
-        isSetter: isSetter,
-        forStaticAccess: true);
+    Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
+    Builder? setable = nameSpace.lookupLocalMember(name, setter: true);
+    Builder? declaration;
+    if (getable != null || setable != null) {
+      declaration = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: fileOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: this.name,
+          isSetter: isSetter,
+          forStaticAccess: true);
+    }
     if (declaration == null && isAugmenting) {
       return origin.findStaticBuilder(
           name, fileOffset, fileUri, accessingLibrary,
