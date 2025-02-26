@@ -461,7 +461,7 @@ class ExpressionCompilerWorker {
     if (errors.isNotEmpty) return null;
 
     var coreTypes = incrementalCompilerResult.coreTypes;
-    var hierarchy = incrementalCompilerResult.classHierarchy!;
+    var hierarchy = incrementalCompilerResult.classHierarchy;
 
     var kernel2jsCompiler = ProgramCompiler(
       finalComponent,

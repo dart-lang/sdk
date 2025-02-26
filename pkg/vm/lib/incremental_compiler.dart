@@ -97,20 +97,19 @@ class IncrementalCompiler {
   }
 
   IncrementalCompilerResult _combinePendingDeltas(bool includePlatform) {
+    assert(_pendingDeltas.isNotEmpty);
     Procedure? mainMethod;
     NonNullableByDefaultCompiledMode compilationMode =
         NonNullableByDefaultCompiledMode.Invalid;
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
-    ClassHierarchy? classHierarchy;
-    CoreTypes? coreTypes;
+    ClassHierarchy classHierarchy = _pendingDeltas.last.classHierarchy;
+    CoreTypes coreTypes = _pendingDeltas.last.coreTypes;
     for (IncrementalCompilerResult deltaResult in _pendingDeltas) {
       Component delta = deltaResult.component;
       if (delta.mainMethod != null) {
         mainMethod = delta.mainMethod;
       }
-      classHierarchy ??= deltaResult.classHierarchy;
-      coreTypes ??= deltaResult.coreTypes;
       compilationMode = delta.mode;
       uriToSource.addAll(delta.uriToSource);
       for (Library library in delta.libraries) {
@@ -149,6 +148,7 @@ class IncrementalCompiler {
         "compilation only; cannot accept",
       );
     }
+    if (_pendingDeltas.isEmpty) return;
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = <Uri, Source>{};
 
@@ -249,10 +249,11 @@ class IncrementalCompiler {
     String? scriptUri,
     bool isStatic,
   ) {
-    ClassHierarchy? classHierarchy =
+    assert(_lastKnownGood != null || _pendingDeltas.isNotEmpty);
+    ClassHierarchy classHierarchy =
         (_lastKnownGood ?? _combinePendingDeltas(false)).classHierarchy;
     Map<String, DartType>? completeDefinitions = createDefinitionsWithTypes(
-      classHierarchy?.knownLibraries,
+      classHierarchy.knownLibraries,
       definitionTypes,
       definitions,
     );
@@ -269,7 +270,7 @@ class IncrementalCompiler {
     }
 
     List<TypeParameter>? typeParameters = createTypeParametersWithBounds(
-      classHierarchy?.knownLibraries,
+      classHierarchy.knownLibraries,
       typeBounds,
       typeDefaults,
       typeDefinitions,

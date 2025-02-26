@@ -146,10 +146,12 @@ bool isLegalIdentifier(String identifier) {
 
 class IncrementalCompilerResult {
   final Component component;
-  final ClassHierarchy? classHierarchy;
-  final CoreTypes? coreTypes;
+  final ClassHierarchy classHierarchy;
+  final CoreTypes coreTypes;
   final Set<Library>? neededDillLibraries;
 
   IncrementalCompilerResult(this.component,
-      {this.classHierarchy, this.coreTypes, this.neededDillLibraries});
+      {required this.classHierarchy,
+      required this.coreTypes,
+      this.neededDillLibraries});
 }

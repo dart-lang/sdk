@@ -349,7 +349,7 @@ Future<CompilerResult> _compile(List<String> args,
         incrementalCompilerResult.component,
         cachedSdkInput?.component,
         doneAdditionalDills,
-        incrementalCompilerResult.classHierarchy!,
+        incrementalCompilerResult.classHierarchy,
         incrementalCompilerResult.neededDillLibraries);
   }
   compilerState.options.onDiagnostic = null; // See http://dartbug.com/36983.
