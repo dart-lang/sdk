@@ -25,6 +25,7 @@ import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
+import '../fragment/fragment.dart';
 import '../kernel/load_library_builder.dart';
 import '../source/offset_map.dart';
 import '../source/outline_builder.dart';
@@ -96,7 +97,8 @@ sealed class CompilationUnit {
 
 abstract class DillCompilationUnit implements CompilationUnit {}
 
-abstract class SourceCompilationUnit implements CompilationUnit {
+abstract class SourceCompilationUnit
+    implements CompilationUnit, LibraryFragment {
   OutlineBuilder createOutlineBuilder();
 
   /// Creates a [SourceLibraryBuilder] for with this [SourceCompilationUnit] as

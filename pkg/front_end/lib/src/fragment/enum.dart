@@ -4,7 +4,7 @@
 
 part of 'fragment.dart';
 
-class EnumFragment extends DeclarationFragment implements Fragment {
+class EnumFragment extends DeclarationFragmentImpl implements Fragment {
   @override
   final String name;
 
@@ -14,6 +14,7 @@ class EnumFragment extends DeclarationFragment implements Fragment {
 
   late final LookupScope compilationUnitScope;
   late final List<MetadataBuilder>? metadata;
+  late final Modifiers modifiers;
   late final List<TypeBuilder>? mixins;
   late final List<TypeBuilder>? interfaces;
   late final List<ConstructorReferenceBuilder> constructorReferences;
@@ -22,8 +23,16 @@ class EnumFragment extends DeclarationFragment implements Fragment {
 
   final List<EnumElementFragment> enumElements = [];
 
-  EnumFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
-      super.typeParameterScope, super._nominalParameterNameSpace);
+  EnumFragment({
+    required this.name,
+    required super.fileUri,
+    required this.nameOffset,
+    required super.typeParameters,
+    required super.enclosingScope,
+    required super.typeParameterScope,
+    required super.nominalParameterNameSpace,
+    required super.enclosingCompilationUnit,
+  });
 
   @override
   int get fileOffset => nameOffset;
@@ -38,6 +47,10 @@ class EnumFragment extends DeclarationFragment implements Fragment {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isPatch => enclosingCompilationUnit.isPatch && modifiers.isAugment;
 
   @override
   void addEnumElement(EnumElementFragment fragment) {

@@ -109,7 +109,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   final LocalStack<Map<String, StructuralParameterBuilder>>
       _structuralParameterScopes = new LocalStack([]);
 
-  final LocalStack<DeclarationFragment> _declarationFragments =
+  final LocalStack<DeclarationFragmentImpl> _declarationFragments =
       new LocalStack([]);
 
   BuilderFactoryImpl(
@@ -150,12 +150,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginClassDeclaration(String name, int nameOffset,
       List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new ClassFragment(
-        name,
-        _compilationUnit.fileUri,
-        nameOffset,
-        typeParameters,
-        _typeScopes.current.lookupScope,
-        _nominalParameterNameSpaces.current));
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        nameOffset: nameOffset,
+        typeParameters: typeParameters,
+        enclosingScope: _compilationUnitScope,
+        typeParameterScope: _typeScopes.current.lookupScope,
+        nominalParameterNameSpace: _nominalParameterNameSpaces.current,
+        enclosingCompilationUnit: _compilationUnit));
   }
 
   @override
@@ -195,12 +197,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginMixinDeclaration(String name, int nameOffset,
       List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new MixinFragment(
-        name,
-        _compilationUnit.fileUri,
-        nameOffset,
-        typeParameters,
-        _typeScopes.current.lookupScope,
-        _nominalParameterNameSpaces.current));
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        nameOffset: nameOffset,
+        typeParameters: typeParameters,
+        enclosingScope: _compilationUnitScope,
+        typeParameterScope: _typeScopes.current.lookupScope,
+        nominalParameterNameSpace: _nominalParameterNameSpaces.current,
+        enclosingCompilationUnit: _compilationUnit));
   }
 
   @override
@@ -275,12 +279,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginEnumDeclaration(String name, int nameOffset,
       List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new EnumFragment(
-        name,
-        _compilationUnit.fileUri,
-        nameOffset,
-        typeParameters,
-        _typeScopes.current.lookupScope,
-        _nominalParameterNameSpaces.current));
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        nameOffset: nameOffset,
+        typeParameters: typeParameters,
+        enclosingScope: _compilationUnitScope,
+        typeParameterScope: _typeScopes.current.lookupScope,
+        nominalParameterNameSpace: _nominalParameterNameSpaces.current,
+        enclosingCompilationUnit: _compilationUnit));
   }
 
   @override
@@ -335,12 +341,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginExtensionDeclaration(String? name, int charOffset,
       List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new ExtensionFragment(
-        name,
-        _compilationUnit.fileUri,
-        charOffset,
-        typeParameters,
-        _typeScopes.current.lookupScope,
-        _nominalParameterNameSpaces.current));
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        fileOffset: charOffset,
+        typeParameters: typeParameters,
+        enclosingScope: _compilationUnitScope,
+        typeParameterScope: _typeScopes.current.lookupScope,
+        nominalParameterNameSpace: _nominalParameterNameSpaces.current,
+        enclosingCompilationUnit: _compilationUnit));
   }
 
   @override
@@ -365,12 +373,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   void beginExtensionTypeDeclaration(String name, int nameOffset,
       List<TypeParameterFragment>? typeParameters) {
     _declarationFragments.push(new ExtensionTypeFragment(
-        name,
-        _compilationUnit.fileUri,
-        nameOffset,
-        typeParameters,
-        _typeScopes.current.lookupScope,
-        _nominalParameterNameSpaces.current));
+        name: name,
+        fileUri: _compilationUnit.fileUri,
+        nameOffset: nameOffset,
+        typeParameters: typeParameters,
+        enclosingScope: _compilationUnitScope,
+        typeParameterScope: _typeScopes.current.lookupScope,
+        nominalParameterNameSpace: _nominalParameterNameSpaces.current,
+        enclosingCompilationUnit: _compilationUnit));
   }
 
   @override
@@ -817,7 +827,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       modifiers |= Modifiers.DeclaresConstConstructor;
     }
 
-    declarationFragment.compilationUnitScope = _compilationUnitScope;
     declarationFragment.metadata = metadata;
     declarationFragment.modifiers = modifiers;
     declarationFragment.supertype = supertype;
@@ -881,14 +890,19 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int nameOffset,
       required ConstructorReferenceBuilder? constructorReferenceBuilder,
       required Token? argumentsBeginToken}) {
+    DeclarationFragmentImpl enclosingDeclaration =
+        _declarationFragments.current;
     EnumElementFragment fragment = new EnumElementFragment(
         metadata: metadata,
         name: name,
         nameOffset: nameOffset,
         fileUri: _compilationUnit.fileUri,
         constructorReferenceBuilder: constructorReferenceBuilder,
-        argumentsBeginToken: argumentsBeginToken);
-    _declarationFragments.current.addEnumElement(fragment);
+        argumentsBeginToken: argumentsBeginToken,
+        enclosingScope: enclosingDeclaration.bodyScope,
+        enclosingDeclaration: enclosingDeclaration,
+        enclosingCompilationUnit: _compilationUnit);
+    enclosingDeclaration.addEnumElement(fragment);
 
     _addFragment(fragment);
   }
@@ -931,7 +945,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       modifiers |= Modifiers.DeclaresConstConstructor;
     }
 
-    declarationFragment.compilationUnitScope = _compilationUnitScope;
     declarationFragment.metadata = metadata;
     declarationFragment.modifiers = modifiers;
     declarationFragment.supertype = supertype;
@@ -983,7 +996,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         supertype: supertype,
         mixins: mixins,
         interfaces: interfaces,
-        compilationUnitScope: _compilationUnitScope));
+        enclosingScope: _compilationUnitScope,
+        enclosingCompilationUnit: _compilationUnit));
   }
 
   @override
@@ -1081,9 +1095,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             VarianceCalculationValue.pending;
       }
     }
-    _nominalParameterNameSpaces.pop().addTypeParameters(
+
+    NominalParameterNameSpace typeParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+    typeParameterNameSpace.addTypeParameters(
         _problemReporting, typeParameters?.builders,
         ownerName: name, allowNameConflict: true);
+    LookupScope typeParameterScope = _typeScopes.current.lookupScope;
+
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endTypedef();
     TypedefFragment fragment = new TypedefFragment(
@@ -1092,7 +1111,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeParameters: typeParameters,
         type: type,
         fileUri: _compilationUnit.fileUri,
-        nameOffset: nameOffset);
+        nameOffset: nameOffset,
+        typeParameterScope: typeParameterScope,
+        enclosingScope: _compilationUnitScope,
+        enclosingCompilationUnit: _compilationUnit);
     _addFragment(fragment);
   }
 
@@ -1120,7 +1142,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required AsyncMarker asyncModifier,
       required String? nativeMethodName,
       required ProcedureKind? kind}) {
-    DeclarationFragment declarationFragment = _declarationFragments.current;
+    DeclarationFragmentImpl declarationFragment = _declarationFragments.current;
     // TODO(johnniwinther): Avoid discrepancy between [inConstructor] and
     // [isConstructor]. The former is based on the enclosing declaration name
     // and get/set keyword. The latter also takes initializers into account.
@@ -1234,6 +1256,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int? nameOffset,
       required int formalsOffset,
       required bool isConst}) {
+    DeclarationFragmentImpl enclosingDeclaration =
+        _declarationFragments.current;
+
     NominalParameterNameSpace nominalParameterNameSpace =
         new NominalParameterNameSpace();
     _nominalParameterNameSpaces.push(nominalParameterNameSpace);
@@ -1247,7 +1272,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         "Unexpected type scope: $typeParameterScope.");
 
     ConstructorName constructorName;
-    String declarationName = _declarationFragments.current.name;
+    String declarationName = enclosingDeclaration.name;
     if (name == 'new') {
       constructorName = new ConstructorName(
           name: '',
@@ -1284,6 +1309,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         forAbstractClassOrMixin: false,
+        enclosingDeclaration: enclosingDeclaration,
+        enclosingCompilationUnit: _compilationUnit,
         beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
             // const constructors will have their initializers compiled and
             // written into the outline. In case of super-parameters language
@@ -1296,7 +1323,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
     _addFragment(fragment);
     if (isConst) {
-      _declarationFragments.current.declaresConstConstructor = true;
+      enclosingDeclaration.declaresConstConstructor = true;
     }
 
     offsetMap.registerPrimaryConstructor(beginToken, fragment);
@@ -1317,6 +1344,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required String? nativeMethodName,
       required Token? beginInitializers,
       required bool forAbstractClassOrMixin}) {
+    DeclarationFragmentImpl enclosingDeclaration =
+        _declarationFragments.current;
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
@@ -1334,10 +1363,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         returnType: addInferableType(),
         typeParameters: typeParameters,
         typeParameterNameSpace: typeParameterNameSpace,
+        enclosingScope: _declarationFragments.current.bodyScope,
         typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         nativeMethodName: nativeMethodName,
         forAbstractClassOrMixin: forAbstractClassOrMixin,
+        enclosingDeclaration: enclosingDeclaration,
+        enclosingCompilationUnit: _compilationUnit,
         beginInitializers: modifiers.isConst ||
                 libraryFeatures.superParameters.isEnabled
             // const constructors will have their initializers compiled and
@@ -1354,7 +1386,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       _addNativeConstructorFragment(fragment);
     }
     if (modifiers.isConst) {
-      _declarationFragments.current.declaresConstConstructor = true;
+      enclosingDeclaration.declaresConstConstructor = true;
     }
     offsetMap.registerConstructorFragment(identifier, fragment);
   }
@@ -1392,7 +1424,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int endOffset,
       required String? nativeMethodName,
       required AsyncMarker asyncModifier}) {
-    DeclarationFragment enclosingDeclaration = _declarationFragments.current;
+    DeclarationFragmentImpl enclosingDeclaration =
+        _declarationFragments.current;
 
     ConstructorName constructorName = computeAndValidateConstructorName(
         enclosingDeclaration, identifier,
@@ -1402,19 +1435,23 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _nominalParameterNameSpaces.pop();
 
     FactoryFragment fragment = new FactoryFragment(
-        constructorName: constructorName,
-        fileUri: _compilationUnit.fileUri,
-        startOffset: startOffset,
-        formalsOffset: formalsOffset,
-        endOffset: endOffset,
-        modifiers: modifiers | Modifiers.Static,
-        metadata: metadata,
-        typeParameterNameSpace: typeParameterNameSpace,
-        typeParameterScope: _typeScopes.current.lookupScope,
-        formals: formals,
-        asyncModifier: asyncModifier,
-        nativeMethodName: nativeMethodName,
-        redirectionTarget: redirectionTarget);
+      constructorName: constructorName,
+      fileUri: _compilationUnit.fileUri,
+      startOffset: startOffset,
+      formalsOffset: formalsOffset,
+      endOffset: endOffset,
+      modifiers: modifiers | Modifiers.Static,
+      metadata: metadata,
+      typeParameterNameSpace: typeParameterNameSpace,
+      enclosingScope: _declarationFragments.current.bodyScope,
+      typeParameterScope: _typeScopes.current.lookupScope,
+      formals: formals,
+      asyncModifier: asyncModifier,
+      nativeMethodName: nativeMethodName,
+      redirectionTarget: redirectionTarget,
+      enclosingDeclaration: enclosingDeclaration,
+      enclosingCompilationUnit: _compilationUnit,
+    );
 
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
@@ -1441,7 +1478,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<TypeBuilder>? typeArguments, Identifier? suffix, int charOffset) {
     // At the moment, the name of the type in a constructor reference can be
     // omitted only within an enum element declaration.
-    DeclarationFragment enclosingDeclaration = _declarationFragments.current;
+    DeclarationFragmentImpl enclosingDeclaration =
+        _declarationFragments.current;
     if (enclosingDeclaration.kind == DeclarationFragmentKind.enumDeclaration) {
       if (libraryFeatures.enhancedEnums.isEnabled) {
         int constructorNameOffset = suffix?.nameOffset ?? charOffset;
@@ -1474,7 +1512,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   ConstructorName computeAndValidateConstructorName(
-      DeclarationFragment enclosingDeclaration, Identifier identifier,
+      DeclarationFragmentImpl enclosingDeclaration, Identifier identifier,
       {isFactory = false}) {
     String className = enclosingDeclaration.name;
     String prefix;
@@ -1596,7 +1634,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
-    DeclarationFragment? enclosingDeclaration =
+    DeclarationFragmentImpl? enclosingDeclaration =
         _declarationFragments.currentOrNull;
     assert(!isExtensionMember ||
         enclosingDeclaration?.kind ==
@@ -1621,10 +1659,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         returnType: returnType ?? addInferableType(),
         declaredTypeParameters: typeParameters,
         typeParameterNameSpace: typeParameterNameSpace,
+        enclosingScope:
+            enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
         typeParameterScope: typeParameterScope.lookupScope,
         declaredFormals: formals,
         asyncModifier: asyncModifier,
-        nativeMethodName: nativeMethodName);
+        nativeMethodName: nativeMethodName,
+        enclosingCompilationUnit: _compilationUnit,
+        enclosingDeclaration: enclosingDeclaration);
     _addFragment(fragment);
     if (nativeMethodName != null) {
       _addNativeGetterFragment(fragment);
@@ -1655,7 +1697,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
-    DeclarationFragment? enclosingDeclaration =
+    DeclarationFragmentImpl? enclosingDeclaration =
         _declarationFragments.currentOrNull;
     assert(!isExtensionMember ||
         enclosingDeclaration?.kind ==
@@ -1672,22 +1714,26 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _nominalParameterNameSpaces.pop();
 
     SetterFragment fragment = new SetterFragment(
-        name: name,
-        fileUri: _compilationUnit.fileUri,
-        startOffset: startOffset,
-        nameOffset: nameOffset,
-        formalsOffset: formalsOffset,
-        endOffset: endOffset,
-        isTopLevel: enclosingDeclaration == null,
-        metadata: metadata,
-        modifiers: modifiers,
-        returnType: returnType,
-        declaredTypeParameters: typeParameters,
-        typeParameterNameSpace: typeParameterNameSpace,
-        typeParameterScope: typeParameterScope.lookupScope,
-        declaredFormals: formals,
-        asyncModifier: asyncModifier,
-        nativeMethodName: nativeMethodName);
+      name: name,
+      fileUri: _compilationUnit.fileUri,
+      startOffset: startOffset,
+      nameOffset: nameOffset,
+      formalsOffset: formalsOffset,
+      endOffset: endOffset,
+      isTopLevel: enclosingDeclaration == null,
+      metadata: metadata,
+      modifiers: modifiers,
+      returnType: returnType,
+      declaredTypeParameters: typeParameters,
+      typeParameterNameSpace: typeParameterNameSpace,
+      enclosingScope: enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
+      typeParameterScope: typeParameterScope.lookupScope,
+      declaredFormals: formals,
+      asyncModifier: asyncModifier,
+      nativeMethodName: nativeMethodName,
+      enclosingDeclaration: enclosingDeclaration,
+      enclosingCompilationUnit: _compilationUnit,
+    );
     _addFragment(fragment);
     if (nativeMethodName != null) {
       _addNativeSetterFragment(fragment);
@@ -1719,7 +1765,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
-    DeclarationFragment? enclosingDeclaration =
+    DeclarationFragmentImpl? enclosingDeclaration =
         _declarationFragments.currentOrNull;
     assert(!isExtensionMember ||
         enclosingDeclaration?.kind ==
@@ -1738,23 +1784,27 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         _nominalParameterNameSpaces.pop();
 
     MethodFragment fragment = new MethodFragment(
-        name: name,
-        fileUri: _compilationUnit.fileUri,
-        startOffset: startOffset,
-        nameOffset: nameOffset,
-        formalsOffset: formalsOffset,
-        endOffset: endOffset,
-        isTopLevel: enclosingDeclaration == null,
-        metadata: metadata,
-        modifiers: modifiers,
-        returnType: returnType ?? addInferableType(),
-        declaredTypeParameters: typeParameters?.builders,
-        typeParameterNameSpace: typeParameterNameSpace,
-        typeParameterScope: typeParameterScope.lookupScope,
-        declaredFormals: formals,
-        isOperator: isOperator,
-        asyncModifier: asyncModifier,
-        nativeMethodName: nativeMethodName);
+      name: name,
+      fileUri: _compilationUnit.fileUri,
+      startOffset: startOffset,
+      nameOffset: nameOffset,
+      formalsOffset: formalsOffset,
+      endOffset: endOffset,
+      isTopLevel: enclosingDeclaration == null,
+      metadata: metadata,
+      modifiers: modifiers,
+      returnType: returnType ?? addInferableType(),
+      declaredTypeParameters: typeParameters?.builders,
+      typeParameterNameSpace: typeParameterNameSpace,
+      enclosingScope: enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
+      typeParameterScope: typeParameterScope.lookupScope,
+      declaredFormals: formals,
+      isOperator: isOperator,
+      asyncModifier: asyncModifier,
+      nativeMethodName: nativeMethodName,
+      enclosingDeclaration: enclosingDeclaration,
+      enclosingCompilationUnit: _compilationUnit,
+    );
     _addFragment(fragment);
     if (nativeMethodName != null) {
       _addNativeMethodFragment(fragment);
@@ -1816,6 +1866,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required bool hasInitializer,
       Token? constInitializerToken,
       required bool isPrimaryConstructorField}) {
+    DeclarationFragmentImpl? enclosingDeclaration =
+        _declarationFragments.currentOrNull;
     if (hasInitializer) {
       modifiers |= Modifiers.HasInitializer;
     }
@@ -1830,7 +1882,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         type: type,
         isTopLevel: isTopLevel,
         modifiers: modifiers,
-        isPrimaryConstructorField: isPrimaryConstructorField);
+        isPrimaryConstructorField: isPrimaryConstructorField,
+        enclosingScope:
+            enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
+        enclosingDeclaration: enclosingDeclaration,
+        enclosingCompilationUnit: _compilationUnit);
     _addFragment(fragment);
     return fragment;
   }

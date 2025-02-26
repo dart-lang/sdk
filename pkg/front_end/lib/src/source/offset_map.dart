@@ -21,7 +21,7 @@ import '../fragment/fragment.dart';
 /// are created, with the [DietListener], where the objects are looked up.
 class OffsetMap {
   final Uri uri;
-  final Map<int, DeclarationFragment> _declarations = {};
+  final Map<int, DeclarationFragmentImpl> _declarations = {};
   final Map<int, FieldFragment> _fields = {};
   final Map<int, PrimaryConstructorFragment> _primaryConstructors = {};
   final Map<int, ConstructorFragment> _constructors = {};
@@ -75,7 +75,7 @@ class OffsetMap {
   }
 
   void registerNamedDeclarationFragment(
-      Identifier identifier, DeclarationFragment fragment) {
+      Identifier identifier, DeclarationFragmentImpl fragment) {
     _declarations[identifier.nameOffset] = fragment;
   }
 
@@ -85,7 +85,7 @@ class OffsetMap {
   }
 
   void registerUnnamedDeclaration(
-      Token beginToken, DeclarationFragment fragment) {
+      Token beginToken, DeclarationFragmentImpl fragment) {
     _declarations[beginToken.charOffset] = fragment;
   }
 

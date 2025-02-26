@@ -573,6 +573,28 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   }
 }
 
+class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
+  DeclarationBuilder? _declarationBuilder;
+
+  @override
+  final LookupScope? _parent;
+
+  DeclarationBuilderScope(this._parent)
+      : super(ScopeKind.declaration, 'declaration');
+
+  @override
+  NameSpace get _nameSpace {
+    assert(_declarationBuilder != null, "declarationBuilder has not been set.");
+    return _declarationBuilder!.nameSpace;
+  }
+
+  void set declarationBuilder(DeclarationBuilder value) {
+    assert(_declarationBuilder == null,
+        "declarationBuilder has already been set.");
+    _declarationBuilder = value;
+  }
+}
+
 abstract class ConstructorScope {
   MemberBuilder? lookup(String name, int charOffset, Uri fileUri);
 }

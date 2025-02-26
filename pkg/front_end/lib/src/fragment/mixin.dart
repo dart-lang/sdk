@@ -4,7 +4,7 @@
 
 part of 'fragment.dart';
 
-class MixinFragment extends DeclarationFragment implements Fragment {
+class MixinFragment extends DeclarationFragmentImpl implements Fragment {
   @override
   final String name;
 
@@ -12,7 +12,6 @@ class MixinFragment extends DeclarationFragment implements Fragment {
 
   SourceClassBuilder? _builder;
 
-  late final LookupScope compilationUnitScope;
   late final List<MetadataBuilder>? metadata;
   late final Modifiers modifiers;
   late final TypeBuilder? supertype;
@@ -22,8 +21,16 @@ class MixinFragment extends DeclarationFragment implements Fragment {
   late final int startOffset;
   late final int endOffset;
 
-  MixinFragment(this.name, super.fileUri, this.nameOffset, super.typeParameters,
-      super.typeParameterScope, super._nominalParameterNameSpace);
+  MixinFragment({
+    required this.name,
+    required super.fileUri,
+    required this.nameOffset,
+    required super.typeParameters,
+    required super.enclosingScope,
+    required super.typeParameterScope,
+    required super.nominalParameterNameSpace,
+    required super.enclosingCompilationUnit,
+  });
 
   @override
   int get fileOffset => nameOffset;
@@ -38,6 +45,10 @@ class MixinFragment extends DeclarationFragment implements Fragment {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isPatch => enclosingCompilationUnit.isPatch && modifiers.isAugment;
 
   @override
   // Coverage-ignore(suite): Not run.

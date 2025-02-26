@@ -262,6 +262,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   bool get isDartLibrary =>
       originImportUri.isScheme("dart") || fileUri.isScheme("org-dartlang-sdk");
 
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isPatch => forPatchLibrary;
+
   /// Returns the map of objects created in the [OutlineBuilder].
   ///
   /// This should only be called once.
