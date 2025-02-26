@@ -133,6 +133,7 @@ bail
 balance
 bang
 bar
+bars
 basename
 basically
 basis
