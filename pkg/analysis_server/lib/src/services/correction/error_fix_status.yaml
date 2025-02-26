@@ -652,7 +652,7 @@ CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
 CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT:
   status: hasFix
 CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
-  status: needsFix
+  status: hasFix
   notes: |-
     Remove the field, or add `static`.
 CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
@@ -669,10 +669,10 @@ CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
     Remove it.
 CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
   status: needsFix
+CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
+  status: hasFix
   notes: |-
     Remove the field, or add `static`.
-CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
-  status: needsFix
 CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
   status: hasFix
 CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:

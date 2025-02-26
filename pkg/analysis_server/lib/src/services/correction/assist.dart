@@ -124,7 +124,7 @@ abstract final class DartAssistKind {
   static const CONVERT_INTO_GETTER = AssistKind(
     'dart.assist.convert.finalFieldToGetter',
     DartAssistKindPriority.DEFAULT,
-    'Convert to getter',
+    "Convert '{0}' to a getter",
   );
   static const CONVERT_INTO_IS_NOT = AssistKind(
     'dart.assist.convert.isNot',
