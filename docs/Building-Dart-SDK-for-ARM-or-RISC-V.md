@@ -63,3 +63,26 @@ You can create Debian packages targeting ARM or RISC-V as follows:
 $ ./tools/linux_dist_support/create_tarball.py
 $ ./tools/linux_dist_support/create_debian_packages.py -a {ia32, x64, arm, arm64, riscv64}
 ```
+
+# Testing
+
+In addition to cross-compiling the Dart SDK, test items can also be cross-compiled. Even without the corresponding hardware, you can quickly verify if the source code modifications you made are correct. Below is a simple method for development on the riscv64 platform for your reference.
+
+Cross-compile the test items on x86_64 Linux to riscv64 and perform correctness check:
+1. Follow the steps above to cross-compile the riscv64 sdk.
+2. Cross-compile the test items by running: `./tools/build.py --mode release --arch riscv64 most run_ffi_unit_tests`.
+3. Install the necessary QEMU dependencies: `sudo apt install qemu-user qemu-user-static qemu-system`.
+4. Run the test items, e.g., `tests/lib`:
+
+```bash
+export QEMU_LD_PREFIX=/usr/riscv64-linux-gnu
+
+./tools/test.py \
+  --runtime vm \
+  --progress color \
+  --arch riscv64 \
+  --mode release \
+  --time \
+  --tasks 8 \
+  lib
+```
