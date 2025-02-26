@@ -44,22 +44,6 @@ Future<void> main(List<String> args) async {
   }
 
   {
-    // Weak suite with fuzzing.
-    Uri weakSuite = Platform.script.resolve("weak_suite.dart");
-    if (!new File.fromUri(weakSuite).existsSync()) {
-      noteMissingScript("Couldn't find $weakSuite");
-    } else {
-      startedProcesses.add(await run(
-        [
-          weakSuite.toString(),
-          "-DsemiFuzz=true",
-        ],
-        "weak suite",
-      ));
-    }
-  }
-
-  {
     // Strong suite with fuzzing.
     Uri strongSuite = Platform.script.resolve("strong_suite.dart");
     if (!new File.fromUri(strongSuite).existsSync()) {
