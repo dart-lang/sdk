@@ -8,7 +8,9 @@ import "package:expect/expect.dart";
 import "../library11.dart" as lib11;
 
 typedef lib11.Library111<Library111> F<Library111>(
-    lib11.Library111<Library111> a, Library111 b);
+  lib11.Library111<Library111> a,
+  Library111 b,
+);
 
 class A<T> {
   T foo(T a, bool b) => throw "uncalled";

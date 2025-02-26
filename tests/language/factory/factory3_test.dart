@@ -33,9 +33,9 @@ abstract class EmptyLink<T> extends Link<T> {
 }
 
 class AbstractLink<T> implements Link<T> {
-//    ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
-// [cfe] The non-abstract class 'AbstractLink' is missing implementations for these members:
+  //  ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+  // [cfe] The non-abstract class 'AbstractLink' is missing implementations for these members:
   const AbstractLink();
   Link<T> prepend(T element) {
     print("$element");
@@ -47,14 +47,14 @@ class AbstractLink<T> implements Link<T> {
 }
 
 class LinkTail<T> extends AbstractLink<T> implements EmptyLink<T> {
-//    ^^^^^^^^
-// [cfe] The non-abstract class 'LinkTail' is missing implementations for these members:
+  //  ^
+  // [cfe] The non-abstract class 'LinkTail' is missing implementations for these members:
   const LinkTail();
 }
 
 class LinkEntry<T> extends AbstractLink<T> {
-//    ^^^^^^^^^
-// [cfe] The non-abstract class 'LinkEntry' is missing implementations for these members:
+  //  ^
+  // [cfe] The non-abstract class 'LinkEntry' is missing implementations for these members:
   LinkEntry(T head, [Link<T>? Tail]);
 }
 

@@ -37,17 +37,17 @@ abstract class Link<T> {
   factory Link.create() = LinkFactory<T>.create;
   //                      ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
-  // [cfe] Expected 0 type arguments.
   //                      ^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [cfe] Expected 0 type arguments.
 }
 
 class LinkFactory {
   //   Compile time error: should be LinkFactory<T> to match abstract class above
   factory Link.create() {
-  //      ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_FACTORY_NAME_NOT_A_CLASS
-  // [cfe] The name of a constructor must match the name of the enclosing class.
+    //    ^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_FACTORY_NAME_NOT_A_CLASS
+    // [cfe] The name of a constructor must match the name of the enclosing class.
     return LinkFactory._();
   }
 

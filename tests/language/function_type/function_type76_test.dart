@@ -34,8 +34,8 @@ typedef F8<T> = Function Function(int y, [List<T> x]) Function();
 typedef F9<T> = List<Function> Function([Function]) Function();
 typedef F10<T> = List<Function> Function({core.List<core.int> x}) Function();
 typedef F11<T> = core.List<core.int> Function(int y, {int x}) Function();
-typedef F12<T> = core.List<core.int> Function(int, [core.List<core.int> x])
-    Function();
+typedef F12<T> =
+    core.List<core.int> Function(int, [core.List<core.int> x]) Function();
 typedef F13<T> = List<T> Function(int) Function();
 typedef F14<T> = List<T> Function(int x, [List<Function>]) Function();
 typedef F15<T> = List<T> Function(int y, {List<T> x}) Function();
@@ -90,7 +90,7 @@ class U76<T> {
   late List<Function> Function({core.List<core.int> x}) Function() x10;
   late core.List<core.int> Function(int y, {int x}) Function() x11;
   late core.List<core.int> Function(int, [core.List<core.int> x]) Function()
-      x12;
+  x12;
   late List<T> Function(int) Function() x13;
   late List<T> Function(int x, [List<Function>]) Function() x14;
   late List<T> Function(int y, {List<T> x}) Function() x15;
@@ -103,7 +103,7 @@ class U76<T> {
   late List<A> Function<A>() Function() x22;
 
   U76({this.tIsBool = false, this.tIsInt = false})
-      : tIsDynamic = !tIsBool && !tIsInt;
+    : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0(int x0, {Function x = _voidFunction}) => throw 'uncalled';
   core.List<core.int> m1({int x = -1}) => throw 'uncalled';
@@ -487,7 +487,8 @@ class U76<T> {
 
     Expect.isTrue(m10 is F10<T>);
     Expect.isTrue(
-        m10 is List<Function> Function({core.List<core.int> x}) Function());
+      m10 is List<Function> Function({core.List<core.int> x}) Function(),
+    );
     Expect.isTrue(confuse(m10) is F10<T>);
     // In checked mode, verifies the type.
     x10 = m10;
@@ -512,7 +513,8 @@ class U76<T> {
 
     Expect.isTrue(m11 is F11<T>);
     Expect.isTrue(
-        m11 is core.List<core.int> Function(int y, {int x}) Function());
+      m11 is core.List<core.int> Function(int y, {int x}) Function(),
+    );
     Expect.isTrue(confuse(m11) is F11<T>);
     // In checked mode, verifies the type.
     x11 = m11;
@@ -536,9 +538,11 @@ class U76<T> {
     }
 
     Expect.isTrue(m12 is F12<T>);
-    Expect.isTrue(m12 is core.List<core.int> Function(int,
-            [core.List<core.int> x])
-        Function());
+    Expect.isTrue(
+      m12
+          is core.List<core.int> Function(int, [core.List<core.int> x])
+          Function(),
+    );
     Expect.isTrue(confuse(m12) is F12<T>);
     // In checked mode, verifies the type.
     x12 = m12;
@@ -807,7 +811,8 @@ class U76<T> {
 
     Expect.isTrue(m19 is F19<T>);
     Expect.isTrue(
-        m19 is void Function(int, {core.List<core.int> x}) Function());
+      m19 is void Function(int, {core.List<core.int> x}) Function(),
+    );
     Expect.isTrue(confuse(m19) is F19<T>);
     // In checked mode, verifies the type.
     x19 = m19;
@@ -832,7 +837,8 @@ class U76<T> {
 
     Expect.isTrue(m20 is F20<T>);
     Expect.isTrue(
-        m20 is Function Function<A>(core.List<core.int> x) Function());
+      m20 is Function Function<A>(core.List<core.int> x) Function(),
+    );
     Expect.isTrue(confuse(m20) is F20<T>);
     // In checked mode, verifies the type.
     x20 = m20;

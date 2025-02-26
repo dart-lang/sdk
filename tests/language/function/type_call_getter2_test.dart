@@ -23,47 +23,35 @@ main() {
   B b = new B();
   C c = new C();
 
-  final
-      Function
-      a2 = a;
-      //   ^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-      // [cfe] A value of type 'A' can't be assigned to a variable of type 'Function'.
+  final Function a2 = a;
+  //                  ^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'A' can't be assigned to a variable of type 'Function'.
 
-  final
-      F
-      a3 = a;
-      //   ^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-      // [cfe] A value of type 'A' can't be assigned to a variable of type 'int Function(String)'.
+  final F a3 = a;
+  //           ^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'A' can't be assigned to a variable of type 'int Function(String)'.
 
-  final
-      Function
-      b2 = b;
-      //   ^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-      // [cfe] A value of type 'B' can't be assigned to a variable of type 'Function'.
+  final Function b2 = b;
+  //                  ^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'B' can't be assigned to a variable of type 'Function'.
 
-  final
-      F
-      b3 = b;
-      //   ^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-      // [cfe] A value of type 'B' can't be assigned to a variable of type 'int Function(String)'.
+  final F b3 = b;
+  //           ^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'B' can't be assigned to a variable of type 'int Function(String)'.
 
-  final
-      Function
-      c2 = c;
-      //   ^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-      // [cfe] A value of type 'C' can't be assigned to a variable of type 'Function'.
+  final Function c2 = c;
+  //                  ^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'C' can't be assigned to a variable of type 'Function'.
 
-  final
-      F
-      c3 = c;
-      //   ^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-      // [cfe] A value of type 'C' can't be assigned to a variable of type 'int Function(String)'.
+  final F c3 = c;
+  //           ^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'C' can't be assigned to a variable of type 'int Function(String)'.
 
   Expect.throwsTypeError(() {
     Function a4 = a as dynamic;
