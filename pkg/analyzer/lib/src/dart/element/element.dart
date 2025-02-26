@@ -10552,8 +10552,8 @@ abstract class PropertyInducingElementImpl
       thisOrAncestorOfType<CompilationUnitElementImpl>()!;
 
   @override
-  PropertyInducingFragment? get nextFragment =>
-      augmentation as PropertyInducingFragment?;
+  PropertyInducingElementImpl? get nextFragment =>
+      augmentation as PropertyInducingElementImpl?;
 
   @override
   Element get nonSynthetic {
@@ -10662,6 +10662,19 @@ abstract class PropertyInducingElementImpl
 abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
     implements PropertyInducingElement2OrMember {
   @override
+  PropertyInducingElementImpl get firstFragment;
+
+  @override
+  List<PropertyInducingElementImpl> get fragments {
+    return [
+      for (PropertyInducingElementImpl? fragment = firstFragment;
+          fragment != null;
+          fragment = fragment.nextFragment)
+        fragment,
+    ];
+  }
+
+  @override
   bool get hasInitializer {
     return _fragments.any((f) => f.hasInitializer);
   }
@@ -10682,8 +10695,7 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
   }
 
   bool get shouldUseTypeForInitializerInference {
-    return (firstFragment as PropertyInducingElementImpl)
-        .shouldUseTypeForInitializerInference;
+    return firstFragment.shouldUseTypeForInitializerInference;
   }
 
   List<PropertyInducingElementImpl> get _fragments;
@@ -11982,6 +11994,10 @@ abstract class VariableElementImpl2 extends ElementImpl2
     }
 
     return null;
+  }
+
+  void resetConstantInitializer() {
+    _constantInitializer = null;
   }
 
   @override

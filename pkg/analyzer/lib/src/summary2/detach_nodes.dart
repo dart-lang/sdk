@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
@@ -16,23 +14,23 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 /// the whole token stream for the file. We don't want all this data after
 /// linking. So, we need to detach these nodes.
 void detachElementsFromNodes(LibraryElementImpl element) {
-  element.accept(_Visitor());
+  element.accept2(_Visitor());
 }
 
-class _Visitor extends GeneralizingElementVisitor<void> {
+class _Visitor extends GeneralizingElementVisitor2<void> {
   @override
-  void visitClassElement(ClassElement element) {
-    if (element is ClassElementImpl) {
-      element.mixinInferenceCallback = null;
+  void visitClassElement(covariant ClassElementImpl2 element) {
+    for (var fragment in element.fragments) {
+      fragment.mixinInferenceCallback = null;
     }
     super.visitClassElement(element);
   }
 
   @override
-  void visitConstructorElement(ConstructorElement element) {
-    if (element is ConstructorElementImpl) {
+  void visitConstructorElement(covariant ConstructorElementImpl2 element) {
+    for (var fragment in element.fragments) {
       // Make a copy, so that it is not a NodeList.
-      var initializers = element.constantInitializers.toFixedList();
+      var initializers = fragment.constantInitializers.toFixedList();
       initializers.forEach(_detachNode);
 
       for (var initializer in initializers) {
@@ -56,63 +54,76 @@ class _Visitor extends GeneralizingElementVisitor<void> {
         }
       }
 
-      element.constantInitializers = initializers;
+      fragment.constantInitializers = initializers;
     }
     super.visitConstructorElement(element);
   }
 
   @override
-  void visitElement(Element element) {
-    for (var annotation in element.metadata) {
-      var ast = (annotation as ElementAnnotationImpl).annotationAst;
-      _detachNode(ast);
-      _sanitizeArguments(ast.arguments?.arguments);
+  void visitElement(Element2 element) {
+    if (element case Annotatable annotatable) {
+      for (var annotation in annotatable.metadata2.annotations) {
+        var ast = (annotation as ElementAnnotationImpl).annotationAst;
+        _detachNode(ast);
+        _sanitizeArguments(ast.arguments?.arguments);
+      }
     }
     super.visitElement(element);
   }
 
   @override
-  void visitEnumElement(EnumElement element) {
-    if (element is EnumElementImpl) {
-      element.mixinInferenceCallback = null;
+  void visitEnumElement(covariant EnumElementImpl2 element) {
+    for (var fragment in element.fragments) {
+      fragment.mixinInferenceCallback = null;
     }
     super.visitEnumElement(element);
   }
 
   @override
-  void visitMixinElement(MixinElement element) {
-    if (element is MixinElementImpl) {
-      element.mixinInferenceCallback = null;
+  void visitFormalParameterElement(
+    FormalParameterElement element,
+  ) {
+    _detachConstVariable(element);
+    super.visitFormalParameterElement(element);
+  }
+
+  @override
+  void visitMixinElement(covariant MixinElementImpl2 element) {
+    for (var fragment in element.fragments) {
+      fragment.mixinInferenceCallback = null;
     }
     super.visitMixinElement(element);
   }
 
   @override
-  void visitParameterElement(ParameterElement element) {
-    _detachConstVariable(element);
-    super.visitParameterElement(element);
-  }
-
-  @override
-  void visitPropertyInducingElement(PropertyInducingElement element) {
-    if (element is PropertyInducingElementImpl) {
-      element.typeInference = null;
+  void visitPropertyInducingElement(PropertyInducingElement2 element) {
+    for (var fragment in element.fragments) {
+      if (fragment is PropertyInducingElementImpl) {
+        fragment.typeInference = null;
+      }
     }
+    element.constantInitializer2;
     _detachConstVariable(element);
     super.visitPropertyInducingElement(element);
   }
 
-  void _detachConstVariable(Element element) {
-    if (element is ConstVariableElement) {
-      var initializer = element.constantInitializer;
-      if (initializer is ExpressionImpl) {
-        _detachNode(initializer);
+  void _detachConstVariable(Object element) {
+    if (element is VariableElementImpl2) {
+      for (var fragment in element.fragments) {
+        if (fragment case ConstVariableElement fragment) {
+          fragment as VariableElementImpl;
+          var initializer = fragment.constantInitializer;
+          if (initializer is ExpressionImpl) {
+            _detachNode(initializer);
 
-        initializer = replaceNotSerializableNode(initializer);
-        element.constantInitializer = initializer;
+            initializer = replaceNotSerializableNode(initializer);
+            fragment.constantInitializer = initializer;
 
-        ConstantContextForExpressionImpl(element, initializer);
+            ConstantContextForExpressionImpl(fragment, initializer);
+          }
+        }
       }
+      element.resetConstantInitializer();
     }
   }
 
