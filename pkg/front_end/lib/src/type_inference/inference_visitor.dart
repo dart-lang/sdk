@@ -12104,7 +12104,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return _unhandledStatement(node);
   }
 
-  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitDotShorthand(
       DotShorthand node, DartType typeContext) {
     DartType rewrittenType = analyzeDotShorthand(
@@ -12114,11 +12113,34 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(rewrittenType, rewrittenExpr);
   }
 
-  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitDotShorthandPropertyGet(
       DotShorthandPropertyGet node, DartType typeContext) {
-    // TODO(kallentu): Implementation needed for dot shorthands.
-    return _unhandledExpression(node, typeContext);
+    // Use the previously cached context type to determine the declaration
+    // member that we're trying to find.
+    DartType cachedContext = getDotShorthandContext().unwrapTypeSchemaView();
+    Member? member = findInterfaceMember(
+            cachedContext, node.name, node.fileOffset,
+            includeExtensionMethods: false,
+            isSetter: false,
+            isDotShorthand: true)
+        .member;
+
+    ExpressionInferenceResult expressionInferenceResult;
+    if (member == null) {
+      // TODO(kallentu): This is temporary. Build a problem with an error
+      // specific to not being able to find a member named [node.name].
+      throw 'Error: Cannot find dot shorthand member.';
+    } else if (member is Procedure && !member.isGetter) {
+      // Tearoff like `Object.new`;
+      expressionInferenceResult =
+          inferExpression(new StaticTearOff(member), cachedContext);
+    } else {
+      expressionInferenceResult =
+          inferExpression(new StaticGet(member), cachedContext);
+    }
+
+    flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);
+    return expressionInferenceResult;
   }
 }
 

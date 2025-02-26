@@ -202,6 +202,10 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     return getNodeFromClass(cls).getDispatchTarget(name, setter);
   }
 
+  Member? getStaticMember(Class cls, Name name, {bool setter = false}) {
+    return getNodeFromClass(cls).getStaticMember(name, setter)?.getMember(this);
+  }
+
   static ClassMembersBuilder build(
       ClassHierarchyBuilder hierarchyBuilder,
       List<ClassBuilder> classes,

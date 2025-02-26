@@ -9976,23 +9976,29 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleDotShorthandContext(Token token) {
     debugEvent("DotShorthandContext");
     if (!libraryFeatures.dotShorthands.isEnabled) {
+      // Coverage-ignore-block(suite): Not run.
       addProblem(
           templateExperimentNotEnabledOffByDefault
               .withArguments(ExperimentalFlag.dotShorthands.name),
           token.offset,
           token.length);
+      return;
     }
+
+    // TODO(kallentu): Possibly could be ProblemBuilder? Testing needed.
+    assert(checkState(token, [ValueKinds.Expression]));
+    Expression value = pop() as Expression;
+    push(forest.createDotShorthandContext(token.charOffset, value));
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleDotShorthandHead(Token token) {
     debugEvent("DotShorthandHead");
     if (!libraryFeatures.dotShorthands.isEnabled) {
+      // Coverage-ignore-block(suite): Not run.
       addProblem(
           templateExperimentNotEnabledOffByDefault
               .withArguments(ExperimentalFlag.dotShorthands.name),
@@ -10001,9 +10007,20 @@ class BodyBuilder extends StackListenerImpl
 
       // Recovery, avoid crashing with an extra selector.
       pop();
+      return;
     }
 
-    // TODO(kallentu): Handle dot shorthands.
+    Object? selector = pop();
+    if (libraryFeatures.dotShorthands.isEnabled && selector is Selector) {
+      // TODO(kallentu): Remove this once we have more of the dot shorthands
+      // implementation complete.
+      pop(); // ParserGeneratorError
+
+      // TODO(kallentu): Handle invocations.
+
+      push(forest.createDotShorthandPropertyGet(
+          offsetForToken(token), selector.name));
+    }
   }
 }
 

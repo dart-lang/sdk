@@ -3222,7 +3222,6 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
       'ExtensionTypeRepresentationFieldInitializer(${toStringInternal()})';
 }
 
-// Coverage-ignore(suite): Not run.
 /// Internal expression for a dot shorthand.
 ///
 /// This node wraps around the [innerExpression] and indicates to the
@@ -3245,12 +3244,12 @@ class DotShorthand extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(innerExpression);
   }
 }
 
-// Coverage-ignore(suite): Not run.
 /// Internal expression for a dot shorthand head with no arguments.
 /// (e.g. `.zero`).
 ///
@@ -3272,6 +3271,7 @@ class DotShorthandPropertyGet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('.');
     printer.writeName(name);
