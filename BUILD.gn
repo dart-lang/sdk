@@ -206,7 +206,7 @@ group("tools") {
 group("dart2js_bot") {
   deps = [
     ":create_sdk",
-    "utils/compiler:compile_dart2js_platform_unsound",
+    "utils/compiler:compile_dart2js_platform",
   ]
 }
 

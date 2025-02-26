@@ -71,9 +71,7 @@ declare_args() {
 # ......libraries.json
 # ......_internal/
 # ........dart2js_platform.dill
-# ........dart2js_platform_unsound.dill
 # ........dart2js_server_platform.dill
-# ........dart2js_server_platform_unsound.dill
 # ........dart2wasm_outline.dill (if not on ia32)
 # ........dart2wasm_platform.dill (if not on ia32)
 # ........dart2wasm_js_compatibility_outline.dill (if not on ia32)

@@ -567,8 +567,6 @@ Future<void> main() async {
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
     final Uri ddcPlatformKernel =
         computePlatformBinariesLocation().resolve('ddc_outline.dill');
-    final Uri ddcPlatformKernelWeak =
-        computePlatformBinariesLocation().resolve('ddc_outline_unsound.dill');
     final Uri sdkRoot = computePlatformBinariesLocation();
 
     late Directory tempDir;
@@ -2078,7 +2076,7 @@ void main(List<String> arguments, SendPort sendPort) {
         final List<String> args = <String>[
           '--sdk-root=${sdkRoot.toFilePath()}',
           '--incremental',
-          '--platform=${ddcPlatformKernelWeak.path}',
+          '--platform=${ddcPlatformKernel.path}',
           '--output-dill=${dillFile.path}',
           '--target=dartdevc',
           '--dartdevc-module-format=$moduleFormat',
@@ -2088,122 +2086,6 @@ void main(List<String> arguments, SendPort sendPort) {
         ];
 
         expect(await starter(args), 0);
-      }
-
-      test('AMD module format', () async {
-        await runTests(moduleFormat: 'amd');
-      });
-
-      test('DDC module format and canary', () async {
-        await runTests(moduleFormat: 'ddc', canary: true);
-      });
-    }, skip: 'https://github.com/dart-lang/sdk/issues/43959');
-
-    group('compile to JavaScript weak null safety', () {
-      Future<void> runTests(
-          {required String moduleFormat, bool canary = false}) async {
-        File file = new File('${tempDir.path}/foo.dart')..createSync();
-        file.writeAsStringSync("main() {\n}\n");
-        File packages =
-            new File('${tempDir.path}/.dart_tool/package_config.json')
-              ..createSync()
-              ..writeAsStringSync(jsonEncode({
-                "configVersion": 2,
-                "packages": [
-                  {
-                    "name": "hello",
-                    "rootUri": "${tempDir.uri}",
-                  },
-                ],
-              }));
-        File dillFile = new File('${tempDir.path}/app.dill');
-
-        expect(dillFile.existsSync(), false);
-
-        final List<String> args = <String>[
-          '--sdk-root=${sdkRoot.toFilePath()}',
-          '--incremental',
-          '--platform=${ddcPlatformKernelWeak.path}',
-          '--output-dill=${dillFile.path}',
-          '--target=dartdevc',
-          '--dartdevc-module-format=$moduleFormat',
-          if (canary) '--dartdevc-canary',
-          '--packages=${packages.path}',
-          'package:hello/foo.dart'
-        ];
-
-        expect(await starter(args), 0);
-      }
-
-      test('AMD module format', () async {
-        await runTests(moduleFormat: 'amd');
-      });
-
-      test('DDC module format and canary', () async {
-        await runTests(moduleFormat: 'ddc', canary: true);
-      });
-    }, skip: 'https://github.com/dart-lang/sdk/issues/43959');
-
-    group('compile to JavaScript weak null safety then nonexistent file', () {
-      Future<void> runTests(
-          {required String moduleFormat, bool canary = false}) async {
-        File file = new File('${tempDir.path}/foo.dart')..createSync();
-        file.writeAsStringSync("main() {\n}\n");
-        File packages =
-            new File('${tempDir.path}/.dart_tool/package_config.json')
-              ..createSync()
-              ..writeAsStringSync(jsonEncode({
-                "configVersion": 2,
-                "packages": [
-                  {
-                    "name": "hello",
-                    "rootUri": "${tempDir.uri}",
-                  },
-                ],
-              }));
-        File dillFile = new File('${tempDir.path}/app.dill');
-
-        expect(dillFile.existsSync(), false);
-
-        String library = 'package:hello/foo.dart';
-
-        final List<String> args = <String>[
-          '--sdk-root=${sdkRoot.toFilePath()}',
-          '--incremental',
-          '--platform=${ddcPlatformKernelWeak.path}',
-          '--output-dill=${dillFile.path}',
-          '--target=dartdevc',
-          '--dartdevc-module-format=$moduleFormat',
-          if (canary) '--dartdevc-canary',
-          '--packages=${packages.path}',
-        ];
-
-        FrontendServer frontendServer = new FrontendServer();
-        Future<int> result = frontendServer.open(args);
-        frontendServer.compile(library);
-        int count = 0;
-        frontendServer.listen((Result compiledResult) {
-          CompilationResult result =
-              new CompilationResult.parse(compiledResult.status);
-          count++;
-          if (count == 1) {
-            // First request is to 'compile', which results in full JavaScript
-            expect(result.errorsCount, equals(0));
-            expect(result.filename, dillFile.path);
-            frontendServer.accept();
-            frontendServer.compile('foo.bar');
-          } else {
-            expect(count, 2);
-            // Second request is to 'compile' nonexistent file, that should
-            // fail.
-            expect(result.errorsCount, greaterThan(0));
-            frontendServer.quit();
-          }
-        });
-
-        expect(await result, 0);
-        expect(count, 2);
-        frontendServer.close();
       }
 
       test('AMD module format', () async {
@@ -2718,97 +2600,6 @@ e() {
         });
       });
     });
-
-    group('compile to JavaScript all library bundles with unsound null safety',
-        () {
-      Future<void> runTests(
-          {required String moduleFormat, bool canary = false}) async {
-        File file = new File('${tempDir.path}/foo.dart')..createSync();
-        file.writeAsStringSync("import 'bar.dart'; "
-            "typedef myType = void Function(int); main() { fn is myType; }\n");
-        file = new File('${tempDir.path}/bar.dart')..createSync();
-        file.writeAsStringSync("void Function(int) fn = (int i) => null;\n");
-        String library = 'package:hello/foo.dart';
-
-        File dillFile = new File('${tempDir.path}/app.dill');
-        File sourceFile = new File('${dillFile.path}.sources');
-
-        File packageConfig =
-            new File('${tempDir.path}/.dart_tool/package_config.json')
-              ..createSync(recursive: true)
-              ..writeAsStringSync('''
-    {
-      "configVersion": 2,
-      "packages": [
-        {
-          "name": "hello",
-          "rootUri": "../",
-          "packageUri": "./",
-          "languageVersion": "2.9"
-        }
-      ]
-    }
-    ''');
-
-        final List<String> args = <String>[
-          '--verbose',
-          '--no-sound-null-safety',
-          '--sdk-root=${sdkRoot.toFilePath()}',
-          '--incremental',
-          '--platform=${ddcPlatformKernelWeak.path}',
-          '--output-dill=${dillFile.path}',
-          '--target=dartdevc',
-          '--dartdevc-module-format=$moduleFormat',
-          if (canary) '--dartdevc-canary',
-          '--packages=${packageConfig.path}'
-        ];
-
-        FrontendServer frontendServer = new FrontendServer();
-        Future<int> result = frontendServer.open(args);
-        frontendServer.compile(library);
-        int count = 0;
-        Completer<bool> expectationCompleter = new Completer<bool>();
-        frontendServer.listen((Result compiledResult) {
-          CompilationResult result =
-              new CompilationResult.parse(compiledResult.status);
-          count++;
-          // Request to 'compile', which results in full JavaScript and no
-          // metadata.
-          expect(result.errorsCount, equals(0));
-          expect(sourceFile.existsSync(), equals(true));
-          expect(result.filename, dillFile.path);
-
-          String source = sourceFile.readAsStringSync();
-          // Split on the comment at the end of each library bundle.
-          List<String> jsLibraryBundles =
-              source.split(new RegExp("//# sourceMappingURL=.*.map"));
-
-          // Both library bundles should include the unsound null safety check.
-          expect(jsLibraryBundles[0],
-              contains('dart._checkModuleNullSafetyMode(false);'));
-          expect(jsLibraryBundles[1],
-              contains('dart._checkModuleNullSafetyMode(false);'));
-          frontendServer.accept();
-          frontendServer.quit();
-          expectationCompleter.complete(true);
-        });
-
-        await expectationCompleter.future;
-        expect(await result, 0);
-        expect(count, 1);
-        frontendServer.close();
-      }
-
-      test('AMD module format', () async {
-        await runTests(moduleFormat: 'amd');
-      });
-
-      test('DDC module format and canary', () async {
-        await runTests(moduleFormat: 'ddc', canary: true);
-      });
-    },
-        timeout: Timeout.none,
-        skip: 'https://github.com/dart-lang/sdk/issues/52775');
 
     group('compile to JavaScript, all library bundles with sound null safety',
         () {
