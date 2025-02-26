@@ -219,7 +219,7 @@ Dart2JS example:
   language
 ```
 
-In the above examples: `--progress` is used to style the progress bar in terminal; `--time` is used to print time information; `--tasks` is used to set the number of parallel tasks; you can use `. /tools/test.py --help` for more details.  
+In the above examples: `--progress` is used to style the progress bar in terminal; `--time` is used to print time information; `--tasks` is used to set the number of parallel tasks; you can use `. /tools/test.py --help` for more details.
 
 ## Troubleshooting and tips for browser tests
 To debug a browser test failure, you must start a local http server to serve the test.  This is made easy with a helper script in dart/tools/testing.  The error report from test.py gives the command line to start the server in a message that reads:
