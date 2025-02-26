@@ -199,7 +199,7 @@ bool ClassFinalizer::ProcessPendingClasses() {
   }
 
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     GrowableObjectArray& class_array = GrowableObjectArray::Handle();
     class_array = object_store->pending_classes();
     ASSERT(!class_array.IsNull());
@@ -827,7 +827,7 @@ ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
   ASSERT(!cls.is_finalized());
 
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     cls.EnsureDeclarationLoaded();
     ASSERT(cls.is_type_finalized());
     ClassFinalizer::FinalizeClass(cls);

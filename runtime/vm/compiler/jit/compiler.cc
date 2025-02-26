@@ -498,7 +498,7 @@ CodePtr CompileParsedFunctionHelper::Compile() {
   while (!done) {
     *result = Code::null();
     LongJumpScope jump;
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
@@ -673,7 +673,7 @@ static ObjectPtr CompileFunctionHelper(const Function& function,
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
@@ -889,7 +889,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   Zone* zone = thread->zone();
   CompilerState state(thread, /*is_aot=*/false, /*is_optimizing=*/false);
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     ParsedFunction* parsed_function =
         new ParsedFunction(thread, Function::ZoneHandle(zone, function.ptr()));
     ZoneGrowableArray<const ICData*>* ic_data_array =

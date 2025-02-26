@@ -282,7 +282,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
     page_space_->AcquireLock(freelist_);
 
     LongJumpScope jump(thread_);
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       scavenger_->IterateRoots(this);
     } else {
       ASSERT(scavenger_->abort_);
@@ -291,7 +291,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
 
   void ProcessSurvivors() {
     LongJumpScope jump(thread_);
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       // Iterate until all work has been drained.
       do {
         ProcessToSpace();
@@ -305,7 +305,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
   void ProcessAll() {
     TIMELINE_FUNCTION_GC_DURATION(thread_, "ProcessToSpace");
     LongJumpScope jump(thread_);
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       do {
         do {
           ProcessToSpace();
@@ -320,7 +320,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor,
 
   void ProcessWeakProperties() {
     LongJumpScope jump(thread_);
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       ProcessWeakPropertiesScoped();
     } else {
       ASSERT(scavenger_->abort_);

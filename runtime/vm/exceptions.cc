@@ -671,7 +671,7 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
     tsan_utils->exception_pc = program_counter;
     tsan_utils->exception_sp = stack_pointer;
     tsan_utils->exception_fp = frame_pointer;
-    longjmp(*(tsan_utils->setjmp_buffer), 1);
+    DART_LONGJMP(*(tsan_utils->setjmp_buffer), 1);
   }
 #endif  // defined(USING_THREAD_SANITIZER)
 

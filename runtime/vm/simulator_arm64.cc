@@ -58,7 +58,7 @@ class SimulatorSetjmpBuffer {
   void Longjmp() {
     // "This" is now the last setjmp buffer.
     simulator_->set_last_setjmp_buffer(this);
-    longjmp(buffer_, 1);
+    DART_LONGJMP(buffer_, 1);
   }
 
   explicit SimulatorSetjmpBuffer(Simulator* sim) {
@@ -1677,7 +1677,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
   memory_.FlushAll();
 
   SimulatorSetjmpBuffer buffer(this);
-  if (!setjmp(buffer.buffer_)) {
+  if (!DART_SETJMP(buffer.buffer_)) {
     int64_t saved_lr = get_register(LR);
     Redirection* redirection = Redirection::FromHltInstruction(instr);
     uword external = redirection->external_function();

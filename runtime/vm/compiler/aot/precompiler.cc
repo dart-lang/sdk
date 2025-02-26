@@ -364,7 +364,7 @@ static void Jump(const Error& error) {
 
 ErrorPtr Precompiler::CompileAll() {
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     Precompiler precompiler(Thread::Current());
     precompiler.DoCompileAll();
     precompiler.ReportStats();
@@ -3486,7 +3486,7 @@ bool PrecompileParsedFunctionHelper::GenerateCode(FlowGraph* flow_graph) {
 
   while (!done) {
     LongJumpScope jump;
-    const intptr_t val = setjmp(*jump.Set());
+    const intptr_t val = DART_SETJMP(*jump.Set());
     if (val == 0) {
       // Even in bare instructions mode we don't directly add objects into
       // the global object pool because code generation can bail out
