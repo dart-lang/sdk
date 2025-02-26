@@ -388,9 +388,18 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
     ReplaceNullCheckWithCast.new,
   ],
   LinterLintCode.null_closures: [ReplaceNullWithClosure.new],
-  LinterLintCode.omit_local_variable_types: [ReplaceWithVar.new],
-  LinterLintCode.omit_obvious_local_variable_types: [ReplaceWithVar.new],
-  LinterLintCode.omit_obvious_property_types: [ReplaceWithVar.new],
+  LinterLintCode.omit_local_variable_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
+  LinterLintCode.omit_obvious_local_variable_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
+  LinterLintCode.omit_obvious_property_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
   LinterLintCode.prefer_adjacent_string_concatenation: [RemoveOperator.new],
   LinterLintCode.prefer_collection_literals: [
     ConvertToMapLiteral.new,
