@@ -553,7 +553,7 @@ class GenericInferrer {
     return inferredTypes;
   }
 
-  void _demoteTypes(List<DartType> types) {
+  void _demoteTypes(List<TypeImpl> types) {
     for (var i = 0; i < types.length; i++) {
       types[i] = _typeSystem.demoteType(types[i]);
     }

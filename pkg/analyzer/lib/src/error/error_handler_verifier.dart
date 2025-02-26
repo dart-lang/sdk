@@ -5,10 +5,10 @@
 /// @docImport 'dart:async';
 library;
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -221,7 +221,7 @@ class ErrorHandlerVerifier {
     var targetType = target.staticType as InterfaceType;
     var targetFutureType = targetType.typeArguments.first;
     var expectedReturnType = _typeProvider.futureOrType(targetFutureType);
-    if (callback is FunctionExpression) {
+    if (callback is FunctionExpressionImpl) {
       // TODO(migration): should be FunctionType, not nullable
       var callbackType = callback.staticType as FunctionType;
       _checkErrorHandlerFunctionType(

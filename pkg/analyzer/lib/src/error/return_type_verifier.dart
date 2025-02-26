@@ -214,7 +214,7 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
       if (S is! VoidType) {
-        if (T is RecordType &&
+        if (T is RecordTypeImpl &&
             T.positionalFields.length == 1 &&
             S is! RecordType &&
             expression is ParenthesizedExpression) {

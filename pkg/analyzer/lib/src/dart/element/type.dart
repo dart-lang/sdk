@@ -821,7 +821,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   String get name => element.name;
 
   /// The instantiated representation type, if [element] is an extension type.
-  DartType? get representationType {
+  TypeImpl? get representationType {
     if (element case ExtensionTypeElement element) {
       var substitution = Substitution.fromInterfaceType(this);
       var representationType = element.representation.type;

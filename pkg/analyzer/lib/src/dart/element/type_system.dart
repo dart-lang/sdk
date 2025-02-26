@@ -50,7 +50,6 @@ class ExtensionTypeErasure extends ReplacementVisitor {
   TypeImpl? visitInterfaceType(covariant InterfaceTypeImpl type) {
     if (type.representationType case var representationType?) {
       var erased = representationType.accept(this) ?? representationType;
-      erased as TypeImpl;
       // If the extension type is nullable, apply it to the erased.
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         return erased.withNullability(NullabilitySuffix.question);
@@ -139,8 +138,8 @@ class TypeSystemImpl implements TypeSystem {
   /// If [eraseTypes] is not null, this function uses that function to erase the
   /// extension types within [left] and [right]. Otherwise, it uses the
   /// extension type erasure.
-  bool canBeSubtypeOf(DartType left, DartType right,
-      {(DartType, DartType) Function(DartType, DartType)? eraseTypes}) {
+  bool canBeSubtypeOf(TypeImpl left, TypeImpl right,
+      {(TypeImpl, TypeImpl) Function(TypeImpl, TypeImpl)? eraseTypes}) {
     (left, right) = eraseTypes != null
         ? eraseTypes(left, right)
         : (left.extensionTypeErasure, right.extensionTypeErasure);
@@ -199,7 +198,8 @@ class TypeSystemImpl implements TypeSystem {
         return true;
       }
 
-      bool canBeSubtypeOfInterfaces(InterfaceType left, InterfaceType right) {
+      bool canBeSubtypeOfInterfaces(
+          InterfaceTypeImpl left, InterfaceTypeImpl right) {
         assert(left.element3 == right.element3);
         var leftArguments = left.typeArguments;
         var rightArguments = right.typeArguments;
@@ -279,7 +279,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
 
-    if (left is RecordType && right is RecordType) {
+    if (left is RecordTypeImpl && right is RecordTypeImpl) {
       if (left.positionalFields.length != right.positionalFields.length) {
         return false;
       }
@@ -314,11 +314,9 @@ class TypeSystemImpl implements TypeSystem {
   /// Returns [type] in which all promoted type variables have been replaced
   /// with their unpromoted equivalents, and, if non-nullable by default,
   /// replaces all legacy types with their non-nullable equivalents.
-  TypeImpl demoteType(DartType type) {
+  TypeImpl demoteType(TypeImpl type) {
     var visitor = const DemotionVisitor();
-    // TODO(paulberry): eliminate this cast by changing `ReplacementVisitor` so
-    // that it implements `TypeVisitor<TypeImpl?>`.
-    return (type.accept(visitor) ?? type) as TypeImpl;
+    return type.accept(visitor) ?? type;
   }
 
   /// Eliminates type variables from the context [type], replacing them with
@@ -345,10 +343,7 @@ class TypeSystemImpl implements TypeSystem {
   /// Defines the "remainder" of `T` when `S` has been removed from
   /// consideration by an instance check.  This operation is used for type
   /// promotion during flow analysis.
-  TypeImpl factor(DartType T, DartType S) {
-    // TODO(paulberry): eliminate this cast by changing the type of the
-    // parameter `T`.
-    T as TypeImpl;
+  TypeImpl factor(TypeImpl T, TypeImpl S) {
     // * If T <: S then Never
     if (isSubtypeOf(T, S)) {
       return NeverTypeImpl.instance;
@@ -385,10 +380,8 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  TypeImpl flatten(DartType T) {
-    // TODO(paulberry): remove this cast by making the parameter `T` covariant
-    // and changing its type to `TypeImpl`.
-    if (identical(T as TypeImpl, UnknownInferredType.instance)) {
+  TypeImpl flatten(covariant TypeImpl T) {
+    if (identical(T, UnknownInferredType.instance)) {
       return T;
     }
 
@@ -421,9 +414,9 @@ class TypeSystemImpl implements TypeSystem {
     // If T has future type Future<S> or FutureOr<S> then flatten(T) = S
     // If T has future type Future<S>? or FutureOr<S>? then flatten(T) = S?
     var futureType = this.futureType(T);
-    if (futureType is InterfaceType) {
+    if (futureType is InterfaceTypeImpl) {
       if (futureType.isDartAsyncFuture || futureType.isDartAsyncFutureOr) {
-        var S = futureType.typeArguments[0] as TypeImpl;
+        var S = futureType.typeArguments[0];
         if (futureType.nullabilitySuffix == NullabilitySuffix.question) {
           return S.withNullability(NullabilitySuffix.question);
         }
@@ -435,25 +428,23 @@ class TypeSystemImpl implements TypeSystem {
     return T;
   }
 
-  TypeImpl futureOrBase(DartType type) {
+  TypeImpl futureOrBase(TypeImpl type) {
     // If `T` is `FutureOr<S>` for some `S`,
     // then `futureOrBase(T)` = `futureOrBase(S)`
-    if (type is InterfaceType && type.isDartAsyncFutureOr) {
+    if (type is InterfaceTypeImpl && type.isDartAsyncFutureOr) {
       return futureOrBase(
         type.typeArguments[0],
       );
     }
 
     // Otherwise `futureOrBase(T)` = `T`.
-    // TODO(paulberrry): eliminate this cast by changing the type of the
-    // parameter `type`.
-    return type as TypeImpl;
+    return type;
   }
 
   /// We say that S is the future type of a type T in the following cases,
   /// using the first applicable case:
   @visibleForTesting
-  DartType? futureType(DartType T) {
+  TypeImpl? futureType(TypeImpl T) {
     // T implements S, and there is a U such that S is Future<U>
     if (T.nullabilitySuffix != NullabilitySuffix.question) {
       var result = T.asInstanceOf(typeProvider.futureElement);
@@ -472,16 +463,16 @@ class TypeSystemImpl implements TypeSystem {
   /// https://github.com/dart-lang/language/
   /// See `nnbd/feature-specification.md`
   /// See `#the-future-value-type-of-an-asynchronous-non-generator-function`
-  DartType futureValueType(DartType T) {
+  TypeImpl futureValueType(TypeImpl T) {
     // futureValueType(`S?`) = futureValueType(`S`), for all `S`.
     if (T.nullabilitySuffix != NullabilitySuffix.none) {
-      var S = (T as TypeImpl).withNullability(NullabilitySuffix.none);
+      var S = T.withNullability(NullabilitySuffix.none);
       return futureValueType(S);
     }
 
     // futureValueType(Future<`S`>) = `S`, for all `S`.
     // futureValueType(FutureOr<`S`>) = `S`, for all `S`.
-    if (T is InterfaceType) {
+    if (T is InterfaceTypeImpl) {
       if (T.isDartAsyncFuture || T.isDartAsyncFutureOr) {
         return T.typeArguments[0];
       }
@@ -962,9 +953,7 @@ class TypeSystemImpl implements TypeSystem {
 
   /// We say that a type `T` is _incompatible with await_ if at least
   /// one of the following criteria holds:
-  bool isIncompatibleWithAwait(DartType T) {
-    T as TypeImpl;
-
+  bool isIncompatibleWithAwait(TypeImpl T) {
     // `T` is `S?`, and `S` is incompatible with await.
     if (T.nullabilitySuffix == NullabilitySuffix.question) {
       var T_none = T.withNullability(NullabilitySuffix.none);
@@ -1018,12 +1007,9 @@ class TypeSystemImpl implements TypeSystem {
   /// Defines an (almost) total order on bottom and `Null` types. This does not
   /// currently consistently order two different type variables with the same
   /// bound.
-  bool isMoreBottom(DartType T, DartType S) {
-    var T_impl = T as TypeImpl;
-    var S_impl = S as TypeImpl;
-
-    var T_nullability = T_impl.nullabilitySuffix;
-    var S_nullability = S_impl.nullabilitySuffix;
+  bool isMoreBottom(TypeImpl T, TypeImpl S) {
+    var T_nullability = T.nullabilitySuffix;
+    var S_nullability = S.nullabilitySuffix;
 
     // MOREBOTTOM(Never, T) = true
     if (identical(T, NeverTypeImpl.instance)) {
@@ -1048,8 +1034,8 @@ class TypeSystemImpl implements TypeSystem {
     // MOREBOTTOM(T?, S?) = MOREBOTTOM(T, S)
     if (T_nullability == NullabilitySuffix.question &&
         S_nullability == NullabilitySuffix.question) {
-      var T2 = T_impl.withNullability(NullabilitySuffix.none);
-      var S2 = S_impl.withNullability(NullabilitySuffix.none);
+      var T2 = T.withNullability(NullabilitySuffix.none);
+      var S2 = S.withNullability(NullabilitySuffix.none);
       return isMoreBottom(T2, S2);
     }
 
@@ -1103,12 +1089,9 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   /// Defines a total order on top and Object types.
-  bool isMoreTop(DartType T, DartType S) {
-    var T_impl = T as TypeImpl;
-    var S_impl = S as TypeImpl;
-
-    var T_nullability = T_impl.nullabilitySuffix;
-    var S_nullability = S_impl.nullabilitySuffix;
+  bool isMoreTop(TypeImpl T, TypeImpl S) {
+    var T_nullability = T.nullabilitySuffix;
+    var S_nullability = S.nullabilitySuffix;
 
     // MORETOP(void, S) = true
     if (identical(T, VoidTypeImpl.instance)) {
@@ -1145,8 +1128,8 @@ class TypeSystemImpl implements TypeSystem {
     // MORETOP(T?, S?) = MORETOP(T, S)
     if (T_nullability == NullabilitySuffix.question &&
         S_nullability == NullabilitySuffix.question) {
-      var T2 = T_impl.withNullability(NullabilitySuffix.none);
-      var S2 = S_impl.withNullability(NullabilitySuffix.none);
+      var T2 = T.withNullability(NullabilitySuffix.none);
+      var S2 = S.withNullability(NullabilitySuffix.none);
       return isMoreTop(T2, S2);
     }
 
@@ -1202,9 +1185,8 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   /// Return `true` for things in the equivalence class of `Null`.
-  bool isNull(DartType type) {
-    var typeImpl = type as TypeImpl;
-    var nullabilitySuffix = typeImpl.nullabilitySuffix;
+  bool isNull(TypeImpl type) {
+    var nullabilitySuffix = type.nullabilitySuffix;
 
     // NULL(Null) is true
     // Also includes `Null?` from the rules below.
@@ -1215,7 +1197,7 @@ class TypeSystemImpl implements TypeSystem {
     // NULL(T?) is true iff NULL(T) or BOTTOM(T)
     // The case for `Null?` is already checked above.
     if (nullabilitySuffix == NullabilitySuffix.question) {
-      var T = typeImpl.withNullability(NullabilitySuffix.none);
+      var T = type.withNullability(NullabilitySuffix.none);
       return T.isBottom;
     }
 
@@ -1244,9 +1226,8 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   /// Return `true` for any type which is in the equivalence class of `Object`.
-  bool isObject(DartType type) {
-    var typeImpl = type as TypeImpl;
-    if (typeImpl.nullabilitySuffix != NullabilitySuffix.none) {
+  bool isObject(TypeImpl type) {
+    if (type.nullabilitySuffix != NullabilitySuffix.none) {
       return false;
     }
 
@@ -1305,7 +1286,7 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   /// Return `true` for any type which is in the equivalence class of top types.
-  bool isTop(DartType type) {
+  bool isTop(TypeImpl type) {
     // TOP(?) is true
     if (identical(type, UnknownInferredType.instance)) {
       return true;
@@ -1322,12 +1303,11 @@ class TypeSystemImpl implements TypeSystem {
       return true;
     }
 
-    var typeImpl = type as TypeImpl;
-    var nullabilitySuffix = typeImpl.nullabilitySuffix;
+    var nullabilitySuffix = type.nullabilitySuffix;
 
     // TOP(T?) is true iff TOP(T) or OBJECT(T)
     if (nullabilitySuffix == NullabilitySuffix.question) {
-      var T = typeImpl.withNullability(NullabilitySuffix.none);
+      var T = type.withNullability(NullabilitySuffix.none);
       return isTop(T) || isObject(T);
     }
 
@@ -1643,10 +1623,7 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  TypeImpl resolveToBound(DartType type) {
-    // TODO(paulberry): remove this cast by making the parameter `T` covariant
-    // and changing its type to `TypeImpl`.
-    type as TypeImpl;
+  TypeImpl resolveToBound(covariant TypeImpl type) {
     if (type is TypeParameterTypeImpl) {
       var promotedBound = type.promotedBound;
       if (promotedBound != null) {
@@ -1734,10 +1711,7 @@ class TypeSystemImpl implements TypeSystem {
 
   /// Tries to promote from the first type from the second type, and returns the
   /// promoted type if it succeeds, otherwise null.
-  TypeImpl? tryPromoteToType(DartType to, DartType from) {
-    // TODO(paulberry): eliminate this cast by changing the type of the
-    // parameter `to`.
-    to as TypeImpl;
+  TypeImpl? tryPromoteToType(TypeImpl to, TypeImpl from) {
     // Allow promoting to a subtype, for example:
     //
     //     f(Base b) {
@@ -1753,7 +1727,7 @@ class TypeSystemImpl implements TypeSystem {
     }
     // For a type parameter `T extends U`, allow promoting the upper bound
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
-    if (from is TypeParameterType) {
+    if (from is TypeParameterTypeImpl) {
       if (isSubtypeOf(to, from.bound)) {
         var declaration = from.element3.baseElement;
         return TypeParameterTypeImpl.v2(
@@ -1817,7 +1791,7 @@ class TypeSystemImpl implements TypeSystem {
   /// type: `T0` itself is `T0` bounded; if `B` is `T0` bounded and `X` is a
   /// type variable with bound `B` then `X` is `T0` bounded; finally, if `B`
   /// is `T0` bounded and `X` is a type variable then `X&B` is `T0` bounded.
-  DartType? _futureTypeOfBounded(DartType T) {
+  TypeImpl? _futureTypeOfBounded(TypeImpl T) {
     if (T is InterfaceType) {
       if (T.nullabilitySuffix != NullabilitySuffix.question) {
         if (T.isDartAsyncFutureOr) {

@@ -549,7 +549,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(
+      covariant InstanceCreationExpressionImpl node) {
     _deprecatedVerifier.instanceCreationExpression(node);
     _nullSafeApiVerifier.instanceCreation(node);
     _checkForLiteralConstructorUse(node);
@@ -627,7 +628,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(covariant MethodInvocationImpl node) {
     _deprecatedVerifier.methodInvocation(node);
     _errorHandlerVerifier.verifyMethodInvocation(node);
     _nullSafeApiVerifier.methodInvocation(node);

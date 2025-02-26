@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -405,5 +406,5 @@ test() => throw 0;
     expect(node.staticType, same(typeProvider.bottomType));
   }
 
-  DartType _flatten(DartType type) => typeSystem.flatten(type);
+  TypeImpl _flatten(DartType type) => typeSystem.flatten(type as TypeImpl);
 }

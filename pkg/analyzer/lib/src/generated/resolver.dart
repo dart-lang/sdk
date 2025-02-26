@@ -4048,8 +4048,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (staticType == null) {
       return;
     }
-    DartType context;
-    if (parent is AssignmentExpression) {
+    TypeImpl context;
+    if (parent is AssignmentExpressionImpl) {
       if (parent.writeType == null) return;
       context = parent.writeType!;
     } else {

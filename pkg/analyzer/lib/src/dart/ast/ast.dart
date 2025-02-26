@@ -6722,7 +6722,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   List<DartType>? typeArgumentTypes;
 
   @override
-  DartType? extendedType;
+  TypeImpl? extendedType;
 
   ExtensionOverrideImpl({
     required this.importPrefix,
