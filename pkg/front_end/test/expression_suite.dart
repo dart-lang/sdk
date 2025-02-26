@@ -417,7 +417,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       IncrementalCompilerResult compilerResult,
       Context context) async {
     Map<String, DartType>? definitions = createDefinitionsWithTypes(
-        compilerResult.classHierarchy?.knownLibraries,
+        compilerResult.classHierarchy.knownLibraries,
         test.definitionTypes,
         test.definitions);
 
@@ -428,7 +428,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       }
     }
     List<TypeParameter>? typeParams = createTypeParametersWithBounds(
-        compilerResult.classHierarchy?.knownLibraries,
+        compilerResult.classHierarchy.knownLibraries,
         test.typeBounds,
         test.typeDefaults,
         test.typeDefinitions);
@@ -471,7 +471,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       IncrementalCompiler compilerNoNNBD,
       IncrementalCompilerResult compilerResult,
       Context context) async {
-    for (Library lib in compilerResult.classHierarchy!.knownLibraries) {
+    for (Library lib in compilerResult.classHierarchy.knownLibraries) {
       if (!context.fuzzedLibraries.add(lib.importUri)) continue;
 
       for (Member m in lib.members) {

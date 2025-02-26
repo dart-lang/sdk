@@ -60,7 +60,7 @@ class TestExpressionCompiler {
     // Initialize DDC.
     var moduleName = p.basenameWithoutExtension(output.toFilePath());
 
-    var classHierarchy = compilerResult.classHierarchy!;
+    var classHierarchy = compilerResult.classHierarchy;
     var compilerOptions = Options(
       replCompile: true,
       moduleName: moduleName,

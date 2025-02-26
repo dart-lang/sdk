@@ -17,6 +17,8 @@ import 'package:frontend_server/frontend_server.dart';
 import 'package:frontend_server/starter.dart';
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart' show VerificationStage, verifyComponent;
@@ -111,8 +113,12 @@ class _MockedIncrementalCompiler implements IncrementalCompiler {
 
   @override
   Future<IncrementalCompilerResult> compile({List<Uri>? entryPoints}) async {
+    Component component = new Component();
+    CoreTypes coreTypes = new CoreTypes(component);
+    ClassHierarchy classHierarchy = new ClassHierarchy(component, coreTypes);
     return new Future<IncrementalCompilerResult>.value(
-        new IncrementalCompilerResult(new Component()));
+        new IncrementalCompilerResult(component,
+            coreTypes: coreTypes, classHierarchy: classHierarchy));
   }
 
   @override

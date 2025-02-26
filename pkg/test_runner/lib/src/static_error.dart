@@ -504,10 +504,6 @@ class _ErrorExpectationParser {
   /// "unspecified".
   static final _errorCodeRegExp = RegExp(r"^(?:\w+\.\w+|unspecified)$");
 
-  /// Any line-comment-only lines after the first line of a CFE error message
-  /// are part of it.
-  static final _errorMessageRestRegExp = RegExp(r"^\s*//\s*(.*)");
-
   final String path;
   final List<String> _lines;
   final List<StaticError> _errors = [];
@@ -601,27 +597,6 @@ class _ErrorExpectationParser {
       var message = StringBuffer(match[3]!);
       _advance();
       var sourceLines = {locationLine, _currentLine};
-
-      // Consume as many additional error message lines as we find.
-      while (_canPeek(1)) {
-        var nextLine = _peek(1);
-
-        // A location line shouldn't be treated as part of the message.
-        if (_caretLocationRegExp.hasMatch(nextLine)) break;
-        if (_explicitLocationRegExp.hasMatch(nextLine)) break;
-
-        // The next source should not be treated as part of the message.
-        if (_errorMessageRegExp.hasMatch(nextLine)) break;
-
-        var messageMatch = _errorMessageRestRegExp.firstMatch(nextLine);
-        if (messageMatch == null) break;
-
-        message
-          ..write("\n")
-          ..write(messageMatch[1]!);
-        _advance();
-        sourceLines.add(_currentLine);
-      }
 
       if (source == ErrorSource.analyzer &&
           !_errorCodeRegExp.hasMatch(message.toString())) {
