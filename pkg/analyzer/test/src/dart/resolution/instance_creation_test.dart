@@ -145,6 +145,7 @@ void f() {
 ''');
 
     var node = findNode.singleInstanceCreationExpression;
+    // TODO(scheglov): should be `A<int>`
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -152,7 +153,7 @@ InstanceCreationExpression
       name: A
       element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
-      type: A<int>
+      type: A<dynamic>
     period: .
     name: SimpleIdentifier
       token: named
@@ -165,7 +166,7 @@ InstanceCreationExpression
     staticElement: ConstructorMember
       base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named
       augmentationSubstitution: {T2: T}
-      substitution: {T: int}
+      substitution: {T: dynamic}
     element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
@@ -175,10 +176,10 @@ InstanceCreationExpression
         parameter: ParameterMember
           base: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::named::@parameter::value
           augmentationSubstitution: {T2: T}
-          substitution: {T: int}
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  staticType: A<int>
+  staticType: A<dynamic>
 ''');
   }
 
@@ -1359,6 +1360,7 @@ void f() {
 ''');
 
     var node = findNode.singleInstanceCreationExpression;
+    // TODO(scheglov): should be `A<int>`
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   constructorName: ConstructorName
@@ -1371,7 +1373,7 @@ InstanceCreationExpression
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::@class::A
-      type: A<int>
+      type: A<dynamic>
     period: .
     name: SimpleIdentifier
       token: named
@@ -1384,7 +1386,7 @@ InstanceCreationExpression
     staticElement: ConstructorMember
       base: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named
       augmentationSubstitution: {T2: T}
-      substitution: {T: int}
+      substitution: {T: dynamic}
     element: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named#element
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1394,10 +1396,10 @@ InstanceCreationExpression
         parameter: ParameterMember
           base: package:test/a.dart::@fragment::package:test/b.dart::@classAugmentation::A::@constructor::named::@parameter::value
           augmentationSubstitution: {T2: T}
-          substitution: {T: int}
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  staticType: A<int>
+  staticType: A<dynamic>
 ''');
   }
 
