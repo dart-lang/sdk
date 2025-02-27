@@ -857,9 +857,7 @@ abstract class AstCodeGenerator
         b.ref_null(w.HeapType.none);
       }
       final Location? location = node.location;
-      final stringClass = translator.options.jsCompatibility
-          ? translator.jsStringClass
-          : translator.stringBaseClass;
+      final stringClass = translator.jsStringClass;
       final w.RefType stringRefType =
           translator.classInfo[stringClass]!.nullableType;
       if (location != null) {
@@ -2703,9 +2701,10 @@ abstract class AstCodeGenerator
       }
     }
 
-    if (node.expressions.every(isConstantString)) {
+    final expressions = node.expressions;
+    if (expressions.every(isConstantString)) {
       StringBuffer result = StringBuffer();
-      for (final expr in node.expressions) {
+      for (final expr in expressions) {
         result.write(extractConstantString(expr));
       }
       final expr = StringLiteral(result.toString());
@@ -2714,32 +2713,28 @@ abstract class AstCodeGenerator
 
     late final Procedure target;
 
-    final expressions = node.expressions;
-    // We have special cases for 1/2/3/4 arguments in non-JSCM mode.
-    if (!translator.options.jsCompatibility && expressions.length <= 4) {
+    // We have special cases for 1/2/3/4 arguments.
+    if (expressions.length <= 4) {
       final nullableObjectType =
           translator.translateType(translator.coreTypes.objectNullableRawType);
       for (final expression in expressions) {
         translateExpression(expression, nullableObjectType);
       }
       if (expressions.length == 1) {
-        target = translator.stringInterpolate1;
+        target = translator.jsStringInterpolate1;
       } else if (expressions.length == 2) {
-        target = translator.stringInterpolate2;
+        target = translator.jsStringInterpolate2;
       } else if (expressions.length == 3) {
-        target = translator.stringInterpolate3;
+        target = translator.jsStringInterpolate3;
       } else {
         assert(expressions.length == 4);
-        target = translator.stringInterpolate4;
+        target = translator.jsStringInterpolate4;
       }
     } else {
       final nullableObjectType = translator.coreTypes.objectNullableRawType;
-      makeArrayFromExpressions(node.expressions, nullableObjectType);
-      target = translator.options.jsCompatibility
-          ? translator.jsStringInterpolate
-          : translator.stringInterpolate;
+      makeArrayFromExpressions(expressions, nullableObjectType);
+      target = translator.jsStringInterpolate;
     }
-
     return translator.outputOrVoid(call(target.reference));
   }
 
@@ -4348,9 +4343,7 @@ class SwitchInfo {
       } else if (check<IntLiteral, IntConstant>()) {
         equalsMember = translator.boxedIntEquals;
       } else if (check<StringLiteral, StringConstant>()) {
-        equalsMember = translator.options.jsCompatibility
-            ? translator.jsStringEquals
-            : translator.stringEquals;
+        equalsMember = translator.jsStringEquals;
       } else {
         equalsMember = translator.coreTypes.identicalProcedure;
       }
@@ -4413,9 +4406,7 @@ class SwitchInfo {
       compare = (switchExprLocal, pushCaseExpr) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
-        codeGen.call(translator.options.jsCompatibility
-            ? translator.jsStringEquals.reference
-            : translator.stringEquals.reference);
+        codeGen.call(translator.jsStringEquals.reference);
       };
     } else {
       // Object identity switch

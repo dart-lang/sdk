@@ -211,6 +211,15 @@ const jsStringPolyfill = {
         }
         return result;
       },
+      "intoCharCodeArray": (s, a, start) => {
+        if (s == '') return 0;
+
+        const write = dartInstance.exports.$wasmI16ArraySet;
+        for (var i = 0; i < s.length; ++i) {
+          write(a, start++, s.charCodeAt(i));
+        }
+        return s.length;
+      },
     };
 ''';
 

@@ -3,7 +3,7 @@ name: dart2native
 publish_to: none
 
 environment:
-  sdk: ^3.3.0
+  sdk: ^3.5.0
 
 # Add the bin/dart2native.dart script to the scripts pub installs.
 executables:

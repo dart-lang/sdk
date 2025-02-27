@@ -22,11 +22,11 @@ void main() {
   final jsString = eval('"foobar"').dartify();
   final jsTypedData = eval('new Uint8Array(10)').dartify();
 
+  Expect.equals('String', jsString.runtimeType.toString());
+
   if (isJsCompatibility) {
-    Expect.equals('String', jsString.runtimeType.toString());
     Expect.equals('Uint8List', jsTypedData.runtimeType.toString());
   } else {
-    Expect.equals('JSStringImpl', jsString.runtimeType.toString());
     Expect.equals('JSUint8ArrayImpl', jsTypedData.runtimeType.toString());
   }
 }

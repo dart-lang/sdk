@@ -26,7 +26,6 @@ import "dart:_internal"
         Symbol,
         UnmodifiableListMixin,
         unsafeCast,
-        WasmStringBase,
         WasmTypedDataBase;
 
 import 'dart:_error_utils';

@@ -37,10 +37,10 @@ void main(List<String> args) async {
   });
 
   final (jit, aot) = await (
-    forAllConfigurationsMode((String buildDir, _, _) async {
+    forAllConfigurationsMode((String buildDir, _, __) async {
       return await run(['$buildDir/offsets_extractor']);
     }).then<String>((lines) => lines.join('\n')),
-    forAllConfigurationsMode((String buildDir, _, _) async {
+    forAllConfigurationsMode((String buildDir, _, __) async {
       return await run(['$buildDir/offsets_extractor_aotruntime']);
     }).then<String>((lines) => lines.join('\n')),
   ).wait;

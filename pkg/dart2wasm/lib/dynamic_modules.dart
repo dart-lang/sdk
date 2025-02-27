@@ -775,9 +775,7 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
   /// Values of these types are canonicalized by their == function.
   late final Set<Class> _equalsCheckerClasses = {
-    if (translator.options.jsCompatibility) translator.jsStringClass,
-    if (!translator.options.jsCompatibility) translator.oneByteStringClass,
-    if (!translator.options.jsCompatibility) translator.twoByteStringClass,
+    translator.jsStringClass,
     translator.symbolClass,
     translator.closureClass,
   };
@@ -1134,11 +1132,7 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
   @override
   void visitStringConstant(StringConstant node) {
-    _canonicalizeInstance(translator.options.jsCompatibility
-        ? translator.jsStringClass
-        : (node.value.codeUnits.every((c) => c <= 255)
-            ? translator.oneByteStringClass
-            : translator.twoByteStringClass));
+    _canonicalizeInstance(translator.jsStringClass);
   }
 
   @override

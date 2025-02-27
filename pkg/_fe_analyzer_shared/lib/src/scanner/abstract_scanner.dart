@@ -99,17 +99,17 @@ abstract class AbstractScanner implements Scanner {
    * is not exposed to clients of the scanner, which are expected to invoke
    * [firstToken] to access the token stream.
    */
-  final Token tokens = new Token.eof(/* offset = */ -1);
+  final Token tokens;
 
   /**
    * A pointer to the last scanned token.
    */
-  late Token tail;
+  Token tail;
 
   /**
    * A pointer to the last prepended error token.
    */
-  late Token errorTail;
+  Token errorTail;
 
   @override
   bool hasErrors = false;
@@ -140,26 +140,40 @@ abstract class AbstractScanner implements Scanner {
   int recoveryCount = 0;
   final bool allowLazyStrings;
 
-  AbstractScanner(ScannerConfiguration? config, this.includeComments,
-      this.languageVersionChanged,
+  AbstractScanner(ScannerConfiguration? config, bool includeComments,
+      LanguageVersionChanged? languageVersionChanged,
+      {required int numberOfBytesHint, bool allowLazyStrings = true})
+      : this._(config, includeComments, languageVersionChanged,
+            new Token.eof(/* offset = */ -1),
+            numberOfBytesHint: numberOfBytesHint,
+            allowLazyStrings: allowLazyStrings);
+
+  AbstractScanner._(ScannerConfiguration? config, this.includeComments,
+      this.languageVersionChanged, Token newEofToken,
       {required int numberOfBytesHint, this.allowLazyStrings = true})
       : lineStarts = new LineStarts(numberOfBytesHint),
-        inRecoveryOption = false {
-    this.tail = this.tokens;
-    this.errorTail = this.tokens;
+        inRecoveryOption = false,
+        tokens = newEofToken,
+        tail = newEofToken,
+        errorTail = newEofToken {
     this.configuration = config;
   }
 
   AbstractScanner createRecoveryOptionScanner();
 
   AbstractScanner.recoveryOptionScanner(AbstractScanner copyFrom)
+      : this._recoveryOptionScanner(copyFrom, new Token.eof(/* offset = */ -1));
+
+  AbstractScanner._recoveryOptionScanner(
+      AbstractScanner copyFrom, Token newEofToken)
       : lineStarts = [],
         includeComments = false,
         languageVersionChanged = null,
         inRecoveryOption = true,
-        allowLazyStrings = true {
-    this.tail = this.tokens;
-    this.errorTail = this.tokens;
+        allowLazyStrings = true,
+        tokens = newEofToken,
+        tail = newEofToken,
+        errorTail = newEofToken {
     this._enableTripleShift = copyFrom._enableTripleShift;
     this.tokenStart = copyFrom.tokenStart;
     this.groupingStack = copyFrom.groupingStack;

@@ -233,7 +233,7 @@ void main() {
     // dart2wasm uses a JSStringImpl here for conversion without validating the
     // extern ref, so we would only see that it's not a String when we call
     // methods on it.
-    Expect.throws(() => foo.fieldT.toDart.toLowerCase());
+    Expect.throws(() => foo.fieldT.toDart.split('foo'));
     Expect.throws(
       () =>
           foo
@@ -242,11 +242,10 @@ void main() {
               .isEven,
     );
     Expect.throws(
-      () =>
-          foo
-              .sumFnGeneric<JSString, JSNumber>(0.toJS, 0.toJS)
-              .toDart
-              .toLowerCase(),
+      () => foo
+          .sumFnGeneric<JSString, JSNumber>(0.toJS, 0.toJS)
+          .toDart
+          .split('foo'),
     );
   }
 }

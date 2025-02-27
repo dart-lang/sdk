@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library testing.expectation;
+library;
 
 /// An expectation represents the expected outcome of a test (or if it should
 /// be skipped).

@@ -7,13 +7,13 @@ repository: https://github.com/dart-lang/sdk/tree/main/pkg/heapsnapshot
 publish_to: none
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
+  sdk: '^3.6.0'
 
 dependencies:
   args: ^2.0.0
   heap_snapshot: any
   mmap: any
-  vm_service: ^10.0.0
+  vm_service: ^15.0.0
 
 dev_dependencies:
   dart_console: ^1.1.2

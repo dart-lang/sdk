@@ -513,7 +513,7 @@ abstract class PubDep {
 }
 
 class AnyPubDep extends PubDep {
-  AnyPubDep(String name) : super(name);
+  AnyPubDep(super.name);
 
   @override
   String toString() => '$name: any';
@@ -523,7 +523,7 @@ class SdkPubDep extends PubDep {
   final String sdk;
   final String? version;
 
-  SdkPubDep(String name, this.sdk, this.version) : super(name);
+  SdkPubDep(super.name, this.sdk, this.version);
 
   @override
   String toString() => '$name: (sdk: $sdk, version: $version)';
@@ -532,7 +532,7 @@ class SdkPubDep extends PubDep {
 class SemverPubDep extends PubDep {
   final String value;
 
-  SemverPubDep(String name, this.value) : super(name);
+  SemverPubDep(super.name, this.value);
 
   @override
   String toString() => '$name: $value';
@@ -541,14 +541,14 @@ class SemverPubDep extends PubDep {
 class PathPubDep extends PubDep {
   final String path;
 
-  PathPubDep(String name, this.path) : super(name);
+  PathPubDep(super.name, this.path);
 
   @override
   String toString() => '$name: $path';
 }
 
 class UnhandledPubDep extends PubDep {
-  UnhandledPubDep(String name) : super(name);
+  UnhandledPubDep(super.name);
 }
 
 class ResolvedDep {
