@@ -253,11 +253,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag nullAwareElements = const ExperimentalFlag(
       name: 'null-aware-elements',
-      isEnabledByDefault: false,
-      isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      isEnabledByDefault: true,
+      isExpired: true,
+      enabledVersion: const Version(3, 8),
+      experimentEnabledVersion: const Version(3, 8),
+      experimentReleasedVersion: const Version(3, 8));
 
   static const ExperimentalFlag patterns = const ExperimentalFlag(
       name: 'patterns',
