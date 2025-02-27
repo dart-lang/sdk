@@ -13,7 +13,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -1825,7 +1824,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _verifyExtensionElementImplements(
     ExtensionTypeElementImpl declaredElement,
     NamedTypeImpl node,
-    DartType type,
+    TypeImpl type,
   ) {
     var typeSystem = _libraryElement.typeSystem;
 

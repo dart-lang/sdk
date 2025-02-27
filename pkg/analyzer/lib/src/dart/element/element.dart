@@ -1808,6 +1808,9 @@ mixin ConstructorElementMixin2
   ConstructorElementImpl2 get baseElement;
 
   @override
+  InterfaceElementImpl2 get enclosingElement2;
+
+  @override
   InterfaceTypeImpl get returnType;
 }
 
@@ -1974,10 +1977,9 @@ class DefaultSuperFormalParameterElementImpl
       return null;
     }
 
+    // TODO(scheglov): eliminate this cast
+    superDefault as DartObjectImpl;
     var superDefaultType = superDefault.type;
-    if (superDefaultType == null) {
-      return null;
-    }
 
     var typeSystem = library?.typeSystem;
     if (typeSystem == null) {
@@ -3745,12 +3747,12 @@ class EnumElementImpl2 extends InterfaceElementImpl2
   }
 
   @override
-  List<FieldElement> get constants {
+  List<FieldElementOrMember> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
 
   @override
-  List<FieldElement2> get constants2 =>
+  List<FieldElement2OrMember> get constants2 =>
       constants.map((e) => e.asElement2).toList();
 
   @override
@@ -4328,7 +4330,7 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
   ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
 
   @override
-  FieldElement2 get representation2 => representation.asElement2;
+  FieldElement2OrMember get representation2 => representation.asElement2;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -4489,7 +4491,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   }
 
   @override
-  GetterElement? get getter2 => firstFragment.getter?.element as GetterElement?;
+  GetterElementImpl? get getter2 => firstFragment.getter?.element;
 
   @override
   bool get hasImplicitType => firstFragment.hasImplicitType;
@@ -4533,7 +4535,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   String? get name3 => firstFragment.name2;
 
   @override
-  SetterElement? get setter2 => firstFragment.setter?.element as SetterElement?;
+  SetterElementImpl? get setter2 => firstFragment.setter?.element;
 
   @override
   TypeImpl get type => firstFragment.type;
@@ -4611,8 +4613,9 @@ class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
   FieldFormalParameterElementImpl2(super.firstFragment);
 
   @override
-  FieldElement2? get field2 => switch (firstFragment) {
-        FieldFormalParameterElementImpl(:FieldFragment field) => field.element,
+  FieldElementImpl2? get field2 => switch (firstFragment) {
+        FieldFormalParameterElementImpl(:FieldElementImpl field) =>
+          field.element,
         _ => null,
       };
 
@@ -5940,11 +5943,11 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   InstanceElementImpl get firstFragment;
 
   @override
-  List<GetterElement> get getters2 {
+  List<GetterElement2OrMember> get getters2 {
     _readMembers();
     return accessors
         .where((e) => e.isGetter)
-        .map((e) => e.asElement2 as GetterElement?)
+        .map((e) => e.asElement2 as GetterElement2OrMember)
         .nonNulls
         .toList();
   }
@@ -6484,7 +6487,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  PropertyAccessorElement? getSetter(String setterName) {
+  PropertyAccessorElementOrMember? getSetter(String setterName) {
     return getSetterFromAccessors(setterName, accessors);
   }
 
@@ -6708,8 +6711,8 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     }
   }
 
-  static PropertyAccessorElement? getSetterFromAccessors(
-      String setterName, List<PropertyAccessorElement> accessors) {
+  static PropertyAccessorElementOrMember? getSetterFromAccessors(
+      String setterName, List<PropertyAccessorElementOrMember> accessors) {
     // Do we need the check for isSetter below?
     if (!setterName.endsWith('=')) {
       setterName += '=';
@@ -7443,12 +7446,12 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  List<GetterElement> get getters {
-    var declarations = <GetterElement>{};
+  List<GetterElement2OrMember> get getters {
+    var declarations = <GetterElement2OrMember>{};
     for (var unit in units) {
       declarations.addAll(unit._accessors
           .where((accessor) => accessor.isGetter)
-          .map((accessor) => (accessor as GetterFragment).element));
+          .map((accessor) => accessor.element as GetterElement2OrMember));
     }
     return declarations.toList();
   }
@@ -10441,7 +10444,13 @@ abstract class PropertyAccessorElementOrMember
 /// Common base class for all analyzer-internal classes that implement
 /// [PropertyInducingElement2].
 abstract class PropertyInducingElement2OrMember
-    implements VariableElement2OrMember, PropertyInducingElement2 {}
+    implements VariableElement2OrMember, PropertyInducingElement2 {
+  @override
+  GetterElement2OrMember? get getter2;
+
+  @override
+  SetterElement2OrMember? get setter2;
+}
 
 /// A concrete implementation of a [PropertyInducingElement].
 abstract class PropertyInducingElementImpl
@@ -10936,7 +10945,7 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
   }
 
   @override
-  FormalParameterElement? get superConstructorParameter2 {
+  FormalParameterElementMixin? get superConstructorParameter2 {
     return firstFragment.superConstructorParameter?.asElement2;
   }
 
@@ -11097,7 +11106,8 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   }
 
   @override
-  GetterElement? get getter2 => firstFragment.getter2?.element;
+  GetterElementImpl? get getter2 =>
+      firstFragment.getter2?.element as GetterElementImpl?;
 
   @override
   bool get hasImplicitType => firstFragment.hasImplicitType;
@@ -11129,7 +11139,8 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   String? get name3 => firstFragment.name2;
 
   @override
-  SetterElement? get setter2 => firstFragment.setter2?.element;
+  SetterElementImpl? get setter2 =>
+      firstFragment.setter2?.element as SetterElementImpl?;
 
   @override
   TypeImpl get type => firstFragment.type;

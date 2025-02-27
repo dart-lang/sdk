@@ -5686,7 +5686,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   final EnumConstantArgumentsImpl? arguments;
 
   @override
-  ConstructorElement? constructorElement;
+  ConstructorElementMixin? constructorElement;
 
   /// Initializes a newly created enum constant declaration.
   ///
@@ -5704,10 +5704,10 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 
   @experimental
   @override
-  ConstructorElement2? get constructorElement2 =>
+  ConstructorElementMixin2? get constructorElement2 =>
       constructorElement?.asElement2;
 
-  set constructorElement2(ConstructorElement2? value) {
+  set constructorElement2(ConstructorElementMixin2? value) {
     constructorElement = value?.asElement;
   }
 
@@ -10860,10 +10860,10 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
   TypeArgumentListImpl? _typeArguments;
 
   @override
-  List<DartType>? typeArgumentTypes;
+  List<TypeImpl>? typeArgumentTypes;
 
   @override
-  DartType? staticInvokeType;
+  TypeImpl? staticInvokeType;
 
   /// Initializes a newly created invocation.
   InvocationExpressionImpl({

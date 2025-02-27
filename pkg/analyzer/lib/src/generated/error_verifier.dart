@@ -168,7 +168,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   final CompilationUnitElementImpl _currentUnit;
 
   /// The type representing the type 'int'.
-  late final InterfaceType _intType;
+  late final InterfaceTypeImpl _intType;
 
   /// The options for verification.
   final AnalysisOptions options;
@@ -217,7 +217,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
-  InterfaceElement2? _enclosingClass;
+  InterfaceElementImpl2? _enclosingClass;
 
   /// The element of the extension being visited, or `null` if we are not
   /// in the scope of an extension.
@@ -628,13 +628,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitConstructorReference(ConstructorReference node) {
+  void visitConstructorReference(covariant ConstructorReferenceImpl node) {
     _typeArgumentsVerifier.checkConstructorReference(node);
     _checkForInvalidGenerativeConstructorReference(node.constructorName);
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
     var defaultValue = node.defaultValue;
     if (defaultValue != null) {
       checkForAssignableExpressionAtType(
@@ -649,7 +649,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration(
+      covariant EnumConstantDeclarationImpl node) {
     var element = node.declaredElement as FieldElementImpl;
 
     _checkAugmentations(
@@ -1332,7 +1333,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(covariant PostfixExpressionImpl node) {
     var operand = node.operand;
     if (node.operator.type == TokenType.BANG) {
       checkForUseOfVoidResult(node);
@@ -1356,9 +1357,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    TokenType operatorType = node.operator.type;
-    Expression operand = node.operand;
+  void visitPrefixExpression(covariant PrefixExpressionImpl node) {
+    var operatorType = node.operator.type;
+    var operand = node.operand;
     if (operatorType != TokenType.BANG) {
       if (operatorType.isIncrementOperator) {
         _checkForAssignmentToFinal(operand);
@@ -1705,7 +1706,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkAugmentationTypeParameters({
     required Token nameToken,
     required TypeParameterList? typeParameterList,
-    required List<TypeParameterElement> declarationTypeParameters,
+    required List<TypeParameterElementImpl> declarationTypeParameters,
   }) {
     if (declarationTypeParameters.isEmpty) {
       if (typeParameterList != null) {
@@ -1897,7 +1898,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       InterfaceElementImpl declarationElement,
       NamedCompilationUnitMember node,
       NamedType? superclass,
-      WithClause? withClause,
+      WithClauseImpl? withClause,
       ImplementsClause? implementsClause) {
     // Only check for all of the inheritance logic around clauses if there
     // isn't an error code such as "Cannot extend double" already on the
@@ -1996,7 +1997,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
   /// [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
-  bool _checkForAllMixinErrorCodes(WithClause? withClause) {
+  bool _checkForAllMixinErrorCodes(WithClauseImpl? withClause) {
     if (withClause == null) {
       return false;
     }
@@ -2005,7 +2006,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (int mixinNameIndex = 0;
         mixinNameIndex < withClause.mixinTypes.length;
         mixinNameIndex++) {
-      NamedType mixinName = withClause.mixinTypes[mixinNameIndex];
+      var mixinName = withClause.mixinTypes[mixinNameIndex];
       DartType mixinType = mixinName.typeOrThrow;
       if (mixinType is InterfaceType) {
         mixinTypeIndex++;
@@ -2048,7 +2049,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check for errors related to the redirected constructors.
   void _checkForAllRedirectConstructorErrorCodes(
-      ConstructorDeclaration declaration) {
+      ConstructorDeclarationImpl declaration) {
     // Prepare redirected constructor node
     var redirectedConstructor = declaration.redirectedConstructor;
     if (redirectedConstructor == null) {
@@ -2076,12 +2077,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       return;
     }
-    FunctionType redirectedType = redirectedElement.type;
-    DartType redirectedReturnType = redirectedType.returnType;
+    var redirectedType = redirectedElement.type;
+    var redirectedReturnType = redirectedType.returnType;
 
     // Report specific problem when return type is incompatible
-    FunctionType constructorType = declaration.declaredFragment!.element.type;
-    DartType constructorReturnType = constructorType.returnType;
+    var constructorType = declaration.declaredFragment!.element.type;
+    var constructorReturnType = constructorType.returnType;
     if (!typeSystem.isAssignableTo(redirectedReturnType, constructorReturnType,
         strictCasts: strictCasts)) {
       errorReporter.atNode(
@@ -3162,8 +3163,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // The type of the loop variable.
-    DartType variableType;
-    if (variableElement is VariableElement2) {
+    TypeImpl variableType;
+    if (variableElement is VariableElementImpl2) {
       variableType = variableElement.type;
     } else {
       return false;
@@ -3192,7 +3193,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
 
-    DartType? sequenceElementType;
+    TypeImpl? sequenceElementType;
     {
       var sequenceElement = awaitKeyword != null
           ? _typeProvider.streamElement
@@ -3935,7 +3936,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// the argument value is implicit.
   ///
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-  void _checkForIntNotAssignable(Expression argument) {
+  void _checkForIntNotAssignable(ExpressionImpl argument) {
     var parameterElement = argument.correspondingParameter;
     var parameterType = parameterElement?.type;
     if (parameterType != null) {
@@ -4178,7 +4179,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForMainFunction2(FunctionDeclaration functionDeclaration) {
+  void _checkForMainFunction2(FunctionDeclarationImpl functionDeclaration) {
     if (functionDeclaration.name.lexeme != 'main') {
       return;
     }
@@ -4429,8 +4430,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// the [mixinIndex] position in the mixins list are satisfied by the
   /// [_enclosingClass], or a previous mixin.
   bool _checkForMixinSuperclassConstraints(
-      int mixinIndex, NamedType mixinName) {
-    InterfaceType mixinType = mixinName.type as InterfaceType;
+      int mixinIndex, NamedTypeImpl mixinName) {
+    var mixinType = mixinName.type as InterfaceTypeImpl;
     for (var constraint in mixinType.superclassConstraints) {
       var superType = _enclosingClass!.supertype as InterfaceTypeImpl;
       superType = superType.withNullability(NullabilitySuffix.none);
@@ -5758,7 +5759,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     var element = parameter.declaredFragment?.element;
-    if (element is FieldFormalParameterElement2) {
+    if (element is FieldFormalParameterElementImpl2) {
       var fieldElement = element.field2;
       if (fieldElement == null || fieldElement.isSynthetic) {
         errorReporter.atNode(
@@ -5768,9 +5769,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       } else {
         var parameterElement = parameter.declaredFragment?.element;
-        if (parameterElement is FieldFormalParameterElement2) {
-          DartType declaredType = parameterElement.type;
-          DartType fieldType = fieldElement.type;
+        if (parameterElement is FieldFormalParameterElementImpl2) {
+          var declaredType = parameterElement.type;
+          var fieldType = fieldElement.type;
           if (fieldElement.isSynthetic) {
             errorReporter.atNode(
               parameter,
@@ -5900,9 +5901,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForWrongTypeParameterVarianceInField(FieldDeclaration node) {
     if (_enclosingClass != null) {
       for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
-        // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
-        if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+        if (!typeParameter.isLegacyCovariant) {
           var fields = node.fields;
           var fieldElement = fields.variables.first.declaredElement!;
           var fieldName = fields.variables.first.name;
@@ -5930,9 +5929,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
-      // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
-      // variance is added to the interface.
-      if ((typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
+      if (typeParameter.isLegacyCovariant) {
         continue;
       }
 
@@ -5980,12 +5977,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     void checkOne(DartType? superInterface) {
       if (superInterface != null) {
         for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
-          // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
-          // variance is added to the interface.
-          var typeParameterElementImpl =
-              typeParameter as TypeParameterElementImpl;
           var superVariance =
-              typeParameterElementImpl.computeVarianceInType(superInterface);
+              typeParameter.computeVarianceInType(superInterface);
           // Let `D` be a class or mixin declaration, let `S` be a direct
           // superinterface of `D`, and let `X` be a type parameter declared by
           // `D`.
@@ -5995,16 +5988,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // contravariant or unrelated position.
           // If `X` is an `inout` type parameter, it can occur in `S` in any
           // position.
-          if (!superVariance
-              .greaterThanOrEqual(typeParameterElementImpl.variance)) {
-            if (!typeParameterElementImpl.isLegacyCovariant) {
+          if (!superVariance.greaterThanOrEqual(typeParameter.variance)) {
+            if (!typeParameter.isLegacyCovariant) {
               errorReporter.atElement(
                 typeParameter,
                 CompileTimeErrorCode
                     .WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
                 arguments: [
                   typeParameter.name,
-                  typeParameterElementImpl.variance.keyword,
+                  typeParameter.variance.keyword,
                   superVariance.keyword,
                   superInterface,
                 ],

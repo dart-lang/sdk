@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
@@ -479,10 +480,10 @@ abstract class _FindElementBase {
     return topVar(name).setter2!;
   }
 
-  TopLevelVariableElement2 topVar(String name) {
+  TopLevelVariableElementImpl2 topVar(String name) {
     for (var variable in libraryElement.topLevelVariables) {
       if (variable.name3 == name) {
-        return variable;
+        return variable as TopLevelVariableElementImpl2;
       }
     }
     throw StateError('Not found: $name');

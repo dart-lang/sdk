@@ -99,7 +99,7 @@ class PrefixExpressionResolver {
   ///
   // TODO(scheglov): this is duplicate
   void _checkForInvalidAssignmentIncDec(
-      PrefixExpressionImpl node, DartType type) {
+      PrefixExpressionImpl node, TypeImpl type) {
     var operandWriteType = node.writeType!;
     if (!_typeSystem.isAssignableTo(type, operandWriteType,
         strictCasts: _resolver.analysisOptions.strictCasts)) {

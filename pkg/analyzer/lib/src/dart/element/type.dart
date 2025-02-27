@@ -217,11 +217,11 @@ class FunctionTypeImpl extends TypeImpl
       };
 
   @override
-  List<DartType> get normalParameterTypes =>
+  List<TypeImpl> get normalParameterTypes =>
       positionalParameterTypes.sublist(0, requiredPositionalParameterCount);
 
   @override
-  List<DartType> get optionalParameterTypes =>
+  List<TypeImpl> get optionalParameterTypes =>
       positionalParameterTypes.sublist(requiredPositionalParameterCount);
 
   @override
@@ -645,7 +645,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
-      List<PropertyAccessorElement> accessors = element.accessors;
+      var accessors = element.accessors;
       var members = <PropertyAccessorElement>[];
       for (int i = 0; i < accessors.length; i++) {
         members.add(PropertyAccessorMember.from(accessors[i], this)!);
@@ -937,7 +937,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  PropertyAccessorElement? getGetter(String getterName) =>
+  PropertyAccessorElementOrMember? getGetter(String getterName) =>
       PropertyAccessorMember.from(element.getGetter(getterName), this);
 
   @override
@@ -999,7 +999,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       } else {
         var result = inheritance.getInherited(this, nameObj);
-        if (result is PropertyAccessorElement) {
+        if (result is PropertyAccessorElementOrMember) {
           return result;
         }
       }
@@ -1036,7 +1036,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  MethodElement? lookUpMethod2(
+  MethodElementOrMember? lookUpMethod2(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -1054,7 +1054,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       } else {
         var result = inheritance.getInherited(this, nameObj);
-        if (result is MethodElement) {
+        if (result is MethodElementOrMember) {
           return result;
         }
       }
@@ -1074,7 +1074,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  MethodElement2? lookUpMethod3(
+  MethodElement2OrMember? lookUpMethod3(
     String name,
     LibraryElement2 library, {
     bool concrete = false,
@@ -1109,7 +1109,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       } else {
         var result = inheritance.getInherited(this, nameObj);
-        if (result is PropertyAccessorElement) {
+        if (result is PropertyAccessorElementOrMember) {
           return result;
         }
       }

@@ -130,7 +130,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitConstantPattern(ConstantPattern node) {
+  void visitConstantPattern(covariant ConstantPatternImpl node) {
     var expression = node.expression.unParenthesized;
     if (expression.typeOrThrow is InvalidType) {
       return;
@@ -517,7 +517,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Returns `false` if we can prove that `constant == value` always returns
   /// `false`, taking into account the fact that [constantType] has primitive
   /// equality.
-  bool _canBeEqual(DartType constantType, DartType valueType) {
+  bool _canBeEqual(TypeImpl constantType, TypeImpl valueType) {
     if (constantType is InterfaceType) {
       if (valueType is InterfaceTypeImpl) {
         if (constantType.isDartCoreInt && valueType.isDartCoreDouble) {
@@ -776,7 +776,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   /// Check if the object [obj] matches the type [type] according to runtime
   /// type checking rules.
-  bool _runtimeTypeMatch(DartObjectImpl obj, DartType type) {
+  bool _runtimeTypeMatch(DartObjectImpl obj, TypeImpl type) {
     return _currentLibrary.typeSystem.runtimeTypeMatch(obj, type);
   }
 

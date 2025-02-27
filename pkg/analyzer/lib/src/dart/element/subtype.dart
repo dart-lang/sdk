@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
     show Variance;
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -31,27 +30,24 @@ class SubtypeHelper {
         _objectNone = _typeSystem.objectNone,
         _objectQuestion = _typeSystem.objectQuestion;
 
-  /// Return `true` if [T0_] is a subtype of [T1_].
-  bool isSubtypeOf(DartType T0_, DartType T1_) {
+  /// Return `true` if [T0] is a subtype of [T1].
+  bool isSubtypeOf(TypeImpl T0, TypeImpl T1) {
     // Reflexivity: if `T0` and `T1` are the same type then `T0 <: T1`.
-    if (identical(T0_, T1_)) {
+    if (identical(T0, T1)) {
       return true;
     }
 
     // `_` is treated as a top and a bottom type during inference.
-    if (identical(T0_, UnknownInferredType.instance) ||
-        identical(T1_, UnknownInferredType.instance)) {
+    if (identical(T0, UnknownInferredType.instance) ||
+        identical(T1, UnknownInferredType.instance)) {
       return true;
     }
 
     // `InvalidType` is treated as a top and a bottom type.
-    if (identical(T0_, InvalidTypeImpl.instance) ||
-        identical(T1_, InvalidTypeImpl.instance)) {
+    if (identical(T0, InvalidTypeImpl.instance) ||
+        identical(T1, InvalidTypeImpl.instance)) {
       return true;
     }
-
-    var T0 = T0_ as TypeImpl;
-    var T1 = T1_ as TypeImpl;
 
     var T1_nullability = T1.nullabilitySuffix;
     var T0_nullability = T0.nullabilitySuffix;
@@ -115,7 +111,7 @@ class SubtypeHelper {
       // Extension types require explicit `Object` implementation.
       if (T0 is InterfaceTypeImpl && T0.element3 is ExtensionTypeElement2) {
         for (var interface in T0.interfaces) {
-          if (isSubtypeOf(interface, T1_)) {
+          if (isSubtypeOf(interface, T1)) {
             return true;
           }
         }
@@ -303,19 +299,19 @@ class SubtypeHelper {
   }
 
   bool _interfaceArguments(
-    InterfaceElement2 element,
-    InterfaceType subType,
-    InterfaceType superType,
+    InterfaceElementImpl2 element,
+    InterfaceTypeImpl subType,
+    InterfaceTypeImpl superType,
   ) {
-    List<TypeParameterElement2> parameters = element.typeParameters2;
-    List<DartType> subArguments = subType.typeArguments;
-    List<DartType> superArguments = superType.typeArguments;
+    var parameters = element.typeParameters2;
+    var subArguments = subType.typeArguments;
+    var superArguments = superType.typeArguments;
 
     assert(subArguments.length == superArguments.length);
     assert(parameters.length == subArguments.length);
 
-    for (int i = 0; i < subArguments.length; i++) {
-      var parameter = parameters[i] as TypeParameterElementImpl2;
+    for (var i = 0; i < subArguments.length; i++) {
+      var parameter = parameters[i];
       var subArgument = subArguments[i];
       var superArgument = superArguments[i];
 
@@ -344,7 +340,7 @@ class SubtypeHelper {
   }
 
   /// Check that [f] is a subtype of [g].
-  bool _isFunctionSubtypeOf(FunctionTypeImpl f, FunctionType g) {
+  bool _isFunctionSubtypeOf(FunctionTypeImpl f, FunctionTypeImpl g) {
     var fresh =
         _typeSystem.relateTypeParameters2(f.typeParameters, g.typeParameters);
     if (fresh == null) {
@@ -440,7 +436,10 @@ class SubtypeHelper {
     return true;
   }
 
-  bool _isInterfaceSubtypeOf(InterfaceType subType, InterfaceType superType) {
+  bool _isInterfaceSubtypeOf(
+    InterfaceTypeImpl subType,
+    InterfaceTypeImpl superType,
+  ) {
     // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
     // because top types are eliminated before `isSubtypeOf` calls this.
     // TODO(scheglov): Replace with assert().
@@ -468,7 +467,7 @@ class SubtypeHelper {
       if (identical(interface.element3, superElement)) {
         var substitution = Substitution.fromInterfaceType(subType);
         var substitutedInterface =
-            substitution.substituteType(interface) as InterfaceType;
+            substitution.substituteType(interface) as InterfaceTypeImpl;
         return _interfaceArguments(
           superElement,
           substitutedInterface,
@@ -481,7 +480,7 @@ class SubtypeHelper {
   }
 
   /// Check that [subType] is a subtype of [superType].
-  bool _isRecordSubtypeOf(RecordType subType, RecordType superType) {
+  bool _isRecordSubtypeOf(RecordTypeImpl subType, RecordTypeImpl superType) {
     var subPositional = subType.positionalFields;
     var superPositional = superType.positionalFields;
     if (subPositional.length != superPositional.length) {

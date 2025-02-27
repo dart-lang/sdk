@@ -21,7 +21,7 @@ class CorrectOverrideHelper {
   final TypeSystemImpl _typeSystem;
 
   final ExecutableElement2OrMember _thisMember;
-  FunctionType? _thisTypeForSubtype;
+  FunctionTypeImpl? _thisTypeForSubtype;
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
@@ -35,7 +35,7 @@ class CorrectOverrideHelper {
 
   /// Return `true` if [_thisMember] is a correct override of [superMember].
   bool isCorrectOverrideOf({
-    required ExecutableElement2 superMember,
+    required ExecutableElement2OrMember superMember,
   }) {
     var superType = superMember.type;
     return _typeSystem.isSubtypeOf(_thisTypeForSubtype!, superType);
@@ -44,7 +44,7 @@ class CorrectOverrideHelper {
   /// If [_thisMember] is not a correct override of [superMember], report the
   /// error.
   void verify({
-    required ExecutableElement2 superMember,
+    required ExecutableElement2OrMember superMember,
     required ErrorReporter errorReporter,
     required SyntacticEntity errorNode,
     required ErrorCode errorCode,
@@ -100,10 +100,10 @@ class CovariantParametersVerifier {
   final AnalysisSessionImpl _session;
   final TypeSystemImpl _typeSystem;
 
-  final ExecutableElement2 _thisMember;
+  final ExecutableElement2OrMember _thisMember;
 
   CovariantParametersVerifier({
-    required ExecutableElement2 thisMember,
+    required ExecutableElement2OrMember thisMember,
   })  : _session = thisMember.library2.session as AnalysisSessionImpl,
         _typeSystem = thisMember.library2.typeSystem as TypeSystemImpl,
         _thisMember = thisMember;
@@ -159,8 +159,8 @@ class CovariantParametersVerifier {
     return superMembers;
   }
 
-  Map<FormalParameterElement, List<_SuperParameter>> _superParameters() {
-    var result = <FormalParameterElement, List<_SuperParameter>>{};
+  Map<FormalParameterElementMixin, List<_SuperParameter>> _superParameters() {
+    var result = <FormalParameterElementMixin, List<_SuperParameter>>{};
 
     List<_SuperMember>? superMembers;
     var parameters = _thisMember.formalParameters;
@@ -267,7 +267,7 @@ class _SuperMember {
 
 class _SuperParameter {
   final FormalParameterElement element;
-  final DartType type;
+  final TypeImpl type;
 
   _SuperParameter(this.element, this.type);
 

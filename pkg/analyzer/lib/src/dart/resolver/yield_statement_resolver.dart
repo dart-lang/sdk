@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -78,7 +77,7 @@ class YieldStatementResolver {
     var expression = node.expression;
     var expressionType = expression.typeOrThrow;
 
-    DartType impliedReturnType;
+    TypeImpl impliedReturnType;
     if (isYieldEach) {
       impliedReturnType = expressionType;
     } else if (bodyContext.isSynchronous) {
@@ -124,7 +123,7 @@ class YieldStatementResolver {
       // Since the declared return type might have been "dynamic", we need to
       // also check that the implied return type is assignable to generic
       // Iterable/Stream.
-      DartType requiredReturnType;
+      TypeImpl requiredReturnType;
       if (bodyContext.isSynchronous) {
         requiredReturnType = _typeProvider.iterableDynamicType;
       } else {

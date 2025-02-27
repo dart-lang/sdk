@@ -280,7 +280,7 @@ class BinaryExpressionResolver {
 
   void _resolveRightOperand(
     BinaryExpressionImpl node,
-    DartType contextType,
+    TypeImpl contextType,
   ) {
     var left = node.leftOperand;
 
@@ -317,7 +317,7 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUserDefinable(BinaryExpressionImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var left = node.leftOperand;
 
     if (left is AugmentedExpressionImpl) {
@@ -354,7 +354,7 @@ class BinaryExpressionResolver {
   void _resolveUserDefinableAugmented(
     BinaryExpressionImpl node, {
     required AugmentedExpressionImpl left,
-    required DartType contextType,
+    required TypeImpl contextType,
   }) {
     var methodName = node.operator.lexeme;
 

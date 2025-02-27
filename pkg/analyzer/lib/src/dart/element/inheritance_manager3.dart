@@ -83,16 +83,14 @@ class InheritanceManager3 {
   /// not `null`, add a new [Conflict] to it.
   ExecutableElementOrMember? combineSignatures({
     required InterfaceElement targetClass,
-    required List<ExecutableElement> candidates,
+    required List<ExecutableElementOrMember> candidates,
     required bool doTopMerge,
     required Name name,
     List<Conflict>? conflicts,
   }) {
     // If just one candidate, it is always valid.
     if (candidates.length == 1) {
-      // TODO(paulberry): eliminate this cast by changing the type of the
-      // parameter `candidates`.
-      return candidates[0] as ExecutableElementOrMember;
+      return candidates[0];
     }
 
     var targetLibrary = targetClass.library as LibraryElementImpl;
@@ -100,10 +98,7 @@ class InheritanceManager3 {
 
     var validOverrides = <ExecutableElementOrMember>[];
     for (var i = 0; i < candidates.length; i++) {
-      // TODO(paulberry): eliminate this cast by changing the type of the
-      // parameter `candidates`.
-      ExecutableElementOrMember? validOverride =
-          candidates[i] as ExecutableElementOrMember;
+      ExecutableElementOrMember? validOverride = candidates[i];
       var validOverrideType = validOverride.type;
       for (var j = 0; j < candidates.length; j++) {
         var candidate = candidates[j];
@@ -136,7 +131,7 @@ class InheritanceManager3 {
   }
 
   /// Return the result of [getInherited2] with [type] substitution.
-  ExecutableElement? getInherited(InterfaceType type, Name name) {
+  ExecutableElementOrMember? getInherited(InterfaceType type, Name name) {
     var rawElement = getInherited2(type.element, name);
     if (rawElement == null) {
       return null;
@@ -228,7 +223,7 @@ class InheritanceManager3 {
       _findMostSpecificFromNamedCandidates(
         element,
         inheritedMap,
-        element is ExtensionTypeElement
+        element is ExtensionTypeElementImpl
             ? interface.redeclared
             : interface.overridden,
         doTopMerge: false,
@@ -417,7 +412,8 @@ class InheritanceManager3 {
   /// Return all members of mixins, superclasses, and interfaces that a member
   /// with the given [name], defined in the [element], would override; or `null`
   /// if no members would be overridden.
-  List<ExecutableElementOrMember>? getOverridden2(InterfaceElement element, Name name) {
+  List<ExecutableElementOrMember>? getOverridden2(
+      InterfaceElement element, Name name) {
     var interface = getInterface(element);
     return interface.overridden[name];
   }
@@ -535,7 +531,7 @@ class InheritanceManager3 {
   List<Conflict> _findMostSpecificFromNamedCandidates(
     InterfaceElement targetClass,
     Map<Name, ExecutableElement> map,
-    Map<Name, List<ExecutableElement>> namedCandidates, {
+    Map<Name, List<ExecutableElementOrMember>> namedCandidates, {
     required bool doTopMerge,
   }) {
     var conflicts = <Conflict>[];
@@ -623,7 +619,8 @@ class InheritanceManager3 {
       //     }
       // So, each mixin always replaces members in the interface.
       // And there are individual override conflicts for each mixin.
-      var candidatesFromSuperAndMixin = <Name, List<ExecutableElement>>{};
+      var candidatesFromSuperAndMixin =
+          <Name, List<ExecutableElementOrMember>>{};
       var mixinConflicts = <Conflict>[];
       for (var entry in mixinInterface.map.entries) {
         var name = entry.key;
@@ -807,7 +804,7 @@ class InheritanceManager3 {
       }
     }
 
-    var redeclared = <Name, List<ExecutableElement>>{};
+    var redeclared = <Name, List<ExecutableElementOrMember>>{};
     var conflicts = <Conflict>[];
 
     // Add extension type members.
@@ -915,7 +912,7 @@ class InheritanceManager3 {
     }
 
     // Ensure unique overridden elements.
-    var uniqueRedeclared = <Name, List<ExecutableElement>>{};
+    var uniqueRedeclared = <Name, List<ExecutableElementOrMember>>{};
     for (var entry in redeclared.entries) {
       var name = entry.key;
       var elements = entry.value;
@@ -1267,7 +1264,7 @@ class Interface {
 
   /// The map of names to the signatures from superinterfaces that a member
   /// declaration in this extension type redeclares.
-  final Map<Name, List<ExecutableElement>> redeclared;
+  final Map<Name, List<ExecutableElementOrMember>> redeclared;
 
   /// The map of names to the signatures from superinterfaces that a member
   /// declaration in this extension type redeclares.
@@ -1308,7 +1305,7 @@ class Interface {
 
   /// The map of names to their signature in the interface.
   @experimental
-  Map<Name, ExecutableElement2> get map2 {
+  Map<Name, ExecutableElement2OrMember> get map2 {
     return map.mapValue((element) => element.asElement2);
   }
 
@@ -1420,7 +1417,7 @@ class _ExtensionTypeCandidates {
 
   _ExtensionTypeCandidates(this.name);
 
-  List<ExecutableElement> get all {
+  List<ExecutableElementOrMember> get all {
     return [...methods, ...getters, ...setters];
   }
 

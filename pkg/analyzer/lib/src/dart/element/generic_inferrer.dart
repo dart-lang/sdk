@@ -399,7 +399,7 @@ class GenericInferrer {
   void _checkArgumentsNotMatchingBounds({
     required SyntacticEntity? errorEntity,
     required ErrorReporter? errorReporter,
-    required List<DartType> typeArguments,
+    required List<TypeImpl> typeArguments,
   }) {
     for (int i = 0; i < _typeFormals.length; i++) {
       var parameter = _typeFormals[i];

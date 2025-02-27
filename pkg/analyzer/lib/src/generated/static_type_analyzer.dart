@@ -178,7 +178,7 @@ class StaticTypeAnalyzer {
   /// same contexttype
   /// </blockquote>
   void visitIntegerLiteral(IntegerLiteralImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var strictCasts = _resolver.analysisOptions.strictCasts;
     if (_typeSystem.isAssignableTo(_typeProvider.intType, contextType,
             strictCasts: strictCasts) ||

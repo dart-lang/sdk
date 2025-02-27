@@ -460,6 +460,16 @@ extension FieldElementExtension on FieldElement {
   }
 }
 
+extension FieldElementOrMemberExtension on FieldElementOrMember {
+  FieldElement2OrMember get asElement2 {
+    return switch (this) {
+      FieldElementImpl(:var element) => element,
+      FieldMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
+  }
+}
+
 extension FormalParameterElementExtension on FormalParameterElement {
   ParameterElement get asElement {
     if (this case ParameterMember member) {

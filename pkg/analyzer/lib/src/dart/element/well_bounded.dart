@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -73,18 +74,18 @@ class TypeBoundedHelper {
     return _isSuperBounded(type);
   }
 
-  TypeBoundedResult _isRegularBounded(DartType type) {
+  TypeBoundedResult _isRegularBounded(TypeImpl type) {
     List<TypeArgumentIssue>? issues;
 
     String? elementName;
-    List<TypeParameterElement2> typeParameters;
-    List<DartType> typeArguments;
+    List<TypeParameterElementImpl2> typeParameters;
+    List<TypeImpl> typeArguments;
     var alias = type.alias;
     if (alias != null) {
       elementName = alias.element2.name3;
       typeParameters = alias.element2.typeParameters2;
       typeArguments = alias.typeArguments;
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       elementName = type.element3.name3;
       typeParameters = type.element3.typeParameters2;
       typeArguments = type.typeArguments;

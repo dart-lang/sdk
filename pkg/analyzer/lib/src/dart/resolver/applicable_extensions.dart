@@ -18,7 +18,7 @@ import 'package:analyzer/src/generated/inference_log.dart';
 class InstantiatedExtensionWithMember {
   final _NotInstantiatedExtensionWithMember candidate;
   final MapSubstitution substitution;
-  final DartType extendedType;
+  final TypeImpl extendedType;
 
   InstantiatedExtensionWithMember(
     this.candidate,
@@ -71,7 +71,7 @@ abstract class _NotInstantiatedExtension<R> {
 
   R instantiate({
     required MapSubstitution substitution,
-    required DartType extendedType,
+    required TypeImpl extendedType,
   });
 }
 
@@ -87,7 +87,7 @@ class _NotInstantiatedExtensionWithMember
   @override
   InstantiatedExtensionWithMember instantiate({
     required MapSubstitution substitution,
-    required DartType extendedType,
+    required TypeImpl extendedType,
   }) {
     return InstantiatedExtensionWithMember(this, substitution, extendedType);
   }

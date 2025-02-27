@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -94,7 +95,7 @@ class ErrorHandlerVerifier {
       if (callbackType == null) {
         return;
       }
-      if (callbackType is FunctionType) {
+      if (callbackType is FunctionTypeImpl) {
         // TODO(srawlins): Also check return type of the 'onError' named
         // argument to [Future<T>.then].
         _checkErrorHandlerFunctionType(
@@ -117,7 +118,7 @@ class ErrorHandlerVerifier {
       if (callbackType == null) {
         return;
       }
-      if (callbackType is FunctionType) {
+      if (callbackType is FunctionTypeImpl) {
         _checkErrorHandlerFunctionType(
             callback, callbackType, _typeProvider.voidType,
             checkFirstParameterType: callback is FunctionExpression);
@@ -139,7 +140,7 @@ class ErrorHandlerVerifier {
       if (callbackType == null) {
         return;
       }
-      if (callbackType is FunctionType) {
+      if (callbackType is FunctionTypeImpl) {
         _checkErrorHandlerFunctionType(
             callback, callbackType, _typeProvider.voidType,
             checkFirstParameterType: callback.expression is FunctionExpression);
@@ -160,7 +161,7 @@ class ErrorHandlerVerifier {
       if (callbackType == null) {
         return;
       }
-      if (callbackType is FunctionType) {
+      if (callbackType is FunctionTypeImpl) {
         _checkErrorHandlerFunctionType(
             callback, callbackType, _typeProvider.voidType,
             checkFirstParameterType: callback is FunctionExpression);
@@ -178,7 +179,7 @@ class ErrorHandlerVerifier {
   /// Certain error handlers are allowed to specify a different type for their
   /// first parameter.
   void _checkErrorHandlerFunctionType(Expression expression,
-      FunctionType expressionType, DartType expectedFunctionReturnType,
+      FunctionTypeImpl expressionType, DartType expectedFunctionReturnType,
       {bool checkFirstParameterType = true}) {
     void report() {
       _errorReporter.atNode(
@@ -223,7 +224,7 @@ class ErrorHandlerVerifier {
     var expectedReturnType = _typeProvider.futureOrType(targetFutureType);
     if (callback is FunctionExpressionImpl) {
       // TODO(migration): should be FunctionType, not nullable
-      var callbackType = callback.staticType as FunctionType;
+      var callbackType = callback.staticType as FunctionTypeImpl;
       _checkErrorHandlerFunctionType(
           callback, callbackType, expectedReturnType);
       var catchErrorOnErrorExecutable = EnclosingExecutableContext(
@@ -237,7 +238,7 @@ class ErrorHandlerVerifier {
       callback.body.accept(returnStatementVerifier);
     } else {
       var callbackType = callback.staticType;
-      if (callbackType is FunctionType) {
+      if (callbackType is FunctionTypeImpl) {
         _checkReturnType(expectedReturnType, callbackType.returnType, callback);
         _checkErrorHandlerFunctionType(
             callback, callbackType, expectedReturnType);
@@ -249,7 +250,7 @@ class ErrorHandlerVerifier {
   }
 
   void _checkReturnType(
-      DartType expectedType, DartType functionReturnType, Expression callback) {
+      TypeImpl expectedType, TypeImpl functionReturnType, Expression callback) {
     if (!_typeSystem.isAssignableTo(functionReturnType, expectedType,
         strictCasts: _strictCasts)) {
       _errorReporter.atNode(
