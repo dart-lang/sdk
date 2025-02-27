@@ -3,12 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 
+import '../../base/scope.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../kernel/body_builder_context.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../source/name_scheme.dart';
@@ -28,6 +31,8 @@ abstract class ConstructorDeclaration {
   List<NominalParameterBuilder>? get typeParameters;
 
   List<FormalParameterBuilder>? get formals;
+
+  LookupScope get typeParameterScope;
 
   Member get constructor;
 
@@ -53,12 +58,13 @@ abstract class ConstructorDeclaration {
 
   List<Initializer> get initializers;
 
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference});
+  void createNode({
+    required String name,
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required Reference? constructorReference,
+    required Reference? tearOffReference,
+  });
 
   void buildOutlineNodes(
     BuildNodesCallback f, {
@@ -66,6 +72,15 @@ abstract class ConstructorDeclaration {
     required SourceLibraryBuilder libraryBuilder,
     required Member declarationConstructor,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  });
+
+  void buildOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required bool createFileUriExpression,
   });
 
   void prepareInitializers();
@@ -206,6 +221,32 @@ mixin RegularConstructorDeclarationMixin implements ConstructorDeclaration {
         namedSuperParameters: namedSuperParameters,
         libraryBuilder: libraryBuilder);
   }
+
+  void _buildTypeParametersAndFormals({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required LookupScope typeParameterScope,
+  }) {
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(libraryBuilder,
+            bodyBuilderContext, classHierarchy, typeParameterScope);
+      }
+    }
+
+    if (formals != null) {
+      // For const constructors we need to include default parameter values
+      // into the outline. For all other formals we need to call
+      // buildOutlineExpressions to clear initializerToken to prevent
+      // consuming too much memory.
+      for (FormalParameterBuilder formal in formals!) {
+        formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
+            scope: typeParameterScope, buildDefaultValue: true);
+      }
+    }
+  }
 }
 
 class RegularConstructorDeclaration
@@ -226,6 +267,9 @@ class RegularConstructorDeclaration
       : _syntheticFormals = syntheticFormals,
         _encoding = new RegularConstructorEncoding(
             isExternal: _fragment.modifiers.isExternal);
+
+  @override
+  LookupScope get typeParameterScope => _fragment.typeParameterScope;
 
   @override
   List<MetadataBuilder>? get metadata => _fragment.metadata;
@@ -278,6 +322,33 @@ class RegularConstructorDeclaration
         formals: formals,
         delayedDefaultValueCloners: delayedDefaultValueCloners);
   }
+
+  @override
+  void buildOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required bool createFileUriExpression,
+  }) {
+    for (Annotatable annotatable in annotatables) {
+      MetadataBuilder.buildAnnotations(
+          annotatable,
+          _fragment.metadata,
+          bodyBuilderContext,
+          libraryBuilder,
+          _fragment.fileUri,
+          _fragment.enclosingScope,
+          createFileUriExpression: createFileUriExpression);
+    }
+    _buildTypeParametersAndFormals(
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        classHierarchy: classHierarchy,
+        typeParameterScope: _fragment.typeParameterScope);
+  }
 }
 
 // Coverage-ignore(suite): Not run.
@@ -292,6 +363,8 @@ class PrimaryConstructorDeclaration
   PrimaryConstructorDeclaration(this._fragment)
       : _encoding = new RegularConstructorEncoding(
             isExternal: _fragment.modifiers.isExternal);
+  @override
+  LookupScope get typeParameterScope => _fragment.typeParameterScope;
 
   @override
   OmittedTypeBuilder get returnType => _fragment.returnType;
@@ -346,6 +419,24 @@ class PrimaryConstructorDeclaration
         formals: formals,
         delayedDefaultValueCloners: delayedDefaultValueCloners);
   }
+
+  @override
+  void buildOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required bool createFileUriExpression,
+  }) {
+    // There is no metadata on a primary constructor.
+    _buildTypeParametersAndFormals(
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        classHierarchy: classHierarchy,
+        typeParameterScope: _fragment.typeParameterScope);
+  }
 }
 
 class DefaultEnumConstructorDeclaration
@@ -364,15 +455,24 @@ class DefaultEnumConstructorDeclaration
   final RegularConstructorEncoding _encoding =
       new RegularConstructorEncoding(isExternal: false);
 
+  /// The scope in which to build the formal parameters.
+  final LookupScope _lookupScope;
+
   DefaultEnumConstructorDeclaration(
       {required this.returnType,
       required this.formals,
       required Uri fileUri,
-      required int fileOffset})
+      required int fileOffset,
+      required LookupScope lookupScope})
       : _fileUri = fileUri,
-        _fileOffset = fileOffset;
+        _fileOffset = fileOffset,
+        _lookupScope = lookupScope;
 
   @override
+  LookupScope get typeParameterScope => _lookupScope;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => null;
 
   @override
@@ -417,6 +517,24 @@ class DefaultEnumConstructorDeclaration
         typeParameters: typeParameters,
         formals: formals,
         delayedDefaultValueCloners: delayedDefaultValueCloners);
+  }
+
+  @override
+  void buildOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required bool createFileUriExpression,
+  }) {
+    // There is no metadata on a default enum constructor.
+    _buildTypeParametersAndFormals(
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        classHierarchy: classHierarchy,
+        typeParameterScope: _lookupScope);
   }
 }
 
@@ -541,6 +659,32 @@ mixin ExtensionTypeConstructorDeclarationMixin
     throw new UnsupportedError(
         '$runtimeType.addSuperParameterDefaultValueCloners');
   }
+
+  void _buildTypeParametersAndFormals({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required LookupScope typeParameterScope,
+  }) {
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(libraryBuilder,
+            bodyBuilderContext, classHierarchy, typeParameterScope);
+      }
+    }
+
+    if (formals != null) {
+      // For const constructors we need to include default parameter values
+      // into the outline. For all other formals we need to call
+      // buildOutlineExpressions to clear initializerToken to prevent
+      // consuming too much memory.
+      for (FormalParameterBuilder formal in formals!) {
+        formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
+            scope: typeParameterScope, buildDefaultValue: true);
+      }
+    }
+  }
 }
 
 class ExtensionTypeConstructorDeclaration
@@ -558,8 +702,11 @@ class ExtensionTypeConstructorDeclaration
       {required this.typeParameters})
       : _encoding = new ExtensionTypeConstructorEncoding(
             isExternal: _fragment.modifiers.isExternal);
+  @override
+  LookupScope get typeParameterScope => _fragment.typeParameterScope;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
@@ -607,6 +754,33 @@ class ExtensionTypeConstructorDeclaration
         formals: formals,
         delayedDefaultValueCloners: delayedDefaultValueCloners);
   }
+
+  @override
+  void buildOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required bool createFileUriExpression,
+  }) {
+    for (Annotatable annotatable in annotatables) {
+      MetadataBuilder.buildAnnotations(
+          annotatable,
+          _fragment.metadata,
+          bodyBuilderContext,
+          libraryBuilder,
+          _fragment.fileUri,
+          _fragment.enclosingScope,
+          createFileUriExpression: createFileUriExpression);
+    }
+    _buildTypeParametersAndFormals(
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        classHierarchy: classHierarchy,
+        typeParameterScope: _fragment.typeParameterScope);
+  }
 }
 
 class ExtensionTypePrimaryConstructorDeclaration
@@ -624,8 +798,11 @@ class ExtensionTypePrimaryConstructorDeclaration
       {required this.typeParameters})
       : _encoding = new ExtensionTypeConstructorEncoding(
             isExternal: _fragment.modifiers.isExternal);
+  @override
+  LookupScope get typeParameterScope => _fragment.typeParameterScope;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => null;
 
   @override
@@ -673,5 +850,23 @@ class ExtensionTypePrimaryConstructorDeclaration
         typeParameters: typeParameters,
         formals: formals,
         delayedDefaultValueCloners: delayedDefaultValueCloners);
+  }
+
+  @override
+  void buildOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required bool createFileUriExpression,
+  }) {
+    // There is no metadata on a primary constructor.
+    _buildTypeParametersAndFormals(
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        classHierarchy: classHierarchy,
+        typeParameterScope: _fragment.typeParameterScope);
   }
 }

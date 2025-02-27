@@ -152,8 +152,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   LibraryBuilder? get partOfLibrary => compilationUnit.partOfLibrary;
 
-  List<MetadataBuilder>? get metadata => compilationUnit.metadata;
-
   @override
   final Library library;
 
@@ -383,9 +381,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return compilationUnit.reportFeatureNotEnabled(
         feature, fileUri, charOffset, length);
   }
-
-  @override
-  LookupScope get scope => compilationUnit.compilationUnitScope;
 
   LookupScope? get parentScope => _parentScope;
 
@@ -1008,8 +1003,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    MetadataBuilder.buildAnnotations(
-        library, metadata, createBodyBuilderContext(), this, fileUri, scope,
+    compilationUnit.buildOutlineExpressions(library, createBodyBuilderContext(),
         createFileUriExpression: isAugmenting);
 
     Iterator<Builder> iterator = localMembersIterator;

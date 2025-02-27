@@ -123,17 +123,11 @@ class GetterFragment implements Fragment, FunctionFragment {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _encoding.buildOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        declarationBuilder,
-        parentScope,
-        createBodyBuilderContext(),
-        annotatable,
+    _encoding.buildOutlineExpressions(classHierarchy, libraryBuilder,
+        declarationBuilder, createBodyBuilderContext(), annotatable,
         isClassInstanceMember: isClassInstanceMember,
         createFileUriExpression: createFileUriExpression);
   }
@@ -257,7 +251,6 @@ sealed class _GetterEncoding implements InferredTypeListener {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
@@ -354,13 +347,16 @@ mixin _DirectGetterEncodingMixin implements _GetterEncoding {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
+    _buildMetadataForOutlineExpressions(
+        libraryBuilder,
+        _fragment.enclosingScope,
+        bodyBuilderContext,
+        annotatable,
+        _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
     _buildTypeParametersForOutlineExpressions(
@@ -374,6 +370,7 @@ mixin _DirectGetterEncodingMixin implements _GetterEncoding {
             ?.builders);
     _buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
   }
 
@@ -616,13 +613,16 @@ mixin _ExtensionInstanceGetterEncodingMixin implements _GetterEncoding {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
+    _buildMetadataForOutlineExpressions(
+        libraryBuilder,
+        _fragment.enclosingScope,
+        bodyBuilderContext,
+        annotatable,
+        _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
 
@@ -637,6 +637,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements _GetterEncoding {
             ?.builders);
     _buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
 
     _buildTypeParametersForOutlineExpressions(
@@ -647,6 +648,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements _GetterEncoding {
         _clonedDeclarationTypeParameters);
     _buildFormalForOutlineExpressions(
         libraryBuilder, declarationBuilder, _thisFormal,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
   }
 

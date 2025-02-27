@@ -11,7 +11,6 @@ import '../base/export.dart';
 import '../base/loader.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
-import '../base/scope.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
@@ -97,8 +96,6 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 }
 
 class DillLibraryBuilder extends LibraryBuilderImpl {
-  late final LookupScope _scope;
-
   late final DillLibraryNameSpace _nameSpace;
 
   late final DillExportNameSpace _exportScope;
@@ -131,12 +128,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   DillLibraryBuilder(this.library, this.loader) : super(library.fileUri) {
     _nameSpace = new DillLibraryNameSpace(this);
-    _scope = new NameSpaceLookupScope(_nameSpace, ScopeKind.library, 'top');
     _exportScope = new DillExportNameSpace(this);
   }
-
-  @override
-  LookupScope get scope => _scope;
 
   @override
   NameSpace get libraryNameSpace => _nameSpace;

@@ -681,17 +681,6 @@ class _FactoryEncoding implements InferredTypeListener {
                 : BuiltMemberKind.Factory));
   }
 
-  // TODO(johnniwinther): Remove this.
-  LookupScope _computeTypeParameterScope(LookupScope parent) {
-    if (typeParameters == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
-    for (NominalParameterBuilder variable in typeParameters!) {
-      if (variable.isWildcard) continue;
-      local[variable.name] = variable;
-    }
-    return new TypeParameterScope(parent, local);
-  }
-
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     _fragment.formals?.infer(classHierarchy);
@@ -700,7 +689,6 @@ class _FactoryEncoding implements InferredTypeListener {
       delayedDefaultValueCloners.add(_delayedDefaultValueCloner!);
     }
 
-    LookupScope parentScope = _fragment.builder.declarationBuilder.scope;
     for (Annotatable annotatable in _fragment.builder.annotatables) {
       MetadataBuilder.buildAnnotations(
           annotatable,
@@ -708,7 +696,7 @@ class _FactoryEncoding implements InferredTypeListener {
           _fragment.builder.createBodyBuilderContext(),
           _fragment.builder.libraryBuilder,
           _fragment.fileUri,
-          parentScope,
+          _fragment.enclosingScope,
           createFileUriExpression: _fragment.builder.isAugmented);
     }
     if (typeParameters != null) {
@@ -717,7 +705,7 @@ class _FactoryEncoding implements InferredTypeListener {
             _fragment.builder.libraryBuilder,
             _fragment.builder.createBodyBuilderContext(),
             classHierarchy,
-            _computeTypeParameterScope(parentScope));
+            _fragment.typeParameterScope);
       }
     }
 
@@ -729,6 +717,7 @@ class _FactoryEncoding implements InferredTypeListener {
       for (FormalParameterBuilder formal in _fragment.formals!) {
         formal.buildOutlineExpressions(_fragment.builder.libraryBuilder,
             _fragment.builder.declarationBuilder,
+            scope: _fragment.typeParameterScope,
             buildDefaultValue: FormalParameterBuilder
                 .needsDefaultValuesBuiltAsOutlineExpressions(
                     _fragment.builder));
@@ -760,7 +749,7 @@ class _FactoryEncoding implements InferredTypeListener {
           .createBodyBuilderForOutlineExpression(
               _fragment.builder.libraryBuilder,
               _fragment.builder.createBodyBuilderContext(),
-              _fragment.builder.declarationBuilder.scope,
+              _fragment.enclosingScope,
               _fragment.fileUri);
       Builder? targetBuilder = _fragment.redirectionTarget!.target;
 

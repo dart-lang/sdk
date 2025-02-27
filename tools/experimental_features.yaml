@@ -131,9 +131,6 @@ features:
     help: "Output arguments used by static functions."
     channels: [ "main", "dev" ]
 
-  null-aware-elements:
-    help: "Null-aware elements and map entries in collections."
-
   enhanced-parts:
     experimentalReleaseVersion: '3.6.0'
     help: "Generalize parts to be nested and have exports/imports."
@@ -166,6 +163,18 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  null-aware-elements:
+    enabledIn: '3.8.0'
+    validation: |
+      List<int> foo(int? x) => [?x];
+      main() {
+        if (foo(null).isEmpty) {
+          print('feature enabled');
+        }
+      }
+    help: "Null-aware elements and map entries in collections."
+    expired: true
 
   inference-using-bounds:
     enabledIn: '3.7.0'

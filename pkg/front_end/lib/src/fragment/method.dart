@@ -124,17 +124,11 @@ class MethodFragment implements Fragment, FunctionFragment {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _encoding.buildOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        declarationBuilder,
-        parentScope,
-        createBodyBuilderContext(),
-        annotatable,
+    _encoding.buildOutlineExpressions(classHierarchy, libraryBuilder,
+        declarationBuilder, createBodyBuilderContext(), annotatable,
         isClassInstanceMember: isClassInstanceMember,
         createFileUriExpression: createFileUriExpression);
   }
@@ -369,7 +363,6 @@ sealed class _MethodEncoding implements InferredTypeListener {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
@@ -465,13 +458,16 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
+    _buildMetadataForOutlineExpressions(
+        libraryBuilder,
+        _fragment.enclosingScope,
+        bodyBuilderContext,
+        annotatable,
+        _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
     _buildTypeParametersForOutlineExpressions(
@@ -482,6 +478,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
         _fragment.declaredTypeParameters);
     _buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
   }
 
@@ -959,13 +956,16 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
+    _buildMetadataForOutlineExpressions(
+        libraryBuilder,
+        _fragment.enclosingScope,
+        bodyBuilderContext,
+        annotatable,
+        _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
 
@@ -977,6 +977,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
         _fragment.declaredTypeParameters);
     _buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
 
     _buildTypeParametersForOutlineExpressions(
@@ -987,6 +988,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
         _clonedDeclarationTypeParameters);
     _buildFormalForOutlineExpressions(
         libraryBuilder, declarationBuilder, _thisFormal,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
   }
 

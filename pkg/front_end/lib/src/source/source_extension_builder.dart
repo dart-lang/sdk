@@ -50,11 +50,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
-  late final LookupScope _scope;
-
   late final DeclarationNameSpace _nameSpace;
-
-  late final ConstructorScope _constructorScope;
 
   @override
   final List<NominalParameterBuilder>? typeParameters;
@@ -119,14 +115,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   String get name => extensionName.name;
 
   @override
-  LookupScope get scope => _scope;
-
-  @override
   DeclarationNameSpace get nameSpace => _nameSpace;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -153,11 +142,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         containerType: ContainerType.Extension,
         containerName: extensionName,
         includeConstructors: false);
-    _scope = new NameSpaceLookupScope(
-        _nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",
-        parent: typeParameterScope);
-    _constructorScope =
-        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
   }
 
   @override
@@ -216,7 +200,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         createBodyBuilderContext(),
         libraryBuilder,
         _introductory.fileUri,
-        libraryBuilder.scope);
+        _introductory.enclosingScope);
 
     super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
   }

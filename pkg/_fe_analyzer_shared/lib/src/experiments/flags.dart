@@ -180,10 +180,10 @@ enum ExperimentalFlag {
 
   nullAwareElements(
       name: 'null-aware-elements',
-      isEnabledByDefault: false,
-      isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      isEnabledByDefault: true,
+      isExpired: true,
+      experimentEnabledVersion: const Version(3, 8),
+      experimentReleasedVersion: const Version(3, 8)),
 
   patterns(
       name: 'patterns',

@@ -71,11 +71,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
-  late final LookupScope _scope;
-
   late final DeclarationNameSpace _nameSpace;
-
-  late final ConstructorScope _constructorScope;
 
   @override
   final List<NominalParameterBuilder>? typeParameters;
@@ -128,19 +124,18 @@ class SourceExtensionTypeDeclarationBuilder
       ..fileOffset = nameOffset;
   }
 
+  // TODO(johnniwinther): Remove this when augmentations are handled through
+  //  fragments.
+  @override
+  LookupScope get bodyScope => _introductory.bodyScope;
+
   // Coverage-ignore(suite): Not run.
   // TODO(johnniwinther): Avoid exposing this. Annotations for macros and
   //  patches should be computing from within the builder.
   List<MetadataBuilder>? get metadata => _introductory.metadata;
 
   @override
-  LookupScope get scope => _scope;
-
-  @override
   DeclarationNameSpace get nameSpace => _nameSpace;
-
-  @override
-  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -167,11 +162,6 @@ class SourceExtensionTypeDeclarationBuilder
         indexedContainer: indexedContainer,
         containerType: ContainerType.ExtensionType,
         containerName: new ClassName(name));
-    _scope = new NameSpaceLookupScope(
-        _nameSpace, ScopeKind.declaration, "extension type $name",
-        parent: typeParameterScope);
-    _constructorScope =
-        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
   }
 
   @override
@@ -719,7 +709,7 @@ class SourceExtensionTypeDeclarationBuilder
         createBodyBuilderContext(),
         libraryBuilder,
         _introductory.fileUri,
-        libraryBuilder.scope);
+        _introductory.enclosingScope);
 
     super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
 

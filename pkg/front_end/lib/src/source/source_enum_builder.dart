@@ -42,6 +42,7 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
+import '../kernel/utils.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
@@ -54,6 +55,8 @@ import 'type_parameter_scope_builder.dart';
 class SourceEnumBuilder extends SourceClassBuilder {
   final int startOffset;
   final int endOffset;
+
+  final ClassDeclaration _introductory;
 
   final List<EnumElementFragment> _enumElements;
 
@@ -85,6 +88,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       required IndexedClass? indexedClass,
       required ClassDeclaration classDeclaration})
       : _underscoreEnumTypeBuilder = underscoreEnumTypeBuilder,
+        _introductory = classDeclaration,
         _enumElements = enumElements,
         super(
             modifiers: Modifiers.empty,
@@ -311,7 +315,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
                 nameFormalParameterBuilder
               ],
               fileUri: fileUri,
-              fileOffset: fileOffset);
+              fileOffset: fileOffset,
+              lookupScope: _introductory.compilationUnitScope);
       synthesizedDefaultConstructorBuilder = new SourceConstructorBuilderImpl(
           modifiers: Modifiers.Const,
           name: "",
@@ -388,9 +393,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
 
-    objectType.resolveIn(
-        coreLibrary.scope, fileOffset, fileUri, libraryBuilder);
-    listType.resolveIn(coreLibrary.scope, fileOffset, fileUri, libraryBuilder);
+    bindCoreType(coreLibrary, objectType);
+    bindCoreType(coreLibrary, listType);
 
     Class cls = super.build(coreLibrary);
     cls.isEnum = true;
@@ -579,7 +583,6 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       List<Annotatable> annotatables,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {

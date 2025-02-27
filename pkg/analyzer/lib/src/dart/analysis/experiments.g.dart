@@ -457,7 +457,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.null_aware_elements,
     documentation: 'Null-aware elements and map entries in collections.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.8.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -683,7 +683,7 @@ class IsEnabledByDefault {
   static const bool nonfunction_type_aliases = true;
 
   /// Default state of the experiment "null-aware-elements"
-  static const bool null_aware_elements = false;
+  static const bool null_aware_elements = true;
 
   /// Default state of the experiment "patterns"
   static const bool patterns = true;
@@ -802,7 +802,7 @@ class IsExpired {
   static const bool nonfunction_type_aliases = true;
 
   /// Expiration status of the experiment "null-aware-elements"
-  static const bool null_aware_elements = false;
+  static const bool null_aware_elements = true;
 
   /// Expiration status of the experiment "patterns"
   static const bool patterns = true;

@@ -1289,8 +1289,8 @@ severity: $severity
       }
     }
 
-    DietListener listener =
-        createDietListener(library, compilationUnit.offsetMap);
+    DietListener listener = createDietListener(library,
+        compilationUnit.compilationUnitScope, compilationUnit.offsetMap);
     DietParser parser = new DietParser(listener,
         allowPatterns: library.libraryFeatures.patterns.isEnabled,
         enableFeatureEnhancedParts:
@@ -1299,8 +1299,8 @@ severity: $severity
     for (SourceCompilationUnit compilationUnit in library.parts) {
       Token tokens = await tokenize(compilationUnit,
           suppressLexicalErrors: true, allowLazyStrings: false);
-      DietListener listener =
-          createDietListener(library, compilationUnit.offsetMap);
+      DietListener listener = createDietListener(library,
+          compilationUnit.compilationUnitScope, compilationUnit.offsetMap);
       DietParser parser = new DietParser(listener,
           allowPatterns: library.libraryFeatures.patterns.isEnabled,
           enableFeatureEnhancedParts:
@@ -1316,37 +1316,37 @@ severity: $severity
       bool isClassInstanceMember,
       Procedure procedure,
       VariableDeclaration? extensionThis) async {
-    Token token = await tokenize(libraryBuilder.compilationUnit,
-        suppressLexicalErrors: false, allowLazyStrings: false);
-    DietListener dietListener = createDietListener(
-        libraryBuilder,
-        // Expression compilation doesn't build an outline, and thus doesn't
-        // support members from source, so we provide an empty [DeclarationMap].
-        new OffsetMap(libraryBuilder.fileUri));
+    // TODO(johnniwinther): Support expression compilation in a specific
+    //  compilation unit.
+    LookupScope memberScope =
+        libraryBuilder.compilationUnit.compilationUnitScope;
 
+    DeclarationBuilder? declarationBuilder;
     if (enclosingClassOrExtension != null) {
-      Builder? builder = dietListener.memberScope
-          .lookupGetable(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
+      Builder? builder = memberScope.lookupGetable(
+          enclosingClassOrExtension, -1, libraryBuilder.fileUri);
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
-            dietListener
-              ..currentDeclaration = builder
-              ..memberScope = new NameSpaceLookupScope(
-                  builder.nameSpace,
-                  ScopeKind.declaration,
-                  "debugExpression in class $enclosingClassOrExtension",
-                  parent: TypeParameterScope.fromList(
-                      dietListener.memberScope, builder.typeParameters));
+            declarationBuilder = builder;
+            // TODO(johnniwinther): This should be the body scope of the
+            //  fragment in which we are compiling the expression.
+            memberScope = new NameSpaceLookupScope(
+                builder.nameSpace,
+                ScopeKind.declaration,
+                "debugExpression in class $enclosingClassOrExtension",
+                parent: TypeParameterScope.fromList(
+                    memberScope, builder.typeParameters));
           case ExtensionBuilder():
-            dietListener
-              ..currentDeclaration = builder
-              ..memberScope = new NameSpaceLookupScope(
-                  builder.nameSpace,
-                  ScopeKind.declaration,
-                  "debugExpression in extension $enclosingClassOrExtension",
-                  // TODO(johnniwinther): Shouldn't type parameters be in scope?
-                  parent: dietListener.memberScope);
+            declarationBuilder = builder;
+            // TODO(johnniwinther): This should be the body scope of the
+            //  fragment in which we are compiling the expression.
+            memberScope = new NameSpaceLookupScope(
+                builder.nameSpace,
+                ScopeKind.declaration,
+                "debugExpression in extension $enclosingClassOrExtension",
+                // TODO(johnniwinther): Shouldn't type parameters be in scope?
+                parent: memberScope);
           case ExtensionTypeDeclarationBuilder():
           // TODO(johnniwinther): Handle this case.
           case TypeAliasBuilder():
@@ -1358,10 +1358,20 @@ severity: $severity
       }
     }
 
+    Token token = await tokenize(libraryBuilder.compilationUnit,
+        suppressLexicalErrors: false, allowLazyStrings: false);
+    DietListener dietListener = createDietListener(
+        libraryBuilder,
+        memberScope,
+        // Expression compilation doesn't build an outline, and thus doesn't
+        // support members from source, so we provide an empty [DeclarationMap].
+        new OffsetMap(libraryBuilder.fileUri));
+
     BodyBuilder listener = dietListener.createListener(
-        new ExpressionCompilerProcedureBodyBuildContext(dietListener, procedure,
+        new ExpressionCompilerProcedureBodyBuildContext(
+            dietListener, procedure, libraryBuilder, declarationBuilder,
             isDeclarationInstanceMember: isClassInstanceMember),
-        dietListener.memberScope,
+        memberScope,
         thisVariable: extensionThis);
     for (VariableDeclaration variable
         in procedure.function.positionalParameters) {
@@ -1378,10 +1388,10 @@ severity: $severity
         procedure.function);
   }
 
-  DietListener createDietListener(
-      SourceLibraryBuilder library, OffsetMap offsetMap) {
-    return new DietListener(
-        library, hierarchy, coreTypes, typeInferenceEngine, offsetMap);
+  DietListener createDietListener(SourceLibraryBuilder library,
+      LookupScope compilationUnitScope, OffsetMap offsetMap) {
+    return new DietListener(library, compilationUnitScope, hierarchy, coreTypes,
+        typeInferenceEngine, offsetMap);
   }
 
   void resolveParts() {

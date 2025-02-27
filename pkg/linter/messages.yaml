@@ -14240,7 +14240,6 @@ LintCode:
       null-aware marker '?' would be less brittle and less verbose.
 
       ```dart
-      %experiments=null-aware-elements
       f(int? x) => [[!if!] (x != null) x];
       ```
 
@@ -14249,7 +14248,6 @@ LintCode:
       Replace the null-check with the null-aware marker '?':
 
       ```dart
-      %experiments=null-aware-elements
       f(int? x) => [?x];
       ```
     deprecatedDetails: |-
