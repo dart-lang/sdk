@@ -1111,7 +1111,7 @@ class LibraryAnalyzer {
 /// Analysis result for single file.
 class UnitAnalysisResult {
   final FileState file;
-  final CompilationUnit unit;
+  final CompilationUnitImpl unit;
   final List<AnalysisError> errors;
 
   UnitAnalysisResult(this.file, this.unit, this.errors);

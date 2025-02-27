@@ -544,6 +544,13 @@ extension InterfaceElementImplExtension on InterfaceElementImpl {
   }
 }
 
+extension JoinPatternVariableElementImplExtension
+    on JoinPatternVariableElementImpl {
+  JoinPatternVariableElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension LabelElement2Extension on LabelElement2 {
   LabelElement get asElement {
     return firstFragment as LabelElement;
@@ -688,6 +695,12 @@ extension ParameterElementExtension on ParameterElement {
 
 extension ParameterElementImplExtension on ParameterElementImpl {
   FormalParameterElementImpl get asElement2 {
+    return element;
+  }
+}
+
+extension PatternVariableElementImplExtension on PatternVariableElementImpl {
+  PatternVariableElementImpl2 get asElement2 {
     return element;
   }
 }

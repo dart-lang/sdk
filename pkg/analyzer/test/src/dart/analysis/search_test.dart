@@ -87,7 +87,7 @@ class SearchTest extends PubPackageResolutionTest {
     String expected,
   ) async {
     var searchedFiles = SearchedFiles();
-    var results = await driver.search.references2(element, searchedFiles);
+    var results = await driver.search.references(element, searchedFiles);
     var actual = _getSearchResultsText(results);
     if (actual != expected) {
       print(actual);
@@ -266,7 +266,7 @@ testFile
     offset: 16 2:7
     codeOffset: 12 + 5
     className: C
-  CONSTRUCTOR <unnamed>
+  CONSTRUCTOR new
     offset: 21 3:3
     codeOffset: 21 + 4
     className: C
@@ -439,7 +439,7 @@ testFile
   EXTENSION_TYPE E
     offset: 15 1:16
     codeOffset: 0 + 79
-  CONSTRUCTOR <unnamed>
+  CONSTRUCTOR new
     offset: 15 1:16
     codeOffset: 16 + 8
     className: E
@@ -760,7 +760,7 @@ class A {}
     var testDriver = driverFor(testFile);
 
     // No references, but this is not the most important.
-    var references = await testDriver.search.references2(A, searchedFiles);
+    var references = await testDriver.search.references(A, searchedFiles);
     expect(references, isEmpty);
 
     // We should not add the file to known files. It is not in the
@@ -1830,7 +1830,6 @@ package:aaa/a.dart::<fragment>::@function::main
   44 6:3 |v| READ
 ''');
   }
-
 
   test_searchReferences_MethodElement_class() async {
     await resolveTestCode('''
@@ -3022,7 +3021,7 @@ class C implements List {}
 
     void assertHasResult(String uriStr, String name, {bool not = false}) {
       var matcher = contains(predicate((SearchResult r) {
-        var element = r.enclosingElement2;
+        var element = r.enclosingFragment.element;
         return element.library2!.uri.toString() == uriStr &&
             element.name3 == name;
       }));
@@ -3063,7 +3062,6 @@ class A {}
     expect(b.id, endsWith('b.dart;B'));
     expect(c.id, endsWith('c.dart;C'));
   }
-
 
   test_subtypes_enum() async {
     await resolveTestCode('''
@@ -3209,13 +3207,13 @@ class NoMatchABCDEF {}
     var f = findElement2.function('f');
     var g = findElement2.topVar('g');
     RegExp regExp = RegExp(r'^[ABCDfg]$');
-    expect(await driver.search.topLevelElements2(regExp),
+    expect(await driver.search.topLevelElements(regExp),
         unorderedEquals([a, b, c, d, f, g]));
   }
 
   Future<List<Element2>> _findClassMembers(String name) {
     var searchedFiles = SearchedFiles();
-    return driver.search.classMembers2(name, searchedFiles);
+    return driver.search.classMembers(name, searchedFiles);
   }
 
   String _getDeclarationsText(

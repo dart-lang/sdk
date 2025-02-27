@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -64,8 +63,7 @@ class A {}
     required Version package,
     required Version? override,
   }) {
-    var unitImpl = result.unit as CompilationUnitImpl;
-    var languageVersion = unitImpl.languageVersion;
+    var languageVersion = result.unit.languageVersion;
     expect(languageVersion.package, package);
     expect(languageVersion.override, override);
   }

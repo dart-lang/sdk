@@ -3157,7 +3157,7 @@ abstract class ElementImpl implements Element, Element2 {
     return enclosingElement3?.source;
   }
 
-  /// Whether to include the [nameOffset] in [identifier] to disambiguiate
+  /// Whether to include the [nameOffset] in [identifier] to disambiguate
   /// elements that might otherwise have the same identifier.
   bool get _includeNameOffsetInIdentifier {
     var element = this;
@@ -9940,8 +9940,14 @@ class PatternVariableElementImpl2 extends LocalVariableElementImpl2
       _wrappedElement.isVisitingWhenClause = value;
 
   @override
-  JoinPatternVariableElement2? get join2 =>
-      JoinPatternVariableElementImpl2(_wrappedElement.join!);
+  JoinPatternVariableElementImpl2? get join2 {
+    return _wrappedElement.join?.asElement2;
+  }
+
+  /// Return the root [join2], or self.
+  PatternVariableElementImpl2 get rootVariable {
+    return join2?.rootVariable ?? this;
+  }
 
   @override
   PatternVariableElementImpl get _wrappedElement =>

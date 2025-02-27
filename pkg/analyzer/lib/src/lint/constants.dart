@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// The result of attempting to evaluate an expression as a constant.
@@ -88,11 +87,11 @@ extension on AstNode {
   /// Whether [ConstantVerifier] reports an error when computing the value of
   /// `this` as a constant.
   bool get hasConstantVerifierError {
-    var unitNode = thisOrAncestorOfType<CompilationUnit>();
+    var unitNode = thisOrAncestorOfType<CompilationUnitImpl>();
     var unitFragment = unitNode?.declaredFragment;
     if (unitFragment == null) return false;
 
-    var libraryElement = unitFragment.element as LibraryElementImpl;
+    var libraryElement = unitFragment.element;
     var declaredVariables = libraryElement.session.declaredVariables;
 
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();
@@ -159,13 +158,13 @@ extension ExpressionExtension on Expression {
   /// Returns a [LinterConstantEvaluationResult], containing both the computed
   /// constant value, and a list of errors that occurred during the computation.
   LinterConstantEvaluationResult computeConstantValue() {
-    var unitNode = thisOrAncestorOfType<CompilationUnit>();
+    var unitNode = thisOrAncestorOfType<CompilationUnitImpl>();
     var unitFragment = unitNode?.declaredFragment;
     if (unitFragment == null) {
       return LinterConstantEvaluationResult._(null, []);
     }
 
-    var libraryElement = unitFragment.element as LibraryElementImpl;
+    var libraryElement = unitFragment.element;
     var declaredVariables = libraryElement.session.declaredVariables;
 
     var evaluationEngine = ConstantEvaluationEngine(

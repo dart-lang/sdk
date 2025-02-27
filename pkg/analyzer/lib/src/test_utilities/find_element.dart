@@ -21,7 +21,7 @@ class FindElement extends _FindElementBase {
   @override
   CompilationUnitElement get unitElement => unit.declaredElement!;
 
-  LibraryExportElement export(String targetUri) {
+  LibraryExportElementImpl export(String targetUri) {
     LibraryExportElement? result;
 
     for (var export in unitElement.libraryExports) {
@@ -35,7 +35,7 @@ class FindElement extends _FindElementBase {
     }
 
     if (result != null) {
-      return result;
+      return result as LibraryExportElementImpl;
     }
     throw StateError('Not found: $targetUri');
   }
@@ -53,7 +53,8 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  LibraryImportElement import(String targetUri, {bool mustBeUnique = true}) {
+  LibraryImportElementImpl import(String targetUri,
+      {bool mustBeUnique = true}) {
     LibraryImportElement? importElement;
 
     for (var libraryFragment in unitElement.withEnclosing) {
@@ -70,7 +71,7 @@ class FindElement extends _FindElementBase {
     }
 
     if (importElement != null) {
-      return importElement;
+      return importElement as LibraryImportElementImpl;
     }
     throw StateError('Not found: $targetUri');
   }
@@ -288,7 +289,9 @@ class ImportFindElement extends _FindElementBase {
 
   ImportFindElement(this.import);
 
-  LibraryElement get importedLibrary => import.importedLibrary!;
+  LibraryElementImpl get importedLibrary {
+    return import.importedLibrary as LibraryElementImpl;
+  }
 
   PrefixElement? get prefix => import.prefix?.element;
 
