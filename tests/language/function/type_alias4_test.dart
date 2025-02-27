@@ -30,9 +30,13 @@ main() {
   Expect.isTrue(b.foo is F, 'runtime type of covariant parameters is Object');
   Expect.isTrue(i.foo is F, 'runtime type of covariant parameters is Object');
   Expect.isTrue(
-      b.foo is F<Object>, 'runtime type of covariant parameters is Object');
+    b.foo is F<Object>,
+    'runtime type of covariant parameters is Object',
+  );
   Expect.isTrue(
-      i.foo is F<Object>, 'runtime type of covariant parameters is Object');
+    i.foo is F<Object>,
+    'runtime type of covariant parameters is Object',
+  );
   Expect.isTrue(b.foo is F<bool>);
   Expect.isTrue(i.foo is F<int>);
   Expect.isTrue(b.foo is! F<int>);

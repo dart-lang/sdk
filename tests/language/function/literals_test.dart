@@ -55,17 +55,19 @@ class FunctionLiteralsTest {
 
   void testArrowBlock() {
     checkIntFuncFunction(
-        84,
-        (x) => (y) {
-              return (x as int) + (y as int);
-            },
-        42);
+      84,
+      (x) => (y) {
+        return (x as int) + (y as int);
+      },
+      42,
+    );
     checkIntFuncFunction(
-        84,
-        (int x) => (y) {
-              return (x + y) as int;
-            },
-        42);
+      84,
+      (int x) => (y) {
+        return (x + y) as int;
+      },
+      42,
+    );
   }
 
   void testBlock() {

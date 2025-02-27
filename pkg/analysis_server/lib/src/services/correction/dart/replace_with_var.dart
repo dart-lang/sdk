@@ -48,6 +48,10 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
             grandparent is TopLevelVariableDeclaration ||
             grandparent is FieldDeclaration)) {
       var variables = parent.variables;
+      // This is the job of RemoveTypeAnnotation fix/assist.
+      if (parent.isConst || parent.isFinal) {
+        return;
+      }
       if (variables.length != 1) {
         return;
       }
@@ -88,17 +92,19 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
         return;
       }
       await builder.addDartFileEdit(file, (builder) {
-        if (parent.isConst || parent.isFinal) {
-          builder.addDeletion(range.startStart(type, variables[0]));
-        } else {
-          builder.addSimpleReplacement(range.node(type), 'var');
-        }
+        builder.addSimpleReplacement(range.node(type), 'var');
+
         if (typeArgumentsText != null && typeArgumentsOffset != null) {
           builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
         }
       });
     } else if (parent is DeclaredIdentifier &&
         grandparent is ForEachPartsWithDeclaration) {
+      // This is the job of RemoveTypeAnnotation fix/assist.
+      if (parent.isConst || parent.isFinal) {
+        return;
+      }
+
       String? typeArgumentsText;
       int? typeArgumentsOffset;
       if (type is NamedType) {

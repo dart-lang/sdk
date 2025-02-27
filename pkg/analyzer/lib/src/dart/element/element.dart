@@ -615,11 +615,11 @@ class ClassElementImpl2 extends InterfaceElementImpl2
   ///
   /// If the class is sealed, and all its subtypes are either final or sealed,
   /// then these subtypes are all subtypes that are possible.
-  List<InterfaceType>? get allSubtypes {
+  List<InterfaceTypeImpl>? get allSubtypes {
     if (isFinal) {
-      var result = <InterfaceType>[];
+      var result = <InterfaceTypeImpl>[];
       for (var element in library2.children2) {
-        if (element is InterfaceElement2 && element != this) {
+        if (element is InterfaceElementImpl2 && element != this) {
           var elementThis = element.thisType;
           if (elementThis.asInstanceOf2(this) != null) {
             result.add(elementThis);
@@ -630,9 +630,9 @@ class ClassElementImpl2 extends InterfaceElementImpl2
     }
 
     if (isSealed) {
-      var result = <InterfaceType>[];
+      var result = <InterfaceTypeImpl>[];
       for (var element in library2.children2) {
-        if (element is! InterfaceElement2 || identical(element, this)) {
+        if (element is! InterfaceElementImpl2 || identical(element, this)) {
           continue;
         }
 
@@ -642,7 +642,7 @@ class ClassElementImpl2 extends InterfaceElementImpl2
         }
 
         switch (element) {
-          case ClassElement2 _:
+          case ClassElementImpl2 _:
             if (element.isFinal || element.isSealed) {
               result.add(elementThis);
             } else {

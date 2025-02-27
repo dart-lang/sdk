@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -31,14 +30,10 @@ class ExtensionMemberResolver {
 
   ExtensionMemberResolver(this._resolver);
 
-  DartType get _dynamicType => _typeProvider.dynamicType;
-
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
-
-  TypeProvider get _typeProvider => _resolver.typeProvider;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -202,7 +197,7 @@ class ExtensionMemberResolver {
           CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
         );
       }
-      nodeImpl.setPseudoExpressionStaticType(_dynamicType);
+      nodeImpl.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
     }
 
     var arguments = node.argumentList.arguments;
@@ -212,7 +207,7 @@ class ExtensionMemberResolver {
         CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
       );
       nodeImpl.typeArgumentTypes = _listOfDynamic(typeParameters);
-      nodeImpl.extendedType = _dynamicType;
+      nodeImpl.extendedType = DynamicTypeImpl.instance;
       return;
     }
 
@@ -445,7 +440,7 @@ class ExtensionMemberResolver {
       _typeSystem.isSubtypeOf(type1, type2);
 
   List<DartType> _listOfDynamic(List<Object?> parameters) {
-    return List<DartType>.filled(parameters.length, _dynamicType);
+    return List<DartType>.filled(parameters.length, DynamicTypeImpl.instance);
   }
 
   static bool _isCascadeTarget(ExtensionOverride node) {

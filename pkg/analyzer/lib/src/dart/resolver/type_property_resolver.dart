@@ -232,13 +232,10 @@ class TypePropertyResolver {
     }
   }
 
-  void _lookupExtension(DartType type) {
+  void _lookupExtension(TypeImpl type) {
     var getterName = Name(_definingLibrary.source.uri, _name);
-    var result = _extensionResolver.findExtension(
-        // TODO(paulberry): eliminate this cast by changing the type of the `type` parameter.
-        type as TypeImpl,
-        _nameErrorEntity,
-        getterName);
+    var result =
+        _extensionResolver.findExtension(type, _nameErrorEntity, getterName);
     _reportedGetterError = result == ExtensionResolutionError.ambiguous;
     _reportedSetterError = result == ExtensionResolutionError.ambiguous;
 

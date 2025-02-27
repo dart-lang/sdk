@@ -61,7 +61,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 class EnclosingExecutableContext {
-  final ExecutableElement2? element;
+  final ExecutableElement2OrMember? element;
   final bool isAsynchronous;
   final bool isConstConstructor;
   final bool isGenerativeConstructor;
@@ -73,7 +73,7 @@ class EnclosingExecutableContext {
   /// invocation of [Future.catchError], returns the return type expected for
   /// `Future<T>.catchError`'s `onError` parameter, which is `FutureOr<T>`,
   /// otherwise `null`.
-  final InterfaceType? catchErrorOnErrorReturnType;
+  final InterfaceTypeImpl? catchErrorOnErrorReturnType;
 
   /// The return statements that have a value.
   final List<ReturnStatement> _returnsWith = [];
@@ -92,9 +92,10 @@ class EnclosingExecutableContext {
       {required this.isAsynchronous,
       required this.isGenerator,
       this.catchErrorOnErrorReturnType})
-      : isConstConstructor = element is ConstructorElement2 && element.isConst,
+      : isConstConstructor =
+            element is ConstructorElementMixin2 && element.isConst,
         isGenerativeConstructor =
-            element is ConstructorElement2 && !element.isFactory,
+            element is ConstructorElementMixin2 && !element.isFactory,
         inFactoryConstructor = _inFactoryConstructor(element),
         inStaticMethod = _inStaticMethod(element);
 
@@ -123,7 +124,7 @@ class EnclosingExecutableContext {
 
   bool get isSynchronous => !isAsynchronous;
 
-  DartType get returnType {
+  TypeImpl get returnType {
     return catchErrorOnErrorReturnType ?? element!.returnType;
   }
 
@@ -976,10 +977,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     _isInLateLocalVariable.add(false);
 
-    if (node.parent is FunctionDeclaration) {
+    if (node.parent is FunctionDeclarationImpl) {
       super.visitFunctionExpression(node);
     } else {
       var fragment = node.declaredFragment!;
@@ -3133,7 +3134,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
 
-    DartType iterableType = node.iterable.typeOrThrow;
+    var iterableType = node.iterable.typeOrThrow;
 
     Token? awaitKeyword;
     var parent = node.parent;
@@ -6486,7 +6487,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _withEnclosingExecutable(
-    ExecutableElement2 element,
+    ExecutableElement2OrMember element,
     void Function() operation, {
     required bool isAsynchronous,
     required bool isGenerator,

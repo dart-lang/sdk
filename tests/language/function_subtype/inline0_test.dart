@@ -14,29 +14,50 @@ typedef int Boz(bool a);
 
 class C<T> {
   void test(String nameOfT, bool expectedResult, bool expectedBozResult) {
-    Expect.equals(expectedResult, (T a, [String b = '']) {} is Foo,
-        '($nameOfT,[String])->void is Foo');
-    Expect.equals(expectedResult, (T a, [String b = '']) {} is Bar,
-        '($nameOfT,[String])->void is Bar');
+    Expect.equals(
+      expectedResult,
+      (T a, [String b = '']) {} is Foo,
+      '($nameOfT,[String])->void is Foo',
+    );
+    Expect.equals(
+      expectedResult,
+      (T a, [String b = '']) {} is Bar,
+      '($nameOfT,[String])->void is Bar',
+    );
     Expect.isFalse(
-        (T a, [String b = '']) {} is Baz, '($nameOfT,[String])->void is Baz');
+      (T a, [String b = '']) {} is Baz,
+      '($nameOfT,[String])->void is Baz',
+    );
 
     // Boz returns a non-nullable int, so a void function is only of that type
     // in weak mode.
-    Expect.equals(expectedBozResult, (T a, [String b = '']) {} is Boz,
-        '($nameOfT,[String])->void is Boz');
+    Expect.equals(
+      expectedBozResult,
+      (T a, [String b = '']) {} is Boz,
+      '($nameOfT,[String])->void is Boz',
+    );
 
     Expect.isFalse(
-        (T a, {String b = ''}) {} is Foo, '($nameOfT,{b:String})->void is Foo');
+      (T a, {String b = ''}) {} is Foo,
+      '($nameOfT,{b:String})->void is Foo',
+    );
     Expect.isFalse(
-        (T a, {String b = ''}) {} is Bar, '($nameOfT,{b:String})->void is Bar');
-    Expect.equals(expectedResult, (T a, {String b = ''}) {} is Baz,
-        '($nameOfT,{b:String})->void is Baz');
+      (T a, {String b = ''}) {} is Bar,
+      '($nameOfT,{b:String})->void is Bar',
+    );
+    Expect.equals(
+      expectedResult,
+      (T a, {String b = ''}) {} is Baz,
+      '($nameOfT,{b:String})->void is Baz',
+    );
 
     // Boz returns a non-nullable int, so a void function is only of that type
     // in weak mode.
-    Expect.equals(expectedBozResult, (T a, {String b = ''}) {} is Boz,
-        '($nameOfT,{b:String})->void is Boz');
+    Expect.equals(
+      expectedBozResult,
+      (T a, {String b = ''}) {} is Boz,
+      '($nameOfT,{b:String})->void is Boz',
+    );
   }
 }
 

@@ -47,7 +47,8 @@ class Thing {
     if (depth > 0) return 'recursion!';
     try {
       ++depth;
-      var sum = a +
+      var sum =
+          a +
           b +
           c +
           d +
@@ -145,5 +146,7 @@ main() {
   var t3 = [];
 
   Expect.equals(
-      '[Thing(1, 2, 3486), Thing(3, 4, 10375), []]', '${[t1, t2, t3]}');
+    '[Thing(1, 2, 3486), Thing(3, 4, 10375), []]',
+    '${[t1, t2, t3]}',
+  );
 }

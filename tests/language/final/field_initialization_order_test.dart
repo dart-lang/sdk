@@ -38,9 +38,7 @@ class MixedFields extends OneField {
   final d = new Mark('d');
   MixedFields();
   MixedFields.c0() : c = new Mark('cc');
-  MixedFields.c1()
-      : c = new Mark('cc'),
-        super();
+  MixedFields.c1() : c = new Mark('cc'), super();
 }
 
 String run(callback) {

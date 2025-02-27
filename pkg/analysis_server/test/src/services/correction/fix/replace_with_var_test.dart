@@ -103,13 +103,7 @@ void f(List<int> list) {
   }
 }
 ''');
-    await assertHasFix('''
-void f(List<int> list) {
-  for (final i in list) {
-    print(i);
-  }
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_instanceCreation_cascade() async {
@@ -183,12 +177,7 @@ String f() {
   return values[0];
 }
 ''');
-    await assertHasFix('''
-String f() {
-  const values = const <String>['a'];
-  return values[0];
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_mapLiteral() async {
@@ -213,12 +202,7 @@ Map f() {
   return m;
 }
 ''');
-    await assertHasFix('''
-Map f() {
-  const m = const <String, int>{};
-  return m;
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_setLiteral() async {
@@ -268,12 +252,7 @@ String f() {
   return s.first;
 }
 ''');
-    await assertHasFix('''
-String f() {
-  const s = const <String>{'a'};
-  return s.first;
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_setLiteral_recordType() async {
@@ -313,12 +292,7 @@ String f() {
   return s;
 }
 ''');
-    await assertHasFix('''
-String f() {
-  const s = '';
-  return s;
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_simple_final() async {
@@ -328,12 +302,7 @@ String f() {
   return s;
 }
 ''');
-    await assertHasFix('''
-String f() {
-  final s = '';
-  return s;
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_simple_recordType() async {
@@ -435,13 +404,7 @@ void f() {
   }
 }
 ''');
-    await assertHasFix('''
-void f() {
-  for (final s in ['a']) {
-    print(s);
-  }
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_instanceCreation_cascade() async {
@@ -498,12 +461,7 @@ String f() {
   return values[0];
 }
 ''');
-    await assertHasFix('''
-String f() {
-  const values = const <String>['a'];
-  return values[0];
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_mapLiteral() async {
@@ -528,12 +486,7 @@ Map f() {
   return m;
 }
 ''');
-    await assertHasFix('''
-Map f() {
-  const m = const <String, double>{'a': 1.5};
-  return m;
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_setLiteral() async {
@@ -573,12 +526,7 @@ String f() {
   return s.first;
 }
 ''');
-    await assertHasFix('''
-String f() {
-  const s = const <String>{'a'};
-  return s.first;
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_setLiteral_recordType() async {
@@ -618,12 +566,7 @@ String f() {
   return s;
 }
 ''');
-    await assertHasFix('''
-String f() {
-  const s = '';
-  return s;
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_simple_final() async {
@@ -633,12 +576,7 @@ String f() {
   return s;
 }
 ''');
-    await assertHasFix('''
-String f() {
-  final s = '';
-  return s;
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_simple_recordType() async {
@@ -703,11 +641,7 @@ final C<int> c = C<int>();
 
 class C<T> {}
 ''');
-    await assertHasFix('''
-final c = C<int>();
-
-class C<T> {}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_listLiteral() async {
@@ -727,9 +661,7 @@ int x = 2 + 'Not obvious'.length;
     await resolveTestCode('''
 const List<String> values = const ['a'];
 ''');
-    await assertHasFix('''
-const values = const <String>['a'];
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_mapLiteral() async {
@@ -745,9 +677,7 @@ var m = <String, double>{'a': 1.5};
     await resolveTestCode('''
 const Map<String, double> m = {'a': 1.5};
 ''');
-    await assertHasFix('''
-const m = <String, double>{'a': 1.5};
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_setLiteral() async {
@@ -772,9 +702,7 @@ var s = <String>{'a'}..addAll([]);
     await resolveTestCode('''
 const Set<String> s = const {'a'};
 ''');
-    await assertHasFix('''
-const s = const <String>{'a'};
-''');
+    await assertNoFix();
   }
 
   Future<void> test_generic_setLiteral_recordType() async {
@@ -799,18 +727,14 @@ var s = '';
     await resolveTestCode('''
 const String s = '';
 ''');
-    await assertHasFix('''
-const s = '';
-''');
+    await assertNoFix();
   }
 
   Future<void> test_simple_final() async {
     await resolveTestCode('''
 final String s = '';
 ''');
-    await assertHasFix('''
-final s = '';
-''');
+    await assertNoFix();
   }
 
   Future<void> test_simple_recordType() async {
@@ -835,8 +759,6 @@ var list = <String>['a'];
     await resolveTestCode('''
 final List<String> list = ['a'];
 ''');
-    await assertHasFix('''
-final list = <String>['a'];
-''');
+    await assertNoFix();
   }
 }

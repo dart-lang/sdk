@@ -27,24 +27,38 @@ check(a, b) {
 }
 
 main() {
-  check('[null, 33, null, 11, 22, null]',
-      Function.apply(new CCC().memberFn, [], {#a4: 11, #a5: 22, #a2: 33}));
-
-  Expect.throwsTypeErrorWhen(v.checkedParameters,
-      () => Function.apply(new CCC().memberFn, [], {#a3: 'hi'}));
-
-  check('[11, 22, 33, null, null]',
-      Function.apply(makeFn(), [], {#a1: 11, #a2: 22, #a3: 33}));
-
-  check('[null, 33, null, 11, 22]',
-      Function.apply(makeFn(), [], {#a4: 11, #a5: 22, #a2: 33}));
+  check(
+    '[null, 33, null, 11, 22, null]',
+    Function.apply(new CCC().memberFn, [], {#a4: 11, #a5: 22, #a2: 33}),
+  );
 
   Expect.throwsTypeErrorWhen(
-      v.checkedParameters, () => Function.apply(makeFn(), [], {#a3: 'hi'}));
+    v.checkedParameters,
+    () => Function.apply(new CCC().memberFn, [], {#a3: 'hi'}),
+  );
 
-  check('[null, 33, null, 11, 22, null]',
-      Function.apply(staticFn, [], {#a4: 11, #a5: 22, #a2: 33}));
+  check(
+    '[11, 22, 33, null, null]',
+    Function.apply(makeFn(), [], {#a1: 11, #a2: 22, #a3: 33}),
+  );
+
+  check(
+    '[null, 33, null, 11, 22]',
+    Function.apply(makeFn(), [], {#a4: 11, #a5: 22, #a2: 33}),
+  );
 
   Expect.throwsTypeErrorWhen(
-      v.checkedParameters, () => Function.apply(staticFn, [], {#a3: 'hi'}));
+    v.checkedParameters,
+    () => Function.apply(makeFn(), [], {#a3: 'hi'}),
+  );
+
+  check(
+    '[null, 33, null, 11, 22, null]',
+    Function.apply(staticFn, [], {#a4: 11, #a5: 22, #a2: 33}),
+  );
+
+  Expect.throwsTypeErrorWhen(
+    v.checkedParameters,
+    () => Function.apply(staticFn, [], {#a3: 'hi'}),
+  );
 }

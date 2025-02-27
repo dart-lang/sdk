@@ -22,7 +22,7 @@ class LocalFunction3Test {
     String f_string = "";
     try {
       f_string = f.toString();
-    } on NoSuchMethodError  {
+    } on NoSuchMethodError {
       exception_caught = true;
     }
     Expect.equals(false, exception_caught);

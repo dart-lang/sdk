@@ -1999,7 +1999,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitBlockFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -5520,7 +5520,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitEmptyFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -6171,7 +6171,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
       visitor.visitExpressionFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitExpressionFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -6186,9 +6186,9 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @experimental
   @override
-  FormalParameterElement? get correspondingParameter {
+  FormalParameterElementMixin? get correspondingParameter {
     return switch (staticParameterElement) {
-      FormalParameterFragment(:var element) => element,
+      ParameterElementImpl(:var element) => element,
       ParameterMember member => member,
       _ => null,
     };
@@ -6722,7 +6722,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   List<DartType>? typeArgumentTypes;
 
   @override
-  DartType? extendedType;
+  TypeImpl? extendedType;
 
   ExtensionOverrideImpl({
     required this.importPrefix,
@@ -8303,7 +8303,7 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /// return type context for `return` statements.
   ///
   /// Returns value is the actual return type of the method.
-  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType);
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType);
 }
 
 /// A function declaration.
@@ -12929,7 +12929,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitNativeFunctionBody(this, imposedType: imposedType);
 
   @override

@@ -19,12 +19,12 @@ main() {
 
 @reflectiveTest
 class TryPromoteToTest extends AbstractTypeSystemTest {
-  void notPromotes(DartType from, DartType to) {
+  void notPromotes(TypeImpl from, TypeImpl to) {
     var result = typeSystem.tryPromoteToType(to, from);
     expect(result, isNull);
   }
 
-  void promotes(DartType from, DartType to) {
+  void promotes(TypeImpl from, TypeImpl to) {
     var result = typeSystem.tryPromoteToType(to, from);
     expect(result, to);
   }
@@ -41,7 +41,7 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter() {
-    TypeParameterTypeImpl tryPromote(DartType to, TypeParameterTypeImpl from) {
+    TypeParameterTypeImpl tryPromote(TypeImpl to, TypeParameterTypeImpl from) {
       return typeSystem.tryPromoteToType(to, from) as TypeParameterTypeImpl;
     }
 
@@ -61,7 +61,7 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_twice() {
-    TypeParameterTypeImpl tryPromote(DartType to, TypeParameterTypeImpl from) {
+    TypeParameterTypeImpl tryPromote(TypeImpl to, TypeParameterTypeImpl from) {
       return typeSystem.tryPromoteToType(to, from) as TypeParameterTypeImpl;
     }
 

@@ -298,15 +298,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     required bool check,
   }) {
     LintCode? lintCode;
-    (DartType, DartType) eraseTypes(DartType left, DartType right) {
-      // Note: type casts are needed here because `EraseNonJSInteropTypes`
-      // extends the analyzer's private class `ExtensionTypeErasure`, which uses
-      // `TypeImpl` rather than `DartType`.
-      DartType erasedLeft = typeSystem.promoteToNonNull(
-        eraseNonJsInteropTypes.perform(left as TypeImpl),
+    (TypeImpl, TypeImpl) eraseTypes(TypeImpl left, TypeImpl right) {
+      var erasedLeft = typeSystem.promoteToNonNull(
+        eraseNonJsInteropTypes.perform(left),
       );
-      DartType erasedRight = typeSystem.promoteToNonNull(
-        eraseNonJsInteropTypes.perform(right as TypeImpl),
+      var erasedRight = typeSystem.promoteToNonNull(
+        eraseNonJsInteropTypes.perform(right),
       );
       var leftIsInteropType = _isJsInteropType(
         erasedLeft,
@@ -406,7 +403,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return lintCode;
     }
     // Called here for the side effects of `eraseTypes`.
-    typeSystem.canBeSubtypeOf(leftType, rightType, eraseTypes: eraseTypes);
+    typeSystem.canBeSubtypeOf(
+      leftType as TypeImpl,
+      rightType as TypeImpl,
+      eraseTypes: eraseTypes,
+    );
     return lintCode;
   }
 

@@ -387,6 +387,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Convert to block body everywhere in file',
   );
+  static const CONVERT_INTO_GETTER = FixKind(
+    'dart.fix.convert.getter',
+    DartFixKindPriority.standard,
+    "Convert '{0}' to a getter",
+  );
   static const CONVERT_FOR_EACH_TO_FOR_LOOP = FixKind(
     'dart.fix.convert.toForLoop',
     DartFixKindPriority.standard,

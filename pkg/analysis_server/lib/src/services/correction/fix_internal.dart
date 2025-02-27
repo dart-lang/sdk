@@ -52,6 +52,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_flutter_chi
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_children.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_for_each_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_block_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_into_getter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_null_check_to_null_aware_element_or_entry.dart';
@@ -387,9 +388,18 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
     ReplaceNullCheckWithCast.new,
   ],
   LinterLintCode.null_closures: [ReplaceNullWithClosure.new],
-  LinterLintCode.omit_local_variable_types: [ReplaceWithVar.new],
-  LinterLintCode.omit_obvious_local_variable_types: [ReplaceWithVar.new],
-  LinterLintCode.omit_obvious_property_types: [ReplaceWithVar.new],
+  LinterLintCode.omit_local_variable_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
+  LinterLintCode.omit_obvious_local_variable_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
+  LinterLintCode.omit_obvious_property_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
   LinterLintCode.prefer_adjacent_string_concatenation: [RemoveOperator.new],
   LinterLintCode.prefer_collection_literals: [
     ConvertToMapLiteral.new,
@@ -762,8 +772,14 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT: [
     RemoveMethodDeclaration.new,
   ],
+  CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD: [
+    ConvertIntoGetter.new,
+  ],
   CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT: [
     RemoveMethodDeclaration.new,
+  ],
+  CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD: [
+    ConvertIntoGetter.new,
   ],
   CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
     ReplaceWithExtensionName.new,

@@ -260,7 +260,7 @@ class AssignmentExpressionResolver {
       {required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted,
       required TypeImpl contextType}) {
-    DartType assignedType;
+    TypeImpl assignedType;
 
     var rightHandSide = node.rightHandSide;
     var operator = node.operator.type;
@@ -301,11 +301,7 @@ class AssignmentExpressionResolver {
       var t2 = assignedType;
       //   - Let `T` be `UP(NonNull(T1), T2)`.
       var nonNullT1 = _typeSystem.promoteToNonNull(t1);
-      var t = _typeSystem.leastUpperBound(
-          nonNullT1,
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `assignedType`.
-          t2 as TypeImpl);
+      var t = _typeSystem.leastUpperBound(nonNullT1, t2);
       //   - Let `S` be the greatest closure of `K`.
       var s = _typeSystem.greatestClosureOfSchema(contextType);
       // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.

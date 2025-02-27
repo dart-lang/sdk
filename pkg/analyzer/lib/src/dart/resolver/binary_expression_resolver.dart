@@ -470,7 +470,7 @@ class BinaryExpressionResolver {
   void _resolveUserDefinableType(BinaryExpressionImpl node) {
     var leftOperand = node.leftOperand;
 
-    DartType leftType;
+    TypeImpl leftType;
     if (leftOperand is AugmentedExpressionImpl) {
       leftType = leftOperand.typeOrThrow;
     } else if (leftOperand is ExtensionOverrideImpl) {

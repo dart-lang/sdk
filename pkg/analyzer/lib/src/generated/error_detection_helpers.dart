@@ -7,7 +7,6 @@ library;
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -15,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -59,11 +59,12 @@ mixin ErrorDetectionHelpers {
   /// parameter.
   ///
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-  void checkForArgumentTypeNotAssignableForArgument(Expression argument,
+  void checkForArgumentTypeNotAssignableForArgument(ExpressionImpl argument,
       {bool promoteParameterToNullable = false,
       Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted}) {
     _checkForArgumentTypeNotAssignableForArgument(
-      argument: argument is NamedExpression ? argument.expression : argument,
+      argument:
+          argument is NamedExpressionImpl ? argument.expression : argument,
       parameter: argument.correspondingParameter,
       promoteParameterToNullable: promoteParameterToNullable,
       whyNotPromoted: whyNotPromoted,
@@ -258,11 +259,11 @@ mixin ErrorDetectionHelpers {
 
   void checkIndexExpressionIndex(
     Expression index, {
-    required ExecutableElement2? readElement,
-    required ExecutableElement2? writeElement,
+    required ExecutableElement2OrMember? readElement,
+    required ExecutableElement2OrMember? writeElement,
     required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
-    if (readElement is MethodElement2) {
+    if (readElement is MethodElement2OrMember) {
       var parameters = readElement.formalParameters;
       if (parameters.isNotEmpty) {
         _checkForArgumentTypeNotAssignableForArgument(
@@ -274,7 +275,7 @@ mixin ErrorDetectionHelpers {
       }
     }
 
-    if (writeElement is MethodElement2) {
+    if (writeElement is MethodElement2OrMember) {
       var parameters = writeElement.formalParameters;
       if (parameters.isNotEmpty) {
         _checkForArgumentTypeNotAssignableForArgument(
@@ -355,15 +356,14 @@ mixin ErrorDetectionHelpers {
 
   void _checkForArgumentTypeNotAssignableForArgument({
     required Expression argument,
-    required FormalParameterElement? parameter,
+    required FormalParameterElementMixin? parameter,
     required bool promoteParameterToNullable,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     var staticParameterType = parameter?.type;
     if (staticParameterType != null) {
       if (promoteParameterToNullable) {
-        staticParameterType =
-            typeSystem.makeNullable(staticParameterType as TypeImpl);
+        staticParameterType = typeSystem.makeNullable(staticParameterType);
       }
       checkForArgumentTypeNotAssignable(
           argument,

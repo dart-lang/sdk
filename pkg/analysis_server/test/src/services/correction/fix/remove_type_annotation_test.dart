@@ -24,6 +24,12 @@ void main() {
     defineReflectiveTests(TypeInitFormalsBulkTest);
     defineReflectiveTests(TypeInitFormalsTest);
     defineReflectiveTests(VarAndTypeTest);
+    defineReflectiveTests(OmitLocaVariableTypesBulkTest);
+    defineReflectiveTests(OmitLocaVariableTypesLintTest);
+    defineReflectiveTests(OmitObviousLocalVariableTypesBulkTest);
+    defineReflectiveTests(OmitObviousLocalVariableTypesLintTest);
+    defineReflectiveTests(OmitObviousPropertyTypesLintBulkTest);
+    defineReflectiveTests(OmitObviousPropertyTypesLintLintTest);
   });
 }
 
@@ -224,6 +230,373 @@ void f(C c) {
 class C {
   void forEach(void Function([Future<int>? p])) {}
 }
+''');
+  }
+}
+
+@reflectiveTest
+class OmitLocaVariableTypesBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.omit_local_variable_types;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+List f() {
+  const List<int> l = [];
+  return l;
+}
+
+void f2(List<int> list) {
+  for (final int i in list) {
+    print(i);
+  }
+}
+''');
+    await assertHasFix('''
+List f() {
+  const l = <int>[];
+  return l;
+}
+
+void f2(List<int> list) {
+  for (final i in list) {
+    print(i);
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class OmitLocaVariableTypesLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+
+  @override
+  String get lintCode => LintNames.omit_local_variable_types;
+
+  Future<void> test_forEach_final() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  for (final int i in list) {
+    print(i);
+  }
+}
+''');
+    await assertHasFix('''
+void f(List<int> list) {
+  for (final i in list) {
+    print(i);
+  }
+}
+''');
+  }
+
+  Future<void> test_generic_listLiteral_const() async {
+    await resolveTestCode('''
+String f() {
+  const List<String> values = const ['a'];
+  return values[0];
+}
+''');
+    await assertHasFix('''
+String f() {
+  const values = const <String>['a'];
+  return values[0];
+}
+''');
+  }
+
+  Future<void> test_generic_mapLiteral_const() async {
+    await resolveTestCode('''
+Map f() {
+  const Map<String, int> m = const {};
+  return m;
+}
+''');
+    await assertHasFix('''
+Map f() {
+  const m = const <String, int>{};
+  return m;
+}
+''');
+  }
+
+  Future<void> test_generic_setLiteral_const() async {
+    await resolveTestCode('''
+String f() {
+  const Set<String> s = const {'a'};
+  return s.first;
+}
+''');
+    await assertHasFix('''
+String f() {
+  const s = const <String>{'a'};
+  return s.first;
+}
+''');
+  }
+
+  Future<void> test_simple_const() async {
+    await resolveTestCode('''
+String f() {
+  const String s = '';
+  return s;
+}
+''');
+    await assertHasFix('''
+String f() {
+  const s = '';
+  return s;
+}
+''');
+  }
+
+  Future<void> test_simple_final() async {
+    await resolveTestCode('''
+String f() {
+  final String s = '';
+  return s;
+}
+''');
+    await assertHasFix('''
+String f() {
+  final s = '';
+  return s;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class OmitObviousLocalVariableTypesBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.omit_obvious_local_variable_types;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+List f() {
+  const List<String> l = ['a'];
+  return l;
+}
+
+void f2() {
+  for (final String i in ['a']) {
+    print(i);
+  }
+}
+''');
+    await assertHasFix('''
+List f() {
+  const l = <String>['a'];
+  return l;
+}
+
+void f2() {
+  for (final i in ['a']) {
+    print(i);
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class OmitObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+
+  @override
+  String get lintCode => LintNames.omit_obvious_local_variable_types;
+
+  Future<void> test_forEach_final() async {
+    await resolveTestCode('''
+void f() {
+  for (final String s in ['a']) {
+    print(s);
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (final s in ['a']) {
+    print(s);
+  }
+}
+''');
+  }
+
+  Future<void> test_generic_listLiteral_const() async {
+    await resolveTestCode('''
+String f() {
+  const List<String> values = const ['a'];
+  return values[0];
+}
+''');
+    await assertHasFix('''
+String f() {
+  const values = const <String>['a'];
+  return values[0];
+}
+''');
+  }
+
+  Future<void> test_generic_mapLiteral_const() async {
+    await resolveTestCode('''
+Map f() {
+  const Map<String, double> m = const {'a': 1.5};
+  return m;
+}
+''');
+    await assertHasFix('''
+Map f() {
+  const m = const <String, double>{'a': 1.5};
+  return m;
+}
+''');
+  }
+
+  Future<void> test_generic_setLiteral_const() async {
+    await resolveTestCode('''
+String f() {
+  const Set<String> s = const {'a'};
+  return s.first;
+}
+''');
+    await assertHasFix('''
+String f() {
+  const s = const <String>{'a'};
+  return s.first;
+}
+''');
+  }
+
+  Future<void> test_simple_const() async {
+    await resolveTestCode('''
+String f() {
+  const String s = '';
+  return s;
+}
+''');
+    await assertHasFix('''
+String f() {
+  const s = '';
+  return s;
+}
+''');
+  }
+
+  Future<void> test_simple_final() async {
+    await resolveTestCode('''
+String f() {
+  final String s = '';
+  return s;
+}
+''');
+    await assertHasFix('''
+String f() {
+  final s = '';
+  return s;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class OmitObviousPropertyTypesLintBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.omit_obvious_property_types;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+const List<String> l = ['a'];
+
+class A {
+  static final List<String> l = ['a'];
+}
+''');
+    await assertHasFix('''
+const l = <String>['a'];
+
+class A {
+  static final l = <String>['a'];
+}
+''');
+  }
+}
+
+@reflectiveTest
+class OmitObviousPropertyTypesLintLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+
+  @override
+  String get lintCode => LintNames.omit_obvious_property_types;
+
+  Future<void> test_generic_instanceCreation_withArguments() async {
+    await resolveTestCode('''
+final C<int> c = C<int>();
+
+class C<T> {}
+''');
+    await assertHasFix('''
+final c = C<int>();
+
+class C<T> {}
+''');
+  }
+
+  Future<void> test_generic_listLiteral_const() async {
+    await resolveTestCode('''
+const List<String> values = const ['a'];
+''');
+    await assertHasFix('''
+const values = const <String>['a'];
+''');
+  }
+
+  Future<void> test_generic_mapLiteral_const() async {
+    await resolveTestCode('''
+const Map<String, double> m = {'a': 1.5};
+''');
+    await assertHasFix('''
+const m = <String, double>{'a': 1.5};
+''');
+  }
+
+  Future<void> test_generic_setLiteral_const() async {
+    await resolveTestCode('''
+const Set<String> s = const {'a'};
+''');
+    await assertHasFix('''
+const s = const <String>{'a'};
+''');
+  }
+
+  Future<void> test_simple_const() async {
+    await resolveTestCode('''
+const String s = '';
+''');
+    await assertHasFix('''
+const s = '';
+''');
+  }
+
+  Future<void> test_simple_final() async {
+    await resolveTestCode('''
+final String s = '';
+''');
+    await assertHasFix('''
+final s = '';
+''');
+  }
+
+  Future<void> test_top_level_final() async {
+    await resolveTestCode('''
+final List<String> list = ['a'];
+''');
+    await assertHasFix('''
+final list = <String>['a'];
 ''');
   }
 }

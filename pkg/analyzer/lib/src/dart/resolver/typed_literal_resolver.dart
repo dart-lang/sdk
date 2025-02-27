@@ -109,7 +109,7 @@ class TypedLiteralResolver {
   }
 
   void resolveSetOrMapLiteral(SetOrMapLiteral node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     (node as SetOrMapLiteralImpl).becomeUnresolved();
     var typeArguments = node.typeArguments?.arguments;
 
@@ -229,7 +229,7 @@ class TypedLiteralResolver {
 
   /// Compute the context type for the given set or map [literal].
   _LiteralResolution _computeSetOrMapResolution(SetOrMapLiteral literal,
-      {required DartType? contextType}) {
+      {required TypeImpl? contextType}) {
     _LiteralResolution typeArgumentsResolution =
         _fromTypeArguments(literal.typeArguments?.arguments);
     _LiteralResolution contextResolution = _fromContextType(contextType);
@@ -286,7 +286,7 @@ class TypedLiteralResolver {
   ///
   /// If [contextType] implements `Map`, but not `Iterable`, then *e* is a map
   /// literal.
-  _LiteralResolution _fromContextType(DartType? contextType) {
+  _LiteralResolution _fromContextType(TypeImpl? contextType) {
     if (contextType != null) {
       var unwrappedContextType = _typeSystem.futureOrBase(contextType);
       // TODO(brianwilkerson): Find out what the "greatest closure" is and use that

@@ -237,7 +237,7 @@ class NormalizeHelper {
   /// NORM(X & T)
   /// * let S be NORM(T)
   TypeImpl _typeParameterType_promoted(
-      TypeParameterElementImpl2 X, DartType S) {
+      TypeParameterElementImpl2 X, TypeImpl S) {
     // * if S is Never then Never
     if (identical(S, NeverTypeImpl.instance)) {
       return NeverTypeImpl.instance;

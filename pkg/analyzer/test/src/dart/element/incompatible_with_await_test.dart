@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,11 +16,11 @@ main() {
 
 @reflectiveTest
 class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
-  void isIncompatible(DartType type) {
+  void isIncompatible(TypeImpl type) {
     expect(typeSystem.isIncompatibleWithAwait(type), isTrue);
   }
 
-  void isNotIncompatible(DartType type) {
+  void isNotIncompatible(TypeImpl type) {
     expect(typeSystem.isIncompatibleWithAwait(type), isFalse);
   }
 

@@ -6,9 +6,7 @@
 import "package:expect/expect.dart";
 
 class LocalFunctionTest {
-  LocalFunctionTest()
-      : field1 = 100,
-        field2_ = 200 {}
+  LocalFunctionTest() : field1 = 100, field2_ = 200 {}
   static int f(int n) {
     int a = 0;
     g(int m) {

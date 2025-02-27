@@ -510,7 +510,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// their corresponding parameters.
   ///
   /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-  void checkForArgumentTypesNotAssignableInList(ArgumentList argumentList,
+  void checkForArgumentTypesNotAssignableInList(ArgumentListImpl argumentList,
       List<WhyNotPromotedGetter> whyNotPromotedArguments) {
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
@@ -1437,8 +1437,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       checkIndexExpressionIndex(
         node.index,
         readElement:
-            hasRead ? result.readElement2 as ExecutableElement2? : null,
-        writeElement: result.writeElement2 as ExecutableElement2?,
+            hasRead ? result.readElement2 as ExecutableElement2OrMember? : null,
+        writeElement: result.writeElement2 as ExecutableElement2OrMember?,
         whyNotPromoted: whyNotPromoted,
       );
 
@@ -2081,7 +2081,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType visitBlockFunctionBody(covariant BlockFunctionBodyImpl node,
+  TypeImpl visitBlockFunctionBody(covariant BlockFunctionBodyImpl node,
       {TypeImpl? imposedType}) {
     var oldBodyContext = _bodyContext;
     try {
@@ -2440,8 +2440,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType visitEmptyFunctionBody(EmptyFunctionBody node,
-      {DartType? imposedType}) {
+  TypeImpl visitEmptyFunctionBody(EmptyFunctionBody node,
+      {TypeImpl? imposedType}) {
     if (!resolveOnlyCommentInFunctionBody) {
       checkUnreachableNode(node);
       node.visitChildren(this);
@@ -2573,7 +2573,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType visitExpressionFunctionBody(
+  TypeImpl visitExpressionFunctionBody(
       covariant ExpressionFunctionBodyImpl node,
       {TypeImpl? imposedType}) {
     if (resolveOnlyCommentInFunctionBody) {
@@ -3003,7 +3003,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
     checkIndexExpressionIndex(
       node.index,
-      readElement: result.readElement2 as ExecutableElement2?,
+      readElement: result.readElement2 as ExecutableElement2OrMember?,
       writeElement: null,
       whyNotPromoted: whyNotPromoted,
     );
@@ -3289,8 +3289,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType visitNativeFunctionBody(covariant NativeFunctionBodyImpl node,
-      {DartType? imposedType}) {
+  TypeImpl visitNativeFunctionBody(covariant NativeFunctionBodyImpl node,
+      {TypeImpl? imposedType}) {
     checkUnreachableNode(node);
     if (node.stringLiteral case var stringLiteral?) {
       analyzeExpression(stringLiteral, operations.unknownType);
@@ -4003,7 +4003,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return true;
   }
 
-  DartType _finishFunctionBodyInference() {
+  TypeImpl _finishFunctionBodyInference() {
     var flow = flowAnalysis.flow;
 
     return _bodyContext!.computeInferredReturnType(
@@ -4048,8 +4048,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (staticType == null) {
       return;
     }
-    DartType context;
-    if (parent is AssignmentExpression) {
+    TypeImpl context;
+    if (parent is AssignmentExpressionImpl) {
       if (parent.writeType == null) return;
       context = parent.writeType!;
     } else {

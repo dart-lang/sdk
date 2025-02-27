@@ -6,7 +6,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -34,12 +33,12 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 /// are the type parameters of the alias.
 class ConstructorElementToInfer {
   /// The type parameters used in [element].
-  final List<TypeParameterElementImpl> typeParameters;
+  final List<TypeParameterElementImpl2> typeParameters2;
 
   /// The element, might be [ConstructorMember].
-  final ConstructorElementMixin element;
+  final ConstructorElementMixin2 element2;
 
-  ConstructorElementToInfer(this.typeParameters, this.element);
+  ConstructorElementToInfer(this.typeParameters2, this.element2);
 
   /// Return the equivalent generic function type that we could use to
   /// forward to the constructor, or for a non-generic type simply returns
@@ -58,10 +57,10 @@ class ConstructorElementToInfer {
           );
   }
 
-  ConstructorElementMixin2 get element2 => element.asElement2;
+  ConstructorElementMixin get element => element2.asElement;
 
-  List<TypeParameterElement2> get typeParameters2 {
-    return typeParameters.map((e) => e.asElement2).toList();
+  List<TypeParameterElementImpl> get typeParameters {
+    return typeParameters2.map((e) => e.asElement).toList();
   }
 }
 
@@ -125,7 +124,9 @@ class InvocationInferenceHelper {
     if (rawElement == null) {
       return null;
     }
-    return ConstructorElementToInfer(typeParameters, rawElement);
+    return ConstructorElementToInfer(
+        typeParameters.map((e) => e.asElement2).toList(),
+        rawElement.asElement2);
   }
 
   /// Given an uninstantiated generic function type, referenced by the
