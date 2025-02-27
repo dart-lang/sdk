@@ -45,14 +45,6 @@ mixin KernelNodes {
       index.getClass("dart:_list", "GrowableList");
   late final Class immutableListClass =
       index.getClass("dart:_list", "ImmutableList");
-  late final Class wasmStringBaseClass =
-      index.getClass("dart:_internal", "WasmStringBase");
-  late final Class stringBaseClass =
-      index.getClass("dart:_string", "StringBase");
-  late final Class oneByteStringClass =
-      index.getClass("dart:_string", "OneByteString");
-  late final Class twoByteStringClass =
-      index.getClass("dart:_string", "TwoByteString");
   late final Class invocationClass = index.getClass("dart:core", 'Invocation');
   late final Class noSuchMethodErrorClass =
       index.getClass("dart:core", "NoSuchMethodError");
@@ -221,6 +213,14 @@ mixin KernelNodes {
       index.getProcedure("dart:_string", "JSStringImpl", "==");
   late final Procedure jsStringInterpolate =
       index.getProcedure("dart:_string", "JSStringImpl", "_interpolate");
+  late final Procedure jsStringInterpolate1 =
+      index.getProcedure("dart:_string", "JSStringImpl", "_interpolate1");
+  late final Procedure jsStringInterpolate2 =
+      index.getProcedure("dart:_string", "JSStringImpl", "_interpolate2");
+  late final Procedure jsStringInterpolate3 =
+      index.getProcedure("dart:_string", "JSStringImpl", "_interpolate3");
+  late final Procedure jsStringInterpolate4 =
+      index.getProcedure("dart:_string", "JSStringImpl", "_interpolate4");
 
   // dart:collection procedures and fields
   late final Procedure mapFactory =
@@ -265,18 +265,6 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "Object", "_nullToString");
   late final Procedure nullNoSuchMethod =
       index.getProcedure("dart:core", "Object", "_nullNoSuchMethod");
-  late final Procedure stringEquals =
-      index.getProcedure("dart:_string", "StringBase", "_equals");
-  late final Procedure stringInterpolate =
-      index.getProcedure("dart:_string", "StringBase", "_interpolate");
-  late final Procedure stringInterpolate1 =
-      index.getProcedure("dart:_string", "StringBase", "_interpolate1");
-  late final Procedure stringInterpolate2 =
-      index.getProcedure("dart:_string", "StringBase", "_interpolate2");
-  late final Procedure stringInterpolate3 =
-      index.getProcedure("dart:_string", "StringBase", "_interpolate3");
-  late final Procedure stringInterpolate4 =
-      index.getProcedure("dart:_string", "StringBase", "_interpolate4");
   late final Procedure truncDiv =
       index.getProcedure("dart:_boxed_int", "BoxedInt", "_truncDiv");
   late final Procedure runtimeTypeEquals =

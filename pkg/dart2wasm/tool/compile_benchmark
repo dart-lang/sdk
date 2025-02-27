@@ -59,7 +59,7 @@ SNAPSHOT_NAME="dart2wasm"
 # All arguments will be passed along to dart2wasm except specially recognized
 # flags.
 VM_ARGS=()
-DART2WASM_ARGS=()
+DART2WASM_ARGS=("--require-js-string-builtin")
 DART_FILE=""
 WASM_FILE=""
 while [ $# -gt 0 ]; do

@@ -14,57 +14,14 @@ import 'dart:typed_data';
 @patch
 @pragma('wasm:prefer-inline')
 JSStringImpl jsStringFromDartString(String s) {
-  if (s is OneByteString) {
-    final fromArray = s.array;
-    final toArray = WasmArray<WasmI16>(fromArray.length);
-    for (int i = 0; i < fromArray.length; ++i) {
-      toArray.write(i, fromArray.readUnsigned(i));
-    }
-    return JSStringImpl(
-      _jsStringFromCharCodeArray(
-        toArray,
-        0.toWasmI32(),
-        toArray.length.toWasmI32(),
-      ),
-    );
-  }
-  if (s is TwoByteString) {
-    return JSStringImpl(
-      _jsStringFromCharCodeArray(s.array, 0.toWasmI32(), s.length.toWasmI32()),
-    );
-  }
-
   return unsafeCast<JSStringImpl>(s);
 }
 
 @patch
-String jsStringToDartString(JSStringImpl jsString) {
-  final length = jsString.length;
-  two_byte:
-  {
-    final oneByteString = OneByteString.withLength(length);
-    final array = oneByteString.array;
-    for (int i = 0; i < length; ++i) {
-      final int codeUnit = jsString.codeUnitAtUnchecked(i);
-      if (codeUnit > 255) break two_byte;
-      array.write(i, codeUnit);
-    }
-    return oneByteString;
-  }
-  final twoByteString = TwoByteString.withLength(length);
-  final array = twoByteString.array;
-  for (int i = 0; i < length; ++i) {
-    array.write(i, jsString.codeUnitAtUnchecked(i));
-  }
-  return twoByteString;
+@pragma('wasm:prefer-inline')
+String jsStringToDartString(JSStringImpl s) {
+  return s;
 }
-
-@pragma("wasm:import", "wasm:js-string.fromCharCodeArray")
-external WasmExternRef _jsStringFromCharCodeArray(
-  WasmArray<WasmI16>? array,
-  WasmI32 start,
-  WasmI32 end,
-);
 
 @pragma('wasm:prefer-inline')
 void _copyFromWasmI8Array(

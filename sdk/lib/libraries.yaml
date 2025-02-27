@@ -141,7 +141,7 @@ wasm:
     convert:
       uri: convert/convert.dart
       patches:
-      - _internal/wasm/lib/convert_patch.dart
+        - _internal/wasm/lib/convert_patch.dart
     typed_data:
       uri: typed_data/typed_data.dart
       patches:
@@ -153,8 +153,6 @@ wasm:
         _internal/wasm/lib/boxed_int_to_string.dart
     _string:
       uri: _internal/wasm/lib/js_string.dart
-      patches:
-        _internal/wasm/lib/string.dart
     _typed_data:
       uri: _internal/wasm/lib/typed_data.dart
     _js_helper:

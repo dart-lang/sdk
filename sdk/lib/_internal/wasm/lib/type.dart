@@ -1995,7 +1995,7 @@ _Type _getMasqueradedRuntimeType(Object object) {
     if (object is Float64x2) return _literal<Float64x2>();
     if (object is Int32x4) return _literal<Int32x4>();
   } else {
-    if (object is WasmStringBase) return _literal<String>();
+    if (object is String) return _literal<String>();
     if (object is WasmTypedDataBase) {
       if (object is ByteData) return _literal<ByteData>();
       if (object is Int8List) return _literal<Int8List>();

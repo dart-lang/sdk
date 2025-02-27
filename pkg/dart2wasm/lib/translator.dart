@@ -314,11 +314,7 @@ class Translator with KernelNodes {
     boxedIntClass: boxedIntClass,
     boxedDoubleClass: boxedDoubleClass,
     boxedBoolClass: coreTypes.boolClass,
-    if (!options.jsCompatibility) ...{
-      oneByteStringClass: stringBaseClass,
-      twoByteStringClass: stringBaseClass
-    },
-    if (options.jsCompatibility) ...{jsStringClass: jsStringClass},
+    jsStringClass: jsStringClass,
   };
 
   /// Type for vtable entries for dynamic calls. These entries are used in
@@ -444,8 +440,7 @@ class Translator with KernelNodes {
       mapEntries.add(
           MapLiteralEntry(StringLiteral(libName), MapLiteral(subMapEntries)));
     });
-    final stringClass =
-        options.jsCompatibility ? jsStringClass : stringBaseClass;
+    final stringClass = jsStringClass;
     loadLibraryImportMap.function.body = ReturnStatement(MapLiteral(mapEntries,
         keyType: InterfaceType(stringClass, Nullability.nonNullable),
         valueType: InterfaceType(coreTypes.mapNonNullableRawType.classNode,
@@ -1722,6 +1717,7 @@ class Translator with KernelNodes {
     if (internalizedString != null) {
       return internalizedString;
     }
+
     bool hasUnpairedSurrogate(String str) {
       for (int i = 0; i < str.length; i++) {
         int codeUnit = str.codeUnitAt(i);

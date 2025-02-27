@@ -151,7 +151,7 @@ void main() {
   // dart2wasm uses a JSStringImpl here for conversion without validating the
   // extern ref, so we would only see that it's not a String when we call
   // methods on it.
-  Expect.throws(() => external.fieldT.toDart.toLowerCase());
+  Expect.throws(() => external.fieldT.toDart.split('foo'));
   (external as External<JSNumber?, Nested>).fieldT = null;
   Expect.throwsWhen(
     soundNullSafety && checkedImplicitDowncasts,
@@ -164,11 +164,10 @@ void main() {
             .toDartInt,
   );
   Expect.throws(
-    () =>
-        external
-            .addMethodGeneric<JSString, JSNumber>(0.toJS, 0.toJS)
-            .toDart
-            .toLowerCase(),
+    () => external
+        .addMethodGeneric<JSString, JSNumber>(0.toJS, 0.toJS)
+        .toDart
+        .split('foo'),
   );
   Expect.throwsWhen(
     soundNullSafety && checkedImplicitDowncasts,
