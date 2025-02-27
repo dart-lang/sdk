@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferMixinTestLanguage219);
     defineReflectiveTests(PreferMixinTest);
@@ -17,7 +17,7 @@ abstract class BasePreferMixinTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.prefer_mixin;
 
-  test_legacyCoreClasses() async {
+  Future<void> test_legacyCoreClasses() async {
     await assertNoDiagnostics(r'''
 import 'dart:collection';
 import 'dart:convert';
@@ -30,7 +30,7 @@ abstract class SCS with StringConversionSinkMixin {}
 ''');
   }
 
-  test_mixedInMixin_ok() async {
+  Future<void> test_mixedInMixin_ok() async {
     await assertNoDiagnostics(r'''
 mixin M {}
 
@@ -38,7 +38,7 @@ class C with M {}
 ''');
   }
 
-  test_mixedInTypeAlias_ok() async {
+  Future<void> test_mixedInTypeAlias_ok() async {
     await assertNoDiagnostics(r'''
 mixin M {}
 

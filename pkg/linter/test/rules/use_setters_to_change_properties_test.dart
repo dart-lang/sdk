@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     // TODO(srawlins): Add test with setter-like with multiple statements; add
     // test with non-trivial right side (`this.x = x + 1`).
