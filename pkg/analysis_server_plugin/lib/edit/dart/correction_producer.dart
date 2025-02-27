@@ -458,7 +458,7 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the class element associated with the [target], or `null` if there
   /// is no such element.
-  InterfaceElement2? getTargetInterfaceElement2(Expression target) {
+  InterfaceElement2? getTargetInterfaceElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
       return type.element3;

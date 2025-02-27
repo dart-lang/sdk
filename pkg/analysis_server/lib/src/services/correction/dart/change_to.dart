@@ -167,7 +167,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     } else if (targetIdentifierElement is ExtensionElement2) {
       _updateFinderWithExtensionMembers(finder, targetIdentifierElement);
     } else {
-      var interfaceElement = getTargetInterfaceElement2(target);
+      var interfaceElement = getTargetInterfaceElement(target);
       if (interfaceElement != null) {
         _updateFinderWithClassMembers(finder, interfaceElement);
       }

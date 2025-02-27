@@ -45,7 +45,7 @@ class InheritedReferenceContributor
       return;
     }
     containingLibrary = request.result.libraryElement2;
-    _computeSuggestionsForClass2(
+    _computeSuggestionsForClass(
         collector, target, classDecl.declaredFragment!.element, optype);
   }
 
@@ -73,7 +73,7 @@ class InheritedReferenceContributor
       classElement = classDecl.declaredFragment!.element;
     }
     containingLibrary = request.result.libraryElement2;
-    _computeSuggestionsForClass2(collector, target, classElement, optype,
+    _computeSuggestionsForClass(collector, target, classElement, optype,
         skipChildClass: skipChildClass);
   }
 
@@ -104,7 +104,7 @@ class InheritedReferenceContributor
     }
   }
 
-  void _computeSuggestionsForClass2(CompletionCollector collector,
+  void _computeSuggestionsForClass(CompletionCollector collector,
       CompletionTarget target, ClassElement2 classElement, OpType optype,
       {bool skipChildClass = true}) {
     var isFunctionalArgument = target.isFunctionalArgument();
