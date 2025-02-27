@@ -18,13 +18,17 @@ import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-// ignore: duplicate_definition, avoid_types_as_parameter_names
-void foo<_>(i, _, _) {
-  final int _ = 42;
-  debugger();
-}
-
 void test() {
+  // We define an anonymous function instead of a named one because wildcard
+  // parameters can be optimized out of named functions by the compiler, so
+  // defining a named function would prevent this test from exercising the
+  // wildcard filtering logic in the VM Service's [Frame] building code.
+  // ignore: prefer_function_declarations_over_variables
+  final foo = <_>(i, _, _) {
+    final int _ = 42;
+    debugger();
+  };
+
   foo<String>(0, 1, 2);
 }
 
@@ -45,7 +49,7 @@ final tests = <IsolateTest>[
     final frame = stack.frames!.first;
     final function =
         await service.getObject(isolateId, frame.function!.id!) as Func;
-    expect(function.name, 'foo');
+    expect(function.name, '<anonymous closure>');
 
     // Type parameter names are replaced with synthetic names in general so we
     // don't need to check for the name '_' here.
