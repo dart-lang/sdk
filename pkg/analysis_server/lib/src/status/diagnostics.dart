@@ -346,14 +346,14 @@ class ByteStoreTimingPage extends DiagnosticPageWithNav
     buf.writeln(
       '<tr><th>Files Read</th><th>Time Taken</th><th>&nbsp;</th></tr>',
     );
-    for (var i = 0; i < byteStoreTimings.length - 1; i++) {
+    for (var i = 0; i < byteStoreTimings.length; i++) {
       var timing = byteStoreTimings[i];
       if (timing.readCount == 0) {
         continue;
       }
 
       var nextTiming =
-          i <= byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
+          i + 1 < byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
       var duration = (nextTiming?.time ?? DateTime.now()).difference(
         timing.time,
       );
@@ -490,6 +490,47 @@ class CollectReportPage extends DiagnosticPage {
       contextData['plugins'] = collectedOptionsData.plugins.toList();
     }
     collectedData['uniqueKnownFiles'] = uniqueKnownFiles.length;
+
+    // Data from the 'Analysis Driver Timings' page.
+    var buffer = StringBuffer();
+    server.analysisDriverScheduler.accumulatedPerformance.write(buffer: buffer);
+    collectedData['accumulatedPerformance'] = buffer.toString();
+
+    // FileByteStore timings
+    {
+      var byteStoreTimings =
+          server.byteStoreTimings
+              ?.where(
+                (timing) =>
+                    timing.readCount != 0 || timing.readTime != Duration.zero,
+              )
+              .toList();
+      if (byteStoreTimings != null && byteStoreTimings.isNotEmpty) {
+        var performance = [];
+        collectedData['byteStoreTimings'] = performance;
+        for (var i = 0; i < byteStoreTimings.length; i++) {
+          var timing = byteStoreTimings[i];
+          if (timing.readCount == 0) {
+            continue;
+          }
+
+          var nextTiming =
+              i + 1 < byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
+          var duration = (nextTiming?.time ?? DateTime.now()).difference(
+            timing.time,
+          );
+          var description =
+              'Between ${timing.reason} and ${nextTiming?.reason ?? 'now'} '
+              '(${printMilliseconds(duration.inMilliseconds)}).';
+
+          var itemData = {};
+          performance.add(itemData);
+          itemData['file_reads'] = timing.readCount;
+          itemData['time'] = timing.readTime.inMilliseconds;
+          itemData['description'] = description;
+        }
+      }
+    }
 
     // Recorded performance data (timing and code completion).
     void collectPerformance(List<RequestPerformance> items, String type) {
