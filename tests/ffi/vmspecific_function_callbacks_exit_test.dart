@@ -60,8 +60,8 @@ void main() async {
   //
   // Since they use signal handlers they only run on Linux.
   if (Platform.isLinux && !const bool.fromEnvironment("dart.vm.product")) {
-    testCallbackWrongThread(); //# 01: ok
-    testCallbackOutsideIsolate(); //# 02: ok
-    await testCallbackWrongIsolate(); //# 03: ok
+    testCallbackWrongThread();
+    testCallbackOutsideIsolate();
+    await testCallbackWrongIsolate();
   }
 }
