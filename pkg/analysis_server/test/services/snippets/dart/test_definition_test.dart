@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/test_definition.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
@@ -27,6 +26,117 @@ class TestDefinitionTest extends DartSnippetProducerTest {
   @override
   String get prefix => TestDefinition.prefix;
 
+  Future<void> test_import_dart() async {
+    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    var code = TestCode.parse(r'''
+void f() {
+  test^
+}
+''');
+    var snippet = await expectValidSnippet(code);
+    var result = applySnippet(code, snippet);
+    expect(result, '''
+import 'package:test/test.dart';
+
+void f() {
+  test('test name', () {
+    
+  });
+}
+''');
+  }
+
+  Future<void> test_import_dart_existing() async {
+    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    var code = TestCode.parse(r'''
+import 'package:test/test.dart';
+
+void f() {
+  test^
+}
+''');
+    var snippet = await expectValidSnippet(code);
+    var result = applySnippet(code, snippet);
+    expect(result, '''
+import 'package:test/test.dart';
+
+void f() {
+  test('test name', () {
+    
+  });
+}
+''');
+  }
+
+  Future<void> test_import_flutter() async {
+    writeTestPackageConfig(flutter_test: true);
+    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    var code = TestCode.parse(r'''
+void f() {
+  test^
+}
+''');
+    var snippet = await expectValidSnippet(code);
+    var result = applySnippet(code, snippet);
+    expect(result, '''
+import 'package:flutter_test/flutter_test.dart';
+
+void f() {
+  test('test name', () {
+    
+  });
+}
+''');
+  }
+
+  Future<void> test_import_flutter_existing() async {
+    writeTestPackageConfig(flutter_test: true);
+    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    var code = TestCode.parse(r'''
+import 'package:flutter_test/flutter_test.dart';
+
+void f() {
+  test^
+}
+''');
+    var snippet = await expectValidSnippet(code);
+    var result = applySnippet(code, snippet);
+    expect(result, '''
+import 'package:flutter_test/flutter_test.dart';
+
+void f() {
+  test('test name', () {
+    
+  });
+}
+''');
+  }
+
+  /// Ensure we don't import package:flutter_test if package:test is already
+  /// imported.
+  Future<void> test_import_flutter_existingDart() async {
+    writeTestPackageConfig(flutter_test: true);
+    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
+    var code = TestCode.parse(r'''
+import 'package:test/test.dart';
+
+void f() {
+  test^
+}
+''');
+    var snippet = await expectValidSnippet(code);
+    var result = applySnippet(code, snippet);
+    expect(result, '''
+import 'package:test/test.dart';
+
+void f() {
+  test('test name', () {
+    
+  });
+}
+''');
+  }
+
   Future<void> test_inTestFile() async {
     testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
     var code = TestCode.parse(r'''
@@ -38,11 +148,10 @@ void f() {
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
-    var result = code.code;
-    for (var edit in snippet.change.edits) {
-      result = SourceEdit.applySequence(result, edit.edits);
-    }
+    var result = applySnippet(code, snippet);
     expect(result, '''
+import 'package:test/test.dart';
+
 void f() {
   test('test name', () {
     
@@ -50,11 +159,11 @@ void f() {
 }
 ''');
     expect(snippet.change.selection!.file, testFile.path);
-    expect(snippet.change.selection!.offset, 40);
+    expect(snippet.change.selection!.offset, 74);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile.path, 'offset': 19},
+          {'file': testFile.path, 'offset': 53},
         ],
         'length': 9,
         'suggestions': [],

@@ -4596,6 +4596,8 @@ void f() {
     );
 
     expect(updated, r'''
+import 'package:test/test.dart';
+
 void f() {
   test('${1:test name}', () {
     $0
@@ -4620,6 +4622,8 @@ void f() {
     );
 
     expect(updated, r'''
+import 'package:test/test.dart';
+
 void f() {
   group('${1:group name}', () {
     $0
