@@ -20,6 +20,7 @@ void main() {
   });
 }
 
+@reflectiveTest
 abstract class AbstractAugmentationCodeLensTest
     extends AbstractLspAnalysisServerTest {
   late TestCode libraryCode;

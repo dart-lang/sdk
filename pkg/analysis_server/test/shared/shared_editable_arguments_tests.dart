@@ -127,7 +127,7 @@ $content
         );
   }
 
-  test_defaultValue_named_default() async {
+  Future<void> test_defaultValue_named_default() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget({int? a = 1});
@@ -139,7 +139,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('a', defaultValue: 1)));
   }
 
-  test_defaultValue_named_default_constantVariable() async {
+  Future<void> test_defaultValue_named_default_constantVariable() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   static const constantOne = 1;
@@ -153,7 +153,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('a', defaultValue: 1)));
   }
 
-  test_defaultValue_named_default_null() async {
+  Future<void> test_defaultValue_named_default_null() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget({int? a = null});
@@ -165,7 +165,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('a', defaultValue: null)));
   }
 
-  test_defaultValue_named_noDefault() async {
+  Future<void> test_defaultValue_named_noDefault() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget({int? a});
@@ -177,7 +177,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('a', defaultValue: null)));
   }
 
-  test_defaultValue_named_required_noDefault() async {
+  Future<void> test_defaultValue_named_required_noDefault() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget({required int? a});
@@ -189,7 +189,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('a', defaultValue: null)));
   }
 
-  test_defaultValue_positional() async {
+  Future<void> test_defaultValue_positional() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget(int a);
@@ -201,7 +201,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('a', defaultValue: null)));
   }
 
-  test_defaultValue_positional_optional_default() async {
+  Future<void> test_defaultValue_positional_optional_default() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget([int? a = 1]);
@@ -213,7 +213,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('a', defaultValue: 1)));
   }
 
-  test_defaultValue_positional_optional_noDefault() async {
+  Future<void> test_defaultValue_positional_optional_noDefault() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget([int? a]);
@@ -225,7 +225,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('a', defaultValue: null)));
   }
 
-  test_documentation_fieldParameter_literal() async {
+  Future<void> test_documentation_fieldParameter_literal() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   /// Documentation for x.
@@ -241,7 +241,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('x', documentation: 'Documentation for x.')));
   }
 
-  test_documentation_fieldParameter_macro() async {
+  Future<void> test_documentation_fieldParameter_macro() async {
     var result = await getEditableArgumentsFor('''
 /// {@template shared_docs}
 /// Shared docs.
@@ -260,7 +260,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('x', documentation: 'Shared docs.')));
   }
 
-  test_documentation_literal() async {
+  Future<void> test_documentation_literal() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   /// Creates a MyWidget.
@@ -273,7 +273,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasDocumentation(equals('Creates a MyWidget.')));
   }
 
-  test_documentation_macro() async {
+  Future<void> test_documentation_macro() async {
     var result = await getEditableArgumentsFor('''
 /// {@template my_widget_docs}
 /// MyWidget shared docs.
@@ -289,7 +289,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasDocumentation(equals('MyWidget shared docs.')));
   }
 
-  test_documentation_missing() async {
+  Future<void> test_documentation_missing() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget(int x);
@@ -301,7 +301,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasDocumentation(isNull));
   }
 
-  test_documentation_widgetFactory() async {
+  Future<void> test_documentation_widgetFactory() async {
     var result = await getEditableArgumentsFor('''
 extension on MyWidget {
   /// Creates a Padded.
@@ -321,7 +321,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasDocumentation(equals('Creates a Padded.')));
   }
 
-  test_hasArgument() async {
+  Future<void> test_hasArgument() async {
     failTestOnErrorDiagnostic = false;
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
@@ -349,7 +349,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isEditable_false_positional_optional() async {
+  Future<void> test_isEditable_false_positional_optional() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget([int? a, int? b, int? c]);
@@ -379,7 +379,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isEditable_false_positional_required1() async {
+  Future<void> test_isEditable_false_positional_required1() async {
     failTestOnErrorDiagnostic = false;
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
@@ -405,7 +405,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isEditable_false_positional_required2() async {
+  Future<void> test_isEditable_false_positional_required2() async {
     failTestOnErrorDiagnostic = false;
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
@@ -431,7 +431,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isEditable_false_string_adjacent() async {
+  Future<void> test_isEditable_false_string_adjacent() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget(String s);
@@ -456,7 +456,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isEditable_false_string_interpolated() async {
+  Future<void> test_isEditable_false_string_interpolated() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget(String s);
@@ -482,7 +482,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isEditable_false_string_withNewlines() async {
+  Future<void> test_isEditable_false_string_withNewlines() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget(String sEscaped, String sLiteral);
@@ -522,7 +522,7 @@ b
     );
   }
 
-  test_isEditable_true_named() async {
+  Future<void> test_isEditable_true_named() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget({int? a, int? b, int? c});
@@ -543,7 +543,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isEditable_true_positional_required() async {
+  Future<void> test_isEditable_true_positional_required() async {
     failTestOnErrorDiagnostic = false;
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
@@ -566,7 +566,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isEditable_true_string_dollar_escaped() async {
+  Future<void> test_isEditable_true_string_dollar_escaped() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget(String s);
@@ -589,7 +589,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isEditable_true_string_dollar_raw() async {
+  Future<void> test_isEditable_true_string_dollar_raw() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
   const MyWidget(String s);
@@ -612,6 +612,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
+  Future<void>
   test_isEditable_true_string_tripleQuoted_withoutNewlines() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
@@ -635,7 +636,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isNullable() async {
+  Future<void> test_isNullable() async {
     failTestOnErrorDiagnostic = false;
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
@@ -665,7 +666,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_isRequired() async {
+  Future<void> test_isRequired() async {
     failTestOnErrorDiagnostic = false;
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
@@ -695,7 +696,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_location_bad_extensionMethod_noWidgetFactory() async {
+  Future<void> test_location_bad_extensionMethod_noWidgetFactory() async {
     var result = await getEditableArgumentsFor('''
 extension on MyWidget {
   Widget padded(String a1) => this;
@@ -712,7 +713,7 @@ class MyWidget extends StatelessWidget {
     expect(result, isNull);
   }
 
-  test_location_bad_functionInvocation() async {
+  Future<void> test_location_bad_functionInvocation() async {
     var result = await getEditableArgumentsFor('''
 MyWidget create(String a1) => throw '';
 
@@ -724,7 +725,7 @@ class MyWidget extends StatelessWidget {
     expect(result, isNull);
   }
 
-  test_location_bad_methodInvocation() async {
+  Future<void> test_location_bad_methodInvocation() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   @widgetFactory
@@ -737,7 +738,7 @@ class MyWidget extends StatelessWidget {
     expect(result, isNull);
   }
 
-  test_location_bad_unnamedConstructor_notWidget() async {
+  Future<void> test_location_bad_unnamedConstructor_notWidget() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget {
   const MyWidget(String a1);
@@ -749,7 +750,7 @@ class MyWidget {
     expect(result, isNull);
   }
 
-  test_location_good_argumentList_argumentName() async {
+  Future<void> test_location_good_argumentList_argumentName() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({required String a1 });
@@ -761,7 +762,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_argumentList_literalValue() async {
+  Future<void> test_location_good_argumentList_literalValue() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({required String a1 });
@@ -773,7 +774,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_argumentList_nestedInvocation() async {
+  Future<void> test_location_good_argumentList_nestedInvocation() async {
     var result = await getEditableArgumentsFor('''
 String getString() => '';
 
@@ -787,6 +788,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
+  Future<void>
   test_location_good_argumentList_nestedInvocation_arguments() async {
     var result = await getEditableArgumentsFor('''
 String getString(String s) => s;
@@ -801,7 +803,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_argumentList_parens_afterOpen() async {
+  Future<void> test_location_good_argumentList_parens_afterOpen() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({required String a1 });
@@ -813,7 +815,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_argumentList_parens_beforeClose() async {
+  Future<void> test_location_good_argumentList_parens_beforeClose() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({required String a1 });
@@ -825,7 +827,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_argumentList_parens_beforeOpen() async {
+  Future<void> test_location_good_argumentList_parens_beforeOpen() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({required String a1 });
@@ -837,7 +839,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_extensionMethod_constructorTarget() async {
+  Future<void> test_location_good_extensionMethod_constructorTarget() async {
     var result = await getEditableArgumentsFor('''
 extension on MyWidget {
   @widgetFactory
@@ -855,7 +857,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_extensionMethod_thisTarget() async {
+  Future<void> test_location_good_extensionMethod_thisTarget() async {
     var result = await getEditableArgumentsFor('''
 extension on MyWidget {
   @widgetFactory
@@ -872,7 +874,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_extensionMethod_variableTarget() async {
+  Future<void> test_location_good_extensionMethod_variableTarget() async {
     var result = await getEditableArgumentsFor('''
 extension on MyWidget {
   @widgetFactory
@@ -893,7 +895,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_namedConstructor_className() async {
+  Future<void> test_location_good_namedConstructor_className() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget.foo(String a1);
@@ -905,7 +907,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_namedConstructor_constructorName() async {
+  Future<void> test_location_good_namedConstructor_constructorName() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget.foo(String a1);
@@ -917,7 +919,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_location_good_unnamedConstructor() async {
+  Future<void> test_location_good_unnamedConstructor() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget(String a1);
@@ -929,7 +931,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArgNamed('a1'));
   }
 
-  test_name_widgetConstructor() async {
+  Future<void> test_name_widgetConstructor() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget(int x);
@@ -941,7 +943,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasName(equals('MyWidget')));
   }
 
-  test_name_widgetConstructor_named() async {
+  Future<void> test_name_widgetConstructor_named() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget.named(int x);
@@ -953,7 +955,7 @@ class MyWidget extends StatelessWidget {
     expect(result, hasName(equals('MyWidget')));
   }
 
-  test_name_widgetFactory() async {
+  Future<void> test_name_widgetFactory() async {
     var result = await getEditableArgumentsFor('''
 extension on MyWidget {
   @widgetFactory
@@ -980,7 +982,7 @@ class MyWidget extends StatelessWidget {
   /// If an editor wants to sort provided arguments first (and keep these stable
   /// across add/removes) it could still do so client-side, whereas if server
   /// orders them that way, the opposite (using source-order) is not possible.
-  test_order() async {
+  Future<void> test_order() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({
@@ -1011,7 +1013,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_textDocument_unopenedFile() async {
+  Future<void> test_textDocument_unopenedFile() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget(String a1);
@@ -1030,7 +1032,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_textDocument_versioned() async {
+  Future<void> test_textDocument_versioned() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget(String a1);
@@ -1061,7 +1063,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_textDocument_versioned_closedFile() async {
+  Future<void> test_textDocument_versioned_closedFile() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget(String a1);
@@ -1092,7 +1094,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_bool() async {
+  Future<void> test_type_bool() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({
@@ -1138,7 +1140,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_bool_nonLiterals() async {
+  Future<void> test_type_bool_nonLiterals() async {
     var result = await getEditableArgumentsFor('''
 var myVar = true;
 const myConst = true;
@@ -1182,7 +1184,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_double() async {
+  Future<void> test_type_double() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({
@@ -1228,7 +1230,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_double_intLiterals() async {
+  Future<void> test_type_double_intLiterals() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({
@@ -1274,7 +1276,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_double_nonLiterals() async {
+  Future<void> test_type_double_nonLiterals() async {
     var result = await getEditableArgumentsFor('''
 var myVar = 1.0;
 const myConst = 1.0;
@@ -1318,7 +1320,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_enum() async {
+  Future<void> test_type_enum() async {
     var result = await getEditableArgumentsFor('''
 enum E { one, two }
 class MyWidget extends StatelessWidget {
@@ -1370,7 +1372,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_enum_nonLiterals() async {
+  Future<void> test_type_enum_nonLiterals() async {
     var result = await getEditableArgumentsFor('''
 enum E { one, two }
 var myVar = E.one;
@@ -1422,7 +1424,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_int() async {
+  Future<void> test_type_int() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({
@@ -1468,7 +1470,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_int_nonLiterals() async {
+  Future<void> test_type_int_nonLiterals() async {
     var result = await getEditableArgumentsFor('''
 var myVar = 1;
 const myConst = 1;
@@ -1512,7 +1514,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_string() async {
+  Future<void> test_type_string() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
   const MyWidget({
@@ -1558,7 +1560,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_type_string_nonLiterals() async {
+  Future<void> test_type_string_nonLiterals() async {
     var result = await getEditableArgumentsFor('''
 var myVar = 'a';
 const myConst = 'a';
