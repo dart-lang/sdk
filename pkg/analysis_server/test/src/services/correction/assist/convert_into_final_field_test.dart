@@ -34,6 +34,50 @@ class A {
 ''');
   }
 
+  Future<void> test_extension_instance() async {
+    await resolveTestCode('''
+extension E on int {
+  int get foo => 0;
+}
+''');
+    await assertNoAssistAt('get foo');
+  }
+
+  Future<void> test_extension_static() async {
+    await resolveTestCode('''
+extension E on int {
+  static int get foo => 0;
+}
+''');
+    await assertHasAssistAt('get foo', '''
+extension E on int {
+  static final int foo = 0;
+}
+''');
+  }
+
+  Future<void> test_extensionType_instance() async {
+    await resolveTestCode('''
+extension type E(int v) {
+  int get foo => 0;
+}
+''');
+    await assertNoAssistAt('get foo');
+  }
+
+  Future<void> test_extensionType_static() async {
+    await resolveTestCode('''
+extension type E(int v) {
+  static int get foo => 0;
+}
+''');
+    await assertHasAssistAt('get foo', '''
+extension type E(int v) {
+  static final int foo = 0;
+}
+''');
+  }
+
   Future<void> test_hasOverride() async {
     await resolveTestCode('''
 const myAnnotation = const Object();
