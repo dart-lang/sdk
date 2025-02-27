@@ -181,7 +181,7 @@ enum ExperimentalFlag {
   nullAwareElements(
       name: 'null-aware-elements',
       isEnabledByDefault: true,
-      isExpired: true,
+      isExpired: false,
       experimentEnabledVersion: const Version(3, 8),
       experimentReleasedVersion: const Version(3, 8)),
 

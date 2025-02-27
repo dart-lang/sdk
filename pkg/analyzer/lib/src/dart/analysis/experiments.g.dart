@@ -802,7 +802,7 @@ class IsExpired {
   static const bool nonfunction_type_aliases = true;
 
   /// Expiration status of the experiment "null-aware-elements"
-  static const bool null_aware_elements = true;
+  static const bool null_aware_elements = false;
 
   /// Expiration status of the experiment "patterns"
   static const bool patterns = true;
