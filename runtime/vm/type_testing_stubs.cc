@@ -223,7 +223,7 @@ static CodePtr RetryCompilationWithFarBranches(
   volatile intptr_t far_branch_level = 0;
   while (true) {
     LongJumpScope jump;
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       // To use the already-defined __ Macro !
       compiler::Assembler assembler(nullptr, far_branch_level);
       return fun(assembler);

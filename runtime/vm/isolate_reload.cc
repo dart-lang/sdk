@@ -1218,7 +1218,7 @@ ObjectPtr ProgramReloadContext::ReloadPhase2LoadKernel(
   Thread* thread = Thread::Current();
 
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
     if (tmp.IsError()) {
       return tmp.ptr();

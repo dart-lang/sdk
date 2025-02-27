@@ -134,7 +134,7 @@ class GenericInferrer {
 
   /// Performs upwards inference, producing a final set of inferred types that
   /// does not  contain references to the "unknown type".
-  List<DartType> chooseFinalTypes() => tryChooseFinalTypes(failAtError: false)!;
+  List<TypeImpl> chooseFinalTypes() => tryChooseFinalTypes(failAtError: false)!;
 
   /// Performs partial (either downwards or horizontal) inference, producing a
   /// set of inferred types that may contain references to the "unknown type".
@@ -244,7 +244,7 @@ class GenericInferrer {
   /// Same as [chooseFinalTypes], but if [failAtError] is `true` (the default)
   /// and inference fails, returns `null` rather than trying to perform error
   /// recovery.
-  List<DartType>? tryChooseFinalTypes({bool failAtError = true}) {
+  List<TypeImpl>? tryChooseFinalTypes({bool failAtError = true}) {
     var inferredTypes = _chooseTypes(preliminary: false);
     // Check the inferred types against all of the constraints.
     var knownTypes = <TypeParameterElement2, TypeImpl>{};

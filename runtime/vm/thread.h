@@ -321,7 +321,7 @@ struct TsanUtils {
   // implementation.
   // -> See https://dartbug.com/47472#issuecomment-948235479 for details.
 #if defined(USING_THREAD_SANITIZER)
-  void* setjmp_function = reinterpret_cast<void*>(&setjmp);
+  void* setjmp_function = reinterpret_cast<void*>(&DART_SETJMP);
 #else
   // MSVC (on Windows) is not happy with getting address of purely intrinsic.
   void* setjmp_function = nullptr;

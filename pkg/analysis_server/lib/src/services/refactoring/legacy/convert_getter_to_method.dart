@@ -105,7 +105,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     for (
       GetterFragment? fragment = element.firstFragment;
       fragment != null;
-      fragment = fragment.nextFragment as GetterFragment?
+      fragment = fragment.nextFragment
     ) {
       var nameRange = range.fragmentName(fragment);
       if (nameRange == null) {

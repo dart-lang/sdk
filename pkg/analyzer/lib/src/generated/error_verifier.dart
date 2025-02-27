@@ -4140,11 +4140,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     DartType listType = literal.typeOrThrow;
     assert(listType is InterfaceTypeImpl);
 
-    List<DartType> typeArguments =
-        (listType as InterfaceTypeImpl).typeArguments;
+    var typeArguments = (listType as InterfaceTypeImpl).typeArguments;
     assert(typeArguments.length == 1);
 
-    DartType listElementType = typeArguments[0];
+    var listElementType = typeArguments[0];
 
     // Check every list element.
     var verifier = LiteralElementVerifier(
@@ -4232,14 +4231,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     DartType mapType = literal.typeOrThrow;
     assert(mapType is InterfaceTypeImpl);
 
-    List<DartType> typeArguments = (mapType as InterfaceTypeImpl).typeArguments;
+    var typeArguments = (mapType as InterfaceTypeImpl).typeArguments;
     // It is possible for the number of type arguments to be inconsistent when
     // the literal is ambiguous and a non-map type was selected.
     // TODO(brianwilkerson): Unify this and _checkForSetElementTypeNotAssignable3
     //  to better handle recovery situations.
     if (typeArguments.length == 2) {
-      DartType keyType = typeArguments[0];
-      DartType valueType = typeArguments[1];
+      var keyType = typeArguments[0];
+      var valueType = typeArguments[1];
 
       var verifier = LiteralElementVerifier(
         _typeProvider,
@@ -5317,16 +5316,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // Determine the set's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
-    DartType setType = literal.typeOrThrow;
+    var setType = literal.typeOrThrow;
     assert(setType is InterfaceTypeImpl);
 
-    List<DartType> typeArguments = (setType as InterfaceTypeImpl).typeArguments;
+    var typeArguments = (setType as InterfaceTypeImpl).typeArguments;
     // It is possible for the number of type arguments to be inconsistent when
     // the literal is ambiguous and a non-set type was selected.
     // TODO(brianwilkerson): Unify this and _checkForMapTypeNotAssignable3 to
     //  better handle recovery situations.
     if (typeArguments.length == 1) {
-      DartType setElementType = typeArguments[0];
+      var setElementType = typeArguments[0];
 
       // Check every set element.
       var verifier = LiteralElementVerifier(

@@ -632,7 +632,7 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// This is similar to [setupGenericTypeInference], but the return type is
   /// also considered as part of the solution.
-  List<DartType> inferFunctionTypeInstantiation(
+  List<TypeImpl> inferFunctionTypeInstantiation(
     FunctionTypeImpl contextType,
     FunctionTypeImpl fnType, {
     ErrorReporter? errorReporter,
@@ -646,7 +646,7 @@ class TypeSystemImpl implements TypeSystem {
     required AstNodeImpl? nodeForTesting,
   }) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
-      return const <DartType>[];
+      return const <TypeImpl>[];
     }
 
     inferenceLogWriter?.enterGenericInference(fnType.typeParameters, fnType);
@@ -1402,9 +1402,8 @@ class TypeSystemImpl implements TypeSystem {
 
   /// Returns a nullable version of [type].  The result would be equivalent to
   /// the union `type | Null` (if we supported union types).
-  TypeImpl makeNullable(DartType type) {
-    // TODO(paulberry): handle type parameter types
-    return (type as TypeImpl).withNullability(NullabilitySuffix.question);
+  TypeImpl makeNullable(TypeImpl type) {
+    return type.withNullability(NullabilitySuffix.question);
   }
 
   /// Attempts to find the appropriate substitution for the [typeParameters]
@@ -1455,15 +1454,14 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/normalization.md`
-  TypeImpl normalize(DartType T) {
-    // TODO(scheglov): remove this cast
-    return NormalizeHelper(this).normalize(T as TypeImpl);
+  TypeImpl normalize(TypeImpl T) {
+    return NormalizeHelper(this).normalize(T);
   }
 
   /// Returns a non-nullable version of [type].  This is equivalent to the
   /// operation `NonNull` defined in the spec.
   @override
-  TypeImpl promoteToNonNull(DartType type) {
+  TypeImpl promoteToNonNull(covariant TypeImpl type) {
     if (type.isDartCoreNull) return NeverTypeImpl.instance;
 
     if (type is TypeParameterTypeImpl) {
@@ -1493,7 +1491,7 @@ class TypeSystemImpl implements TypeSystem {
       );
     }
 
-    return (type as TypeImpl).withNullability(NullabilitySuffix.none);
+    return type.withNullability(NullabilitySuffix.none);
   }
 
   /// Determine the type of a binary expression with the given [operator] whose
@@ -1654,7 +1652,7 @@ class TypeSystemImpl implements TypeSystem {
   /// Return `true` if runtime types [T1] and [T2] are equal.
   ///
   /// nnbd/feature-specification.md#runtime-type-equality-operator
-  bool runtimeTypesEqual(DartType T1, DartType T2) {
+  bool runtimeTypesEqual(TypeImpl T1, TypeImpl T2) {
     return RuntimeTypeEqualityHelper(this).equal(T1, T2);
   }
 

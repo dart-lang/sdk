@@ -57,9 +57,7 @@ Future<Null> test(
 }) async {
   List<String> options =
       List<String>.from(arguments)
-        // TODO(nshahan) Should change to sdkPlatformBinariesPath when testing
-        // with unsound null safety is no longer needed.
-        ..add('--platform-binaries=$buildPlatformBinariesPath')
+        ..add('--platform-binaries=$sdkPlatformBinariesPath')
         ..add('--libraries-spec=$sdkLibrariesSpecificationUri');
   print('--------------------------------------------------------------------');
   print('dart2js ${options.join(' ')}');
@@ -112,7 +110,6 @@ main() {
         'pkg/compiler/test/deferred/data/deferred_helper.dart',
         '--out=custom.js',
         '--deferred-map=def/deferred.json',
-        '--no-sound-null-safety',
         '--no-csp',
         '--stage=dump-info-all',
       ],
@@ -140,7 +137,6 @@ main() {
 
     await test([
       'pkg/compiler/test/deferred/data/deferred_helper.dart',
-      '--no-sound-null-safety',
       '--csp',
       ...additionOptionals,
     ], expectedOutput);
@@ -150,7 +146,6 @@ main() {
     await test(
       [
         'pkg/compiler/test/deferred/data/deferred_helper.dart',
-        '--no-sound-null-safety',
         '--csp',
         Flags.writeResources,
         ...additionOptionals,

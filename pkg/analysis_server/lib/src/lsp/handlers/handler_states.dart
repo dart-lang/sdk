@@ -42,6 +42,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_implementation.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_inlay_hint.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_inline_value.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_selection_range.dart';
@@ -139,6 +140,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         ImportsHandler.new,
         ImplementationHandler.new,
         IncomingCallHierarchyHandler.new,
+        InlineValueHandler.new,
         OutgoingCallHierarchyHandler.new,
         PrepareCallHierarchyHandler.new,
         PrepareTypeHierarchyHandler.new,

@@ -20,7 +20,7 @@ class RuntimeTypeEqualityHelper {
   /// Returns whether runtime types [T1] and [T2] are equal.
   ///
   /// nnbd/feature-specification.md#runtime-type-equality-operator
-  bool equal(DartType T1, DartType T2) {
+  bool equal(TypeImpl T1, TypeImpl T2) {
     var N1 = _typeSystem.normalize(T1);
     var N2 = _typeSystem.normalize(T2);
     return N1.acceptWithArgument(RuntimeTypeEqualityVisitor(_typeSystem), N2);

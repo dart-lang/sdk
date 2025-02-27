@@ -340,7 +340,7 @@ class ConstantEvaluationEngine {
   Constant evaluateAndFormatErrorsInConstructorCall(
     LibraryElementImpl library,
     AstNode node,
-    List<DartType>? typeArguments,
+    List<TypeImpl>? typeArguments,
     List<Expression> arguments,
     ConstructorElementMixin constructor,
     ConstantVisitor constantVisitor, {
@@ -385,7 +385,7 @@ class ConstantEvaluationEngine {
   Constant evaluateConstructorCall(
     LibraryElementImpl library,
     AstNode node,
-    List<DartType>? typeArguments,
+    List<TypeImpl>? typeArguments,
     List<Expression> arguments,
     ConstructorElementMixin constructor,
     ConstantVisitor constantVisitor, {
@@ -544,7 +544,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   final Map<String, DartObjectImpl>? _lexicalEnvironment;
 
   /// A mapping of type parameter names to runtime values (types).
-  final Map<TypeParameterElement, DartType>? _lexicalTypeEnvironment;
+  final Map<TypeParameterElement, TypeImpl>? _lexicalTypeEnvironment;
 
   final Substitution? _substitution;
 
@@ -567,7 +567,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     this._library,
     this._errorReporter, {
     Map<String, DartObjectImpl>? lexicalEnvironment,
-    Map<TypeParameterElement, DartType>? lexicalTypeEnvironment,
+    Map<TypeParameterElement, TypeImpl>? lexicalTypeEnvironment,
     Substitution? substitution,
   })  : _lexicalEnvironment = lexicalEnvironment,
         _lexicalTypeEnvironment = lexicalTypeEnvironment,
@@ -815,7 +815,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
-    var classType = constructorFunctionType.returnType as InterfaceType;
+    var classType = constructorFunctionType.returnType as InterfaceTypeImpl;
     var typeArguments = classType.typeArguments;
     // The result is already instantiated during resolution;
     // [_dartObjectComputer.typeInstantiate] is unnecessary.
@@ -858,7 +858,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant visitFunctionReference(FunctionReference node) {
+  Constant visitFunctionReference(covariant FunctionReferenceImpl node) {
     var functionResult = evaluateConstant(node.function);
     if (functionResult is! DartObjectImpl) {
       return functionResult;
@@ -890,7 +890,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return _instantiateFunctionType(node, functionResult);
     }
 
-    var typeArguments = <DartType>[];
+    var typeArguments = <TypeImpl>[];
     for (var typeArgument in typeArgumentList.arguments) {
       var typeArgumentConstant = evaluateConstant(typeArgument);
       switch (typeArgumentConstant) {
@@ -920,7 +920,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant visitGenericFunctionType(GenericFunctionType node) {
+  Constant visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     return DartObjectImpl(
       typeSystem,
       _typeProvider.typeType,
@@ -1108,7 +1108,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       evaluateConstant(node.expression);
 
   @override
-  Constant visitPrefixedIdentifier(PrefixedIdentifier node) {
+  Constant visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     var prefixNode = node.prefix;
     var prefixElement = prefixNode.staticElement;
 
@@ -1177,10 +1177,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant visitPropertyAccess(PropertyAccess node) {
+  Constant visitPropertyAccess(covariant PropertyAccessImpl node) {
     var target = node.target;
     if (target != null) {
-      if (target is PrefixedIdentifier &&
+      if (target is PrefixedIdentifierImpl &&
           (target.staticElement is ExtensionElement ||
               target.staticElement is ExtensionTypeElement)) {
         var prefix = target.prefix;
@@ -1247,7 +1247,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+  Constant? visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
     return DartObjectImpl(
       typeSystem,
       _typeProvider.typeType,
@@ -1307,7 +1307,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant visitSimpleIdentifier(SimpleIdentifier node) {
+  Constant visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     var value = _lexicalEnvironment?[node.name];
     if (value != null) {
       return _instantiateFunctionTypeForSimpleIdentifier(node, value);
@@ -1727,9 +1727,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant _getConstantValue({
     required AstNode errorNode,
     required Expression? expression,
-    required SimpleIdentifier? identifier,
+    required SimpleIdentifierImpl? identifier,
     required Element? element,
-    DartType? givenType,
+    TypeImpl? givenType,
   }) {
     var errorNode2 = _evaluationEngine.configuration.errorNode(errorNode);
     element = element?.declaration;
@@ -1795,7 +1795,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         }
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, rawType);
       }
-    } else if (variableElement is InterfaceElement) {
+    } else if (variableElement is InterfaceElementImpl) {
       var type = givenType ??
           variableElement.instantiate(
             typeArguments: variableElement.typeParameters
@@ -1814,7 +1814,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         _typeProvider.typeType,
         TypeState(_typeProvider.dynamicType),
       );
-    } else if (variableElement is TypeAliasElement) {
+    } else if (variableElement is TypeAliasElementImpl) {
       var type = givenType ??
           variableElement.instantiate(
             typeArguments: variableElement.typeParameters
@@ -1928,7 +1928,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// argument types, returns [value] type-instantiated with those [node]'s
   /// type argument types, otherwise returns [value].
   DartObjectImpl _instantiateFunctionType(
-      FunctionReference node, DartObjectImpl value) {
+      FunctionReferenceImpl node, DartObjectImpl value) {
     var functionElement = value.toFunctionValue();
     if (functionElement is! ExecutableElementOrMember) {
       return value;
@@ -1956,7 +1956,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// type-instantiated with those [node]'s tear-off type argument types,
   /// otherwise returns [value].
   Constant _instantiateFunctionTypeForSimpleIdentifier(
-      SimpleIdentifier node, DartObjectImpl value) {
+      SimpleIdentifierImpl node, DartObjectImpl value) {
     // TODO(srawlins): When all code uses [FunctionReference]s generated via
     // generic function instantiation, remove this method and all call sites.
     var functionElement = value.toFunctionValue();
@@ -2298,7 +2298,7 @@ class DartObjectComputer {
 
   Constant typeInstantiate(
     DartObjectImpl function,
-    List<DartType> typeArguments,
+    List<TypeImpl> typeArguments,
     Expression node,
     TypeArgumentList typeArgumentsErrorNode,
   ) {
@@ -2430,7 +2430,7 @@ class _InstanceCreationEvaluator {
 
   final ConstructorElementMixin _constructor;
 
-  final List<DartType>? _typeArguments;
+  final List<TypeImpl>? _typeArguments;
 
   final ConstructorInvocation _invocation;
 
@@ -2440,7 +2440,7 @@ class _InstanceCreationEvaluator {
 
   final List<DartObjectImpl> _argumentValues;
 
-  final Map<TypeParameterElement, DartType> _typeParameterMap = HashMap();
+  final Map<TypeParameterElement, TypeImpl> _typeParameterMap = HashMap();
 
   final Map<String, DartObjectImpl> _parameterMap = HashMap();
 
@@ -3056,7 +3056,7 @@ class _InstanceCreationEvaluator {
     LibraryElementImpl library,
     AstNode node,
     ConstructorElementMixin constructor,
-    List<DartType>? typeArguments,
+    List<TypeImpl>? typeArguments,
     List<Expression> arguments,
     ConstantVisitor constantVisitor, {
     ConstructorInvocation? invocation,

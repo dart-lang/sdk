@@ -128,22 +128,20 @@ String? longMethodName(
   }
 
   void test_property_getter() {
-    var getterA = PropertyAccessorElementImpl.forVariable(
-        TopLevelVariableElementImpl('a', 0))
-      ..isGetter = true
-      ..returnType = stringNone;
+    var getterA =
+        GetterFragmentImpl.forVariable(TopLevelVariableElementImpl('a', 0))
+          ..returnType = stringNone;
 
     expect(getterA.getDisplayString(), 'String get a');
   }
 
   void test_property_setter() {
-    var setterA = PropertyAccessorElementImpl.forVariable(
-        TopLevelVariableElementImpl('a', 0))
-      ..isSetter = true
-      ..returnType = voidNone
-      ..parameters = [
-        requiredParameter(name: 'value', type: stringNone).asElement,
-      ];
+    var setterA =
+        SetterFragmentImpl.forVariable(TopLevelVariableElementImpl('a', 0))
+          ..returnType = voidNone
+          ..parameters = [
+            requiredParameter(name: 'value', type: stringNone).asElement,
+          ];
 
     expect(
       setterA.getDisplayString(),

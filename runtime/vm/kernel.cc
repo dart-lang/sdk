@@ -382,7 +382,7 @@ ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
   ASSERT(field.is_static() && field.is_const());
 
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
@@ -468,7 +468,7 @@ ObjectPtr EvaluateMetadata(const Library& library,
                            intptr_t kernel_offset,
                            bool is_annotations_offset) {
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
@@ -572,7 +572,7 @@ ObjectPtr ParameterDescriptorBuilder::BuildParameterDescriptor(
 
 ObjectPtr BuildParameterDescriptor(const Function& function) {
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
 

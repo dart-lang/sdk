@@ -32,7 +32,7 @@ mixin SharedEditArgumentTests
     setDocumentChangesSupport();
   }
 
-  test_comma_addArg_addsIfExists() async {
+  Future<void> test_comma_addArg_addsIfExists() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y })',
       originalArgs: '(x: 1,)',
@@ -41,7 +41,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_comma_addArg_doesNotAddIfNotExists() async {
+  Future<void> test_comma_addArg_doesNotAddIfNotExists() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y })',
       originalArgs: '(x: 1)',
@@ -50,7 +50,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_comma_editArg_doesNotAddIfNotExists() async {
+  Future<void> test_comma_editArg_doesNotAddIfNotExists() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y })',
       originalArgs: '(x: 1, y: 1)',
@@ -59,7 +59,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_comma_editArg_retainsIfExists() async {
+  Future<void> test_comma_editArg_retainsIfExists() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y })',
       originalArgs: '(x: 1, y: 1,)',
@@ -68,7 +68,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_documentChanges_supported() async {
+  Future<void> test_documentChanges_supported() async {
     // Ensure documentChanges are supported. The verification in
     // LspChangeVerifier will verify the resulting edits match the capabilities.
     setDocumentChangesSupport();
@@ -80,7 +80,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_documentChanges_unsupported() async {
+  Future<void> test_documentChanges_unsupported() async {
     // documentChanges are NOT supported. The verification in
     // LspChangeVerifier will verify the resulting edits match the capabilities.
     setDocumentChangesSupport(false);
@@ -92,7 +92,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_format_multiline_insert_between() async {
+  Future<void> test_format_multiline_insert_between() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y, int? children })',
       originalArgs: '''\n
@@ -110,7 +110,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_format_multiline_insert_last() async {
+  Future<void> test_format_multiline_insert_last() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y })',
       originalArgs: '''\n
@@ -126,7 +126,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_format_multiline_insert_solo() async {
+  Future<void> test_format_multiline_insert_solo() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x })',
       originalArgs: '''\n
@@ -140,7 +140,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterNamed() async {
+  Future<void> test_named_addAfterNamed() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y })',
       originalArgs: '(x: 1)',
@@ -149,7 +149,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterNamed_afterChildNotAtEnd() async {
+  Future<void> test_named_addAfterNamed_afterChildNotAtEnd() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y, Widget? child })',
       originalArgs: '(child: null, x: 1)',
@@ -158,7 +158,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterNamed_beforeChild_noOthers() async {
+  Future<void> test_named_addAfterNamed_beforeChild_noOthers() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? y, Widget? child })',
       originalArgs: '(child: null)',
@@ -167,7 +167,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterNamed_beforeChild_noOthers_multiline() async {
+  Future<void> test_named_addAfterNamed_beforeChild_noOthers_multiline() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? y, Widget? child })',
       originalArgs: '''\n
@@ -183,7 +183,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterNamed_beforeChildAtEnd() async {
+  Future<void> test_named_addAfterNamed_beforeChildAtEnd() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y, Widget? child })',
       originalArgs: '(x: 1, child: null)',
@@ -192,7 +192,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterNamed_beforeChildren_noOthers() async {
+  Future<void> test_named_addAfterNamed_beforeChildren_noOthers() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? y, List<Widget>? children })',
       originalArgs: '(children: [])',
@@ -201,6 +201,7 @@ mixin SharedEditArgumentTests
     );
   }
 
+  Future<void>
   test_named_addAfterNamed_beforeChildren_noOthers_multiline() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? y, List<Widget>? children })',
@@ -217,7 +218,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterNamed_beforeChildrenAtEnd() async {
+  Future<void> test_named_addAfterNamed_beforeChildrenAtEnd() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x, int? y, List<Widget>? children })',
       originalArgs: '(x: 1, children: [])',
@@ -226,7 +227,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterPositional() async {
+  Future<void> test_named_addAfterPositional() async {
     await _expectSimpleArgumentEdit(
       params: '(int? x, { int? y })',
       originalArgs: '(1)',
@@ -235,7 +236,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterPositional_afterChildNotAtEnd() async {
+  Future<void> test_named_addAfterPositional_afterChildNotAtEnd() async {
     await _expectSimpleArgumentEdit(
       params: '(int? x, { int? y, Widget? child })',
       originalArgs: '(child: null, 1)',
@@ -244,7 +245,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterPositional_beforeChildAtEnd() async {
+  Future<void> test_named_addAfterPositional_beforeChildAtEnd() async {
     await _expectSimpleArgumentEdit(
       params: '(int? x, { int? y, Widget? child })',
       originalArgs: '(1, child: null)',
@@ -253,7 +254,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_named_addAfterPositional_beforeChildrenAtEnd() async {
+  Future<void> test_named_addAfterPositional_beforeChildrenAtEnd() async {
     await _expectSimpleArgumentEdit(
       params: '(int? x, { int? y, List<Widget>? children })',
       originalArgs: '(1, children: [])',
@@ -262,7 +263,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_optionalPositional_addAfterPositional() async {
+  Future<void> test_optionalPositional_addAfterPositional() async {
     await _expectSimpleArgumentEdit(
       params: '([int? x, int? y])',
       originalArgs: '(1)',
@@ -271,7 +272,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_optionalPositional_notNext_afterPositional() async {
+  Future<void> test_optionalPositional_notNext_afterPositional() async {
     await _expectFailedEdit(
       params: '([int? x, int y = 10, int? z])',
       originalArgs: '(1)',
@@ -283,7 +284,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_optionalPositional_notNext_solo() async {
+  Future<void> test_optionalPositional_notNext_solo() async {
     await _expectFailedEdit(
       params: '([int? x = 10, int? y])',
       originalArgs: '()',
@@ -295,7 +296,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_requiredPositional_addAfterNamed() async {
+  Future<void> test_requiredPositional_addAfterNamed() async {
     failTestOnErrorDiagnostic = false; // Tests with missing positional.
     await _expectSimpleArgumentEdit(
       params: '(int? x, { int? y })',
@@ -305,7 +306,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_requiredPositional_addAfterPositional() async {
+  Future<void> test_requiredPositional_addAfterPositional() async {
     failTestOnErrorDiagnostic = false; // Tests with missing positional.
     await _expectSimpleArgumentEdit(
       params: '(int? x, int? y)',
@@ -315,7 +316,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_requiredPositional_notNext_afterPositional() async {
+  Future<void> test_requiredPositional_notNext_afterPositional() async {
     failTestOnErrorDiagnostic = false; // Tests with missing positional.
     await _expectFailedEdit(
       params: '(int? x, int? y, int? z)',
@@ -328,7 +329,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_requiredPositional_notNext_noExisting() async {
+  Future<void> test_requiredPositional_notNext_noExisting() async {
     failTestOnErrorDiagnostic = false; // Tests with missing positional.
     await _expectFailedEdit(
       params: '(int? x, int? y)',
@@ -341,7 +342,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_requiredPositional_notNext_onlyNamed() async {
+  Future<void> test_requiredPositional_notNext_onlyNamed() async {
     failTestOnErrorDiagnostic = false; // Tests with missing positional.
     await _expectFailedEdit(
       params: '(int? x, int? y, { int? z })',
@@ -354,7 +355,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_soloArgument_addNamed() async {
+  Future<void> test_soloArgument_addNamed() async {
     await _expectSimpleArgumentEdit(
       params: '({int? x })',
       originalArgs: '()',
@@ -363,7 +364,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_soloArgument_addOptionalPositional() async {
+  Future<void> test_soloArgument_addOptionalPositional() async {
     await _expectSimpleArgumentEdit(
       params: '([int? x])',
       originalArgs: '()',
@@ -372,7 +373,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_soloArgument_addRequiredPositional() async {
+  Future<void> test_soloArgument_addRequiredPositional() async {
     failTestOnErrorDiagnostic = false; // Tests with missing positional.
     await _expectSimpleArgumentEdit(
       params: '(int? x)',
@@ -382,7 +383,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_soloArgument_editNamed() async {
+  Future<void> test_soloArgument_editNamed() async {
     await _expectSimpleArgumentEdit(
       params: '({int? x })',
       originalArgs: '(x: 1)',
@@ -391,7 +392,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_soloArgument_editOptionalPositional() async {
+  Future<void> test_soloArgument_editOptionalPositional() async {
     await _expectSimpleArgumentEdit(
       params: '([int? x])',
       originalArgs: '(1)',
@@ -400,7 +401,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_soloArgument_editRequiredPositional() async {
+  Future<void> test_soloArgument_editRequiredPositional() async {
     await _expectSimpleArgumentEdit(
       params: '(int? x)',
       originalArgs: '(1)',
@@ -409,7 +410,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_bool_invalidType() async {
+  Future<void> test_type_bool_invalidType() async {
     await _expectFailedEdit(
       params: '({ bool? x })',
       originalArgs: '(x: true)',
@@ -419,7 +420,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_bool_null_allowed() async {
+  Future<void> test_type_bool_null_allowed() async {
     await _expectSimpleArgumentEdit(
       params: '({ bool? x })',
       originalArgs: '(x: true)',
@@ -428,7 +429,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_bool_null_notAllowed() async {
+  Future<void> test_type_bool_null_notAllowed() async {
     await _expectFailedEdit(
       params: '({ required bool x })',
       originalArgs: '(x: true)',
@@ -438,7 +439,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_bool_replaceLiteral() async {
+  Future<void> test_type_bool_replaceLiteral() async {
     await _expectSimpleArgumentEdit(
       params: '({ bool? x })',
       originalArgs: '(x: true)',
@@ -447,7 +448,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_bool_replaceNonLiteral() async {
+  Future<void> test_type_bool_replaceNonLiteral() async {
     await _expectSimpleArgumentEdit(
       params: '({ bool? x })',
       originalArgs: '(x: 1 == 1)',
@@ -456,7 +457,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_double_invalidType() async {
+  Future<void> test_type_double_invalidType() async {
     await _expectFailedEdit(
       params: '({ double? x })',
       originalArgs: '(x: 1.1)',
@@ -467,7 +468,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_double_null_allowed() async {
+  Future<void> test_type_double_null_allowed() async {
     await _expectSimpleArgumentEdit(
       params: '({ double? x })',
       originalArgs: '(x: 1.0)',
@@ -476,7 +477,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_double_null_notAllowed() async {
+  Future<void> test_type_double_null_notAllowed() async {
     await _expectFailedEdit(
       params: '({ required double x })',
       originalArgs: '(x: 1.0)',
@@ -486,7 +487,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_double_replaceInt() async {
+  Future<void> test_type_double_replaceInt() async {
     await _expectSimpleArgumentEdit(
       params: '({ double? x })',
       originalArgs: '(x: 1)',
@@ -495,7 +496,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_double_replaceLiteral() async {
+  Future<void> test_type_double_replaceLiteral() async {
     await _expectSimpleArgumentEdit(
       params: '({ double? x })',
       originalArgs: '(x: 1.1)',
@@ -504,7 +505,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_double_replaceNonLiteral() async {
+  Future<void> test_type_double_replaceNonLiteral() async {
     await _expectSimpleArgumentEdit(
       params: '({ double? x })',
       originalArgs: '(x: 1.1 + 0.1)',
@@ -513,7 +514,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_double_replaceWithInt() async {
+  Future<void> test_type_double_replaceWithInt() async {
     await _expectSimpleArgumentEdit(
       params: '({ double? x })',
       originalArgs: '(x: 1.1)',
@@ -522,7 +523,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_enum_invalidType() async {
+  Future<void> test_type_enum_invalidType() async {
     await _expectFailedEdit(
       additionalCode: 'enum E { one, two }',
       params: '({ E? x })',
@@ -534,7 +535,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_enum_null_allowed() async {
+  Future<void> test_type_enum_null_allowed() async {
     await _expectSimpleArgumentEdit(
       additionalCode: 'enum E { one, two }',
       params: '({ E? x })',
@@ -544,7 +545,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_enum_null_notAllowed() async {
+  Future<void> test_type_enum_null_notAllowed() async {
     await _expectFailedEdit(
       additionalCode: 'enum E { one, two }',
       params: '({ required E x })',
@@ -555,7 +556,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_enum_replaceLiteral() async {
+  Future<void> test_type_enum_replaceLiteral() async {
     await _expectSimpleArgumentEdit(
       additionalCode: 'enum E { one, two }',
       params: '({ E? x })',
@@ -565,7 +566,7 @@ mixin SharedEditArgumentTests
     );
   }
 
-  test_type_enum_replaceNonLiteral() async {
+  Future<void> test_type_enum_replaceNonLiteral() async {
     await _expectSimpleArgumentEdit(
       additionalCode: '''
 enum E { one, two }
@@ -578,7 +579,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_int_invalidType() async {
+  Future<void> test_type_int_invalidType() async {
     await _expectFailedEdit(
       params: '({ int? x })',
       originalArgs: '(x: 1)',
@@ -588,7 +589,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_int_null_allowed() async {
+  Future<void> test_type_int_null_allowed() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x })',
       originalArgs: '(x: 1)',
@@ -597,7 +598,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_int_null_notAllowed() async {
+  Future<void> test_type_int_null_notAllowed() async {
     await _expectFailedEdit(
       params: '({ required int x })',
       originalArgs: '(x: 1)',
@@ -607,7 +608,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_int_replaceLiteral() async {
+  Future<void> test_type_int_replaceLiteral() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x })',
       originalArgs: '(x: 1)',
@@ -616,7 +617,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_int_replaceNonLiteral() async {
+  Future<void> test_type_int_replaceNonLiteral() async {
     await _expectSimpleArgumentEdit(
       params: '({ int? x })',
       originalArgs: '(x: 1 + 0)',
@@ -625,7 +626,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_containsBackslashes() async {
+  Future<void> test_type_string_containsBackslashes() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
@@ -634,7 +635,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_containsBothQuotes() async {
+  Future<void> test_type_string_containsBothQuotes() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
@@ -643,7 +644,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_containsSingleQuotes() async {
+  Future<void> test_type_string_containsSingleQuotes() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
@@ -652,7 +653,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_invalidType() async {
+  Future<void> test_type_string_invalidType() async {
     await _expectFailedEdit(
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
@@ -662,7 +663,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_multiline() async {
+  Future<void> test_type_string_multiline() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
@@ -671,7 +672,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_null_allowed() async {
+  Future<void> test_type_string_null_allowed() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
@@ -680,7 +681,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_null_notAllowed() async {
+  Future<void> test_type_string_null_notAllowed() async {
     await _expectFailedEdit(
       params: '({ required String x })',
       originalArgs: "(x: 'a')",
@@ -690,7 +691,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_quotes_dollar_escapedNonRaw() async {
+  Future<void> test_type_string_quotes_dollar_escapedNonRaw() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: '')",
@@ -699,7 +700,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_quotes_dollar_notEscapedRaw() async {
+  Future<void> test_type_string_quotes_dollar_notEscapedRaw() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: r'')",
@@ -708,7 +709,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_quotes_usesExistingDouble() async {
+  Future<void> test_type_string_quotes_usesExistingDouble() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: '(x: "a")',
@@ -717,7 +718,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_quotes_usesExistingSingle() async {
+  Future<void> test_type_string_quotes_usesExistingSingle() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
@@ -726,7 +727,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_quotes_usesExistingTripleDouble() async {
+  Future<void> test_type_string_quotes_usesExistingTripleDouble() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: '(x: """a""")',
@@ -735,7 +736,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_quotes_usesExistingTripleSingle() async {
+  Future<void> test_type_string_quotes_usesExistingTripleSingle() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: '''a''')",
@@ -744,7 +745,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_replaceLiteral() async {
+  Future<void> test_type_string_replaceLiteral() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: 'a')",
@@ -753,7 +754,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_replaceLiteral_raw() async {
+  Future<void> test_type_string_replaceLiteral_raw() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: r'a')",
@@ -762,7 +763,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_replaceLiteral_tripleQuoted() async {
+  Future<void> test_type_string_replaceLiteral_tripleQuoted() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: '''a''')",
@@ -771,7 +772,7 @@ const myConst = E.one;
     );
   }
 
-  test_type_string_replaceNonLiteral() async {
+  Future<void> test_type_string_replaceNonLiteral() async {
     await _expectSimpleArgumentEdit(
       params: '({ String? x })',
       originalArgs: "(x: 'a' + 'a')",
@@ -780,7 +781,7 @@ const myConst = E.one;
     );
   }
 
-  test_unsupported_noApplyEditSupport() async {
+  Future<void> test_unsupported_noApplyEditSupport() async {
     setApplyEditSupport(false);
 
     await _expectFailedEdit(

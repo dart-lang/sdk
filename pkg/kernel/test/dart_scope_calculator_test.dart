@@ -17,7 +17,6 @@ void main() {
     // Patching is bad on outlines, see
     // https://github.com/dart-lang/sdk/issues/54117.
     if (dill.path.endsWith("_outline.dill")) return false;
-    if (dill.path.endsWith("_outline_unsound.dill")) return false;
     if (dill.path.contains("/vm_outline_")) return false;
     return true;
   }).toList();

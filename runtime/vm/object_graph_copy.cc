@@ -2441,7 +2441,7 @@ class ObjectGraphCopier : public StackResource {
 
     {
       LongJumpScope jump;  // e.g. for OOMs.
-      if (setjmp(*jump.Set()) == 0) {
+      if (DART_SETJMP(*jump.Set()) == 0) {
         result = CopyObjectGraphInternal(root, &exception_msg);
         // Any allocated external typed data must have finalizers attached so
         // memory will get free()ed.

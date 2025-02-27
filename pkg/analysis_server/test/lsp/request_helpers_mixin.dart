@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/extensions/positions.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -46,26 +47,9 @@ mixin LspEditHelpersMixin {
     /// Ensures changes are simple enough to apply easily without any complicated
     /// logic.
     void validateChangesCanBeApplied() {
-      /// Check if a position is before (but not equal) to another position.
-      bool isBeforeOrEqual(Position p, Position other) =>
-          p.line < other.line ||
-          (p.line == other.line && p.character <= other.character);
-
-      /// Check if a position is after (but not equal) to another position.
-      bool isAfterOrEqual(Position p, Position other) =>
-          p.line > other.line ||
-          (p.line == other.line && p.character >= other.character);
-      // Check if two ranges intersect.
-      bool rangesIntersect(Range r1, Range r2) {
-        var endsBefore = isBeforeOrEqual(r1.end, r2.start);
-        var startsAfter = isAfterOrEqual(r1.start, r2.end);
-        return !(endsBefore || startsAfter);
-      }
-
       for (var change1 in changes) {
         for (var change2 in changes) {
-          if (change1 != change2 &&
-              rangesIntersect(change1.range, change2.range)) {
+          if (change1 != change2 && change1.range.intersects(change2.range)) {
             throw 'Test helper applyTextEdits does not support applying multiple edits '
                 'where the edits are not in reverse order.';
           }
@@ -626,6 +610,48 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(
       request,
       _fromJsonList(InlayHint.fromJson),
+    );
+  }
+
+  Future<List<InlineValue>?> getInlineValues(
+    Uri uri, {
+    required Range visibleRange,
+    required Position stoppedAt,
+  }) {
+    var request = makeRequest(
+      Method.textDocument_inlineValue,
+      InlineValueParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        range: visibleRange,
+        context: InlineValueContext(
+          frameId: 0,
+          stoppedLocation: Range(start: stoppedAt, end: stoppedAt),
+        ),
+      ),
+    );
+    return expectSuccessfulResponseTo(
+      request,
+      // Use a custom function to deserialise the response into the correct
+      // kind of `InlineValue`.
+      _fromJsonList((Map<String, Object?> input) {
+        var reporter = nullLspJsonReporter;
+        // The overlap of these types is such that a Variable or Text would also
+        // match `InlineValueEvaluatableExpression.canParse` (because
+        // `expression` is optional), so the order of calling canParse here
+        // matters.
+        if (InlineValueVariableLookup.canParse(input, reporter)) {
+          return InlineValue.t3(InlineValueVariableLookup.fromJson(input));
+        }
+        if (InlineValueText.canParse(input, reporter)) {
+          return InlineValue.t2(InlineValueText.fromJson(input));
+        }
+        if (InlineValueEvaluatableExpression.canParse(input, reporter)) {
+          return InlineValue.t1(
+            InlineValueEvaluatableExpression.fromJson(input),
+          );
+        }
+        throw 'InlineValue did not match any valid types';
+      }),
     );
   }
 

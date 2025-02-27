@@ -43,6 +43,7 @@ import 'implementation_test.dart' as implementation;
 import 'import_test.dart' as import_test;
 import 'initialization_test.dart' as initialization;
 import 'inlay_hint_test.dart' as inlay_hint;
+import 'inline_value_test.dart' as inline_value;
 import 'mapping_test.dart' as mapping;
 import 'open_uri_test.dart' as open_uri;
 import 'outline_test.dart' as outline;
@@ -105,6 +106,7 @@ void main() {
     import_test.main();
     initialization.main();
     inlay_hint.main();
+    inline_value.main();
     lsp_packet_transformer.main();
     mapping.main();
     open_uri.main();

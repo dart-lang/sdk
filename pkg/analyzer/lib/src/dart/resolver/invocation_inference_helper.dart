@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
+/// @docImport 'package:analyzer/dart/element/element2.dart';
+library;
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -21,13 +21,13 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Information about a constructor element to instantiate.
 ///
-/// If the target is a [ClassElement], the [element] is a raw
-/// [ConstructorElement] from the class, and [typeParameters] are the
+/// If the target is a [ClassElement2], the [element] is a raw
+/// [ConstructorElement2] from the class, and [typeParameters] are the
 /// type parameters of the class.
 ///
-/// If the target is a [TypeAliasElement] with an [InterfaceType] as the
+/// If the target is a [TypeAliasElement2] with an [InterfaceType] as the
 /// aliased type, the [element] is a [ConstructorMember] created from the
-/// [ConstructorElement] of the corresponding class, and substituting
+/// [ConstructorElement2] of the corresponding class, and substituting
 /// the class type parameters with the type arguments specified in the alias,
 /// explicit types or the type parameters of the alias. The [typeParameters]
 /// are the type parameters of the alias.
@@ -87,32 +87,32 @@ class InvocationInferenceHelper {
   /// return the element and type parameters to infer. Otherwise return `null`.
   ConstructorElementToInfer? constructorElementToInfer({
     required ConstructorName constructorName,
-    required LibraryElement definingLibrary,
+    required LibraryElementImpl definingLibrary,
   }) {
-    List<TypeParameterElementImpl> typeParameters;
-    ConstructorElementMixin? rawElement;
+    List<TypeParameterElementImpl2> typeParameters;
+    ConstructorElementMixin2? rawElement;
 
     var typeName = constructorName.type;
-    var typeElement = typeName.element;
-    if (typeElement is InterfaceElementImpl) {
-      var augmented = typeElement.augmented;
-      typeParameters = typeElement.typeParameters;
+    var typeElement = typeName.element2;
+    if (typeElement is InterfaceElementImpl2) {
+      typeParameters = typeElement.typeParameters2;
       var constructorIdentifier = constructorName.name;
       if (constructorIdentifier == null) {
-        rawElement = augmented.unnamedConstructor;
+        rawElement = typeElement.unnamedConstructor2;
       } else {
         var name = constructorIdentifier.name;
-        rawElement = augmented.getNamedConstructor(name);
-        if (rawElement != null && !rawElement.isAccessibleIn(definingLibrary)) {
+        rawElement = typeElement.getNamedConstructor2(name);
+        if (rawElement != null &&
+            !rawElement.isAccessibleIn2(definingLibrary)) {
           rawElement = null;
         }
       }
-    } else if (typeElement is TypeAliasElementImpl) {
-      typeParameters = typeElement.typeParameters;
+    } else if (typeElement is TypeAliasElementImpl2) {
+      typeParameters = typeElement.typeParameters2;
       var aliasedType = typeElement.aliasedType;
       if (aliasedType is InterfaceTypeImpl) {
         var constructorIdentifier = constructorName.name;
-        rawElement = aliasedType.lookUpConstructor(
+        rawElement = aliasedType.lookUpConstructor2(
           constructorIdentifier?.name,
           definingLibrary,
         );
@@ -124,9 +124,7 @@ class InvocationInferenceHelper {
     if (rawElement == null) {
       return null;
     }
-    return ConstructorElementToInfer(
-        typeParameters.map((e) => e.asElement2).toList(),
-        rawElement.asElement2);
+    return ConstructorElementToInfer(typeParameters, rawElement);
   }
 
   /// Given an uninstantiated generic function type, referenced by the
@@ -159,7 +157,7 @@ class InvocationInferenceHelper {
 
   /// Finish resolution of the [MethodInvocation].
   ///
-  /// We have already found the invoked [ExecutableElement], and the [rawType]
+  /// We have already found the invoked [ExecutableElement2], and the [rawType]
   /// is its not yet instantiated type. Here we perform downwards inference,
   /// resolution of arguments, and upwards inference.
   void resolveMethodInvocation({

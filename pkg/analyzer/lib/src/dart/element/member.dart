@@ -780,7 +780,7 @@ class GetterMember extends PropertyAccessorMember
     return [
       for (GetterFragment? fragment = firstFragment;
           fragment != null;
-          fragment = fragment.nextFragment as GetterFragment?)
+          fragment = fragment.nextFragment)
         fragment,
     ];
   }
@@ -1558,7 +1558,7 @@ class SetterMember extends PropertyAccessorMember
     return [
       for (SetterFragment? fragment = firstFragment;
           fragment != null;
-          fragment = fragment.nextFragment as SetterFragment?)
+          fragment = fragment.nextFragment)
         fragment,
     ];
   }

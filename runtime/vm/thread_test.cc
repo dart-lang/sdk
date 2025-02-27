@@ -1034,7 +1034,7 @@ static void RunLockerWithLongJumpTest() {
   LockType lock;
   for (intptr_t i = 0; i < kNumIterations; ++i) {
     LongJumpScope jump;
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       LockerType locker(Thread::Current(), &lock);
       execution_count = execution_count + 1;
       Thread::Current()->long_jump_base()->Jump(

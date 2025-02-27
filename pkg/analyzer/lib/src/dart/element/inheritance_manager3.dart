@@ -1095,9 +1095,8 @@ class InheritanceManager3 {
       return result;
     }
 
-    if (executable is PropertyAccessorElementImpl) {
-      assert(executable.isSetter);
-      var result = PropertyAccessorElementImpl(executable.name, -1);
+    if (executable is SetterFragmentImpl) {
+      var result = SetterFragmentImpl(executable.name, -1);
       result.enclosingElement3 = class_;
       result.isSynthetic = true;
       result.parameters = transformedParameters;
@@ -1175,24 +1174,25 @@ class InheritanceManager3 {
       var firstAccessor = first as PropertyAccessorElement;
       var fragmentName = first.asElement2.firstFragment.name2;
       var variableName = firstAccessor.displayName;
+      var field = FieldElementImpl(variableName, -1);
 
-      var result = PropertyAccessorElementImpl(variableName, -1);
+      PropertyAccessorElementImpl result;
+      if (firstAccessor.isGetter) {
+        field.getter = result = GetterFragmentImpl(variableName, -1);
+      } else {
+        field.setter = result = SetterFragmentImpl(variableName, -1);
+      }
       result.enclosingElement3 = targetClass;
       result.name2 = fragmentName;
-      result.isGetter = firstAccessor.isGetter;
-      result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
       result.parameters = resultType.parameters.cast();
 
-      var field = FieldElementImpl(variableName, -1);
       field.enclosingElement3 = targetClass;
       field.name2 = fragmentName;
       if (firstAccessor.isGetter) {
-        field.getter = result;
         field.type = result.returnType;
       } else {
-        field.setter = result;
         field.type = result.parameters[0].type;
       }
       result.variable2 = field;

@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:collection';
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -180,9 +177,9 @@ class LinkedElementFactory {
   }
 
   // TODO(scheglov): Why would this method return `null`?
-  Element? elementOfReference(Reference reference) {
-    if (reference.element != null) {
-      return reference.element;
+  ElementImpl? elementOfReference(Reference reference) {
+    if (reference.element case var element?) {
+      return element;
     }
     if (reference.parent == null) {
       return null;
@@ -298,5 +295,5 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
   }
 
-  void _disposeLibrary(Element? libraryElement) {}
+  void _disposeLibrary(ElementImpl? libraryElement) {}
 }

@@ -8,7 +8,7 @@ import '../rule_test_support.dart';
 
 // ignore_for_file: file_names
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferIterableWhereTypeTest);
   });

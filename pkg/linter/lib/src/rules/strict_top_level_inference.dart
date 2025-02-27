@@ -212,7 +212,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       var overriddenMember = context.inheritanceManager.overriddenMember(
         node.declaredFragment?.element,
       );
-      if (overriddenMember == null && node.returnType == null) {
+      if (overriddenMember == null &&
+          node.returnType == null &&
+          !container.isReflectiveTest) {
         _report(node.name);
       }
       if (node.parameters case var parameters?) {
@@ -262,5 +264,25 @@ class _Visitor extends SimpleAstVisitor<void> {
         errorCode: LinterLintCode.strict_top_level_inference_replace_keyword,
       );
     }
+  }
+}
+
+extension on InstanceElement2 {
+  // TODO(pq): share w/ unreachable_from_main
+  bool get isReflectiveTest {
+    var self = this;
+    if (self is! ClassElement2) return false;
+
+    var metadata = self.metadata2;
+    for (var i = 0; i < metadata.annotations.length; i++) {
+      var annotation = metadata.annotations[i].element2;
+      if (annotation is GetterElement &&
+          annotation.name3 == 'reflectiveTest' &&
+          annotation.library2.uri.toString() ==
+              'package:test_reflective_loader/test_reflective_loader.dart') {
+        return true;
+      }
+    }
+    return false;
   }
 }

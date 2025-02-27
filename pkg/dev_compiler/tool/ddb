@@ -138,12 +138,11 @@ void main(List<String> args) async {
   var compile = mode == 'compile' || mode == 'all';
   var run = mode == 'run' || mode == 'all';
   var verbose = options['verbose'] as bool;
-  var soundNullSafety = options['sound-null-safety'] as bool;
   var emitDebugSymbols = options['emit-debug-symbols'] as bool;
   var nonNullAsserts = options['null-assertions'] as bool;
   var nativeNonNullAsserts = options.wasParsed('native-null-assertions')
       ? options['native-null-assertions'] as bool
-      : soundNullSafety;
+      : true;
   var jsInteropNonNullAsserts = options['interop-null-assertions'] as bool;
   var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
   var ddcModules = options['ddc-modules'] as bool;
@@ -260,12 +259,8 @@ void main(List<String> args) async {
   var sdkRoot = p.dirname(p.dirname(ddcPath));
   var buildDir = resolveBuildDir(sdkRoot, arch);
   var requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
-  var sdkOutlineDill = p.join(buildDir,
-      soundNullSafety ? 'ddc_outline.dill' : 'ddc_outline_unsound.dill');
-  var compileModeDir = [
-    canaryFeatures ? 'canary' : 'stable',
-    soundNullSafety ? '' : '_unsound',
-  ].join();
+  var sdkOutlineDill = p.join(buildDir, 'ddc_outline.dill');
+  var compileModeDir = canaryFeatures ? 'canary' : 'stable';
   var sdkJsPath =
       p.join(buildDir, 'gen', 'utils', 'ddc', compileModeDir, 'sdk', mod);
   var preamblesDir = p.join(
@@ -283,7 +278,7 @@ void main(List<String> args) async {
       '--dart-sdk-summary=$sdkOutlineDill',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
-      if (soundNullSafety) '--sound-null-safety' else '--no-sound-null-safety',
+      '--sound-null-safety',
       if (options['packages'] != null) '--packages=${options['packages']}',
       if (emitDebugSymbols) '--emit-debug-symbols',
       if (canaryFeatures) '--canary',
@@ -314,7 +309,6 @@ void main(List<String> args) async {
   if (run) {
     var ddcModuleSdkOptions = canaryFeatures
         ? '''let sdkOptions = {
-  weakNullSafetyWarnings: !($weakNullSafetyErrors || $soundNullSafety),
   weakNullSafetyErrors: $weakNullSafetyErrors,
   nonNullAsserts: $nonNullAsserts,
   nativeNonNullAsserts: $nativeNonNullAsserts,
@@ -322,7 +316,6 @@ void main(List<String> args) async {
 };'''
         : '''
 let sdk = dart_library.import("dart_sdk", "$appname");
-sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
 sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
 sdk.dart.nonNullAsserts($nonNullAsserts);
 sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
@@ -368,8 +361,6 @@ sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
         function(sdk, app) {
     'use strict';
 
-    sdk.dart.weakNullSafetyWarnings(
-        !($weakNullSafetyErrors || $soundNullSafety));
     sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
     sdk.dart.nonNullAsserts($nonNullAsserts);
     sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
@@ -424,8 +415,6 @@ let sdk = require(\"dart_sdk\");
 sdk.dart.global.self = sdk.dart.global;
 let main = require(\"./$basename\").$libname.main;
 try {
-  sdk.dart.weakNullSafetyWarnings(
-      !($weakNullSafetyErrors || $soundNullSafety));
   sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
   sdk.dart.nonNullAsserts($nonNullAsserts);
   sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);

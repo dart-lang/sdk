@@ -5610,18 +5610,18 @@ abstract class GetterElement2OrMember
 
 class GetterElementImpl extends PropertyAccessorElementImpl2
     with
-        FragmentedExecutableElementMixin<PropertyAccessorElementImpl>,
-        FragmentedFunctionTypedElementMixin<PropertyAccessorElementImpl>,
-        FragmentedTypeParameterizedElementMixin<PropertyAccessorElementImpl>,
-        FragmentedAnnotatableElementMixin<PropertyAccessorElementImpl>,
-        FragmentedElementMixin<PropertyAccessorElementImpl>,
+        FragmentedExecutableElementMixin<GetterFragmentImpl>,
+        FragmentedFunctionTypedElementMixin<GetterFragmentImpl>,
+        FragmentedTypeParameterizedElementMixin<GetterFragmentImpl>,
+        FragmentedAnnotatableElementMixin<GetterFragmentImpl>,
+        FragmentedElementMixin<GetterFragmentImpl>,
         _HasSinceSdkVersionMixin
     implements GetterElement2OrMember {
   @override
-  final PropertyAccessorElementImpl firstFragment;
+  final GetterFragmentImpl firstFragment;
 
   GetterElementImpl(this.firstFragment) {
-    PropertyAccessorElementImpl? fragment = firstFragment;
+    GetterFragmentImpl? fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
       fragment = fragment.nextFragment;
@@ -5633,12 +5633,12 @@ class GetterElementImpl extends PropertyAccessorElementImpl2
 
   @override
   SetterElement? get correspondingSetter2 =>
-      firstFragment.correspondingSetter2?.element as SetterElement?;
+      firstFragment.variable2?.setter?.element;
 
   @override
-  List<PropertyAccessorElementImpl> get fragments {
+  List<GetterFragmentImpl> get fragments {
     return [
-      for (PropertyAccessorElementImpl? fragment = firstFragment;
+      for (GetterFragmentImpl? fragment = firstFragment;
           fragment != null;
           fragment = fragment.nextFragment)
         fragment,
@@ -5670,6 +5670,64 @@ class GetterElementImpl extends PropertyAccessorElementImpl2
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitGetterElement(this);
   }
+}
+
+class GetterFragmentImpl extends PropertyAccessorElementImpl
+    with AugmentableElement<GetterFragmentImpl>
+    implements GetterFragment {
+  /// The element corresponding to this fragment.
+  GetterElementImpl? _element;
+
+  GetterFragmentImpl(super.name, super.offset);
+
+  GetterFragmentImpl.forVariable(super.variable, {super.reference})
+      : super.forVariable();
+
+  @override
+  GetterFragmentImpl? get augmentationTarget {
+    if (super.augmentationTarget case var target?) {
+      if (target.kind == kind) {
+        return target;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement? get correspondingGetter => null;
+
+  @override
+  PropertyAccessorElement? get correspondingSetter => variable2?.setter;
+
+  @override
+  GetterElementImpl get element {
+    if (_element != null) {
+      return _element!;
+    }
+    GetterFragmentImpl firstFragment = this;
+    var previousFragment = firstFragment.previousFragment;
+    while (previousFragment != null) {
+      firstFragment = previousFragment;
+      previousFragment = firstFragment.previousFragment;
+    }
+    // As a side-effect of creating the element, all of the fragments in the
+    // chain will have their `_element` set to the newly created element.
+    return GetterElementImpl(firstFragment);
+  }
+
+  set element(GetterElementImpl element) => _element = element;
+
+  @override
+  bool get isGetter => true;
+
+  @override
+  bool get isSetter => false;
+
+  @override
+  GetterFragmentImpl? get nextFragment => augmentation;
+
+  @override
+  GetterFragmentImpl? get previousFragment => augmentationTarget;
 }
 
 /// A concrete implementation of a [HideElementCombinator].
@@ -7391,8 +7449,7 @@ class LibraryElementImpl extends ElementImpl
     for (var unit in units) {
       declarations.addAll(unit._accessors
           .where((accessor) => accessor.isGetter)
-          .map((accessor) =>
-              (accessor as GetterFragment).element as GetterElement));
+          .map((accessor) => (accessor as GetterFragment).element));
     }
     return declarations.toList();
   }
@@ -7490,8 +7547,7 @@ class LibraryElementImpl extends ElementImpl
     for (var unit in units) {
       declarations.addAll(unit._accessors
           .where((accessor) => accessor.isSetter)
-          .map((accessor) =>
-              (accessor as SetterFragment).element as SetterElement));
+          .map((accessor) => (accessor as SetterFragment).element));
     }
     return declarations.toList();
   }
@@ -10106,13 +10162,8 @@ abstract class PropertyAccessorElement2OrMember
 }
 
 /// A concrete implementation of a [PropertyAccessorElement].
-class PropertyAccessorElementImpl extends ExecutableElementImpl
-    with AugmentableElement<PropertyAccessorElementImpl>
-    implements
-        PropertyAccessorElementOrMember,
-        PropertyAccessorFragment,
-        GetterFragment,
-        SetterFragment {
+sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
+    implements PropertyAccessorElementOrMember, PropertyAccessorFragment {
   @override
   String? name2;
 
@@ -10120,12 +10171,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   int? nameOffset2;
 
   PropertyInducingElementImpl? _variable;
-
-  /// The element corresponding to this fragment.
-  ///
-  /// The element will always be an instance of either `GetterElement` or
-  /// `SetterElement`.
-  PropertyAccessorElementImpl2? _element;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
@@ -10143,68 +10188,15 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  PropertyAccessorElementImpl? get augmentationTarget {
-    if (super.augmentationTarget case var target?) {
-      if (target.kind == kind) {
-        return target;
-      }
-    }
-    return null;
-  }
-
-  @override
   List<Element2> get children2 {
     throw StateError('This is a fragment');
   }
 
   @override
-  PropertyAccessorElement? get correspondingGetter {
-    if (isGetter) {
-      return null;
-    }
-    return variable2?.getter;
-  }
-
-  @override
-  GetterFragment? get correspondingGetter2 =>
-      correspondingGetter as GetterFragment?;
-
-  @override
-  PropertyAccessorElement? get correspondingSetter {
-    if (isSetter) {
-      return null;
-    }
-    return variable2?.setter;
-  }
-
-  @override
-  SetterFragment? get correspondingSetter2 =>
-      correspondingSetter as SetterFragment?;
-
-  @override
   PropertyAccessorElementImpl get declaration => this;
 
   @override
-  PropertyAccessorElementImpl2 get element {
-    if (_element != null) {
-      return _element!;
-    }
-    PropertyAccessorElementImpl firstFragment = this;
-    var previousFragment = firstFragment.previousFragment;
-    while (previousFragment != null) {
-      firstFragment = previousFragment;
-      previousFragment = firstFragment.previousFragment;
-    }
-    // As a side-effect of creating the element, all of the fragments in the
-    // chain will have their `_element` set to the newly created element.
-    if (isGetter) {
-      return GetterElementImpl(firstFragment);
-    } else {
-      return SetterElementImpl(firstFragment);
-    }
-  }
-
-  set element(PropertyAccessorElementImpl2 element) => _element = element;
+  PropertyAccessorElementImpl2 get element;
 
   @override
   Fragment get enclosingFragment {
@@ -10229,25 +10221,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
-  @override
-  bool get isGetter {
-    return hasModifier(Modifier.GETTER);
-  }
-
-  /// Set whether this accessor is a getter.
-  set isGetter(bool isGetter) {
-    setModifier(Modifier.GETTER, isGetter);
-  }
-
-  @override
-  bool get isSetter {
-    return hasModifier(Modifier.SETTER);
-  }
-
-  /// Set whether this accessor is a setter.
-  set isSetter(bool isSetter) {
-    setModifier(Modifier.SETTER, isSetter);
-  }
+  set isAugmentation(bool isAugmentation);
 
   @override
   ElementKind get kind {
@@ -10270,12 +10244,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     }
     return super.name;
   }
-
-  @override
-  PropertyAccessorElementImpl? get nextFragment => augmentation;
-
-  @override
-  PropertyAccessorElementImpl? get previousFragment => augmentationTarget;
 
   @override
   PropertyInducingElementImpl? get variable2 {
@@ -10334,8 +10302,7 @@ abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
 /// Implicit getter for a [PropertyInducingElementImpl].
 // Pre-existing name.
 // ignore: camel_case_types
-class PropertyAccessorElementImpl_ImplicitGetter
-    extends PropertyAccessorElementImpl {
+class PropertyAccessorElementImpl_ImplicitGetter extends GetterFragmentImpl {
   /// Create the implicit getter and bind it to the [property].
   PropertyAccessorElementImpl_ImplicitGetter(
       PropertyInducingElementImpl property,
@@ -10399,8 +10366,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
 /// Implicit setter for a [PropertyInducingElementImpl].
 // Pre-existing name.
 // ignore: camel_case_types
-class PropertyAccessorElementImpl_ImplicitSetter
-    extends PropertyAccessorElementImpl {
+class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
   /// Create the implicit setter and bind it to the [property].
   PropertyAccessorElementImpl_ImplicitSetter(
       PropertyInducingElementImpl property,
@@ -10490,13 +10456,13 @@ abstract class PropertyInducingElementImpl
 
   /// The getter associated with this element.
   @override
-  PropertyAccessorElementImpl? getter;
+  GetterFragmentImpl? getter;
 
   /// The setter associated with this element, or `null` if the element is
   /// effectively `final` and therefore does not have a setter associated with
   /// it.
   @override
-  PropertyAccessorElementImpl? setter;
+  SetterFragmentImpl? setter;
 
   /// This field is set during linking, and performs type inference for
   /// this property. After linking this field is always `null`.
@@ -10634,7 +10600,7 @@ abstract class PropertyInducingElementImpl
     reference.element = this;
   }
 
-  PropertyAccessorElementImpl createImplicitGetter(Reference reference) {
+  GetterFragmentImpl createImplicitGetter(Reference reference) {
     assert(getter == null);
     return getter = PropertyAccessorElementImpl_ImplicitGetter(
       this,
@@ -10642,7 +10608,7 @@ abstract class PropertyInducingElementImpl
     );
   }
 
-  PropertyAccessorElementImpl createImplicitSetter(Reference reference) {
+  SetterFragmentImpl createImplicitSetter(Reference reference) {
     assert(hasSetter);
     assert(setter == null);
     return setter = PropertyAccessorElementImpl_ImplicitSetter(
@@ -10722,18 +10688,18 @@ abstract class SetterElement2OrMember
 
 class SetterElementImpl extends PropertyAccessorElementImpl2
     with
-        FragmentedExecutableElementMixin<PropertyAccessorElementImpl>,
-        FragmentedFunctionTypedElementMixin<PropertyAccessorElementImpl>,
-        FragmentedTypeParameterizedElementMixin<PropertyAccessorElementImpl>,
-        FragmentedAnnotatableElementMixin<PropertyAccessorElementImpl>,
-        FragmentedElementMixin<PropertyAccessorElementImpl>,
+        FragmentedExecutableElementMixin<SetterFragmentImpl>,
+        FragmentedFunctionTypedElementMixin<SetterFragmentImpl>,
+        FragmentedTypeParameterizedElementMixin<SetterFragmentImpl>,
+        FragmentedAnnotatableElementMixin<SetterFragmentImpl>,
+        FragmentedElementMixin<SetterFragmentImpl>,
         _HasSinceSdkVersionMixin
     implements SetterElement2OrMember {
   @override
-  final PropertyAccessorElementImpl firstFragment;
+  final SetterFragmentImpl firstFragment;
 
   SetterElementImpl(this.firstFragment) {
-    PropertyAccessorElementImpl? fragment = firstFragment;
+    SetterFragmentImpl? fragment = firstFragment;
     while (fragment != null) {
       fragment.element = this;
       fragment = fragment.nextFragment;
@@ -10745,15 +10711,15 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
 
   @override
   GetterElement? get correspondingGetter2 =>
-      firstFragment.correspondingGetter2?.element as GetterElement?;
+      firstFragment.variable2?.getter?.element;
 
   @override
   Element2 get enclosingElement2 => firstFragment.enclosingFragment.element;
 
   @override
-  List<PropertyAccessorElementImpl> get fragments {
+  List<SetterFragmentImpl> get fragments {
     return [
-      for (PropertyAccessorElementImpl? fragment = firstFragment;
+      for (SetterFragmentImpl? fragment = firstFragment;
           fragment != null;
           fragment = fragment.nextFragment)
         fragment,
@@ -10793,6 +10759,64 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitSetterElement(this);
   }
+}
+
+class SetterFragmentImpl extends PropertyAccessorElementImpl
+    with AugmentableElement<SetterFragmentImpl>
+    implements SetterFragment {
+  /// The element corresponding to this fragment.
+  SetterElementImpl? _element;
+
+  SetterFragmentImpl(super.name, super.offset);
+
+  SetterFragmentImpl.forVariable(super.variable, {super.reference})
+      : super.forVariable();
+
+  @override
+  SetterFragmentImpl? get augmentationTarget {
+    if (super.augmentationTarget case var target?) {
+      if (target.kind == kind) {
+        return target;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement? get correspondingGetter => variable2?.getter;
+
+  @override
+  PropertyAccessorElement? get correspondingSetter => null;
+
+  @override
+  SetterElementImpl get element {
+    if (_element != null) {
+      return _element!;
+    }
+    SetterFragmentImpl firstFragment = this;
+    var previousFragment = firstFragment.previousFragment;
+    while (previousFragment != null) {
+      firstFragment = previousFragment;
+      previousFragment = firstFragment.previousFragment;
+    }
+    // As a side-effect of creating the element, all of the fragments in the
+    // chain will have their `_element` set to the newly created element.
+    return SetterElementImpl(firstFragment);
+  }
+
+  set element(SetterElementImpl element) => _element = element;
+
+  @override
+  bool get isGetter => false;
+
+  @override
+  bool get isSetter => true;
+
+  @override
+  SetterFragmentImpl? get nextFragment => augmentation;
+
+  @override
+  SetterFragmentImpl? get previousFragment => augmentationTarget;
 }
 
 /// A concrete implementation of a [ShowElementCombinator].
@@ -11074,8 +11098,7 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   }
 
   @override
-  GetterElement? get getter2 =>
-      firstFragment.getter2?.element as GetterElement?;
+  GetterElement? get getter2 => firstFragment.getter2?.element;
 
   @override
   bool get hasImplicitType => firstFragment.hasImplicitType;
@@ -11107,8 +11130,7 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   String? get name3 => firstFragment.name2;
 
   @override
-  SetterElement? get setter2 =>
-      firstFragment.setter2?.element as SetterElement?;
+  SetterElement? get setter2 => firstFragment.setter2?.element;
 
   @override
   TypeImpl get type => firstFragment.type;

@@ -140,14 +140,14 @@ class FragmentedElementBuilder<E extends Element2, F extends Fragment> {
   }
 }
 
-class GetterElementBuilder extends FragmentedElementBuilder<GetterElementImpl,
-    PropertyAccessorElementImpl> {
+class GetterElementBuilder
+    extends FragmentedElementBuilder<GetterElementImpl, GetterFragmentImpl> {
   GetterElementBuilder({
     required super.element,
     required super.firstFragment,
   });
 
-  void addFragment(PropertyAccessorElementImpl fragment) {
+  void addFragment(GetterFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
@@ -160,8 +160,8 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     F extends InstanceElementImpl> extends FragmentedElementBuilder<E, F> {
   final Map<String, FieldElementImpl> fields = {};
   final Map<String, ConstructorElementImpl> constructors = {};
-  final Map<String, PropertyAccessorElementImpl> getters = {};
-  final Map<String, PropertyAccessorElementImpl> setters = {};
+  final Map<String, GetterFragmentImpl> getters = {};
+  final Map<String, SetterFragmentImpl> setters = {};
   final Map<String, MethodElementImpl> methods = {};
 
   final Map<String, ElementImpl> fragmentGetters = {};
@@ -176,28 +176,29 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
   void addAccessors(List<PropertyAccessorElementImpl> fragments) {
     for (var fragment in fragments) {
       var name = fragment.name;
-      if (fragment.isGetter) {
-        if (fragment.isAugmentation) {
-          if (getters[name] case var target?) {
-            target.augmentation = fragment;
-            fragment.augmentationTargetAny = target;
-          } else {
-            var target = _recoveryAugmentationTarget(name);
-            fragment.augmentationTargetAny = target;
+      switch (fragment) {
+        case GetterFragmentImpl():
+          if (fragment.isAugmentation) {
+            if (getters[name] case var target?) {
+              target.augmentation = fragment;
+              fragment.augmentationTargetAny = target;
+            } else {
+              var target = _recoveryAugmentationTarget(name);
+              fragment.augmentationTargetAny = target;
+            }
           }
-        }
-        getters[name] = fragment;
-      } else {
-        if (fragment.isAugmentation) {
-          if (setters[name] case var target?) {
-            target.augmentation = fragment;
-            fragment.augmentationTargetAny = target;
-          } else {
-            var target = _recoveryAugmentationTarget(name);
-            fragment.augmentationTargetAny = target;
+          getters[name] = fragment;
+        case SetterFragmentImpl():
+          if (fragment.isAugmentation) {
+            if (setters[name] case var target?) {
+              target.augmentation = fragment;
+              fragment.augmentationTargetAny = target;
+            } else {
+              var target = _recoveryAugmentationTarget(name);
+              fragment.augmentationTargetAny = target;
+            }
           }
-        }
-        setters[name] = fragment;
+          setters[name] = fragment;
       }
     }
   }
@@ -398,14 +399,14 @@ class MixinElementBuilder
   }
 }
 
-class SetterElementBuilder extends FragmentedElementBuilder<SetterElementImpl,
-    PropertyAccessorElementImpl> {
+class SetterElementBuilder
+    extends FragmentedElementBuilder<SetterElementImpl, SetterFragmentImpl> {
   SetterElementBuilder({
     required super.element,
     required super.firstFragment,
   });
 
-  void addFragment(PropertyAccessorElementImpl fragment) {
+  void addFragment(SetterFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
       lastFragment.augmentation = fragment;
       lastFragment = fragment;

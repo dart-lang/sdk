@@ -8,7 +8,7 @@ typedef _Predicate<T> = bool Function(T value);
 
 /// Lightweight expect that can be run outside of a test context.
 mixin ExpectMixin {
-  void expect(actual, matcher, {String? reason}) {
+  void expect(Object? actual, Object? matcher, {String? reason}) {
     matcher = _wrapMatcher(matcher);
     var matchState = {};
     try {
@@ -21,7 +21,7 @@ mixin ExpectMixin {
     throw Exception(reason);
   }
 
-  static Matcher _wrapMatcher(x) {
+  static Matcher _wrapMatcher(Object? x) {
     if (x is Matcher) {
       return x;
     } else if (x is _Predicate<Object>) {

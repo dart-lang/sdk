@@ -1054,8 +1054,7 @@ class _MockSdkElementsBuilder {
     field.isSynthetic = true;
     field.type = type;
 
-    var getter = PropertyAccessorElementImpl(name, 0);
-    getter.isGetter = true;
+    var getter = GetterFragmentImpl(name, 0);
     getter.isStatic = isStatic;
     getter.isSynthetic = false;
     getter.returnType = type;

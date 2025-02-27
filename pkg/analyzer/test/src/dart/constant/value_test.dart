@@ -4,8 +4,8 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
@@ -2400,7 +2400,7 @@ class DartObjectImplTest {
   }
 
   DartObjectImpl _listValue(
-    DartType elementType,
+    TypeImpl elementType,
     List<DartObjectImpl> elements,
   ) {
     return DartObjectImpl(
@@ -2413,10 +2413,9 @@ class DartObjectImplTest {
     );
   }
 
-  DartObjectImpl _mapValue(DartType keyType, DartType valueType,
+  DartObjectImpl _mapValue(TypeImpl keyType, TypeImpl valueType,
       List<DartObjectImpl> keyValuePairs) {
-    Map<DartObjectImpl, DartObjectImpl> map =
-        <DartObjectImpl, DartObjectImpl>{};
+    var map = <DartObjectImpl, DartObjectImpl>{};
     int count = keyValuePairs.length;
     for (int i = 0; i < count;) {
       map[keyValuePairs[i++]] = keyValuePairs[i++];
@@ -2448,7 +2447,7 @@ class DartObjectImplTest {
   }
 
   DartObjectImpl _setValue(
-      ParameterizedType elementType, Set<DartObjectImpl>? elements) {
+      TypeImpl elementType, Set<DartObjectImpl>? elements) {
     return DartObjectImpl(
       _typeSystem,
       _typeProvider.setType(elementType),
@@ -2483,7 +2482,7 @@ class DartObjectImplTest {
     );
   }
 
-  DartObjectImpl _typeValue(DartType value) {
+  DartObjectImpl _typeValue(TypeImpl value) {
     return DartObjectImpl(
       _typeSystem,
       _typeProvider.typeType,

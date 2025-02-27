@@ -297,7 +297,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.isConst) {
-      var nodeType = node.staticType as InterfaceType;
+      var nodeType = node.staticType as InterfaceTypeImpl;
       var elementType = nodeType.typeArguments[0];
       var verifier = _ConstLiteralVerifier(
         this,
@@ -395,7 +395,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     super.visitSetOrMapLiteral(node);
     if (node.isSet) {
       if (node.isConst) {
-        var nodeType = node.staticType as InterfaceType;
+        var nodeType = node.staticType as InterfaceTypeImpl;
         var elementType = nodeType.typeArguments[0];
         var config = _SetVerifierConfig(elementType: elementType);
         var verifier = _ConstLiteralVerifier(
@@ -413,7 +413,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
     } else if (node.isMap) {
       if (node.isConst) {
-        var nodeType = node.staticType as InterfaceType;
+        var nodeType = node.staticType as InterfaceTypeImpl;
         var keyType = nodeType.typeArguments[0];
         var valueType = nodeType.typeArguments[1];
         var config = _MapVerifierConfig(
@@ -1069,7 +1069,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 class _ConstLiteralVerifier {
   final ConstantVerifier verifier;
   final ErrorCode errorCode;
-  final DartType? listElementType;
+  final TypeImpl? listElementType;
   final _SetVerifierConfig? setConfig;
   final _MapVerifierConfig? mapConfig;
 
@@ -1228,7 +1228,7 @@ class _ConstLiteralVerifier {
   }
 
   bool _validateListExpression(
-      DartType listElementType, Expression expression, DartObjectImpl value) {
+      TypeImpl listElementType, Expression expression, DartObjectImpl value) {
     if (!verifier._runtimeTypeMatch(value, listElementType)) {
       if (verifier._runtimeTypeMatch(
           value, verifier._typeSystem.makeNullable(listElementType))) {
@@ -1471,8 +1471,8 @@ class _ConstLiteralVerifier {
 }
 
 class _MapVerifierConfig {
-  final DartType keyType;
-  final DartType valueType;
+  final TypeImpl keyType;
+  final TypeImpl valueType;
   final Map<DartObject, Expression> uniqueKeys = {};
   final Map<Expression, Expression> duplicateKeys = {};
 
@@ -1483,7 +1483,7 @@ class _MapVerifierConfig {
 }
 
 class _SetVerifierConfig {
-  final DartType elementType;
+  final TypeImpl elementType;
   final Map<DartObject, Expression> uniqueValues = {};
   final Map<Expression, Expression> duplicateElements = {};
 

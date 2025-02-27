@@ -28,6 +28,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_completion,
     Method.textDocument_hover,
     Method.textDocument_inlayHint,
+    Method.textDocument_inlineValue,
     Method.textDocument_signatureHelp,
     Method.textDocument_references,
     Method.textDocument_documentHighlight,
@@ -103,6 +104,9 @@ class ClientDynamicRegistrations {
 
   bool get inlayHints =>
       _capabilities.textDocument?.inlayHint?.dynamicRegistration ?? false;
+
+  bool get inlineValue =>
+      _capabilities.textDocument?.inlineValue?.dynamicRegistration ?? false;
 
   bool get rangeFormatting =>
       _capabilities.textDocument?.rangeFormatting?.dynamicRegistration ?? false;
@@ -190,6 +194,7 @@ class ServerCapabilitiesComputer {
           features.formatOnType.staticRegistration,
       documentRangeFormattingProvider: features.formatRange.staticRegistration,
       inlayHintProvider: features.inlayHint.staticRegistration,
+      inlineValueProvider: features.inlineValue.staticRegistration,
       renameProvider: features.rename.staticRegistration,
       foldingRangeProvider: features.foldingRange.staticRegistration,
       selectionRangeProvider: features.selectionRange.staticRegistration,

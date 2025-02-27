@@ -807,11 +807,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     ExecutableElementImpl executableElement;
     FragmentedElementBuilder? elementBuilder;
     if (node.isGetter) {
-      var getterFragment = PropertyAccessorElementImpl(name, nameOffset);
+      var getterFragment = GetterFragmentImpl(name, nameOffset);
       getterFragment.name2 = _getFragmentName(nameToken);
       getterFragment.nameOffset2 = _getFragmentNameOffset(nameToken);
       getterFragment.isAugmentation = node.augmentKeyword != null;
-      getterFragment.isGetter = true;
       getterFragment.isStatic = true;
 
       var refName = getterFragment.name2 ?? '${_nextUnnamedId++}';
@@ -845,11 +844,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
       }
     } else if (node.isSetter) {
-      var setterFragment = PropertyAccessorElementImpl(name, nameOffset);
+      var setterFragment = SetterFragmentImpl(name, nameOffset);
       setterFragment.name2 = _getFragmentName(nameToken);
       setterFragment.nameOffset2 = _getFragmentNameOffset(nameToken);
       setterFragment.isAugmentation = node.augmentKeyword != null;
-      setterFragment.isSetter = true;
       setterFragment.isStatic = true;
 
       var refName = setterFragment.name2 ?? '${_nextUnnamedId++}';
@@ -1175,12 +1173,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     Reference reference;
     ExecutableElementImpl executableFragment;
     if (node.isGetter) {
-      var fragment = PropertyAccessorElementImpl(name, nameOffset);
+      var fragment = GetterFragmentImpl(name, nameOffset);
       fragment.name2 = _getFragmentName(nameToken);
       fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
-      fragment.isGetter = true;
       fragment.isStatic = node.isStatic;
 
       // `class Enum {}` in `dart:core` declares `int get index` as abstract.
@@ -1199,12 +1196,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _buildSyntheticVariable(name: refName, accessorElement: fragment);
       }
     } else if (node.isSetter) {
-      var fragment = PropertyAccessorElementImpl(name, nameOffset);
+      var fragment = SetterFragmentImpl(name, nameOffset);
       fragment.name2 = _getFragmentName(nameToken);
       fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
-      fragment.isSetter = true;
       fragment.isStatic = node.isStatic;
 
       var refName = fragment.name2 ?? '${_nextUnnamedId++}';
@@ -1735,10 +1731,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     accessorElement.variable2 = property;
-    if (accessorElement.isGetter) {
-      property.getter = accessorElement;
-    } else {
-      property.setter = accessorElement;
+    switch (accessorElement) {
+      case GetterFragmentImpl():
+        property.getter = accessorElement;
+      case SetterFragmentImpl():
+        property.setter = accessorElement;
     }
     return property;
   }

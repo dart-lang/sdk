@@ -7,8 +7,6 @@ import 'package:expect/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show computePlatformBinariesLocation;
 
 main(List<String> args) {
   asyncTest(() async {
@@ -17,15 +15,9 @@ main(List<String> args) {
     Uri closedWorldUri = dir.uri.resolve('world.data');
     Uri globalInferenceUri = dir.uri.resolve('global.data');
     Uri outUri = dir.uri.resolve('out.js');
-    String buildRoot =
-        computePlatformBinariesLocation(forceBuildDir: true).toFilePath();
     var commonArgs = [
       Flags.verbose,
       '--libraries-spec=$sdkLibrariesSpecificationUri',
-      '--no-sound-null-safety',
-      // Unsound platform dill files are no longer packaged in the SDK and must
-      // be read from the build directory during tests.
-      '--platform-binaries=$buildRoot',
       '${Flags.closedWorldUri}=$closedWorldUri',
       '${Flags.globalInferenceUri}=$globalInferenceUri',
     ];

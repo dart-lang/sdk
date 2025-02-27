@@ -1204,12 +1204,12 @@ class LibraryReader {
       variables.add(variable);
 
       var getter = variable.getter;
-      if (getter is PropertyAccessorElementImpl) {
+      if (getter is GetterFragmentImpl) {
         accessors.add(getter);
       }
 
       var setter = variable.setter;
-      if (setter is PropertyAccessorElementImpl) {
+      if (setter is SetterFragmentImpl) {
         accessors.add(setter);
       }
     }
@@ -1577,8 +1577,11 @@ class LibraryReader {
     var reference = _readReference();
     var fragmentName = _readFragmentName();
     var name = reference.elementName;
+    var flags = _reader.readUInt30();
 
-    var fragment = PropertyAccessorElementImpl(name, -1);
+    var fragment = PropertyAccessorElementFlags.isGetter(flags)
+        ? GetterFragmentImpl(name, -1)
+        : SetterFragmentImpl(name, -1);
     fragment.name2 = fragmentName;
 
     var linkedData = PropertyAccessorElementLinkedData(
@@ -1589,8 +1592,13 @@ class LibraryReader {
     );
     fragment.setLinkedData(reference, linkedData);
 
-    PropertyAccessorElementFlags.read(_reader, fragment);
-    _readAugmentationTargetAny(fragment);
+    PropertyAccessorElementFlags.setFlagsBasedOnFlagByte(fragment, flags);
+    switch (fragment) {
+      case GetterFragmentImpl():
+        _readAugmentationTargetAny(fragment);
+      case SetterFragmentImpl():
+        _readAugmentationTargetAny(fragment);
+    }
     fragment.parameters = _readParameters();
     return fragment;
   }
@@ -1623,7 +1631,6 @@ class LibraryReader {
       var propertyElementReference = _readOptionalReference();
 
       var name = accessor.displayName;
-      var isGetter = accessor.isGetter;
 
       bool canUseExisting(PropertyInducingElement property) {
         return property.isSynthetic ||
@@ -1672,13 +1679,14 @@ class LibraryReader {
       }
 
       accessor.variable2 = propertyFragment;
-      if (isGetter) {
-        propertyFragment.getter = accessor;
-      } else {
-        propertyFragment.setter = accessor;
-        if (propertyFragment.isSynthetic) {
-          propertyFragment.isFinal = false;
-        }
+      switch (accessor) {
+        case GetterFragmentImpl():
+          propertyFragment.getter = accessor;
+        case SetterFragmentImpl():
+          propertyFragment.setter = accessor;
+          if (propertyFragment.isSynthetic) {
+            propertyFragment.isFinal = false;
+          }
       }
     }
   }
@@ -1767,12 +1775,12 @@ class LibraryReader {
       variables.add(variable);
 
       var getter = variable.getter;
-      if (getter is PropertyAccessorElementImpl) {
+      if (getter is GetterFragmentImpl) {
         accessors.add(getter);
       }
 
       var setter = variable.setter;
-      if (setter is PropertyAccessorElementImpl) {
+      if (setter is SetterFragmentImpl) {
         accessors.add(setter);
       }
     }
@@ -2165,7 +2173,7 @@ class ResolutionReader {
     return _reader.readOptionalObject(read);
   }
 
-  List<DartType>? readOptionalTypeList() {
+  List<TypeImpl>? readOptionalTypeList() {
     if (_reader.readBool()) {
       return _readTypeList();
     } else {

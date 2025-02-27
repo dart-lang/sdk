@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StrictTopLevelInferenceTest);
   });
@@ -679,6 +679,33 @@ void f() {
     await assertNoDiagnostics(r'''
 void f() {
   var x;
+}
+''');
+  }
+
+  test_reflectiveTest() async {
+    // TODO(pq): share setup logic with unreachable_from_main_test
+    var testReflectiveLoaderPath = '$workspaceRootPath/test_reflective_loader';
+    var packageConfigBuilder = PackageConfigFileBuilder();
+    packageConfigBuilder.add(
+      name: 'test_reflective_loader',
+      rootPath: testReflectiveLoaderPath,
+    );
+    writeTestPackageConfig(packageConfigBuilder);
+    newFile('$testReflectiveLoaderPath/lib/test_reflective_loader.dart', r'''
+library test_reflective_loader;
+
+const Object reflectiveTest = _ReflectiveTest();
+class _ReflectiveTest {
+  const _ReflectiveTest();
+}
+''');
+    await assertNoDiagnostics(r'''
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+@reflectiveTest
+class ReflectiveTest {
+  test_foo() {}
 }
 ''');
   }

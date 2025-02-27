@@ -621,8 +621,6 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for "ddc".
 class DevCompilerConfiguration extends CompilerConfiguration {
-  final bool _soundNullSafety;
-
   /// The output directory under `_configuration.buildDirectory` where DDC build
   /// targets are output.
   static final String ddcGenDir = 'gen/utils/ddc/';
@@ -637,14 +635,12 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   bool get _isIA32 => _configuration.architecture == Architecture.ia32;
 
   DevCompilerConfiguration(super.configuration)
-      : _soundNullSafety = configuration.nnbdMode == NnbdMode.strong,
-        buildOptionsDir = [
+      : buildOptionsDir = [
           ddcGenDir,
           if (configuration.ddcOptions.contains('--canary'))
             'canary'
           else
             'stable',
-          if (configuration.nnbdMode != NnbdMode.strong) '_unsound'
         ].join(),
         super._subclass();
 
@@ -675,7 +671,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._configuration.ddcOptions,
       ..._experimentsArgument(_configuration, testFile),
-      if (_soundNullSafety) '--sound-null-safety' else '--no-sound-null-safety',
+      '--sound-null-safety',
       // The file being compiled is the last argument.
       args.last
     ];
@@ -692,7 +688,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     options.remove('--null-assertions');
     options.remove('--native-null-assertions');
     options.remove('--interop-null-assertions');
-    if (!_useSdk || !_soundNullSafety) {
+    if (!_useSdk) {
       // If we're testing a built SDK, DDC will find its own summary.
       //
       // Unsound summary files are not longer bundled with the built SDK so they
@@ -700,8 +696,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
-      var sdkSummaryFile =
-          _soundNullSafety ? 'ddc_outline.dill' : 'ddc_outline_unsound.dill';
+      var sdkSummaryFile = 'ddc_outline.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
           .append(sdkSummaryFile)
           .absolute
@@ -728,12 +723,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // The summaries are provided here during the compilation of the test and
       // the JavaScript will be loaded separately when the test is run.
       args.add("-s");
-      var outlineFilename = [
-        package,
-        '_outline',
-        if (!_soundNullSafety) '_unsound',
-        '.dill'
-      ].join();
+      var outlineFilename = '${package}_outline.dill';
 
       var summary = Path(_configuration.buildDirectory)
           .append('$ddcGenDir/$outlineFilename')
@@ -787,7 +777,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
           arguments.contains('--interop-null-assertions');
       var weakNullSafetyErrors =
           arguments.contains('--weak-null-safety-errors');
-      var weakNullSafetyWarnings = !(weakNullSafetyErrors || _soundNullSafety);
       var repositoryUri = Uri.directory(Repository.dir.toNativePath());
       var dartLibraryPath = repositoryUri
           .resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js')
@@ -825,7 +814,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         load("$outputFile");
 
         let sdk = dart_library.import("dart_sdk", "$appName");
-        sdk.dart.weakNullSafetyWarnings($weakNullSafetyWarnings);
         sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
         sdk.dart.nonNullAsserts($nonNullAsserts);
         sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);

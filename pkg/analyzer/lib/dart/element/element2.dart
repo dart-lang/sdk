@@ -1177,26 +1177,14 @@ abstract class GetterElement implements PropertyAccessorElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class GetterFragment implements PropertyAccessorFragment {
-  /// The setter that corresponds to (has the same name as) this getter, or
-  /// `null` if there is no corresponding setter.
-  SetterFragment? get correspondingSetter2;
+  @override
+  GetterElement get element;
 
-  // TODO(brianwilkerson): This should override `nextFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // GetterFragment? get nextFragment;
+  @override
+  GetterFragment? get nextFragment;
 
-  // TODO(brianwilkerson): This should override `previousFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // GetterFragment? get previousFragment;
-
-  // TODO(brianwilkerson): This should override `element` to be more specific,
-  //  but can't because the Impl class supports both getters and setters.
-  // @override
-  // GetterElement get element;
+  @override
+  GetterFragment? get previousFragment;
 }
 
 /// The interface that is implemented by elements that can have `@Since()`
@@ -2498,26 +2486,14 @@ abstract class SetterElement implements PropertyAccessorElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class SetterFragment implements PropertyAccessorFragment {
-  /// The getter that corresponds to (has the same name as) this setter, or
-  /// `null` if there is no corresponding getter.
-  GetterFragment? get correspondingGetter2;
+  @override
+  SetterElement get element;
 
-  // TODO(brianwilkerson): This should override `element` to be more specific,
-  //  but can't because the Impl class supports both getters and setters.
-  // @override
-  // SetterElement get element;
+  @override
+  SetterFragment? get nextFragment;
 
-  // TODO(brianwilkerson): This should override `nextFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // SetterFragment? get nextFragment;
-
-  // TODO(brianwilkerson): This should override `previousFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // SetterFragment? get previousFragment;
+  @override
+  SetterFragment? get previousFragment;
 }
 
 /// A super formal parameter.

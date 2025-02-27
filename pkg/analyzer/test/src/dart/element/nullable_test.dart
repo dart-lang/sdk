@@ -678,15 +678,15 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
     _check(voidNone, voidNone);
   }
 
-  void _check(DartType type, DartType expected) {
+  void _check(TypeImpl type, TypeImpl expected) {
     var result = typeSystem.promoteToNonNull(type);
     expect(result, expected);
   }
 
   void _checkTypeParameter(
-    TypeParameterType type, {
+    TypeParameterTypeImpl type, {
     required TypeParameterElement2 element,
-    required DartType? promotedBound,
+    required TypeImpl? promotedBound,
   }) {
     var actual = typeSystem.promoteToNonNull(type) as TypeParameterTypeImpl;
     expect(actual.element3, same(element));
