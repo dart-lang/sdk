@@ -13812,7 +13812,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @experimental
   @override
-  PartInclude? get partInclude => element as PartInclude?;
+  PartElementImpl? get partInclude => element;
 
   @override
   ChildEntities get _childEntities => super._childEntities

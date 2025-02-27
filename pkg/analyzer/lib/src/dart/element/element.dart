@@ -2079,7 +2079,7 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
   });
 
   @override
-  LibraryFragment get libraryFragment => unit;
+  CompilationUnitElementImpl get libraryFragment => unit;
 
   @override
   Source get source => unit.source;
@@ -7432,8 +7432,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  LibraryFragment get firstFragment =>
-      definingCompilationUnit as LibraryFragment;
+  CompilationUnitElementImpl get firstFragment => definingCompilationUnit;
 
   @override
   List<CompilationUnitElementImpl> get fragments {
@@ -9856,8 +9855,8 @@ class PartElementImpl extends _ExistingElementImpl
   String get identifier => 'part';
 
   @override
-  LibraryFragment? get includedFragment {
-    if (uri case DirectiveUriWithUnit uri) {
+  CompilationUnitElementImpl? get includedFragment {
+    if (uri case DirectiveUriWithUnitImpl uri) {
       return uri.libraryFragment;
     }
     return null;
@@ -9867,7 +9866,7 @@ class PartElementImpl extends _ExistingElementImpl
   ElementKind get kind => ElementKind.PART;
 
   @override
-  LibraryFragment get libraryFragment => enclosingUnit;
+  CompilationUnitElementImpl get libraryFragment => enclosingUnit;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitPartElement(this);

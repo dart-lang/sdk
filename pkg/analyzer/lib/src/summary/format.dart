@@ -890,6 +890,9 @@ class AnalysisDriverUnitIndexBuilder extends Object
   List<int>? _elementNameParameterIds;
   List<int>? _elementNameUnitMemberIds;
   List<int>? _elementUnits;
+  List<int>? _libFragmentRefTargets;
+  List<int>? _libFragmentRefUriLengths;
+  List<int>? _libFragmentRefUriOffsets;
   int? _nullStringId;
   List<String>? _strings;
   List<AnalysisDriverSubtypeBuilder>? _subtypes;
@@ -974,6 +977,42 @@ class AnalysisDriverUnitIndexBuilder extends Object
   set elementUnits(List<int> value) {
     assert(value.every((e) => e >= 0));
     this._elementUnits = value;
+  }
+
+  @override
+  List<int> get libFragmentRefTargets => _libFragmentRefTargets ??= <int>[];
+
+  /// Support for indexing `part` and `part of` directives.
+  ///
+  /// This is the index into [unitLibraryUris] and [unitUnitUris].
+  /// This is the library fragment referenced by the directive.
+  set libFragmentRefTargets(List<int> value) {
+    assert(value.every((e) => e >= 0));
+    this._libFragmentRefTargets = value;
+  }
+
+  @override
+  List<int> get libFragmentRefUriLengths =>
+      _libFragmentRefUriLengths ??= <int>[];
+
+  /// Support for indexing `part` and `part of` directives.
+  ///
+  /// The offset of the URI in the directive.
+  set libFragmentRefUriLengths(List<int> value) {
+    assert(value.every((e) => e >= 0));
+    this._libFragmentRefUriLengths = value;
+  }
+
+  @override
+  List<int> get libFragmentRefUriOffsets =>
+      _libFragmentRefUriOffsets ??= <int>[];
+
+  /// Support for indexing `part` and `part of` directives.
+  ///
+  /// The offset of the URI in the directive.
+  set libFragmentRefUriOffsets(List<int> value) {
+    assert(value.every((e) => e >= 0));
+    this._libFragmentRefUriOffsets = value;
   }
 
   @override
@@ -1135,6 +1174,9 @@ class AnalysisDriverUnitIndexBuilder extends Object
       List<int>? elementNameParameterIds,
       List<int>? elementNameUnitMemberIds,
       List<int>? elementUnits,
+      List<int>? libFragmentRefTargets,
+      List<int>? libFragmentRefUriLengths,
+      List<int>? libFragmentRefUriOffsets,
       int? nullStringId,
       List<String>? strings,
       List<AnalysisDriverSubtypeBuilder>? subtypes,
@@ -1156,6 +1198,9 @@ class AnalysisDriverUnitIndexBuilder extends Object
         _elementNameParameterIds = elementNameParameterIds,
         _elementNameUnitMemberIds = elementNameUnitMemberIds,
         _elementUnits = elementUnits,
+        _libFragmentRefTargets = libFragmentRefTargets,
+        _libFragmentRefUriLengths = libFragmentRefUriLengths,
+        _libFragmentRefUriOffsets = libFragmentRefUriOffsets,
         _nullStringId = nullStringId,
         _strings = strings,
         _subtypes = subtypes,
@@ -1360,6 +1405,33 @@ class AnalysisDriverUnitIndexBuilder extends Object
         signatureSink.addString(x);
       }
     }
+    var libFragmentRefTargets = this._libFragmentRefTargets;
+    if (libFragmentRefTargets == null) {
+      signatureSink.addInt(0);
+    } else {
+      signatureSink.addInt(libFragmentRefTargets.length);
+      for (var x in libFragmentRefTargets) {
+        signatureSink.addInt(x);
+      }
+    }
+    var libFragmentRefUriOffsets = this._libFragmentRefUriOffsets;
+    if (libFragmentRefUriOffsets == null) {
+      signatureSink.addInt(0);
+    } else {
+      signatureSink.addInt(libFragmentRefUriOffsets.length);
+      for (var x in libFragmentRefUriOffsets) {
+        signatureSink.addInt(x);
+      }
+    }
+    var libFragmentRefUriLengths = this._libFragmentRefUriLengths;
+    if (libFragmentRefUriLengths == null) {
+      signatureSink.addInt(0);
+    } else {
+      signatureSink.addInt(libFragmentRefUriLengths.length);
+      for (var x in libFragmentRefUriLengths) {
+        signatureSink.addInt(x);
+      }
+    }
   }
 
   typed_data.Uint8List toBuffer() {
@@ -1374,6 +1446,9 @@ class AnalysisDriverUnitIndexBuilder extends Object
     fb.Offset? offset_elementNameParameterIds;
     fb.Offset? offset_elementNameUnitMemberIds;
     fb.Offset? offset_elementUnits;
+    fb.Offset? offset_libFragmentRefTargets;
+    fb.Offset? offset_libFragmentRefUriLengths;
+    fb.Offset? offset_libFragmentRefUriOffsets;
     fb.Offset? offset_strings;
     fb.Offset? offset_subtypes;
     fb.Offset? offset_supertypes;
@@ -1418,6 +1493,23 @@ class AnalysisDriverUnitIndexBuilder extends Object
     var elementUnits = _elementUnits;
     if (!(elementUnits == null || elementUnits.isEmpty)) {
       offset_elementUnits = fbBuilder.writeListUint32(elementUnits);
+    }
+    var libFragmentRefTargets = _libFragmentRefTargets;
+    if (!(libFragmentRefTargets == null || libFragmentRefTargets.isEmpty)) {
+      offset_libFragmentRefTargets =
+          fbBuilder.writeListUint32(libFragmentRefTargets);
+    }
+    var libFragmentRefUriLengths = _libFragmentRefUriLengths;
+    if (!(libFragmentRefUriLengths == null ||
+        libFragmentRefUriLengths.isEmpty)) {
+      offset_libFragmentRefUriLengths =
+          fbBuilder.writeListUint32(libFragmentRefUriLengths);
+    }
+    var libFragmentRefUriOffsets = _libFragmentRefUriOffsets;
+    if (!(libFragmentRefUriOffsets == null ||
+        libFragmentRefUriOffsets.isEmpty)) {
+      offset_libFragmentRefUriOffsets =
+          fbBuilder.writeListUint32(libFragmentRefUriOffsets);
     }
     var strings = _strings;
     if (!(strings == null || strings.isEmpty)) {
@@ -1502,6 +1594,15 @@ class AnalysisDriverUnitIndexBuilder extends Object
     if (offset_elementUnits != null) {
       fbBuilder.addOffset(5, offset_elementUnits);
     }
+    if (offset_libFragmentRefTargets != null) {
+      fbBuilder.addOffset(21, offset_libFragmentRefTargets);
+    }
+    if (offset_libFragmentRefUriLengths != null) {
+      fbBuilder.addOffset(23, offset_libFragmentRefUriLengths);
+    }
+    if (offset_libFragmentRefUriOffsets != null) {
+      fbBuilder.addOffset(22, offset_libFragmentRefUriOffsets);
+    }
     fbBuilder.addUint32(1, _nullStringId, 0);
     if (offset_strings != null) {
       fbBuilder.addOffset(0, offset_strings);
@@ -1577,6 +1678,9 @@ class _AnalysisDriverUnitIndexImpl extends Object
   List<int>? _elementNameParameterIds;
   List<int>? _elementNameUnitMemberIds;
   List<int>? _elementUnits;
+  List<int>? _libFragmentRefTargets;
+  List<int>? _libFragmentRefUriLengths;
+  List<int>? _libFragmentRefUriOffsets;
   int? _nullStringId;
   List<String>? _strings;
   List<idl.AnalysisDriverSubtype>? _subtypes;
@@ -1629,6 +1733,24 @@ class _AnalysisDriverUnitIndexImpl extends Object
   List<int> get elementUnits {
     return _elementUnits ??=
         const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
+  }
+
+  @override
+  List<int> get libFragmentRefTargets {
+    return _libFragmentRefTargets ??= const fb.Uint32ListReader()
+        .vTableGet(_bc, _bcOffset, 21, const <int>[]);
+  }
+
+  @override
+  List<int> get libFragmentRefUriLengths {
+    return _libFragmentRefUriLengths ??= const fb.Uint32ListReader()
+        .vTableGet(_bc, _bcOffset, 23, const <int>[]);
+  }
+
+  @override
+  List<int> get libFragmentRefUriOffsets {
+    return _libFragmentRefUriOffsets ??= const fb.Uint32ListReader()
+        .vTableGet(_bc, _bcOffset, 22, const <int>[]);
   }
 
   @override
@@ -1755,6 +1877,18 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
     if (local_elementUnits.isNotEmpty) {
       result["elementUnits"] = local_elementUnits;
     }
+    var local_libFragmentRefTargets = libFragmentRefTargets;
+    if (local_libFragmentRefTargets.isNotEmpty) {
+      result["libFragmentRefTargets"] = local_libFragmentRefTargets;
+    }
+    var local_libFragmentRefUriLengths = libFragmentRefUriLengths;
+    if (local_libFragmentRefUriLengths.isNotEmpty) {
+      result["libFragmentRefUriLengths"] = local_libFragmentRefUriLengths;
+    }
+    var local_libFragmentRefUriOffsets = libFragmentRefUriOffsets;
+    if (local_libFragmentRefUriOffsets.isNotEmpty) {
+      result["libFragmentRefUriOffsets"] = local_libFragmentRefUriOffsets;
+    }
     var local_nullStringId = nullStringId;
     if (local_nullStringId != 0) {
       result["nullStringId"] = local_nullStringId;
@@ -1831,6 +1965,9 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
         "elementNameParameterIds": elementNameParameterIds,
         "elementNameUnitMemberIds": elementNameUnitMemberIds,
         "elementUnits": elementUnits,
+        "libFragmentRefTargets": libFragmentRefTargets,
+        "libFragmentRefUriLengths": libFragmentRefUriLengths,
+        "libFragmentRefUriOffsets": libFragmentRefUriOffsets,
         "nullStringId": nullStringId,
         "strings": strings,
         "subtypes": subtypes,

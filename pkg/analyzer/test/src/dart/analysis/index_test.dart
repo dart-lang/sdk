@@ -7,6 +7,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -41,6 +42,16 @@ class ExpectedLocation {
 class IndexTest extends PubPackageResolutionTest with _IndexMixin {
   void assertElementIndexText(Element element, String expected) {
     var actual = _getRelationsText(element);
+    if (actual != expected) {
+      print(actual);
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
+  void assertLibraryFragmentIndexText(
+      CompilationUnitElementImpl fragment, String expected) {
+    var actual = _getLibraryFragmentReferenceText(fragment);
     if (actual != expected) {
       print(actual);
       NodeTextExpectationsCollector.add(actual);
@@ -1068,9 +1079,9 @@ import 'lib.dart';
 library my_lib;
 part 'my_unit.dart';
 ''');
-    var element = findElement.part('package:test/my_unit.dart');
-    assertElementIndexText(element, r'''
-21 2:6 |'my_unit.dart'| IS_REFERENCED_BY qualified
+    var fragment = findElement.part('package:test/my_unit.dart');
+    assertLibraryFragmentIndexText(fragment, r'''
+21 2:6 |'my_unit.dart'|
 ''');
   }
 
@@ -2728,6 +2739,40 @@ void f() {
       ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
+  String _getLibraryFragmentReferenceText(CompilationUnitElementImpl target) {
+    var lineInfo = result.lineInfo;
+    var targetId = index.getLibraryFragmentId(target);
+
+    expect(
+      index.libFragmentRefTargets.length,
+      index.libFragmentRefUriOffsets.length,
+    );
+
+    expect(
+      index.libFragmentRefTargets.length,
+      index.libFragmentRefUriLengths.length,
+    );
+
+    var buffer = StringBuffer();
+    for (var i = 0; i < index.libFragmentRefTargets.length; i++) {
+      if (index.libFragmentRefTargets[i] == targetId) {
+        var offset = index.libFragmentRefUriOffsets[i];
+        var length = index.libFragmentRefUriLengths[i];
+        var location = lineInfo.getLocation(offset);
+        var snippet = result.content.substring(offset, offset + length);
+        buffer.write(offset);
+        buffer.write(' ');
+        buffer.write(location.lineNumber);
+        buffer.write(':');
+        buffer.write(location.columnNumber);
+        buffer.write(' ');
+        buffer.write('|$snippet|');
+        buffer.writeln();
+      }
+    }
+    return buffer.toString();
+  }
+
   String _getRelationsText(Element element) {
     var lineInfo = result.lineInfo;
     var elementId = _findElementId(element);
@@ -2832,7 +2877,7 @@ mixin _IndexMixin on PubPackageResolutionTest {
 
   void _assertUsedName(String name, IndexRelationKind kind,
       ExpectedLocation expectedLocation, bool isNot) {
-    int nameId = _getStringId(name);
+    int nameId = index.getStringId(name);
     for (int i = 0; i < index.usedNames.length; i++) {
       if (index.usedNames[i] == nameId &&
           index.usedNameKinds[i] == kind &&
@@ -2883,14 +2928,14 @@ mixin _IndexMixin on PubPackageResolutionTest {
     var unitId = _getUnitId(element);
 
     // Prepare the element that was put into the index.
-    IndexElementInfo info = IndexElementInfo(element);
-    element = info.element;
+    IndexElementInfo info = IndexElementInfo(element.asElement2!);
+    element = info.element.asElement!;
 
     // Prepare element's name components.
-    var components = ElementNameComponents(element);
-    var unitMemberId = _getStringId(components.unitMemberName);
-    var classMemberId = _getStringId(components.classMemberName);
-    var parameterId = _getStringId(components.parameterName);
+    var components = ElementNameComponents(element.asElement2!);
+    var unitMemberId = index.getStringId(components.unitMemberName);
+    var classMemberId = index.getStringId(components.classMemberName);
+    var parameterId = index.getStringId(components.parameterName);
 
     // Find the element's id.
     for (int elementId = 0;
@@ -2908,36 +2953,9 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return 0;
   }
 
-  int _getStringId(String? str) {
-    if (str == null) {
-      return index.nullStringId;
-    }
-
-    int id = index.strings.indexOf(str);
-    if (id < 0) {
-      _failWithIndexDump('String "$str" is not referenced');
-    }
-    return id;
-  }
-
   int _getUnitId(Element element) {
-    CompilationUnitElement unitElement = getUnitElement(element);
-    int libraryUriId = _getUriId(unitElement.library.source.uri);
-    int unitUriId = _getUriId(unitElement.source.uri);
-    expect(index.unitLibraryUris, hasLength(index.unitUnitUris.length));
-    for (int i = 0; i < index.unitLibraryUris.length; i++) {
-      if (index.unitLibraryUris[i] == libraryUriId &&
-          index.unitUnitUris[i] == unitUriId) {
-        return i;
-      }
-    }
-    _failWithIndexDump('Unit $unitElement of $element is not referenced');
-    return -1;
-  }
-
-  int _getUriId(Uri uri) {
-    String str = uri.toString();
-    return _getStringId(str);
+    var unitElement = getUnitElement(element.asElement2!);
+    return index.getLibraryFragmentId(unitElement);
   }
 
   Future<void> _indexTestUnit(String code) async {
