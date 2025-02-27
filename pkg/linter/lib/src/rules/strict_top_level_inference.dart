@@ -214,7 +214,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
       if (overriddenMember == null &&
           node.returnType == null &&
-          !container.isReflectiveTest) {
+          (!container.isReflectiveTest ||
+              (!node.name.lexeme.startsWith('test_') &&
+                  !node.name.lexeme.startsWith('solo_test_')))) {
         _report(node.name);
       }
       if (node.parameters case var parameters?) {
