@@ -349,17 +349,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
         local: local);
   }
 
-  // TODO(johnniwinther): Remove this.
-  LookupScope computeTypeParameterScope(LookupScope parent) {
-    if (typeParameters == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
-    for (NominalParameterBuilder variable in typeParameters!) {
-      if (variable.isWildcard) continue;
-      local[variable.name] = variable;
-    }
-    return new TypeParameterScope(parent, local);
-  }
-
   @override
   FormalParameterBuilder? getFormal(Identifier identifier) {
     if (formals != null) {
@@ -527,21 +516,22 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     }
   }
 
-  void _buildConstructorForOutline(
-      Token? beginInitializers, LookupScope declarationScope) {
+  void _buildConstructorForOutline(Token? beginInitializers) {
     if (beginInitializers != null) {
       final LocalScope? formalParameterScope;
       if (isConst) {
         // We're going to fully build the constructor so we need scopes.
         formalParameterScope = computeFormalParameterInitializerScope(
-            computeFormalParameterScope(
-                computeTypeParameterScope(declarationBuilder.scope)));
+            computeFormalParameterScope(_introductory.typeParameterScope));
       } else {
         formalParameterScope = null;
       }
       BodyBuilder bodyBuilder = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(libraryBuilder,
-              createBodyBuilderContext(), declarationScope, fileUri,
+          .createBodyBuilderForOutlineExpression(
+              libraryBuilder,
+              createBodyBuilderContext(),
+              _introductory.typeParameterScope,
+              fileUri,
               formalParameterScope: formalParameterScope);
       if (isConst) {
         bodyBuilder.constantContext = ConstantContext.required;
@@ -690,41 +680,20 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     if (!hasBuiltOutlineExpressions) {
       formals?.infer(classHierarchy);
 
-      LookupScope parentScope = declarationBuilder.scope;
-      for (Annotatable annotatable in annotatables) {
-        MetadataBuilder.buildAnnotations(annotatable, metadata,
-            createBodyBuilderContext(), libraryBuilder, fileUri, parentScope,
-            createFileUriExpression: isAugmented);
-      }
-      if (typeParameters != null) {
-        for (int i = 0; i < typeParameters!.length; i++) {
-          typeParameters![i].buildOutlineExpressions(
-              libraryBuilder,
-              createBodyBuilderContext(),
-              classHierarchy,
-              computeTypeParameterScope(parentScope));
-        }
-      }
+      _introductory.buildOutlineExpressions(
+          annotatables: annotatables,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          bodyBuilderContext: createBodyBuilderContext(),
+          classHierarchy: classHierarchy,
+          createFileUriExpression: isAugmented);
 
-      if (formals != null) {
-        // For const constructors we need to include default parameter values
-        // into the outline. For all other formals we need to call
-        // buildOutlineExpressions to clear initializerToken to prevent
-        // consuming too much memory.
-        for (FormalParameterBuilder formal in formals!) {
-          formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
-              buildDefaultValue: FormalParameterBuilder
-                  .needsDefaultValuesBuiltAsOutlineExpressions(this));
-        }
-      }
       hasBuiltOutlineExpressions = true;
     }
     if (isConst || _introductory.hasSuperInitializingFormals) {
       // For modular compilation purposes we need to include initializers
       // for const constructors into the outline.
-      LookupScope typeParameterScope =
-          computeTypeParameterScope(declarationBuilder.scope);
-      _buildConstructorForOutline(beginInitializers, typeParameterScope);
+      _buildConstructorForOutline(beginInitializers);
       _introductory.buildBody();
     }
 
@@ -818,8 +787,8 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
         initializers.last is SuperInitializer) {
       superTarget = (initializers.last as SuperInitializer).target;
     } else {
-      MemberBuilder? memberBuilder = superclassBuilder.constructorScope
-          .lookup("", fileOffset, libraryBuilder.fileUri);
+      MemberBuilder? memberBuilder = superclassBuilder.findConstructorOrFactory(
+          "", fileOffset, fileUri, libraryBuilder);
       if (memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.invokeTarget;
       } else {
@@ -832,8 +801,8 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     }
 
     MemberBuilder? constructorBuilder =
-        superclassBuilder.findConstructorOrFactory(superTarget.name.text,
-            fileOffset, libraryBuilder.fileUri, libraryBuilder);
+        superclassBuilder.findConstructorOrFactory(
+            superTarget.name.text, fileOffset, fileUri, libraryBuilder);
     if (constructorBuilder is ConstructorBuilder) {
       return constructorBuilder;
     } else {
@@ -878,8 +847,11 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
       List<Initializer>? initializers;
       if (beginInitializers != null) {
         BodyBuilder bodyBuilder = libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(libraryBuilder,
-                createBodyBuilderContext(), declarationBuilder.scope, fileUri);
+            .createBodyBuilderForOutlineExpression(
+                libraryBuilder,
+                createBodyBuilderContext(),
+                _introductory.typeParameterScope,
+                fileUri);
         if (isConst) {
           bodyBuilder.constantContext = ConstantContext.required;
         }

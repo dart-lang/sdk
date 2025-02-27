@@ -11,7 +11,6 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
-import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -387,13 +386,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      LookupScope parentScope =
-          declarationBuilder?.scope ?? libraryBuilder.scope;
       _introductoryField?.buildOutlineExpressions(
           classHierarchy,
           libraryBuilder,
           declarationBuilder,
-          parentScope,
           [
             readTarget as Annotatable,
             if (writeTarget != null && readTarget != writeTarget)
@@ -401,20 +397,12 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
           ],
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
-      _introductoryGetable?.buildOutlineExpressions(
-          classHierarchy,
-          libraryBuilder,
-          declarationBuilder,
-          parentScope,
-          readTarget as Annotatable,
+      _introductoryGetable?.buildOutlineExpressions(classHierarchy,
+          libraryBuilder, declarationBuilder, readTarget as Annotatable,
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
-      _introductorySetable?.buildOutlineExpressions(
-          classHierarchy,
-          libraryBuilder,
-          declarationBuilder,
-          parentScope,
-          writeTarget as Annotatable,
+      _introductorySetable?.buildOutlineExpressions(classHierarchy,
+          libraryBuilder, declarationBuilder, writeTarget as Annotatable,
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
       hasBuiltOutlineExpressions = true;

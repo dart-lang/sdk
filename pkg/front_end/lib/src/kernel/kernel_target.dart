@@ -80,6 +80,7 @@ import 'constructor_tearoff_lowering.dart';
 import 'dynamic_module_validator.dart' as dynamic_module_validator;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
+import 'utils.dart';
 
 class KernelTarget {
   final Ticker ticker;
@@ -1240,25 +1241,16 @@ class KernelTarget {
         enclosingClass.enclosingLibrary.nonNullable, typeParameterTypes);
   }
 
-  void _bindCoreType(NamedTypeBuilder typeBuilder, {bool isNullClass = false}) {
-    TypeDeclarationBuilder typeDeclarationBuilder = loader.coreLibrary
-            .lookupLocalMember(typeBuilder.typeName.name, required: true)
-        as TypeDeclarationBuilder;
-    typeBuilder.bind(loader.coreLibrary, typeDeclarationBuilder);
-    if (isNullClass) {
-      (typeDeclarationBuilder as ClassBuilder).isNullClass = true;
-    }
-  }
-
   void setupTopAndBottomTypes() {
-    _bindCoreType(objectType);
-    _bindCoreType(stringType);
-    _bindCoreType(intType);
-    _bindCoreType(dynamicType);
-    _bindCoreType(nullType, isNullClass: true);
-    _bindCoreType(bottomType);
-    _bindCoreType(enumType);
-    _bindCoreType(underscoreEnumType);
+    LibraryBuilder coreLibrary = loader.coreLibrary;
+    bindCoreType(coreLibrary, objectType);
+    bindCoreType(coreLibrary, stringType);
+    bindCoreType(coreLibrary, intType);
+    bindCoreType(coreLibrary, dynamicType);
+    bindCoreType(coreLibrary, nullType, isNullClass: true);
+    bindCoreType(coreLibrary, bottomType);
+    bindCoreType(coreLibrary, enumType);
+    bindCoreType(coreLibrary, underscoreEnumType);
   }
 
   void computeCoreTypes() {

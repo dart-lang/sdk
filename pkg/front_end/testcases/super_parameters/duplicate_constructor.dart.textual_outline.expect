@@ -1,0 +1,9 @@
+class Super {
+  final int field;
+  Super(this.field);
+  Super(this.field);
+}
+
+class Sub extends Super {
+  Sub(super.field);
+}

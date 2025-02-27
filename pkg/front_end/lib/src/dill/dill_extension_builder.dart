@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 
 import '../base/name_space.dart';
-import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/type_builder.dart';
 import 'dill_builder_mixins.dart';
@@ -21,22 +20,13 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   @override
   final Extension extension;
 
-  late final LookupScope _scope;
-
   final DeclarationNameSpace _nameSpace;
-
-  late final ConstructorScope _constructorScope;
 
   List<NominalParameterBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
   DillExtensionBuilder(this.extension, this.libraryBuilder)
       : _nameSpace = new DeclarationNameSpaceImpl() {
-    _scope = new NameSpaceLookupScope(
-        _nameSpace, ScopeKind.declaration, "extension ${extension.name}",
-        parent: parent.scope);
-    _constructorScope =
-        new DeclarationNameSpaceConstructorScope(extension.name, _nameSpace);
     for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
       Name name = descriptor.name;
       switch (descriptor.kind) {
@@ -111,15 +101,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   Uri get fileUri => extension.fileUri;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  LookupScope get scope => _scope;
-
-  @override
   DeclarationNameSpace get nameSpace => _nameSpace;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   List<NominalParameterBuilder>? get typeParameters {

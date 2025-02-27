@@ -8,6 +8,7 @@ abstract class ClassDeclaration {
   String get name;
   List<MetadataBuilder>? get metadata;
   LookupScope get compilationUnitScope;
+  LookupScope get bodyScope;
   Uri get fileUri;
   int get nameOffset;
   int get startOffset;
@@ -18,6 +19,12 @@ abstract class ClassDeclaration {
   TypeBuilder? get supertype;
   List<TypeBuilder>? get mixedInTypes;
   List<TypeBuilder>? get interfaces;
+
+  void buildOutlineExpressions(
+      {required Annotatable annotatable,
+      required SourceLibraryBuilder libraryBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required bool createFileUriExpression});
 }
 
 class RegularClassDeclaration implements ClassDeclaration {
@@ -32,6 +39,9 @@ class RegularClassDeclaration implements ClassDeclaration {
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
 
   @override
+  LookupScope get bodyScope => _fragment.bodyScope;
+
+  @override
   Uri get fileUri => _fragment.fileUri;
 
   @override
@@ -61,6 +71,22 @@ class RegularClassDeclaration implements ClassDeclaration {
 
   @override
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
+
+  @override
+  void buildOutlineExpressions(
+      {required Annotatable annotatable,
+      required SourceLibraryBuilder libraryBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required bool createFileUriExpression}) {
+    MetadataBuilder.buildAnnotations(
+        annotatable,
+        _fragment.metadata,
+        bodyBuilderContext,
+        libraryBuilder,
+        _fragment.fileUri,
+        _fragment.enclosingScope,
+        createFileUriExpression: createFileUriExpression);
+  }
 }
 
 class EnumDeclaration implements ClassDeclaration {
@@ -72,10 +98,14 @@ class EnumDeclaration implements ClassDeclaration {
   EnumDeclaration(this._fragment, this.supertype);
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
+
+  @override
+  LookupScope get bodyScope => _fragment.bodyScope;
 
   @override
   Uri get fileUri => _fragment.fileUri;
@@ -104,6 +134,22 @@ class EnumDeclaration implements ClassDeclaration {
 
   @override
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
+
+  @override
+  void buildOutlineExpressions(
+      {required Annotatable annotatable,
+      required SourceLibraryBuilder libraryBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required bool createFileUriExpression}) {
+    MetadataBuilder.buildAnnotations(
+        annotatable,
+        _fragment.metadata,
+        bodyBuilderContext,
+        libraryBuilder,
+        _fragment.fileUri,
+        _fragment.enclosingScope,
+        createFileUriExpression: createFileUriExpression);
+  }
 }
 
 class NamedMixinApplication implements ClassDeclaration {
@@ -115,10 +161,15 @@ class NamedMixinApplication implements ClassDeclaration {
   NamedMixinApplication(this._fragment, this.mixedInTypes);
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  LookupScope get bodyScope => compilationUnitScope;
 
   @override
   Uri get fileUri => _fragment.fileUri;
@@ -147,6 +198,22 @@ class NamedMixinApplication implements ClassDeclaration {
 
   @override
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
+
+  @override
+  void buildOutlineExpressions(
+      {required Annotatable annotatable,
+      required SourceLibraryBuilder libraryBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required bool createFileUriExpression}) {
+    MetadataBuilder.buildAnnotations(
+        annotatable,
+        _fragment.metadata,
+        bodyBuilderContext,
+        libraryBuilder,
+        _fragment.fileUri,
+        _fragment.enclosingScope,
+        createFileUriExpression: createFileUriExpression);
+  }
 }
 
 class AnonymousMixinApplication implements ClassDeclaration {
@@ -195,7 +262,19 @@ class AnonymousMixinApplication implements ClassDeclaration {
       required this.interfaces});
 
   @override
+  // Coverage-ignore(suite): Not run.
+  LookupScope get bodyScope => compilationUnitScope;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => null;
+
+  @override
+  void buildOutlineExpressions(
+      {required Annotatable annotatable,
+      required SourceLibraryBuilder libraryBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required bool createFileUriExpression}) {}
 }
 
 class MixinDeclaration implements ClassDeclaration {
@@ -204,10 +283,15 @@ class MixinDeclaration implements ClassDeclaration {
   MixinDeclaration(this._fragment);
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  LookupScope get bodyScope => _fragment.bodyScope;
 
   @override
   Uri get fileUri => _fragment.fileUri;
@@ -239,4 +323,20 @@ class MixinDeclaration implements ClassDeclaration {
 
   @override
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
+
+  @override
+  void buildOutlineExpressions(
+      {required Annotatable annotatable,
+      required SourceLibraryBuilder libraryBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required bool createFileUriExpression}) {
+    MetadataBuilder.buildAnnotations(
+        annotatable,
+        _fragment.metadata,
+        bodyBuilderContext,
+        libraryBuilder,
+        _fragment.fileUri,
+        _fragment.enclosingScope,
+        createFileUriExpression: createFileUriExpression);
+  }
 }

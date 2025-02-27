@@ -8,7 +8,6 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
-import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -266,10 +265,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      LookupScope parentScope =
-          declarationBuilder?.scope ?? libraryBuilder.scope;
       _introductory.buildOutlineExpressions(classHierarchy, libraryBuilder,
-          declarationBuilder, parentScope, invokeTarget as Annotatable,
+          declarationBuilder, invokeTarget as Annotatable,
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
       hasBuiltOutlineExpressions = true;

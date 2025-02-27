@@ -218,7 +218,7 @@ class FieldFragment
               .thisInterfaceType(
                   declarationBuilder.cls, libraryBuilder.library.nonNullable)
           : null;
-      LookupScope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
+      LookupScope scope = enclosingScope;
       TypeInferrer typeInferrer =
           libraryBuilder.loader.typeInferenceEngine.createTopLevelTypeInferrer(
               fileUri,
@@ -293,13 +293,12 @@ class FieldFragment
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       List<Annotatable> annotatables,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
-      _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
+      _buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
           bodyBuilderContext, annotatable, metadata,
           fileUri: fileUri, createFileUriExpression: createFileUriExpression);
     }
@@ -313,7 +312,7 @@ class FieldFragment
                 (declarationBuilder as SourceClassBuilder)
                     .declaresConstConstructor)) &&
         token != null) {
-      LookupScope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
+      LookupScope scope = enclosingScope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
               libraryBuilder, createBodyBuilderContext(), scope, fileUri);

@@ -112,11 +112,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final DeclarationNameSpaceBuilder nameSpaceBuilder;
 
-  late final LookupScope _scope;
-
   late final DeclarationNameSpace _nameSpace;
-
-  late final ConstructorScope _constructorScope;
 
   @override
   List<NominalParameterBuilder>? typeParameters;
@@ -183,6 +179,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
+  // TODO(johnniwinther): Remove this when augmentations are handled through
+  //  fragments.
+  @override
+  LookupScope get bodyScope => _introductory.bodyScope;
+
   @override
   int get fileOffset => nameOffset;
 
@@ -230,15 +231,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   bool get isMixinDeclaration => _introductory.isMixinDeclaration;
 
   @override
-  LookupScope get scope => _scope;
-
-  @override
   DeclarationNameSpace get nameSpace => _nameSpace;
 
   List<MetadataBuilder>? get metadata => _introductory.metadata;
-
-  @override
-  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
@@ -251,11 +246,6 @@ class SourceClassBuilder extends ClassBuilderImpl
         indexedContainer: indexedClass,
         containerType: ContainerType.Class,
         containerName: new ClassName(name));
-    _scope = new NameSpaceLookupScope(
-        _nameSpace, ScopeKind.declaration, "class $name",
-        parent: typeParameterScope);
-    _constructorScope =
-        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
   }
 
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
@@ -526,14 +516,12 @@ class SourceClassBuilder extends ClassBuilderImpl
           classHierarchy, delayedDefaultValueCloners);
     }
 
-    MetadataBuilder.buildAnnotations(
-        isAugmenting ? origin.cls : cls,
-        metadata,
-        createBodyBuilderContext(),
-        libraryBuilder,
-        fileUri,
-        libraryBuilder.scope,
+    _introductory.buildOutlineExpressions(
+        annotatable: isAugmenting ? origin.cls : cls,
+        bodyBuilderContext: createBodyBuilderContext(),
+        libraryBuilder: libraryBuilder,
         createFileUriExpression: isAugmenting);
+
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(libraryBuilder,

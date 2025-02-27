@@ -1987,7 +1987,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               new ImplicitLanguageVersion(libraryBuilder.languageVersion),
           loader: lastGoodKernelTarget.loader,
           nameOrigin: libraryBuilder,
-          parentScope: debugLibrary.scope,
+          parentScope: debugCompilationUnit.compilationUnitScope,
           isUnsupported: libraryBuilder.isUnsupported,
           forAugmentationLibrary: false,
           forPatchLibrary: false,

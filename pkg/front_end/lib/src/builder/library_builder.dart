@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-import 'package:kernel/ast.dart' show Class, Library, Version;
+import 'package:kernel/ast.dart' show Annotatable, Class, Library, Version;
 import 'package:kernel/reference_from_index.dart';
 
 import '../api_prototype/experimental_flags.dart';
@@ -26,6 +26,7 @@ import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../fragment/fragment.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/load_library_builder.dart';
 import '../source/offset_map.dart';
 import '../source/outline_builder.dart';
@@ -222,6 +223,10 @@ abstract class SourceCompilationUnit
       List<SourceCompilationUnit> includedParts,
       Set<Uri> usedParts);
 
+  void buildOutlineExpressions(
+      Annotatable annotatable, BodyBuilderContext bodyBuilderContext,
+      {required bool createFileUriExpression});
+
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
   ///
@@ -308,8 +313,6 @@ abstract class SourceCompilationUnit
 }
 
 abstract class LibraryBuilder implements Builder, ProblemReporting {
-  LookupScope get scope;
-
   NameSpace get libraryNameSpace;
 
   NameSpace get exportNameSpace;

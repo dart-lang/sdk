@@ -128,13 +128,12 @@ class EnumElementFragment
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       List<Annotatable> annotatables,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
-      _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
+      _buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
           bodyBuilderContext, annotatable, metadata,
           fileUri: fileUri, createFileUriExpression: createFileUriExpression);
     }
@@ -212,7 +211,7 @@ class EnumElementFragment
           .createBodyBuilderForOutlineExpression(
               libraryBuilder,
               sourceEnumBuilder.createBodyBuilderContext(),
-              sourceEnumBuilder.scope,
+              enclosingScope,
               fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
 

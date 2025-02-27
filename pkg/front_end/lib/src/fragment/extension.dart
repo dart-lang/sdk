@@ -35,6 +35,7 @@ class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
   bool get isUnnamed => extensionName.isUnnamedExtension;
 
   @override
+  // Coverage-ignore(suite): Not run.
   SourceExtensionBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;

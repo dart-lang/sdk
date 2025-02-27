@@ -595,30 +595,6 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
   }
 }
 
-abstract class ConstructorScope {
-  MemberBuilder? lookup(String name, int charOffset, Uri fileUri);
-}
-
-class DeclarationNameSpaceConstructorScope implements ConstructorScope {
-  final String _className;
-
-  final DeclarationNameSpace _nameSpace;
-
-  DeclarationNameSpaceConstructorScope(this._className, this._nameSpace);
-
-  @override
-  MemberBuilder? lookup(String name, int charOffset, Uri fileUri) {
-    MemberBuilder? builder = _nameSpace.lookupConstructor(name);
-    if (builder == null) return null;
-    if (builder.next != null) {
-      return new AmbiguousMemberBuilder(
-          name.isEmpty ? _className : name, builder, charOffset, fileUri);
-    } else {
-      return builder;
-    }
-  }
-}
-
 /// Computes a builder for the import collision between [declaration] and
 /// [other].
 Builder computeAmbiguousDeclarationForImport(ProblemReporting problemReporting,

@@ -811,6 +811,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
+  void buildOutlineExpressions(
+      Annotatable annotatable, BodyBuilderContext bodyBuilderContext,
+      {required bool createFileUriExpression}) {
+    MetadataBuilder.buildAnnotations(annotatable, metadata, bodyBuilderContext,
+        libraryBuilder, fileUri, compilationUnitScope,
+        createFileUriExpression: createFileUriExpression);
+  }
+
+  @override
   void collectUnboundTypeParameters(
       SourceLibraryBuilder libraryBuilder,
       Map<NominalParameterBuilder, SourceLibraryBuilder> nominalVariables,

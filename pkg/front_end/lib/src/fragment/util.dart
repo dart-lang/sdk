@@ -76,25 +76,26 @@ void _buildFormalsForOutlineExpressions(
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder,
     List<FormalParameterBuilder>? formals,
-    {required bool isClassInstanceMember}) {
+    {required LookupScope scope,
+    required bool isClassInstanceMember}) {
   if (formals != null) {
     for (FormalParameterBuilder formal in formals) {
       _buildFormalForOutlineExpressions(
           libraryBuilder, declarationBuilder, formal,
-          isClassInstanceMember: isClassInstanceMember);
+          scope: scope, isClassInstanceMember: isClassInstanceMember);
     }
   }
 }
 
 void _buildFormalForOutlineExpressions(SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, FormalParameterBuilder formal,
-    {required bool isClassInstanceMember}) {
+    {required LookupScope scope, required bool isClassInstanceMember}) {
   // For const constructors we need to include default parameter values
   // into the outline. For all other formals we need to call
   // buildOutlineExpressions to clear initializerToken to prevent
   // consuming too much memory.
   formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
-      buildDefaultValue: isClassInstanceMember);
+      scope: scope, buildDefaultValue: isClassInstanceMember);
 }
 
 /// Common interface for fragments that can declare a field.
@@ -112,7 +113,6 @@ abstract class FieldDeclaration {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       List<Annotatable> annotatables,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression});

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../base/problems.dart';
+import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -85,11 +86,13 @@ abstract class ClassDeclarationBuilder
 mixin ClassDeclarationBuilderMixin implements ClassDeclarationBuilder {
   List<ConstructorReferenceBuilder>? get constructorReferences;
 
+  LookupScope get bodyScope;
+
   @override
   int resolveConstructors(SourceLibraryBuilder library) {
     if (constructorReferences == null) return 0;
     for (ConstructorReferenceBuilder ref in constructorReferences!) {
-      ref.resolveIn(scope, library);
+      ref.resolveIn(bodyScope, library);
     }
     int count = constructorReferences!.length;
     if (count != 0) {

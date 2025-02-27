@@ -925,9 +925,12 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
   final Procedure _procedure;
 
   ExpressionCompilerProcedureBodyBuildContext(
-      DietListener listener, this._procedure,
+      DietListener listener,
+      this._procedure,
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder? declarationBuilder,
       {required bool isDeclarationInstanceMember})
-      : super(listener.libraryBuilder, listener.currentDeclaration,
+      : super(libraryBuilder, declarationBuilder,
             isDeclarationInstanceMember: isDeclarationInstanceMember);
 
   @override

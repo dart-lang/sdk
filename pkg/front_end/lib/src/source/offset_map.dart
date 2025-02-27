@@ -10,8 +10,6 @@ import '../base/export.dart';
 import '../base/identifiers.dart';
 import '../base/import.dart';
 import '../base/problems.dart';
-import '../builder/builder.dart';
-import '../builder/declaration_builders.dart';
 import '../codes/cfe_codes.dart';
 import '../fragment/fragment.dart';
 
@@ -79,9 +77,9 @@ class OffsetMap {
     _declarations[identifier.nameOffset] = fragment;
   }
 
-  DeclarationBuilder lookupNamedDeclaration(Identifier identifier) {
-    return _checkBuilder(_declarations[identifier.nameOffset]?.builder,
-        identifier.name, identifier.nameOffset);
+  DeclarationFragmentImpl lookupNamedDeclaration(Identifier identifier) {
+    return _checkFragment(_declarations[identifier.nameOffset], identifier.name,
+        identifier.nameOffset);
   }
 
   void registerUnnamedDeclaration(
@@ -89,8 +87,8 @@ class OffsetMap {
     _declarations[beginToken.charOffset] = fragment;
   }
 
-  DeclarationBuilder lookupUnnamedDeclaration(Token beginToken) {
-    return _checkBuilder(_declarations[beginToken.charOffset]?.builder,
+  DeclarationFragmentImpl lookupUnnamedDeclaration(Token beginToken) {
+    return _checkFragment(_declarations[beginToken.charOffset],
         '<unnamed-declaration>', beginToken.charOffset);
   }
 
@@ -162,19 +160,6 @@ class OffsetMap {
           templateInternalProblemNotFound.withArguments(name), charOffset, uri);
     }
     return directive;
-  }
-
-  T _checkBuilder<T extends Builder>(
-      T? declaration, String name, int charOffset) {
-    if (declaration == null) {
-      internalProblem(
-          templateInternalProblemNotFound.withArguments(name), charOffset, uri);
-    }
-    if (uri != declaration.fileUri) {
-      unexpected("$uri", "${declaration.fileUri}", declaration.fileOffset,
-          declaration.fileUri);
-    }
-    return declaration;
   }
 
   T _checkFragment<T>(T? fragment, String name, int fileOffset) {

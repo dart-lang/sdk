@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 
 import '../base/name_space.dart';
-import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/type_builder.dart';
 import 'dill_builder_mixins.dart';
@@ -22,11 +21,7 @@ class DillExtensionTypeDeclarationBuilder
 
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
-  late final LookupScope _scope;
-
   final DeclarationNameSpace _nameSpace;
-
-  late final ConstructorScope _constructorScope;
 
   List<NominalParameterBuilder>? _typeParameters;
 
@@ -37,11 +32,6 @@ class DillExtensionTypeDeclarationBuilder
   DillExtensionTypeDeclarationBuilder(
       this._extensionTypeDeclaration, this.libraryBuilder)
       : _nameSpace = new DeclarationNameSpaceImpl() {
-    _scope = new NameSpaceLookupScope(_nameSpace, ScopeKind.declaration,
-        "extension type ${_extensionTypeDeclaration.name}",
-        parent: parent.scope);
-    _constructorScope = new DeclarationNameSpaceConstructorScope(
-        _extensionTypeDeclaration.name, _nameSpace);
     for (Procedure procedure in _extensionTypeDeclaration.procedures) {
       String name = procedure.name.text;
       switch (procedure.kind) {
@@ -164,14 +154,7 @@ class DillExtensionTypeDeclarationBuilder
   DillLibraryBuilder get parent => libraryBuilder;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  LookupScope get scope => _scope;
-
-  @override
   DeclarationNameSpace get nameSpace => _nameSpace;
-
-  @override
-  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   DartType get declaredRepresentationType =>

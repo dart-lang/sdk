@@ -36,6 +36,7 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
   int get fileOffset => nameOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   SourceExtensionTypeDeclarationBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
