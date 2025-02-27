@@ -1,9 +1,3 @@
-Problems reported:
-
-parser/dot_shorthands/syntax:4:13: Expected an identifier, but got '.'.
-  Color c = .red;
-            ^
-
 beginCompilationUnit(enum)
   beginMetadataStar(enum)
   endMetadataStar(0)
@@ -67,11 +61,6 @@ beginCompilationUnit(enum)
           handleIdentifier(c, localVariableDeclaration)
           beginInitializedIdentifier(c)
             beginVariableInitializer(=)
-              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '.'., Try inserting an identifier before '.'., {lexeme: .}], ., .)
-              handleIdentifier(, expression)
-              handleNoTypeArguments(.)
-              handleNoArguments(.)
-              handleSend(, )
               handleIdentifier(red, expressionContinuation)
               handleNoTypeArguments(;)
               handleNoArguments(;)

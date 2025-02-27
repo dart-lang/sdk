@@ -193,7 +193,7 @@ class FunctionExpressionInvocationResolver {
     _resolve(node, rawType, whyNotPromotedArguments, contextType: contextType);
   }
 
-  void _unresolved(FunctionExpressionInvocationImpl node, DartType type,
+  void _unresolved(FunctionExpressionInvocationImpl node, TypeImpl type,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
       {required TypeImpl contextType}) {
     _setExplicitTypeArgumentTypes(node);
@@ -218,7 +218,7 @@ class FunctionExpressionInvocationResolver {
           .map((typeArgument) => typeArgument.typeOrThrow)
           .toList();
     } else {
-      node.typeArgumentTypes = const <DartType>[];
+      node.typeArgumentTypes = const <TypeImpl>[];
     }
   }
 }

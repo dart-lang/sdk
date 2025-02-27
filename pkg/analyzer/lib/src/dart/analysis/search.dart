@@ -381,7 +381,7 @@ class Search {
       return _searchReferences(element, searchedFiles);
     } else if (element is ConstructorElement) {
       return await _searchReferences_Constructor(element, searchedFiles);
-    } else if (element is CompilationUnitElement) {
+    } else if (element is CompilationUnitElementImpl) {
       return _searchReferences_CompilationUnit(element);
     } else if (element is PropertyAccessorElement && element.isGetter) {
       return _searchReferences_Getter(element, searchedFiles);
@@ -692,7 +692,7 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_CompilationUnit(
-      CompilationUnitElement element) async {
+      CompilationUnitElementImpl element) async {
     String path = element.source.fullName;
 
     var file = _driver.resourceProvider.getFile(path);
@@ -704,8 +704,28 @@ class Search {
     }
 
     // Check files that reference the given file.
-    List<SearchResult> results = <SearchResult>[];
+    var results = <SearchResult>[];
     for (var reference in fileState.referencingFiles) {
+      var index = await _driver.getIndex(reference.path);
+      if (index != null) {
+        var targetId = index.getLibraryFragmentId(element);
+        for (var i = 0; i < index.libFragmentRefTargets.length; i++) {
+          if (index.libFragmentRefTargets[i] == targetId) {
+            var refUnit = await _getUnitElement(reference.path);
+            results.add(
+              SearchResult._(
+                refUnit!,
+                SearchResultKind.REFERENCE,
+                index.libFragmentRefUriOffsets[i],
+                index.libFragmentRefUriLengths[i],
+                true,
+                true,
+              ),
+            );
+          }
+        }
+      }
+
       await _addResultsInFile(
         results,
         element,
@@ -1391,7 +1411,7 @@ class _IndexRequest {
 
   void addSubtypes(
       String superIdString, List<SubtypeResult> results, FileState file) {
-    var superId = getStringId(superIdString);
+    var superId = index.getStringId(superIdString);
     if (superId == -1) {
       return;
     }
@@ -1425,24 +1445,24 @@ class _IndexRequest {
   /// Return the [element]'s identifier in the [index] or `-1` if the
   /// [element] is not referenced in the [index].
   int findElementId(Element element) {
-    IndexElementInfo info = IndexElementInfo(element);
-    element = info.element;
+    IndexElementInfo info = IndexElementInfo(element.asElement2!);
+    element = info.element.asElement!;
     // Find the id of the element's unit.
     int unitId = getUnitId(element);
     if (unitId == -1) {
       return -1;
     }
     // Prepare information about the element.
-    var components = ElementNameComponents(element);
-    int unitMemberId = getStringId(components.unitMemberName);
+    var components = ElementNameComponents(element.asElement2!);
+    int unitMemberId = index.getStringId(components.unitMemberName);
     if (unitMemberId == -1) {
       return -1;
     }
-    int classMemberId = getStringId(components.classMemberName);
+    int classMemberId = index.getStringId(components.classMemberName);
     if (classMemberId == -1) {
       return -1;
     }
-    int parameterId = getStringId(components.parameterName);
+    int parameterId = index.getStringId(components.parameterName);
     if (parameterId == -1) {
       return -1;
     }
@@ -1511,35 +1531,11 @@ class _IndexRequest {
     return results;
   }
 
-  /// Return the identifier of [str] in the [index] or `-1` if [str] is not
-  /// used in the [index].
-  int getStringId(String? str) {
-    if (str == null) {
-      return index.nullStringId;
-    }
-
-    return binarySearch(index.strings, str);
-  }
-
   /// Return the identifier of the [CompilationUnitElement] containing the
   /// [element] in the [index] or `-1` if not found.
   int getUnitId(Element element) {
-    CompilationUnitElement unitElement = getUnitElement(element);
-    int libraryUriId = getUriId(unitElement.library.source.uri);
-    if (libraryUriId == -1) {
-      return -1;
-    }
-    int unitUriId = getUriId(unitElement.source.uri);
-    if (unitUriId == -1) {
-      return -1;
-    }
-    for (int i = 0; i < index.unitLibraryUris.length; i++) {
-      if (index.unitLibraryUris[i] == libraryUriId &&
-          index.unitUnitUris[i] == unitUriId) {
-        return i;
-      }
-    }
-    return -1;
+    var unitElement = getUnitElement(element.asElement2!);
+    return index.getLibraryFragmentId(unitElement);
   }
 
   /// Return a list of results where a class members with the given [name] is
@@ -1550,7 +1546,7 @@ class _IndexRequest {
       Future<CompilationUnitElement?> Function()
           getEnclosingUnitElement) async {
     // Find the name identifier.
-    int nameId = getStringId(name);
+    int nameId = index.getStringId(name);
     if (nameId == -1) {
       return const <SearchResult>[];
     }
@@ -1580,13 +1576,6 @@ class _IndexRequest {
     }
 
     return results;
-  }
-
-  /// Return the identifier of the [uri] in the [index] or `-1` if the [uri] is
-  /// not used in the [index].
-  int getUriId(Uri uri) {
-    String str = uri.toString();
-    return getStringId(str);
   }
 
   /// Return the index of the first occurrence of the [value] in the

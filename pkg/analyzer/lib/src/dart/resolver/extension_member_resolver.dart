@@ -260,7 +260,7 @@ class ExtensionMemberResolver {
   void _checkTypeArgumentsMatchingBounds(
     List<TypeParameterElementImpl2> typeParameters,
     TypeArgumentList? typeArgumentList,
-    List<DartType> typeArgumentTypes,
+    List<TypeImpl> typeArgumentTypes,
     Substitution substitution,
   ) {
     if (typeArgumentList != null) {
@@ -333,7 +333,7 @@ class ExtensionMemberResolver {
   /// If the number of explicit type arguments is different than the number
   /// of extension's type parameters, or inference fails, returns `dynamic`
   /// for all type parameters.
-  List<DartType>? _inferTypeArguments(
+  List<TypeImpl>? _inferTypeArguments(
       ExtensionOverrideImpl node, TypeImpl receiverType,
       {required TypeConstraintGenerationDataForTesting? dataForTesting,
       required AstNodeImpl? nodeForTesting}) {
@@ -345,7 +345,7 @@ class ExtensionMemberResolver {
       var arguments = typeArguments.arguments;
       if (arguments.length == typeParameters.length) {
         if (typeParameters.isEmpty) {
-          return const <DartType>[];
+          return const <TypeImpl>[];
         }
         return arguments.map((a) => a.typeOrThrow).toList();
       } else {
@@ -385,7 +385,7 @@ class ExtensionMemberResolver {
 
   /// Instantiate the extended type of the [extension] to the bounds of the
   /// type formals of the extension.
-  DartType _instantiateToBounds(ExtensionElement2 extension) {
+  TypeImpl _instantiateToBounds(ExtensionElement2 extension) {
     extension as ExtensionElementImpl2;
     var typeParameters = extension.typeParameters2;
     return Substitution.fromPairs2(
@@ -436,11 +436,11 @@ class ExtensionMemberResolver {
   }
 
   /// Ask the type system for a subtype check.
-  bool _isSubtypeOf(DartType type1, DartType type2) =>
+  bool _isSubtypeOf(TypeImpl type1, TypeImpl type2) =>
       _typeSystem.isSubtypeOf(type1, type2);
 
-  List<DartType> _listOfDynamic(List<Object?> parameters) {
-    return List<DartType>.filled(parameters.length, DynamicTypeImpl.instance);
+  List<TypeImpl> _listOfDynamic(List<Object?> parameters) {
+    return List<TypeImpl>.filled(parameters.length, DynamicTypeImpl.instance);
   }
 
   static bool _isCascadeTarget(ExtensionOverride node) {

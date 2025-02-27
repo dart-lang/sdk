@@ -6,6 +6,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
@@ -221,7 +222,7 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  CompilationUnitElement part(String targetUri) {
+  CompilationUnitElementImpl part(String targetUri) {
     CompilationUnitElement? result;
 
     for (var partElement in unitElement.parts) {
@@ -238,7 +239,7 @@ class FindElement extends _FindElementBase {
     }
 
     if (result != null) {
-      return result;
+      return result as CompilationUnitElementImpl;
     }
     throw StateError('Not found: $targetUri');
   }

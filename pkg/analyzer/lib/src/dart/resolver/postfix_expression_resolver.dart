@@ -77,7 +77,7 @@ class PostfixExpressionResolver {
   ///
   // TODO(scheglov): this is duplicate
   void _checkForInvalidAssignmentIncDec(
-      PostfixExpression node, Expression operand, DartType type) {
+      PostfixExpressionImpl node, Expression operand, TypeImpl type) {
     var operandWriteType = node.writeType!;
     if (!_typeSystem.isAssignableTo(type, operandWriteType,
         strictCasts: _resolver.analysisOptions.strictCasts)) {

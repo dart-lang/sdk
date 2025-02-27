@@ -4063,9 +4063,6 @@ class AstBuilder extends StackListener {
         feature: ExperimentalFeatures.dot_shorthands,
         startToken: token,
       );
-
-      // Recovery.
-      pop();
     }
 
     // TODO(kallentu): Handle dot shorthands.

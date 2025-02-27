@@ -24,6 +24,25 @@ class StrictTopLevelInferenceTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.strict_top_level_inference;
 
+  void addReflectiveTestLoaderDep() {
+    // TODO(pq): share setup logic with unreachable_from_main_test
+    var testReflectiveLoaderPath = '$workspaceRootPath/test_reflective_loader';
+    var packageConfigBuilder = PackageConfigFileBuilder();
+    packageConfigBuilder.add(
+      name: 'test_reflective_loader',
+      rootPath: testReflectiveLoaderPath,
+    );
+    writeTestPackageConfig(packageConfigBuilder);
+    newFile('$testReflectiveLoaderPath/lib/test_reflective_loader.dart', r'''
+library test_reflective_loader;
+
+const Object reflectiveTest = _ReflectiveTest();
+class _ReflectiveTest {
+  const _ReflectiveTest();
+}
+''');
+  }
+
   test_constructorParameter_named() async {
     await assertDiagnostics(
       r'''
@@ -683,23 +702,35 @@ void f() {
 ''');
   }
 
-  test_reflectiveTest() async {
-    // TODO(pq): share setup logic with unreachable_from_main_test
-    var testReflectiveLoaderPath = '$workspaceRootPath/test_reflective_loader';
-    var packageConfigBuilder = PackageConfigFileBuilder();
-    packageConfigBuilder.add(
-      name: 'test_reflective_loader',
-      rootPath: testReflectiveLoaderPath,
-    );
-    writeTestPackageConfig(packageConfigBuilder);
-    newFile('$testReflectiveLoaderPath/lib/test_reflective_loader.dart', r'''
-library test_reflective_loader;
+  test_reflectiveTest_nonTest() async {
+    addReflectiveTestLoaderDep();
+    await assertDiagnostics(
+      r'''
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-const Object reflectiveTest = _ReflectiveTest();
-class _ReflectiveTest {
-  const _ReflectiveTest();
+@reflectiveTest
+class ReflectiveTest {
+  foo() {}
+}
+''',
+      [lint(111, 3)],
+    );
+  }
+
+  test_reflectiveTest_soloTest() async {
+    addReflectiveTestLoaderDep();
+    await assertNoDiagnostics(r'''
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+@reflectiveTest
+class ReflectiveTest {
+  solo_test_foo() {}
 }
 ''');
+  }
+
+  test_reflectiveTest_test() async {
+    addReflectiveTestLoaderDep();
     await assertNoDiagnostics(r'''
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

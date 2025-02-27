@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,12 +18,12 @@ main() {
 class IsAssignableToTest extends AbstractTypeSystemTest {
   bool get strictCasts => analysisContext.analysisOptions.strictCasts;
 
-  void isAssignable(DartType from, DartType to) {
+  void isAssignable(TypeImpl from, TypeImpl to) {
     expect(
         typeSystem.isAssignableTo(from, to, strictCasts: strictCasts), isTrue);
   }
 
-  void isNotAssignable(DartType from, DartType to) {
+  void isNotAssignable(TypeImpl from, TypeImpl to) {
     expect(
         typeSystem.isAssignableTo(from, to, strictCasts: strictCasts), isFalse);
   }

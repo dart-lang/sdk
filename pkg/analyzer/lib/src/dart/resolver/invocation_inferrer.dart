@@ -159,7 +159,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     var typeArgumentList = _typeArguments;
     var originalType = rawType;
 
-    List<DartType>? typeArgumentTypes;
+    List<TypeImpl>? typeArgumentTypes;
     GenericInferrer? inferrer;
     Substitution? substitution;
     if (_isGenericInferenceDisabled) {
@@ -171,7 +171,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         substitution =
             Substitution.fromPairs(rawType.typeFormals, typeArgumentTypes);
       } else {
-        typeArgumentTypes = const <DartType>[];
+        typeArgumentTypes = const <TypeImpl>[];
       }
     } else if (typeArgumentList != null) {
       if (rawType != null &&
@@ -216,7 +216,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
             Substitution.fromPairs(rawType.typeFormals, typeArgumentTypes);
       }
     } else if (rawType == null || rawType.typeFormals.isEmpty) {
-      typeArgumentTypes = const <DartType>[];
+      typeArgumentTypes = const <TypeImpl>[];
     } else {
       var typeParameters = [for (var tp in rawType.typeFormals) tp.element];
       rawType =
@@ -331,7 +331,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   }
 
   List<FormalParameterElement>? _storeResult(
-      List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
+      List<TypeImpl>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
     return invokeType?.formalParameters;
   }
 }
@@ -424,7 +424,7 @@ abstract class InvocationExpressionInferrer<
 
   @override
   List<FormalParameterElement>? _storeResult(
-      List<DartType>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
+      List<TypeImpl>? typeArgumentTypes, FunctionTypeImpl? invokeType) {
     node.typeArgumentTypes = typeArgumentTypes;
     node.staticInvokeType = invokeType ?? DynamicTypeImpl.instance;
     return super._storeResult(typeArgumentTypes, invokeType);

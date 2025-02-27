@@ -51,7 +51,7 @@ class LiteralElementVerifier {
 
   /// Check that the given [type] is assignable to the [elementType], otherwise
   /// report the list or set error on the [errorNode].
-  void _checkAssignableToElementType(DartType type, AstNode errorNode) {
+  void _checkAssignableToElementType(TypeImpl type, AstNode errorNode) {
     var elementType = this.elementType;
 
     if (!typeSystem.isAssignableTo(type, elementType!,

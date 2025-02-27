@@ -17,7 +17,7 @@ class BodyInferenceContext {
 
   /// The imposed return type, from the typing context.
   /// Might be `null` if an empty typing context.
-  final DartType? imposedType;
+  final TypeImpl? imposedType;
 
   /// The context type, computed from [imposedType].
   /// Might be `null` if an empty typing context.

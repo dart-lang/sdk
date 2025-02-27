@@ -6,12 +6,12 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -378,7 +378,7 @@ class NullSafetyDeadCodeVerifier {
     }
   }
 
-  void verifyCatchClause(CatchClause node) {
+  void verifyCatchClause(CatchClauseImpl node) {
     var verifier = _catchClausesVerifiers.last;
     if (verifier._done) return;
 
@@ -506,7 +506,7 @@ class _CatchClausesVerifier {
   final List<CatchClause> catchClauses;
 
   bool _done = false;
-  final List<DartType> _visitedTypes = <DartType>[];
+  final List<TypeImpl> _visitedTypes = [];
 
   _CatchClausesVerifier(
     this._typeSystem,
@@ -514,7 +514,7 @@ class _CatchClausesVerifier {
     this.catchClauses,
   );
 
-  void nextCatchClause(CatchClause catchClause) {
+  void nextCatchClause(CatchClauseImpl catchClause) {
     var currentType = catchClause.exceptionType?.type;
 
     // Found catch clause that doesn't have an exception type.

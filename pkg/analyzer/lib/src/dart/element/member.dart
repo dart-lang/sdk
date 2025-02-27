@@ -55,7 +55,7 @@ class ConstructorMember extends ExecutableMember
   String get displayName => declaration.displayName;
 
   @override
-  InterfaceElement2 get enclosingElement2 => _element2.enclosingElement2;
+  InterfaceElementImpl2 get enclosingElement2 => _element2.enclosingElement2;
 
   @override
   InterfaceElement get enclosingElement3 => declaration.enclosingElement3;
@@ -507,7 +507,7 @@ class FieldFormalParameterMember extends ParameterMember
   ) : super._();
 
   @override
-  FieldElement? get field {
+  FieldElementOrMember? get field {
     var field = (declaration as FieldFormalParameterElement).field;
     if (field == null) {
       return null;
@@ -597,7 +597,7 @@ class FieldMember extends VariableMember
   }
 
   @override
-  GetterElement? get getter2 {
+  GetterElement2OrMember? get getter2 {
     var baseGetter = declaration.getter;
     if (baseGetter == null) {
       return null;
@@ -656,7 +656,7 @@ class FieldMember extends VariableMember
   }
 
   @override
-  SetterElement? get setter2 {
+  SetterElement2OrMember? get setter2 {
     var baseSetter = declaration.setter;
     if (baseSetter == null) {
       return null;
@@ -709,7 +709,8 @@ class FieldMember extends VariableMember
   /// from the [definingType], create a field member representing the given
   /// field. Return the member that was created, or the base field if no member
   /// was created.
-  static FieldElement from(FieldElement field, InterfaceType definingType) {
+  static FieldElementOrMember from(
+      FieldElementOrMember field, InterfaceType definingType) {
     if (definingType.typeArguments.isEmpty) {
       return field;
     }
@@ -1511,8 +1512,8 @@ abstract class PropertyAccessorMember extends ExecutableMember
   /// arguments from the [definingType], create an accessor member representing
   /// the given accessor. Return the member that was created, or the base
   /// accessor if no member was created.
-  static PropertyAccessorElement? from(
-      PropertyAccessorElement? accessor, InterfaceType definingType) {
+  static PropertyAccessorElementOrMember? from(
+      PropertyAccessorElementOrMember? accessor, InterfaceType definingType) {
     if (accessor == null || definingType.typeArguments.isEmpty) {
       return accessor;
     }

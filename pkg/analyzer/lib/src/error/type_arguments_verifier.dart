@@ -13,6 +13,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -34,12 +35,12 @@ class TypeArgumentsVerifier {
   TypeSystemImpl get _typeSystem =>
       _libraryElement.typeSystem as TypeSystemImpl;
 
-  void checkConstructorReference(ConstructorReference node) {
+  void checkConstructorReference(ConstructorReferenceImpl node) {
     var classElement = node.constructorName.type.element2;
-    List<TypeParameterElement2> typeParameters;
-    if (classElement is TypeAliasElement2) {
+    List<TypeParameterElementImpl2> typeParameters;
+    if (classElement is TypeAliasElementImpl2) {
       typeParameters = classElement.typeParameters2;
-    } else if (classElement is InterfaceElement2) {
+    } else if (classElement is InterfaceElementImpl2) {
       typeParameters = classElement.typeParameters2;
     } else {
       return;
@@ -99,7 +100,7 @@ class TypeArgumentsVerifier {
     }
   }
 
-  void checkEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void checkEnumConstantDeclaration(EnumConstantDeclarationImpl node) {
     var constructorElement = node.constructorElement2;
     if (constructorElement == null) {
       return;
@@ -293,9 +294,9 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    List<TypeParameterElement2> typeParameters;
+    List<TypeParameterElementImpl2> typeParameters;
     String? elementName;
-    List<DartType> typeArguments;
+    List<TypeImpl> typeArguments;
     var alias = type.alias;
     if (alias != null) {
       elementName = alias.element2.name3;
@@ -329,7 +330,7 @@ class TypeArgumentsVerifier {
 
       var typeArgument = typeArguments[i];
 
-      if (typeArgument is FunctionType &&
+      if (typeArgument is FunctionTypeImpl &&
           typeArgument.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _errorReporter.atNode(
@@ -421,7 +422,7 @@ class TypeArgumentsVerifier {
 
     // Prepare type arguments for checking for super-bounded.
     var invertedType = _typeSystem.replaceTopAndBottom(type);
-    List<DartType> invertedTypeArguments;
+    List<TypeImpl> invertedTypeArguments;
     var invertedAlias = invertedType.alias;
     if (invertedAlias != null) {
       invertedTypeArguments = invertedAlias.typeArguments;
@@ -499,9 +500,9 @@ class TypeArgumentsVerifier {
       //     <TFrom, TTo extends Iterable<TFrom>>
       //     <T extends Cloneable<T>>
       //
-      DartType argType = typeArgs[i];
+      var argType = typeArgs[i];
 
-      if (argType is FunctionType && argType.typeParameters.isNotEmpty) {
+      if (argType is FunctionTypeImpl && argType.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _errorReporter.atNode(
             typeArgumentList[i],

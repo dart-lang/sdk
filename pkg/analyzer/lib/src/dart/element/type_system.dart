@@ -520,8 +520,8 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// This does not find extension methods (which are not defined on an
   /// interface type); it is meant to find implicit call references.
-  FunctionType? getCallMethodType(DartType t) {
-    if (t is InterfaceType) {
+  FunctionTypeImpl? getCallMethodType(DartType t) {
+    if (t is InterfaceTypeImpl) {
       return t
           .lookUpMethod3(MethodElement2.CALL_METHOD_NAME, t.element3.library2)
           ?.type;
@@ -859,8 +859,11 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType,
-      {bool strictCasts = false}) {
+  bool isAssignableTo(
+    covariant TypeImpl fromType,
+    covariant TypeImpl toType, {
+    bool strictCasts = false,
+  }) {
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -872,7 +875,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // A 'call' method tearoff.
-    if (fromType is InterfaceType &&
+    if (fromType is InterfaceTypeImpl &&
         !isNullable(fromType) &&
         acceptsFunctionType(toType)) {
       var callMethodType = getCallMethodType(fromType);
@@ -920,7 +923,7 @@ class TypeSystemImpl implements TypeSystem {
   /// Implements:
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/subtyping.md#type-equality`
-  bool isEqualTo(DartType left, DartType right) {
+  bool isEqualTo(TypeImpl left, TypeImpl right) {
     return isSubtypeOf(left, right) && isSubtypeOf(right, left);
   }
 
@@ -1281,7 +1284,10 @@ class TypeSystemImpl implements TypeSystem {
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/subtyping.md`
   @override
-  bool isSubtypeOf(DartType leftType, DartType rightType) {
+  bool isSubtypeOf(
+    covariant TypeImpl leftType,
+    covariant TypeImpl rightType,
+  ) {
     return _subtypeHelper.isSubtypeOf(leftType, rightType);
   }
 
@@ -1498,9 +1504,9 @@ class TypeSystemImpl implements TypeSystem {
   /// left operand has the type [leftType] and whose right operand has the type
   /// [rightType], given that resolution has so far produced the [currentType].
   TypeImpl refineBinaryExpressionType(
-      DartType leftType,
+      TypeImpl leftType,
       TokenType operator,
-      DartType rightType,
+      TypeImpl rightType,
       TypeImpl currentType,
       MethodElement2? operatorElement) {
     if (operatorElement == null) return currentType;
@@ -1514,9 +1520,9 @@ class TypeSystemImpl implements TypeSystem {
   /// [invocationContext], and the context type produced so far by resolution is
   /// [currentType].
   TypeImpl refineNumericInvocationContext2(
-      DartType? targetType,
+      TypeImpl? targetType,
       Element2? methodElement,
-      DartType invocationContext,
+      TypeImpl invocationContext,
       TypeImpl currentType) {
     if (targetType != null && methodElement is MethodElement2) {
       return _refineNumericInvocationContextNullSafe(
@@ -1534,9 +1540,9 @@ class TypeSystemImpl implements TypeSystem {
   ///
   // TODO(scheglov): I expected that [methodElement] is [MethodElement].
   TypeImpl refineNumericInvocationType(
-      DartType targetType,
+      TypeImpl targetType,
       Element2? methodElement,
-      List<DartType> argumentTypes,
+      List<TypeImpl> argumentTypes,
       TypeImpl currentType) {
     if (methodElement is MethodElement2) {
       return _refineNumericInvocationTypeNullSafe(
@@ -1554,7 +1560,7 @@ class TypeSystemImpl implements TypeSystem {
   /// be used to instantiate both function types, allowing further comparison.
   RelatedTypeParameters2? relateTypeParameters2(
     List<TypeParameterElementImpl2> typeParameters1,
-    List<TypeParameterElement2> typeParameters2,
+    List<TypeParameterElementImpl2> typeParameters2,
   ) {
     if (typeParameters1.length != typeParameters2.length) {
       return null;
@@ -1824,9 +1830,9 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   TypeImpl _refineNumericInvocationContextNullSafe(
-      DartType targetType,
+      TypeImpl targetType,
       MethodElement2 methodElement,
-      DartType invocationContext,
+      TypeImpl invocationContext,
       TypeImpl currentType) {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
@@ -1926,9 +1932,9 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   TypeImpl _refineNumericInvocationTypeNullSafe(
-      DartType targetType,
+      TypeImpl targetType,
       MethodElement2 methodElement,
-      List<DartType> argumentTypes,
+      List<TypeImpl> argumentTypes,
       TypeImpl currentType) {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the

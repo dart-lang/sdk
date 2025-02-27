@@ -562,12 +562,12 @@ class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
         Dwarf? unitDwarf;
         // Prefer the map that specifies loading unit IDs over the iterable.
         if (_dwarfByUnitId != null) {
-          unitDwarf = _dwarfByUnitId![unitId];
+          unitDwarf = _dwarfByUnitId[unitId];
         }
         if (unitDwarf == null &&
             _unitDwarfs != null &&
             offset.buildId != null) {
-          for (final d in _unitDwarfs!) {
+          for (final d in _unitDwarfs) {
             if (d.buildId(offset.architecture) == offset.buildId) {
               unitDwarf = d;
             }

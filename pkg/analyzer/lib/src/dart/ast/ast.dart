@@ -5025,6 +5025,11 @@ sealed class DeclaredVariablePattern implements VariablePattern {
   @experimental
   BindPatternVariableElement2? get declaredElement2;
 
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  BindPatternVariableFragment? get declaredFragment;
+
   /// The `var` or `final` keyword.
   Token? get keyword;
 
@@ -5060,6 +5065,9 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   BindPatternVariableElementImpl2? get declaredElement2 {
     return declaredElement?.element;
   }
+
+  @override
+  BindPatternVariableElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => name;
@@ -5686,7 +5694,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   final EnumConstantArgumentsImpl? arguments;
 
   @override
-  ConstructorElement? constructorElement;
+  ConstructorElementMixin? constructorElement;
 
   /// Initializes a newly created enum constant declaration.
   ///
@@ -5704,10 +5712,10 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 
   @experimental
   @override
-  ConstructorElement2? get constructorElement2 =>
+  ConstructorElementMixin2? get constructorElement2 =>
       constructorElement?.asElement2;
 
-  set constructorElement2(ConstructorElement2? value) {
+  set constructorElement2(ConstructorElementMixin2? value) {
     constructorElement = value?.asElement;
   }
 
@@ -9093,6 +9101,11 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 ///        [ normalParameterTypes ,? ]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class GenericFunctionType implements TypeAnnotation {
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  GenericFunctionTypeFragment? get declaredFragment;
+
   /// The `Function` keyword.
   Token get functionKeyword;
 
@@ -9148,6 +9161,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   @override
   Token get beginToken => _returnType?.beginToken ?? functionKeyword;
 
+  @override
   GenericFunctionTypeElementImpl? get declaredFragment {
     return declaredElement;
   }
@@ -10860,10 +10874,10 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
   TypeArgumentListImpl? _typeArguments;
 
   @override
-  List<DartType>? typeArgumentTypes;
+  List<TypeImpl>? typeArgumentTypes;
 
   @override
-  DartType? staticInvokeType;
+  TypeImpl? staticInvokeType;
 
   /// Initializes a newly created invocation.
   InvocationExpressionImpl({
@@ -10988,6 +11002,11 @@ abstract final class Label implements AstNode {
   /// The colon that separates the label from the statement.
   Token get colon;
 
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  LabelFragment? get declaredFragment;
+
   /// The label being associated with the statement.
   SimpleIdentifier get label;
 }
@@ -11075,6 +11094,10 @@ final class LabelImpl extends AstNodeImpl implements Label {
 
   @override
   Token get beginToken => _label.beginToken;
+
+  @override
+  LabelElementImpl? get declaredFragment =>
+      (label.element as LabelElementImpl2?)?.firstFragment;
 
   @override
   Token get endToken => colon;
@@ -13812,7 +13835,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @experimental
   @override
-  PartInclude? get partInclude => element as PartInclude?;
+  PartElementImpl? get partInclude => element;
 
   @override
   ChildEntities get _childEntities => super._childEntities

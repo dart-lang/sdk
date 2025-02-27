@@ -2910,7 +2910,8 @@ class _InstanceCreationEvaluator {
         if (baseParameter.isInitializingFormal) {
           var field = (parameter as FieldFormalParameterElement).field;
           if (field != null) {
-            var fieldType = field.type;
+            // TODO(scheglov): eliminate this cast
+            var fieldType = field.type as TypeImpl;
             if (fieldType != parameter.type) {
               // We've already checked that the argument can be assigned to the
               // parameter; we also need to check that it can be assigned to
@@ -3192,7 +3193,7 @@ extension RuntimeExtensions on TypeSystemImpl {
   /// type-checking rules.
   bool runtimeTypeMatch(
     DartObjectImpl obj,
-    DartType type,
+    TypeImpl type,
   ) {
     type = type.extensionTypeErasure;
     var objType = obj.type;

@@ -116,9 +116,9 @@ class AssignmentExpressionResolver {
   }
 
   void _checkForInvalidAssignment(
-    DartType writeType,
+    TypeImpl writeType,
     Expression right,
-    DartType rightType, {
+    TypeImpl rightType, {
     required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (writeType is! VoidType && _checkForUseOfVoidResult(right)) {
@@ -131,10 +131,10 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    if (writeType is RecordType &&
+    if (writeType is RecordTypeImpl &&
         writeType.positionalFields.length == 1 &&
         rightType is! RecordType &&
-        right is ParenthesizedExpression) {
+        right is ParenthesizedExpressionImpl) {
       var field = writeType.positionalFields.first;
       if (_typeSystem.isAssignableTo(field.type, rightType,
           strictCasts: strictCasts)) {

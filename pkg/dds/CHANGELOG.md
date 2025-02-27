@@ -1,6 +1,7 @@
 # 5.0.1-wip
 
 - Widen the dependency on `package:shelf_web_socket`.
+- Require Dart SDK v. 3.5.0 or higher.
 
 # 5.0.0
 - [DAP] The debug adapter no longer spawns its own in-process copy of DDS, instead relying on one started by the Dart VM (or `Flutter`). This means the `enableDds` and `enableAuthCodes` arguments to the `DartDebugAdapter` base class have been deprecated and have any effect. Suppressing DDS (or auth codes) should be done in launch configuration (for example using `vmAdditionalArgs` or `toolArgs` depending on the target tool).
