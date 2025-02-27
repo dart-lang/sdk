@@ -1,3 +1,6 @@
+## 0.6.1-wip
+- Update SDK constraint to `^3.5.0`.
+
 ## 0.6.0
 - Make return type of DwarfContainer reader methods nullable so null
   can be returned if there is no relevant DWARF information.
