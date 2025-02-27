@@ -708,6 +708,7 @@ package:analyzer/dart/ast/ast.dart:
   DeclaredVariablePattern (class extends Object implements VariablePattern):
     declaredElement (getter: BindPatternVariableElement?)
     declaredElement2 (getter: BindPatternVariableElement2?)
+    declaredFragment (getter: BindPatternVariableFragment?)
     keyword (getter: Token?)
     type (getter: TypeAnnotation?)
   DefaultFormalParameter (class extends Object implements FormalParameter):
@@ -949,6 +950,7 @@ package:analyzer/dart/ast/ast.dart:
     returnType (getter: TypeAnnotation?)
     typeParameters (getter: TypeParameterList?)
   GenericFunctionType (class extends Object implements TypeAnnotation):
+    declaredFragment (getter: GenericFunctionTypeFragment?)
     functionKeyword (getter: Token)
     parameters (getter: FormalParameterList)
     returnType (getter: TypeAnnotation?)
@@ -1049,6 +1051,7 @@ package:analyzer/dart/ast/ast.dart:
     type (getter: TypeAnnotation)
   Label (class extends Object implements AstNode):
     colon (getter: Token)
+    declaredFragment (getter: LabelFragment?)
     label (getter: SimpleIdentifier)
   LabeledStatement (class extends Object implements Statement):
     labels (getter: NodeList<Label>)
