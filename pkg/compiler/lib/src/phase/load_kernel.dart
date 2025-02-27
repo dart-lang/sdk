@@ -186,7 +186,7 @@ void _doTransformsOnKernelLoad(
     final classHierarchy = ir.ClassHierarchy(
       component,
       coreTypes,
-      onAmbiguousSupertypes: (_, __, ___) {},
+      onAmbiguousSupertypes: (_, _, _) {},
     );
     ir.TypeEnvironment typeEnvironment = ir.TypeEnvironment(
       coreTypes,
