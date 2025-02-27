@@ -249,9 +249,9 @@ void main() {
   // [cfe] A comparison expression can't be an operand of another comparison expression.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-  // [cfe] Expected an identifier, but got '.'.
   // [cfe] This requires the experimental 'dot-shorthands' language feature to be enabled.
+  //   ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 
   X<2>.any;
   // ^
@@ -259,9 +259,9 @@ void main() {
   // [cfe] A comparison expression can't be an operand of another comparison expression.
   //  ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-  // [cfe] Expected an identifier, but got '.'.
   // [cfe] This requires the experimental 'dot-shorthands' language feature to be enabled.
+  //   ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 
   // This would be invalid even if `X` had an `any` member. See next.
   X<X>.any; // Invalid, Class does not have any static `any` member.

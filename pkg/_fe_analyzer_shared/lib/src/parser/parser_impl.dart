@@ -5833,9 +5833,17 @@ class Parser {
 
     bool isDotShorthand = token.next!.isA(TokenType.PERIOD) &&
         (token.next!.next!.isIdentifier || token.next!.next!.isA(Keyword.NEW));
-    // TODO(kallentu): Once the parser handles dot shorthands by default,
-    // we don't need to parse for an error here.
-    token = parseUnaryExpression(token, allowCascades, constantPatternContext);
+    if (isDotShorthand) {
+      // TODO(kallentu): Once the analyzer implementation is done, we can avoid
+      // adding a synthetic identifier completely, but currently, the parser
+      // will crash without one.
+      //
+      // Insert a synthetic identifier to satisfy listeners.
+      token = rewriter.insertSyntheticIdentifier(token);
+    } else {
+      token =
+          parseUnaryExpression(token, allowCascades, constantPatternContext);
+    }
 
     Token bangToken = token;
     if (token.next!.isA(TokenType.BANG)) {

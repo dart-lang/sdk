@@ -10007,15 +10007,13 @@ class BodyBuilder extends StackListenerImpl
 
       // Recovery, avoid crashing with an extra selector.
       pop();
+      push(new ParserErrorGenerator(this, token, cfe.messageSyntheticToken));
       return;
     }
 
-    Object? selector = pop();
-    if (libraryFeatures.dotShorthands.isEnabled && selector is Selector) {
-      // TODO(kallentu): Remove this once we have more of the dot shorthands
-      // implementation complete.
-      pop(); // ParserGeneratorError
-
+    assert(checkState(token, [ValueKinds.Selector]));
+    Selector selector = pop() as Selector;
+    if (libraryFeatures.dotShorthands.isEnabled) {
       // TODO(kallentu): Handle invocations.
 
       push(forest.createDotShorthandPropertyGet(

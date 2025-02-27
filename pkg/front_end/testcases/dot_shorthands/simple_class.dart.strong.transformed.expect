@@ -1,12 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/dot_shorthands/simple_class.dart:12:13: Error: Expected an identifier, but got '.'.
-// Try inserting an identifier before '.'.
-//   Color c = .red;
-//             ^
-//
 import self as self;
 import "dart:core" as core;
 

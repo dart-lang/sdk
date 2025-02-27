@@ -12,7 +12,7 @@ void main() {
   Color color = .blue;
   //            ^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-  // [cfe] Expected an identifier, but got '.'.
   // [cfe] This requires the experimental 'dot-shorthands' language feature to be enabled.
+  //             ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 }
