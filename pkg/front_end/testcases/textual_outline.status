@@ -16,30 +16,15 @@ extension_types/issue52119: FormatterCrash
 extension_types/issue53212: FormatterCrash
 extension_types/issue53625: FormatterCrash
 extension_types/representation: FormatterCrash
-general/base_class_declaration: FormatterCrash
 general/constants/non_const_constructor: FormatterCrash
 general/constants/various: FormatterCrash
-general/enum_super_constructor: FormatterCrash
-general/extension_type_declaration_disabled: FormatterCrash
-general/final_class_declaration: FormatterCrash
-general/interface_class_declaration: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash
-general/issue_46886: FormatterCrash
 general/issue45700.crash: FormatterCrash
-general/issue48487: FormatterCrash
-general/issue48487b: FormatterCrash
 general/issue48919: FormatterCrash
-general/macro_class: FormatterCrash
-general/mixin_class_declaration: FormatterCrash
-general/records_opt_out: FormatterCrash
-general/sealed_class_declaration: FormatterCrash
 nnbd_mixed/issue41597: FormatterCrash
-nonfunction_type_aliases/old_version: FormatterCrash
-records/record_type_unsupported: FormatterCrash
 regress/issue_30994: FormatterCrash
 regress/issue_31198: FormatterCrash
-super_parameters/opt_out: FormatterCrash
 super_parameters/var_before_super: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 
@@ -73,6 +58,5 @@ regress/ambiguous_builder_01: UnknownChunk # Test has parser errors
 regress/issue_34850: UnknownChunk # Test has parser errors
 
 coverage/external_test: FormatterCrash
-coverage/metadata_test: FormatterCrash
 coverage/operator_unsupported_test: EmptyOutput
 coverage/syntax_get_set_syntax_test: UnknownChunk
