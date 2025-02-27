@@ -5633,7 +5633,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl2
 
   @override
   SetterElement? get correspondingSetter2 =>
-      firstFragment.correspondingSetter2?.element;
+      firstFragment.variable2?.setter?.element;
 
   @override
   List<GetterFragmentImpl> get fragments {
@@ -5698,9 +5698,6 @@ class GetterFragmentImpl extends PropertyAccessorElementImpl
 
   @override
   PropertyAccessorElement? get correspondingSetter => variable2?.setter;
-
-  @override
-  SetterFragment? get correspondingSetter2 => variable2?.setter;
 
   @override
   GetterElementImpl get element {
@@ -10714,7 +10711,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
 
   @override
   GetterElement? get correspondingGetter2 =>
-      firstFragment.correspondingGetter2?.element;
+      firstFragment.variable2?.getter?.element;
 
   @override
   Element2 get enclosingElement2 => firstFragment.enclosingFragment.element;
@@ -10787,9 +10784,6 @@ class SetterFragmentImpl extends PropertyAccessorElementImpl
 
   @override
   PropertyAccessorElement? get correspondingGetter => variable2?.getter;
-
-  @override
-  GetterFragment? get correspondingGetter2 => variable2?.getter;
 
   @override
   PropertyAccessorElement? get correspondingSetter => null;

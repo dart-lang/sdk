@@ -1177,10 +1177,6 @@ abstract class GetterElement implements PropertyAccessorElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class GetterFragment implements PropertyAccessorFragment {
-  /// The setter that corresponds to (has the same name as) this getter, or
-  /// `null` if there is no corresponding setter.
-  SetterFragment? get correspondingSetter2;
-
   @override
   GetterElement get element;
 
@@ -2490,10 +2486,6 @@ abstract class SetterElement implements PropertyAccessorElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class SetterFragment implements PropertyAccessorFragment {
-  /// The getter that corresponds to (has the same name as) this setter, or
-  /// `null` if there is no corresponding getter.
-  GetterFragment? get correspondingGetter2;
-
   @override
   SetterElement get element;
 

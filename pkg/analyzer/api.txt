@@ -3872,7 +3872,6 @@ package:analyzer/dart/element/element2.dart:
     fragments (getter: List<GetterFragment>)
   GetterFragment (class extends Object implements PropertyAccessorFragment):
     new (constructor: GetterFragment Function())
-    correspondingSetter2 (getter: SetterFragment?)
     element (getter: GetterElement)
     nextFragment (getter: GetterFragment?)
     previousFragment (getter: GetterFragment?)
@@ -4205,7 +4204,6 @@ package:analyzer/dart/element/element2.dart:
     fragments (getter: List<SetterFragment>)
   SetterFragment (class extends Object implements PropertyAccessorFragment):
     new (constructor: SetterFragment Function())
-    correspondingGetter2 (getter: GetterFragment?)
     element (getter: SetterElement)
     nextFragment (getter: SetterFragment?)
     previousFragment (getter: SetterFragment?)
