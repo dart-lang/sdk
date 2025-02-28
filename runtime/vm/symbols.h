@@ -507,6 +507,7 @@ class ObjectPointerVisitor;
   V(add, "add")                                                                \
   V(addStream, "addStream")                                                    \
   V(addStreamFuture, "addStreamFuture")                                        \
+  V(assetId, "assetId")                                                        \
   V(asyncStarBody, "asyncStarBody")                                            \
   V(byteOffset, "byteOffset")                                                  \
   V(c_result, ":result")                                                       \
@@ -552,6 +553,7 @@ class ObjectPointerVisitor;
   V(state, "state")                                                            \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
+  V(symbol, "symbol")                                                          \
   V(system, "system")                                                          \
   V(vm_always_consider_inlining, "vm:always-consider-inlining")                \
   V(vm_awaiter_link, "vm:awaiter-link")                                        \
