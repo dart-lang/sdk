@@ -338,7 +338,7 @@ class KernelToElementMap implements IrToElementMap {
       } else {
         data.instantiationToBounds = getInterfaceType(
           ir.instantiateToBounds(
-                coreTypes.legacyRawType(node),
+                coreTypes.nonNullableRawType(node),
                 coreTypes.objectClass,
               )
               as ir.InterfaceType,

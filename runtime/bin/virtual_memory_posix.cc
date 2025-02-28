@@ -45,7 +45,7 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
 
   int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 #if (defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS))
-  if (is_executable && IsAtLeastOS10_14()) {
+  if (is_executable && IsAtLeastMacOSX10_14()) {
     map_flags |= MAP_JIT;
   }
 #endif  // defined(DART_HOST_OS_MACOS)

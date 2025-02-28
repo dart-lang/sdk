@@ -939,7 +939,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // See normalization functions in: sdk/lib/_internal/js_shared/lib/rti.dart
     if (_isSdkInternalRuntime(_currentLibrary!)) {
       var prerequisiteRtiTypes = [
-        _coreTypes.objectLegacyRawType,
         _coreTypes.objectNullableRawType,
         NeverType.legacy()
       ];
@@ -4644,8 +4643,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         condition.getStaticType(_staticTypeContext).extensionTypeErasure;
     var jsCondition = _visitExpression(condition);
 
-    if (conditionType != _coreTypes.boolLegacyRawType &&
-        conditionType != _coreTypes.boolNullableRawType &&
+    if (conditionType != _coreTypes.boolNullableRawType &&
         conditionType != _coreTypes.boolNonNullableRawType) {
       jsCondition = _runtimeCall('dtest(#)', [jsCondition]);
     } else if (_isNullable(condition)) {
@@ -7422,8 +7420,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // If `to` is some form of `num`, it should have been filtered above.
 
       // * -> double? | double* : no-op
-      if (to == _coreTypes.doubleLegacyRawType ||
-          to == _coreTypes.doubleNullableRawType) {
+      if (to == _coreTypes.doubleNullableRawType) {
         return jsFrom;
       }
 
@@ -7441,8 +7438,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
 
       // * -> int? | int* : asNullableInt check
-      if (to == _coreTypes.intLegacyRawType ||
-          to == _coreTypes.intNullableRawType) {
+      if (to == _coreTypes.intNullableRawType) {
         return _runtimeCall('asNullableInt(#)', [jsFrom]);
       }
     }
