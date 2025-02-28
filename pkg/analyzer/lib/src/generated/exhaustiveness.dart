@@ -226,7 +226,7 @@ class AnalyzerSealedClassOperations
       trivialSubstitution = false;
     }
     if (trivialSubstitution) {
-      return subClass.instantiate(
+      return subClass.instantiateImpl(
           typeArguments: sealedClassType.typeArguments,
           nullabilitySuffix: NullabilitySuffix.none);
     } else {

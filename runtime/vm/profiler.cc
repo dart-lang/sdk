@@ -580,14 +580,14 @@ void Profiler::Init() {
     return;
   }
   ASSERT(!initialized_);
-  SetSamplePeriod(FLAG_profile_period);
   // The profiler may have been shutdown previously, in which case the sample
   // buffer will have already been initialized.
   if (sample_block_buffer_ == nullptr) {
     intptr_t num_blocks = CalculateSampleBufferCapacity();
     sample_block_buffer_ = new SampleBlockBuffer(num_blocks);
   }
-  ThreadInterrupter::Init();
+  UpdateFlagProfilePeriod(FLAG_profile_period);
+  ThreadInterrupter::Init(FLAG_profile_period);
   ThreadInterrupter::Startup();
   SampleBlockProcessor::Init();
   SampleBlockProcessor::Startup();
@@ -656,18 +656,18 @@ intptr_t Profiler::CalculateSampleBufferCapacity() {
   return (sample_count / SampleBlock::kSamplesPerBlock) + 1;
 }
 
-void Profiler::SetSamplePeriod(intptr_t period) {
+void Profiler::UpdateFlagProfilePeriod(intptr_t period) {
   const int kMinimumProfilePeriod = 50;
   if (period < kMinimumProfilePeriod) {
     FLAG_profile_period = kMinimumProfilePeriod;
   } else {
     FLAG_profile_period = period;
   }
-  ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
 }
 
 void Profiler::UpdateSamplePeriod() {
-  SetSamplePeriod(FLAG_profile_period);
+  UpdateFlagProfilePeriod(FLAG_profile_period);
+  ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
 }
 
 SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,

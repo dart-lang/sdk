@@ -435,7 +435,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     _methodElement = element;
 
-    var declaration = await sessionHelper.getElementDeclaration(
+    var declaration = await sessionHelper.getFragmentDeclaration(
       element.firstFragment,
     );
     var methodNode = declaration!.node;

@@ -1189,7 +1189,8 @@ class ClassMembersNode {
   }
 
   ClassMember? getStaticMember(Name name, bool isSetter) {
-    ClassMember? result = classMemberMap[name];
+    ClassMember? result =
+        isSetter ? classSetterMap[name] : classMemberMap[name];
     if (result == null) {
       return null;
     } else if (result.isStatic) {

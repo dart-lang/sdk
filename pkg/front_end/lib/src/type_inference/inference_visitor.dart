@@ -12120,9 +12120,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType cachedContext = getDotShorthandContext().unwrapTypeSchemaView();
     Member? member = findInterfaceMember(
             cachedContext, node.name, node.fileOffset,
-            includeExtensionMethods: false,
-            isSetter: false,
-            isDotShorthand: true)
+            isSetter: false, isDotShorthand: true)
         .member;
 
     ExpressionInferenceResult expressionInferenceResult;

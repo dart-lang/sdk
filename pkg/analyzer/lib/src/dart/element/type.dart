@@ -23,13 +23,13 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
-List<DartType> fixedTypeList(DartType e1, [DartType? e2]) {
+List<TypeImpl> fixedTypeList(TypeImpl e1, [TypeImpl? e2]) {
   if (e2 != null) {
-    var result = List<DartType>.filled(2, e1);
+    var result = List<TypeImpl>.filled(2, e1);
     result[1] = e2;
     return result;
   } else {
-    return List<DartType>.filled(1, e1);
+    return List<TypeImpl>.filled(1, e1);
   }
 }
 
@@ -317,7 +317,7 @@ class FunctionTypeImpl extends TypeImpl
   }
 
   @override
-  bool referencesAny(Set<TypeParameterElement> parameters) {
+  bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     if (typeFormals.any((element) {
       assert(!parameters.contains(element));
 
@@ -326,8 +326,8 @@ class FunctionTypeImpl extends TypeImpl
         return true;
       }
 
-      var defaultType = element.defaultType as TypeImpl;
-      return defaultType.referencesAny(parameters);
+      var defaultType = element.defaultType;
+      return defaultType != null && defaultType.referencesAny(parameters);
     })) {
       return true;
     }
@@ -352,8 +352,8 @@ class FunctionTypeImpl extends TypeImpl
         return true;
       }
 
-      var defaultType = element.defaultType as TypeImpl;
-      return defaultType.referencesAny2(parameters);
+      var defaultType = element.defaultType;
+      return defaultType != null && defaultType.referencesAny2(parameters);
     })) {
       return true;
     }
@@ -584,17 +584,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   factory InterfaceTypeImpl({
     required InterfaceElementImpl2 element,
-    required List<DartType> typeArguments,
+    required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
     InstantiatedTypeAliasElementImpl? alias,
   }) {
     if (element.name3 == 'FutureOr' && element.library2.isDartAsync) {
       return FutureOrTypeImpl(
         element3: element,
-        // TODO(paulberry): avoid this cast by changing the type of
-        // `typeArguments`.
         typeArgument: typeArguments.isNotEmpty
-            ? typeArguments[0] as TypeImpl
+            ? typeArguments[0]
             : InvalidTypeImpl.instance,
         nullabilitySuffix: nullabilitySuffix,
         alias: alias,
@@ -605,11 +603,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         alias: alias,
       );
     } else {
-      // TODO(paulberry): avoid this cast by changing the type of
-      // `typeArguments`.
       return InterfaceTypeImpl._(
         element3: element,
-        typeArguments: typeArguments.cast(),
+        typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix,
         alias: alias,
       );
@@ -1146,7 +1142,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  bool referencesAny(Set<TypeParameterElement> parameters) {
+  bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     return typeArguments.any((argument) => argument.referencesAny(parameters));
   }
 
@@ -1637,7 +1633,7 @@ abstract class TypeImpl implements DartType, SharedType {
   bool isStructurallyEqualTo(Object other) => this == other;
 
   /// Returns true if this type references any of the [parameters].
-  bool referencesAny(Set<TypeParameterElement> parameters) {
+  bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     return false;
   }
 

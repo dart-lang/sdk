@@ -2608,18 +2608,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var A = class_2(
       name: 'A',
       interfaces: [
-        I.instantiate(
+        I.instantiateImpl(
           typeArguments: const [],
           nullabilitySuffix: NullabilitySuffix.none,
         ),
       ],
     );
 
-    var A_none = A.instantiate(
+    var A_none = A.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
-    var I_none = I.instantiate(
+    var I_none = I.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -2634,18 +2634,18 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var A = class_2(
       name: 'A',
       mixins: [
-        M.instantiate(
+        M.instantiateImpl(
           typeArguments: const [],
           nullabilitySuffix: NullabilitySuffix.none,
         ),
       ],
     );
 
-    var A_none = A.instantiate(
+    var A_none = A.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
-    var M_none = M.instantiate(
+    var M_none = M.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -2736,12 +2736,12 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', variance: Variance.contravariant);
     var A = class_2(name: 'A', typeParameters: [T]);
 
-    var A_num = A.instantiate(
+    var A_num = A.instantiateImpl(
       typeArguments: [numNone],
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var A_int = A.instantiate(
+    var A_int = A.instantiateImpl(
       typeArguments: [intNone],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -2755,12 +2755,12 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', variance: Variance.covariant);
     var A = class_2(name: 'A', typeParameters: [T]);
 
-    var A_num = A.instantiate(
+    var A_num = A.instantiateImpl(
       typeArguments: [numNone],
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var A_int = A.instantiate(
+    var A_int = A.instantiateImpl(
       typeArguments: [intNone],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -2774,12 +2774,12 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     var T = typeParameter('T', variance: Variance.invariant);
     var A = class_2(name: 'A', typeParameters: [T]);
 
-    var A_num = A.instantiate(
+    var A_num = A.instantiateImpl(
       typeArguments: [numNone],
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var A_int = A.instantiate(
+    var A_int = A.instantiateImpl(
       typeArguments: [intNone],
       nullabilitySuffix: NullabilitySuffix.none,
     );

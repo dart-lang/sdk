@@ -64,6 +64,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -81,6 +82,7 @@ export 'package:analyzer/dart/element/element.dart'
         HideElementCombinator,
         NamespaceCombinator,
         ShowElementCombinator;
+export 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 
 /// An element or fragment that can have either annotations (metadata), a
 /// documentation comment, or both associated with it.
@@ -1345,6 +1347,51 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   @override
   List<InterfaceFragment> get fragments;
 
+  /// Returns a map of all concrete members that this type inherits from
+  /// superclasses and mixins, keyed by the member's [Name].
+  ///
+  /// Members declared in this type have no effect on the map. This means that:
+  /// - If this type contains a member named `foo`, but none of its superclasses
+  ///   or mixins contains a member named `foo`, then there will be no entry for
+  ///   `foo` in the map.
+  /// - If this type contains a member named `foo`, and one of its superclasses
+  ///   or mixins contains a member named `foo`, then there will be an entry for
+  ///   `foo` in this map, pointing to the declaration inherited from the
+  ///   superclass or mixin.
+  ///
+  /// This method is potentially expensive, since it needs to consider all
+  /// possible inherited names. If you only need to look up a certain specific
+  /// name (or names), use [getInheritedConcreteMember] instead.
+  Map<Name, ExecutableElement2> get inheritedConcreteMembers;
+
+  /// Returns a map of all members that this type inherits from supertypes via
+  /// `extends`, `with`, `implements`, or `on` clauses, keyed by the member's
+  /// [Name].
+  ///
+  /// Members declared in this type have no effect on the map. This means that:
+  /// - If this type contains a member named `foo`, but none of its supertypes
+  ///   contains a member named `foo`, then there will be no entry for `foo` in
+  ///   the map.
+  /// - If this type contains a member named `foo`, and one of its supertypes
+  ///   contains a member named `foo`, then there will be an entry for `foo` in
+  ///   this map, pointing to the declaration inherited from the supertype.
+  ///
+  /// This method is potentially expensive, since it needs to consider all
+  /// possible inherited names. If you only need to look up a certain specific
+  /// name (or names), use [getInheritedMember] instead.
+  Map<Name, ExecutableElement2> get inheritedMembers;
+
+  /// Returns a map of all members in the type's interface, keyed by the
+  /// member's [Name].
+  ///
+  /// Note that some names are not declared directly on [thisType], but are
+  /// inherited from supertypes.
+  ///
+  /// This method is potentially expensive, since it needs to consider all
+  /// possible interface names. If you only need to look up a certain specific
+  /// name (or names), use [getInterfaceMember] instead.
+  Map<Name, ExecutableElement2> get interfaceMembers;
+
   /// The interfaces that are implemented by this class.
   ///
   /// <b>Note:</b> Because the element model represents the state of the code,
@@ -1394,8 +1441,62 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// constructor will be returned.
   ConstructorElement2? get unnamedConstructor2;
 
+  /// Returns the most specific member with the given [name] that this type
+  /// inherits from a superclass or mixin.
+  ///
+  /// Returns `null` if no member is inherited.
+  ///
+  /// This method is semantically equivalent to calling
+  /// [inheritedConcreteMembers] and then using the `[]` operator, but it
+  /// potentially has better performance, since it does not need to consider all
+  /// possible inherited names.
+  ExecutableElement2? getInheritedConcreteMember(Name name);
+
+  /// Returns the most specific member with the given [name] that this type
+  /// inherits from a supertype via an `extends`, `with`, `implements`, or `on`
+  /// clause.
+  ///
+  /// Returns `null` if no member is inherited because the member is not
+  /// declared at all, or because there is no the most specific signature.
+  ///
+  /// This method is semantically equivalent to calling [inheritedMembers] and
+  /// then using the `[]` operator, but it potentially has better performance,
+  /// since it does not need to consider all possible inherited names.
+  ExecutableElement2? getInheritedMember(Name name);
+
+  /// Returns the most specific member with the given [name] in this type's
+  /// interface.
+  ///
+  /// Returns `null` if there is no member with the given [name] in this type's
+  /// interface, either because the member is not declared at all, or because of
+  /// a conflict between inherited members.
+  ///
+  /// This method is semantically equivalent to calling [interfaceMembers] and
+  /// then using the `[]` operator, but it potentially has better performance,
+  /// since it does not need to consider all possible interface names.
+  ExecutableElement2? getInterfaceMember(Name name);
+
   /// Returns the constructor from [constructors2] that has the given [name].
   ConstructorElement2? getNamedConstructor2(String name);
+
+  /// Returns all members of mixins, superclasses, and interfaces that a member
+  /// with the given [name], defined in this element, would override; or `null`
+  /// if no members would be overridden.
+  ///
+  /// Transitive overrides are not included unless there is a direct path to
+  /// them. For example, if classes `A`, `B`, and `C` are defined as follows:
+  ///
+  ///     class A { void m() {} }
+  ///     class B extends A { void m() {} }
+  ///     class C extends B { void m() {} }
+  ///
+  /// Then a [getOverridden] query for name `m` on class `C` would return just a
+  /// single result: the element for `B.m`.
+  ///
+  /// However, if the example were changed so that `class C` both `extends B`
+  /// *and* `implements A`, then a list containing both `A.m` and `B.m` would be
+  /// returned.
+  List<ExecutableElement2>? getOverridden(Name name);
 
   /// Create the [InterfaceType] for this element with the given
   /// [typeArguments] and [nullabilitySuffix].

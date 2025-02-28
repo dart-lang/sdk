@@ -67,10 +67,8 @@ class InterfaceLeastUpperBoundHelper {
       assert(args1.length == args2.length);
       assert(args1.length == params.length);
 
-      var args = <DartType>[];
+      var args = <TypeImpl>[];
       for (int i = 0; i < args1.length; i++) {
-        // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
         Variance parameterVariance = params[i].variance;
         if (parameterVariance.isCovariant) {
           args.add(typeSystem.leastUpperBound(args1[i], args2[i]));
@@ -320,7 +318,7 @@ class LeastUpperBoundHelper {
   LeastUpperBoundHelper(this._typeSystem);
 
   InterfaceTypeImpl get _interfaceTypeFunctionNone {
-    return _typeSystem.typeProvider.functionType.element3.instantiate(
+    return _typeSystem.typeProvider.functionType.element3.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );

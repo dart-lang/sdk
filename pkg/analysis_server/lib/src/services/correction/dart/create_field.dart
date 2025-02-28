@@ -75,7 +75,7 @@ class CreateField extends CreateFieldOrGetter {
     }
     // Prepare target `ClassDeclaration`.
     var targetFragment = targetElement.firstFragment;
-    var targetDeclarationResult = await sessionHelper.getElementDeclaration(
+    var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
     );
     if (targetDeclarationResult == null) {

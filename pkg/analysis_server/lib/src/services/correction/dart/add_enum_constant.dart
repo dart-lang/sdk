@@ -17,9 +17,8 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // Not predictably the correct action.
-          CorrectionApplicability
-          .singleLocation;
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_constantName];
@@ -42,7 +41,7 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
     if (targetElement.library2.isInSdk) return;
 
     var targetFragment = targetElement.firstFragment;
-    var targetDeclarationResult = await sessionHelper.getElementDeclaration(
+    var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
     );
     if (targetDeclarationResult == null) return;

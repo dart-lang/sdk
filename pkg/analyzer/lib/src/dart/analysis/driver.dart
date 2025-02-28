@@ -1484,7 +1484,7 @@ class AnalysisDriver {
 
         var libraryResult = ResolvedLibraryResultImpl(
           session: currentSession,
-          element: resolvedUnits.first.libraryElement,
+          element2: resolvedUnits.first.libraryElement2,
           units: resolvedUnits,
         );
 

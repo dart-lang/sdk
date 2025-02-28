@@ -37,17 +37,6 @@ class AnalysisSessionHelper {
     return await getClass(libraryUri, className);
   }
 
-  /// Returns the declaration of the [fragment].
-  ///
-  /// Returns `null` if the [fragment] is synthetic, or is declared in a file
-  /// that is not a part of a library.
-  Future<ElementDeclarationResult?> getElementDeclaration(
-      Fragment fragment) async {
-    var libraryPath = fragment.libraryFragment!.source.fullName;
-    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
-    return resolvedLibrary?.getFragmentDeclaration(fragment);
-  }
-
   /// Return the [EnumElement2] with the given [className] that is exported
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
@@ -67,6 +56,17 @@ class AnalysisSessionHelper {
   /// a class with such name.
   Future<ClassElement2?> getFlutterClass(String className) =>
       getClass('package:flutter/widgets.dart', className);
+
+  /// Returns the declaration of the [fragment].
+  ///
+  /// Returns `null` if the [fragment] is synthetic, or is declared in a file
+  /// that is not a part of a library.
+  Future<FragmentDeclarationResult?> getFragmentDeclaration(
+      Fragment fragment) async {
+    var libraryPath = fragment.libraryFragment!.source.fullName;
+    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
+    return resolvedLibrary?.getFragmentDeclaration(fragment);
+  }
 
   /// Return the [MixinElement2] with the given [name] that is exported
   /// from the library with the given [libraryUri], or `null` if the library

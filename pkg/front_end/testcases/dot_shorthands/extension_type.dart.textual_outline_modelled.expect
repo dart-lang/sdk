@@ -1,0 +1,5 @@
+extension type IntegerExt(int integer) {
+  static IntegerExt get one => IntegerExt(1);
+}
+
+void main() {}

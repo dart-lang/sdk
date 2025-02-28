@@ -311,7 +311,7 @@ class ReturnTypeVerifier {
     //
     // Similar logic applies for sync* and async*.
     //
-    var lowerBound = expectedElement.instantiate(
+    var lowerBound = expectedElement.instantiateImpl(
       typeArguments: [NeverTypeImpl.instance],
       nullabilitySuffix: NullabilitySuffix.none,
     );

@@ -77,7 +77,7 @@ class ReplacementVisitor
   InterfaceTypeImpl? createInterfaceType({
     required InterfaceTypeImpl type,
     required InstantiatedTypeAliasElementImpl? newAlias,
-    required List<DartType>? newTypeArguments,
+    required List<TypeImpl>? newTypeArguments,
     required NullabilitySuffix? newNullability,
   }) {
     if (newAlias == null &&

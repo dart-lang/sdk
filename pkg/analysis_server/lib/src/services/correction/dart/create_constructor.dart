@@ -22,9 +22,8 @@ class CreateConstructor extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_constructorName];
@@ -89,7 +88,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     // prepare target ClassDeclaration
     var targetElement = targetType.element3;
     var targetFragment = targetElement.firstFragment;
-    var targetResult = await sessionHelper.getElementDeclaration(
+    var targetResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
     );
     if (targetResult == null) {
@@ -130,7 +129,9 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     // prepare target interface type
-    var targetResult = await sessionHelper.getElementDeclaration(targetElement);
+    var targetResult = await sessionHelper.getFragmentDeclaration(
+      targetElement,
+    );
     if (targetResult == null) {
       return;
     }
@@ -183,7 +184,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetResult = await sessionHelper.getElementDeclaration(
+    var targetResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
     );
     if (targetResult == null) {

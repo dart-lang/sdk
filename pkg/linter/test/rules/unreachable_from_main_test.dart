@@ -18,6 +18,9 @@ class UnreachableFromMainTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
+  bool get addReflectiveTestLoaderPackageDep => true;
+
+  @override
   String get lintRule => LintNames.unreachable_from_main;
 
   test_class_instanceField_reachable_matchedInPattern() async {
@@ -798,7 +801,6 @@ class C {
   }
 
   test_constructor_reachableViaTestReflectiveLoader() async {
-    addReflectiveTestLoaderDep();
     await assertNoDiagnostics(r'''
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

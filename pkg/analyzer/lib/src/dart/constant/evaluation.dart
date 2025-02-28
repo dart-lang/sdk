@@ -1015,7 +1015,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     }
     var nodeType = node.staticType;
     var elementType =
-        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
+        nodeType is InterfaceTypeImpl && nodeType.typeArguments.isNotEmpty
             ? nodeType.typeArguments[0]
             : _typeProvider.dynamicType;
     var listType = _typeProvider.listType(elementType);
@@ -1297,7 +1297,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
       var nodeType = node.staticType;
       var elementType =
-          nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
+          nodeType is InterfaceTypeImpl && nodeType.typeArguments.isNotEmpty
               ? nodeType.typeArguments[0]
               : _typeProvider.dynamicType;
       var setType = _typeProvider.setType(elementType);
@@ -1797,7 +1797,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     } else if (variableElement is InterfaceElementImpl) {
       var type = givenType ??
-          variableElement.instantiate(
+          variableElement.instantiateImpl(
             typeArguments: variableElement.typeParameters
                 .map((t) => _typeProvider.dynamicType)
                 .toFixedList(),

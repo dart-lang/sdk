@@ -138,7 +138,7 @@ class ForResolver {
       ).checkFinalAlreadyAssigned(identifier, isForEachIdentifier: true);
     }
 
-    DartType? valueType;
+    TypeImpl? valueType;
     if (loopVariable != null) {
       var typeAnnotation = loopVariable.type;
       valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
@@ -148,7 +148,7 @@ class ForResolver {
       if (identifierElement is VariableElement2) {
         valueType = _resolver.localVariableTypeProvider
             .getType(identifier, isRead: false);
-      } else if (identifierElement is SetterElement) {
+      } else if (identifierElement is SetterElement2OrMember) {
         var parameters = identifierElement.formalParameters;
         if (parameters.isNotEmpty) {
           valueType = parameters[0].type;

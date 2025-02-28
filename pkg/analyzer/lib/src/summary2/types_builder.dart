@@ -538,7 +538,7 @@ class _MixinInference {
 
     List<TypeParameterElementImpl2>? typeParameters;
     List<InterfaceTypeImpl>? supertypeConstraints;
-    InterfaceTypeImpl Function(List<DartType> typeArguments)? instantiate;
+    InterfaceTypeImpl Function(List<TypeImpl> typeArguments)? instantiate;
     var mixinElement = mixinNode.element2;
     if (mixinElement is InterfaceElementImpl2) {
       typeParameters = mixinElement.typeParameters2;
@@ -546,7 +546,7 @@ class _MixinInference {
         supertypeConstraints = typeSystem
             .gatherMixinSupertypeConstraintsForInference(mixinElement);
         instantiate = (typeArguments) {
-          return mixinElement.instantiate(
+          return mixinElement.instantiateImpl(
             typeArguments: typeArguments,
             nullabilitySuffix: mixinType.nullabilitySuffix,
           );

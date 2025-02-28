@@ -6502,6 +6502,16 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     );
   }
 
+  InterfaceTypeImpl instantiateImpl({
+    required List<TypeImpl> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return element.instantiateImpl(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
   @override
   MethodElement? lookUpConcreteMethod(
       String methodName, LibraryElement library) {
@@ -6779,6 +6789,23 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   @override
+  Map<Name, ExecutableElement2> get inheritedConcreteMembers =>
+      (session as AnalysisSessionImpl)
+          .inheritanceManager
+          .getInheritedConcreteMap(this);
+
+  @override
+  Map<Name, ExecutableElement2> get inheritedMembers =>
+      (session as AnalysisSessionImpl).inheritanceManager.getInheritedMap(this);
+
+  @override
+  Map<Name, ExecutableElement2> get interfaceMembers =>
+      (session as AnalysisSessionImpl)
+          .inheritanceManager
+          .getInterface2(this)
+          .map2;
+
+  @override
   List<InterfaceTypeImpl> get interfaces => _interfaces;
 
   set interfaces(List<InterfaceType> values) {
@@ -6819,16 +6846,16 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   @override
   InterfaceTypeImpl get thisType {
     if (_thisType == null) {
-      List<DartType> typeArguments;
+      List<TypeImpl> typeArguments;
       var typeParameters = firstFragment.typeParameters;
       if (typeParameters.isNotEmpty) {
-        typeArguments = typeParameters.map<DartType>((t) {
+        typeArguments = typeParameters.map<TypeImpl>((t) {
           return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
         }).toFixedList();
       } else {
-        typeArguments = const <DartType>[];
+        typeArguments = const [];
       }
-      return _thisType = firstFragment.instantiate(
+      return _thisType = firstFragment.instantiateImpl(
         typeArguments: typeArguments,
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -6848,6 +6875,22 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
       unnamedConstructor?.asElement2;
 
   @override
+  ExecutableElement2? getInheritedConcreteMember(Name name) =>
+      inheritedConcreteMembers[name];
+
+  @override
+  ExecutableElement2? getInheritedMember(Name name) =>
+      (session as AnalysisSessionImpl)
+          .inheritanceManager
+          .getInherited4(this, name);
+
+  @override
+  ExecutableElement2? getInterfaceMember(Name name) =>
+      (session as AnalysisSessionImpl)
+          .inheritanceManager
+          .getMember4(this, name);
+
+  @override
   ConstructorElementMixin? getNamedConstructor(String name) {
     name = name.ifEqualThen('new', '');
     return constructors.firstWhereOrNull((element) => element.name == name);
@@ -6859,8 +6902,24 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   @override
+  List<ExecutableElement2>? getOverridden(Name name) =>
+      (session as AnalysisSessionImpl)
+          .inheritanceManager
+          .getOverridden4(this, name);
+
+  @override
   InterfaceTypeImpl instantiate({
     required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return instantiateImpl(
+      typeArguments: typeArguments.cast<TypeImpl>(),
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  InterfaceTypeImpl instantiateImpl({
+    required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
     assert(typeArguments.length == typeParameters2.length);

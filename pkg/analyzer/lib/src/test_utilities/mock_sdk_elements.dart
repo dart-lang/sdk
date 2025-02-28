@@ -879,42 +879,42 @@ class _MockSdkElementsBuilder {
 
   VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
-  InterfaceTypeImpl futureOrType(DartType elementType) {
+  InterfaceTypeImpl futureOrType(TypeImpl elementType) {
     return _interfaceType(
       futureOrElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceTypeImpl futureType(DartType elementType) {
+  InterfaceTypeImpl futureType(TypeImpl elementType) {
     return _interfaceType(
       futureElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceTypeImpl iterableType(DartType elementType) {
+  InterfaceTypeImpl iterableType(TypeImpl elementType) {
     return _interfaceType(
       iterableElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceTypeImpl iteratorType(DartType elementType) {
+  InterfaceTypeImpl iteratorType(TypeImpl elementType) {
     return _interfaceType(
       iteratorElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceTypeImpl listType(DartType elementType) {
+  InterfaceTypeImpl listType(TypeImpl elementType) {
     return _interfaceType(
       listElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceTypeImpl streamSubscriptionType(DartType valueType) {
+  InterfaceTypeImpl streamSubscriptionType(TypeImpl valueType) {
     return _interfaceType(
       streamSubscriptionElement,
       typeArguments: [valueType],
@@ -1066,7 +1066,7 @@ class _MockSdkElementsBuilder {
 
   InterfaceTypeImpl _interfaceType(
     InterfaceElementImpl element, {
-    List<DartType> typeArguments = const [],
+    List<TypeImpl> typeArguments = const [],
   }) {
     return InterfaceTypeImpl(
       element: element.element,

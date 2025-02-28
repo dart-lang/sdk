@@ -155,6 +155,17 @@ A.foo: int Function()
 ''');
   }
 
+  test_getInheritedConcreteMap_ignoresDeclarationInClass() async {
+    await resolveTestCode(r'''
+class A {}
+
+class B extends A {
+  void f() {}
+}
+''');
+    _assertInheritedConcreteMap2('B', '');
+  }
+
   test_getInheritedConcreteMap_implicitExtends() async {
     await resolveTestCode('''
 class A {}
@@ -243,6 +254,21 @@ class C extends Object with A, B {}
     _assertInheritedConcreteMap2('C', r'''
 A.foo: void Function()
 B.bar: void Function()
+''');
+  }
+
+  test_getInheritedConcreteMap_providesInheritedMemberEvenIfShadowedInClass() async {
+    await resolveTestCode(r'''
+class A {
+  void f() {}
+}
+
+class B extends A {
+  void f() {}
+}
+''');
+    _assertInheritedConcreteMap2('B', '''
+A.f: void Function()
 ''');
   }
 
@@ -344,6 +370,17 @@ A.foo=: void Function(int)
 ''');
   }
 
+  test_getInheritedMap_ignoresDeclarationInClass() async {
+    await resolveTestCode(r'''
+class A {}
+
+class B extends A {
+  void f() {}
+}
+''');
+    _assertInheritedMap2('B', '');
+  }
+
   test_getInheritedMap_implicitExtendsObject() async {
     await resolveTestCode('''
 class A {}
@@ -406,6 +443,21 @@ class X extends A implements I {
 ''');
     _assertInheritedMap('X', r'''
 A.foo: void Function()
+''');
+  }
+
+  test_getInheritedMap_providesInheritedMemberEvenIfShadowedInClass() async {
+    await resolveTestCode(r'''
+class A {
+  void f() {}
+}
+
+class B extends A {
+  void f() {}
+}
+''');
+    _assertInheritedMap2('B', '''
+A.f: void Function()
 ''');
   }
 
@@ -1413,6 +1465,41 @@ class B extends A {
       forSuper: true,
       expected: 'A.foo: void Function()',
     );
+  }
+
+  test_getOverridden_doesNotShadowIfDirectlyOverriddenByAnotherPath() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+class B extends A {
+  void m() {}
+}
+class C extends B implements A {
+  void m() {}
+}
+''');
+    _assertGetOverridden4(className: 'C', name: 'm', expected: '''
+A.m: void Function()
+B.m: void Function()
+''');
+  }
+
+  test_getOverridden_shadowsTransitiveOverrides() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+class B extends A {
+  void m() {}
+}
+class C extends B {
+  void m() {}
+}
+''');
+    _assertGetOverridden4(className: 'C', name: 'm', expected: '''
+B.m: void Function()
+''');
   }
 }
 
@@ -4273,6 +4360,18 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     }
   }
 
+  void _assertExecutable2List(
+      List<ExecutableElement2>? elements, String? expected) {
+    var elementsString = elements == null
+        ? null
+        : [
+            for (var element in elements)
+              '${element.enclosingElement2?.name3}.${element.name3}: '
+                  '${typeString(element.type)}\n'
+          ].sorted().join();
+    expect(elementsString, expected);
+  }
+
   void _assertGetInherited({
     required String className,
     required String name,
@@ -4369,6 +4468,19 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       expected: expected,
       concrete: true,
     );
+  }
+
+  void _assertGetOverridden4({
+    required String className,
+    required String name,
+    String? expected,
+  }) {
+    var members = manager.getOverridden4(
+      (findElement.classOrMixin(className) as InterfaceFragment).element,
+      Name(null, name),
+    );
+
+    _assertExecutable2List(members, expected);
   }
 
   void _assertInheritedConcreteMap(String className, String expected) {

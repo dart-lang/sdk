@@ -315,7 +315,7 @@ class DefinitionHandler
     }
   }
 
-  static Future<ElementDeclarationResult?> _parsedDeclaration(
+  static Future<FragmentDeclarationResult?> _parsedDeclaration(
     Fragment fragment,
   ) async {
     var session = fragment.element.session;

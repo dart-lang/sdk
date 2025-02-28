@@ -502,7 +502,7 @@ class SubstituteWithNullabilityTest extends _Base {
     var A = class_2(name: 'A', typeParameters: [T]);
 
     var U = typeParameter('U');
-    var type = A.instantiate(
+    var type = A.instantiateImpl(
       typeArguments: [
         U.instantiate(nullabilitySuffix: NullabilitySuffix.none),
       ],
@@ -517,7 +517,7 @@ class SubstituteWithNullabilityTest extends _Base {
     var A = class_2(name: 'A', typeParameters: [T]);
 
     var U = typeParameter('U');
-    var type = A.instantiate(
+    var type = A.instantiateImpl(
       typeArguments: [
         U.instantiate(nullabilitySuffix: NullabilitySuffix.none),
       ],

@@ -2943,7 +2943,7 @@ void bar() {}
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration.unitElementConfiguration.elementSelector2 = (unitFragment) {
+    configuration.unitElementConfiguration.elementSelector = (unitFragment) {
       return unitFragment.functions2
           .map((fragment) => fragment.element)
           .toList();

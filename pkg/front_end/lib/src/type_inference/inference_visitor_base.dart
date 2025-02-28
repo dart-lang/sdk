@@ -968,9 +968,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   ObjectAccessTarget? _findExtensionTypeMember(DartType receiverType,
       ExtensionType extensionType, Name name, int fileOffset,
-      {required bool isSetter, required bool hasNonObjectMemberAccess}) {
-    ClassMember? classMember = _getExtensionTypeMember(
-        extensionType.extensionTypeDeclaration, name, isSetter);
+      {required bool isSetter,
+      required bool hasNonObjectMemberAccess,
+      bool isDotShorthand = false}) {
+    ClassMember? classMember = isDotShorthand
+        ? _getExtensionTypeStaticMember(
+            extensionType.extensionTypeDeclaration, name, false)
+        : _getExtensionTypeMember(
+            extensionType.extensionTypeDeclaration, name, isSetter);
     if (classMember == null) {
       return null;
     }
@@ -3752,6 +3757,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return member;
   }
 
+  ClassMember? _getExtensionTypeStaticMember(
+      ExtensionTypeDeclaration extensionTypeDeclaration,
+      Name name,
+      bool setter) {
+    ClassMember? member = engine.membersBuilder
+        .getExtensionTypeStaticClassMember(extensionTypeDeclaration, name,
+            setter: setter);
+    TypeInferenceEngine.resolveInferenceNode(
+        member?.getMember(engine.membersBuilder), hierarchyBuilder);
+    return member;
+  }
+
   bool _isLoweredSetLiteral(Expression expression) {
     if (libraryBuilder.loader.target.backendTarget.supportsSetLiterals) {
       return false;
@@ -4720,7 +4737,8 @@ class _ObjectAccessDescriptor {
       ObjectAccessTarget? target = visitor._findExtensionTypeMember(
           receiverType, receiverBound, name, fileOffset,
           isSetter: isSetter,
-          hasNonObjectMemberAccess: hasNonObjectMemberAccess);
+          hasNonObjectMemberAccess: hasNonObjectMemberAccess,
+          isDotShorthand: isDotShorthand);
       if (target != null) {
         return target;
       }
@@ -4728,7 +4746,7 @@ class _ObjectAccessDescriptor {
 
     ObjectAccessTarget? target;
     Member? interfaceMember = isDotShorthand
-        ? visitor._getStaticMember(classNode, name, isSetter)
+        ? visitor._getStaticMember(classNode, name, false)
         : visitor._getInterfaceMember(classNode, name, isSetter);
     if (interfaceMember != null) {
       target = new ObjectAccessTarget.interfaceMember(

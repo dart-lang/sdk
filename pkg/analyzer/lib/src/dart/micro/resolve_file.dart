@@ -704,7 +704,7 @@ class FileResolver {
       var libraryUnit = resolvedUnits.first;
       var result = ResolvedLibraryResultImpl(
         session: contextObjects!.analysisSession,
-        element: libraryUnit.libraryElement,
+        element2: libraryUnit.libraryElement2,
         units: resolvedUnits,
       );
 

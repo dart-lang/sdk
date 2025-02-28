@@ -115,7 +115,7 @@ class NamedTypeBuilder extends TypeBuilder {
     if (element3 is InterfaceElementImpl2) {
       var parameters = element3.typeParameters2;
       var arguments = _buildArguments(parameters);
-      _type = element3.instantiate(
+      _type = element3.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );

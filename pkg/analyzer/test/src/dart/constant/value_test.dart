@@ -906,7 +906,7 @@ class DartObjectImplTest {
         [],
       ),
       _listValue(
-        _typeProvider.futureOrElement2.instantiate(
+        _typeProvider.futureOrElement2.instantiateImpl(
           typeArguments: [_typeProvider.objectType],
           nullabilitySuffix: NullabilitySuffix.none,
         ),
@@ -959,7 +959,7 @@ class DartObjectImplTest {
       ),
       _mapValue(
         _typeProvider.intType,
-        _typeProvider.futureOrElement2.instantiate(
+        _typeProvider.futureOrElement2.instantiateImpl(
           typeArguments: [_typeProvider.objectType],
           nullabilitySuffix: NullabilitySuffix.none,
         ),

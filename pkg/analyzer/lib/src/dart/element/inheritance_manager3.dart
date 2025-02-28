@@ -4,6 +4,7 @@
 
 // ignore_for_file: analyzer_use_new_elements
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -1316,6 +1317,7 @@ class Interface {
 }
 
 /// A public name, or a private name qualified by a library URI.
+@AnalyzerPublicApi(message: 'Exposed by InterfaceElement2 methods')
 class Name {
   /// If the name is private, the URI of the defining library.
   /// Otherwise, it is `null`.

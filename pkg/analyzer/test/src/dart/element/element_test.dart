@@ -797,7 +797,7 @@ class ElementImplTest extends AbstractTypeSystemTest {
       false,
       false,
       false,
-      classElement.instantiate(
+      classElement.instantiateImpl(
         typeArguments: [],
         nullabilitySuffix: NullabilitySuffix.none,
       ),
@@ -1111,7 +1111,7 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
     ]);
     var C = class_3(name: 'C');
 
-    var AofC = A.instantiate(
+    var AofC = A.instantiateImpl(
       typeArguments: [
         interfaceTypeNone3(C),
       ],
@@ -1139,7 +1139,7 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
       name: 'B',
       typeParameters: [BE],
       interfaces: [
-        A.instantiate(
+        A.instantiateImpl(
           typeArguments: [typeParameterTypeNone(BE)],
           nullabilitySuffix: NullabilitySuffix.none,
         ),
@@ -1148,14 +1148,14 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
 
     var C = class_3(name: 'C');
 
-    var targetType = B.instantiate(
+    var targetType = B.instantiateImpl(
       typeArguments: [interfaceTypeNone3(C)],
       nullabilitySuffix: NullabilitySuffix.none,
     );
     var result = targetType.asInstanceOf(A);
     expect(
       result,
-      A.instantiate(
+      A.instantiateImpl(
         typeArguments: [interfaceTypeNone3(C)],
         nullabilitySuffix: NullabilitySuffix.none,
       ),
@@ -1233,7 +1233,7 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
     // A<I>
     //
     var I = interfaceTypeNone3(class_3(name: 'I'));
-    var AofI = A.instantiate(
+    var AofI = A.instantiateImpl(
       typeArguments: [I],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -1295,7 +1295,7 @@ B?
       name: 'B',
       typeParameters: [F],
       interfaces: [
-        A.instantiate(
+        A.instantiateImpl(
           typeArguments: [typeParameterTypeNone(F)],
           nullabilitySuffix: NullabilitySuffix.none,
         )
@@ -1352,7 +1352,7 @@ A<int>?
     // A<I>
     //
     var typeI = interfaceTypeNone3(class_3(name: 'I'));
-    var typeAI = interfaceTypeNone3(A, typeArguments: <DartType>[typeI]);
+    var typeAI = interfaceTypeNone3(A, typeArguments: [typeI]);
     var method = typeAI.getMethod(methodName)!;
     expect(method, isNotNull);
     FunctionType methodType = method.type;
@@ -1480,7 +1480,7 @@ A<int>?
     // A<I>
     //
     var typeI = interfaceTypeNone3(class_3(name: 'I'));
-    var typeAI = interfaceTypeNone3(A, typeArguments: <DartType>[typeI]);
+    var typeAI = interfaceTypeNone3(A, typeArguments: [typeI]);
     PropertyAccessorElement setter = typeAI.getSetter(setterName)!;
     expect(setter, isNotNull);
     FunctionType setterType = setter.type;
@@ -1930,7 +1930,7 @@ class MethodElementImplTest extends _AbstractTypeSystemTest {
     expect(foo == foo, isTrue);
 
     // MethodMember is not equal to MethodElementImpl.
-    var foo_int = A.instantiate(
+    var foo_int = A.instantiateImpl(
       typeArguments: [intNone],
       nullabilitySuffix: NullabilitySuffix.none,
     ).getMethod('foo')!;
@@ -2220,9 +2220,9 @@ class _AbstractTypeSystemTest extends AbstractTypeSystemTest {
 
   InterfaceTypeImpl interfaceTypeNone3(
     InterfaceElementImpl element, {
-    List<DartType> typeArguments = const [],
+    List<TypeImpl> typeArguments = const [],
   }) {
-    return element.instantiate(
+    return element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );

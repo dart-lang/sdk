@@ -687,7 +687,7 @@ class TypeSystemImpl implements TypeSystem {
   }) {
     var typeParameters = element.typeParameters2;
     var typeArguments = _defaultTypeArguments(typeParameters);
-    return element.instantiate(
+    return element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
@@ -697,12 +697,12 @@ class TypeSystemImpl implements TypeSystem {
   /// [typeArguments], instantiate the type formals with the
   /// provided actuals.  If [type] is not a parameterized type,
   /// no instantiation is done.
-  DartType instantiateType(DartType type, List<DartType> typeArguments) {
+  DartType instantiateType(DartType type, List<TypeImpl> typeArguments) {
     if (type is FunctionType) {
       return type.instantiate(typeArguments);
     } else if (type is InterfaceTypeImpl) {
       // TODO(scheglov): Use `ClassElement.instantiate()`, don't use raw types.
-      return type.element3.instantiate(
+      return type.element3.instantiateImpl(
         typeArguments: typeArguments,
         nullabilitySuffix: type.nullabilitySuffix,
       );
@@ -1415,7 +1415,7 @@ class TypeSystemImpl implements TypeSystem {
   /// Attempts to find the appropriate substitution for the [typeParameters]
   /// that can be applied to [srcTypes] to make it equal to [destTypes].
   /// If no such substitution can be found, `null` is returned.
-  List<DartType>? matchSupertypeConstraints(
+  List<TypeImpl>? matchSupertypeConstraints(
     List<TypeParameterElementImpl2> typeParameters,
     List<TypeImpl> srcTypes,
     List<TypeImpl> destTypes, {
@@ -1776,7 +1776,7 @@ class TypeSystemImpl implements TypeSystem {
     return true;
   }
 
-  List<DartType> _defaultTypeArguments(
+  List<TypeImpl> _defaultTypeArguments(
     List<TypeParameterElement2> typeParameters,
   ) {
     return typeParameters.map((typeParameter) {
@@ -2046,7 +2046,7 @@ class TypeSystemImpl implements TypeSystem {
     return currentType;
   }
 
-  DartType _removeBoundsOfGenericFunctionTypes(DartType type) {
+  TypeImpl _removeBoundsOfGenericFunctionTypes(TypeImpl type) {
     return _RemoveBoundsOfGenericFunctionTypeVisitor.run(
       bottomType: NeverTypeImpl.instance,
       type: type,
@@ -2084,9 +2084,9 @@ class _RemoveBoundsOfGenericFunctionTypeVisitor extends ReplacementVisitor {
     return _bottomType;
   }
 
-  static DartType run({
-    required DartType bottomType,
-    required DartType type,
+  static TypeImpl run({
+    required TypeImpl bottomType,
+    required TypeImpl type,
   }) {
     var visitor = _RemoveBoundsOfGenericFunctionTypeVisitor._(bottomType);
     var result = type.accept(visitor);

@@ -16,6 +16,9 @@ void main() {
 @reflectiveTest
 class StrictTopLevelInferenceTest extends LintRuleTest {
   @override
+  bool get addReflectiveTestLoaderPackageDep => true;
+
+  @override
   List<ErrorCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_ELEMENT,
     WarningCode.UNUSED_LOCAL_VARIABLE,
@@ -684,7 +687,6 @@ void f() {
   }
 
   test_reflectiveTest_nonTest() async {
-    addReflectiveTestLoaderDep();
     await assertDiagnostics(
       r'''
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -699,7 +701,6 @@ class ReflectiveTest {
   }
 
   test_reflectiveTest_soloTest() async {
-    addReflectiveTestLoaderDep();
     await assertNoDiagnostics(r'''
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -711,7 +712,6 @@ class ReflectiveTest {
   }
 
   test_reflectiveTest_test() async {
-    addReflectiveTestLoaderDep();
     await assertNoDiagnostics(r'''
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
