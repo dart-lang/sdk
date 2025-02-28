@@ -6779,6 +6779,23 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   @override
+  Map<Name, ExecutableElement2> get inheritedConcreteMembers =>
+      (session as AnalysisSessionImpl)
+          .inheritanceManager
+          .getInheritedConcreteMap(this);
+
+  @override
+  Map<Name, ExecutableElement2> get inheritedMembers =>
+      (session as AnalysisSessionImpl).inheritanceManager.getInheritedMap(this);
+
+  @override
+  Map<Name, ExecutableElement2> get interfaceMembers =>
+      (session as AnalysisSessionImpl)
+          .inheritanceManager
+          .getInterface2(this)
+          .map2;
+
+  @override
   List<InterfaceTypeImpl> get interfaces => _interfaces;
 
   set interfaces(List<InterfaceType> values) {
@@ -6848,6 +6865,22 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
       unnamedConstructor?.asElement2;
 
   @override
+  ExecutableElement2? getInheritedConcreteMember(Name name) =>
+      inheritedConcreteMembers[name];
+
+  @override
+  ExecutableElement2? getInheritedMember(Name name) =>
+      (session as AnalysisSessionImpl)
+          .inheritanceManager
+          .getInherited4(this, name);
+
+  @override
+  ExecutableElement2? getInterfaceMember(Name name) =>
+      (session as AnalysisSessionImpl)
+          .inheritanceManager
+          .getMember4(this, name);
+
+  @override
   ConstructorElementMixin? getNamedConstructor(String name) {
     name = name.ifEqualThen('new', '');
     return constructors.firstWhereOrNull((element) => element.name == name);
@@ -6857,6 +6890,12 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   ConstructorElementMixin2? getNamedConstructor2(String name) {
     return constructors2.firstWhereOrNull((e) => e.name3 == name);
   }
+
+  @override
+  List<ExecutableElement2>? getOverridden(Name name) =>
+      (session as AnalysisSessionImpl)
+          .inheritanceManager
+          .getOverridden4(this, name);
 
   @override
   InterfaceTypeImpl instantiate({
