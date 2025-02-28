@@ -69,8 +69,8 @@ class AnalysisServer {
     // {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
     return _streamController('server.status')
         .stream
-        .where((event) => event!['analysis'] != null)
-        .map((event) => (event!['analysis']['isAnalyzing']!) as bool);
+        .where((event) => event['analysis'] != null)
+        .map((event) => (event['analysis']['isAnalyzing']!) as bool);
   }
 
   /// This future completes when we next receive an analysis finished event
@@ -79,15 +79,15 @@ class AnalysisServer {
   Future<bool>? get analysisFinished => _analysisFinished?.future;
 
   Stream<FileAnalysisErrors> get onErrors {
-    // {"event":"analysis.errors","params":{"file":"/Users/.../lib/main.dart","errors":[]}}
+    // {"event":"analysis.errors",
+    //  "params":{"file":"/Users/.../lib/main.dart","errors":[]}}
     return _streamController('analysis.errors').stream.map((event) {
-      final file = event!['file'] as String;
+      final file = event['file'] as String;
       final errorsList = event['errors'] as List<dynamic>;
-      final errors = errorsList
-          .map<Map<String, dynamic>>(castStringKeyedMap)
-          .map<AnalysisError>(
-              (Map<String, dynamic> json) => AnalysisError(json))
-          .toList();
+      final errors = [
+        for (final error in errorsList)
+          AnalysisError((error as Map).cast<String, dynamic>())
+      ];
       return FileAnalysisErrors(file, errors);
     });
   }
@@ -281,24 +281,18 @@ class AnalysisServer {
   void _handleServerResponse(String line) {
     log.trace('<== $line');
 
-    final dynamic response = json.decode(line);
+    final response = json.decode(line) as Object?;
 
     if (response is Map<String, dynamic>) {
-      if (response['event'] != null) {
-        final event = response['event'] as String;
-        final dynamic params = response['params'];
-
+      if (response
+          case {'event': final String event, 'params': final Object? params}) {
         if (params is Map<String, dynamic>) {
-          _streamController(event).add(castStringKeyedMap(params));
+          _streamController(event).add(params.cast<String, dynamic>());
         }
-      } else if (response['id'] != null) {
-        final id = response['id'];
-
-        if (response['error'] != null) {
-          final error = castStringKeyedMap(response['error']);
-          _requestCompleters
-              .remove(id)
-              ?.completeError(RequestError.parse(error));
+      } else if (response case {'id': final String id}) {
+        if (response case {'error': final Map error}) {
+          _requestCompleters.remove(id)?.completeError(
+              RequestError.parse(error.cast<String, dynamic>()));
         } else {
           _requestCompleters.remove(id)?.complete(response['result'] ?? {});
         }
@@ -315,12 +309,13 @@ class AnalysisServer {
         'details:\n');
     // Fields are 'isFatal', 'message', and 'stackTrace'.
     log.stderr(err['message']);
-    if (err['stackTrace'] != null) {
-      log.stderr(err['stackTrace'] as String);
+    final stackTrace = err['stackTrace'];
+    if (stackTrace is String && stackTrace.isNotEmpty) {
+      log.stderr(stackTrace);
     }
   }
 
-  StreamController<Map<String, dynamic>?> _streamController(String streamId) {
+  StreamController<Map<String, dynamic>> _streamController(String streamId) {
     return _streamControllers.putIfAbsent(
         streamId, () => StreamController<Map<String, dynamic>>.broadcast());
   }

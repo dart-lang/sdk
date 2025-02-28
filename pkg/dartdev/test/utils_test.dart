@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartdev/src/utils.dart';
@@ -51,29 +50,6 @@ void main() {
 
     test('suffix hit', () {
       expect(trimEnd('string', 'ring'), 'st');
-    });
-  });
-
-  group('castStringKeyedMap', () {
-    test('fails', () {
-      dynamic contents = json.decode(_packageData);
-      List<dynamic> packages = contents['packages'];
-      try {
-        // ignore: unused_local_variable
-        List<Map<String, dynamic>> mappedPackages =
-            packages as List<Map<String, dynamic>>;
-        fail('expected implicit cast to fail');
-      } on TypeError {
-        // TypeError is expected
-      }
-    });
-
-    test('succeeds', () {
-      dynamic contents = json.decode(_packageData);
-      List<dynamic> packages = contents['packages'];
-      List<Map<String, dynamic>> mappedPackages =
-          packages.map<Map<String, dynamic>>(castStringKeyedMap).toList();
-      expect(mappedPackages, isList);
     });
   });
 
@@ -185,25 +161,3 @@ void main() {
     });
   });
 }
-
-const String _packageData = '''{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "lints",
-      "rootUri": "file:///Users/.../.pub-cache/hosted/pub.dartlang.org/lints-1.0.1",
-      "packageUri": "lib/",
-      "languageVersion": "2.1"
-    },
-    {
-      "name": "args",
-      "rootUri": "../",
-      "packageUri": "lib/",
-      "languageVersion": "2.3"
-    }
-  ],
-  "generated": "2020-03-01T03:38:14.906205Z",
-  "generator": "pub",
-  "generatorVersion": "2.8.0-dev.10.0"
-}
-''';
