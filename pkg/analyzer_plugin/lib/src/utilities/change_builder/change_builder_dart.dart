@@ -680,7 +680,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameterMatchingArgument(
-      Expression argument, int index, Set<String> usedNames) {
+      Expression argument, int index, Set<String> usedNames,
+      {ExecutableElement2? methodBeingCopied}) {
     // Append type name.
     var type = argument.staticType;
     if (type == null || type.isBottom || type.isDartCoreNull) {
@@ -690,7 +691,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         type.nullabilitySuffix == NullabilitySuffix.none) {
       write('required ');
     }
-    if (writeType(type, addSupertypeProposals: true, groupName: 'TYPE$index')) {
+    if (writeType(
+      type,
+      addSupertypeProposals: true,
+      groupName: 'TYPE$index',
+      methodBeingCopied: methodBeingCopied,
+    )) {
       write(' ');
     }
     // Append parameter name.
@@ -707,7 +713,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeParametersMatchingArguments(ArgumentList argumentList) {
+  void writeParametersMatchingArguments(ArgumentList argumentList,
+      {ExecutableElement2? methodBeingCopied}) {
     // TODO(brianwilkerson): Handle the case when there are required parameters
     // after named parameters.
     var usedNames = <String>{};
@@ -722,7 +729,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         hasNamedParameters = true;
         write('{');
       }
-      writeParameterMatchingArgument(argument, i, usedNames);
+      writeParameterMatchingArgument(argument, i, usedNames,
+          methodBeingCopied: methodBeingCopied);
     }
     if (hasNamedParameters) {
       write('}');
@@ -738,12 +746,15 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeSetterDeclaration(String name,
-      {void Function()? bodyWriter,
-      bool isStatic = false,
-      String? nameGroupName,
-      DartType? parameterType,
-      String? parameterTypeGroupName}) {
+  void writeSetterDeclaration(
+    String name, {
+    void Function()? bodyWriter,
+    bool isStatic = false,
+    String? nameGroupName,
+    DartType? parameterType,
+    String? parameterTypeGroupName,
+    ExecutableElement2? methodBeingCopied,
+  }) {
     if (isStatic) {
       write(Keyword.STATIC.lexeme);
       write(' ');
@@ -757,7 +768,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     write('(');
     if (parameterType != null && parameterType is! DynamicType) {
-      if (writeType(parameterType, groupName: parameterTypeGroupName)) {
+      if (writeType(parameterType,
+          groupName: parameterTypeGroupName,
+          methodBeingCopied: methodBeingCopied)) {
         write(' ');
       }
     }

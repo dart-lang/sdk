@@ -286,13 +286,20 @@ abstract class DartEditBuilder implements EditBuilder {
   /// ensure that the name is unique (and the chosen name will be added to the
   /// set).
   void writeParameterMatchingArgument(
-      Expression argument, int index, Set<String> usedNames);
+    Expression argument,
+    int index,
+    Set<String> usedNames, {
+    ExecutableElement2? methodBeingCopied,
+  });
 
   /// Writes the code for a list of parameters that would match the given list
   /// of [arguments].
   ///
   /// The surrounding parentheses are *not* written.
-  void writeParametersMatchingArguments(ArgumentList arguments);
+  void writeParametersMatchingArguments(
+    ArgumentList arguments, {
+    ExecutableElement2? methodBeingCopied,
+  });
 
   /// Writes the code that references the [element].
   ///
@@ -310,12 +317,15 @@ abstract class DartEditBuilder implements EditBuilder {
   /// [parameterType] is provided, then it will be used as the type of the
   /// parameter. If a [parameterTypeGroupName] is provided, then if a parameter
   /// type was written it will be in the linked edit group with that name.
-  void writeSetterDeclaration(String name,
-      {void Function()? bodyWriter,
-      bool isStatic = false,
-      String? nameGroupName,
-      DartType? parameterType,
-      String? parameterTypeGroupName});
+  void writeSetterDeclaration(
+    String name, {
+    void Function()? bodyWriter,
+    bool isStatic = false,
+    String? nameGroupName,
+    DartType? parameterType,
+    String? parameterTypeGroupName,
+    ExecutableElement2? methodBeingCopied,
+  });
 
   /// Writes the code for a type annotation for the given [type].
   ///
