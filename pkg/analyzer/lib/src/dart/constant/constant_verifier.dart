@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/dart_template_buffer.dart';
@@ -14,7 +12,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -105,8 +103,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
     // check annotation creation
-    var element = node.element;
-    if (element is ConstructorElement) {
+    var element = node.element2;
+    if (element is ConstructorElement2) {
       // should be 'const' constructor
       if (!element.isConst) {
         _errorReporter.atNode(
@@ -170,7 +168,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // Check and report cycles.
       // Factory cycles are reported in elsewhere in
       // [ErrorVerifier._checkForRecursiveFactoryRedirect].
-      var element = node.declaredElement;
+      var element = node.declaredFragment;
       if (element is ConstructorElementImpl &&
           !element.isCycleFree &&
           !element.isFactory) {
@@ -211,7 +209,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       _validateConstantArguments(argumentList);
     }
 
-    var element = node.declaredElement as ConstFieldElementImpl;
+    var element = node.declaredFragment as ConstFieldElementImpl;
     var result = element.evaluationResult;
     if (result is InvalidConstant) {
       _reportError(result, null);
@@ -480,11 +478,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer;
     if (initializer != null && (node.isConst || node.isFinal)) {
-      var element = node.declaredElement as VariableElementImpl;
-      if (element is FieldElement && !element.isStatic) {
-        var enclosingElement = element.enclosingElement3;
-        if (enclosingElement is ClassElementImpl &&
-            !enclosingElement.hasGenerativeConstConstructor) {
+      var element = node.declaredFragment as VariableElementImpl;
+      if (element is FieldElementImpl && !element.isStatic) {
+        var enclosingFragment = element.enclosingFragment;
+        if (enclosingFragment is ClassElementImpl &&
+            !enclosingFragment.hasGenerativeConstConstructor) {
           // TODO(kallentu): Evaluate if we need to do this check for inline
           // classes.
           //
@@ -529,7 +527,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         ).eliminateToGreatest(valueType);
         return _typeSystem.isSubtypeOf(constantType, valueTypeGreatest);
       } else if (valueType is TypeParameterTypeImpl) {
-        var bound = valueType.promotedBound ?? valueType.element.bound;
+        var bound = valueType.promotedBound ?? valueType.element3.bound;
         if (bound != null && !hasTypeParameterReference(bound)) {
           var lowestBound =
               valueType.nullabilitySuffix == NullabilitySuffix.question
@@ -556,12 +554,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// See [CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS].
   void _checkForConstWithTypeParameters(
       TypeAnnotation type, ErrorCode errorCode,
-      {Set<TypeParameterElement>? allowedTypeParameters}) {
+      {Set<TypeParameterElement2>? allowedTypeParameters}) {
     allowedTypeParameters = {...?allowedTypeParameters};
     if (type is NamedType) {
       // Should not be a type parameter.
-      if (type.element is TypeParameterElement &&
-          !allowedTypeParameters.contains(type.element)) {
+      if (type.element2 is TypeParameterElement2 &&
+          !allowedTypeParameters.contains(type.element2)) {
         _errorReporter.atNode(
           type,
           errorCode,
@@ -580,7 +578,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       var typeParameters = type.typeParameters;
       if (typeParameters != null) {
         allowedTypeParameters.addAll(typeParameters.typeParameters
-            .map((tp) => tp.declaredElement)
+            .map((tp) => tp.declaredFragment!.element)
             .nonNulls);
         for (var typeParameter in typeParameters.typeParameters) {
           var bound = typeParameter.bound;
@@ -833,8 +831,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           result = _evaluateAndReportError(
               defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
         }
-        VariableElementImpl element =
-            parameter.declaredElement as VariableElementImpl;
+        var element = parameter.declaredFragment as VariableElementImpl;
         element.evaluationResult = result;
       }
     }
@@ -1512,7 +1509,7 @@ extension on Expression {
               !declarationListParent.isStatic) {
             var container = declarationListParent.parent;
             if (container is ClassDeclaration) {
-              var enclosingClass = container.declaredElement;
+              var enclosingClass = container.declaredFragment;
               if (enclosingClass is ClassElementImpl) {
                 // A field initializer of a class with at least one generative
                 // const constructor does not constitute a constant context, but
