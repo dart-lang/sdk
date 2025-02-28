@@ -135,7 +135,15 @@ class Options {
       this.macroSerializationMode})
       : emitLibraryBundle = canaryFeatures &&
             moduleFormats.length == 1 &&
-            moduleFormats.single == ModuleFormat.ddc;
+            moduleFormats.single == ModuleFormat.ddc {
+    if (!soundNullSafety) {
+      throw ArgumentError.value(
+          soundNullSafety,
+          'soundNullSafety',
+          'Dart 3 only supports sound null safety, '
+              'see https://dart.dev/null-safety.\n');
+    }
+  }
 
   Options.fromArguments(ArgResults args)
       : this(
@@ -274,7 +282,7 @@ class Options {
           help: 'Enable/disable experimental language features.', hide: hide)
       ..addFlag('sound-null-safety',
           help: 'Compile for sound null safety at runtime.',
-          negatable: true,
+          negatable: false,
           defaultsTo: true)
       ..addFlag('canary',
           help: 'Enable all compiler features under active development. '

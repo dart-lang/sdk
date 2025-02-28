@@ -671,7 +671,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._configuration.ddcOptions,
       ..._experimentsArgument(_configuration, testFile),
-      '--sound-null-safety',
       // The file being compiled is the last argument.
       args.last
     ];
@@ -685,14 +684,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // DDC treats all of these as runtime flags for the bootstrapping code,
     // instead of a compiler option.
     var options = sharedOptions.toList();
-    options.remove('--null-assertions');
     options.remove('--native-null-assertions');
     options.remove('--interop-null-assertions');
     if (!_useSdk) {
       // If we're testing a built SDK, DDC will find its own summary.
-      //
-      // Unsound summary files are not longer bundled with the built SDK so they
-      // must always be specified manually.
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
@@ -771,12 +766,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // the one below, otherwise it is susceptible to break, for example, if
       // library naming conventions were to change in the future.
       runFile = "$tempDir/$moduleName.d8.js";
-      var nonNullAsserts = arguments.contains('--null-assertions');
       var nativeNonNullAsserts = arguments.contains('--native-null-assertions');
       var jsInteropNonNullAsserts =
           arguments.contains('--interop-null-assertions');
-      var weakNullSafetyErrors =
-          arguments.contains('--weak-null-safety-errors');
       var repositoryUri = Uri.directory(Repository.dir.toNativePath());
       var dartLibraryPath = repositoryUri
           .resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js')
@@ -814,8 +806,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         load("$outputFile");
 
         let sdk = dart_library.import("dart_sdk", "$appName");
-        sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
-        sdk.dart.nonNullAsserts($nonNullAsserts);
         sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
         sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 

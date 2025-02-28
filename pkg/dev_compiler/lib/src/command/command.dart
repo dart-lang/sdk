@@ -125,6 +125,16 @@ Future<CompilerResult> _compile(List<String> args,
     print(_usageMessage(argParser));
     return CompilerResult(64);
   }
+  if (argResults.wasParsed('sound-null-safety')) {
+    var soundNullSafety = argResults['sound-null-safety'] as bool;
+    print('Dart 3 only supports sound null safety, '
+        'see https://dart.dev/null-safety.\n'
+        'The `--sound-null-safety` flag is ignored '
+        'and will be removed in a future version.');
+    if (!soundNullSafety) {
+      return CompilerResult(64);
+    }
+  }
 
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);
@@ -199,15 +209,6 @@ Future<CompilerResult> _compile(List<String> args,
   var compileSdk = argResults['compile-sdk'] == true;
   if (sdkSummaryPath == null) {
     if (!compileSdk) {
-      if (!options.soundNullSafety) {
-        // Technically if you can produce an SDK outline .dill and pass it
-        // this error can be avoided and the compile will still work for now.
-        // If you are reading this comment be warned, this loophole will be
-        // removed without warning in the future.
-        print('Dart 3 only supports sound null safety, '
-            'see https://dart.dev/null-safety.\n');
-        return CompilerResult(64);
-      }
       sdkSummaryPath = defaultSdkSummaryPath;
       librarySpecPath ??= defaultLibrarySpecPath;
     }
