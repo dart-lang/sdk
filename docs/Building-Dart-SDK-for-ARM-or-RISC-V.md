@@ -86,5 +86,9 @@ export QEMU_LD_PREFIX=/usr/riscv64-linux-gnu
   --tasks 8 \
   lib
 ```
+
 If you have configured QEMU for RISCV64, you can merge steps 3 and 4 into a single command (omitting some print parameters):
-> ./tools/test.py -r vm -m release -a riscv64 --use-qemu lib
+
+```bash
+./tools/test.py -r vm -m release -a riscv64 --use-qemu lib
+```
