@@ -267,7 +267,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #endif
 
 #if defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
-  char* error = CheckIsAtLeastMinRequiredMacOSVersion();
+  char* error = CheckIsAtLeastMinRequiredMacOSXVersion();
   if (error != nullptr) {
     return error;
   }

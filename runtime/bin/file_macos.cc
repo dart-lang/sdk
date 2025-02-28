@@ -94,9 +94,11 @@ MappedMemory* File::Map(MapType type,
       // Try to allocate near the VM's binary.
       hint = reinterpret_cast<void*>(&Dart_Initialize);
       prot = PROT_READ | PROT_EXEC;
-      if (IsAtLeastOS10_14()) {
+#if !defined(DART_HOST_OS_IOS)
+      if (IsAtLeastMacOSX10_14()) {
         map_flags |= (MAP_JIT | MAP_ANONYMOUS);
       }
+#endif
       break;
     case kReadWrite:
       prot = PROT_READ | PROT_WRITE;
@@ -107,10 +109,15 @@ MappedMemory* File::Map(MapType type,
     map_flags |= MAP_FIXED;
   }
   void* addr = start;
-  if ((type == kReadExecute) && IsAtLeastOS10_14()) {
-    // Due to codesigning restrictions, we cannot map the file as executable
-    // directly. We must first copy it into an anonymous mapping and then mark
-    // the mapping as executable.
+#if !defined(DART_HOST_OS_IOS)
+  // Due to codesigning restrictions, we cannot map the file as executable
+  // directly. We must first copy it into an anonymous mapping and then mark
+  // the mapping as executable.
+  const bool should_copy = (type == kReadExecute) && IsAtLeastMacOSX10_14();
+#else
+  const bool should_copy = false;
+#endif
+  if (should_copy) {
     if (addr == nullptr) {
       addr = mmap(hint, length, (PROT_READ | PROT_WRITE), map_flags, -1, 0);
       if (addr == MAP_FAILED) {
