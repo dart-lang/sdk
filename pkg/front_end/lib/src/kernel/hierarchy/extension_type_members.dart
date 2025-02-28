@@ -279,6 +279,18 @@ class ExtensionTypeMembersNode {
     }
     return result;
   }
+
+  ClassMember? getStaticMember(Name name, bool isSetter) {
+    ClassMember? result = isSetter
+        ? (extensionTypeSetableMap?[name] ?? nonExtensionTypeSetableMap?[name])
+        : (extensionTypeGetableMap?[name] ?? nonExtensionTypeGetableMap?[name]);
+    if (result == null) {
+      return null;
+    } else if (result.isStatic) {
+      return result;
+    }
+    return null;
+  }
 }
 
 class _Tuple {

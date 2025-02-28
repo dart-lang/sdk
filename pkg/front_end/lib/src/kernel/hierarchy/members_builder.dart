@@ -190,6 +190,13 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
         .getMember(name, setter);
   }
 
+  ClassMember? getExtensionTypeStaticClassMember(
+      ExtensionTypeDeclaration extensionTypeDeclaration, Name name,
+      {bool setter = false}) {
+    return getNodeFromExtensionTypeDeclaration(extensionTypeDeclaration)
+        .getStaticMember(name, setter);
+  }
+
   @override
   Member? getDispatchTarget(Class cls, Name name, {bool setter = false}) {
     return getNodeFromClass(cls)
