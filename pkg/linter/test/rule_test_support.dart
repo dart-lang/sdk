@@ -177,6 +177,8 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   bool get addMetaPackageDep => false;
 
+  bool get addReflectiveTestLoaderPackageDep => false;
+
   bool get dumpAstOnFailures => true;
 
   List<String> get experiments => experimentsForTests;
@@ -198,25 +200,6 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   @override
   List<String> get _collectionIncludedPaths => [workspaceRootPath];
-
-  void addReflectiveTestLoaderDep() {
-    // TODO(pq): consider mopcing this into `writeTestPackageConfig`
-    var testReflectiveLoaderPath = '$workspaceRootPath/test_reflective_loader';
-    var packageConfigBuilder = PackageConfigFileBuilder();
-    packageConfigBuilder.add(
-      name: 'test_reflective_loader',
-      rootPath: testReflectiveLoaderPath,
-    );
-    writeTestPackageConfig(packageConfigBuilder);
-    newFile('$testReflectiveLoaderPath/lib/test_reflective_loader.dart', r'''
-library test_reflective_loader;
-
-const Object reflectiveTest = _ReflectiveTest();
-class _ReflectiveTest {
-  const _ReflectiveTest();
-}
-''');
-  }
 
   /// Asserts that the number of diagnostics reported in [content] matches the
   /// number of [expectedDiagnostics] and that they have the expected error
@@ -347,6 +330,23 @@ class _ReflectiveTest {
     if (addMetaPackageDep) {
       var metaPath = addMeta().parent.path;
       configCopy.add(name: 'meta', rootPath: metaPath);
+    }
+
+    if (addReflectiveTestLoaderPackageDep) {
+      var testReflectiveLoaderPath =
+          '$workspaceRootPath/test_reflective_loader';
+      newFile('$testReflectiveLoaderPath/lib/test_reflective_loader.dart', r'''
+library test_reflective_loader;
+
+const Object reflectiveTest = _ReflectiveTest();
+class _ReflectiveTest {
+  const _ReflectiveTest();
+}
+''');
+      configCopy.add(
+        name: 'test_reflective_loader',
+        rootPath: testReflectiveLoaderPath,
+      );
     }
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
