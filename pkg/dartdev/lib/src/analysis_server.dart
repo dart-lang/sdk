@@ -165,6 +165,8 @@ class AnalysisServer {
 
     _streamController('server.error').stream.listen(_handleServerError);
 
+    _streamController('server.pluginError').stream.listen(_handlePluginError);
+
     _sendCommand('server.setSubscriptions', params: <String, dynamic>{
       'subscriptions': <String>['STATUS'],
     });
@@ -262,6 +264,18 @@ class AnalysisServer {
     log.trace('==> $message');
 
     return completer.future;
+  }
+
+  void _handlePluginError(Map<String, dynamic>? error) {
+    _serverErrorReceived = true;
+    final err = error!;
+    // No need for a preamble (like in _handleServerError); the message should
+    // have all of the context necessary.
+    log.stderr(err['message']);
+    final stackTrace = err['stackTrace'];
+    if (stackTrace is String && stackTrace.isNotEmpty) {
+      log.stderr(stackTrace);
+    }
   }
 
   void _handleServerResponse(String line) {

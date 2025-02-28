@@ -702,13 +702,16 @@ class PluginManager {
       String? exceptionReason;
       if (result.exitCode != 0) {
         var buffer = StringBuffer();
-        buffer.writeln('Failed to run pub $pubCommand');
-        buffer.writeln('  pluginFolder = ${pluginFolder.path}');
+        buffer.writeln(
+          'An error occurred while setting up the analyzer plugin package at '
+          "'${pluginFolder.path}'. The `dart pub $pubCommand` command failed:",
+        );
         buffer.writeln('  exitCode = ${result.exitCode}');
         buffer.writeln('  stdout = ${result.stdout}');
         buffer.writeln('  stderr = ${result.stderr}');
         exceptionReason = buffer.toString();
         instrumentationService.logError(exceptionReason);
+        notificationManager.handlePluginError(exceptionReason);
       }
       if (!packageConfigFile.exists) {
         exceptionReason ??= 'File "${packageConfigFile.path}" does not exist.';
@@ -930,8 +933,7 @@ class PluginSession {
   /// response to those requests.
   @visibleForTesting
   // ignore: library_private_types_in_public_api
-  Map<String, _PendingRequest>
-  pendingRequests = <String, _PendingRequest>{};
+  Map<String, _PendingRequest> pendingRequests = <String, _PendingRequest>{};
 
   /// A boolean indicating whether the plugin is compatible with the version of
   /// the plugin API being used by this server.
