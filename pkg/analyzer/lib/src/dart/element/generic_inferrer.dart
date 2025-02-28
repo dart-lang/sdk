@@ -703,7 +703,10 @@ class GenericInferrer {
       return;
     }
     if (errorEntity is ConstructorName &&
-        !(errorEntity.type.type as InterfaceType).element.hasOptionalTypeArgs) {
+        !(errorEntity.type.type as InterfaceType)
+            .element3
+            .metadata2
+            .hasOptionalTypeArgs) {
       String constructorName = errorEntity.name == null
           ? errorEntity.type.qualifiedName
           : '${errorEntity.type}.${errorEntity.name}';
@@ -733,13 +736,14 @@ class GenericInferrer {
         if (element is VariableElement) {
           // For variable elements, we check their type and possible alias type.
           var type = element.type;
-          var typeElement = type is InterfaceType ? type.element : null;
-          if (typeElement != null && typeElement.hasOptionalTypeArgs) {
+          var typeElement = type is InterfaceType ? type.element3 : null;
+          if (typeElement != null &&
+              typeElement.metadata2.hasOptionalTypeArgs) {
             return;
           }
-          var typeAliasElement = type.alias?.element;
+          var typeAliasElement = type.alias?.element2;
           if (typeAliasElement != null &&
-              typeAliasElement.hasOptionalTypeArgs) {
+              typeAliasElement.metadata2.hasOptionalTypeArgs) {
             return;
           }
         }

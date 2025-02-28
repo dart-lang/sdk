@@ -9,6 +9,7 @@ library;
 
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
@@ -302,9 +303,9 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
       String? identifierType}) {
     identifierType ??= type;
 
-    String typeParametersStr(List<TypeParameterElement> elements) {
+    String typeParametersStr(List<TypeParameterElement2> elements) {
       var elementsStr = elements.map((e) {
-        return e.getDisplayString();
+        return e.displayString2();
       }).join(', ');
       return '[$elementsStr]';
     }
@@ -313,7 +314,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
     var functionType = _getFunctionTypedElementType(identifier);
     assertType(functionType, type);
     expect(identifier.staticType, isNull);
-    expect(typeParametersStr(functionType.typeFormals), typeFormals);
+    expect(typeParametersStr(functionType.typeParameters), typeFormals);
     return functionType;
   }
 

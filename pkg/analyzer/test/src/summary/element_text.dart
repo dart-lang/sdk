@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
@@ -1102,7 +1103,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
       void writeSupertype(InterfaceElement2 e) {
         if (e.supertype case var supertype?) {
-          if (supertype.element.name != 'Object' || e.mixins.isNotEmpty) {
+          if (supertype.element3.name3 != 'Object' || e.mixins.isNotEmpty) {
             _writeType('supertype', supertype);
           }
         }
@@ -1144,7 +1145,7 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       if (configuration.withAllSupertypes && e is InterfaceElementImpl2) {
-        var sorted = e.allSupertypes.sortedBy((t) => t.element.name);
+        var sorted = e.allSupertypes.sortedBy((t) => t.element3.name3!);
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 
@@ -2433,7 +2434,7 @@ class _ElementWriter extends _AbstractElementWriter {
       _elementPrinter.writeTypeList('interfaces', e.interfaces);
 
       if (configuration.withAllSupertypes) {
-        var sorted = e.allSupertypes.sortedBy((t) => t.element.name);
+        var sorted = e.allSupertypes.sortedBy((t) => t.element3.name3!);
         _elementPrinter.writeTypeList('allSupertypes', sorted);
       }
 
@@ -2877,7 +2878,7 @@ class _ElementWriter extends _AbstractElementWriter {
     _elementPrinter.writeNamedType(name, type);
 
     if (configuration.withFunctionTypeParameters) {
-      if (type is FunctionType) {
+      if (type is FunctionTypeImpl) {
         _sink.withIndent(() {
           _writeParameterElements(type.parameters);
         });

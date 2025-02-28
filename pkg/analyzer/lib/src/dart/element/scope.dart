@@ -753,13 +753,13 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
                 ? setterIsFromDeprecatedExportBit
                 : 0);
 
-  /// This flag is set to `true` if [getter] is available using import
+  /// This flag is set to `true` if [getter2] is available using import
   /// directives where every imported library re-exports the element, and
   /// every such `export` directive is marked as deprecated.
   bool get getterIsFromDeprecatedExport =>
       (_deprecatedBits & getterIsFromDeprecatedExportBit) != 0;
 
-  /// This flag is set to `true` if [setter] is available using import
+  /// This flag is set to `true` if [setter2] is available using import
   /// directives where every imported library re-exports the element, and
   /// every such `export` directive is marked as deprecated.
   bool get setterIsFromDeprecatedExport =>

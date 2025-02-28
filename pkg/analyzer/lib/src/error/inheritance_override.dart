@@ -17,6 +17,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/correct_override.dart';
@@ -24,7 +25,7 @@ import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
-final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
+final _missingMustBeOverridden = Expando<List<ExecutableElement2>>();
 final _missingOverrides = Expando<List<ExecutableElement>>();
 
 class InheritanceOverrideVerifier {
@@ -134,16 +135,9 @@ class InheritanceOverrideVerifier {
 
   /// Returns [Element] members that are in the interface of the
   /// given class with `@mustBeOverridden`, but don't have implementations.
-  static List<ExecutableElement> missingMustBeOverridden(
+  static List<ExecutableElement2> missingMustBeOverridden(
       NamedCompilationUnitMember node) {
     return _missingMustBeOverridden[node.name] ?? const [];
-  }
-
-  /// Returns [ExecutableElement2] members that are in the interface of the
-  /// given class with `@mustBeOverridden`, but don't have implementations.
-  static List<ExecutableElement2> missingMustBeOverridden2(
-      NamedCompilationUnitMember node) {
-    return _missingMustBeOverridden[node.name].asElement2;
   }
 
   /// Returns [ExecutableElement] members that are in the interface of the
@@ -222,7 +216,7 @@ class _ClassVerifier {
       return true;
     }
 
-    if (_checkForRecursiveInterfaceInheritance(declaration)) {
+    if (_checkForRecursiveInterfaceInheritance(declaration.asElement2)) {
       return true;
     }
 
@@ -251,7 +245,7 @@ class _ClassVerifier {
     var mixinNodes = withClause?.mixinTypes;
     var mixinTypes = declaration.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
-      var mixinType = mixinTypes[i];
+      var mixinType = mixinTypes[i] as InterfaceTypeImpl;
       _checkDeclaredMembers(mixinNodes![i], mixinType, mixinIndex: i);
       directSuperInterfaces.add(mixinType);
     }
@@ -423,7 +417,7 @@ class _ClassVerifier {
 
   /// Check that instance members of [type] are valid overrides of the
   /// corresponding instance members in each of [directSuperInterfaces].
-  void _checkDeclaredMembers(AstNode node, InterfaceType type,
+  void _checkDeclaredMembers(AstNode node, InterfaceTypeImpl type,
       {required int mixinIndex}) {
     var libraryUri = type.element.library.source.uri;
     for (var method in type.methods) {
@@ -449,10 +443,10 @@ class _ClassVerifier {
     if (type is! InterfaceType) {
       return false;
     }
-    var typeElement = type.element;
+    var typeElement = type.element3;
 
     var classElement = this.classElement;
-    if (typeElement is ClassElement &&
+    if (typeElement is ClassElement2 &&
         typeElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
       if (classElement is ClassElement && classElement.isAbstract ||
@@ -464,7 +458,7 @@ class _ClassVerifier {
       return true;
     }
 
-    if (typeProvider.isNonSubtypableClass(typeElement)) {
+    if (typeProvider.isNonSubtypableClass2(typeElement)) {
       notSubtypable?.call();
       return true;
     }
@@ -597,17 +591,15 @@ class _ClassVerifier {
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON],
   /// [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH].
-  bool _checkForRecursiveInterfaceInheritance(InterfaceElement element,
-      [List<InterfaceElement>? path]) {
-    path ??= <InterfaceElement>[];
-
-    var augmented = element.augmented;
+  bool _checkForRecursiveInterfaceInheritance(InterfaceElement2 element,
+      [List<InterfaceElement2>? path]) {
+    path ??= <InterfaceElement2>[];
 
     // Detect error condition.
     int size = path.length;
     // If this is not the base case (size > 0), and the enclosing class is the
     // given class element then report an error.
-    if (size > 0 && classElement == element) {
+    if (size > 0 && classElement == element.asElement) {
       String className = classElement.displayName;
       if (size > 1) {
         // Construct a string showing the cyclic implements path:
@@ -647,26 +639,26 @@ class _ClassVerifier {
     // n-case
     var supertype = element.supertype;
     if (supertype != null &&
-        _checkForRecursiveInterfaceInheritance(supertype.element, path)) {
+        _checkForRecursiveInterfaceInheritance(supertype.element3, path)) {
       return true;
     }
 
-    for (InterfaceType type in augmented.mixins) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+    for (var type in element.mixins) {
+      if (_checkForRecursiveInterfaceInheritance(type.element3, path)) {
         return true;
       }
     }
 
-    if (augmented is AugmentedMixinElement) {
-      for (InterfaceType type in augmented.superclassConstraints) {
-        if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+    if (element is MixinElement2) {
+      for (var type in element.superclassConstraints) {
+        if (_checkForRecursiveInterfaceInheritance(type.element3, path)) {
           return true;
         }
       }
     }
 
-    for (InterfaceType type in augmented.interfaces) {
-      if (_checkForRecursiveInterfaceInheritance(type.element, path)) {
+    for (var type in element.interfaces) {
+      if (_checkForRecursiveInterfaceInheritance(type.element3, path)) {
         return true;
       }
     }
@@ -763,13 +755,13 @@ class _ClassVerifier {
       return false;
     }
 
-    var interfaceElement = type.element;
-    if (interfaceElement is EnumElement ||
-        interfaceElement is ExtensionTypeElement) {
+    var interfaceElement = type.element3;
+    if (interfaceElement is EnumElement2 ||
+        interfaceElement is ExtensionTypeElement2) {
       return false;
     }
 
-    if (interfaceElement.fields.every((e) => e.isStatic || e.isSynthetic)) {
+    if (interfaceElement.fields2.every((e) => e.isStatic || e.isSynthetic)) {
       return false;
     }
 
@@ -782,23 +774,21 @@ class _ClassVerifier {
 
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
-  ErrorCode _getRecursiveErrorCode(InterfaceElement element) {
-    var augmented = element.augmented;
-
-    if (element.supertype?.element == classElement) {
+  ErrorCode _getRecursiveErrorCode(InterfaceElement2 element) {
+    if (element.supertype?.element3.asElement == classElement) {
       return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
     }
 
-    if (augmented is AugmentedMixinElement) {
-      for (InterfaceType type in augmented.superclassConstraints) {
-        if (type.element == classElement) {
+    if (element is MixinElement2) {
+      for (var type in element.superclassConstraints) {
+        if (type.element3.asElement == classElement) {
           return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON;
         }
       }
     }
 
-    for (InterfaceType type in augmented.mixins) {
-      if (type.element == classElement) {
+    for (var type in element.mixins) {
+      if (type.element3.asElement == classElement) {
         return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH;
       }
     }
@@ -812,9 +802,9 @@ class _ClassVerifier {
     InterfaceElement element,
     Name name,
   ) {
-    var superElement = classElement.supertype?.element;
-    if (superElement is ClassElement && !superElement.isAbstract) {
-      var superInterface = inheritance.getInterface(superElement);
+    var superElement = classElement.supertype?.element3;
+    if (superElement is ClassElement2 && !superElement.isAbstract) {
+      var superInterface = inheritance.getInterface2(superElement);
       return superInterface.map.containsKey(name);
     }
     return false;
@@ -991,8 +981,8 @@ class _ClassVerifier {
   /// Verify that [classElement] complies with all `@mustBeOverridden`-annotated
   /// members in all of its supertypes.
   void _verifyMustBeOverridden() {
-    var classElement = this.classElement;
-    if (classElement is! ClassElement ||
+    var classElement = this.classElement.asElement2;
+    if (classElement is! ClassElement2 ||
         classElement.isAbstract ||
         classElement.isSealed) {
       // We only care about concrete classes.
@@ -1000,51 +990,59 @@ class _ClassVerifier {
     }
 
     var noSuchMethodDeclaration =
-        classElement.getMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
+        classElement.getMethod2(FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
     if (noSuchMethodDeclaration != null &&
         !noSuchMethodDeclaration.isAbstract) {
       return;
     }
-    var notOverridden = <ExecutableElement>[];
+    var notOverridden = <ExecutableElement2>[];
     for (var supertype in classElement.allSupertypes) {
       // TODO(srawlins): This looping may be expensive. Since the vast majority
       // of classes will have zero elements annotated with `@mustBeOverridden`,
       // we could store a bit on ClassElement (included in summaries) which
       // denotes whether any declared element has been so annotated. Then the
       // expensive looping is deferred until we have such a class.
-      for (var method in supertype.methods) {
-        if (method.isPrivate && method.library != classElement.library) {
+      for (var method in supertype.methods2) {
+        if (method.isPrivate && method.library2 != classElement.library2) {
           continue;
         }
         if (method.isStatic) {
           continue;
         }
-        if (method.hasMustBeOverridden) {
-          var methodDeclaration = classElement.getMethod(method.name);
+        if (method.metadata2.hasMustBeOverridden) {
+          var methodDeclaration = classElement.getMethod2(method.name3!);
           if (methodDeclaration == null || methodDeclaration.isAbstract) {
-            notOverridden.add(method.declaration);
+            notOverridden.add(method.baseElement);
           }
         }
       }
-      for (var accessor in supertype.accessors) {
-        if (accessor.isPrivate && accessor.library != classElement.library) {
+      for (var getter in supertype.getters) {
+        if (getter.isPrivate && getter.library2 != classElement.library2) {
           continue;
         }
-        if (accessor.isStatic) {
+        if (getter.isStatic) {
           continue;
         }
-        if (accessor.hasMustBeOverridden ||
-            (accessor.variable2?.hasMustBeOverridden ?? false)) {
-          PropertyAccessorElement? accessorDeclaration;
-          if (accessor.isGetter) {
-            accessorDeclaration = classElement.getGetter(accessor.name);
-          } else if (accessor.isSetter) {
-            accessorDeclaration = classElement.getSetter(accessor.name);
-          } else {
-            continue;
+        if (getter.metadata2.hasMustBeOverridden ||
+            (getter.variable3?.metadata2.hasMustBeOverridden ?? false)) {
+          var declaration = classElement.getGetter2(getter.name3!);
+          if (declaration == null || declaration.isAbstract) {
+            notOverridden.add(getter);
           }
-          if (accessorDeclaration == null || accessorDeclaration.isAbstract) {
-            notOverridden.add(accessor);
+        }
+      }
+      for (var setter in supertype.setters) {
+        if (setter.isPrivate && setter.library2 != classElement.library2) {
+          continue;
+        }
+        if (setter.isStatic) {
+          continue;
+        }
+        if (setter.metadata2.hasMustBeOverridden ||
+            (setter.variable3?.metadata2.hasMustBeOverridden ?? false)) {
+          var declaration = classElement.getSetter2(setter.name3!);
+          if (declaration == null || declaration.isAbstract) {
+            notOverridden.add(setter);
           }
         }
       }
@@ -1056,7 +1054,7 @@ class _ClassVerifier {
     _missingMustBeOverridden[classNameToken] = notOverridden.toList();
     var namesForError = notOverridden
         .map((e) {
-          var name = e.name;
+          var name = e.name3!;
           if (name.endsWith('=')) {
             name = name.substring(0, name.length - 1);
           }

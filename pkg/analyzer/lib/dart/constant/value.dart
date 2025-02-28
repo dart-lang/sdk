@@ -12,7 +12,6 @@
 /// [element model](../element/element.dart).
 library;
 
-// ignore_for_file: analyzer_use_new_elements, as_much_as_we_can
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -70,6 +69,7 @@ abstract class DartObject {
   DartType? get type;
 
   /// If this object is the value of a constant variable, the variable.
+  @Deprecated('Use variable2 instead')
   VariableElement? get variable;
 
   /// If this object is the value of a constant variable, the variable.
@@ -106,6 +106,7 @@ abstract class DartObject {
   /// * this object is not of a function type,
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
+  @Deprecated('Use toFunctionValue2() instead')
   ExecutableElement? toFunctionValue();
 
   /// Return an element corresponding to the value of the object being

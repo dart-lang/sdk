@@ -2014,14 +2014,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             mixinName, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
           problemReported = true;
         } else {
-          var mixinElement = mixinType.element;
+          var mixinElement = mixinType.element3;
           if (_checkForExtendsOrImplementsDeferredClass(
               mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
             problemReported = true;
           }
-          if (mixinType.element is ExtensionTypeElement) {
+          if (mixinType.element3 is ExtensionTypeElement2) {
             // Already reported.
-          } else if (mixinElement is MixinElement) {
+          } else if (mixinElement is MixinElement2) {
             if (_checkForMixinSuperclassConstraints(
                 mixinNameIndex, mixinName)) {
               problemReported = true;
@@ -2031,7 +2031,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             }
           } else {
             bool isMixinClass =
-                mixinElement is ClassElementImpl && mixinElement.isMixinClass;
+                mixinElement is ClassElementImpl2 && mixinElement.isMixinClass;
             if (!isMixinClass &&
                 _checkForMixinClassDeclaresConstructor(
                     mixinName, mixinElement)) {
@@ -2306,27 +2306,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (interfaceType is InterfaceType) {
         var implementedInterfaces = [
           interfaceType,
-          ...interfaceType.element.allSupertypes,
-        ].map((e) => e.element).toList();
+          ...interfaceType.element3.allSupertypes,
+        ].map((e) => e.element3).toList();
         for (var interfaceElement in implementedInterfaces) {
-          if (interfaceElement is ClassOrMixinElementImpl &&
-              interfaceElement.isBase &&
-              interfaceElement.library != _currentLibrary &&
-              !_mayIgnoreClassModifiers(interfaceElement.library)) {
+          if ((interfaceElement is ClassElementImpl2 &&
+                      interfaceElement.isBase ||
+                  interfaceElement is MixinElementImpl2 &&
+                      interfaceElement.isBase) &&
+              interfaceElement.library2 != _currentLibrary &&
+              !_mayIgnoreClassModifiers(interfaceElement.library2)) {
             // Should this be combined with _checkForImplementsClauseErrorCodes
             // to avoid double errors if implementing `int`.
-            if (interfaceElement is ClassElementImpl &&
+            if (interfaceElement is ClassElementImpl2 &&
                 !interfaceElement.isSealed) {
               errorReporter.atNode(
                 interface,
                 CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                arguments: [interfaceElement.name],
+                arguments: [interfaceElement.name3!],
               );
-            } else if (interfaceElement is MixinElement) {
+            } else if (interfaceElement is MixinElement2) {
               errorReporter.atNode(
                 interface,
                 CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                arguments: [interfaceElement.name],
+                arguments: [interfaceElement.name3!],
               );
             }
             break;
@@ -3390,7 +3392,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     var type = namedType.type;
     return type is InterfaceType &&
-        _typeProvider.isNonSubtypableClass(type.element);
+        _typeProvider.isNonSubtypableClass2(type.element3);
   }
 
   void _checkForExtensionDeclaresInstanceField(FieldDeclaration node) {
@@ -4337,13 +4339,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR].
   bool _checkForMixinClassDeclaresConstructor(
-      NamedType mixinName, InterfaceElement mixinElement) {
-    for (ConstructorElement constructor in mixinElement.constructors) {
+      NamedType mixinName, InterfaceElement2 mixinElement) {
+    for (var constructor in mixinElement.constructors2) {
       if (!constructor.isSynthetic && !constructor.isFactory) {
         errorReporter.atNode(
           mixinName,
           CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
-          arguments: [mixinElement.name],
+          arguments: [mixinElement.name3!],
         );
         return true;
       }
@@ -4404,14 +4406,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
   bool _checkForMixinInheritsNotFromObject(
-      NamedType mixinName, InterfaceElement mixinElement) {
-    if (mixinElement is! ClassElement) {
+      NamedType mixinName, InterfaceElement2 mixinElement) {
+    if (mixinElement is! ClassElement2) {
       return false;
     }
 
     var mixinSupertype = mixinElement.supertype;
     if (mixinSupertype == null || mixinSupertype.isDartCoreObject) {
-      var mixins = mixinElement.mixins;
+      // TODO(scheglov): don't use firstFragment
+      var mixins = mixinElement.firstFragment.mixins;
       if (mixins.isEmpty ||
           mixinElement.isMixinApplication && mixins.length < 2) {
         return false;
@@ -4421,7 +4424,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     errorReporter.atNode(
       mixinName,
       CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
-      arguments: [mixinElement.name],
+      arguments: [mixinElement.name3!],
     );
     return true;
   }
@@ -4465,13 +4468,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [mixinIndex] in the list of mixins of [_enclosingClass] has concrete
   /// implementations of all the super-invoked members of the [mixinElement].
   bool _checkForMixinSuperInvokedMembers(int mixinIndex, NamedType mixinName,
-      InterfaceElement mixinElement, InterfaceType mixinType) {
-    var mixinElementImpl = mixinElement as MixinElementImpl;
+      InterfaceElement2 mixinElement, InterfaceType mixinType) {
+    var mixinElementImpl = mixinElement as MixinElementImpl2;
     if (mixinElementImpl.superInvokedNames.isEmpty) {
       return false;
     }
 
-    Uri mixinLibraryUri = mixinElement.librarySource.uri;
+    Uri mixinLibraryUri = mixinElement.library2.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
       var nameObject = Name(mixinLibraryUri, name);
 
@@ -4536,14 +4539,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (declaredSupertype is! InterfaceType) {
       return;
     }
-    Map<LibraryElement, Map<String, String>> mixedInNames =
-        <LibraryElement, Map<String, String>>{};
+    var mixedInNames = <LibraryElement2, Map<String, String>>{};
 
     /// Report an error and return `true` if the given [name] is a private name
     /// (which is defined in the given [library]) and it conflicts with another
     /// definition of that name inherited from the superclass.
     bool isConflictingName(
-        String name, LibraryElement library, NamedType namedType) {
+        String name, LibraryElement2 library, NamedType namedType) {
       if (Identifier.isPrivateName(name)) {
         Map<String, String> names = mixedInNames.putIfAbsent(library, () => {});
         var conflictingName = names[name];
@@ -4559,9 +4561,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           return true;
         }
         names[name] = namedType.name2.lexeme;
-        var inheritedMember = _inheritanceManager.getMember2(
-          declaredSupertype.element,
-          Name(library.source.uri, name),
+        var inheritedMember = _inheritanceManager.getMember4(
+          declaredSupertype.element3,
+          Name(library.uri, name),
           concrete: true,
         );
         if (inheritedMember != null) {
@@ -4577,7 +4579,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             arguments: [
               name,
               namedType.name2.lexeme,
-              inheritedMember.enclosingElement3.name!
+              inheritedMember.enclosingElement2!.name3!
             ],
           );
           return true;
@@ -4589,21 +4591,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType mixinType in withClause.mixinTypes) {
       DartType type = mixinType.typeOrThrow;
       if (type is InterfaceType) {
-        LibraryElement library = type.element.library;
+        var library = type.element3.library2;
         if (library != _currentLibrary) {
-          for (PropertyAccessorElement accessor in type.accessors) {
-            if (accessor.isStatic) {
+          for (var getter in type.getters) {
+            if (getter.isStatic) {
               continue;
             }
-            if (isConflictingName(accessor.name, library, mixinType)) {
+            if (isConflictingName(getter.lookupName!, library, mixinType)) {
               return;
             }
           }
-          for (MethodElement method in type.methods) {
+          for (var setter in type.setters) {
+            if (setter.isStatic) {
+              continue;
+            }
+            if (isConflictingName(setter.lookupName!, library, mixinType)) {
+              return;
+            }
+          }
+          for (var method in type.methods2) {
             if (method.isStatic) {
               continue;
             }
-            if (isConflictingName(method.name, library, mixinType)) {
+            if (isConflictingName(method.lookupName!, library, mixinType)) {
               return;
             }
           }

@@ -907,18 +907,18 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
     List<InterfaceElement> result = [];
     var supertype = class_.supertype;
     if (supertype != null) {
-      result.add(supertype.element);
+      result.add(supertype.element3.asElement);
     }
     for (var m in class_.mixins) {
-      result.add(m.element);
+      result.add(m.element3.asElement);
     }
     if (!ignoreImplements) {
       for (var interface in class_.interfaces) {
-        result.add(interface.element);
+        result.add(interface.element3.asElement);
       }
       if (class_ is MixinElement) {
         for (var constraint in class_.superclassConstraints) {
-          result.add(constraint.element);
+          result.add(constraint.element3.asElement);
         }
       }
     }

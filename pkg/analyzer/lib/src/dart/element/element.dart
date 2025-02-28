@@ -223,14 +223,14 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
   @override
   bool get hasNonFinalField {
-    var classesToVisit = <InterfaceElement>[];
-    var visitedClasses = <InterfaceElement>{};
+    var classesToVisit = <InterfaceElementImpl>[];
+    var visitedClasses = <InterfaceElementImpl>{};
     classesToVisit.add(this);
     while (classesToVisit.isNotEmpty) {
       var currentElement = classesToVisit.removeAt(0);
       if (visitedClasses.add(currentElement)) {
         // check fields
-        for (FieldElement field in currentElement.fields) {
+        for (var field in currentElement.fields) {
           if (!field.isFinal &&
               !field.isConst &&
               !field.isStatic &&
@@ -239,7 +239,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
           }
         }
         // check mixins
-        for (InterfaceType mixinType in currentElement.mixins) {
+        for (var mixinType in currentElement.mixins) {
           classesToVisit.add(mixinType.element);
         }
         // check super
@@ -487,7 +487,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     var substitution =
         Substitution.fromPairs(superClassParameters, argumentTypes);
 
-    bool typeHasInstanceVariables(InterfaceType type) =>
+    bool typeHasInstanceVariables(InterfaceTypeImpl type) =>
         type.element.fields.any((e) => !e.isSynthetic);
 
     // Now create an implicit constructor for every constructor found above,
@@ -6192,13 +6192,16 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       if (augmented is! AugmentedInterfaceElement) {
         return;
       }
-      for (InterfaceType mixin in augmented.mixins.reversed) {
+      for (var mixin in augmented.mixins.reversed) {
+        mixin as InterfaceTypeImpl;
         getter = mixin.element.augmented.getGetter(name);
         if (getter != null) {
           yield getter as PropertyAccessorElementOrMember;
         }
       }
-      augmented = augmented.firstFragment.supertype?.element.augmented;
+      var supertype = augmented.firstFragment.supertype;
+      supertype as InterfaceTypeImpl?;
+      augmented = supertype?.element.augmented;
     }
   }
 
@@ -6229,13 +6232,16 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       if (augmented is! AugmentedInterfaceElement) {
         return;
       }
-      for (InterfaceType mixin in augmented.mixins.reversed) {
+      for (var mixin in augmented.mixins.reversed) {
+        mixin as InterfaceTypeImpl;
         method = mixin.element.augmented.getMethod(name);
         if (method != null) {
           yield method as MethodElementOrMember;
         }
       }
-      augmented = augmented.firstFragment.supertype?.element.augmented;
+      var supertype = augmented.firstFragment.supertype;
+      supertype as InterfaceTypeImpl?;
+      augmented = supertype?.element.augmented;
     }
   }
 
@@ -6266,13 +6272,16 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       if (augmented is! AugmentedInterfaceElement) {
         return;
       }
-      for (InterfaceType mixin in augmented.mixins.reversed) {
+      for (var mixin in augmented.mixins.reversed) {
+        mixin as InterfaceTypeImpl;
         setter = mixin.element.augmented.getSetter(name);
         if (setter != null) {
           yield setter as PropertyAccessorElementOrMember;
         }
       }
-      augmented = augmented.firstFragment.supertype?.element.augmented;
+      var supertype = augmented.firstFragment.supertype;
+      supertype as InterfaceTypeImpl?;
+      augmented = supertype?.element.augmented;
     }
   }
 
@@ -6711,13 +6720,16 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       if (setter != null) {
         yield setter;
       }
-      for (InterfaceType mixin in classElement.mixins.reversed) {
+      for (var mixin in classElement.mixins.reversed) {
+        mixin as InterfaceTypeImpl;
         setter = mixin.element.getSetter(setterName);
         if (setter != null) {
           yield setter;
         }
       }
-      classElement = classElement.supertype?.element;
+      var supertype = classElement.supertype;
+      supertype as InterfaceTypeImpl?;
+      classElement = supertype?.element;
     }
   }
 
@@ -8867,6 +8879,11 @@ class MixinElementImpl2 extends InterfaceElementImpl2
 
   @override
   bool get isBase => firstFragment.isBase;
+
+  /// Names of methods, getters, setters, and operators that this mixin
+  /// declaration super-invokes.  For setters this includes the trailing "=".
+  /// The list will be empty if this class is not a mixin declaration.
+  List<String> get superInvokedNames => firstFragment.superInvokedNames;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -11700,22 +11717,19 @@ class TypeParameterElementImpl extends ElementImpl
 
   /// Computes the variance of the type parameters in the [type].
   shared.Variance computeVarianceInType(DartType type) {
-    if (type is TypeParameterType) {
+    if (type is TypeParameterTypeImpl) {
       if (type.element == this) {
         return shared.Variance.covariant;
       } else {
         return shared.Variance.unrelated;
       }
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       var result = shared.Variance.unrelated;
       for (int i = 0; i < type.typeArguments.length; ++i) {
         var argument = type.typeArguments[i];
-        var parameter = type.element.typeParameters[i];
+        var parameter = type.element3.typeParameters2[i];
 
-        // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
-        // variance is added to the interface.
-        var parameterVariance =
-            (parameter as TypeParameterElementImpl).variance;
+        var parameterVariance = parameter.variance;
         result = result
             .meet(parameterVariance.combine(computeVarianceInType(argument)));
       }
@@ -11723,7 +11737,7 @@ class TypeParameterElementImpl extends ElementImpl
     } else if (type is FunctionType) {
       var result = computeVarianceInType(type.returnType);
 
-      for (var parameter in type.typeFormals) {
+      for (var parameter in type.typeParameters) {
         // If [parameter] is referenced in the bound at all, it makes the
         // variance of [parameter] in the entire type invariant.  The invocation
         // of [computeVariance] below is made to simply figure out if [variable]
@@ -11734,7 +11748,7 @@ class TypeParameterElementImpl extends ElementImpl
         }
       }
 
-      for (var parameter in type.parameters) {
+      for (var parameter in type.formalParameters) {
         result = result.meet(
           shared.Variance.contravariant.combine(
             computeVarianceInType(parameter.type),
