@@ -3709,7 +3709,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 templateConstEvalInvalidBinaryOperandType.withArguments(
                     '+',
                     receiver,
-                    typeEnvironment.coreTypes.stringLegacyRawType,
+                    typeEnvironment.coreTypes.stringNonNullableRawType,
                     other.getType(staticTypeContext)));
           case '[]':
             if (enableConstFunctions) {
@@ -3748,7 +3748,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 templateConstEvalInvalidBinaryOperandType.withArguments(
                     op,
                     other,
-                    typeEnvironment.coreTypes.intLegacyRawType,
+                    typeEnvironment.coreTypes.intNonNullableRawType,
                     other.getType(staticTypeContext)));
           }
           num receiverValue = (receiver as PrimitiveConstant<num>).value;
@@ -3760,7 +3760,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             templateConstEvalInvalidBinaryOperandType.withArguments(
                 op,
                 receiver,
-                typeEnvironment.coreTypes.numLegacyRawType,
+                typeEnvironment.coreTypes.numNonNullableRawType,
                 other.getType(staticTypeContext)));
       }
     } else if (receiver is DoubleConstant) {
@@ -3771,7 +3771,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             templateConstEvalInvalidBinaryOperandType.withArguments(
                 op,
                 receiver,
-                typeEnvironment.coreTypes.intLegacyRawType,
+                typeEnvironment.coreTypes.intNonNullableRawType,
                 receiver.getType(staticTypeContext)));
       }
       if (positionalArguments.length == 0) {
@@ -3793,7 +3793,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             templateConstEvalInvalidBinaryOperandType.withArguments(
                 op,
                 receiver,
-                typeEnvironment.coreTypes.numLegacyRawType,
+                typeEnvironment.coreTypes.numNonNullableRawType,
                 other.getType(staticTypeContext)));
       }
     } else if (receiver is BoolConstant) {
@@ -4674,8 +4674,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             // `null is Null` is handled below.
             return typeEnvironment.isSubtypeOf(type, const NullType(),
                     SubtypeCheckMode.ignoringNullabilities) ||
-                typeEnvironment.isSubtypeOf(typeEnvironment.objectLegacyRawType,
-                    type, SubtypeCheckMode.ignoringNullabilities);
+                typeEnvironment.isSubtypeOf(
+                    typeEnvironment.objectNullableRawType,
+                    type,
+                    SubtypeCheckMode.ignoringNullabilities);
           } else {
             return typeEnvironment.isSubtypeOf(
                 const NullType(), type, SubtypeCheckMode.withNullabilities);

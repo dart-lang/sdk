@@ -33,7 +33,6 @@ abstract class TypeEnvironment extends Types {
   Class get functionClass => coreTypes.functionClass;
   Class get objectClass => coreTypes.objectClass;
 
-  InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
   InterfaceType get objectNonNullableRawType =>
       coreTypes.objectNonNullableRawType;
   InterfaceType get objectNullableRawType => coreTypes.objectNullableRawType;

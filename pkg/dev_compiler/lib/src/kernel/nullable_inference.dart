@@ -181,8 +181,7 @@ class NullableInference extends ExpressionVisitor<bool>
     if (target == null) return true;
     if (target.name.text == 'toString' && receiver != null) {
       var receiverType = receiver.getStaticType(_staticTypeContext);
-      if (receiverType == coreTypes.stringLegacyRawType ||
-          receiverType == coreTypes.stringNonNullableRawType) {
+      if (receiverType == coreTypes.stringNonNullableRawType) {
         // TODO(nshahan): In unsound null safety the return type of
         // `Object.toString()` is still considered nullable. The `class String`
         // in dart:core does not explicitly declare `.toString()`, which results

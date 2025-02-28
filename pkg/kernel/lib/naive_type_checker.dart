@@ -282,8 +282,7 @@ super method declares ${superParameter.type}
     }
 
     // Permit any invocation or tear-off of `call` on Function type.
-    if ((receiver == environment.coreTypes.functionLegacyRawType ||
-                receiver == environment.coreTypes.functionNonNullableRawType ||
+    if ((receiver == environment.coreTypes.functionNonNullableRawType ||
                 receiver is FunctionType) &&
             (where is InvocationExpression && where.name.text == 'call') ||
         where is FunctionTearOff) {

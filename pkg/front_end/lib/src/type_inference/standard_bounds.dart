@@ -35,20 +35,6 @@ mixin TypeSchemaStandardBounds on StandardBounds {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  DartType getNullabilityObliviousStandardLowerBoundInternal(type1, type2) {
-    // For any type T, SLB(?, T) = SLB(T, ?) = T.
-    if (type1 is UnknownType) {
-      return type2;
-    }
-    if (type2 is UnknownType) {
-      return type1;
-    }
-    return super
-        .getNullabilityObliviousStandardLowerBoundInternal(type1, type2);
-  }
-
-  @override
   DartType getNullabilityAwareStandardUpperBoundInternal(
       DartType type1, DartType type2) {
     //  - We add the axiom that `UP(T, _) == T` and the symmetric version.
@@ -56,20 +42,5 @@ mixin TypeSchemaStandardBounds on StandardBounds {
     if (type2 is UnknownType) return type1;
 
     return super.getNullabilityAwareStandardUpperBoundInternal(type1, type2);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  DartType getNullabilityObliviousStandardUpperBoundInternal(
-      DartType type1, DartType type2) {
-    // For any type T, SUB(?, T) = SUB(T, ?) = T.
-    if (type1 is UnknownType) {
-      return type2;
-    }
-    if (type2 is UnknownType) {
-      return type1;
-    }
-    return super
-        .getNullabilityObliviousStandardUpperBoundInternal(type1, type2);
   }
 }

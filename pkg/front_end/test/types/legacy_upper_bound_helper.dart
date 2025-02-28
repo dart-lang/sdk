@@ -61,8 +61,8 @@ abstract class LegacyUpperBoundTest {
   Future<void> test_getLegacyLeastUpperBound_expansive() async {
     await parseComponent("""
 class N<T>;
-class C1<T> extends N<N<C1<T*>*>*>;
-class C2<T> extends N<N<C2<N<C2<T*>*>*>*>*>;
+class C1<T> extends N<N<C1<T>>>;
+class C2<T> extends N<N<C2<N<C2<T>>>>>;
 """);
 
     // The least upper bound of C1<int> and N<C1<String>> is Object since the
@@ -70,14 +70,14 @@ class C2<T> extends N<N<C2<N<C2<T*>*>*>*>*>;
     //     {C1<int>, N<N<C1<int>>>, Object} for C1<int> and
     //     {N<C1<String>>, Object} for N<C1<String>> and
     // Object is the most specific type in the intersection of the supertypes.
-    checkLegacyUp("C1<int*>*", "N<C1<String*>*>*", "Object*");
+    checkLegacyUp("C1<int>", "N<C1<String>>", "Object");
 
     // The least upper bound of C2<int> and N<C2<String>> is Object since the
     // supertypes are
     //     {C2<int>, N<N<C2<N<C2<int>>>>>, Object} for C2<int> and
     //     {N<C2<String>>, Object} for N<C2<String>> and
     // Object is the most specific type in the intersection of the supertypes.
-    checkLegacyUp("C2<int*>*", "N<C2<String*>*>*", "Object*");
+    checkLegacyUp("C2<int>", "N<C2<String>>", "Object");
   }
 
   Future<void> test_getLegacyLeastUpperBound_generic() async {
@@ -85,17 +85,17 @@ class C2<T> extends N<N<C2<N<C2<T*>*>*>*>*>;
 class A;
 class B<T> implements A;
 class C<U> implements A;
-class D<T, U> implements B<T*>, C<U*>;
-class E implements D<int*, double*>;
-class F implements D<int*, bool*>;
+class D<T, U> implements B<T>, C<U>;
+class E implements D<int, double>;
+class F implements D<int, bool>;
 """);
 
     checkLegacyUp(
-        "D<int*, double*>*", "D<int*, double*>*", "D<int*, double*>*");
-    checkLegacyUp("D<int*, double*>*", "D<int*, bool*>*", "B<int*>*");
-    checkLegacyUp("D<int*, double*>*", "D<bool*, double*>*", "C<double*>*");
-    checkLegacyUp("D<int*, double*>*", "D<bool*, int*>*", "A*");
-    checkLegacyUp("E*", "F*", "B<int*>*");
+        "D<int, double>", "D<int, double>", "D<int, double>");
+    checkLegacyUp("D<int, double>", "D<int, bool>", "B<int>");
+    checkLegacyUp("D<int, double>", "D<bool, double>", "C<double>");
+    checkLegacyUp("D<int, double>", "D<bool, int>", "A");
+    checkLegacyUp("E", "F", "B<int>");
   }
 
   Future<void> test_getLegacyLeastUpperBound_nonGeneric() async {
@@ -111,13 +111,13 @@ class H implements C, D, E;
 class I implements C, D, E;
 """);
 
-    checkLegacyUp("A*", "B*", "Object*");
-    checkLegacyUp("A*", "Object*", "Object*");
-    checkLegacyUp("Object*", "B*", "Object*");
-    checkLegacyUp("C*", "D*", "A*");
-    checkLegacyUp("C*", "A*", "A*");
-    checkLegacyUp("A*", "D*", "A*");
-    checkLegacyUp("F*", "G*", "A*");
-    checkLegacyUp("H*", "I*", "A*");
+    checkLegacyUp("A", "B", "Object");
+    checkLegacyUp("A", "Object", "Object");
+    checkLegacyUp("Object", "B", "Object");
+    checkLegacyUp("C", "D", "A");
+    checkLegacyUp("C", "A", "A");
+    checkLegacyUp("A", "D", "A");
+    checkLegacyUp("F", "G", "A");
+    checkLegacyUp("H", "I", "A");
   }
 }
