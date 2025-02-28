@@ -112,7 +112,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
         return;
       }
       var sessionHelper = AnalysisSessionHelper(session);
-      var result = await sessionHelper.getElementDeclaration(fragment);
+      var result = await sessionHelper.getFragmentDeclaration(fragment);
       var declaration = result?.node;
       if (declaration is MethodDeclaration) {
         getKeyword = declaration.propertyKeyword;

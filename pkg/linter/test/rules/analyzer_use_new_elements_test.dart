@@ -100,6 +100,23 @@ void f() {
     );
   }
 
+  test_methodInvocation_inDeprecated() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:analyzer/dart/element/element.dart';
+
+List<ClassElement> getAllClasses() => [];
+''');
+
+    await assertNoDiagnostics(r'''
+import 'a.dart';
+
+@deprecated
+void f() {
+  getAllClasses();
+}
+''');
+  }
+
   test_namedType() async {
     await assertDiagnostics(
       r'''

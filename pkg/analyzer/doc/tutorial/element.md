@@ -48,7 +48,7 @@ ask the analysis session for the compilation unit representing that file.
 void analyzeSingleFile(AnalysisSession session, String path) async {
   var result = await session.getUnitElement(path);
   if (result is UnitElementResult) {
-    CompilationUnitElement element = result.element;
+    LibraryFragment element = result.fragment;
   }
 }
 ```

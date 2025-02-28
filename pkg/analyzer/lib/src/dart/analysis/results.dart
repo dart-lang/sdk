@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -171,7 +168,11 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
   }
 }
 
-class ElementDeclarationResultImpl implements ElementDeclarationResult {
+class ElementDeclarationResultImpl
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ElementDeclarationResult,
+        FragmentDeclarationResult {
   @override
   final Fragment fragment;
 
@@ -187,6 +188,7 @@ class ElementDeclarationResultImpl implements ElementDeclarationResult {
   ElementDeclarationResultImpl(
       this.fragment, this.node, this.parsedUnit, this.resolvedUnit);
 
+  @Deprecated('Use fragment instead')
   @override
   Element get element {
     if (fragment case Element element) {
@@ -296,21 +298,23 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     required this.units,
   });
 
+  @Deprecated('Use getFragmentDeclaration() instead')
   @override
-  ElementDeclarationResult? getElementDeclaration(Element element) {
+  ElementDeclarationResultImpl? getElementDeclaration(Element element) {
     if (element case Fragment fragment) {
       return getFragmentDeclaration(fragment);
     }
     throw UnsupportedError('$runtimeType.getElementDeclaration($element)');
   }
 
+  @Deprecated('Use getFragmentDeclaration() instead')
   @override
-  ElementDeclarationResult? getElementDeclaration2(Fragment fragment) {
+  ElementDeclarationResultImpl? getElementDeclaration2(Fragment fragment) {
     return getFragmentDeclaration(fragment);
   }
 
   @override
-  ElementDeclarationResult? getFragmentDeclaration(Fragment fragment) {
+  ElementDeclarationResultImpl? getFragmentDeclaration(Fragment fragment) {
     var nameOffset = _getFragmentNameOffset(fragment);
     if (fragment is LibraryFragment || nameOffset == null) {
       return null;
@@ -417,38 +421,41 @@ class ResolvedForCompletionResultImpl {
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
     implements ResolvedLibraryResult {
   @override
-  final LibraryElement element;
+  final LibraryElementImpl element2;
 
   @override
   final List<ResolvedUnitResult> units;
 
   ResolvedLibraryResultImpl({
     required super.session,
-    required this.element,
+    required this.element2,
     required this.units,
   });
 
+  @Deprecated('Use element2 instead')
   @override
-  LibraryElement2 get element2 => element as LibraryElement2;
+  LibraryElement get element => element2;
 
   @override
-  TypeProvider get typeProvider => element.typeProvider;
+  TypeProviderImpl get typeProvider => element2.typeProvider;
 
+  @Deprecated('Use getFragmentDeclaration() instead')
   @override
-  ElementDeclarationResult? getElementDeclaration(Element element) {
+  ElementDeclarationResultImpl? getElementDeclaration(Element element) {
     if (element case Fragment fragment) {
       return getFragmentDeclaration(fragment);
     }
     throw UnsupportedError('$runtimeType.getElementDeclaration($element)');
   }
 
+  @Deprecated('Use getFragmentDeclaration() instead')
   @override
-  ElementDeclarationResult? getElementDeclaration2(Fragment fragment) {
+  ElementDeclarationResultImpl? getElementDeclaration2(Fragment fragment) {
     return getFragmentDeclaration(fragment);
   }
 
   @override
-  ElementDeclarationResult? getFragmentDeclaration(Fragment fragment) {
+  ElementDeclarationResultImpl? getFragmentDeclaration(Fragment fragment) {
     var nameOffset = _getFragmentNameOffset(fragment);
     if (fragment is LibraryFragment || nameOffset == null) {
       return null;
@@ -505,25 +512,25 @@ class ResolvedUnitResultImpl extends FileResultImpl
   @override
   bool get exists => fileState.exists;
 
+  @Deprecated('Use libraryElement2 instead')
   @override
   LibraryElementImpl get libraryElement {
-    var element = unit.declaredElement as CompilationUnitElementImpl;
-    return element.library;
+    return libraryElement2;
   }
 
   @override
   LibraryElementImpl get libraryElement2 {
-    return libraryFragment.element as LibraryElementImpl;
+    return libraryFragment.element;
   }
 
   @override
-  LibraryFragment get libraryFragment => unit.declaredFragment!;
+  CompilationUnitElementImpl get libraryFragment => unit.declaredFragment!;
 
   @override
-  TypeProviderImpl get typeProvider => libraryElement.typeProvider;
+  TypeProviderImpl get typeProvider => libraryElement2.typeProvider;
 
   @override
-  TypeSystemImpl get typeSystem => libraryElement.typeSystem;
+  TypeSystemImpl get typeSystem => libraryElement2.typeSystem;
 }
 
 class UnitElementResultImpl extends FileResultImpl

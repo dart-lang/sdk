@@ -17,9 +17,8 @@ class AddLate extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_LATE;
@@ -69,7 +68,7 @@ class AddLate extends ResolvedCorrectionProducer {
             !variableElement.isLate &&
             variableElement.setter2 == null) {
           var variableFragment = variableElement.firstFragment;
-          var declarationResult = await sessionHelper.getElementDeclaration(
+          var declarationResult = await sessionHelper.getFragmentDeclaration(
             variableFragment,
           );
           if (declarationResult == null) {

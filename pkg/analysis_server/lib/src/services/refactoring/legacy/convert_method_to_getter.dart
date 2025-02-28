@@ -111,7 +111,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       fragment != null;
       fragment = fragment.nextFragment as GetterFragment?
     ) {
-      var result = await sessionHelper.getElementDeclaration(fragment);
+      var result = await sessionHelper.getFragmentDeclaration(fragment);
       var declaration = result?.node;
       if (declaration is MethodDeclaration) {
         parameters = declaration.parameters;

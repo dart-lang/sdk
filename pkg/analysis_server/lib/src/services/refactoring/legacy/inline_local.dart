@@ -66,7 +66,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     }
 
     var helper = AnalysisSessionHelper(resolveResult.session);
-    var declarationResult = await helper.getElementDeclaration(
+    var declarationResult = await helper.getFragmentDeclaration(
       element.firstFragment,
     );
     var node = declarationResult?.node;

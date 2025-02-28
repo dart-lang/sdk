@@ -193,7 +193,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var classElement = element.enclosingElement2;
 
     var fragment = classElement.firstFragment;
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     if (result == null) {
       return;
     }

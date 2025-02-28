@@ -146,7 +146,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   ) async {
     FieldFormalParameterFragment? fragment = element.firstFragment;
     while (fragment != null) {
-      var result = await sessionHelper.getElementDeclaration(fragment);
+      var result = await sessionHelper.getFragmentDeclaration(fragment);
       var node = result?.node;
       if (node is! DefaultFormalParameter) return;
       var parameter = node.parameter as FieldFormalParameter;

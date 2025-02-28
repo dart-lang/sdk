@@ -170,6 +170,12 @@ package:analyzer/dart/analysis/results.dart:
     lineInfo (getter: LineInfo)
     path (getter: String)
     uri (getter: Uri)
+  FragmentDeclarationResult (class extends Object):
+    new (constructor: FragmentDeclarationResult Function())
+    fragment (getter: Fragment)
+    node (getter: AstNode)
+    parsedUnit (getter: ParsedUnitResult?)
+    resolvedUnit (getter: ResolvedUnitResult?)
   InvalidPathResult (class extends Object implements InvalidResult, SomeErrorsResult, SomeFileResult, SomeParsedLibraryResult, SomeParsedUnitResult, SomeResolvedLibraryResult, SomeResolvedUnitResult, SomeUnitElementResult):
     new (constructor: InvalidPathResult Function())
   InvalidResult (class extends Object):
@@ -195,7 +201,7 @@ package:analyzer/dart/analysis/results.dart:
     units (getter: List<ParsedUnitResult>)
     getElementDeclaration (method: ElementDeclarationResult? Function(Element))
     getElementDeclaration2 (method: ElementDeclarationResult? Function(Fragment))
-    getFragmentDeclaration (method: ElementDeclarationResult? Function(Fragment))
+    getFragmentDeclaration (method: FragmentDeclarationResult? Function(Fragment))
   ParsedUnitResult (class extends Object implements SomeParsedUnitResult, AnalysisResultWithErrors):
     new (constructor: ParsedUnitResult Function())
     unit (getter: CompilationUnit)

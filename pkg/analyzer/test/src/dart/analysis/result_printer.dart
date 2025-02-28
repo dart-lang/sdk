@@ -678,20 +678,16 @@ class DriverEventsPrinter {
       'isPart': result.isPart,
     });
 
-    var unitElement = result.element;
+    var libraryFragment = result.fragment;
 
-    elementPrinter.writeNamedElement(
+    elementPrinter.writelnNamedFragment(
       'enclosing',
-      unitElement.enclosingElement3,
+      libraryFragment.enclosingFragment,
     );
 
     var elementsToWrite =
-        configuration.unitElementConfiguration.elementSelector(unitElement);
-    elementPrinter.writeElementList('selectedElements', elementsToWrite);
-
-    var elementsToWrite2 = configuration.unitElementConfiguration
-        .elementSelector2(unitElement as LibraryFragment);
-    elementPrinter.writeElementList2('selectedElements', elementsToWrite2);
+        configuration.unitElementConfiguration.elementSelector(libraryFragment);
+    elementPrinter.writeElementList2('selectedElements', elementsToWrite);
   }
 }
 
@@ -857,7 +853,7 @@ class ResolvedLibraryResultPrinter {
   final ElementPrinter elementPrinter;
   final IdProvider idProvider;
 
-  late final LibraryElement _libraryElement;
+  late final LibraryElement2 _libraryElement;
 
   ResolvedLibraryResultPrinter({
     required this.configuration,
@@ -881,13 +877,13 @@ class ResolvedLibraryResultPrinter {
       return;
     }
 
-    _libraryElement = result.element;
+    _libraryElement = result.element2;
 
     var id = idProvider[result];
     sink.writelnWithIndent('ResolvedLibraryResult $id');
 
     sink.withIndent(() {
-      elementPrinter.writeNamedElement('element', result.element);
+      elementPrinter.writelnNamedElement2('element', result.element2);
       sink.writeElements('units', result.units, _writeResolvedUnitResult);
     });
   }
@@ -911,7 +907,7 @@ class ResolvedUnitResultPrinter {
   final ResolvedUnitResultPrinterConfiguration configuration;
   final TreeStringSink sink;
   final ElementPrinter elementPrinter;
-  final LibraryElement? libraryElement;
+  final LibraryElement2? libraryElement;
   final IdProvider idProvider;
 
   ResolvedUnitResultPrinter({
@@ -952,7 +948,7 @@ class ResolvedUnitResultPrinter {
 
       // Don't write, just check.
       if (libraryElement != null) {
-        expect(result.libraryElement, same(libraryElement));
+        expect(result.libraryElement2, same(libraryElement));
       }
 
       sink.writeFlags({
@@ -1049,8 +1045,7 @@ final class SchedulerStatusEvent extends DriverEvent {
 }
 
 class UnitElementPrinterConfiguration {
-  List<Element> Function(CompilationUnitElement) elementSelector = (_) => [];
-  List<Element2> Function(LibraryFragment) elementSelector2 = (_) => [];
+  List<Element2> Function(LibraryFragment) elementSelector = (_) => [];
 }
 
 extension on LibraryCycle {

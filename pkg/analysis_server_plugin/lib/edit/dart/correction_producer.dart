@@ -413,7 +413,7 @@ abstract class ResolvedCorrectionProducer
   /// Returns the class declaration for the given [fragment], or `null` if there
   /// is no such class.
   Future<ClassDeclaration?> getClassDeclaration(ClassFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ClassDeclaration) {
       return node;
@@ -425,7 +425,7 @@ abstract class ResolvedCorrectionProducer
   /// there is no such extension.
   Future<ExtensionDeclaration?> getExtensionDeclaration(
       ExtensionFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionDeclaration) {
       return node;
@@ -437,7 +437,7 @@ abstract class ResolvedCorrectionProducer
   /// is no such extension type.
   Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
       ExtensionTypeFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionTypeDeclaration) {
       return node;
@@ -448,7 +448,7 @@ abstract class ResolvedCorrectionProducer
   /// Returns the mixin declaration for the given [fragment], or `null` if there
   /// is no such mixin.
   Future<MixinDeclaration?> getMixinDeclaration(MixinFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is MixinDeclaration) {
       return node;
