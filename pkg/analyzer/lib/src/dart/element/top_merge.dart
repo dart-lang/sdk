@@ -244,7 +244,7 @@ class TopMergeHelper {
         (i) => topMerge(T_arguments[i], S_arguments[i]),
         growable: false,
       );
-      return T.element3.instantiate(
+      return T.element3.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: NullabilitySuffix.none,
       );

@@ -278,7 +278,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(
+      covariant InstanceCreationExpressionImpl node) {
     var constructor = node.constructorName.element;
     var class_ = constructor?.enclosingElement2;
     if (class_.isStructSubclass || class_.isUnionSubclass) {
@@ -1830,7 +1831,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   /// Validate the invocation of the constructor `NativeCallable.listener(f)`
   /// or `NativeCallable.isolateLocal(f)`.
-  void _validateNativeCallable(InstanceCreationExpression node) {
+  void _validateNativeCallable(InstanceCreationExpressionImpl node) {
     var name = node.constructorName.name?.toString() ?? '';
     var isolateLocal = name == 'isolateLocal';
 
@@ -1842,9 +1843,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var typeArg = (node.staticType as ParameterizedType).typeArguments[0];
-    // TODO(scheglov): eliminate this cast
-    typeArg as TypeImpl;
+    var nodeType = node.typeOrThrow;
+    if (nodeType is! InterfaceTypeImpl) {
+      return;
+    }
+
+    var typeArg = nodeType.typeArguments[0];
     if (!_isValidFfiNativeFunctionType(typeArg)) {
       _errorReporter.atNode(
         node.constructorName,

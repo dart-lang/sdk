@@ -2221,14 +2221,14 @@ class ResolutionReader {
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
       var element = readElement() as InterfaceElementImpl;
-      var type = element.instantiate(
-          typeArguments: const <DartType>[],
+      var type = element.instantiateImpl(
+          typeArguments: const [],
           nullabilitySuffix: NullabilitySuffix.none);
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
       var element = readElement() as InterfaceElementImpl;
-      var type = element.instantiate(
-        typeArguments: const <DartType>[],
+      var type = element.instantiateImpl(
+        typeArguments: const [],
         nullabilitySuffix: NullabilitySuffix.question,
       );
       return _readAliasElementArguments(type);

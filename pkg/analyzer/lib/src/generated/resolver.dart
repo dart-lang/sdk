@@ -555,7 +555,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // TODO(srawlins): When this check is moved into the resolution stage,
         // use the result of that check to determine whether this check should
         // be done.
-        var lowerBound = typeProvider.futureElement.instantiate(
+        var lowerBound = typeProvider.futureElement.instantiateImpl(
           typeArguments: fixedTypeList(NeverTypeImpl.instance),
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -840,7 +840,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             contextType: matchedType.unwrapTypeView(),
             nodeForTesting: pattern,
           );
-          return SharedTypeView(typeNode.type = typeNameElement.instantiate(
+          return SharedTypeView(typeNode.type = typeNameElement.instantiateImpl(
             typeArguments: typeArguments,
             nullabilitySuffix: NullabilitySuffix.none,
           ));
@@ -3935,7 +3935,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     var targetType = invocation.realTarget?.staticType;
     if (invocation.methodName.name == 'catchError' &&
-        targetType is InterfaceType) {
+        targetType is InterfaceTypeImpl) {
       var instanceOfFuture =
           targetType.asInstanceOf(typeProvider.futureElement);
       if (instanceOfFuture != null) {
@@ -4009,7 +4009,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// Infers type arguments corresponding to [typeParameters] used it the
   /// [declaredType], so that thr resulting type is a subtype of [contextType].
-  List<DartType> _inferTypeArguments({
+  List<TypeImpl> _inferTypeArguments({
     required List<TypeParameterElementImpl2> typeParameters,
     required AstNode errorNode,
     required TypeImpl declaredType,

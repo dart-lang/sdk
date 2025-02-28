@@ -219,7 +219,7 @@ class ErrorHandlerVerifier {
 
   /// Check the 'onError' argument given to [Future.catchError].
   void _checkFutureCatchErrorOnError(Expression target, Expression callback) {
-    var targetType = target.staticType as InterfaceType;
+    var targetType = target.staticType as InterfaceTypeImpl;
     var targetFutureType = targetType.typeArguments.first;
     var expectedReturnType = _typeProvider.futureOrType(targetFutureType);
     if (callback is FunctionExpressionImpl) {

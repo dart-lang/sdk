@@ -38,7 +38,7 @@ class ElementFactory {
   }
 
   static InterfaceType get objectType {
-    return _objectType ??= object.instantiate(
+    return _objectType ??= object.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );

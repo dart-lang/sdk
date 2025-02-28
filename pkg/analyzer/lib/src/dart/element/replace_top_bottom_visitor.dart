@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -70,7 +69,7 @@ class ReplaceTopBottomVisitor {
 
   TypeImpl _instantiatedTypeAlias(
     DartType type,
-    InstantiatedTypeAliasElement alias,
+    InstantiatedTypeAliasElementImpl alias,
     Variance variance,
   ) {
     var aliasElement = alias.element2;
@@ -79,23 +78,21 @@ class ReplaceTopBottomVisitor {
     var typeParameters = aliasElement.typeParameters2;
     assert(typeParameters.length == aliasArguments.length);
 
-    var newTypeArguments = <DartType>[];
+    var newTypeArguments = <TypeImpl>[];
     for (var i = 0; i < typeParameters.length; i++) {
-      var typeParameter = typeParameters[i] as TypeParameterElementImpl2;
+      var typeParameter = typeParameters[i];
       newTypeArguments.add(
         process(
-          // TODO(scheglov): remove this cast
-          aliasArguments[i] as TypeImpl,
+          aliasArguments[i],
           typeParameter.variance.combine(variance),
         ),
       );
     }
 
-    // TODO(scheglov): remove this cast
     return aliasElement.instantiate(
       typeArguments: newTypeArguments,
       nullabilitySuffix: type.nullabilitySuffix,
-    ) as TypeImpl;
+    );
   }
 
   InterfaceTypeImpl _interfaceType(InterfaceTypeImpl type, Variance variance) {
@@ -107,7 +104,7 @@ class ReplaceTopBottomVisitor {
     var typeArguments = type.typeArguments;
     assert(typeParameters.length == typeArguments.length);
 
-    var newTypeArguments = <DartType>[];
+    var newTypeArguments = <TypeImpl>[];
     for (var i = 0; i < typeArguments.length; i++) {
       var newTypeArgument = process(typeArguments[i], variance);
       newTypeArguments.add(newTypeArgument);

@@ -55,7 +55,7 @@ class AnnotationResolver {
       constructorElement,
       argumentList,
       (typeArguments) {
-        return classElement.instantiate(
+        return classElement.instantiateImpl(
           typeArguments: typeArguments,
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -104,7 +104,7 @@ class AnnotationResolver {
     List<TypeParameterElementImpl2> typeParameters,
     ConstructorElementMixin2? constructorElement,
     ArgumentListImpl argumentList,
-    InterfaceType Function(List<DartType> typeArguments) instantiateElement,
+    InterfaceType Function(List<TypeImpl> typeArguments) instantiateElement,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     constructorName?.element = constructorElement;

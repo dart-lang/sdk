@@ -6502,6 +6502,16 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     );
   }
 
+  InterfaceTypeImpl instantiateImpl({
+    required List<TypeImpl> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return element.instantiateImpl(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
   @override
   MethodElement? lookUpConcreteMethod(
       String methodName, LibraryElement library) {
@@ -6836,16 +6846,16 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   @override
   InterfaceTypeImpl get thisType {
     if (_thisType == null) {
-      List<DartType> typeArguments;
+      List<TypeImpl> typeArguments;
       var typeParameters = firstFragment.typeParameters;
       if (typeParameters.isNotEmpty) {
-        typeArguments = typeParameters.map<DartType>((t) {
+        typeArguments = typeParameters.map<TypeImpl>((t) {
           return t.instantiate(nullabilitySuffix: NullabilitySuffix.none);
         }).toFixedList();
       } else {
-        typeArguments = const <DartType>[];
+        typeArguments = const [];
       }
-      return _thisType = firstFragment.instantiate(
+      return _thisType = firstFragment.instantiateImpl(
         typeArguments: typeArguments,
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -6900,6 +6910,16 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   @override
   InterfaceTypeImpl instantiate({
     required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return instantiateImpl(
+      typeArguments: typeArguments.cast<TypeImpl>(),
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  InterfaceTypeImpl instantiateImpl({
+    required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
     assert(typeArguments.length == typeParameters2.length);

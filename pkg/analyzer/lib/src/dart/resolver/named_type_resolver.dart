@@ -133,7 +133,7 @@ class NamedTypeResolver with ScopeHelpers {
   }
 
   /// Return type arguments, exactly [parameterCount].
-  List<DartType> _buildTypeArguments(
+  List<TypeImpl> _buildTypeArguments(
       NamedType node, TypeArgumentList argumentList, int parameterCount) {
     var arguments = argumentList.arguments;
     var argumentCount = arguments.length;
@@ -148,7 +148,7 @@ class NamedTypeResolver with ScopeHelpers {
     }
 
     if (parameterCount == 0) {
-      return const <DartType>[];
+      return const <TypeImpl>[];
     }
 
     return List.generate(
@@ -193,7 +193,7 @@ class NamedTypeResolver with ScopeHelpers {
           nodeForTesting: nodeForTesting,
         );
         var typeArguments = inferrer.chooseFinalTypes();
-        return element.instantiate(
+        return element.instantiateImpl(
           typeArguments: typeArguments,
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -213,7 +213,7 @@ class NamedTypeResolver with ScopeHelpers {
           argumentList,
           element.typeParameters2.length,
         );
-        return element.instantiate(
+        return element.instantiateImpl(
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
