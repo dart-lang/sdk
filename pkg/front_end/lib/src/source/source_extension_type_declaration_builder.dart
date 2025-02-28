@@ -216,10 +216,33 @@ class SourceExtensionTypeDeclarationBuilder
             typeBuilder.declaration is TypeAliasBuilder
                 ? typeBuilder.declaration as TypeAliasBuilder
                 : null;
+
         DartType interface = typeBuilder.build(
             libraryBuilder, TypeUse.extensionTypeImplementsType);
-        Message? errorMessage;
-        List<LocatedMessage>? errorContext;
+
+        TypeDeclarationBuilder? implementedDeclaration =
+            typeBuilder.computeUnaliasedDeclaration(isUsedAsClass: false);
+        if (LibraryBuilder.isFunction(implementedDeclaration, coreLibrary) ||
+            LibraryBuilder.isRecord(implementedDeclaration, coreLibrary)) {
+          Message? errorMessage;
+          List<LocatedMessage>? errorContext;
+          if (aliasBuilder != null) {
+            // Coverage-ignore-block(suite): Not run.
+            errorMessage = templateSuperExtensionTypeIsIllegalAliased
+                .withArguments(typeBuilder.fullNameForErrors, interface);
+            errorContext = [
+              messageTypedefCause.withLocation(
+                  aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
+            ];
+          } else {
+            errorMessage = templateSuperExtensionTypeIsIllegal
+                .withArguments(typeBuilder.fullNameForErrors);
+          }
+          libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
+              noLength, typeBuilder.fileUri,
+              context: errorContext);
+          continue;
+        }
 
         if (typeParameters?.isNotEmpty ?? false) {
           for (NominalParameterBuilder variable in typeParameters!) {
@@ -228,6 +251,7 @@ class SourceExtensionTypeDeclarationBuilder
                     sourceLoader: libraryBuilder.loader)
                 .variance!;
             if (!variance.greaterThanOrEqual(variable.variance)) {
+              Message? errorMessage;
               if (variable.parameter.isLegacyCovariant) {
                 errorMessage =
                     templateWrongTypeParameterVarianceInSuperinterface
@@ -239,31 +263,33 @@ class SourceExtensionTypeDeclarationBuilder
                         .withArguments(variable.variance.keyword, variable.name,
                             variance.keyword, typeBuilder.typeName!.name);
               }
+              libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
+                  noLength, typeBuilder.fileUri);
             }
-          }
-          if (errorMessage != null) {
-            libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
-                noLength, typeBuilder.fileUri,
-                context: errorContext);
-            errorMessage = null;
           }
         }
 
         if (interface is ExtensionType) {
           if (interface.nullability == Nullability.nullable) {
-            errorMessage = templateSuperExtensionTypeIsNullableAliased
+            Message? errorMessage = templateSuperExtensionTypeIsNullableAliased
                 .withArguments(typeBuilder.fullNameForErrors, interface);
+            List<LocatedMessage>? errorContext;
             if (aliasBuilder != null) {
               errorContext = [
                 messageTypedefCause.withLocation(
                     aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
               ];
             }
+            libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
+                noLength, typeBuilder.fileUri,
+                context: errorContext);
           } else {
             extensionTypeDeclaration.implements.add(interface);
           }
         } else if (interface is InterfaceType) {
           if (interface.isPotentiallyNullable) {
+            Message? errorMessage;
+            List<LocatedMessage>? errorContext;
             if (typeBuilder.nullabilityBuilder.isNullable) {
               errorMessage = templateNullableInterfaceError
                   .withArguments(typeBuilder.fullNameForErrors);
@@ -277,29 +303,16 @@ class SourceExtensionTypeDeclarationBuilder
                 ];
               }
             }
+            libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
+                noLength, typeBuilder.fileUri,
+                context: errorContext);
           } else {
-            Class cls = interface.classNode;
-            if (LibraryBuilder.isFunction(cls, coreLibrary) ||
-                LibraryBuilder.isRecord(cls, coreLibrary)) {
-              if (aliasBuilder != null) {
-                // Coverage-ignore-block(suite): Not run.
-                errorMessage = templateSuperExtensionTypeIsIllegalAliased
-                    .withArguments(typeBuilder.fullNameForErrors, interface);
-                errorContext = [
-                  messageTypedefCause.withLocation(
-                      aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
-                ];
-              } else {
-                errorMessage = templateSuperExtensionTypeIsIllegal
-                    .withArguments(typeBuilder.fullNameForErrors);
-              }
-            } else {
-              extensionTypeDeclaration.implements.add(interface);
-            }
+            extensionTypeDeclaration.implements.add(interface);
           }
         } else if (interface is TypeParameterType) {
-          errorMessage = templateSuperExtensionTypeIsTypeParameter
+          Message? errorMessage = templateSuperExtensionTypeIsTypeParameter
               .withArguments(typeBuilder.fullNameForErrors);
+          List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
             errorContext = [
@@ -307,7 +320,12 @@ class SourceExtensionTypeDeclarationBuilder
                   aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
             ];
           }
+          libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
+              noLength, typeBuilder.fileUri,
+              context: errorContext);
         } else {
+          Message? errorMessage;
+          List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             errorMessage = templateSuperExtensionTypeIsIllegalAliased
                 .withArguments(typeBuilder.fullNameForErrors, interface);
@@ -319,8 +337,6 @@ class SourceExtensionTypeDeclarationBuilder
             errorMessage = templateSuperExtensionTypeIsIllegal
                 .withArguments(typeBuilder.fullNameForErrors);
           }
-        }
-        if (errorMessage != null) {
           libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
               noLength, typeBuilder.fileUri,
               context: errorContext);

@@ -409,13 +409,13 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (_supertypeBuilder != null) {
       _supertypeBuilder = _checkSupertype(_supertypeBuilder!);
     }
-    Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder,
-        isMixinDeclaration ? TypeUse.mixinOnType : TypeUse.classExtendsType);
-    if (supertype != null &&
-        LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
-      supertype = null;
+    TypeDeclarationBuilder? supertypeDeclaration =
+        supertypeBuilder?.computeUnaliasedDeclaration(isUsedAsClass: false);
+    if (LibraryBuilder.isFunction(supertypeDeclaration, coreLibrary)) {
       _supertypeBuilder = null;
     }
+    Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder,
+        isMixinDeclaration ? TypeUse.mixinOnType : TypeUse.classExtendsType);
     if (!isMixinDeclaration &&
         actualCls.supertype != null &&
         // Coverage-ignore(suite): Not run.
@@ -440,14 +440,15 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (_mixedInTypeBuilder != null) {
       _mixedInTypeBuilder = _checkSupertype(_mixedInTypeBuilder!);
     }
-    Supertype? mixedInType =
-        _mixedInTypeBuilder?.buildMixedInType(libraryBuilder);
-    if (mixedInType != null &&
-        LibraryBuilder.isFunction(mixedInType.classNode, coreLibrary)) {
-      mixedInType = null;
+    TypeDeclarationBuilder? mixedInDeclaration =
+        _mixedInTypeBuilder?.computeUnaliasedDeclaration(isUsedAsClass: false);
+    if (LibraryBuilder.isFunction(mixedInDeclaration, coreLibrary)) {
       _mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
     }
+    Supertype? mixedInType =
+        _mixedInTypeBuilder?.buildMixedInType(libraryBuilder);
+
     actualCls.isMixinDeclaration = isMixinDeclaration;
     actualCls.mixedInType = mixedInType;
 
@@ -464,12 +465,16 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders.length; ++i) {
         interfaceBuilders[i] = _checkSupertype(interfaceBuilders[i]);
+        TypeDeclarationBuilder? implementedDeclaration = interfaceBuilders[i]
+            .computeUnaliasedDeclaration(isUsedAsClass: false);
+        if (LibraryBuilder.isFunction(implementedDeclaration, coreLibrary) &&
+            // Allow wasm to implement `Function`.
+            !libraryBuilder.mayImplementRestrictedTypes) {
+          continue;
+        }
         Supertype? supertype = interfaceBuilders[i]
             .buildSupertype(libraryBuilder, TypeUse.classImplementsType);
         if (supertype != null) {
-          if (LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
-            continue;
-          }
           // TODO(ahe): Report an error if supertype is null.
           actualCls.implementedTypes.add(supertype);
         }
