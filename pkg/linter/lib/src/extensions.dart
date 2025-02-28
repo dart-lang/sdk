@@ -312,6 +312,16 @@ extension DartTypeExtension on DartType? {
           _extendsClass(type.superclass, seenElements, className, library));
 }
 
+extension ElementAnnotationExtension on ElementAnnotation {
+  bool get isReflectiveTest => switch (element2) {
+    GetterElement(:var name3, :var library2) =>
+      name3 == 'reflectiveTest' &&
+          library2.uri.toString() ==
+              'package:test_reflective_loader/test_reflective_loader.dart',
+    _ => false,
+  };
+}
+
 extension ElementExtension on Element2? {
   Element2? get canonicalElement2 => switch (this) {
     PropertyAccessorElement2(:var variable3?) => variable3,
@@ -478,6 +488,12 @@ extension InhertanceManager3Extension on InheritanceManager3 {
 
     return getInherited3(interfaceElement.thisType, nameObj);
   }
+}
+
+extension InstanceElementExtension on InstanceElement2 {
+  bool get isReflectiveTest =>
+      this is ClassElement2 &&
+      metadata2.annotations.any((a) => a.isReflectiveTest);
 }
 
 extension InterfaceElementExtension on InterfaceElement2 {

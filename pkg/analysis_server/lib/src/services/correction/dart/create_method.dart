@@ -133,7 +133,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
         staticModifier = inStaticContext;
       }
     } else {
-      var targetClassElement = getTargetInterfaceElement2(target);
+      var targetClassElement = getTargetInterfaceElement(target);
       if (targetClassElement == null) {
         return;
       }

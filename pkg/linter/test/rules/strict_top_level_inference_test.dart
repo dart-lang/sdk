@@ -24,25 +24,6 @@ class StrictTopLevelInferenceTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.strict_top_level_inference;
 
-  void addReflectiveTestLoaderDep() {
-    // TODO(pq): share setup logic with unreachable_from_main_test
-    var testReflectiveLoaderPath = '$workspaceRootPath/test_reflective_loader';
-    var packageConfigBuilder = PackageConfigFileBuilder();
-    packageConfigBuilder.add(
-      name: 'test_reflective_loader',
-      rootPath: testReflectiveLoaderPath,
-    );
-    writeTestPackageConfig(packageConfigBuilder);
-    newFile('$testReflectiveLoaderPath/lib/test_reflective_loader.dart', r'''
-library test_reflective_loader;
-
-const Object reflectiveTest = _ReflectiveTest();
-class _ReflectiveTest {
-  const _ReflectiveTest();
-}
-''');
-  }
-
   test_constructorParameter_named() async {
     await assertDiagnostics(
       r'''

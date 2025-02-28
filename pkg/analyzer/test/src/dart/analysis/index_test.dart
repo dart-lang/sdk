@@ -1054,9 +1054,10 @@ library lib;
     await _indexTestUnit('''
 export 'lib.dart';
 ''');
-    var element = findElement.export('package:test/lib.dart').exportedLibrary!;
-    assertElementIndexText(element, r'''
-7 1:8 |'lib.dart'| IS_REFERENCED_BY qualified
+    var export = findElement.export('package:test/lib.dart');
+    var fragment = export.exportedLibrary2!.firstFragment;
+    assertLibraryFragmentIndexText(fragment, r'''
+7 1:8 |'lib.dart'|
 ''');
   }
 
@@ -1067,9 +1068,10 @@ library lib;
     await _indexTestUnit('''
 import 'lib.dart';
 ''');
-    var element = findElement.import('package:test/lib.dart').importedLibrary!;
-    assertElementIndexText(element, r'''
-7 1:8 |'lib.dart'| IS_REFERENCED_BY qualified
+    var import = findElement.import('package:test/lib.dart');
+    var fragment = import.importedLibrary2!.firstFragment;
+    assertLibraryFragmentIndexText(fragment, r'''
+7 1:8 |'lib.dart'|
 ''');
   }
 
@@ -1872,8 +1874,9 @@ void f() {
 ''');
 
     var importFind = findElement.importFind('package:test/foo.dart');
-    assertElementIndexText(importFind.importedLibrary, r'''
-7 1:8 |"foo.dart"| IS_REFERENCED_BY qualified
+    var importedFragment = importFind.importedLibrary.firstFragment;
+    assertLibraryFragmentIndexText(importedFragment, r'''
+7 1:8 |"foo.dart"|
 ''');
 
     FunctionElement bar = importFind.topFunction('bar');

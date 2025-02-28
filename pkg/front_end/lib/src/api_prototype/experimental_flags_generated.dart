@@ -254,7 +254,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag nullAwareElements = const ExperimentalFlag(
       name: 'null-aware-elements',
       isEnabledByDefault: true,
-      isExpired: true,
+      isExpired: false,
       enabledVersion: const Version(3, 8),
       experimentEnabledVersion: const Version(3, 8),
       experimentReleasedVersion: const Version(3, 8));

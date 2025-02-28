@@ -114,6 +114,11 @@ mixin MockPackagesMixin {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  Folder addFlutterTest() {
+    var packageFolder = _addFiles('flutter_test');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
   Folder addJs() {
     var packageFolder = _addFiles('js');
     return packageFolder.getChildAssumingFolder('lib');

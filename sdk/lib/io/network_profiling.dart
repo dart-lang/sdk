@@ -254,7 +254,7 @@ abstract class _SocketProfile {
                 addr.type == InternetAddress.loopbackIPv6)
             ? '[${addr.address}]'
             : addr.address;
-    _SocketStatistic(
+    _idToSocketStatistic[id.toString()] = _SocketStatistic(
       id.toString(),
       startTime: Timeline.now,
       socketType: type,

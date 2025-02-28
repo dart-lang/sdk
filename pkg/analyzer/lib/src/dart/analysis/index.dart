@@ -830,9 +830,17 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitExportDirective(ExportDirective node) {
-    var element = node.libraryExport;
-    recordUriReference(element?.exportedLibrary2, node.uri);
+  void visitExportDirective(covariant ExportDirectiveImpl node) {
+    if (node.libraryExport case var libraryExport?) {
+      if (libraryExport.exportedLibrary2 case var exportedLibrary?) {
+        assembler.addLibraryFragmentReference(
+          target: exportedLibrary.firstFragment,
+          uriOffset: node.uri.offset,
+          uriLength: node.uri.length,
+        );
+      }
+    }
+
     super.visitExportDirective(node);
   }
 
@@ -898,9 +906,17 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitImportDirective(ImportDirective node) {
-    var element = node.libraryImport;
-    recordUriReference(element?.importedLibrary2, node.uri);
+  void visitImportDirective(covariant ImportDirectiveImpl node) {
+    if (node.libraryImport case var libraryImport?) {
+      if (libraryImport.importedLibrary2 case var importedLibrary?) {
+        assembler.addLibraryFragmentReference(
+          target: importedLibrary.firstFragment,
+          uriOffset: node.uri.offset,
+          uriLength: node.uri.length,
+        );
+      }
+    }
+
     super.visitImportDirective(node);
   }
 

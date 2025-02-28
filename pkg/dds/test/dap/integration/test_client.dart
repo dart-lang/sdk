@@ -85,6 +85,7 @@ class DapTestClient {
     _subscription = _channel.listen(
       _handleMessage,
       onDone: () {
+        _isStopping = true;
         if (_pendingRequests.isNotEmpty) {
           _logger?.call(
               'Application terminated without a response to ${_pendingRequests.length} requests');
@@ -486,9 +487,13 @@ class DapTestClient {
       sendRequest(StepOutArguments(threadId: threadId));
 
   Future<void> stop() async {
+    _isStopping = true;
     _channel.close();
     await _subscription.cancel();
   }
+
+  /// Whether this client is stopping (for any shutdown reason).
+  bool _isStopping = false;
 
   /// Whether or not any `terminate()` request has been sent.
   bool get hasSentTerminateRequest => _hasSentTerminateRequest;
@@ -500,6 +505,7 @@ class DapTestClient {
   /// completes, or when a `terminated` event is received since it is not
   /// guaranteed that this request will return a response during a shutdown.
   Future<void> terminate() async {
+    _isStopping = true;
     _hasSentTerminateRequest = true;
     return Future.any([
       event('terminated').then(
@@ -565,6 +571,7 @@ class DapTestClient {
       // tests are waiting on something that will never come, they fail at
       // a useful location.
       if (message.event == 'terminated') {
+        _isStopping = true;
         unawaited(_eventController.close());
 
         if (_stderr.isNotEmpty) {
@@ -587,13 +594,30 @@ class DapTestClient {
   }
 
   /// Prints a warning if [future] takes longer than [_requestWarningDuration]
-  /// to complete.
+  /// to complete aid debugging test failures on bots from logs.
   ///
   /// Returns [future].
   Future<T> _logIfSlow<T>(String name, Future<T> future) {
-    final timer = Timer(_requestWarningDuration, () {
-      print(
-          '$name has taken longer than ${_requestWarningDuration.inSeconds}s');
+    // Use a loop to periodically check so that we can exit earlier if
+    // the test is being torn down.
+    var endTime = DateTime.now().add(_requestWarningDuration);
+    late Timer timer;
+    timer = Timer.periodic(Duration(milliseconds: 100), (_) {
+      // Shutting down, so just abort.
+      if (_isStopping) {
+        timer.cancel();
+        return;
+      }
+
+      // We've hit the warning threshold, report and then abort.
+      if (DateTime.now().isAfter(endTime)) {
+        print(
+            '$name has taken longer than ${_requestWarningDuration.inSeconds}s');
+        timer.cancel();
+        return;
+      }
+
+      // Otherwise, do nothing and check on the next tick.
     });
     return future.whenComplete(timer.cancel);
   }
