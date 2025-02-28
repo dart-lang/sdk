@@ -1114,9 +1114,14 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
     if (name.Equals(Symbols::FunctionTypeArgumentsVar())) {
       type_arguments_available = true;
       type_arguments ^= value.ptr();
-    } else if (!name.Equals(Symbols::This()) &&
-               !IsSyntheticVariableName(name) &&
-               value.ptr() != Object::optimized_out().ptr()) {
+    } else if (
+        !name.Equals(Symbols::This()) && !IsSyntheticVariableName(name) &&
+        value.ptr() != Object::optimized_out().ptr() &&
+        // TODO(57048): We currently pretend that uninitialized late variables
+        // don't exist to avoid crashing when evaluating expressions that need
+        // to access the late variables' values. The CFE team is working on a
+        // better solution.
+        value.ptr() != Object::sentinel().ptr()) {
       if (IsPrivateVariableName(name)) {
         name = Symbols::New(Thread::Current(), String::ScrubName(name));
       }
