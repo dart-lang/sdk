@@ -2438,7 +2438,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ProfileCodeTableTest) {
 // https://github.com/flutter/flutter/issues/134548
 ISOLATE_UNIT_TEST_CASE(Profiler_EnterExitIsolate) {
   EnableProfiler();
-  Profiler::SetSamplePeriod(50);  // Microseconds.
+  Profiler::UpdateFlagProfilePeriod(50);  // Microseconds.
+  Profiler::UpdateSamplePeriod();
 
   const char* kScript = "main() => null;\n";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
