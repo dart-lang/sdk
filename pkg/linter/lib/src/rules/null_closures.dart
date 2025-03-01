@@ -126,6 +126,10 @@ _instanceMethodsWithNonNullableArguments = {
       named: ['onMatch', 'onNonMatch'],
     ),
   },
+  'splitMap': {
+    NonNullableFunction('dart.core', 'Iterable', 'splitMap',
+        named: ['onMatch', 'onNonMatch']),
+  },
   'takeWhile': {
     NonNullableFunction('dart.core', 'Iterable', 'takeWhile', positional: [0]),
   },
