@@ -820,13 +820,13 @@ class ResolutionSink extends _SummaryDataWriter {
   void writeType(DartType? type) {
     if (type == null) {
       writeByte(Tag.NullType);
-    } else if (type is DynamicType) {
+    } else if (type is DynamicTypeImpl) {
       writeByte(Tag.DynamicType);
       _writeTypeAliasElementArguments(type);
-    } else if (type is FunctionType) {
+    } else if (type is FunctionTypeImpl) {
       _writeFunctionType(type);
       _writeTypeAliasElementArguments(type);
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       var typeArguments = type.typeArguments;
       var nullabilitySuffix = type.nullabilitySuffix;
       if (typeArguments.isEmpty) {
@@ -848,22 +848,22 @@ class ResolutionSink extends _SummaryDataWriter {
         _writeNullabilitySuffix(nullabilitySuffix);
       }
       _writeTypeAliasElementArguments(type);
-    } else if (type is InvalidType) {
+    } else if (type is InvalidTypeImpl) {
       writeByte(Tag.InvalidType);
       _writeTypeAliasElementArguments(type);
-    } else if (type is NeverType) {
+    } else if (type is NeverTypeImpl) {
       writeByte(Tag.NeverType);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
     } else if (type is RecordTypeImpl) {
       _writeRecordType(type);
       _writeTypeAliasElementArguments(type);
-    } else if (type is TypeParameterType) {
+    } else if (type is TypeParameterTypeImpl) {
       writeByte(Tag.TypeParameterType);
       writeElement(type.element);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
-    } else if (type is VoidType) {
+    } else if (type is VoidTypeImpl) {
       writeByte(Tag.VoidType);
       _writeTypeAliasElementArguments(type);
     } else {
@@ -960,7 +960,7 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
-  void _writeFunctionType(FunctionType type) {
+  void _writeFunctionType(FunctionTypeImpl type) {
     type = _toSyntheticFunctionType(type);
 
     writeByte(Tag.FunctionType);
@@ -1015,7 +1015,7 @@ class ResolutionSink extends _SummaryDataWriter {
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }
 
-  void _writeTypeAliasElementArguments(DartType type) {
+  void _writeTypeAliasElementArguments(TypeImpl type) {
     var alias = type.alias;
     _writeElement(alias?.element);
     if (alias != null) {
@@ -1076,7 +1076,7 @@ class ResolutionSink extends _SummaryDataWriter {
     return const <DartType>[];
   }
 
-  static FunctionType _toSyntheticFunctionType(FunctionType type) {
+  static FunctionTypeImpl _toSyntheticFunctionType(FunctionTypeImpl type) {
     var typeParameters = [for (var tp in type.typeFormals) tp.asElement2];
     if (typeParameters.isEmpty) return type;
 

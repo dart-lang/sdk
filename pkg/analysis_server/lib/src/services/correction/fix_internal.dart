@@ -1038,14 +1038,18 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddNullCheck.new,
     ExtractLocalVariable.new,
     ReplaceWithNullAware.single,
+    CreateExtensionMethod.new,
   ],
   CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
     AddNullCheck.new,
+    CreateExtensionOperator.new,
   ],
   CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
     AddNullCheck.new,
     ExtractLocalVariable.new,
     ReplaceWithNullAware.single,
+    CreateExtensionGetter.new,
+    CreateExtensionSetter.new,
   ],
   CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
     AddNullCheck.new,
@@ -1086,6 +1090,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD: [
     ChangeTo.method,
+    CreateExtensionMethod.new,
     CreateMethod.method,
   ],
   CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER: [
@@ -1131,6 +1136,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     ConvertFlutterChild.new,
     ConvertFlutterChildren.new,
   ],
+  CompileTimeErrorCode.UNDEFINED_OPERATOR: [CreateExtensionOperator.new],
   CompileTimeErrorCode.UNDEFINED_SETTER: [
     ChangeTo.getterOrSetter,
     CreateExtensionSetter.new,

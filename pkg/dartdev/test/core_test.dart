@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartdev/src/commands/analyze.dart';
@@ -20,7 +19,6 @@ import 'utils.dart';
 void main() {
   initGlobalState();
   group('DartdevCommand', _dartdevCommand);
-  group('PackageConfig', _packageConfig);
   group('Project', _project);
 }
 
@@ -110,19 +108,6 @@ void _dartdevCommand() {
   });
 }
 
-void _packageConfig() {
-  test('packages', () {
-    PackageConfig packageConfig = PackageConfig(jsonDecode(_packageData));
-    expect(packageConfig.packages, isNotEmpty);
-  });
-
-  test('hasDependency', () {
-    PackageConfig packageConfig = PackageConfig(jsonDecode(_packageData));
-    expect(packageConfig.hasDependency('test'), isFalse);
-    expect(packageConfig.hasDependency('lints'), isTrue);
-  });
-}
-
 void _project() {
   test('hasPubspecFile positive', () {
     final p = project();
@@ -138,43 +123,4 @@ void _project() {
     Project coreProj = Project.fromDirectory(p.dir);
     expect(coreProj.hasPubspecFile, isFalse);
   });
-
-  test('hasPackageConfigFile positive', () {
-    final p = project();
-    Project coreProj = Project.fromDirectory(p.dir);
-    expect(coreProj.hasPackageConfigFile, isTrue);
-    expect(coreProj.packageConfig, isNotNull);
-    expect(coreProj.packageConfig!.packages, isNotEmpty);
-  });
-
-  test('hasPackageConfigFile negative', () {
-    final p = project();
-    var packageConfig =
-        File(path.join(p.dirPath, '.dart_tool/package_config.json'));
-    packageConfig.deleteSync();
-    Project coreProj = Project.fromDirectory(p.dir);
-    expect(coreProj.hasPackageConfigFile, isFalse);
-  });
 }
-
-const String _packageData = '''{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "lints",
-      "rootUri": "file:///Users/.../.pub-cache/hosted/pub.dartlang.org/lints-1.0.1",
-      "packageUri": "lib/",
-      "languageVersion": "2.1"
-    },
-    {
-      "name": "args",
-      "rootUri": "../",
-      "packageUri": "lib/",
-      "languageVersion": "2.3"
-    }
-  ],
-  "generated": "2020-03-01T03:38:14.906205Z",
-  "generator": "pub",
-  "generatorVersion": "2.8.0-dev.10.0"
-}
-''';

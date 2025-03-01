@@ -18,7 +18,7 @@ class FindElement2 extends _FindElementBase {
   @override
   LibraryFragment get libraryFragment => unit.declaredFragment!;
 
-  LibraryExport export(String targetUri) {
+  LibraryExportElementImpl export(String targetUri) {
     LibraryExport? result;
 
     for (var export in libraryFragment.libraryExports2) {
@@ -32,7 +32,7 @@ class FindElement2 extends _FindElementBase {
     }
 
     if (result != null) {
-      return result;
+      return result as LibraryExportElementImpl;
     }
     throw StateError('Not found: $targetUri');
   }
@@ -50,7 +50,8 @@ class FindElement2 extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  LibraryImport import(String targetUri, {bool mustBeUnique = true}) {
+  LibraryImportElementImpl import(String targetUri,
+      {bool mustBeUnique = true}) {
     LibraryImport? importElement;
 
     for (var libraryFragment in libraryFragment.withEnclosing2) {
@@ -67,7 +68,7 @@ class FindElement2 extends _FindElementBase {
     }
 
     if (importElement != null) {
-      return importElement;
+      return importElement as LibraryImportElementImpl;
     }
     throw StateError('Not found: $targetUri');
   }
@@ -222,7 +223,7 @@ class FindElement2 extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  LibraryFragment part(String targetUri) {
+  CompilationUnitElementImpl part(String targetUri) {
     LibraryFragment? result;
 
     for (var partElement in libraryFragment.partIncludes) {
@@ -239,7 +240,7 @@ class FindElement2 extends _FindElementBase {
     }
 
     if (result != null) {
-      return result;
+      return result as CompilationUnitElementImpl;
     }
     throw StateError('Not found: $targetUri');
   }

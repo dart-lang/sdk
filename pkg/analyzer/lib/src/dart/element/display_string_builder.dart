@@ -221,7 +221,7 @@ class ElementDisplayStringBuilder {
       return;
     }
 
-    _write(type.element.name);
+    _write(type.element3.name3 ?? '<null>');
     _writeTypeArguments(type.typeArguments);
     _writeNullability(type.nullabilitySuffix);
   }
@@ -427,7 +427,7 @@ class ElementDisplayStringBuilder {
   bool _maybeWriteTypeAlias(DartType type) {
     if (preferTypeAlias) {
       if (type.alias case var alias?) {
-        _write(alias.element.name);
+        _write(alias.element2.name3 ?? '<null>');
         _writeTypeArguments(alias.typeArguments);
         _writeNullability(type.nullabilitySuffix);
         return true;
@@ -614,20 +614,20 @@ class ElementDisplayStringBuilder {
   }
 
   static FunctionTypeImpl _uniqueTypeParameters(FunctionTypeImpl type) {
-    if (type.typeFormals.isEmpty) {
+    if (type.typeParameters.isEmpty) {
       return type;
     }
 
-    var referencedTypeParameters = <TypeParameterElement>{};
+    var referencedTypeParameters = <TypeParameterElement2>{};
 
     void collectTypeParameters(DartType? type) {
       if (type is TypeParameterType) {
-        referencedTypeParameters.add(type.element);
+        referencedTypeParameters.add(type.element3);
       } else if (type is FunctionType) {
-        for (var typeParameter in type.typeFormals) {
+        for (var typeParameter in type.typeParameters) {
           collectTypeParameters(typeParameter.bound);
         }
-        for (var parameter in type.parameters) {
+        for (var parameter in type.formalParameters) {
           collectTypeParameters(parameter.type);
         }
         collectTypeParameters(type.returnType);
@@ -639,7 +639,7 @@ class ElementDisplayStringBuilder {
     }
 
     collectTypeParameters(type);
-    referencedTypeParameters.removeAll(type.typeFormals);
+    referencedTypeParameters.removeAll(type.typeParameters);
 
     var namesToAvoid = <String>{};
     for (var typeParameter in referencedTypeParameters) {

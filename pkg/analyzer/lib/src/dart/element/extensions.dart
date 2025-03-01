@@ -18,7 +18,7 @@ import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
   bool get isExtensionType {
-    return element is ExtensionTypeElement;
+    return element3 is ExtensionTypeElement2;
   }
 }
 
@@ -91,17 +91,16 @@ extension ElementAnnotationExtensions on ElementAnnotation {
 
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
-    var element = this.element;
-    InterfaceElement? interfaceElement;
-    if (element is PropertyAccessorElement) {
-      if (element.isGetter) {
-        var type = element.returnType;
-        if (type is InterfaceType) {
-          interfaceElement = type.element;
-        }
+    var element = element2;
+    InterfaceElement2? interfaceElement;
+
+    if (element is GetterElement) {
+      var type = element.returnType;
+      if (type is InterfaceType) {
+        interfaceElement = type.element3;
       }
-    } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement3.augmented.firstFragment;
+    } else if (element is ConstructorElement2) {
+      interfaceElement = element.enclosingElement2;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};

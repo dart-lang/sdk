@@ -2,60 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element? _readElement(AstNode node) {
+Element2? _readElement2(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
-    return parent.readElement;
+    return parent.readElement2;
   }
   if (parent is PostfixExpression && parent.operand == node) {
-    return parent.readElement;
+    return parent.readElement2;
   }
   if (parent is PrefixExpression && parent.operand == node) {
-    return parent.readElement;
+    return parent.readElement2;
   }
 
   if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _readElement(parent);
+    return _readElement2(parent);
   }
   if (parent is PropertyAccess && parent.propertyName == node) {
-    return _readElement(parent);
-  }
-  return null;
-}
-
-// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element? _writeElement(AstNode node) {
-  var parent = node.parent;
-
-  if (parent is AssignmentExpression && parent.leftHandSide == node) {
-    return parent.writeElement;
-  }
-  if (parent is PostfixExpression && parent.operand == node) {
-    return parent.writeElement;
-  }
-  if (parent is PrefixExpression && parent.operand == node) {
-    return parent.writeElement;
-  }
-
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _writeElement(parent);
-  }
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _writeElement(parent);
+    return _readElement2(parent);
   }
   return null;
 }
@@ -226,12 +199,8 @@ extension FormalParameterExtension on FormalParameter {
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 extension IdentifierExtension on Identifier {
-  Element? get readElement {
-    return _readElement(this);
-  }
-
   Element2? get readElement2 {
-    return _readElement(this).asElement2;
+    return _readElement2(this);
   }
 
   SimpleIdentifier get simpleName {
@@ -243,16 +212,8 @@ extension IdentifierExtension on Identifier {
     }
   }
 
-  Element? get writeElement {
-    return _writeElement(this);
-  }
-
   Element2? get writeElement2 {
-    return _writeElement(this).asElement2;
-  }
-
-  Element? get writeOrReadElement {
-    return _writeElement(this) ?? staticElement;
+    return _writeElement2(this);
   }
 
   Element2? get writeOrReadElement2 {
@@ -275,18 +236,18 @@ extension IdentifierImplExtension on IdentifierImpl {
         importPrefix: ImportPrefixReferenceImpl(
           name: self.prefix.token,
           period: self.period,
-        )..element = self.prefix.staticElement,
+        )..element2 = self.prefix.element,
         name2: self.identifier.token,
         typeArguments: typeArguments,
         question: question,
-      )..element2 = self.identifier.staticElement?.asElement2;
+      )..element2 = self.identifier.element;
     } else if (self is SimpleIdentifierImpl) {
       return NamedTypeImpl(
         importPrefix: null,
         name2: self.token,
         typeArguments: typeArguments,
         question: question,
-      )..element2 = self.staticElement?.asElement2;
+      )..element2 = self.element;
     } else {
       throw UnimplementedError('(${self.runtimeType}) $self');
     }
@@ -295,10 +256,6 @@ extension IdentifierImplExtension on IdentifierImpl {
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 extension IndexExpressionExtension on IndexExpression {
-  Element? get writeOrReadElement {
-    return _writeElement(this) ?? staticElement;
-  }
-
   Element2? get writeOrReadElement2 {
     return _writeElement2(this) ?? element;
   }

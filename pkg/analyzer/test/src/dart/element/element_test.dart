@@ -1123,7 +1123,7 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
       interfaces: [AofC],
     );
     var targetType = interfaceTypeNone3(B);
-    var result = targetType.asInstanceOf(A);
+    var result = targetType.asInstanceOf2(A.asElement2);
     expect(result, AofC);
   }
 
@@ -1152,7 +1152,7 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
       typeArguments: [interfaceTypeNone3(C)],
       nullabilitySuffix: NullabilitySuffix.none,
     );
-    var result = targetType.asInstanceOf(A);
+    var result = targetType.asInstanceOf2(A.asElement2);
     expect(
       result,
       A.instantiateImpl(
@@ -1166,21 +1166,6 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
     expect(interfaceTypeNone3(class_3(name: 'A')), isNotNull);
   }
 
-  void test_getAccessors() {
-    ClassElementImpl typeElement = class_3(name: 'A');
-    var getterG = ElementFactory.getterElement("g", false, intNone);
-    var getterH = ElementFactory.getterElement("h", false, intNone);
-    typeElement.accessors = [getterG, getterH];
-    InterfaceType type = interfaceTypeNone3(typeElement);
-    expect(type.accessors.length, 2);
-  }
-
-  void test_getAccessors_empty() {
-    ClassElementImpl typeElement = class_3(name: 'A');
-    InterfaceType type = interfaceTypeNone3(typeElement);
-    expect(type.accessors.length, 0);
-  }
-
   void test_getConstructors() {
     ClassElementImpl typeElement = class_3(name: 'A');
     ConstructorElementImpl constructorOne =
@@ -1189,20 +1174,20 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
         ElementFactory.constructorElement(typeElement, 'two', false);
     typeElement.constructors = [constructorOne, constructorTwo];
     InterfaceType type = interfaceTypeNone3(typeElement);
-    expect(type.constructors, hasLength(2));
+    expect(type.constructors2, hasLength(2));
   }
 
   void test_getConstructors_empty() {
     ClassElementImpl typeElement = class_3(name: 'A');
     typeElement.constructors = const <ConstructorElementImpl>[];
     InterfaceType type = interfaceTypeNone3(typeElement);
-    expect(type.constructors, isEmpty);
+    expect(type.constructors2, isEmpty);
   }
 
   void test_getElement() {
     ClassElementImpl typeElement = class_3(name: 'A');
     InterfaceType type = interfaceTypeNone3(typeElement);
-    expect(type.element, typeElement);
+    expect(type.element3.asElement, typeElement);
   }
 
   void test_getGetter_implemented() {
@@ -1214,7 +1199,7 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
     var getterG = ElementFactory.getterElement(getterName, false, intNone);
     classA.accessors = [getterG];
     InterfaceType typeA = interfaceTypeNone3(classA);
-    expect(typeA.getGetter(getterName), same(getterG));
+    expect(typeA.getGetter2(getterName).asElement, same(getterG));
   }
 
   void test_getGetter_parameterized() {
@@ -1250,7 +1235,22 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
     //
     var classA = class_3(name: 'A');
     InterfaceType typeA = interfaceTypeNone3(classA);
-    expect(typeA.getGetter("g"), isNull);
+    expect(typeA.getGetter2("g").asElement, isNull);
+  }
+
+  void test_getGetters() {
+    ClassElementImpl typeElement = class_3(name: 'A');
+    var getterG = ElementFactory.getterElement("g", false, intNone);
+    var getterH = ElementFactory.getterElement("h", false, intNone);
+    typeElement.accessors = [getterG, getterH];
+    InterfaceType type = interfaceTypeNone3(typeElement);
+    expect(type.getters.length, 2);
+  }
+
+  void test_getGetters_empty() {
+    ClassElementImpl typeElement = class_3(name: 'A');
+    InterfaceType type = interfaceTypeNone3(typeElement);
+    expect(type.getters.length, 0);
   }
 
   void test_getInterfaces_nonParameterized() {
@@ -1334,7 +1334,7 @@ A<int>?
         ElementFactory.methodElement(methodName, intNone);
     classA.methods = [methodM];
     InterfaceType typeA = interfaceTypeNone3(classA);
-    expect(typeA.getMethod(methodName), same(methodM));
+    expect(typeA.getMethod2(methodName).asElement, same(methodM));
   }
 
   void test_getMethod_parameterized_usesTypeParameter() {
@@ -1368,7 +1368,7 @@ A<int>?
     //
     var classA = class_3(name: 'A');
     InterfaceType typeA = interfaceTypeNone3(classA);
-    expect(typeA.getMethod("m"), isNull);
+    expect(typeA.getMethod2("m"), isNull);
   }
 
   void test_getMethods() {
@@ -1377,13 +1377,13 @@ A<int>?
     MethodElementImpl methodTwo = ElementFactory.methodElement("two", intNone);
     typeElement.methods = [methodOne, methodTwo];
     InterfaceType type = interfaceTypeNone3(typeElement);
-    expect(type.methods.length, 2);
+    expect(type.methods2.length, 2);
   }
 
   void test_getMethods_empty() {
     ClassElementImpl typeElement = class_3(name: 'A');
     InterfaceType type = interfaceTypeNone3(typeElement);
-    expect(type.methods.length, 0);
+    expect(type.methods2.length, 0);
   }
 
   void test_getMixins_nonParameterized() {
@@ -1462,7 +1462,7 @@ A<int>?
     var setterS = ElementFactory.setterElement(setterName, false, intNone);
     classA.accessors = [setterS];
     InterfaceType typeA = interfaceTypeNone3(classA);
-    expect(typeA.getSetter(setterName), same(setterS));
+    expect(typeA.getSetter2(setterName).asElement, same(setterS));
   }
 
   void test_getSetter_parameterized() {
@@ -1495,7 +1495,7 @@ A<int>?
     //
     var classA = class_3(name: 'A');
     InterfaceType typeA = interfaceTypeNone3(classA);
-    expect(typeA.getSetter("s"), isNull);
+    expect(typeA.getSetter2("s").asElement, isNull);
   }
 
   void test_getSuperclass_nonParameterized() {

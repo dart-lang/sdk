@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements, as_much_as_we_can
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -45,6 +43,7 @@ abstract class TypeSystem {
   DartType greatestLowerBound(DartType T1, DartType T2);
 
   /// Instantiate the given [element] with default type arguments.
+  @Deprecated('Use instantiateInterfaceToBounds2() instead')
   InterfaceType instantiateInterfaceToBounds({
     required InterfaceElement element,
     required NullabilitySuffix nullabilitySuffix,
@@ -58,6 +57,7 @@ abstract class TypeSystem {
   });
 
   /// Instantiate the given [element] with default type arguments.
+  @Deprecated('Use instantiateTypeAliasToBounds2() instead')
   DartType instantiateTypeAliasToBounds({
     required TypeAliasElement element,
     required NullabilitySuffix nullabilitySuffix,

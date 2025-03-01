@@ -127,6 +127,7 @@ class ElementFactory {
     var constructor = name == null || name == 'new'
         ? ConstructorElementImpl('', offset)
         : ConstructorElementImpl(name, offset);
+    constructor.name2 = name ?? 'new';
     if (name != null) {
       if (name.isEmpty) {
         constructor.nameEnd = definingClass.name.length;
@@ -233,6 +234,7 @@ class ElementFactory {
     MethodElementImpl method = MethodElementImpl(methodName, 0);
     method.parameters = _requiredParameters(argumentTypes);
     method.returnType = returnType;
+    MethodElementImpl2(Reference.root(), methodName, method);
     return method;
   }
 

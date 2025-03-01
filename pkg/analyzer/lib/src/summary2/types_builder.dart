@@ -5,7 +5,7 @@
 // ignore_for_file: analyzer_use_new_elements
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -24,7 +24,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
-  if (type.element is! ClassElement) {
+  if (type.element3 is! ClassElement2) {
     return false;
   }
   return _isInterfaceTypeInterface(type);
@@ -32,10 +32,10 @@ bool _isInterfaceTypeClass(InterfaceType type) {
 
 /// Return `true` if [type] can be used as an interface or a mixin.
 bool _isInterfaceTypeInterface(InterfaceType type) {
-  if (type.element is EnumElement) {
+  if (type.element3 is EnumElement2) {
     return false;
   }
-  if (type.element is ExtensionTypeElement) {
+  if (type.element3 is ExtensionTypeElement2) {
     return false;
   }
   if (type.isDartCoreFunction || type.isDartCoreNull) {
@@ -496,11 +496,11 @@ class _MixinInference {
   }
 
   InterfaceTypeImpl? _findInterfaceTypeForElement(
-    InterfaceElement element,
+    InterfaceElement2 element,
     List<InterfaceTypeImpl> interfaceTypes,
   ) {
     for (var interfaceType in interfaceTypes) {
-      if (interfaceType.element == element) return interfaceType;
+      if (interfaceType.element3 == element) return interfaceType;
     }
     return null;
   }
@@ -512,7 +512,7 @@ class _MixinInference {
     var result = <InterfaceTypeImpl>[];
     for (var constraint in constraints) {
       var interfaceType = _findInterfaceTypeForElement(
-        constraint.element,
+        constraint.element3,
         interfaceTypes,
       );
 

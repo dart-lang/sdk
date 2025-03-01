@@ -3937,7 +3937,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (invocation.methodName.name == 'catchError' &&
         targetType is InterfaceTypeImpl) {
       var instanceOfFuture =
-          targetType.asInstanceOf(typeProvider.futureElement);
+          targetType.asInstanceOf2(typeProvider.futureElement2);
       if (instanceOfFuture != null) {
         var targetFutureType = instanceOfFuture.typeArguments.first;
         var expectedReturnType = typeProvider.futureOrType(targetFutureType);

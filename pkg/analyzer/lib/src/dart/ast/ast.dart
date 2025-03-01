@@ -820,6 +820,10 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
     return element.asElement2;
   }
 
+  set element2(Element2? value) {
+    element = value?.asElement;
+  }
+
   @override
   Token get endToken => name;
 

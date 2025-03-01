@@ -195,8 +195,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     covariant AssignedVariablePatternImpl node,
   ) {
     var name = node.name.lexeme;
-    var element = _nameScope.lookup(name).getter;
-    node.element = element;
+    var element = _nameScope.lookup(name).getter2;
+    node.element2 = element;
 
     if (element == null) {
       _errorReporter.atToken(
@@ -204,8 +204,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
         arguments: [name],
       );
-    } else if (!(element is LocalVariableElement ||
-        element is ParameterElement)) {
+    } else if (!(element is LocalVariableElement2 ||
+        element is FormalParameterElement)) {
       _errorReporter.atToken(
         node.name,
         CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,

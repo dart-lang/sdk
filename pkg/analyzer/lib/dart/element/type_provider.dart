@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -15,6 +13,7 @@ import 'package:meta/meta.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeProvider {
   /// Return the element representing the built-in class `bool`.
+  @Deprecated('Use boolElement2 instead')
   ClassElement get boolElement;
 
   /// Return the element representing the built-in class `bool`.
@@ -31,6 +30,7 @@ abstract class TypeProvider {
   InterfaceType get deprecatedType;
 
   /// Return the element representing the built-in class `double`.
+  @Deprecated('Use doubleElement2 instead')
   ClassElement get doubleElement;
 
   /// Return the element representing the built-in class `double`.
@@ -45,6 +45,7 @@ abstract class TypeProvider {
 
   /// Return the element representing the built-in type `Enum`, or `null` if
   /// the SDK does not have definition of `Enum`.
+  @Deprecated('Use enumElement2 instead')
   ClassElement? get enumElement;
 
   /// Return the element representing the built-in type `Enum`, or `null` if
@@ -63,6 +64,7 @@ abstract class TypeProvider {
   InterfaceType get futureDynamicType;
 
   /// Return the element representing the built-in class `Future`.
+  @Deprecated('Use futureElement2 instead')
   ClassElement get futureElement;
 
   /// Return the element representing the built-in class `Future`.
@@ -73,6 +75,7 @@ abstract class TypeProvider {
   InterfaceType get futureNullType;
 
   /// Return the element representing the built-in class `FutureOr`.
+  @Deprecated('Use futureOrElement2 instead')
   ClassElement get futureOrElement;
 
   /// Return the element representing the built-in class `FutureOr`.
@@ -83,6 +86,7 @@ abstract class TypeProvider {
   InterfaceType get futureOrNullType;
 
   /// Return the element representing the built-in class `int`.
+  @Deprecated('Use intElement2 instead')
   ClassElement get intElement;
 
   /// Return the element representing the built-in class `int`.
@@ -96,6 +100,7 @@ abstract class TypeProvider {
   InterfaceType get iterableDynamicType;
 
   /// Return the element representing the built-in class `Iterable`.
+  @Deprecated('Use iterableElement2 instead')
   ClassElement get iterableElement;
 
   /// Return the element representing the built-in class `Iterable`.
@@ -106,6 +111,7 @@ abstract class TypeProvider {
   InterfaceType get iterableObjectType;
 
   /// Return the element representing the built-in class `List`.
+  @Deprecated('Use listElement2 instead')
   ClassElement get listElement;
 
   /// Return the element representing the built-in class `List`.
@@ -113,6 +119,7 @@ abstract class TypeProvider {
   ClassElement2 get listElement2;
 
   /// Return the element representing the built-in class `Map`.
+  @Deprecated('Use mapElement2 instead')
   ClassElement get mapElement;
 
   /// Return the element representing the built-in class `Map`.
@@ -126,6 +133,7 @@ abstract class TypeProvider {
   NeverType get neverType;
 
   /// Return the element representing the built-in class `Null`.
+  @Deprecated('Use nullElement2 instead')
   ClassElement get nullElement;
 
   /// Return the element representing the built-in class `Null`.
@@ -136,6 +144,7 @@ abstract class TypeProvider {
   InterfaceType get nullType;
 
   /// Return the element representing the built-in class `num`.
+  @Deprecated('Use numElement2 instead')
   ClassElement get numElement;
 
   /// Return the element representing the built-in class `num`.
@@ -146,6 +155,7 @@ abstract class TypeProvider {
   InterfaceType get numType;
 
   /// Return the element representing the built-in class `Object`.
+  @Deprecated('Use objectElement2 instead')
   ClassElement get objectElement;
 
   /// Return the element representing the built-in class `Object`.
@@ -159,6 +169,7 @@ abstract class TypeProvider {
   InterfaceType get objectType;
 
   /// Return the element representing the built-in class `Record`.
+  @Deprecated('Use recordElement2 instead')
   ClassElement get recordElement;
 
   /// Return the element representing the built-in class `Record`.
@@ -169,6 +180,7 @@ abstract class TypeProvider {
   InterfaceType get recordType;
 
   /// Return the element representing the built-in class `Set`.
+  @Deprecated('Use setElement2 instead')
   ClassElement get setElement;
 
   /// Return the element representing the built-in class `Set`.
@@ -182,6 +194,7 @@ abstract class TypeProvider {
   InterfaceType get streamDynamicType;
 
   /// Return the element representing the built-in class `Stream`.
+  @Deprecated('Use streamElement2 instead')
   ClassElement get streamElement;
 
   /// Return the element representing the built-in class `Stream`.
@@ -189,6 +202,7 @@ abstract class TypeProvider {
   ClassElement2 get streamElement2;
 
   /// Return the element representing the built-in class `String`.
+  @Deprecated('Use stringElement2 instead')
   ClassElement get stringElement;
 
   /// Return the element representing the built-in class `String`.
@@ -199,6 +213,7 @@ abstract class TypeProvider {
   InterfaceType get stringType;
 
   /// Return the element representing the built-in class `Symbol`.
+  @Deprecated('Use symbolElement2 instead')
   ClassElement get symbolElement;
 
   /// Return the element representing the built-in class `Symbol`.
@@ -223,6 +238,7 @@ abstract class TypeProvider {
   InterfaceType futureType(DartType valueType);
 
   /// Return `true` if [element] cannot be extended, implemented, or mixed in.
+  @Deprecated('Use isNonSubtypableClass2() instead')
   bool isNonSubtypableClass(InterfaceElement element);
 
   /// Return `true` if [element] cannot be extended, implemented, or mixed in.

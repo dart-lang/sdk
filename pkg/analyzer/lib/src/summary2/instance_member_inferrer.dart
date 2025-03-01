@@ -556,9 +556,9 @@ class InstanceMemberInferrer {
 
   /// Infer type information for all of the instance members in the given
   /// interface [type].
-  void _inferType(InterfaceType? type) {
+  void _inferType(InterfaceTypeImpl? type) {
     if (type != null) {
-      var element = type.element as InterfaceElementImpl;
+      var element = type.element;
       _inferClass(element);
     }
   }

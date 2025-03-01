@@ -899,6 +899,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     builder.writeInterfaceType(this);
   }
 
+  @Deprecated('Use asInstanceOf2() instead')
   @override
   InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) {
     if (element == targetElement) {
@@ -922,7 +923,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     for (var rawInterface in element.allSupertypes) {
-      var realElement = (rawInterface.element as InterfaceFragment).element;
+      var realElement = rawInterface.element3;
       if (realElement == targetElement) {
         var substitution = Substitution.fromInterfaceType(this);
         return substitution.substituteType(rawInterface) as InterfaceTypeImpl;
@@ -937,6 +938,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       PropertyAccessorMember.from(element.getGetter(getterName), this);
 
   @override
+  GetterElement2OrMember? getGetter2(String getterName) =>
+      getGetter(getterName)?.asElement2 as GetterElement2OrMember?;
+
+  @override
   MethodElementOrMember? getMethod(String methodName) =>
       MethodMember.from(element.getMethod(methodName), this);
 
@@ -948,6 +953,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   PropertyAccessorElement? getSetter(String setterName) =>
       PropertyAccessorMember.from(element.getSetter(setterName), this);
+
+  @override
+  SetterElement2OrMember? getSetter2(String setterName) =>
+      getSetter(setterName)?.asElement2 as SetterElement2OrMember?;
 
   @override
   ConstructorElementMixin? lookUpConstructor(
@@ -1533,7 +1542,6 @@ abstract class TypeImpl implements DartType, SharedType {
   /// Initialize a newly created type.
   const TypeImpl({this.alias});
 
-  // TODO(scheglov): remove it after element model migration.
   @override
   Element? get element => element3?.asElement;
 
@@ -1736,9 +1744,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     // In principle we ought to be able to do `return bound.isBottom;`, but that
     // goes into an infinite loop with illegal code in which type parameter
     // bounds form a loop.  So we have to be more careful.
-    Set<TypeParameterElement> seenTypes = {};
+    Set<TypeParameterElement2> seenTypes = {};
     TypeParameterType type = this;
-    while (seenTypes.add(type.element)) {
+    while (seenTypes.add(type.element3)) {
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         return false;
       }

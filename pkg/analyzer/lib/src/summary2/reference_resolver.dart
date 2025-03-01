@@ -5,7 +5,6 @@
 // ignore_for_file: analyzer_use_new_elements
 
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
@@ -51,17 +50,17 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       var identifier = node.name;
       if (identifier is PrefixedIdentifierImpl) {
         var prefixNode = identifier.prefix;
-        var prefixElement = scope.lookup(prefixNode.name).getter;
-        prefixNode.staticElement = prefixElement;
+        var prefixElement = scope.lookup(prefixNode.name).getter2;
+        prefixNode.element = prefixElement;
 
-        if (prefixElement is PrefixElement) {
+        if (prefixElement is PrefixElement2) {
           var name = identifier.identifier.name;
-          var element = prefixElement.scope.lookup(name).getter;
-          identifier.identifier.staticElement = element;
+          var element = prefixElement.scope.lookup(name).getter2;
+          identifier.identifier.element = element;
         }
       } else if (identifier is SimpleIdentifierImpl) {
-        var element = scope.lookup(identifier.name).getter;
-        identifier.staticElement = element;
+        var element = scope.lookup(identifier.name).getter2;
+        identifier.element = element;
         return;
       }
     }
@@ -443,10 +442,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     if (importPrefix != null) {
       var prefixToken = importPrefix.name;
       var prefixName = prefixToken.lexeme;
-      var prefixElement = scope.lookup(prefixName).getter;
-      importPrefix.element = prefixElement;
+      var prefixElement = scope.lookup(prefixName).getter2;
+      importPrefix.element2 = prefixElement;
 
-      if (prefixElement is PrefixElement) {
+      if (prefixElement is PrefixElement2) {
         var name = node.name2.lexeme;
         element = prefixElement.scope.lookup(name).getter2;
       }

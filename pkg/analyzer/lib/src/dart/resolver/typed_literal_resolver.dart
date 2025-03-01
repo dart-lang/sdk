@@ -550,11 +550,11 @@ class TypedLiteralResolver {
     // a different subtype relationship to `Iterable<Object>` and
     // `Map<Object, Object>` is if the context type is `_`.
     if (contextType != null) {
-      var contextIterableType = contextType.asInstanceOf(
-        _typeProvider.iterableElement,
+      var contextIterableType = contextType.asInstanceOf2(
+        _typeProvider.iterableElement2,
       );
-      var contextMapType = contextType.asInstanceOf(
-        _typeProvider.mapElement,
+      var contextMapType = contextType.asInstanceOf2(
+        _typeProvider.mapElement2,
       );
       var contextIsIterable = contextIterableType != null;
       var contextIsMap = contextMapType != null;

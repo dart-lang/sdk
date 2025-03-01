@@ -290,6 +290,24 @@ abstract class IntegrationTest {
   /// Stream controller for [onServerError].
   final _onServerError = StreamController<ServerErrorParams>(sync: true);
 
+  /// Reports that an unexpected error has occurred while setting up an
+  /// analyzer plugin, or during a plugin's execution.
+  ///
+  /// It is not possible to subscribe to or unsubscribe from this notification.
+  ///
+  /// Parameters
+  ///
+  /// message: String
+  ///
+  ///   The error message indicating what kind of error was encountered.
+  late final Stream<ServerPluginErrorParams> onServerPluginError =
+      _onServerPluginError.stream.asBroadcastStream();
+
+  /// Stream controller for [onServerPluginError].
+  final _onServerPluginError = StreamController<ServerPluginErrorParams>(
+    sync: true,
+  );
+
   /// The stream of entries describing events happened in the server.
   ///
   /// Parameters
@@ -3067,6 +3085,16 @@ abstract class IntegrationTest {
         outOfTestExpect(params, isServerErrorParams);
         _onServerError.add(
           ServerErrorParams.fromJson(
+            decoder,
+            'params',
+            params,
+            clientUriConverter: uriConverter,
+          ),
+        );
+      case 'server.pluginError':
+        outOfTestExpect(params, isServerPluginErrorParams);
+        _onServerPluginError.add(
+          ServerPluginErrorParams.fromJson(
             decoder,
             'params',
             params,

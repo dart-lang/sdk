@@ -669,6 +669,7 @@ class TypeSystemImpl implements TypeSystem {
     return inferrer.chooseFinalTypes();
   }
 
+  @Deprecated('Use instantiateInterfaceToBounds2() instead')
   @override
   InterfaceTypeImpl instantiateInterfaceToBounds({
     required covariant InterfaceElementImpl element,
@@ -711,6 +712,7 @@ class TypeSystemImpl implements TypeSystem {
     }
   }
 
+  @Deprecated('Use instantiateTypeAliasToBounds2() instead')
   @override
   TypeImpl instantiateTypeAliasToBounds({
     required covariant TypeAliasElementImpl element,

@@ -758,6 +758,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard - 20,
     "Create extension method '{0}'",
   );
+  static const CREATE_EXTENSION_OPERATOR = FixKind(
+    'dart.fix.create.extension.operator',
+    DartFixKindPriority.standard - 20,
+    "Create extension operator '{0}'",
+  );
   static const CREATE_EXTENSION_SETTER = FixKind(
     'dart.fix.create.extension.setter',
     DartFixKindPriority.standard - 20,

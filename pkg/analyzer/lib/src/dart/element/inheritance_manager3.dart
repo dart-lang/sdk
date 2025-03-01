@@ -133,6 +133,7 @@ class InheritanceManager3 {
 
   /// Return the result of [getInherited2] with [type] substitution.
   ExecutableElementOrMember? getInherited(InterfaceType type, Name name) {
+    type as InterfaceTypeImpl;
     var rawElement = getInherited2(type.element, name);
     if (rawElement == null) {
       return null;
@@ -286,6 +287,7 @@ class InheritanceManager3 {
     int forMixinIndex = -1,
     bool forSuper = false,
   }) {
+    type as InterfaceTypeImpl;
     var rawElement = getMember2(
       type.element,
       name,
@@ -582,6 +584,7 @@ class InheritanceManager3 {
 
     Interface? superTypeInterface;
     if (superType != null) {
+      superType as InterfaceTypeImpl;
       var substitution = Substitution.fromInterfaceType(superType);
       superTypeInterface = getInterface(superType.element);
       _addCandidates(
@@ -791,6 +794,7 @@ class InheritanceManager3 {
     var extensionCandidates = <Name, _ExtensionTypeCandidates>{};
     var notExtensionCandidates = <Name, _ExtensionTypeCandidates>{};
     for (var interface in augmented.interfaces) {
+      interface as InterfaceTypeImpl;
       var substitution = Substitution.fromInterfaceType(interface);
       for (var entry in getInterface(interface.element).map.entries) {
         var name = entry.key;
