@@ -5282,6 +5282,7 @@ ObjectPtr Instance::EvaluateCompiledExpression(
 #if defined(DEBUG)
   for (intptr_t i = 0; i < arguments.Length(); ++i) {
     ASSERT(arguments.At(i) != Object::optimized_out().ptr());
+    ASSERT(arguments.At(i) != Object::sentinel().ptr());
   }
 #endif  // defined(DEBUG)
 
@@ -8827,13 +8828,9 @@ bool Function::FfiIsLeaf() const {
     UNREACHABLE();
   }
   const auto& pragma_value_class = Class::Handle(zone, pragma_value.clazz());
-  const auto& pragma_value_fields =
-      Array::Handle(zone, pragma_value_class.fields());
-  ASSERT(pragma_value_fields.Length() >= 1);
   const auto& is_leaf_field = Field::Handle(
-      zone,
-      Field::RawCast(pragma_value_fields.At(pragma_value_fields.Length() - 1)));
-  ASSERT(is_leaf_field.name() == Symbols::isLeaf().ptr());
+      zone, pragma_value_class.LookupFieldAllowPrivate(Symbols::isLeaf()));
+  ASSERT(!is_leaf_field.IsNull());
   return Bool::Handle(zone, Bool::RawCast(pragma_value.GetField(is_leaf_field)))
       .value();
 }

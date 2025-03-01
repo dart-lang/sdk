@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class StrictTopLevelInferenceTest extends LintRuleTest {
   @override
-  bool get addReflectiveTestLoaderPackageDep => true;
+  bool get addTestReflectiveLoaderPackageDep => true;
 
   @override
   List<ErrorCode> get ignoredErrorCodes => [

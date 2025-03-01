@@ -139,6 +139,11 @@ mixin MockPackagesMixin {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  Folder addTestReflectiveLoader() {
+    var packageFolder = _addFiles('test_reflective_loader');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
   Folder addUI() {
     var packageFolder = _addFiles('ui');
     return packageFolder.getChildAssumingFolder('lib');

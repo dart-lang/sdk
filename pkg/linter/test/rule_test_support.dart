@@ -177,7 +177,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   bool get addMetaPackageDep => false;
 
-  bool get addReflectiveTestLoaderPackageDep => false;
+  bool get addTestReflectiveLoaderPackageDep => false;
 
   bool get dumpAstOnFailures => true;
 
@@ -332,17 +332,8 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       configCopy.add(name: 'meta', rootPath: metaPath);
     }
 
-    if (addReflectiveTestLoaderPackageDep) {
-      var testReflectiveLoaderPath =
-          '$workspaceRootPath/test_reflective_loader';
-      newFile('$testReflectiveLoaderPath/lib/test_reflective_loader.dart', r'''
-library test_reflective_loader;
-
-const Object reflectiveTest = _ReflectiveTest();
-class _ReflectiveTest {
-  const _ReflectiveTest();
-}
-''');
+    if (addTestReflectiveLoaderPackageDep) {
+      var testReflectiveLoaderPath = addTestReflectiveLoader().parent.path;
       configCopy.add(
         name: 'test_reflective_loader',
         rootPath: testReflectiveLoaderPath,

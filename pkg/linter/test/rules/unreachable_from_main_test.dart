@@ -18,7 +18,7 @@ class UnreachableFromMainTest extends LintRuleTest {
   bool get addMetaPackageDep => true;
 
   @override
-  bool get addReflectiveTestLoaderPackageDep => true;
+  bool get addTestReflectiveLoaderPackageDep => true;
 
   @override
   String get lintRule => LintNames.unreachable_from_main;
