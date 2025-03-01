@@ -66,13 +66,22 @@ class ConstructorClass {
 class ConstructorWithNonFinal {
   final int x;
 
-  ConstructorWithNonFinal field = ConstructorWithNonFinal(1);
+  ConstructorWithNonFinal get field => _constConstructorWithNonFinal;
 
   ConstructorWithNonFinal(this.x);
+  const ConstructorWithNonFinal.constNamed(this.x);
 
   ConstructorWithNonFinal method() => ConstructorWithNonFinal(1);
 
   ConstructorWithNonFinal? methodNullable() => null;
+}
+
+// Prevent infinite recursion with fields.
+const ConstructorWithNonFinal _constConstructorWithNonFinal =
+    _ConstructorWithNonFinalSubclass(1);
+
+class _ConstructorWithNonFinalSubclass extends ConstructorWithNonFinal {
+  const _ConstructorWithNonFinalSubclass(int x) : super.constNamed(x);
 }
 
 class UnnamedConstructor {}
@@ -101,12 +110,21 @@ class StaticMember<T> {
   static StaticMember<Integer> property(Integer i) => StaticMember(i);
 
   final T t;
-  StaticMember field = StaticMember.member();
+  StaticMember get field => _constStaticMember;
 
   StaticMember(this.t);
 
+  const StaticMember.constNamed(this.t);
+
   StaticMember method() => StaticMember.member();
   StaticMember? methodNullable() => null;
+}
+
+// Prevent infinite recursion with fields.
+const StaticMember _constStaticMember = _StaticMemberSubclass(1);
+
+class _StaticMemberSubclass<T> extends StaticMember<T> {
+  const _StaticMemberSubclass(T t) : super.constNamed(t);
 }
 
 extension type StaticMemberExt<T>(T x) {
