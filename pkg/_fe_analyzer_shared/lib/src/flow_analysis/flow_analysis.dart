@@ -4758,15 +4758,23 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(_unmatched == null);
     assert(_scrutineeReference == null);
   }
-
+//aryanjha597
   @override
-  void for_bodyBegin(Statement? node, Expression? condition) {
+void for_bodyBegin(Statement? node, Expression? condition) {
+  if (condition != null && condition.staticType.isNonNullable && condition is BinaryExpression && condition.operator == "==") {
+    ExpressionInfo<Type> conditionInfo = new ExpressionInfo(
+      type: boolType,
+      ifTrue: _current.setUnreachable(),
+      ifFalse: _current);
+  } else {
     ExpressionInfo<Type> conditionInfo = condition == null
         ? new ExpressionInfo(
             type: boolType,
             ifTrue: _current,
             ifFalse: _current.setUnreachable())
         : _expressionEnd(condition, boolType);
+//aryanjha597
+
     _WhileContext<Type> context =
         new _WhileContext<Type>(_current.reachable.parent!, conditionInfo);
     _stack.add(context);
