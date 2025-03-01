@@ -14,6 +14,7 @@ For GSoC related discussions please use the [dart-gsoc group](https://groups.goo
  * Liam Appelbe ([liamappelbe](https://github.com/liamappelbe)) `liama@google.com`
  * Huan Lin  ([hellohuanlin](https://github.com/hellohuanlin)) `huanlin@google.com`
  * Justin McCandless ([justinmc](https://github.com/justinmc)) `jmccandless@google.com`
+ * Mudit Somani ([TheComputerM](https://github.com/TheComputerM)) `mudit.somani00@gmail.com`
  * More to come!
 
 ## Project Application Process
@@ -120,6 +121,28 @@ Project:
 * Build a sample project in UIKit that shows custom actions in the native edit menu (Hint: use https://developer.apple.com/documentation/uikit/uieditmenuinteraction?language=objc). You can either use ObjC or Swift, but ObjC is preferred.
 
 **Expected outcome**: A PR merged in Flutter
+
+## **Idea:** TUI framework for dart
+
+ - **Possible Mentor(s)**: `mudit.somani00@gmail.com`
+ - **Difficulty**: Medium
+ - **Project size**: Medium (175 hours)
+ - **Skills**: Dart, CLIs
+
+**Description**: Dart is already used to create GUI applications through Flutter, it would be great if it can also be used to develop good looking TUI applications. Currently the language of choice for TUI development would be either Golang or Python due to their developed package ecosystems (like [charm](https://charm.sh/) or [textual](https://www.textualize.io/)) so a package that makes TUI development easier and faster on dart would increase its adoption in that space.
+
+Project:
+* Design composable methods to render components and text on the terminal
+* Include popular components like inputs, checkboxes and tables by default
+* Intuitive way to create your own custom components for the terminal
+* Ensure library works with popular state management libraries in dart
+
+**Good Sample Project**:
+
+* Composable methods to style text on the terminal (kinda like [libgloss](https://github.com/charmbracelet/lipgloss)).
+* Component based model to render and interact with terminal based text inputs and checkboxes (kinda like [bubbles](https://github.com/charmbracelet/bubbles)).
+
+**Expected outcome**: A package on pub.dev with terminal primitives like text styling, inputs, checkboxes, tables, layouts, spinners etc.
 
 
 ## TODO: More ideas as they come!
