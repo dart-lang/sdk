@@ -1156,7 +1156,12 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
           onTimeout: () {
             task.cancel();
             throw createError(
-              null,
+              OSError(
+                "Connection timed out",
+                Platform.isWindows
+                    ? 10060 // WSAETIMEDOUT
+                    : 110, // ETIMEDOUT
+              ),
               "Connection timed out, host: ${host}, port: ${port}",
             );
           },

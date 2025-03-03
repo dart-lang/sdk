@@ -15,12 +15,18 @@ import "package:expect/expect.dart";
 
 void main() {
   asyncStart();
-  Duration timeout = new Duration(milliseconds: 20);
-  Socket.connect("8.8.8.7", 80, timeout: timeout).then((socket) {
-    Expect.fail("Unexpected connection made.");
-    asyncEnd();
-  }).catchError((e) {
-    Expect.isTrue(e is SocketException);
-    asyncEnd();
-  });
+  Duration timeout = new Duration(milliseconds: 0);
+  Socket.connect("8.8.8.7", 80, timeout: timeout)
+      .then((socket) {
+        Expect.fail("Unexpected connection made.");
+        asyncEnd();
+      })
+      .catchError((e) {
+        Expect.isTrue(e is SocketException);
+        Expect.equals(
+          Platform.isWindows ? 10060 : 110,
+          (e as SocketException).osError?.errorCode,
+        );
+        asyncEnd();
+      });
 }
