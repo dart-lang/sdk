@@ -166,26 +166,32 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_isOldModelType(node.staticType)) {
+      _isDeprecatedNode(node);
       rule.reportLint(node);
     }
   }
 
   /// Returns whether [node] is or inside a deprecated node.
   bool _isDeprecatedNode(AstNode? node) {
-    if (node != null) {
-      if (_deprecatedNodes[node] case var result?) {
-        return result;
-      }
-      if (node is Declaration) {
-        var element = node.declaredFragment?.element;
-        if (element case Annotatable annotatable) {
-          var hasDeprecated = annotatable.metadata2.hasDeprecated;
-          return _deprecatedNodes[node] = hasDeprecated;
+    if (node == null) {
+      return false;
+    }
+
+    if (_deprecatedNodes[node] case var result?) {
+      return result;
+    }
+
+    if (node is Declaration) {
+      var element = node.declaredFragment?.element;
+      if (element case Annotatable annotatable) {
+        var hasDeprecated = annotatable.metadata2.hasDeprecated;
+        if (hasDeprecated) {
+          return _deprecatedNodes[node] = true;
         }
       }
-      return _isDeprecatedNode(node.parent);
     }
-    return false;
+
+    return _deprecatedNodes[node] = _isDeprecatedNode(node.parent);
   }
 }
 

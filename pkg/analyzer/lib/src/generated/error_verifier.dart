@@ -2412,8 +2412,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       if (method.isStatic) {
         void reportStaticConflict(ExecutableElement inherited) {
-          errorReporter.atElement(
-            method,
+          errorReporter.atElement2(
+            method.asElement2,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
             arguments: [
               enclosingClass.displayName,
@@ -2440,8 +2440,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       void reportFieldConflict(PropertyAccessorElement inherited) {
-        errorReporter.atElement(
-          method,
+        errorReporter.atElement2(
+          method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
           arguments: [
             enclosingClass.displayName,
@@ -2473,8 +2473,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           enclosingClass, Name(libraryUri, '$name='));
 
       if (accessor.isStatic && inherited != null) {
-        errorReporter.atElement(
-          accessor,
+        errorReporter.atElement2(
+          accessor.asElement2,
           CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
           arguments: [
             enclosingClass.displayName,
@@ -2488,8 +2488,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (enclosingClass is ExtensionTypeElement) {
           continue;
         }
-        errorReporter.atElement(
-          accessor,
+        errorReporter.atElement2(
+          accessor.asElement2,
           CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
           arguments: [
             enclosingClass.displayName,
@@ -2513,8 +2513,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var setterName = methodName.forSetter;
         var setter = inherited[setterName];
         if (setter is PropertyAccessorElementOrMember) {
-          errorReporter.atElement(
-            enclosingClass,
+          errorReporter.atElement2(
+            enclosingClass.asElement2,
             CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
             arguments: [
               enclosingClass.kind.displayName,
@@ -2600,8 +2600,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var name = typeParameter.name;
       // name is same as the name of the enclosing enum
       if (element.name == name) {
-        errorReporter.atElement(
-          typeParameter,
+        errorReporter.atElement2(
+          typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM,
           arguments: [name],
         );
@@ -2610,8 +2610,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (element.getMethod(name) != null ||
           element.getGetter(name) != null ||
           element.getSetter(name) != null) {
-        errorReporter.atElement(
-          typeParameter,
+        errorReporter.atElement2(
+          typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM,
           arguments: [name],
         );
@@ -2628,8 +2628,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var name = typeParameter.name;
       // name is same as the name of the enclosing class
       if (element.name == name) {
-        errorReporter.atElement(
-          typeParameter,
+        errorReporter.atElement2(
+          typeParameter.asElement2,
           CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
           arguments: [name],
         );
@@ -2639,8 +2639,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           element.getMethod(name) != null ||
           element.getGetter(name) != null ||
           element.getSetter(name) != null) {
-        errorReporter.atElement(
-          typeParameter,
+        errorReporter.atElement2(
+          typeParameter.asElement2,
           CompileTimeErrorCode
               .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
           arguments: [name],
@@ -4699,8 +4699,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var superUnnamedConstructor = superElement.unnamedConstructor;
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
-        errorReporter.atElement(
-          element,
+        errorReporter.atElement2(
+          element.asElement2,
           CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
           arguments: [
             superElement.name,
@@ -4718,8 +4718,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!_typeProvider.isNonSubtypableClass(superType.element)) {
       // Don't report this diagnostic for non-subtypable classes because the
       // real problem was already reported.
-      errorReporter.atElement(
-        element,
+      errorReporter.atElement2(
+        element.asElement2,
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
         arguments: [superType, element.displayName],
       );
@@ -6000,8 +6000,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // position.
           if (!superVariance.greaterThanOrEqual(typeParameter.variance)) {
             if (!typeParameter.isLegacyCovariant) {
-              errorReporter.atElement(
-                typeParameter,
+              errorReporter.atElement2(
+                typeParameter.asElement2,
                 CompileTimeErrorCode
                     .WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
                 arguments: [
@@ -6012,8 +6012,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 ],
               );
             } else {
-              errorReporter.atElement(
-                typeParameter,
+              errorReporter.atElement2(
+                typeParameter.asElement2,
                 CompileTimeErrorCode
                     .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
                 arguments: [typeParameter.name, superInterface],

@@ -484,14 +484,14 @@ class MemberDuplicateDefinitionVerifier {
           errorCode =
               CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
         }
-        _errorReporter.atElement(
-          constructor,
+        _errorReporter.atElement2(
+          constructor.asElement2,
           errorCode,
           arguments: [name],
         );
       } else if (staticMember is MethodElement) {
-        _errorReporter.atElement(
-          constructor,
+        _errorReporter.atElement2(
+          constructor.asElement2,
           CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
           arguments: [name],
         );
@@ -614,8 +614,8 @@ class MemberDuplicateDefinitionVerifier {
       var baseName = accessor.displayName;
       var inherited = _getInheritedMember(declarationElement, baseName);
       if (inherited is MethodElement) {
-        _errorReporter.atElement(
-          accessor,
+        _errorReporter.atElement2(
+          accessor.asElement2,
           CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
           arguments: [
             declarationElement.displayName,
@@ -636,8 +636,8 @@ class MemberDuplicateDefinitionVerifier {
       var baseName = method.displayName;
       var inherited = _getInheritedMember(declarationElement, baseName);
       if (inherited is PropertyAccessorElement) {
-        _errorReporter.atElement(
-          method,
+        _errorReporter.atElement2(
+          method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
           arguments: [
             declarationElement.displayName,
@@ -662,8 +662,8 @@ class MemberDuplicateDefinitionVerifier {
       if (accessor.isStatic) {
         var instance = _getInterfaceMember(declarationElement, baseName);
         if (instance != null && baseName != 'values') {
-          _errorReporter.atElement(
-            accessor,
+          _errorReporter.atElement2(
+            accessor.asElement2,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
             arguments: [declarationName, baseName, declarationName],
           );
@@ -679,8 +679,8 @@ class MemberDuplicateDefinitionVerifier {
       if (method.isStatic) {
         var instance = _getInterfaceMember(declarationElement, baseName);
         if (instance != null) {
-          _errorReporter.atElement(
-            method,
+          _errorReporter.atElement2(
+            method.asElement2,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
             arguments: [declarationName, baseName, declarationName],
           );

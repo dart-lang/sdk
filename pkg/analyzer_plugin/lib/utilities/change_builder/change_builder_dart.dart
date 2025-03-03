@@ -329,6 +329,9 @@ abstract class DartEditBuilder implements EditBuilder {
 
   /// Writes the code for a type annotation for the given [type].
   ///
+  /// If [shouldWriteDynamic] is `true`, then the keyword `dynamic` will be
+  /// written if the type is `dynamic`.
+  ///
   /// If the [type] is either `null` or represents the type `dynamic`, then the
   /// behavior depends on whether a type is [required]. If [required] is `true`,
   /// then the keyword `var` will be written; otherwise, nothing is written.
@@ -344,11 +347,14 @@ abstract class DartEditBuilder implements EditBuilder {
   /// types.
   ///
   /// Returns `true` if any text was written.
-  bool writeType(DartType? type,
-      {bool addSupertypeProposals = false,
-      String? groupName,
-      ExecutableElement2? methodBeingCopied,
-      bool required = false});
+  bool writeType(
+    DartType? type, {
+    bool addSupertypeProposals = false,
+    String? groupName,
+    ExecutableElement2? methodBeingCopied,
+    bool required = false,
+    bool shouldWriteDynamic = false,
+  });
 
   /// Writes the code to declare the given [typeParameter].
   ///
@@ -374,7 +380,15 @@ abstract class DartEditBuilder implements EditBuilder {
   ///
   /// If the list of [types] is `null` or does not contain any types, then
   /// nothing will be written.
-  void writeTypes(Iterable<DartType>? types, {String? prefix});
+  ///
+  /// If [shouldWriteDynamic] is `true`, then the keyword `dynamic` will be
+  /// written if the type is `dynamic`. Otherwise, the `dynamic` type will be
+  /// ommitted.
+  void writeTypes(
+    Iterable<DartType>? types, {
+    String? prefix,
+    bool shouldWriteDynamic = false,
+  });
 }
 
 /// A [FileEditBuilder] used to build edits for Dart files.
