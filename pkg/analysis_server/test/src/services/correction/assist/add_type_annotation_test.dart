@@ -688,6 +688,38 @@ void f() {
     await assertNoAssistAt('var ');
   }
 
+  Future<void> test_mapLiteral_notype() async {
+    await resolveTestCode('''
+var map = {};
+''');
+    await assertHasAssistAt('{}', '''
+var map = <dynamic, dynamic>{};
+''');
+  }
+
+  Future<void> test_mapLiteral_writtenAnnotation() async {
+    await resolveTestCode('''
+var map = <String, int>{};
+''');
+    await assertNoAssistAt('{}');
+  }
+
+  Future<void> test_mapLiteral_writtenAnnotation2() async {
+    await resolveTestCode('''
+var map = <String, int>{};
+''');
+    await assertNoAssistAt('}');
+  }
+
+  Future<void> test_mapLiteral_writtenStaticType() async {
+    await resolveTestCode('''
+Map<String, int> map = {};
+''');
+    await assertHasAssistAt('{}', '''
+Map<String, int> map = <String, int>{};
+''');
+  }
+
   Future<void> test_parameter() async {
     await resolveTestCode('''
 foo(f(int p)) {}

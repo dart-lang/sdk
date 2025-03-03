@@ -792,18 +792,27 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String? groupName,
     ExecutableElement2? methodBeingCopied,
     bool required = false,
+    bool shouldWriteDynamic = false,
   }) {
     var wroteType = false;
-    if (type != null && type is! DynamicType) {
+    if (type != null && (shouldWriteDynamic || type is! DynamicType)) {
       if (groupName != null) {
         addLinkedEdit(groupName, (LinkedEditBuilder builder) {
-          wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
+          wroteType = _writeType(
+            type,
+            methodBeingCopied: methodBeingCopied,
+            required: shouldWriteDynamic,
+          );
           if (wroteType && addSupertypeProposals) {
             _addSuperTypeProposals(builder, type, {});
           }
         });
       } else {
-        wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
+        wroteType = _writeType(
+          type,
+          methodBeingCopied: methodBeingCopied,
+          required: shouldWriteDynamic,
+        );
       }
     }
     if (!wroteType && required) {
@@ -839,17 +848,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
-  void writeTypes(Iterable<DartType>? types, {String? prefix}) {
+  void writeTypes(
+    Iterable<DartType>? types, {
+    String? prefix,
+    bool shouldWriteDynamic = false,
+  }) {
     if (types == null || types.isEmpty) {
       return;
     }
     if (prefix != null) {
       write(prefix);
     }
-    writeType(types.first);
+    writeType(types.first, shouldWriteDynamic: shouldWriteDynamic);
     for (var type in types.skip(1)) {
       write(', ');
-      writeType(type);
+      writeType(type, shouldWriteDynamic: shouldWriteDynamic);
     }
   }
 
