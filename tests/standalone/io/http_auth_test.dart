@@ -279,6 +279,23 @@ void testLocalServerBasic() {
   });
 }
 
+void testLocalServerBearer() async {
+  final client = HttpClient();
+
+  client.authenticate = (url, scheme, realm) async {
+    final token = base64.encode(utf8.encode("test"));
+    client.addCredentials(Uri.parse("http://127.0.0.1/bearer"), "test", HttpClientBearerCredentials(token));
+    return true;
+  };
+
+  final request = await client.getUrl(Uri.parse("http://127.0.0.1/bearer/test"));
+  final response = await request.close();
+  Expect.equals(HttpStatus.ok, response.statusCode);
+  await response.drain();
+
+  client.close();
+}
+
 void testLocalServerDigest() {
   HttpClient client = new HttpClient();
 
@@ -311,5 +328,6 @@ main() {
   // These teste are not normally run. They can be used for locally
   // testing with another web server (e.g. Apache).
   //testLocalServerBasic();
+  //testLocalServerBearer();
   //testLocalServerDigest();
 }
