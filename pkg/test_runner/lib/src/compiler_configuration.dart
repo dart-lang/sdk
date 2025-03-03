@@ -455,11 +455,6 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2jsOptions,
-      ..._nnbdModeArgument(_configuration),
-      if (_configuration.nnbdMode == NnbdMode.weak)
-        // Unsound platform dill files are no longer packaged in the SDK and
-        // must be read from the build directory during tests.
-        '--platform-binaries=${_configuration.buildDirectory}',
       ...args
     ];
   }
@@ -470,7 +465,6 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     var compilerArguments = [
       ...arguments,
       ..._configuration.dart2jsOptions,
-      ..._nnbdModeArgument(_configuration),
     ];
 
     // TODO(athom): input filename extraction is copied from DDC. Maybe this

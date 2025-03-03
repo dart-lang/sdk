@@ -21,12 +21,9 @@ void main() {
 }
 
 const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
-const String unsoundNullSafetyMessage =
-    'Info: Compiling without sound null safety';
-const String unsoundNullSafetyError =
-    'Error: the flag --no-sound-null-safety is not supported in Dart 3.';
-const String unsoundNullSafetyWarning =
-    'Warning: the flag --no-sound-null-safety is deprecated and pending removal.';
+const String soundNullSafetyWarning =
+    "Warning: Option '--sound-null-safety' is deprecated.";
+
 const String failedAssertionError = 'Failed assertion: line';
 String usingTargetOSMessageForPlatform(String targetOS) =>
     'Specializing Platform getters for target OS $targetOS.';
@@ -965,6 +962,31 @@ void main() {
     );
 
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stdout, isNot(contains(soundNullSafetyWarning)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  }, skip: isRunningOnIA32);
+
+  test('Compile JS with sound null safety flag', () async {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
+
+    final result = await p.run(
+      [
+        'compile',
+        'js',
+        '--sound-null-safety',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stdout, contains(soundNullSafetyWarning));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -992,32 +1014,6 @@ void main() {
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
-
-  test('Compile JS with unsound null safety', () async {
-    final p = project(mainSrc: '''
-// @dart=2.9
-void main() {}
-''');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
-
-    final result = await p.run(
-      [
-        'compile',
-        'js',
-        '--no-sound-null-safety',
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, contains(unsoundNullSafetyError));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 1);
-    expect(File(outFile).existsSync(), false,
-        reason: 'File not found: $outFile');
-  });
 
   test('Compile JS without info', () async {
     final p = project(mainSrc: '''void main() {}''');

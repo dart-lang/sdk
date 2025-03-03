@@ -401,7 +401,6 @@ class ModelEmitter {
   /// Generates a simple header that provides the compiler's build id.
   js.Comment buildGeneratedBy() {
     final flavor = StringBuffer();
-    flavor.write(_options.nullSafetyMode);
     if (_options.trustPrimitives) flavor.write(', trust primitives');
     if (_options.omitImplicitChecks) flavor.write(', omit checks');
     if (_options.laxRuntimeTypeToString) {
