@@ -80,51 +80,16 @@ class BundleRequirementsManifest {
     return result;
   }
 
-  void addExportRequirements(LibraryElementImpl libraryElement) {
-    for (var fragment in libraryElement.fragments) {
-      for (var export in fragment.libraryExports) {
-        var exportedLibrary = export.exportedLibrary;
-        // TODO(scheglov): record this
-        if (exportedLibrary == null) {
-          continue;
-        }
-
-        var combinators = export.combinators.map((combinator) {
-          switch (combinator) {
-            case HideElementCombinator():
-              return ExportRequirementHideCombinator(
-                hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
-              );
-            case ShowElementCombinator():
-              return ExportRequirementShowCombinator(
-                shownBaseNames: combinator.shownNames.toBaseNameSet(),
-              );
-          }
-        }).toList();
-
-        if (exportedLibrary.manifest case var manifest?) {
-          var exportedIds = <LookupName, ManifestItemId>{};
-          var exportMap =
-              NamespaceBuilder().createExportNamespaceForDirective2(export);
-          for (var entry in exportMap.definedNames2.entries) {
-            var lookupName = entry.key.asLookupName;
-            // TODO(scheglov): must always be not null.
-            var item = manifest.items[lookupName];
-            if (item != null) {
-              exportedIds[lookupName] = item.id;
-            }
-          }
-
-          exportRequirements.add(
-            _ExportRequirement(
-              fragmentUri: fragment.source.uri,
-              exportedUri: exportedLibrary.uri,
-              combinators: combinators,
-              exportedIds: exportedIds,
-            ),
-          );
-        }
-      }
+  /// Adds requirements to exports from libraries.
+  ///
+  /// We have already computed manifests for each library.
+  void addExports({
+    required LinkedElementFactory elementFactory,
+    required Set<Uri> libraryUriSet,
+  }) {
+    for (var libraryUri in libraryUriSet) {
+      var libraryElement = elementFactory.libraryOfUri2(libraryUri);
+      _addExports(libraryElement);
     }
   }
 
@@ -345,6 +310,55 @@ class BundleRequirementsManifest {
       exportRequirements,
       (requirement) => requirement.write(sink),
     );
+  }
+
+  void _addExports(LibraryElementImpl libraryElement) {
+    for (var fragment in libraryElement.fragments) {
+      for (var export in fragment.libraryExports) {
+        var exportedLibrary = export.exportedLibrary;
+        // TODO(scheglov): record this
+        if (exportedLibrary == null) {
+          continue;
+        }
+
+        var combinators = export.combinators.map((combinator) {
+          switch (combinator) {
+            case HideElementCombinator():
+              return ExportRequirementHideCombinator(
+                hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
+              );
+            case ShowElementCombinator():
+              return ExportRequirementShowCombinator(
+                shownBaseNames: combinator.shownNames.toBaseNameSet(),
+              );
+          }
+        }).toList();
+
+        // SAFETY: every library has the manifest.
+        var manifest = exportedLibrary.manifest!;
+
+        var exportedIds = <LookupName, ManifestItemId>{};
+        var exportMap =
+            NamespaceBuilder().createExportNamespaceForDirective2(export);
+        for (var entry in exportMap.definedNames2.entries) {
+          var lookupName = entry.key.asLookupName;
+          // TODO(scheglov): must always be not null.
+          var item = manifest.items[lookupName];
+          if (item != null) {
+            exportedIds[lookupName] = item.id;
+          }
+        }
+
+        exportRequirements.add(
+          _ExportRequirement(
+            fragmentUri: fragment.source.uri,
+            exportedUri: exportedLibrary.uri,
+            combinators: combinators,
+            exportedIds: exportedIds,
+          ),
+        );
+      }
+    }
   }
 }
 

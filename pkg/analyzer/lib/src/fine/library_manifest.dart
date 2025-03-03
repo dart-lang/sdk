@@ -15,13 +15,55 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
-class BundleManifest {
+/// The manifest of a single library.
+class LibraryManifest {
+  /// The URI of the library, mostly for debugging.
+  final Uri uri;
+
+  /// The manifests of the top-level items.
+  final Map<LookupName, TopLevelItem> items;
+
+  LibraryManifest({
+    required this.uri,
+    required this.items,
+  });
+
+  factory LibraryManifest.read(SummaryDataReader reader) {
+    return LibraryManifest(
+      uri: reader.readUri(),
+      items: reader.readMap(
+        readKey: () => LookupName.read(reader),
+        readValue: () => TopLevelItem.read(reader),
+      ),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUri(uri);
+    sink.writeMap(
+      items,
+      writeKey: (lookupName) => lookupName.write(sink),
+      writeValue: (item) => item.write(sink),
+    );
+  }
+}
+
+class LibraryManifestBuilder {
   final LinkedElementFactory elementFactory;
   final List<LibraryFileKind> inputLibraries;
+
+  /// The previous manifests for libraries.
+  ///
+  /// For correctness it does not matter what is in these manifests, they
+  /// can be absent at all for any library (and they are for new libraries).
+  /// But it does matter for performance, because we will give a new ID for any
+  /// element that is not in the manifest, or have different "meaning". This
+  /// will cause cascading changes to items that referenced these elements,
+  /// new IDs for them, etc.
   final Map<Uri, LibraryManifest> inputLibraryManifests;
   final BundleRequirementsManifest requirementsManifest;
 
-  BundleManifest({
+  LibraryManifestBuilder({
     required this.elementFactory,
     required this.inputLibraries,
     required this.inputLibraryManifests,
@@ -49,13 +91,14 @@ class BundleManifest {
     for (var libraryElement in libraryElements) {
       var libraryUri = libraryElement.uri;
       var manifest = _getInputManifest(libraryUri);
-      manifest.compareStructures(
+      _LibraryMatch(
+        manifest: manifest,
+        library: libraryElement,
         itemMap: itemMap,
+        structureMismatched: affectedElements,
         refElementsMap: refElementsMap,
         refExternalIds: refExternalIds,
-        structureMismatched: affectedElements,
-        library: libraryElement,
-      );
+      ).compareStructures();
     }
 
     performance
@@ -200,7 +243,7 @@ class BundleManifest {
       result[libraryUri] = newManifest;
     }
 
-    // Add re-exported elements, and corresponding requirements.
+    // Add re-exported elements.
     for (var libraryElement in libraryElements) {
       var libraryUri = libraryElement.uri;
       var manifest = result[libraryUri]!;
@@ -229,8 +272,6 @@ class BundleManifest {
           id: id,
         );
       }
-
-      requirementsManifest.addExportRequirements(libraryElement);
     }
 
     return result;
@@ -242,164 +283,171 @@ class BundleManifest {
   }
 }
 
-/// The manifest of a single library.
-class LibraryManifest {
-  /// The URI of the library, mostly for debugging.
-  final Uri uri;
+/// Compares structures of [library] children against [manifest].
+class _LibraryMatch {
+  final LibraryElementImpl library;
 
-  /// The manifests of the top-level items.
-  final Map<LookupName, TopLevelItem> items;
+  /// A previous manifest for the [library].
+  ///
+  /// Strictly speaking, it does not have to be the latest manifest, it could
+  /// be empty at all (and is empty when this is a new library). It is used
+  /// to give the same identifiers to the elements with the same meaning.
+  final LibraryManifest manifest;
 
-  LibraryManifest({
-    required this.uri,
-    required this.items,
+  /// Elements that have structure matching the corresponding items from
+  /// [manifest].
+  final Map<Element2, ManifestItem> itemMap;
+
+  /// Elements with mismatched structure.
+  /// These elements will get new identifiers.
+  final Set<Element2> structureMismatched;
+
+  /// Key: an element of [library].
+  /// Value: the elements that the key references.
+  ///
+  /// This includes references to elements of this bundle, and of external
+  /// bundles. This information allows propagating invalidation from affected
+  /// elements to their dependents.
+  // TODO(scheglov): hm... maybe store it? And reverse it.
+  final Map<Element2, List<Element2>> refElementsMap;
+
+  /// Key: an element from an external bundle.
+  /// Value: the identifier at the time when [manifest] was built.
+  ///
+  /// If [LibraryManifestBuilder] later finds that some of these elements now
+  /// have different identifiers, it propagates invalidation using
+  /// [refElementsMap].
+  final Map<Element2, ManifestItemId> refExternalIds;
+
+  _LibraryMatch({
+    required this.manifest,
+    required this.library,
+    required this.itemMap,
+    required this.refElementsMap,
+    required this.refExternalIds,
+    required this.structureMismatched,
   });
 
-  factory LibraryManifest.read(SummaryDataReader reader) {
-    return LibraryManifest(
-      uri: reader.readUri(),
-      items: reader.readMap(
-        readKey: () => LookupName.read(reader),
-        readValue: () => TopLevelItem.read(reader),
-      ),
-    );
-  }
-
-  /// Compares structures of [library] children against the [items] of this
-  /// manifest.
-  ///
-  /// Records mismatched elements into [structureMismatched].
-  ///
-  /// Records dependencies into [refElementsMap]. This includes
-  /// references to elements of this bundle, and of dependencies.
-  ///
-  /// Records the required identifiers (stored in this manifest) of elements
-  /// that are not from this bundle.
-  void compareStructures({
-    required Map<Element2, ManifestItem> itemMap,
-    required Map<Element2, List<Element2>> refElementsMap,
-    required Map<Element2, ManifestItemId> refExternalIds,
-    required Set<Element2> structureMismatched,
-    required LibraryElementImpl library,
-  }) {
-    bool handleInterfaceExecutable(
-      MatchContext interfaceMatchContext,
-      Map<LookupName, InstanceMemberItem> members,
-      Name nameObj,
-      ExecutableElement2 executable,
-    ) {
-      // Skip private names, cannot be used outside this library.
-      if (!nameObj.isPublic) {
-        return true;
-      }
-
-      var item2 = members[nameObj.name.asLookupName];
-
-      switch (executable) {
-        case GetterElement2OrMember():
-          if (item2 is! InstanceGetterItem) {
-            return false;
-          }
-
-          var matchContext = item2.match(interfaceMatchContext, executable);
-          if (matchContext == null) {
-            return false;
-          }
-
-          itemMap[executable] = item2;
-          refElementsMap[executable] = matchContext.elementList;
-          refExternalIds.addAll(matchContext.externalIds);
-          return true;
-        case MethodElement2OrMember():
-          if (item2 is! InstanceMethodItem) {
-            return false;
-          }
-
-          var matchContext = item2.match(interfaceMatchContext, executable);
-          if (matchContext == null) {
-            item2.match(interfaceMatchContext, executable);
-            return false;
-          }
-
-          itemMap[executable] = item2;
-          refElementsMap[executable] = matchContext.elementList;
-          refExternalIds.addAll(matchContext.externalIds);
-          return true;
-        case SetterElement2OrMember():
-          // TODO(scheglov): implement
-          return true;
-      }
-
-      // TODO(scheglov): fix it
-      throw UnimplementedError('(${executable.runtimeType}) $executable');
-    }
-
-    bool handleClassElement(LookupName? name, ClassElementImpl2 element) {
-      var item = items[name];
-      if (item is! ClassItem) {
-        return false;
-      }
-
-      var matchContext = item.match(element);
-      if (matchContext == null) {
-        return false;
-      }
-
-      itemMap[element] = item;
-      refElementsMap[element] = matchContext.elementList;
-      refExternalIds.addAll(matchContext.externalIds);
-
-      var map2 = element.inheritanceManager.getInterface2(element).map2;
-      for (var entry in map2.entries) {
-        var nameObj = entry.key;
-        var executable = entry.value;
-        if (!handleInterfaceExecutable(
-            matchContext, item.members, nameObj, executable)) {
-          structureMismatched.add(executable);
-        }
-      }
-
-      return true;
-    }
-
-    bool handleTopGetterElement(LookupName? name, GetterElementImpl element) {
-      var item = items[name];
-      if (item is! TopLevelGetterItem) {
-        return false;
-      }
-
-      var matchContext = item.match(element);
-      if (matchContext == null) {
-        return false;
-      }
-
-      itemMap[element] = item;
-      refElementsMap[element] = matchContext.elementList;
-      refExternalIds.addAll(matchContext.externalIds);
-      return true;
-    }
-
+  void compareStructures() {
     for (var element in library.children2) {
       var name = element.lookupName?.asLookupName;
       switch (element) {
         case ClassElementImpl2():
-          if (!handleClassElement(name, element)) {
+          if (!_matchClass(name: name, element: element)) {
             structureMismatched.add(element);
           }
         case GetterElementImpl():
-          if (!handleTopGetterElement(name, element)) {
+          if (!_matchTopGetter(name: name, element: element)) {
             structureMismatched.add(element);
           }
       }
     }
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUri(uri);
-    sink.writeMap(
-      items,
-      writeKey: (lookupName) => lookupName.write(sink),
-      writeValue: (item) => item.write(sink),
-    );
+  bool _matchClass({
+    required LookupName? name,
+    required ClassElementImpl2 element,
+  }) {
+    var item = manifest.items[name];
+    if (item is! ClassItem) {
+      return false;
+    }
+
+    var matchContext = item.match(element);
+    if (matchContext == null) {
+      return false;
+    }
+
+    itemMap[element] = item;
+    refElementsMap[element] = matchContext.elementList;
+    refExternalIds.addAll(matchContext.externalIds);
+
+    var map2 = element.inheritanceManager.getInterface2(element).map2;
+    for (var entry in map2.entries) {
+      var nameObj = entry.key;
+      var executable = entry.value;
+      if (!_matchInterfaceExecutable(
+        interfaceMatchContext: matchContext,
+        members: item.members,
+        nameObj: nameObj,
+        executable: executable,
+      )) {
+        structureMismatched.add(executable);
+      }
+    }
+
+    return true;
+  }
+
+  bool _matchInterfaceExecutable({
+    required MatchContext interfaceMatchContext,
+    required Map<LookupName, InstanceMemberItem> members,
+    required Name nameObj,
+    required ExecutableElement2 executable,
+  }) {
+    // Skip private names, cannot be used outside this library.
+    if (!nameObj.isPublic) {
+      return true;
+    }
+
+    var item = members[nameObj.name.asLookupName];
+
+    switch (executable) {
+      case GetterElement2OrMember():
+        if (item is! InstanceGetterItem) {
+          return false;
+        }
+
+        var matchContext = item.match(interfaceMatchContext, executable);
+        if (matchContext == null) {
+          return false;
+        }
+
+        itemMap[executable] = item;
+        refElementsMap[executable] = matchContext.elementList;
+        refExternalIds.addAll(matchContext.externalIds);
+        return true;
+      case MethodElement2OrMember():
+        if (item is! InstanceMethodItem) {
+          return false;
+        }
+
+        var matchContext = item.match(interfaceMatchContext, executable);
+        if (matchContext == null) {
+          item.match(interfaceMatchContext, executable);
+          return false;
+        }
+
+        itemMap[executable] = item;
+        refElementsMap[executable] = matchContext.elementList;
+        refExternalIds.addAll(matchContext.externalIds);
+        return true;
+      case SetterElement2OrMember():
+        // TODO(scheglov): implement
+        return true;
+    }
+
+    // TODO(scheglov): fix it
+    throw UnimplementedError('(${executable.runtimeType}) $executable');
+  }
+
+  bool _matchTopGetter({
+    required LookupName? name,
+    required GetterElementImpl element,
+  }) {
+    var item = manifest.items[name];
+    if (item is! TopLevelGetterItem) {
+      return false;
+    }
+
+    var matchContext = item.match(element);
+    if (matchContext == null) {
+      return false;
+    }
+
+    itemMap[element] = item;
+    refElementsMap[element] = matchContext.elementList;
+    refExternalIds.addAll(matchContext.externalIds);
+    return true;
   }
 }

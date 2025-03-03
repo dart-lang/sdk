@@ -221,7 +221,7 @@ class LibraryContext {
 
             var newLibraryManifests = <Uri, LibraryManifest>{};
             performance.run('computeManifests', (performance) {
-              newLibraryManifests = BundleManifest(
+              newLibraryManifests = LibraryManifestBuilder(
                 elementFactory: elementFactory,
                 inputLibraries: cycle.libraries,
                 inputLibraryManifests: inputLibraryManifests,
@@ -232,6 +232,10 @@ class LibraryContext {
               elementFactory.libraryManifests.addAll(newLibraryManifests);
             });
 
+            requirementsManifest.addExports(
+              elementFactory: elementFactory,
+              libraryUriSet: cycle.libraryUris,
+            );
             requirementsManifest.removeReqForLibs(cycle.libraryUris);
 
             bundleEntry = LinkedBundleEntry(
