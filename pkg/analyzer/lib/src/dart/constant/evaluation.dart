@@ -421,8 +421,8 @@ class ConstantEvaluationEngine {
       // TODO(paulberry): It would be really nice if we could extract enough
       // information from the 'cycle' argument to provide the user with a
       // description of the cycle.
-      errorReporter.atElement(
-        constant,
+      errorReporter.atElement2(
+        constant.asElement2!,
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
       );
       (constant as VariableElementImpl).evaluationResult =

@@ -611,8 +611,8 @@ class _ClassVerifier {
           buffer.write(separator);
         }
         buffer.write(element.displayName);
-        reporter.atElement(
-          classElement,
+        reporter.atElement2(
+          classElement.asElement2,
           CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
           arguments: [className, buffer.toString()],
         );
@@ -622,8 +622,8 @@ class _ClassVerifier {
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or
         // RECURSIVE_INTERFACE_INHERITANCE_ON or
         // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH
-        reporter.atElement(
-          classElement,
+        reporter.atElement2(
+          classElement.asElement2,
           _getRecursiveErrorCode(element),
           arguments: [className],
         );

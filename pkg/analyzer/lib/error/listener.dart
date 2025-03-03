@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/ast.dart'
     show AstNode, ConstructorDeclaration;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -18,7 +16,6 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
@@ -102,6 +99,7 @@ class ErrorReporter {
 
   /// Report an error with the given [errorCode] and [arguments].
   /// The [element] is used to compute the location of the error.
+  @Deprecated('Use atElement2() instead')
   void atElement(
     Element element,
     ErrorCode errorCode, {
@@ -124,15 +122,17 @@ class ErrorReporter {
   /// The [element] is used to compute the location of the error.
   @experimental
   void atElement2(
-    Element2 element,
+    Element2 element2,
     ErrorCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    atElement(
-      element.asElement!,
-      errorCode,
+    var nonSynthetic = element2.nonSynthetic2;
+    atOffset(
+      errorCode: errorCode,
+      offset: nonSynthetic.firstFragment.nameOffset2 ?? -1,
+      length: nonSynthetic.name3?.length ?? 0,
       arguments: arguments,
       contextMessages: contextMessages,
       data: data,
@@ -195,7 +195,6 @@ class ErrorReporter {
       var invalid = arguments
           .whereNotType<String>()
           .whereNotType<DartType>()
-          .whereNotType<Element>()
           .whereNotType<Element2>()
           .whereNotType<int>()
           .whereNotType<Uri>();
@@ -374,7 +373,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
 }
 
 /// Used by [ErrorReporter._convertTypeNames] to keep track of an error argument
-/// that is an [Element], that is being converted to a display string.
+/// that is an [Element2], that is being converted to a display string.
 class _ElementToConvert implements _ToConvert {
   @override
   final int index;

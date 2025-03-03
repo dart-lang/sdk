@@ -117,6 +117,18 @@ void f() {
 ''');
   }
 
+  test_methodInvocation_inDeprecated2() async {
+    await assertNoDiagnostics(r'''
+import 'package:analyzer/dart/element/element.dart';
+
+@deprecated
+void f(Element element) {
+  var foo = element.nonSynthetic;
+  print(foo);
+}
+''');
+  }
+
   test_namedType() async {
     await assertDiagnostics(
       r'''
