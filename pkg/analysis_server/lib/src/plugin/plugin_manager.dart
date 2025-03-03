@@ -207,13 +207,20 @@ abstract class PluginInfo {
 
   void reportException(CaughtException exception) {
     // If a previous exception has been reported, do not replace it here; the
-    //first should have more "root cause" information.
+    // first should have more "root cause" information.
     _exception ??= exception;
     instrumentationService.logPluginException(
       data,
       exception.exception,
       exception.stackTrace,
     );
+    var message =
+        'An error occurred while executing an analyzer plugin: '
+        // Sometimes the message is the primary information; sometimes the
+        // exception is.
+        '${exception.message ?? exception.exception}\n'
+        '${exception.stackTrace}';
+    notificationManager.handlePluginError(message);
   }
 
   /// If the plugin is currently running, send a request based on the given
@@ -989,11 +996,19 @@ class PluginSession {
 
   /// Handle the fact that an unhandled error has occurred in the plugin.
   void handleOnError(dynamic error) {
-    var errorPair = (error as List).cast<String>();
-    var stackTrace = StackTrace.fromString(errorPair[1]);
-    info.reportException(
-      CaughtException(PluginException(errorPair[0]), stackTrace),
-    );
+    if (error case [String message, String stackTraceString]) {
+      var stackTrace = StackTrace.fromString(stackTraceString);
+      var exception = PluginException(message);
+      info.reportException(
+        CaughtException.withMessage(message, exception, stackTrace),
+      );
+    } else {
+      throw ArgumentError.value(
+        error,
+        'error',
+        'expected to be a two-element List of Strings.',
+      );
+    }
   }
 
   /// Handle a [response] from the plugin by completing the future that was
