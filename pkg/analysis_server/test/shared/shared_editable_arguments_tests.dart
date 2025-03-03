@@ -78,6 +78,7 @@ $content
     Object? defaultValue = anything,
     Object? isRequired = anything,
     Object? isNullable = anything,
+    Object? isDeprecated = anything,
     Object? isEditable = anything,
     Object? notEditableReason = anything,
     Object? options = anything,
@@ -92,6 +93,7 @@ $content
         .having((arg) => arg.defaultValue, 'defaultValue', defaultValue)
         .having((arg) => arg.isRequired, 'isRequired', isRequired)
         .having((arg) => arg.isNullable, 'isNullable', isNullable)
+        .having((arg) => arg.isDeprecated, 'isDeprecated', isDeprecated)
         .having((arg) => arg.isEditable, 'isEditable', isEditable)
         .having(
           (arg) => arg.notEditableReason,
@@ -344,6 +346,31 @@ class MyWidget extends StatelessWidget {
           isArg('aPositionalNotSupplied', hasArgument: false),
           isArg('aNamedSupplied', hasArgument: true),
           isArg('aNamedNotSupplied', hasArgument: false),
+        ]),
+      ),
+    );
+  }
+
+  Future<void> test_isDeprecated() async {
+    var result = await getEditableArgumentsFor('''
+class MyWidget extends StatelessWidget {
+  /// Creates a MyWidget.
+  const MyWidget(
+    @deprecated
+    int aDeprecated,
+    int aNotDeprecated,
+  );
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1, 2);
+}
+''');
+    expect(
+      result,
+      hasArgs(
+        unorderedEquals([
+          isArg('aDeprecated', isDeprecated: true),
+          isArg('aNotDeprecated', isDeprecated: false),
         ]),
       ),
     );
