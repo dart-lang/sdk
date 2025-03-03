@@ -85,7 +85,8 @@ void f() {
 ''');
   }
 
-  /// More coverage in the `convert_to_single_quoted_string_test.dart` assist test.
+  /// More coverage in the `convert_to_single_quoted_string_test.dart` assist
+  /// test.
   Future<void> test_one_simple() async {
     await resolveTestCode('''
 void f() {
