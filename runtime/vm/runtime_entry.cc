@@ -536,6 +536,16 @@ static void ThrowIfError(const Object& result) {
 // Return value: newly allocated object.
 DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   const Class& cls = Class::CheckedHandle(zone, arguments.ArgAt(0));
+#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+  if (!cls.is_allocate_finalized()) {
+    const Error& error =
+        Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+      UNREACHABLE();
+    }
+  }
+#endif
   ASSERT(cls.is_allocate_finalized());
   const Instance& instance = Instance::Handle(
       zone, Instance::NewAlreadyFinalized(cls, SpaceForRuntimeAllocation()));
