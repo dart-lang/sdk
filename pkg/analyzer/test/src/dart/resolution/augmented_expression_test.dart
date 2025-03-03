@@ -94,6 +94,7 @@ augment class A {
 ''');
 
     var node = findNode.singleBlock;
+    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -108,7 +109,7 @@ Block
         operator: =
         rightHandSide: IntegerLiteral
           literal: 0
-          parameter: package:test/a.dart::@fragment::package:test/test.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_
+          parameter: package:test/a.dart::<fragment>::@class::A::@setter::foo::@parameter::_
           staticType: int
         readElement: <null>
         readElement2: <null>
@@ -261,6 +262,7 @@ augment set foo(int _) {
 ''');
 
     var node = findNode.singleBlock;
+    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
@@ -275,7 +277,7 @@ Block
         operator: =
         rightHandSide: IntegerLiteral
           literal: 0
-          parameter: package:test/a.dart::@fragment::package:test/test.dart::@setterAugmentation::foo::@parameter::_
+          parameter: package:test/a.dart::<fragment>::@setter::foo::@parameter::_
           staticType: int
         readElement: <null>
         readElement2: <null>

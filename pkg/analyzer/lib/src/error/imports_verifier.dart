@@ -63,7 +63,7 @@ class ImportsVerifier {
     var exportsWithLibraries = <_NamespaceDirective>[];
     for (var directive in node.directives) {
       if (directive is ImportDirectiveImpl) {
-        var libraryElement = directive.element?.importedLibrary;
+        var libraryElement = directive.libraryImport?.importedLibrary;
         if (libraryElement == null) {
           continue;
         }
@@ -176,7 +176,7 @@ class ImportsVerifier {
     var usedImports = {..._allImports}..removeAll(_unusedImports);
 
     for (var firstDirective in usedImports) {
-      var firstElement = firstDirective.element!;
+      var firstElement = firstDirective.libraryImport!;
       var tracker = importsTracking.trackerOf(firstElement);
       if (tracker == null) {
         continue;
@@ -198,7 +198,7 @@ class ImportsVerifier {
           continue;
         }
 
-        var secondElement = secondDirective.element!;
+        var secondElement = secondDirective.libraryImport!;
 
         // Must be the same import prefix, so the same tracker.
         var secondTracker = importsTracking.trackerOf(secondElement);
@@ -243,7 +243,7 @@ class ImportsVerifier {
     var importsTracking = fileAnalysis.importsTracking;
     for (var importDirective in fileAnalysis.unit.directives) {
       if (importDirective is ImportDirectiveImpl) {
-        var importElement = importDirective.element!;
+        var importElement = importDirective.libraryImport!;
         var prefixElement = importElement.prefix2?.element;
 
         var tracking = importsTracking.map[prefixElement];
@@ -300,7 +300,7 @@ class ImportsVerifier {
       }
 
       // Ignore unresolved imports.
-      var importElement = importDirective.element!;
+      var importElement = importDirective.libraryImport!;
       var importedLibrary = importElement.importedLibrary;
       if (importedLibrary == null) {
         continue;

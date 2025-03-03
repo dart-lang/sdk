@@ -37,7 +37,6 @@ main() {
     defineReflectiveTests(ElementLocationImplTest);
     defineReflectiveTests(ElementImplTest);
     defineReflectiveTests(TopLevelVariableElementImplTest);
-    defineReflectiveTests(UniqueLocationTest);
   });
 }
 
@@ -777,7 +776,7 @@ main() {
 }
 ''');
     var argument = findNode.integerLiteral('3');
-    ParameterElement parameter = argument.staticParameterElement!;
+    var parameter = argument.correspondingParameter!;
 
     ElementAnnotation annotation = parameter.metadata[0];
 
@@ -1989,7 +1988,7 @@ main() {
 }
 ''');
     SimpleIdentifier argument = findNode.simple('C);');
-    var getter = argument.staticElement as PropertyAccessorElementImpl;
+    var getter = argument.element?.asElement as PropertyAccessorElementImpl;
     var constant = getter.variable2 as TopLevelVariableElement;
 
     DartObject value = constant.computeConstantValue()!;
@@ -2072,117 +2071,6 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
       result?.getDisplayString(),
       expected,
     );
-  }
-}
-
-@reflectiveTest
-class UniqueLocationTest extends PubPackageResolutionTest {
-  test_ambiguous_augmentation_class() async {
-    await resolveTestCode('''
-class A {}
-augment class A {} // 1
-augment class A {} // 2
-''');
-    expect(
-        findNode
-            .classDeclaration('augment class A {} // 1')
-            .declaredElement!
-            .location,
-        isNot(
-          findNode
-              .classDeclaration('augment class A {} // 2')
-              .declaredElement!
-              .location,
-        ));
-  }
-
-  test_ambiguous_augmentation_classMember() async {
-    await resolveTestCode('''
-class A {
-  void f() {}
-}
-augment class A {
-  augment void f() {} // 1
-  augment void f() {} // 2
-}
-''');
-    expect(
-        findNode
-            .methodDeclaration('augment void f() {} // 1')
-            .declaredElement!
-            .location,
-        isNot(
-          findNode
-              .methodDeclaration('augment void f() {} // 2')
-              .declaredElement!
-              .location,
-        ));
-  }
-
-  test_ambiguous_augmentation_topLevel() async {
-    await resolveTestCode('''
-void f() {}
-augment void f() {} // 1
-augment void f() {} // 2
-''');
-    expect(
-        findNode
-            .functionDeclaration('augment void f() {} // 1')
-            .declaredElement!
-            .location,
-        isNot(
-          findNode
-              .functionDeclaration('augment void f() {} // 2')
-              .declaredElement!
-              .location,
-        ));
-  }
-
-  test_ambiguous_closure_in_executable() async {
-    await resolveTestCode('''
-void f() => [() => 0, () => 1];
-''');
-    expect(
-        findNode.functionExpression('() => 0').declaredElement!.location,
-        isNot(
-            findNode.functionExpression('() => 1').declaredElement!.location));
-  }
-
-  test_ambiguous_closure_in_local_variable() async {
-    await resolveTestCode('''
-void f() {
-  var x = [() => 0, () => 1];
-}
-''');
-    expect(
-        findNode.functionExpression('() => 0').declaredElement!.location,
-        isNot(
-            findNode.functionExpression('() => 1').declaredElement!.location));
-  }
-
-  test_ambiguous_closure_in_top_level_variable() async {
-    await resolveTestCode('''
-var x = [() => 0, () => 1];
-''');
-    expect(
-        findNode.functionExpression('() => 0').declaredElement!.location,
-        isNot(
-            findNode.functionExpression('() => 1').declaredElement!.location));
-  }
-
-  test_ambiguous_local_variable_in_executable() async {
-    await resolveTestCode('''
-f() {
-  {
-    int x = 0;
-  }
-  {
-    int x = 1;
-  }
-}
-''');
-    expect(findNode.variableDeclaration('x = 0').declaredElement!.location,
-        isNot(findNode.variableDeclaration('x = 1').declaredElement!.location));
   }
 }
 

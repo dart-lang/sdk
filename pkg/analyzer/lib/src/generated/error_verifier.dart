@@ -391,7 +391,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitBlock(Block node) {
+  void visitBlock(covariant BlockImpl node) {
     _withHiddenElements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitBlock(node);
@@ -438,7 +438,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     try {
-      var declaredFragment = node.declaredElement!;
+      var declaredFragment = node.declaredFragment!;
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
 
@@ -507,7 +507,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         implementsClause: node.implementsClause,
       );
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
-      _checkForMainFunction1(node.name, node.declaredElement!);
+      _checkForMainFunction1(node.name, node.declaredFragment!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
 
       GetterSetterTypesVerifier(
@@ -524,7 +524,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    var element = node.declaredElement!;
+    var element = node.declaredFragment!;
     var augmented = element.augmented;
     var declarationElement = augmented.firstFragment;
 
@@ -534,7 +534,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = declarationElement.asElement2;
       _checkClassInheritance(declarationElement, node, node.superclass,
           node.withClause, node.implementsClause);
-      _checkForMainFunction1(node.name, node.declaredElement!);
+      _checkForMainFunction1(node.name, node.declaredFragment!);
       _checkForMixinClassErrorCodes(
           node, List.empty(), node.superclass, node.withClause);
       _checkForBadFunctionUse(
@@ -651,11 +651,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitEnumConstantDeclaration(
       covariant EnumConstantDeclarationImpl node) {
-    var element = node.declaredElement as FieldElementImpl;
+    var fragment = node.declaredFragment as FieldElementImpl;
 
     _checkAugmentations(
       augmentKeyword: node.augmentKeyword,
-      element: element,
+      element: fragment,
     );
 
     _requiredParametersVerifier.visitEnumConstantDeclaration(node);
@@ -712,7 +712,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           .addConstructors(errorReporter, augmented, members);
       _checkForFinalNotInitializedInClass(declaredFragment, members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
-      _checkForMainFunction1(node.name, node.declaredElement!);
+      _checkForMainFunction1(node.name, node.declaredFragment!);
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredFragment);
 
       GetterSetterTypesVerifier(
@@ -751,7 +751,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var declaredFragment = node.declaredElement!;
+    var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element;
     var firstFragment = declaredElement.firstFragment;
 
@@ -793,7 +793,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     covariant ExtensionTypeDeclarationImpl node,
   ) {
     try {
-      var declaredFragment = node.declaredElement!;
+      var declaredFragment = node.declaredFragment!;
       var declaredElement = declaredFragment.augmented;
       var firstFragment = declaredElement.firstFragment;
 
@@ -877,11 +877,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForNonFinalFieldInEnum(node);
 
       for (var field in fields.variables) {
-        var element = field.declaredElement;
-        element as FieldElementImpl;
+        var fragment = field.declaredFragment;
+        fragment as FieldElementImpl;
         _checkAugmentations(
           augmentKeyword: node.augmentKeyword,
-          element: element,
+          element: fragment,
         );
       }
 
@@ -931,7 +931,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitFormalParameterList(FormalParameterList node) {
+  void visitFormalParameterList(covariant FormalParameterListImpl node) {
     _duplicateDefinitionVerifier.checkParameters(node);
     _checkUseOfCovariantInParameters(node);
     _checkUseOfDefaultValuesInParameters(node);
@@ -939,7 +939,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+  void visitForPartsWithDeclarations(
+      covariant ForPartsWithDeclarationsImpl node) {
     _duplicateDefinitionVerifier.checkForVariables(node.variables);
     super.visitForPartsWithDeclarations(node);
   }
@@ -1020,12 +1021,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    _checkForMainFunction1(node.name, node.declaredElement!);
+    _checkForMainFunction1(node.name, node.declaredFragment!);
     _checkForTypeAliasCannotReferenceItself(
-        node.name, node.declaredElement as TypeAliasElementImpl);
+        node.name, node.declaredFragment as TypeAliasElementImpl);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -1044,18 +1045,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    var element = node.declaredElement as TypeAliasElementImpl;
+    var fragment = node.declaredFragment as TypeAliasElementImpl;
 
     _checkAugmentations(
       augmentKeyword: node.augmentKeyword,
-      element: element,
+      element: fragment,
     );
 
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    _checkForMainFunction1(node.name, node.declaredElement!);
+    _checkForMainFunction1(node.name, node.declaredFragment!);
     _checkForTypeAliasCannotReferenceItself(
-        node.name, node.declaredElement as TypeAliasElementImpl);
+        node.name, node.declaredFragment as TypeAliasElementImpl);
     super.visitGenericTypeAlias(node);
   }
 
@@ -1172,9 +1173,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    var element = node.declaredElement!;
     _withEnclosingExecutable(
-      element.asElement2,
+      fragment.element,
       () {
         var returnType = node.returnType;
         if (node.isSetter) {
@@ -1196,7 +1196,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkForWrongTypeParameterVarianceInMethod(node);
         _checkAugmentations(
           augmentKeyword: node.augmentKeyword,
-          element: element,
+          element: fragment,
         );
         super.visitMethodDeclaration(node);
       },
@@ -1229,7 +1229,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     // TODO(scheglov): Verify for all mixin errors.
     try {
-      var declaredFragment = node.declaredElement!;
+      var declaredFragment = node.declaredFragment!;
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
 
@@ -1530,7 +1530,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitSwitchCase(SwitchCase node) {
+  void visitSwitchCase(covariant SwitchCaseImpl node) {
     _withHiddenElements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitSwitchCase(node);
@@ -1538,7 +1538,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitSwitchDefault(SwitchDefault node) {
+  void visitSwitchDefault(covariant SwitchDefaultImpl node) {
     _withHiddenElements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitSwitchDefault(node);
@@ -1552,7 +1552,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitSwitchPatternCase(SwitchPatternCase node) {
+  void visitSwitchPatternCase(covariant SwitchPatternCaseImpl node) {
     _withHiddenElements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitSwitchPatternCase(node);
@@ -1586,12 +1586,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForNotInitializedNonNullableVariable(node.variables, true);
 
     for (var variable in node.variables.variables) {
-      var element = variable.declaredElement;
-      element as TopLevelVariableElementImpl;
-      _checkForMainFunction1(variable.name, element);
+      var fragment = variable.declaredFragment;
+      fragment as TopLevelVariableElementImpl;
+      _checkForMainFunction1(variable.name, fragment);
       _checkAugmentations(
         augmentKeyword: node.augmentKeyword,
-        element: element,
+        element: fragment,
       );
     }
 
@@ -1618,7 +1618,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitTypeParameterList(TypeParameterList node) {
+  void visitTypeParameterList(covariant TypeParameterListImpl node) {
     _duplicateDefinitionVerifier.checkTypeParameters(node);
     _checkForTypeParameterBoundRecursion(node.typeParameters);
     super.visitTypeParameterList(node);
@@ -2170,7 +2170,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // prepare element
     var highlightedNode = expression;
-    var element = expression.staticElement;
+    var element = expression.element?.asElement;
     if (expression is PrefixedIdentifier) {
       var prefixedIdentifier = expression as PrefixedIdentifier;
       highlightedNode = prefixedIdentifier.identifier;
@@ -2681,15 +2681,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
-    var element = node.declaredElement as InterfaceElementImpl;
+    var fragment = node.declaredFragment as InterfaceElementImpl;
 
     // Report only on the declaration.
-    if (element.isAugmentation) {
+    if (fragment.isAugmentation) {
       return;
     }
 
     var analysisSession = _currentLibrary.session;
-    var errors = analysisSession.classHierarchy.errors(element.asElement2);
+    var errors = analysisSession.classHierarchy.errors(fragment.asElement2);
 
     for (var error in errors) {
       if (error is IncompatibleInterfacesClassHierarchyError) {
@@ -3112,7 +3112,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (directive is ImportDirective) {
           var prefix = directive.prefix;
           if (prefix != null) {
-            var element = prefix.staticElement;
+            var element = prefix.element?.asElement;
             if (element is PrefixElement) {
               var elements = prefixToDirectivesMap[element];
               if (elements == null) {
@@ -3887,10 +3887,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // OK, target is an extension override
           return;
         } else if (target is SimpleIdentifier &&
-            target.staticElement is ExtensionElement2) {
+            target.element is ExtensionElement2) {
           return;
         } else if (target is PrefixedIdentifier &&
-            target.staticElement is ExtensionElement2) {
+            target.element is ExtensionElement2) {
           return;
         }
       } else {
@@ -5908,15 +5908,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForWrongTypeParameterVarianceInField(FieldDeclaration node) {
+  void _checkForWrongTypeParameterVarianceInField(FieldDeclarationImpl node) {
     if (_enclosingClass != null) {
       for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
         if (!typeParameter.isLegacyCovariant) {
           var fields = node.fields;
-          var fieldElement = fields.variables.first.declaredElement!;
+          var fieldFragment = fields.variables.first.declaredFragment!;
           var fieldName = fields.variables.first.name;
           Variance fieldVariance =
-              typeParameter.computeVarianceInType(fieldElement.type);
+              typeParameter.computeVarianceInType(fieldFragment.type);
 
           _checkForWrongVariancePosition(
               fieldVariance, typeParameter, fieldName);
@@ -5931,7 +5931,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForWrongTypeParameterVarianceInMethod(MethodDeclaration method) {
+  void _checkForWrongTypeParameterVarianceInMethod(
+      MethodDeclarationImpl method) {
     // Only need to report errors for parameters with explicitly defined type
     // parameters in classes or mixins.
     if (_enclosingClass == null) {
@@ -5961,7 +5962,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var methodParameters = method.parameters?.parameters;
       if (methodParameters != null) {
         for (var methodParameter in methodParameters) {
-          var methodParameterElement = methodParameter.declaredElement!;
+          var methodParameterElement = methodParameter.declaredFragment!;
           if (methodParameterElement.isCovariant) {
             continue;
           }

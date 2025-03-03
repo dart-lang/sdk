@@ -2222,8 +2222,7 @@ class ResolutionReader {
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
       var element = readElement() as InterfaceElementImpl;
       var type = element.instantiateImpl(
-          typeArguments: const [],
-          nullabilitySuffix: NullabilitySuffix.none);
+          typeArguments: const [], nullabilitySuffix: NullabilitySuffix.none);
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
       var element = readElement() as InterfaceElementImpl;
@@ -2370,7 +2369,7 @@ class ResolutionReader {
       var ast = _readRequiredNode() as AnnotationImpl;
       return ElementAnnotationImpl(unitElement)
         ..annotationAst = ast
-        ..element = ast.element;
+        ..element2 = ast.element2;
     });
   }
 

@@ -34996,7 +34996,7 @@ library
                     leftParenthesis: ( @82
                     rightParenthesis: ) @83
                   element: <null>
-                  element2: <null>
+                  fragment: <null>
                   staticType: InvalidType
               augmentationTarget: <testLibraryFragment>::@class::A::@field::foo
 ----------------------------------------
@@ -35050,7 +35050,7 @@ library
                     leftParenthesis: ( @82
                     rightParenthesis: ) @83
                   element: <null>
-                  element2: <null>
+                  fragment: <null>
                   staticType: InvalidType
               previousFragment: <testLibraryFragment>::@class::A::@field::foo
   classes

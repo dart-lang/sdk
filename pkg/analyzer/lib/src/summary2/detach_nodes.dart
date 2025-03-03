@@ -111,7 +111,6 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
     if (element is VariableElementImpl2) {
       for (var fragment in element.fragments) {
         if (fragment case ConstVariableElement fragment) {
-          fragment as VariableElementImpl;
           var initializer = fragment.constantInitializer;
           if (initializer is ExpressionImpl) {
             _detachNode(initializer);
@@ -119,7 +118,10 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
             initializer = replaceNotSerializableNode(initializer);
             fragment.constantInitializer = initializer;
 
-            ConstantContextForExpressionImpl(fragment, initializer);
+            ConstantContextForExpressionImpl(
+              fragment as VariableElementImpl,
+              initializer,
+            );
           }
         }
       }

@@ -1397,7 +1397,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var augmentationTarget = augmentation?.augmentationTarget;
       if (augmentation is SetterFragmentImpl &&
           augmentationTarget is SetterFragmentImpl) {
-        node.element = augmentationTarget;
+        node.fragment = augmentationTarget;
         inferenceLogWriter?.exitLValue(node);
         return PropertyElementResolverResult(
           writeElementRequested2: augmentationTarget.asElement2,
@@ -1913,14 +1913,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (augmentation is GetterFragmentImpl &&
           augmentedFragment is PropertyAccessorElementImpl &&
           augmentedFragment.isGetter) {
-        node.element = augmentedFragment;
+        node.fragment = augmentedFragment;
         node.recordStaticType(augmentedFragment.returnType, resolver: this);
         inferenceLogWriter?.exitExpression(node);
         return;
       }
       if (augmentation is PropertyInducingElementImpl &&
           augmentedFragment is PropertyInducingElementImpl) {
-        node.element = augmentedFragment;
+        node.fragment = augmentedFragment;
         var augmentedNode =
             libraryResolutionContext._variableNodes[augmentedFragment];
         if (augmentedNode != null) {
@@ -1966,7 +1966,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           node.augmentedKeyword,
           CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER,
         );
-        node.element = augmentationTarget;
+        node.fragment = augmentationTarget;
         node.recordStaticType(InvalidTypeImpl.instance, resolver: this);
         resolveArgumentsOfInvalid();
         inferenceLogWriter?.exitExpression(node);
@@ -1980,7 +1980,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         propertyErrorEntity: node.augmentedKeyword,
         nameErrorEntity: node.augmentedKeyword,
       );
-      var callElement = result.getter2?.asElement;
+      var callElement = result.getter2;
       var functionType = callElement?.type ?? result.callFunctionType;
 
       if (functionType == null) {
@@ -1988,7 +1988,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           node.augmentedKeyword,
           CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
         );
-        node.element = augmentationTarget;
+        node.fragment = augmentationTarget;
         node.recordStaticType(InvalidTypeImpl.instance, resolver: this);
         resolveArgumentsOfInvalid();
         inferenceLogWriter?.exitExpression(node);
@@ -1998,7 +1998,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var augmentedExpression = AugmentedExpressionImpl(
         augmentedKeyword: node.augmentedKeyword,
       );
-      augmentedExpression.element = augmentationTarget;
+      augmentedExpression.fragment = augmentationTarget;
       augmentedExpression.setPseudoExpressionStaticType(functionType);
       var rewrite = FunctionExpressionInvocationImpl(
         function: augmentedExpression,
@@ -2006,7 +2006,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         argumentList: node.arguments,
       );
       replaceExpression(node, rewrite);
-      rewrite.staticElement = callElement;
+      rewrite.element = callElement;
       flowAnalysis.transferTestData(node, rewrite);
       _resolveRewrittenFunctionExpressionInvocation(
           rewrite, whyNotPromotedArguments,
@@ -2017,7 +2017,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     FunctionType? rawType;
     if (augmentationTarget is ExecutableElementImpl) {
-      node.element = augmentationTarget;
+      node.fragment = augmentationTarget;
       rawType = augmentationTarget.type;
     }
 
@@ -2331,7 +2331,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     //
     var fieldName = node.fieldName;
     var fieldElement = enclosingClass!.getField(fieldName.name);
-    fieldName.staticElement = fieldElement;
+    fieldName.element = fieldElement.asElement2;
     var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
     var expression = node.expression;
     analyzeExpression(expression, SharedTypeSchemaView(fieldType));
@@ -2530,7 +2530,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var argument in argumentList.arguments) {
         analyzeExpression(
             argument,
-            SharedTypeSchemaView(argument.staticParameterElement?.type ??
+            SharedTypeSchemaView(argument.correspondingParameter?.type ??
                 UnknownInferredType.instance));
         popRewrite();
       }

@@ -197,6 +197,20 @@ extension ElementExtension on Element {
   }
 }
 
+extension ElementImplExtension on ElementImpl {
+  /// Return true if this element is a wildcard variable.
+  bool get isWildcardVariable {
+    return name == '_' &&
+        (this is LocalVariableElement ||
+            this is PrefixElement ||
+            this is TypeParameterElement ||
+            (this is ParameterElement &&
+                this is! FieldFormalParameterElement &&
+                this is! SuperFormalParameterElement)) &&
+        library.asElement2.hasWildcardVariablesFeatureEnabled;
+  }
+}
+
 extension ExecutableElement2OrMemberQuestionExtension
     on ExecutableElement2OrMember? {
   TypeImpl? get firstParameterType {

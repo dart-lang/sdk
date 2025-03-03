@@ -266,8 +266,8 @@ class LibraryBuilder {
               executable.body.accept(collector);
             }
           }
-          var element = declaration.declaredElement as MixinElementImpl;
-          element.superInvokedNames = names.toList();
+          var fragment = declaration.declaredFragment as MixinElementImpl;
+          fragment.superInvokedNames = names.toList();
         }
       }
     }
@@ -688,7 +688,7 @@ class LibraryBuilder {
             source: partFile.source,
             lineInfo: partUnitNode.lineInfo,
           );
-          partUnitNode.declaredElement = unitElement;
+          partUnitNode.declaredFragment = unitElement;
           unitElement.isSynthetic = !partFile.exists;
           unitElement.uri = partFile.uriStr;
           unitElement.setCodeRange(0, partUnitNode.length);
@@ -836,7 +836,7 @@ class LibraryBuilder {
         source: libraryFile.source,
         lineInfo: libraryUnitNode.lineInfo,
       );
-      libraryUnitNode.declaredElement = unitElement;
+      libraryUnitNode.declaredFragment = unitElement;
       unitElement.isSynthetic = !libraryFile.exists;
       unitElement.setCodeRange(0, libraryUnitNode.length);
 

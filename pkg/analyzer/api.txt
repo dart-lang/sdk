@@ -519,7 +519,7 @@ package:analyzer/dart/ast/ast.dart:
     arguments (getter: ArgumentList)
     augmentedKeyword (getter: Token)
     element (getter: ExecutableElement?)
-    element2 (getter: ExecutableElement2?)
+    fragment (getter: ExecutableFragment?)
     typeArguments (getter: TypeArgumentList?)
   AwaitExpression (class extends Object implements Expression):
     awaitKeyword (getter: Token)
@@ -567,6 +567,7 @@ package:analyzer/dart/ast/ast.dart:
   CatchClauseParameter (class extends AstNode):
     declaredElement (getter: LocalVariableElement?)
     declaredElement2 (getter: LocalVariableElement2?)
+    declaredFragment (getter: LocalVariableFragment?)
     name (getter: Token)
   ClassDeclaration (class extends Object implements NamedCompilationUnitMember):
     abstractKeyword (getter: Token?)
@@ -1249,14 +1250,15 @@ package:analyzer/dart/ast/ast.dart:
     declaration (getter: PatternVariableDeclaration)
     semicolon (getter: Token)
   PostfixExpression (class extends Object implements Expression, NullShortableExpression, MethodReferenceExpression, CompoundAssignmentExpression):
+    element (getter: MethodElement2?)
     operand (getter: Expression)
     operator (getter: Token)
     staticElement (getter: MethodElement?)
   PrefixExpression (class extends Object implements Expression, NullShortableExpression, MethodReferenceExpression, CompoundAssignmentExpression):
+    element (getter: MethodElement2?)
     operand (getter: Expression)
     operator (getter: Token)
     staticElement (getter: MethodElement?)
-    staticElement= (setter: MethodElement?)
   PrefixedIdentifier (class extends Object implements Identifier):
     identifier (getter: SimpleIdentifier)
     isDeferred (getter: bool)
@@ -1299,7 +1301,6 @@ package:analyzer/dart/ast/ast.dart:
     argumentList (getter: ArgumentList)
     constructorName (getter: SimpleIdentifier?)
     period (getter: Token?)
-    staticElement (getter: ConstructorElement?)
     thisKeyword (getter: Token)
   RelationalPattern (class extends Object implements DartPattern):
     element (getter: MethodElement?)

@@ -50,6 +50,7 @@ import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -258,9 +259,9 @@ class LibraryAnalyzer {
 
     for (var directive in libraryUnit.directives) {
       if (directive is PartDirectiveImpl) {
-        var elementUri = directive.element?.uri;
-        if (elementUri is DirectiveUriWithUnitImpl) {
-          var partUnit = elementToUnit[elementUri.unit];
+        var uri = directive.partInclude?.uri;
+        if (uri is DirectiveUriWithUnitImpl) {
+          var partUnit = elementToUnit[uri.unit];
           if (partUnit != null) {
             var shouldReport = false;
             var partOverrideToken = partUnit.languageVersionToken;
@@ -652,7 +653,7 @@ class LibraryAnalyzer {
       errorListener: errorListener,
       performance: OperationPerformanceImpl('<root>'),
     );
-    unit.declaredElement = unitElement;
+    unit.declaredFragment = unitElement;
 
     // TODO(scheglov): Store [IgnoreInfo] as unlinked data.
 
@@ -965,7 +966,7 @@ class LibraryAnalyzer {
     required ErrorReporter errorReporter,
   }) {
     directive.element = element;
-    directive.prefix?.staticElement = element.prefix?.element;
+    directive.prefix?.element = element.prefix?.element.asElement2;
     _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,

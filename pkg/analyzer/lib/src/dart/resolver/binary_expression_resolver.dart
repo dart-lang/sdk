@@ -370,7 +370,6 @@ class BinaryExpressionResolver {
         left.setPseudoExpressionStaticType(
             _resolver.thisType ?? InvalidTypeImpl.instance);
         if (fragment.name2 == methodName) {
-          node.fragment = fragment;
           node.staticInvokeType = fragment.element.type;
         } else {
           _errorReporter.atToken(

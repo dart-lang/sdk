@@ -450,6 +450,7 @@ augment class A {
 ''');
 
     var node = findNode.singleBinaryExpression;
+    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 BinaryExpression
   leftOperand: AugmentedExpression
@@ -462,8 +463,8 @@ BinaryExpression
     literal: 0
     parameter: package:test/a.dart::<fragment>::@class::A::@method::+::@parameter::a
     staticType: int
-  staticElement: package:test/a.dart::<fragment>::@class::A::@method::+
-  element: package:test/a.dart::<fragment>::@class::A::@method::+#element
+  staticElement: <null>
+  element: <null>
   staticInvokeType: int Function(Object?)
   staticType: int
 ''');

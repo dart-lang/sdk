@@ -118,7 +118,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
-    node.declaredElement = fragment;
+    node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
     var refName = fragment.name2 ?? '${_nextUnnamedId++}';
@@ -188,7 +188,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
-    node.declaredElement = fragment;
+    node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
     var refName = fragment.name2 ?? '${_nextUnnamedId++}';
@@ -266,7 +266,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.constantInitializers = node.initializers;
     }
 
-    node.declaredElement = element;
+    node.declaredFragment = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addConstructor(element);
@@ -296,7 +296,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
-    node.declaredElement = fragment;
+    node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
     var refName = fragment.name2 ?? '${_nextUnnamedId++}';
@@ -386,8 +386,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         equals: Tokens.eq(),
         initializer: initializer,
       );
-      constant.declaredElement = field;
-      variableDeclaration.declaredElement = field;
+      constant.declaredFragment = field;
+      variableDeclaration.declaredFragment = field;
       VariableDeclarationListImpl(
         comment: null,
         metadata: null,
@@ -534,7 +534,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
-    node.declaredElement = fragment;
+    node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
     var refName = fragment.name2 ?? '${_nextUnnamedId++}';
@@ -613,7 +613,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
-    node.declaredElement = fragment;
+    node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
     var refName = fragment.name2 ?? '${_nextUnnamedId++}';
@@ -683,45 +683,45 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var name = nameToken.lexeme;
       var nameOffset = nameToken.offset;
 
-      var element = FieldElementImpl(name, nameOffset);
+      var fragment = FieldElementImpl(name, nameOffset);
       if (variable.initializer case var initializer?) {
         if (node.fields.isConst) {
-          element = ConstFieldElementImpl(name, nameOffset)
+          fragment = ConstFieldElementImpl(name, nameOffset)
             ..constantInitializer = initializer;
         } else if (_enclosingContext.constFieldsForFinalInstance) {
           if (node.fields.isFinal && !node.isStatic) {
             var constElement = ConstFieldElementImpl(name, nameOffset)
               ..constantInitializer = initializer;
-            element = constElement;
+            fragment = constElement;
             _libraryBuilder.finalInstanceFields.add(constElement);
           }
         }
       }
 
-      element.name2 = _getFragmentName(nameToken);
-      element.nameOffset2 = _getFragmentNameOffset(nameToken);
-      element.hasInitializer = variable.initializer != null;
-      element.isAbstract = node.abstractKeyword != null;
-      element.isAugmentation = node.augmentKeyword != null;
-      element.isConst = node.fields.isConst;
-      element.isCovariant = node.covariantKeyword != null;
-      element.isExternal = node.externalKeyword != null;
-      element.isFinal = node.fields.isFinal;
-      element.isLate = node.fields.isLate;
-      element.isStatic = node.isStatic;
-      element.metadata = metadata;
-      _setCodeRange(element, variable);
-      _setDocumentation(element, node);
+      fragment.name2 = _getFragmentName(nameToken);
+      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      fragment.hasInitializer = variable.initializer != null;
+      fragment.isAbstract = node.abstractKeyword != null;
+      fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isConst = node.fields.isConst;
+      fragment.isCovariant = node.covariantKeyword != null;
+      fragment.isExternal = node.externalKeyword != null;
+      fragment.isFinal = node.fields.isFinal;
+      fragment.isLate = node.fields.isLate;
+      fragment.isStatic = node.isStatic;
+      fragment.metadata = metadata;
+      _setCodeRange(fragment, variable);
+      _setDocumentation(fragment, node);
 
       if (node.fields.type == null) {
-        element.hasImplicitType = true;
+        fragment.hasImplicitType = true;
       }
 
-      var refName = element.name2 ?? '${_nextUnnamedId++}';
-      _enclosingContext.addNonSyntheticField(refName, element);
+      var refName = fragment.name2 ?? '${_nextUnnamedId++}';
+      _enclosingContext.addNonSyntheticField(refName, fragment);
 
-      _linker.elementNodes[element] = variable;
-      variable.declaredElement = element;
+      _linker.elementNodes[fragment] = variable;
+      variable.declaredFragment = fragment;
     }
     _buildType(node.fields.type);
   }
@@ -734,55 +734,55 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name2 = nameToken.lexeme.nullIfEmpty;
     var nameOffset2 = nameToken.offset.nullIfNegative;
 
-    ParameterElementImpl element;
+    ParameterElementImpl fragment;
     var parent = node.parent;
     if (parent is DefaultFormalParameterImpl) {
-      element = DefaultFieldFormalParameterElementImpl(
+      fragment = DefaultFieldFormalParameterElementImpl(
         name: name2 ?? '',
         nameOffset: nameOffset2 ?? -1,
         name2: name2,
         nameOffset2: nameOffset2,
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
-      _linker.elementNodes[element] = parent;
+      _linker.elementNodes[fragment] = parent;
       var refName = node.isNamed ? name2 : null;
-      _enclosingContext.addParameter(refName, element);
+      _enclosingContext.addParameter(refName, fragment);
     } else {
-      element = FieldFormalParameterElementImpl(
+      fragment = FieldFormalParameterElementImpl(
         name: name2 ?? '',
         nameOffset: nameOffset2 ?? -1,
         name2: name2,
         nameOffset2: nameOffset2,
         parameterKind: node.kind,
       );
-      _linker.elementNodes[element] = node;
-      _enclosingContext.addParameter(null, element);
+      _linker.elementNodes[fragment] = node;
+      _enclosingContext.addParameter(null, fragment);
     }
 
-    element.name2 = _getFragmentName(nameToken);
-    element.nameOffset2 = _getFragmentNameOffset(nameToken);
-    element.hasImplicitType = node.type == null && node.parameters == null;
-    element.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(element, node);
+    fragment.name2 = _getFragmentName(nameToken);
+    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.hasImplicitType = node.type == null && node.parameters == null;
+    fragment.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(fragment, node);
 
-    node.declaredElement = element;
+    node.declaredFragment = fragment;
 
     // TODO(scheglov): check that we don't set reference for parameters
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
-      fragment: element,
+      fragment: fragment,
     );
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       if (formalParameters != null) {
         formalParameters.accept(this);
-        element.parameters = holder.parameters;
+        fragment.parameters = holder.parameters;
       }
 
       var typeParameters = node.typeParameters;
       if (typeParameters != null) {
         typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
+        fragment.typeParameters = holder.typeParameters;
       }
     });
 
@@ -804,7 +804,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var body = functionExpression.body;
 
     Reference reference;
-    ExecutableElementImpl executableElement;
+    ExecutableElementImpl executableFragment;
     FragmentedElementBuilder? elementBuilder;
     if (node.isGetter) {
       var getterFragment = GetterFragmentImpl(name, nameOffset);
@@ -815,7 +815,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       var refName = getterFragment.name2 ?? '${_nextUnnamedId++}';
       reference = _enclosingContext.addGetter(refName, getterFragment);
-      executableElement = getterFragment;
+      executableFragment = getterFragment;
 
       if (!getterFragment.isAugmentation) {
         var variableFragment = _buildSyntheticVariable(
@@ -852,7 +852,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       var refName = setterFragment.name2 ?? '${_nextUnnamedId++}';
       reference = _enclosingContext.addSetter(refName, setterFragment);
-      executableElement = setterFragment;
+      executableFragment = setterFragment;
 
       if (!setterFragment.isAugmentation) {
         var variableFragment = _buildSyntheticVariable(
@@ -886,7 +886,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = true;
-      executableElement = fragment;
+      executableFragment = fragment;
 
       var refName = fragment.name2 ?? '${_nextUnnamedId++}';
       reference = _enclosingContext.addFunction(name, fragment);
@@ -915,27 +915,27 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     }
 
-    executableElement.hasImplicitReturnType = node.returnType == null;
-    executableElement.isAsynchronous = body.isAsynchronous;
-    executableElement.isExternal = node.externalKeyword != null;
-    executableElement.isGenerator = body.isGenerator;
-    executableElement.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(executableElement, node);
-    _setDocumentation(executableElement, node);
+    executableFragment.hasImplicitReturnType = node.returnType == null;
+    executableFragment.isAsynchronous = body.isAsynchronous;
+    executableFragment.isExternal = node.externalKeyword != null;
+    executableFragment.isGenerator = body.isGenerator;
+    executableFragment.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(executableFragment, node);
+    _setDocumentation(executableFragment, node);
 
-    node.declaredElement = executableElement;
-    _linker.elementNodes[executableElement] = node;
+    node.declaredFragment = executableFragment;
+    _linker.elementNodes[executableFragment] = node;
 
     _buildExecutableElementChildren(
       reference: reference,
-      fragment: executableElement,
+      fragment: executableFragment,
       formalParameters: functionExpression.parameters,
       typeParameters: functionExpression.typeParameters,
     );
 
     var getterOrSetterName = node.isSetter ? '$name=' : name;
 
-    if (!executableElement.isAugmentation) {
+    if (!executableFragment.isAugmentation) {
       _libraryBuilder.declare(getterOrSetterName, reference);
     }
 
@@ -955,7 +955,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
-    node.declaredElement = fragment;
+    node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
     var refName = fragment.name2 ?? '${_nextUnnamedId++}';
@@ -1009,52 +1009,52 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name2 = nameToken.lexeme.nullIfEmpty;
     var nameOffset2 = nameToken.offset.nullIfNegative;
 
-    ParameterElementImpl element;
+    ParameterElementImpl fragment;
     var parent = node.parent;
     if (parent is DefaultFormalParameterImpl) {
-      element = DefaultParameterElementImpl(
+      fragment = DefaultParameterElementImpl(
         name: name2 ?? '',
         nameOffset: nameOffset2 ?? -1,
         name2: name2,
         nameOffset2: nameOffset2,
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
-      _linker.elementNodes[element] = parent;
+      _linker.elementNodes[fragment] = parent;
     } else {
-      element = ParameterElementImpl(
+      fragment = ParameterElementImpl(
         name: name2 ?? '',
         nameOffset: nameOffset2 ?? -1,
         name2: name2,
         nameOffset2: nameOffset2,
         parameterKind: node.kind,
       );
-      _linker.elementNodes[element] = node;
+      _linker.elementNodes[fragment] = node;
     }
-    element.name2 = _getFragmentName(nameToken);
-    element.nameOffset2 = _getFragmentNameOffset(nameToken);
-    element.isExplicitlyCovariant = node.covariantKeyword != null;
-    element.isFinal = node.isFinal;
-    element.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(element, node);
+    fragment.name2 = _getFragmentName(nameToken);
+    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.isExplicitlyCovariant = node.covariantKeyword != null;
+    fragment.isFinal = node.isFinal;
+    fragment.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(fragment, node);
 
-    node.declaredElement = element;
-    _linker.elementNodes[element] = node;
+    node.declaredFragment = fragment;
+    _linker.elementNodes[fragment] = node;
     var refName = node.isNamed ? name2 : null;
-    _enclosingContext.addParameter(refName, element);
+    _enclosingContext.addParameter(refName, fragment);
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
-      fragment: element,
+      fragment: fragment,
     );
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       formalParameters.accept(this);
-      element.parameters = holder.parameters;
+      fragment.parameters = holder.parameters;
 
       var typeParameters = node.typeParameters;
       if (typeParameters != null) {
         typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
+        fragment.typeParameters = holder.typeParameters;
       }
     });
 
@@ -1063,25 +1063,25 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var element = GenericFunctionTypeElementImpl.forOffset(node.offset);
-    _unitElement.encloseElement(element);
+    var fragment = GenericFunctionTypeElementImpl.forOffset(node.offset);
+    _unitElement.encloseElement(fragment);
 
-    node.declaredElement = element;
-    _linker.elementNodes[element] = node;
+    node.declaredFragment = fragment;
+    _linker.elementNodes[fragment] = node;
 
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
-      fragment: element,
+      fragment: fragment,
     );
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       formalParameters.accept(this);
-      element.parameters = holder.parameters;
+      fragment.parameters = holder.parameters;
 
       var typeParameters = node.typeParameters;
       if (typeParameters != null) {
         typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
+        fragment.typeParameters = holder.typeParameters;
       }
     });
 
@@ -1101,7 +1101,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
-    node.declaredElement = fragment;
+    node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
     var refName = fragment.name2 ?? '${_nextUnnamedId++}';
@@ -1142,7 +1142,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     if (typeNode is GenericFunctionTypeImpl) {
       fragment.aliasedElement =
-          typeNode.declaredElement as GenericFunctionTypeElementImpl;
+          typeNode.declaredFragment as GenericFunctionTypeElementImpl;
     }
 
     elementBuilder.addFragment(fragment);
@@ -1271,7 +1271,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(executableFragment, node);
     _setDocumentation(executableFragment, node);
 
-    node.declaredElement = executableFragment;
+    node.declaredFragment = executableFragment;
     _linker.elementNodes[executableFragment] = node;
 
     _buildExecutableElementChildren(
@@ -1298,7 +1298,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
-    node.declaredElement = fragment;
+    node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
     var refName = fragment.name2 ?? '${_nextUnnamedId++}';
@@ -1404,41 +1404,41 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name2 = nameToken?.lexeme.nullIfEmpty;
     var nameOffset2 = nameToken?.offset;
 
-    ParameterElementImpl element;
+    ParameterElementImpl fragment;
     var parent = node.parent;
     if (parent is DefaultFormalParameterImpl &&
         _enclosingContext.hasDefaultFormalParameters) {
-      element = DefaultParameterElementImpl(
+      fragment = DefaultParameterElementImpl(
         name: name2 ?? '',
         nameOffset: nameOffset2 ?? -1,
         name2: name2,
         nameOffset2: nameOffset2,
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
-      _linker.elementNodes[element] = parent;
+      _linker.elementNodes[fragment] = parent;
       var refName = node.isNamed ? name2 : null;
-      _enclosingContext.addParameter(refName, element);
+      _enclosingContext.addParameter(refName, fragment);
     } else {
-      element = ParameterElementImpl(
+      fragment = ParameterElementImpl(
         name: name2 ?? '',
         nameOffset: nameOffset2 ?? -1,
         name2: name2,
         nameOffset2: nameOffset2,
         parameterKind: node.kind,
       );
-      _linker.elementNodes[element] = node;
-      _enclosingContext.addParameter(null, element);
+      _linker.elementNodes[fragment] = node;
+      _enclosingContext.addParameter(null, fragment);
     }
 
-    element.name2 = _getFragmentName(nameToken);
-    element.nameOffset2 = _getFragmentNameOffset(nameToken);
-    element.hasImplicitType = node.type == null;
-    element.isExplicitlyCovariant = node.covariantKeyword != null;
-    element.isFinal = node.isFinal;
-    element.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(element, node);
+    fragment.name2 = _getFragmentName(nameToken);
+    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.hasImplicitType = node.type == null;
+    fragment.isExplicitlyCovariant = node.covariantKeyword != null;
+    fragment.isFinal = node.isFinal;
+    fragment.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(fragment, node);
 
-    node.declaredElement = element;
+    node.declaredFragment = fragment;
 
     _buildType(node.type);
   }
@@ -1451,54 +1451,54 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name2 = nameToken.lexeme.nullIfEmpty;
     var nameOffset2 = nameToken.offset.nullIfNegative;
 
-    SuperFormalParameterElementImpl element;
+    SuperFormalParameterElementImpl fragment;
     var parent = node.parent;
     if (parent is DefaultFormalParameterImpl) {
-      element = DefaultSuperFormalParameterElementImpl(
+      fragment = DefaultSuperFormalParameterElementImpl(
         name: name2 ?? '',
         nameOffset: nameOffset2 ?? -1,
         name2: name2,
         nameOffset2: nameOffset2,
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
-      _linker.elementNodes[element] = parent;
+      _linker.elementNodes[fragment] = parent;
       var refName = node.isNamed ? name2 : null;
-      _enclosingContext.addParameter(refName, element);
+      _enclosingContext.addParameter(refName, fragment);
     } else {
-      element = SuperFormalParameterElementImpl(
+      fragment = SuperFormalParameterElementImpl(
         name: name2 ?? '',
         nameOffset: nameOffset2 ?? -1,
         name2: name2,
         nameOffset2: nameOffset2,
         parameterKind: node.kind,
       );
-      _linker.elementNodes[element] = node;
-      _enclosingContext.addParameter(null, element);
+      _linker.elementNodes[fragment] = node;
+      _enclosingContext.addParameter(null, fragment);
     }
-    element.name2 = _getFragmentName(nameToken);
-    element.nameOffset2 = _getFragmentNameOffset(nameToken);
-    element.hasImplicitType = node.type == null && node.parameters == null;
-    element.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(element, node);
+    fragment.name2 = _getFragmentName(nameToken);
+    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.hasImplicitType = node.type == null && node.parameters == null;
+    fragment.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(fragment, node);
 
-    node.declaredElement = element;
+    node.declaredFragment = fragment;
 
     // TODO(scheglov): check that we don't set reference for parameters
     var holder = _EnclosingContext(
       instanceElementBuilder: null,
-      fragment: element,
+      fragment: fragment,
     );
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       if (formalParameters != null) {
         formalParameters.accept(this);
-        element.parameters = holder.parameters;
+        fragment.parameters = holder.parameters;
       }
 
       var typeParameters = node.typeParameters;
       if (typeParameters != null) {
         typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
+        fragment.typeParameters = holder.typeParameters;
       }
     });
 
@@ -1573,7 +1573,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
 
       _linker.elementNodes[fragment] = variable;
-      variable.declaredElement = fragment;
+      variable.declaredFragment = fragment;
 
       var elementBuilder = _libraryBuilder.elementBuilderVariables[name];
       elementBuilder ??= _libraryBuilder.elementBuilderGetters[name];
@@ -1612,15 +1612,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name = nameToken.lexeme;
 
-    var element = TypeParameterElementImpl(name, nameToken.offset);
-    element.name2 = _getFragmentName(nameToken);
-    element.nameOffset2 = _getFragmentNameOffset(nameToken);
-    element.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(element, node);
+    var fragment = TypeParameterElementImpl(name, nameToken.offset);
+    fragment.name2 = _getFragmentName(nameToken);
+    fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+    fragment.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(fragment, node);
 
-    node.declaredElement = element;
-    _linker.elementNodes[element] = node;
-    _enclosingContext.addTypeParameter(name, element);
+    node.declaredFragment = fragment;
+    _linker.elementNodes[fragment] = node;
+    _enclosingContext.addTypeParameter(name, fragment);
 
     _buildType(node.bound);
   }
@@ -1757,24 +1757,24 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var fieldNameToken = representation.fieldName;
     var fieldName = fieldNameToken.lexeme.ifNotEmptyOrElse('<empty>');
 
-    var fieldElement = FieldElementImpl(
+    var fieldFragment = FieldElementImpl(
       fieldName,
       fieldNameToken.offset,
     );
-    fieldElement.name2 = _getFragmentName(fieldNameToken);
-    fieldElement.nameOffset2 = _getFragmentNameOffset(fieldNameToken);
-    fieldElement.isFinal = true;
-    fieldElement.metadata = _buildAnnotations(representation.fieldMetadata);
+    fieldFragment.name2 = _getFragmentName(fieldNameToken);
+    fieldFragment.nameOffset2 = _getFragmentNameOffset(fieldNameToken);
+    fieldFragment.isFinal = true;
+    fieldFragment.metadata = _buildAnnotations(representation.fieldMetadata);
 
     var fieldBeginToken =
         representation.fieldMetadata.beginToken ?? representation.fieldType;
     var fieldCodeRangeOffset = fieldBeginToken.offset;
     var fieldCodeRangeLength = fieldNameToken.end - fieldCodeRangeOffset;
-    fieldElement.setCodeRange(fieldCodeRangeOffset, fieldCodeRangeLength);
+    fieldFragment.setCodeRange(fieldCodeRangeOffset, fieldCodeRangeLength);
 
-    representation.fieldElement = fieldElement;
-    _linker.elementNodes[fieldElement] = representation;
-    _enclosingContext.addNonSyntheticField(fieldName, fieldElement);
+    representation.fieldFragment = fieldFragment;
+    _linker.elementNodes[fieldFragment] = representation;
+    _enclosingContext.addNonSyntheticField(fieldName, fieldFragment);
 
     var nameOffset2 = fieldNameToken.offset.nullIfNegative;
 
@@ -1785,7 +1785,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       nameOffset2: nameOffset2,
       parameterKind: ParameterKind.REQUIRED,
     )
-      ..field = fieldElement
+      ..field = fieldFragment
       ..hasImplicitType = true;
     formalParameterElement.name2 = _getFragmentName(fieldNameToken);
     formalParameterElement.nameOffset2 = _getFragmentNameOffset(fieldNameToken);
@@ -1794,7 +1794,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fieldCodeRangeLength,
     );
 
-    extensionElement.augmented.representation = fieldElement;
+    extensionElement.augmented.representation = fieldFragment;
 
     {
       String name;
@@ -1814,27 +1814,27 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         nameEnd = extensionNode.name.end;
       }
 
-      var constructorElement = ConstructorElementImpl(name, nameOffset)
+      var constructorFragment = ConstructorElementImpl(name, nameOffset)
         ..isAugmentation = extensionNode.augmentKeyword != null
         ..isConst = extensionNode.constKeyword != null
         ..periodOffset = periodOffset
         ..nameEnd = nameEnd
         ..parameters = [formalParameterElement];
-      constructorElement.typeName = extensionElement.name2;
-      constructorElement.typeNameOffset = extensionElement.nameOffset2;
+      constructorFragment.typeName = extensionElement.name2;
+      constructorFragment.typeNameOffset = extensionElement.nameOffset2;
       if (representation.constructorName case var constructorName?) {
-        constructorElement.name2 = constructorName.name.lexeme;
-        constructorElement.nameOffset2 = constructorName.name.offset;
+        constructorFragment.name2 = constructorName.name.lexeme;
+        constructorFragment.nameOffset2 = constructorName.name.offset;
       } else {
-        constructorElement.name2 = 'new';
+        constructorFragment.name2 = 'new';
       }
-      _setCodeRange(constructorElement, representation);
+      _setCodeRange(constructorFragment, representation);
 
-      representation.constructorElement = constructorElement;
-      _linker.elementNodes[constructorElement] = representation;
-      _enclosingContext.addConstructor(constructorElement);
+      representation.constructorFragment = constructorFragment;
+      _linker.elementNodes[constructorFragment] = representation;
+      _enclosingContext.addConstructor(constructorFragment);
 
-      extensionElement.augmented.primaryConstructor = constructorElement;
+      extensionElement.augmented.primaryConstructor = constructorFragment;
     }
 
     representation.fieldType.accept(this);

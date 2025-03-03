@@ -560,7 +560,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
             SimpleIdentifierImpl(
               StringToken(TokenType.STRING, implicitParameter.name, -1),
             )
-              ..staticElement = implicitParameter
+              ..element = implicitParameter.asElement2
               ..setPseudoExpressionStaticType(implicitParameter.type),
           );
         }
@@ -579,14 +579,14 @@ class ClassElementImpl extends ClassOrMixinElementImpl
           constructorName: isNamed
               ? (SimpleIdentifierImpl(
                   StringToken(TokenType.STRING, superclassConstructor.name, -1),
-                )..staticElement = superclassConstructor)
+                )..element = superclassConstructor.asElement2)
               : null,
           argumentList: ArgumentListImpl(
             leftParenthesis: Tokens.openParenthesis(),
             arguments: argumentsForSuperInvocation,
             rightParenthesis: Tokens.closeParenthesis(),
           ),
-        )..staticElement = superclassConstructor,
+        )..element = superclassConstructor.asElement2,
       ];
 
       return implicitConstructor;

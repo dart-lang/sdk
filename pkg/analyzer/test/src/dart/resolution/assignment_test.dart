@@ -1918,6 +1918,7 @@ void f(A a) {
 ''');
 
     var node = findNode.singleAssignmentExpression;
+    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -1938,7 +1939,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_
+    parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readElement2: <null>
@@ -2082,6 +2083,7 @@ void f() {
 ''');
 
     var node = findNode.singleAssignmentExpression;
+    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -2102,7 +2104,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_
+    parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readElement2: <null>
@@ -2185,6 +2187,7 @@ void f() {
 ''');
 
     var node = findNode.singleAssignmentExpression;
+    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PrefixedIdentifier
@@ -2205,7 +2208,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <testLibraryFragment>::@extensionAugmentation::A::@setterAugmentation::foo::@parameter::_
+    parameter: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readElement2: <null>
@@ -2883,6 +2886,7 @@ void f(A a) {
 ''');
 
     var node = findNode.singleAssignmentExpression;
+    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: PropertyAccess
@@ -2905,7 +2909,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_
+    parameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readElement2: <null>

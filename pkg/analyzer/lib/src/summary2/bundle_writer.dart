@@ -808,6 +808,16 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
+  // TODO(scheglov): Triage places where we write elements.
+  // Some of then cannot be members, e.g. type names.
+  void writeElement2(Element2? element) {
+    writeElement(element.asElement);
+  }
+
+  void writeFragment(Fragment? fragment) {
+    writeElement(fragment as ElementImpl?);
+  }
+
   void writeOptionalTypeList(List<DartType>? types) {
     if (types != null) {
       writeBool(true);

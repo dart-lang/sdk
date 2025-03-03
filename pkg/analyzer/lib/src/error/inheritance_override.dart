@@ -5,7 +5,6 @@
 // ignore_for_file: analyzer_use_new_elements
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -14,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -40,12 +40,12 @@ class InheritanceOverrideVerifier {
     this._reporter,
   ) : _typeProvider = _typeSystem.typeProvider;
 
-  void verifyUnit(CompilationUnit unit) {
-    var library = unit.declaredElement!.library as LibraryElementImpl;
+  void verifyUnit(CompilationUnitImpl unit) {
+    var library = unit.declaredFragment!.element;
     for (var declaration in unit.declarations) {
       _ClassVerifier verifier;
-      if (declaration is ClassDeclaration) {
-        var element = declaration.declaredElement!;
+      if (declaration is ClassDeclarationImpl) {
+        var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -54,18 +54,18 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: element,
+          classElement: fragment,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
         );
-        if (element.isAugmentation) {
+        if (fragment.isAugmentation) {
           verifier._checkDirectSuperTypes();
           continue;
         }
-      } else if (declaration is ClassTypeAlias) {
-        var element = declaration.declaredElement!;
+      } else if (declaration is ClassTypeAliasImpl) {
+        var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -74,17 +74,17 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: element,
+          classElement: fragment,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
         );
-        if (element.isAugmentation) {
+        if (fragment.isAugmentation) {
           verifier._checkDirectSuperTypes();
           continue;
         }
-      } else if (declaration is EnumDeclaration) {
-        var element = declaration.declaredElement!;
+      } else if (declaration is EnumDeclarationImpl) {
+        var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -93,17 +93,17 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: element,
+          classElement: fragment,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
         );
-        if (element.isAugmentation) {
+        if (fragment.isAugmentation) {
           verifier._checkDirectSuperTypes();
           continue;
         }
-      } else if (declaration is MixinDeclaration) {
-        var element = declaration.declaredElement!;
+      } else if (declaration is MixinDeclarationImpl) {
+        var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -112,12 +112,12 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: element,
+          classElement: fragment,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,
         );
-        if (element.isAugmentation) {
+        if (fragment.isAugmentation) {
           verifier._checkDirectSuperTypes();
           continue;
         }
@@ -255,10 +255,10 @@ class _ClassVerifier {
     // Check the members of the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
     for (var member in members) {
-      if (member is FieldDeclaration) {
+      if (member is FieldDeclarationImpl) {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
-          var fieldElement = field.declaredElement as FieldElement;
+          var fieldElement = field.declaredFragment! as FieldElementImpl;
           _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
           if (!member.isStatic && declaration is! EnumElement) {
@@ -268,13 +268,13 @@ class _ClassVerifier {
             _checkIllegalConcreteEnumMemberDeclaration(field.name);
           }
         }
-      } else if (member is MethodDeclaration) {
+      } else if (member is MethodDeclarationImpl) {
         var hasError = _reportNoCombinedSuperSignature(member);
         if (hasError) {
           continue;
         }
 
-        _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
+        _checkDeclaredMember(member.name, libraryUri, member.declaredFragment,
             methodParameterNodes: member.parameters?.parameters);
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
@@ -958,10 +958,10 @@ class _ClassVerifier {
     }
   }
 
-  bool _reportNoCombinedSuperSignature(MethodDeclaration node) {
-    var element = node.declaredElement;
-    if (element is MethodElementImpl) {
-      var inferenceError = element.typeInferenceError;
+  bool _reportNoCombinedSuperSignature(MethodDeclarationImpl node) {
+    var fragment = node.declaredFragment;
+    if (fragment is MethodElementImpl) {
+      var inferenceError = fragment.typeInferenceError;
       if (inferenceError?.kind ==
           TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
         reporter.atToken(
