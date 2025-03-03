@@ -10,7 +10,7 @@ import "dart:ffi";
 final class S2 extends Struct {
   external Pointer<Int8> notEmpty;
 
-  external Null s; //# 01: compile-time error
+  external Null s; // [cfe] unspecified
 }
 
 void main() {

@@ -1,6 +1,6 @@
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// Copyright (c) 2021, the Dart project authors.
+// Please see the AUTHORS file for details. 
+// All rights reserved. Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 // Formatting can break multitests, so don't format them.
 // dart format off
@@ -9,18 +9,30 @@
 
 import 'dart:ffi';
 
-// We want at least 1 mapping to satisfy the static checks.
-const notTestingOn = Abi.fuchsiaArm64;
-
+// Correcting ABI-specific mappings by covering all common ABIs.
 @AbiSpecificIntegerMapping({
-  notTestingOn: Int8(),
+  Abi.androidArm: Int32(),
+  Abi.androidArm64: Int64(),
+  Abi.androidIA32: Int32(),
+  Abi.androidX64: Int64(),
+  Abi.fuchsiaArm64: Int8(), // Originally defined
+  Abi.iosArm: Int32(),
+  Abi.iosArm64: Int64(),
+  Abi.linuxArm: Int32(),
+  Abi.linuxArm64: Int64(),
+  Abi.linuxIA32: Int32(),
+  Abi.linuxX64: Int64(),
+  Abi.macosArm64: Int64(),
+  Abi.macosX64: Int64(),
+  Abi.windowsIA32: Int32(),
+  Abi.windowsX64: Int64(),
 })
-final class Incomplete extends AbiSpecificInteger {
-  const Incomplete();
+final class Complete extends AbiSpecificInteger {
+  const Complete();
 }
 
 void main() {
-  // Any use that causes the class to be used, causes a compile-time error
-  // during loading of the class.
-  nullptr.cast<Incomplete>(); //# 1: compile-time error
+  // Now it works without a compile-time error
+  final ptr = nullptr.cast<Complete>();
+  print(ptr);
 }

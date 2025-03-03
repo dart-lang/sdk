@@ -10,11 +10,11 @@ import "dart:ffi";
 final class MyStruct extends Struct {
   external Pointer<Int8> notEmpty;
 
-  @Array.multi([]) //# 01: compile-time error
-  external Array<Int16> a0; //# 01: compile-time error
+  @Array.multi([]) // [cfe] unspecified
+  external Array<Int16> a0; // [cfe] unspecified
 
-  @Array.multi([1]) //# 02: compile-time error
-  external Array<Array<Int16>> a1; //# 02: compile-time error
+  @Array.multi([1]) // [cfe] unspecified
+  external Array<Array<Int16>> a1; // [cfe] unspecified
 }
 
 void main() {

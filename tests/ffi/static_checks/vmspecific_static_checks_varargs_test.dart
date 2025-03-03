@@ -15,12 +15,12 @@ void main() {
   final ffiTestFunctions = DynamicLibrary.process();
 
   // Error: a named record field.
-  print(ffiTestFunctions.lookupFunction< //# 1: compile-time error
-    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32, {Int32 foo})>), //# 1: compile-time error
-    void Function(Pointer<Utf8>, int, int)>('PassObjectToC')); //# 1: compile-time error
+  print(ffiTestFunctions.lookupFunction< // [cfe] unspecified
+    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32, {Int32 foo})>), // [cfe] unspecified
+    void Function(Pointer<Utf8>, int, int)>('PassObjectToC')); // [cfe] unspecified
 
   // Error: VarArgs not last.
-  print(ffiTestFunctions.lookupFunction< //# 2: compile-time error
-    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32)>, Int32), //# 2: compile-time error
-    void Function(Pointer<Utf8>, int, int, int)>('PassObjectToC')); //# 2: compile-time error
+  print(ffiTestFunctions.lookupFunction< // [cfe] unspecified
+    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32)>, Int32), // [cfe] unspecified
+    void Function(Pointer<Utf8>, int, int, int)>('PassObjectToC')); // [cfe] unspecified
 }

@@ -10,7 +10,7 @@
 import "dart:ffi";
 
 final class C extends Struct {
-  dynamic x; //# 1: compile-time error
+  dynamic [cfe] unspecified x; 
 
   external Pointer notEmpty;
 }

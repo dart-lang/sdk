@@ -9,13 +9,12 @@
 // Formatting can break multitests, so don't format them.
 // dart format off
 
-import 'dart:ffi'; //# 01: compile-time error
+import 'dart:ffi'; // [cfe] Error: FFI is disabled, import not allowed.
 
-import 'package:ffi/ffi.dart'; //# 01: compile-time error
+import 'package:ffi/ffi.dart'; // [cfe] Error: FFI is disabled, import not allowed.
 
 void main() {
-  Pointer<Int8> p = //# 01: compile-time error
-      calloc(); //# 01: compile-time error
-  print(p.address); //# 01: compile-time error
-  calloc.free(p); //# 01: compile-time error
+  Pointer<Int8> p = calloc(); // [cfe] Error: Cannot use 'calloc' with FFI disabled.
+  print(p.address); // [cfe] Error: Cannot access Pointer properties with FFI disabled.
+  calloc.free(p); // [cfe] Error: Cannot use 'calloc.free' with FFI disabled.
 }

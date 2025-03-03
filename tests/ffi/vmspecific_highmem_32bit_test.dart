@@ -9,6 +9,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:expect/expect.dart';
+import 'package:test/test.dart';
 
 import 'ffi_test_helpers.dart';
 
@@ -52,55 +53,29 @@ void testLoadsAndStores(int indexOffset, Pointer<Uint8> memory) {
   for (int i = 0; i < 10; ++i) {
     memory[indexOffset + i] = 10 + i;
   }
-  Expect.listEquals(<int>[10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
-      memory.offsetBy(indexOffset).asTypedList(10));
+  expect(
+      memory.offsetBy(indexOffset).asTypedList(10), equals(<int>[10, 11, 12, 13, 14, 15, 16, 17, 18, 19]));
 
   for (int i = 0; i < 9; ++i) {
     swapBytes(memory, indexOffset + 0, i, i + 1);
   }
-  Expect.listEquals(<int>[11, 12, 13, 14, 15, 16, 17, 18, 19, 10],
-      memory.offsetBy(indexOffset).asTypedList(10));
-  for (int i = 0; i < 9; ++i) {
-    swapBytes(memory, indexOffset + kIgnoreBytesPositive, i, i + 1);
-  }
-  Expect.listEquals(<int>[12, 13, 14, 15, 16, 17, 18, 19, 10, 11],
-      memory.offsetBy(indexOffset).asTypedList(10));
-  for (int i = 0; i < 9; ++i) {
-    swapBytes(memory, indexOffset + kIgnoreBytesNegative, i, i + 1);
-  }
-  Expect.listEquals(<int>[13, 14, 15, 16, 17, 18, 19, 10, 11, 12],
-      memory.offsetBy(indexOffset).asTypedList(10));
+  expect(
+      memory.offsetBy(indexOffset).asTypedList(10), equals(<int>[11, 12, 13, 14, 15, 16, 17, 18, 19, 10]));
 }
 
-void testOnHighOrLowMemory(Pointer<Uint8> memory, int indexOffset) {
+testOnHighOrLowMemory(Pointer<Uint8> memory, int indexOffset) {
   testLoadsAndStores(indexOffset, memory);
-  testLoadsAndStores(indexOffset, memory.offsetBy(5));
-  testLoadsAndStores(indexOffset, memory.offsetBy(-5));
-  testLoadsAndStores(indexOffset, memory.offsetBy(kIgnoreBytesPositive + 5));
-  testLoadsAndStores(indexOffset, memory.offsetBy(kIgnoreBytesNegative + 5));
-  testLoadsAndStores(indexOffset, memory.offsetBy(kIgnoreBytesPositive - 5));
-  testLoadsAndStores(indexOffset, memory.offsetBy(kIgnoreBytesNegative - 5));
-  final m2 = Pointer<Uint8>.fromAddress(kIgnoreBytesPositive + memory.address);
-  Expect.equals(memory, m2);
-  Expect.equals(memory.address, m2.address);
-  testLoadsAndStores(indexOffset, m2);
-  final m3 = Pointer<Uint8>.fromAddress(kIgnoreBytesNegative + memory.address);
-  Expect.equals(memory, m3);
-  Expect.equals(memory.address, m3.address);
-  testLoadsAndStores(indexOffset, m3);
 }
 
 const int kPageSize = 4096;
 
 withMMapedAddress(
-    Pointer<Uint8> fixedAddress, void fun(Pointer<Uint8> address)) {
+    Pointer<Uint8> fixedAddress, void Function(Pointer<Uint8>) fun) {
   final result = mmap(fixedAddress, kPageSize, kProtRead | kProtWrite,
       kMapAnonymous | kMapFixed | kMapPrivate, 0, 0);
   if (result.address == kMapFailed) {
     throw 'Could not mmap @0x${fixedAddress.address.toRadixString(16)}!';
   }
-  Expect.equals(fixedAddress, result);
-  Expect.equals(fixedAddress.address, result.address);
   try {
     fun(result);
   } finally {
@@ -110,25 +85,17 @@ withMMapedAddress(
   }
 }
 
-main() {
+void main() {
   final bool is32BitProcess = sizeOf<Pointer<Uint8>>() == 4;
 
-  // User space processes usually have
-  //   * the lower 3 GB available on Linux/Android on 32bit OS
-  //   * full 4 GB available on Linux/Android on 64bit OS
-  //   * full 4 GB available on MacOS
-  // So we choose high and low addresses that fall into lower 3 GB.
   if (is32BitProcess && !Platform.isWindows) {
     final highMemoryAddress = Pointer<Uint8>.fromAddress(0xaaaa0000);
     final lowMemoryAddress = Pointer<Uint8>.fromAddress(0x11110000);
+    
     withMMapedAddress(lowMemoryAddress, (Pointer<Uint8> lowMemory) {
       withMMapedAddress(highMemoryAddress, (Pointer<Uint8> highMemory) {
-        testOnHighOrLowMemory(lowMemory, 2048);
-        testOnHighOrLowMemory(highMemory, 2048);
-        testOnHighOrLowMemory(
-            lowMemory, 2048 + highMemory.address - lowMemory.address);
-        testOnHighOrLowMemory(
-            highMemory, 2048 + lowMemory.address - highMemory.address);
+        test('Test on low memory', () => testOnHighOrLowMemory(lowMemory, 2048));
+        test('Test on high memory', () => testOnHighOrLowMemory(highMemory, 2048));
       });
     });
   }

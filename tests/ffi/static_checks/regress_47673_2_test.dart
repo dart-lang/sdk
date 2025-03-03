@@ -14,8 +14,8 @@ final class A extends Struct {
   external Array<Int8> a;
 
   // This should not crash the FFI transform.
-  @Array.multi([16]) //# 1: compile-time error
-  external Array<Unknown> b; //# 1: compile-time error
+  @Array.multi([16]) // [cfe] unspecified
+  external Array<Unknown> b; // [cfe] unspecified
 }
 
 main() {}

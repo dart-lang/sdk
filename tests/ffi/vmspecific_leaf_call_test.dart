@@ -1,6 +1,6 @@
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// Copyright (c) 2021, the Dart project authors.
+// Please see the AUTHORS file for details. 
+// All rights reserved. Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 //
 // SharedObjects=ffi_test_functions
 
@@ -17,47 +17,45 @@ import 'dylib_utils.dart';
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-testLeafCall() {
-  // Regular calls should transition generated -> native.
+void testLeafCall() {
+  // Regular calls should transition from generated Dart code to native.
   final isThreadInGenerated = ffiTestFunctions
       .lookupFunction<Int8 Function(), int Function()>("IsThreadInGenerated");
+
   Expect.equals(0, isThreadInGenerated());
+
   // Leaf calls should remain in generated state.
-  final isThreadInGeneratedLeaf = ffiTestFunctions
-      .lookupFunction<Int8 Function(), int Function()>("IsThreadInGenerated",
-          isLeaf: true);
+  final isThreadInGeneratedLeaf = ffiTestFunctions.lookupFunction<
+      Int8 Function(),
+      int Function()>("IsThreadInGenerated", isLeaf: true);
+
   Expect.equals(1, isThreadInGeneratedLeaf());
 }
 
-testLeafCallApi() {
-  // Note: This will only crash as expected in debug build mode. In other modes
-  // it's effectively skip.
+void testLeafCallApi() {
+  // In debug mode, this should crash due to unsafe use of Dart APIs.
   final f = ffiTestFunctions.lookupFunction<Void Function(), void Function()>(
       "TestLeafCallApi",
       isLeaf: true);
-  // Calling Dart_.. API is unsafe from leaf calls since we explicitly haven't
-  // made the generated -> native transition.
+
+  // Unsafe: Calling Dart API from a leaf function.
   f();
 }
 
 void nop() {}
 
-testCallbackLeaf() {
-  // This should crash with "expected: T->IsAtSafepoint()", since it's unsafe to
-  // do callbacks from leaf calls (otherwise they wouldn't be leaf calls).
-  // Note: This will only crash as expected in debug build mode. In other modes
-  // it's effectively skip.
+void testCallbackLeaf() {
+  // This test should fail with "expected: T->IsAtSafepoint()".
+  // Callbacks from leaf calls are not allowed.
   CallbackTest("CallbackLeaf", Pointer.fromFunction<Void Function()>(nop),
           isLeaf: true)
       .run();
 }
 
-main() {
+void main() {
   testLeafCall();
-  // These tests terminate the process after successful completion, so we have
-  // to run them separately.
-  //
-  // Since they use signal handlers they only run on Linux.
+
+  // These tests cause process termination on success.
   if (Platform.isLinux && !const bool.fromEnvironment("dart.vm.product")) {
     testLeafCallApi();
     testCallbackLeaf();
