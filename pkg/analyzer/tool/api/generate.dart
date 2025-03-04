@@ -15,6 +15,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_utilities/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/package_root.dart';
 import 'package:analyzer_utilities/tools.dart';
@@ -240,6 +241,7 @@ class ApiDescription {
       }
       return;
     }
+    var parentheticals = <List<Object?>>[];
     switch (element) {
       case InstanceElement2():
         switch (element) {
@@ -248,39 +250,41 @@ class ApiDescription {
               :var supertype,
               :var interfaces
             ):
-            node.text.add(switch (element) {
-              ClassElement2() => ' (class',
-              EnumElement2() => ' (enum',
-              MixinElement2() => ' (mixin',
-              dynamic(:var runtimeType) => ' (TODO: $runtimeType',
-            });
+            List<Object?> instanceDescription = [
+              switch (element) {
+                ClassElement2() => 'class',
+                EnumElement2() => 'enum',
+                MixinElement2() => 'mixin',
+                dynamic(:var runtimeType) => 'TODO: $runtimeType',
+              }
+            ];
             if (typeParameters2.isNotEmpty) {
-              node.text.addAll(typeParameters2
+              instanceDescription.addAll(typeParameters2
                   .map(_describeTypeParameter)
                   .separate(prefix: '<', suffix: '>'));
             }
             if (element is! EnumElement2 && supertype != null) {
-              node.text.addAll([' extends ', ..._describeType(supertype)]);
+              instanceDescription
+                  .addAll([' extends ', ..._describeType(supertype)]);
             }
             if (element is MixinElement2 &&
                 element.superclassConstraints.isNotEmpty) {
-              node.text.addAll(element.superclassConstraints
+              instanceDescription.addAll(element.superclassConstraints
                   .map(_describeType)
                   .separate(prefix: ' on '));
             }
             if (interfaces.isNotEmpty) {
-              node.text.addAll(interfaces
+              instanceDescription.addAll(interfaces
                   .map(_describeType)
                   .separate(prefix: ' implements '));
             }
-            node.text.add(')');
+            parentheticals.add(instanceDescription);
           case ExtensionElement2(:var extendedType):
-            node.text.addAll(
-                [' (extension on ', ..._describeType(extendedType), ')']);
+            parentheticals
+                .add(['extension on ', ..._describeType(extendedType)]);
           case dynamic(:var runtimeType):
             throw UnimplementedError('Unexpected element: $runtimeType');
         }
-        var publicMembersFound = false;
         for (var member in element.children2.sortedBy((m) => m.name3 ?? '')) {
           if (member.name3 case var name? when name.startsWith('_')) {
             // Ignore private members
@@ -303,42 +307,48 @@ class ApiDescription {
             // so they aren't part of the public API.
             continue;
           }
-          if (!publicMembersFound) {
-            publicMembersFound = true;
-            node.text.add(':');
-          }
           var childNode = Node<MemberSortKey>();
           childNode.text.add(member.apiName);
           _dumpElement(member, childNode);
           node.childNodes.add((MemberSortKey(member), childNode));
         }
       case TopLevelFunctionElement(:var type):
-        node.text.addAll([' (function: ', ..._describeType(type), ')']);
+        parentheticals.add(['function: ', ..._describeType(type)]);
       case ExecutableElement2(:var isStatic):
         String maybeStatic = isStatic ? 'static ' : '';
         switch (element) {
           case GetterElement(:var type):
-            node.text.addAll([
-              ' (${maybeStatic}getter: ',
-              ..._describeType(type.returnType),
-              ')'
-            ]);
+            parentheticals.add(
+                ['${maybeStatic}getter: ', ..._describeType(type.returnType)]);
           case SetterElement(:var type):
-            node.text.addAll([
-              ' (${maybeStatic}setter: ',
-              ..._describeType(type.formalParameters.single.type),
-              ')'
+            parentheticals.add([
+              '${maybeStatic}setter: ',
+              ..._describeType(type.formalParameters.single.type)
             ]);
           case MethodElement2(:var type):
-            node.text.addAll(
-                [' (${maybeStatic}method: ', ..._describeType(type), ')']);
+            parentheticals
+                .add(['${maybeStatic}method: ', ..._describeType(type)]);
           case ConstructorElement2(:var type):
-            node.text.addAll([' (constructor: ', ..._describeType(type), ')']);
+            parentheticals.add(['constructor: ', ..._describeType(type)]);
           case dynamic(:var runtimeType):
             throw UnimplementedError('Unexpected element: $runtimeType');
         }
       case dynamic(:var runtimeType):
         throw UnimplementedError('Unexpected element: $runtimeType');
+    }
+
+    if (element.metadata.any(_isDeprecated)) {
+      parentheticals.add(['deprecated']);
+    }
+    if (element.metadata.any(_isExperimental)) {
+      parentheticals.add(['experimental']);
+    }
+
+    if (parentheticals.isNotEmpty) {
+      node.text.addAll(parentheticals.separate(prefix: ' (', suffix: ')'));
+    }
+    if (node.childNodes.isNotEmpty) {
+      node.text.add(':');
     }
   }
 
@@ -357,6 +367,25 @@ class ApiDescription {
         _dumpElement(element, childNode);
       }
       node.childNodes.add((MemberSortKey(element), childNode));
+    }
+  }
+
+  bool _isDeprecated(ElementAnnotation annotation) {
+    if (annotation.computeConstantValue()!.type
+        case InterfaceType(:var element3) when element3.name3 == 'Deprecated') {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool _isExperimental(ElementAnnotation annotation) {
+    if (annotation.computeConstantValue()!.type
+        case InterfaceType(:var element3)
+        when element3.name3 == '_Experimental') {
+      return true;
+    } else {
+      return false;
     }
   }
 }
