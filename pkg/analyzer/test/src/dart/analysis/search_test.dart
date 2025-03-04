@@ -1311,6 +1311,30 @@ enum E {
 ''');
   }
 
+  test_searchReferences_constructorField_outsideFile() async {
+    // Create an external file with a class that has a constructor field.
+    newFile('$testPackageLibPath/other.dart', r'''
+import 'test.dart';
+
+class B extends A {
+  B({super.x});
+}
+''');
+    // Resolve test code that imports the external file and references the field.
+    await resolveTestCode(r'''
+class A {
+  int? x;
+  A({this.x});
+}
+''');
+    // Look up field 'x' and assert that its reference is correctly found.
+    var field = findElement2.fieldFormalParameter('x');
+    await assertElementReferencesText(field, r'''
+package:test/other.dart::<fragment>::@class::B::@constructor::new::@parameter::x
+  52 4:12 |x| REFERENCE qualified
+''');
+  }
+
   test_searchReferences_ExtensionElement() async {
     await resolveTestCode('''
 extension E on int {

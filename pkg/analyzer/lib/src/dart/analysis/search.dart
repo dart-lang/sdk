@@ -587,8 +587,12 @@ class Search {
       {List<FileState>? filesToCheck}) async {
     // Prepare the element name.
     String name = element.displayName;
-    if (element is ConstructorElement2) {
-      name = element.enclosingElement2.displayName;
+    var externalElement = element;
+    if (externalElement case FormalParameterElement(:var enclosingElement2?)) {
+      externalElement = enclosingElement2;
+    }
+    if (externalElement is ConstructorElement2) {
+      name = externalElement.enclosingElement2.displayName;
     }
 
     var elementPath = element.firstFragment.libraryFragment!.source.fullName;

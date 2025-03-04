@@ -110,7 +110,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
               for (var parameter in constructor.formalParameters) {
                 if (parameter is FieldFormalParameterElement2 &&
                     parameter.field2 == renameElement) {
-                  await workspace.searchEngine
+                  await searchEngine
                       .searchReferences(parameter)
                       .then(processor.addReferenceEdits);
                 }
