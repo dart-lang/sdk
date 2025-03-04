@@ -1822,6 +1822,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node.expression, SharedTypeSchemaView(UnknownInferredType.instance));
     popRewrite();
 
+    checkUnreachableNode(node.type);
     node.type.accept(this);
 
     typeAnalyzer.visitAsExpression(node);
@@ -3070,6 +3071,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node.expression, SharedTypeSchemaView(UnknownInferredType.instance));
     popRewrite();
 
+    checkUnreachableNode(node.type);
     node.type.accept(this);
 
     typeAnalyzer.visitIsExpression(node);
@@ -3455,6 +3457,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       popRewrite();
     }
 
+    checkUnreachableNode(node.propertyName);
     _resolvePropertyAccessRhs(node, contextType);
     inferenceLogWriter?.exitExpression(node);
   }

@@ -889,6 +889,7 @@ PrefixExpression
   test_propertyAccess_never_read() async {
     await assertNoErrorsInCode(r'''
 void f(Never x) {
+  // ignore: dead_code
   x.foo;
 }
 ''');
@@ -916,6 +917,7 @@ PrefixedIdentifier
   test_propertyAccess_never_read_hashCode() async {
     await assertNoErrorsInCode(r'''
 void f(Never x) {
+  // ignore: dead_code
   x.hashCode;
 }
 ''');
@@ -987,6 +989,7 @@ AssignmentExpression
   test_propertyAccess_never_tearOff_toString() async {
     await assertNoErrorsInCode(r'''
 void f(Never x) {
+  // ignore: dead_code
   x.toString;
 }
 ''');
@@ -1142,6 +1145,7 @@ PrefixedIdentifier
   test_propertyAccess_toString() async {
     await assertNoErrorsInCode(r'''
 void f() {
+  // ignore: dead_code
   (throw '').toString;
 }
 ''');
@@ -1171,6 +1175,7 @@ PropertyAccess
   test_throw_getter_hashCode() async {
     await assertNoErrorsInCode(r'''
 void f() {
+  // ignore: dead_code
   (throw '').hashCode;
 }
 ''');

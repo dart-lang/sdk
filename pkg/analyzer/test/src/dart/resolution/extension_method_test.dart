@@ -1044,6 +1044,7 @@ extension E on Never {
 }
 
 f(Never a) {
+  // ignore: dead_code
   a.foo;
 }
 ''');
