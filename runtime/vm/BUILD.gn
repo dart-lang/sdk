@@ -202,6 +202,9 @@ library_for_all_configs("libdart_vm") {
     # uses different assembler syntax.
     sources += [ "thread_interrupter_android_arm.S" ]
   }
+  if (!is_win) {
+    sources += [ "simulator_arm64_trampolines.S" ]
+  }
   include_dirs = [ ".." ]
 }
 

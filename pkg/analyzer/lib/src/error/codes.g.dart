@@ -6462,10 +6462,22 @@ class WarningCode extends ErrorCode {
     correctionMessage: "Try removing the 'deferred' keyword.",
   );
 
+  static const WarningCode DOC_IMPORT_CANNOT_HAVE_COMBINATORS = WarningCode(
+    'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
+    "Doc imports can't have show or hide combinators.",
+    correctionMessage: "Try removing the combinator.",
+  );
+
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
     "Doc imports can't have configurations.",
     correctionMessage: "Try removing the configurations.",
+  );
+
+  static const WarningCode DOC_IMPORT_CANNOT_HAVE_PREFIX = WarningCode(
+    'DOC_IMPORT_CANNOT_HAVE_PREFIX',
+    "Doc imports can't have prefixes.",
+    correctionMessage: "Try removing the prefix.",
   );
 
   ///  Duplicate exports.

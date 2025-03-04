@@ -234,6 +234,7 @@ class Simulator {
   bool ConditionallyExecute(Instr* instr);
 
   void DoRedirectedCall(Instr* instr);
+  void DoRedirectedFfiCall(Instr* instr);
 
   // Decode instructions.
   void InstructionDecode(Instr* instr);

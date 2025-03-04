@@ -712,6 +712,9 @@ class RegisterSet : public ValueObject {
       if (reg == PC) continue;
 #elif defined(TARGET_ARCH_ARM64)
       if (reg == R31) continue;
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_WINDOWS)
+      if (reg == R18) continue;
+#endif
 #elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
       if (reg == ZR || reg == TP || reg == GP) continue;
 #endif

@@ -113,6 +113,8 @@ final i8ConstImmutableArray = WasmArrayConstCache();
 final i32ConstArray = WasmArrayConstCache();
 @pragma('dyn-module:callable')
 final i64ConstImmutableArray = WasmArrayConstCache();
+@pragma('dyn-module:callable')
+final boxedIntImmutableArray = WasmArrayConstCache();
 
 class WasmArrayConstCache {
   // Guaranteed by construction to contain only arrays with the same type.

@@ -388,19 +388,21 @@ class TypesBuilder {
     }
 
     var firstFragment = element.firstFragment;
-    var firstTypeParameters = firstFragment.typeParameters;
+    var firstTypeParameters =
+        firstFragment.typeParameters.map((tp) => tp.asElement2).toList();
 
-    var fragmentTypeParameters = fragment.typeParameters;
+    var fragmentTypeParameters =
+        fragment.typeParameters.map((tp) => tp.asElement2).toList();
     if (fragmentTypeParameters.length != firstTypeParameters.length) {
       return;
     }
 
-    var toFirst = Substitution.fromPairs(
+    var toFirst = Substitution.fromPairs2(
       fragmentTypeParameters,
       firstTypeParameters.instantiateNone(),
     );
 
-    var fromFirst = Substitution.fromPairs(
+    var fromFirst = Substitution.fromPairs2(
       firstTypeParameters,
       fragmentTypeParameters.instantiateNone(),
     );

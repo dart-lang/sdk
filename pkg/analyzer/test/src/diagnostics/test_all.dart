@@ -201,8 +201,12 @@ import 'doc_directive_missing_two_arguments_test.dart'
     as doc_directive_missing_two_arguments;
 import 'doc_import_cannot_be_deferred_test.dart'
     as doc_import_cannot_be_deferred;
+import 'doc_import_cannot_have_combinators_test.dart'
+    as doc_import_cannot_have_combinators;
 import 'doc_import_cannot_have_configurations_test.dart'
     as doc_import_cannot_have_configurations;
+import 'doc_import_cannot_have_prefix_test.dart'
+    as doc_import_cannot_have_prefix;
 import 'duplicate_constructor_default_test.dart'
     as duplicate_constructor_default;
 import 'duplicate_constructor_name_test.dart' as duplicate_constructor_name;
@@ -1060,7 +1064,9 @@ main() {
     doc_directive_missing_three_arguments.main();
     doc_directive_missing_two_arguments.main();
     doc_import_cannot_be_deferred.main();
+    doc_import_cannot_have_combinators.main();
     doc_import_cannot_have_configurations.main();
+    doc_import_cannot_have_prefix.main();
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();
     duplicate_definition.main();

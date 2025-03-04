@@ -149,6 +149,9 @@ config("dart_arch_config") {
   }
   if (dart_force_simulator) {
     defines += [ "USING_SIMULATOR" ]
+    if (dart_target_arch == "arm64") {
+      defines += [ "SIMULATOR_FFI" ]
+    }
   }
 }
 

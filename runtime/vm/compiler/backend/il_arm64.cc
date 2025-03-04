@@ -1428,6 +1428,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ mov(temp_csp, CSP);
     __ mov(CSP, SP);
 
+#if defined(SIMULATOR_FFI)
+    __ Emit(Instr::kSimulatorFfiRedirectInstruction);
+    ASSERT(branch == R9);
+#endif
     __ blr(branch);
 
     // Restore the Dart stack pointer.

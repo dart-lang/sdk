@@ -607,7 +607,7 @@ extension LibraryImportElementExtension on LibraryImportElement {
   }
 }
 
-extension ListOfTypeParameterElementExtension on List<TypeParameterElement> {
+extension ListOfTypeParameterElement2Extension on List<TypeParameterElement2> {
   List<TypeParameterType> instantiateNone() {
     return map((e) {
       return e.instantiate(

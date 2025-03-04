@@ -169,7 +169,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
           DynamicTypeImpl.instance,
         );
         substitution =
-            Substitution.fromPairs(rawType.typeFormals, typeArgumentTypes);
+            Substitution.fromPairs2(rawType.typeParameters, typeArgumentTypes);
       } else {
         typeArgumentTypes = const <TypeImpl>[];
       }
@@ -188,8 +188,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
             .map((typeArgument) => typeArgument.typeOrThrow)
             .toList(growable: true);
         if (rawType != null && _needsTypeArgumentBoundsCheck) {
-          var typeParameters = rawType.typeFormals;
-          var substitution = Substitution.fromPairs(
+          var typeParameters = rawType.typeParameters;
+          var substitution = Substitution.fromPairs2(
             typeParameters,
             typeArgumentTypes,
           );
@@ -203,7 +203,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
                 resolver.errorReporter.atNode(
                   typeArgumentList.arguments[i],
                   CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-                  arguments: [typeArgument, typeParameter.name, bound],
+                  arguments: [typeArgument, typeParameter.name3!, bound],
                 );
               }
             }
@@ -213,7 +213,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
       if (rawType != null) {
         substitution =
-            Substitution.fromPairs(rawType.typeFormals, typeArgumentTypes);
+            Substitution.fromPairs2(rawType.typeParameters, typeArgumentTypes);
       }
     } else if (rawType == null || rawType.typeFormals.isEmpty) {
       typeArgumentTypes = const <TypeImpl>[];
@@ -240,8 +240,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         nodeForTesting: node,
       );
 
-      substitution = Substitution.fromPairs(
-          rawType.typeFormals, inferrer.choosePreliminaryTypes());
+      substitution = Substitution.fromPairs2(
+          rawType.typeParameters, inferrer.choosePreliminaryTypes());
     }
 
     List<_IdenticalArgumentInfo?>? identicalArgumentInfo =
@@ -263,8 +263,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
                   rawType, parameterMap, deferredFunctionLiterals))
           .planReconciliationStages()) {
         if (inferrer != null && !isFirstStage) {
-          substitution = Substitution.fromPairs(
-              rawType!.typeFormals, inferrer.choosePreliminaryTypes());
+          substitution = Substitution.fromPairs2(
+              rawType!.typeParameters, inferrer.choosePreliminaryTypes());
         }
         _resolveDeferredFunctionLiterals(
             deferredFunctionLiterals: stage,

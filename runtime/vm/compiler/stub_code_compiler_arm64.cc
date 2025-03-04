@@ -433,6 +433,9 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ Bind(&done);
 #endif
 
+#if defined(SIMULATOR_FFI)
+  __ Emit(Instr::kSimulatorFfiRedirectInstruction);
+#endif
   __ blr(R9);
 
   __ mov(SP, CSP);

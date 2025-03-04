@@ -2114,7 +2114,7 @@ void Simulator::InterpretECALL(Instr instr) {
     Redirection* redirection = Redirection::FromECallInstruction(pc_);
     uword external = redirection->external_function();
     if (IsTracingExecution()) {
-      THR_Print("Call to host function at 0x%" Pd "\n", external);
+      THR_Print("Call to host function at 0x%" Px "\n", external);
     }
 
     if (redirection->call_kind() == kRuntimeCall) {

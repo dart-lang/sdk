@@ -950,8 +950,9 @@ void Simulator::set_register(Instr* instr,
                              R31Type r31t) {
   // Register is in range.
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
-#if !defined(DART_TARGET_OS_FUCHSIA)
-  ASSERT(instr == nullptr || reg != R18);  // R18 is globally reserved on iOS.
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_WINDOWS)
+  // R18 is globally reserved on macOS/iOS, the TEB pointer on Windows.
+  ASSERT(instr == nullptr || reg != R18);
 #endif
 
   if ((reg != R31) || (r31t != R31IsZR)) {
@@ -1682,7 +1683,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
     Redirection* redirection = Redirection::FromHltInstruction(instr);
     uword external = redirection->external_function();
     if (IsTracingExecution()) {
-      THR_Print("Call to host function at 0x%" Pd "\n", external);
+      THR_Print("Call to host function at 0x%" Px "\n", external);
     }
 
     if (redirection->call_kind() == kRuntimeCall) {
@@ -1746,6 +1747,65 @@ void Simulator::DoRedirectedCall(Instr* instr) {
   }
 }
 
+struct CalloutContext {
+  uword saved_stack_pointer;
+  uword saved_frame_pointer;
+  uword simulator_stack_pointer;
+  uword simulator_frame_pointer;
+  uword integer_arguments[8];
+  uword double_arguments[8];
+  uword r8;
+  uword target;
+};
+
+extern "C" void FfiCalloutTrampoline(CalloutContext*);
+
+void Simulator::DoRedirectedFfiCall(Instr* instr) {
+#if !defined(HOST_ARCH_ARM64)
+  FATAL("Unsupported FFI call");
+#else
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
+  SimulatorSetjmpBuffer buffer(this);
+  if (!setjmp(buffer.buffer_)) {
+    int64_t saved_pc = get_pc();
+    uword external = get_register(R9);
+    if (IsTracingExecution()) {
+      THR_Print("Call to FFI function at 0x%" Px "\n", external);
+    }
+
+    CalloutContext ctxt;
+    ctxt.simulator_stack_pointer = get_register(R31);
+    ctxt.simulator_frame_pointer = get_register(FP);
+    for (intptr_t i = 0; i < 8; i++) {
+      ctxt.integer_arguments[i] = get_register(static_cast<Register>(R0 + i));
+      ctxt.double_arguments[i] =
+          get_vregisterd(static_cast<VRegister>(V0 + i), 0);
+    }
+    ctxt.r8 = get_register(R8);
+    ctxt.target = external;
+
+    FfiCalloutTrampoline(&ctxt);
+
+    if (IsTracingExecution()) {
+      THR_Print("Return from FFI function at 0x%" Px "\n", external);
+    }
+
+    ClobberVolatileRegisters();
+    set_register(instr, R0, ctxt.integer_arguments[0]);
+    set_register(instr, R1, ctxt.integer_arguments[1]);
+    set_vregisterd(V0, 0, ctxt.double_arguments[0]);
+    set_vregisterd(V1, 0, ctxt.double_arguments[1]);
+
+    // Skip over hlt and blr.
+    set_pc(saved_pc + 2 * Instr::kInstrSize);
+  } else {
+    // Coming via long jump from a throw. Continue to exception handler.
+  }
+#endif
+}
+
 void Simulator::ClobberVolatileRegisters() {
   // Clear atomic reservation.
   exclusive_access_addr_ = exclusive_access_value_ = 0;
@@ -1787,6 +1847,8 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
       dbg.Stop(instr, "breakpoint");
     } else if (imm == Instr::kSimulatorRedirectCode) {
       DoRedirectedCall(instr);
+    } else if (imm == Instr::kSimulatorFfiRedirectCode) {
+      DoRedirectedFfiCall(instr);
     } else {
       UnimplementedInstruction(instr);
     }

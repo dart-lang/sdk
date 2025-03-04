@@ -428,6 +428,8 @@ mixin KernelNodes {
       index.getTopLevelField('dart:_internal', 'i32ConstArray');
   late final Field i64ConstImmutableArrayCache =
       index.getTopLevelField('dart:_internal', 'i64ConstImmutableArray');
+  late final Field boxedIntImmutableArrayCache =
+      index.getTopLevelField('dart:_internal', 'boxedIntImmutableArray');
 
   // Debugging
   late final Procedure printToConsole =
@@ -450,6 +452,7 @@ mixin KernelNodes {
     _makeElementType(coreTypes.stringClass): stringConstImmutableArrayCache,
     _makeElementType(wasmI8Class): i8ConstImmutableArrayCache,
     _makeElementType(wasmI64Class): i64ConstImmutableArrayCache,
+    _makeElementType(boxedIntClass): boxedIntImmutableArrayCache,
   };
 
   InterfaceType _makeElementType(Class c,
