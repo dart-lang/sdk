@@ -22,7 +22,6 @@ base class _MutexImpl extends NativeFieldWrapperClass1 implements Mutex {
   @Native<Void Function(Handle)>(symbol: "Mutex_Initialize")
   external void _initialize();
 
-  @patch
   @Native<Handle Function(Handle, Handle)>(symbol: "Mutex_RunLocked")
   external Object _runLocked(Object action);
 
@@ -48,15 +47,12 @@ base class _ConditionVariableImpl extends NativeFieldWrapperClass1
   @Native<Void Function(Handle)>(symbol: "ConditionVariable_Initialize")
   external void _initialize();
 
-  @patch
   @Native<Void Function(Handle, Handle)>(symbol: "ConditionVariable_Wait")
   external void wait(Mutex mutex);
 
-  @patch
   @Native<Void Function(Handle)>(symbol: "ConditionVariable_Notify")
   external void notify();
 
-  @patch
   @Native<Void Function(Handle)>(symbol: "ConditionVariable_NotifyAll")
   external void notifyAll();
 }
