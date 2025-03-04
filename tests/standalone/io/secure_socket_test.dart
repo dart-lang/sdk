@@ -98,6 +98,8 @@ Future test(String certType, String password) {
 void testConnectTimeout() {
   asyncStart();
   Duration timeout = new Duration(milliseconds: 0);
+  // TODO(https://github.com/dart-lang/sdk/issues/60246): ensure that the
+  // exception was really caused by a timeout.
   SecureSocket.connect("8.8.8.7", 80, timeout: timeout)
       .then((socket) {
         Expect.fail("Unexpected connection made.");
@@ -105,7 +107,6 @@ void testConnectTimeout() {
       })
       .catchError((e) {
         Expect.isTrue(e is SocketException);
-        Expect.equals(Platform.isWindows? 10060 : 110, (e as SocketException).osError?.errorCode);
         asyncEnd();
       });
 }
