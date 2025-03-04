@@ -82,8 +82,6 @@ CompilingWithoutSoundNullSafety/analyzerCode: Fail
 ConflictingModifiers/part_wrapped_script1: Fail
 ConflictingModifiers/script1: Fail
 ConflictsWithTypeParameter/example: Fail
-ConstructorShouldBeListedAsCallableInDynamicInterface/analyzerCode: Fail
-ConstructorShouldBeListedAsCallableInDynamicInterface/example: Fail
 ConstAndFinal/declaration3: Fail
 ConstAndFinal/declaration4: Fail
 ConstAndFinal/part_wrapped_declaration3: Fail
@@ -163,6 +161,8 @@ ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorNotFound/example: Fail
 ConstructorNotSync/example: Fail
+ConstructorShouldBeListedAsCallableInDynamicInterface/analyzerCode: Fail
+ConstructorShouldBeListedAsCallableInDynamicInterface/example: Fail
 ConstructorTearOffWithTypeArguments/analyzerCode: Fail
 ContinueLabelNotTarget/example: Fail
 ContinueOutsideOfLoop/part_wrapped_script1: Fail
@@ -795,10 +795,13 @@ NeverValueWarning/analyzerCode: Fail
 NeverValueWarning/example: Fail
 NewAsSelector/analyzerCode: Fail
 NoAugmentSuperInvokeTarget/analyzerCode: Fail
+NoAugmentSuperInvokeTarget/example: Fail
 NoAugmentSuperInvokeTarget/part_wrapped_script: Fail # Uses imports
 NoAugmentSuperReadTarget/analyzerCode: Fail
+NoAugmentSuperReadTarget/example: Fail
 NoAugmentSuperReadTarget/part_wrapped_script: Fail # Uses imports
 NoAugmentSuperWriteTarget/analyzerCode: Fail
+NoAugmentSuperWriteTarget/example: Fail
 NoAugmentSuperWriteTarget/part_wrapped_script: Fail # Uses imports
 NoFormals/example: Fail
 NoMacroApplicationTarget/analyzerCode: Fail
@@ -811,14 +814,19 @@ NonAgnosticConstant/example: Fail
 NonAsciiIdentifier/expression: Fail
 NonAsciiIdentifier/part_wrapped_expression: Fail
 NonAugmentationClassConflict/analyzerCode: Fail
+NonAugmentationClassConflict/example: Fail
 NonAugmentationClassConflict/part_wrapped_script: Fail
 NonAugmentationClassMemberConflict/analyzerCode: Fail
+NonAugmentationClassMemberConflict/example: Fail
 NonAugmentationClassMemberConflict/part_wrapped_script: Fail # Uses imports
 NonAugmentationConstructorConflict/analyzerCode: Fail
+NonAugmentationConstructorConflict/example: Fail
 NonAugmentationConstructorConflict/part_wrapped_script: Fail # Uses imports
 NonAugmentationLibraryConflict/analyzerCode: Fail
+NonAugmentationLibraryConflict/example: Fail
 NonAugmentationLibraryConflict/part_wrapped_script: Fail
 NonAugmentationLibraryMemberConflict/analyzerCode: Fail
+NonAugmentationLibraryMemberConflict/example: Fail
 NonAugmentationLibraryMemberConflict/part_wrapped_script: Fail # Uses imports
 NonConstConstructor/example: Fail
 NonConstFactory/example: Fail
@@ -949,6 +957,8 @@ PrefixAfterCombinator/example: Fail
 PreviousUseOfName/analyzerCode: Fail
 PreviousUseOfName/example: Fail
 PrivateNamedParameter/example: Fail
+RecordUseCannotBePlacedHere/analyzerCode: Fail
+RecordUseCannotBePlacedHere/example: Fail
 RecordUsedAsCallable/analyzerCode: Fail
 RecordUsedAsCallable/part_wrapped_script: Fail
 RecordUsedAsCallable/script: Fail
@@ -962,8 +972,6 @@ RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueError/example: Fail
 RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueWarning/example: Fail
-RecordUseCannotBePlacedHere/analyzerCode: Fail
-RecordUseCannotBePlacedHere/example: Fail
 RestPatternInMapPattern/analyzerCode: Fail
 RestPatternMoreThanOne/analyzerCode: Fail
 RethrowNotCatch/example: Fail
@@ -1063,14 +1071,18 @@ UnexpectedToken/script1: Fail
 UnhandledMacroApplication/analyzerCode: Fail
 UnhandledMacroApplication/example: Fail
 UnmatchedAugmentationClass/analyzerCode: Fail
+UnmatchedAugmentationClass/example: Fail
 UnmatchedAugmentationClass/part_wrapped_script: Fail
 UnmatchedAugmentationClassMember/analyzerCode: Fail
+UnmatchedAugmentationClassMember/example: Fail
 UnmatchedAugmentationClassMember/part_wrapped_script: Fail # Uses imports
 UnmatchedAugmentationConstructor/analyzerCode: Fail
+UnmatchedAugmentationConstructor/example: Fail
 UnmatchedAugmentationConstructor/part_wrapped_script: Fail # Uses imports
 UnmatchedAugmentationDeclaration/analyzerCode: Fail
 UnmatchedAugmentationDeclaration/example: Fail
 UnmatchedAugmentationLibraryMember/analyzerCode: Fail
+UnmatchedAugmentationLibraryMember/example: Fail
 UnmatchedAugmentationLibraryMember/part_wrapped_script: Fail # Uses imports
 UnmatchedPatchClass/analyzerCode: Fail
 UnmatchedPatchClass/example: Fail
