@@ -3498,7 +3498,11 @@ WarningCode.DOC_DIRECTIVE_UNKNOWN:
   status: noFix
 WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED:
   status: needsFix
+WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS:
+  status: needsFix
 WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+  status: needsFix
+WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX:
   status: needsFix
 WarningCode.DUPLICATE_EXPORT:
   status: needsFix

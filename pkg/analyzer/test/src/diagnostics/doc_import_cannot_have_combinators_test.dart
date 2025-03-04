@@ -1,4 +1,4 @@
-// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,23 +9,22 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DocImportCannotBeDeferredTest);
+    defineReflectiveTests(DocImportCannotHaveCombinatorsTest);
   });
 }
 
 @reflectiveTest
-class DocImportCannotBeDeferredTest extends PubPackageResolutionTest {
-  test_deferred() async {
+class DocImportCannotHaveCombinatorsTest extends PubPackageResolutionTest {
+  test_configurations() async {
     await assertErrorsInCode('''
-/// @docImport 'dart:math' deferred as math;
+/// @docImport 'dart:math' show max;
 class C {}
 ''', [
-      error(WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED, 27, 8),
-      error(WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX, 39, 4),
+      error(WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS, 27, 8),
     ]);
   }
 
-  test_notDeferred() async {
+  test_noConfigurations() async {
     await assertNoErrorsInCode('''
 /// @docImport 'dart:math';
 class C {}
