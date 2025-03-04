@@ -4168,6 +4168,13 @@ PatchClassOrigin:
   problemMessage: "This is the origin class."
   severity: CONTEXT
 
+PatchExtensionTypeParametersMismatch:
+  problemMessage: "A patch extension must have the same number of type variables as its origin extension."
+
+PatchExtensionOrigin:
+  problemMessage: "This is the origin extension."
+  severity: CONTEXT
+
 PatchDeclarationMismatch:
   problemMessage: "This patch doesn't match origin declaration."
 
@@ -6266,15 +6273,7 @@ MacroClassNotDeclaredMacro:
 UnmatchedAugmentationClassMember:
   problemMessage: "Augmentation member '#name' doesn't match a member in the augmented class."
   correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-      class Class {}
-    lib.dart:
-      augment class Class {
-        augment void method() {}
-      }
+  experiments: augmentations
 
 UnmatchedPatchClassMember:
   problemMessage: "Patch member '#name' doesn't match a member in the origin class."
@@ -6283,12 +6282,7 @@ UnmatchedPatchClassMember:
 UnmatchedAugmentationLibraryMember:
   problemMessage: "Augmentation member '#name' doesn't match a member in the augmented library."
   correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-    lib.dart:
-      augment void method() {}
+  experiments: augmentations
 
 UnmatchedPatchLibraryMember:
   problemMessage: "Patch member '#name' doesn't match a member in the origin library."
@@ -6297,12 +6291,7 @@ UnmatchedPatchLibraryMember:
 UnmatchedAugmentationClass:
   problemMessage: "Augmentation class '#name' doesn't match a class in the augmented library."
   correctionMessage: "Try changing the name to an existing class or removing the 'augment' modifier."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-    lib.dart:
-      augment class Class {}
+  experiments: augmentations
 
 UnmatchedPatchClass:
   problemMessage: "Patch class '#name' doesn't match a class in the origin library."
@@ -6320,17 +6309,7 @@ UnmatchedPatchDeclaration:
 UnmatchedAugmentationConstructor:
   problemMessage: "Augmentation constructor '#name' doesn't match a constructor in the augmented class."
   correctionMessage: "Try changing the name to an existing constructor or removing the 'augment' modifier."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-      class Class {
-        Class.name1();
-      }
-    lib.dart:
-      augment class Class {
-        augment Class.name2();
-      }
+  experiments: augmentations
 
 UnmatchedPatchConstructor:
   problemMessage: "Patch constructor '#name' doesn't match a constructor in the origin class."
@@ -6339,17 +6318,7 @@ UnmatchedPatchConstructor:
 NonAugmentationClassMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented class."
   correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-      class Class {
-        void method() {}
-      }
-    lib.dart:
-      augment class Class {
-        void method() {}
-      }
+  experiments: augmentations
 
 NonPatchClassMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the origin class."
@@ -6358,13 +6327,7 @@ NonPatchClassMemberConflict:
 NonAugmentationLibraryMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented library."
   correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-      void method() {}
-    lib.dart:
-      void method() {}
+  experiments: augmentations
 
 NonPatchLibraryMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the origin library."
@@ -6373,13 +6336,7 @@ NonPatchLibraryMemberConflict:
 NonAugmentationLibraryConflict:
   problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the augmented library."
   correctionMessage: "Try changing the name of the declaration."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-      void method() {}
-    lib.dart:
-      class method {}
+  experiments: augmentations
 
 NonPatchLibraryConflict:
   problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the origin library."
@@ -6388,13 +6345,7 @@ NonPatchLibraryConflict:
 NonAugmentationClassConflict:
   problemMessage: "Class '#name' conflicts with an existing class of the same name in the augmented library."
   correctionMessage: "Try changing the name of the class or adding an 'augment' modifier."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-      class Class {}
-    lib.dart:
-      class Class {}
+  experiments: augmentations
 
 NonPatchClassConflict:
   problemMessage: "Class '#name' conflicts with an existing class of the same name in the origin library."
@@ -6403,17 +6354,7 @@ NonPatchClassConflict:
 NonAugmentationConstructorConflict:
   problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the augmented class."
   correctionMessage: "Try changing the name of the constructor or adding an 'augment' modifier."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-      class Class {
-        Class.name();
-      }
-    lib.dart:
-      augment class Class {
-        Class.name();
-      }
+  experiments: augmentations
 
 NonPatchConstructorConflict:
   problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the origin class."
@@ -6507,39 +6448,15 @@ MixinApplicationNoConcreteMemberContext:
 
 NoAugmentSuperReadTarget:
   problemMessage: "Cannot read from 'augment super'."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-      void set setter(value) {}
-    lib.dart:
-      augment void set setter(value) {
-        augment super;
-      }
+  experiments: augmentations
 
 NoAugmentSuperWriteTarget:
   problemMessage: "Cannot write to 'augment super'."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-      void method() {}
-    lib.dart:
-      augment void method() {
-        augment super = 42;
-      }
+  experiments: augmentations
 
 NoAugmentSuperInvokeTarget:
   problemMessage: "Cannot call 'augment super'."
-  experiments: macros
-  script:
-    main.dart:
-      import augment 'lib.dart';
-      void set setter(value) {}
-    lib.dart:
-      augment void set setter(value) {
-        augment super();
-      }
+  experiments: augmentations
 
 IndexOutOfBoundInRecordIndexGet:
   problemMessage: "Index #count is out of range 0..#count2 of positional fields of records #type."

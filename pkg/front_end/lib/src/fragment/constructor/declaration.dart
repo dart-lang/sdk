@@ -272,6 +272,7 @@ class RegularConstructorDeclaration
   LookupScope get typeParameterScope => _fragment.typeParameterScope;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override

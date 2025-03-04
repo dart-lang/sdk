@@ -935,6 +935,7 @@ class _GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget {
     if (_fragment.builder.isAugmentation) {
       return _fragment.builder.augmentSuperTarget;

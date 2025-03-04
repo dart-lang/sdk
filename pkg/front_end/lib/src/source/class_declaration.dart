@@ -84,31 +84,47 @@ abstract class ClassDeclarationBuilder
 }
 
 mixin ClassDeclarationBuilderMixin implements ClassDeclarationBuilder {
-  List<ConstructorReferenceBuilder>? get constructorReferences;
+  List<ConstructorReferenceBuilder> get constructorReferences;
+
+  List<ClassDeclarationBuilderMixin>? get augmentations;
 
   LookupScope get bodyScope;
 
-  @override
-  int resolveConstructors(SourceLibraryBuilder library) {
-    if (constructorReferences == null) return 0;
-    for (ConstructorReferenceBuilder ref in constructorReferences!) {
-      ref.resolveIn(bodyScope, library);
-    }
-    int count = constructorReferences!.length;
-    if (count != 0) {
-      Iterator<MemberBuilder> iterator = nameSpace.filteredConstructorIterator(
-          parent: this, includeDuplicates: true, includeAugmentations: true);
-      while (iterator.moveNext()) {
-        MemberBuilder declaration = iterator.current;
-        if (declaration.declarationBuilder?.origin != origin) {
-          unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
-              fileOffset, fileUri);
-        }
-        if (declaration is SourceFactoryBuilder) {
-          declaration.resolveRedirectingFactory();
-        }
+  int resolveConstructorReferences(SourceLibraryBuilder library) {
+    int count = 0;
+    if (constructorReferences.isNotEmpty) {
+      for (ConstructorReferenceBuilder ref in constructorReferences) {
+        ref.resolveIn(bodyScope, library);
       }
     }
+    List<ClassDeclarationBuilderMixin>? augmentations = this.augmentations;
+    if (augmentations != null) {
+      for (ClassDeclarationBuilderMixin augmentation in augmentations) {
+        count += augmentation.resolveConstructorReferences(library);
+      }
+    }
+    return count;
+  }
+
+  void resolveConstructorRedirections() {
+    Iterator<MemberBuilder> iterator = nameSpace.filteredConstructorIterator(
+        parent: null, includeDuplicates: true, includeAugmentations: false);
+    while (iterator.moveNext()) {
+      MemberBuilder declaration = iterator.current;
+      if (declaration.declarationBuilder?.origin != origin) {
+        unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
+            fileOffset, fileUri);
+      }
+      if (declaration is SourceFactoryBuilder) {
+        declaration.resolveRedirectingFactory();
+      }
+    }
+  }
+
+  @override
+  int resolveConstructors(SourceLibraryBuilder library) {
+    int count = resolveConstructorReferences(library);
+    resolveConstructorRedirections();
     return count;
   }
 }

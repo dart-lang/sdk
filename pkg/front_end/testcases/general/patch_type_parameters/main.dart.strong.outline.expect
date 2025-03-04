@@ -1,0 +1,34 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+static method test() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "dart:_internal";
+
+class Bound extends core::Object {
+  synthetic constructor •() → self2::Bound
+    ;
+}
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
+class Class<T extends self2::Bound> extends core::Object {
+  synthetic constructor •() → self2::Class<self2::Class::T>
+    ;
+  @_in::patch
+  external method method<S extends core::Object>() → void;
+}
+
+
+Extra constant evaluation status:
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

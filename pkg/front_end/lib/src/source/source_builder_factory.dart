@@ -660,7 +660,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isPatch: _compilationUnit.isAugmenting,
         referencesFromIndex: indexedLibrary,
         referenceIsPartOwner: indexedLibrary != null);
-    _parts.add(new Part(charOffset, compilationUnit));
+    _parts.add(new Part(
+        fileUri: _compilationUnit.fileUri,
+        fileOffset: charOffset,
+        compilationUnit: compilationUnit));
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
     LibraryPart part = new LibraryPart(<Expression>[], uri)
@@ -743,10 +746,18 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     } else {
       resolvedUri = _resolve(_compilationUnit.importUri, uri, uriOffset);
       compilationUnit = loader.read(resolvedUri, uriOffset,
-          origin: isAugmentationImport ? _augmentationRoot : null,
+          origin: isAugmentationImport
+              ?
+              // Coverage-ignore(suite): Not run.
+              _augmentationRoot
+              : null,
           accessor: _compilationUnit,
           isAugmentation: isAugmentationImport,
-          referencesFromIndex: isAugmentationImport ? indexedLibrary : null);
+          referencesFromIndex: isAugmentationImport
+              ?
+              // Coverage-ignore(suite): Not run.
+              indexedLibrary
+              : null);
     }
 
     Import import = new Import(
@@ -827,6 +838,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       modifiers |= Modifiers.DeclaresConstConstructor;
     }
 
+    bool isPatch =
+        _compilationUnit.forPatchLibrary && _hasPatchAnnotation(metadata);
+    if (isPatch) {
+      modifiers |= Modifiers.Augment;
+    }
     declarationFragment.metadata = metadata;
     declarationFragment.modifiers = modifiers;
     declarationFragment.supertype = supertype;
@@ -1025,6 +1041,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     nominalParameterNameSpace.addTypeParameters(
         _problemReporting, typeParameters?.builders,
         ownerName: name, allowNameConflict: false);
+
+    bool isPatch =
+        _compilationUnit.forPatchLibrary && _hasPatchAnnotation(metadata);
+    if (isPatch) {
+      modifiers |= Modifiers.Augment;
+    }
 
     declarationFragment.metadata = metadata;
     declarationFragment.modifiers = modifiers;
@@ -1352,6 +1374,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     NominalParameterNameSpace typeParameterNameSpace =
         _nominalParameterNameSpaces.pop();
 
+    bool isPatch =
+        _compilationUnit.forPatchLibrary && _hasPatchAnnotation(metadata);
+    if (isPatch) {
+      modifiers |= Modifiers.Augment;
+    }
     ConstructorFragment fragment = new ConstructorFragment(
         constructorName: constructorName,
         fileUri: _compilationUnit.fileUri,
@@ -1434,6 +1461,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     NominalParameterNameSpace typeParameterNameSpace =
         _nominalParameterNameSpaces.pop();
 
+    bool isPatch =
+        _compilationUnit.forPatchLibrary && _hasPatchAnnotation(metadata);
+    if (isPatch) {
+      modifiers |= Modifiers.Augment;
+    }
     FactoryFragment fragment = new FactoryFragment(
       constructorName: constructorName,
       fileUri: _compilationUnit.fileUri,
@@ -1646,6 +1678,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     NominalParameterNameSpace typeParameterNameSpace =
         _nominalParameterNameSpaces.pop();
 
+    bool isPatch =
+        _compilationUnit.forPatchLibrary && _hasPatchAnnotation(metadata);
+    if (isPatch) {
+      modifiers |= Modifiers.Augment;
+    }
     GetterFragment fragment = new GetterFragment(
         name: name,
         fileUri: _compilationUnit.fileUri,
@@ -1713,6 +1750,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     NominalParameterNameSpace typeParameterNameSpace =
         _nominalParameterNameSpaces.pop();
 
+    bool isPatch =
+        _compilationUnit.forPatchLibrary && _hasPatchAnnotation(metadata);
+    if (isPatch) {
+      modifiers |= Modifiers.Augment;
+    }
     SetterFragment fragment = new SetterFragment(
       name: name,
       fileUri: _compilationUnit.fileUri,
@@ -1783,6 +1825,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     NominalParameterNameSpace typeParameterNameSpace =
         _nominalParameterNameSpaces.pop();
 
+    bool isPatch =
+        _compilationUnit.forPatchLibrary && _hasPatchAnnotation(metadata);
+    if (isPatch) {
+      modifiers |= Modifiers.Augment;
+    }
     MethodFragment fragment = new MethodFragment(
       name: name,
       fileUri: _compilationUnit.fileUri,
@@ -2162,4 +2209,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
 
   @override
   List<LibraryPart> get libraryParts => _libraryParts;
+}
+
+bool _hasPatchAnnotation(Iterable<MetadataBuilder>? metadata) {
+  if (metadata == null) {
+    return false;
+  }
+  for (MetadataBuilder metadataBuilder in metadata) {
+    if (metadataBuilder.hasPatch) {
+      return true;
+    }
+  }
+  return false;
 }

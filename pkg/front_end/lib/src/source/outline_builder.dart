@@ -718,6 +718,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     if (augmentToken != null) {
+      // Coverage-ignore-block(suite): Not run.
       if (reportIfNotEnabled(libraryFeatures.macros, augmentToken.charOffset,
           augmentToken.length)) {
         augmentToken = null;

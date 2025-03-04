@@ -3195,6 +3195,7 @@ class BodyBuilder extends StackListenerImpl
     bool isQualified = prefixToken != null;
     Builder? declaration = scope.lookupGetable(name, nameOffset, uri);
     if (declaration == null && prefix == null && _context.isAugmentationClass) {
+      // Coverage-ignore-block(suite): Not run.
       // The scope of an augmented method includes the origin class.
       declaration = _context.lookupStaticOriginMember(name, nameOffset, uri);
     }
@@ -7228,6 +7229,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleAugmentSuperExpression(
       Token augmentToken, Token superToken, IdentifierContext context) {
     debugEvent("AugmentSuperExpression");

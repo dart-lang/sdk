@@ -5058,6 +5058,7 @@ class PropertySelector extends Selector {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class AugmentSuperAccessGenerator extends Generator {
   final AugmentSuperTarget augmentSuperTarget;
 
@@ -5066,11 +5067,9 @@ class AugmentSuperAccessGenerator extends Generator {
       : super(helper, token);
 
   @override
-  // Coverage-ignore(suite): Not run.
   String get _debugName => "AugmentSuperGenerator";
 
   @override
-  // Coverage-ignore(suite): Not run.
   String get _plainNameForRead {
     return unsupported("augment super.plainNameForRead", fileOffset, _uri);
   }
@@ -5152,7 +5151,6 @@ class AugmentSuperAccessGenerator extends Generator {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset, voidContext: voidContext, isPostIncDec: true);
     }
-    // Coverage-ignore-block(suite): Not run.
     VariableDeclarationImpl read =
         _helper.createVariableDeclarationForValue(_createRead());
     Expression binary = _helper.forest.createBinary(offset,
@@ -5182,7 +5180,6 @@ class AugmentSuperAccessGenerator extends Generator {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", augmentSuperTarget: ");
     sink.write(augmentSuperTarget);

@@ -289,8 +289,13 @@ class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
-        declarationBuilder, unboundNominalParameters,
-        fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+        declarationBuilder: declarationBuilder,
+        extensionTypeParameterFragments:
+            fragment.enclosingDeclaration!.typeParameters,
+        unboundNominalParameters: unboundNominalParameters,
+        onTypeBuilder: declarationBuilder.onType,
+        fileUri: fragment.fileUri,
+        fileOffset: fragment.nameOffset);
     return fragment.isOperator
         ? new _ExtensionInstanceOperatorEncoding(fragment,
             signature.clonedDeclarationTypeParameters, signature.thisFormal)
@@ -323,8 +328,12 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
         new SynthesizedExtensionTypeSignature(
-            declarationBuilder, unboundNominalParameters,
-            fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+            extensionTypeDeclarationBuilder: declarationBuilder,
+            extensionTypeTypeParameters:
+                fragment.enclosingDeclaration!.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            fileUri: fragment.fileUri,
+            fileOffset: fragment.nameOffset);
     return fragment.isOperator
         ? new _ExtensionTypeInstanceOperatorEncoding(fragment,
             signature.clonedDeclarationTypeParameters, signature.thisFormal)
@@ -1314,6 +1323,7 @@ class _MethodFragmentBodyBuilderContext extends BodyBuilderContext {
       _fragment._encoding.getTearOffParameter(index);
 
   @override
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget {
     if (_fragment.builder.isAugmentation) {
       return _fragment.builder.augmentSuperTarget;

@@ -1,0 +1,58 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/patch_type_parameters/main.dart:12:3: Error: Type argument 'Bound?' doesn't conform to the bound 'Bound' of the type variable 'T' on 'Class'.
+//  - 'Bound' is from 'dart:test'.
+// Try changing type arguments so that they conform to the bounds.
+//   Class<Bound?>(); // Error
+//   ^
+// pkg/front_end/testcases/general/patch_type_parameters/origin_lib.dart:7:13: Context: This is the type variable whose bound isn't conformed to.
+// class Class<T extends Bound> {
+//             ^
+//
+// pkg/front_end/testcases/general/patch_type_parameters/main.dart:13:18: Error: Type argument 'Bound?' doesn't conform to the bound 'Object' of the type variable 'S' on 'Class<Bound>.method'.
+//  - 'Bound' is from 'dart:test'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'dart:test'.
+// Try changing type arguments so that they conform to the bounds.
+//   Class<Bound>().method<Bound?>(); // Error
+//                  ^
+//
+import self as self;
+import "dart:test" as test;
+
+import "dart:test";
+
+static method main() → dynamic {
+  new test::Class::•<test::Bound>().{test::Class::method}<test::Bound>(){() → void};
+}
+static method test() → dynamic {
+  new test::Class::•<test::Bound?>();
+  new test::Class::•<test::Bound>().{test::Class::method}<test::Bound?>(){() → void};
+}
+
+library;
+import self as test;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "dart:_internal";
+
+class Bound extends core::Object {
+  synthetic constructor •() → test::Bound
+    : super core::Object::•()
+    ;
+}
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
+class Class<T extends test::Bound> extends core::Object {
+  synthetic constructor •() → test::Class<test::Class::T>
+    : super core::Object::•()
+    ;
+  @#C1
+  method /* from org-dartlang-testcase:///patch_lib.dart */ method<T extends test::Bound = dynamic>() → void {}
+}
+
+constants  {
+  #C1 = _in::_Patch {}
+}

@@ -26,7 +26,7 @@ void _checkValidWeakTarget(Object object) {
 }
 
 @patch
-class Expando<T> {
+class Expando<T extends Object> {
   WasmExternRef? _jsWeakMap;
 
   @patch

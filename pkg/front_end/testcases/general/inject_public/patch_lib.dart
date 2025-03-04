@@ -5,11 +5,38 @@
 // ignore: import_internal_library
 import 'dart:_internal';
 
-class InjectedClass {}
+class InjectedClass {} // Error
 
-injectedMethod() {}
+injectedMethod() {} // Error
 
 @patch
 class Class {
-  injectedMethod() {}
+  injectedMethod() {} // Error
+  static staticInjectedMethod() {} // Error
+}
+
+@patch
+extension Extension on int {
+  injectedMethod() {} // Error
+  static staticInjectedMethod() {} // Error
+}
+
+class _PrivateInjectedClass /* Ok */ {
+  publicMethod() {} // Ok
+}
+
+extension _PrivateInjectedExtension on int /* Ok */ {
+  publicMethod() {} // Ok
+}
+
+@patch
+class _PrivateClass {
+  injectedMethod() {} // Error
+  static staticInjectedMethod() {} // Ok
+}
+
+@patch
+extension _PrivateExtension on int {
+  injectedMethod() {} // Error
+  static staticInjectedMethod() {} // Ok
 }

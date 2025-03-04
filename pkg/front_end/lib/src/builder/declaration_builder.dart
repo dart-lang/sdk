@@ -73,6 +73,7 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
     MemberBuilder? declaration =
         nameSpace.lookupConstructor(name == 'new' ? '' : name);
     if (declaration == null && isAugmenting) {
+      // Coverage-ignore-block(suite): Not run.
       return origin.findConstructorOrFactory(
           name, charOffset, uri, accessingLibrary);
     }

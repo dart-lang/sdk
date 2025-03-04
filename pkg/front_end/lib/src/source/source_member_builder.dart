@@ -139,6 +139,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set isConflictingAugmentationMember(bool value) {
     assert(_isConflictingAugmentationMember == null,
         '$this.isConflictingAugmentationMember has already been fixed.');
@@ -201,6 +202,7 @@ class MemberDataForTesting {
   final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
 }
 
+// Coverage-ignore(suite): Not run.
 class AugmentSuperTarget {
   final SourceMemberBuilder declaration;
   final Member? readTarget;

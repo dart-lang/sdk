@@ -48,8 +48,10 @@ class MixinFragment extends DeclarationFragmentImpl implements Fragment {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isPatch => enclosingCompilationUnit.isPatch && modifiers.isAugment;
+  bool get isPatch =>
+      enclosingCompilationUnit.isPatch &&
+      // Coverage-ignore(suite): Not run.
+      modifiers.isAugment;
 
   @override
   // Coverage-ignore(suite): Not run.

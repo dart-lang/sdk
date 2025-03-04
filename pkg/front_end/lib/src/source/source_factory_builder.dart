@@ -101,6 +101,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
             tearOffReference: tearOffReference);
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _introductory.metadata;
 
   @override
@@ -274,7 +275,11 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       throw new UnsupportedError('${runtimeType}.localSetters');
 
   @override
-  void applyAugmentation(Builder augmentation) {
+  void addAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
+  }
+
+  void _addAugmentation(Builder augmentation) {
     if (augmentation is SourceFactoryBuilder) {
       if (checkAugmentation(
           augmentationLibraryBuilder: augmentation.libraryBuilder,
@@ -293,17 +298,39 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void applyAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
+  }
+
+  @override
   int buildBodyNodes(BuildNodesCallback f) {
-    if (!isAugmenting) return 0;
-    _finishAugmentation();
-    return 1;
+    int count = 0;
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        count += augmentation.buildBodyNodes(f);
+      }
+    }
+    if (isAugmenting) {
+      _finishAugmentation();
+    }
+    return count;
   }
 
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
-    return _encoding.computeDefaultTypes(context,
+    int count = _encoding.computeDefaultTypes(context,
         inErrorRecovery: inErrorRecovery);
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        count += augmentation.computeDefaultTypes(context,
+            inErrorRecovery: inErrorRecovery);
+      }
+    }
+    return count;
   }
 
   @override
@@ -377,6 +404,17 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
     _encoding.buildOutlineNodes(f);
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        augmentation.buildOutlineNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          // Don't add augmentations.
+        });
+      }
+    }
   }
 
   bool _hasBuiltOutlineExpressions = false;
@@ -397,6 +435,14 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
     if (isConst && isAugmenting) {
       _finishAugmentation();
+    }
+
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        augmentation.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
+      }
     }
   }
 
@@ -421,6 +467,13 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   void resolveRedirectingFactory() {
     _encoding.resolveRedirectingFactory();
+
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        augmentation.resolveRedirectingFactory();
+      }
+    }
   }
 
   void _setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {

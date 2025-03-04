@@ -1717,12 +1717,12 @@ class KernelTarget {
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {
       for (Uri patch in patches) {
-        loader.read(patch, -1,
+        compilationUnit.registerAugmentation(loader.read(patch, -1,
             fileUri: patch,
             originImportUri: originImportUri,
             origin: compilationUnit,
             accessor: compilationUnit,
-            isPatch: true);
+            isPatch: true));
       }
     }
   }

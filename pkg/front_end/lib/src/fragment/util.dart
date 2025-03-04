@@ -364,8 +364,13 @@ class ExtensionInstancePropertyEncodingStrategy
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
-        declarationBuilder, unboundNominalParameters,
-        fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+        declarationBuilder: declarationBuilder,
+        extensionTypeParameterFragments:
+            fragment.enclosingDeclaration!.typeParameters,
+        unboundNominalParameters: unboundNominalParameters,
+        onTypeBuilder: declarationBuilder.onType,
+        fileUri: fragment.fileUri,
+        fileOffset: fragment.nameOffset);
     return new _ExtensionInstanceGetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }
@@ -378,8 +383,13 @@ class ExtensionInstancePropertyEncodingStrategy
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
-        declarationBuilder, unboundNominalParameters,
-        fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+        declarationBuilder: declarationBuilder,
+        extensionTypeParameterFragments:
+            fragment.enclosingDeclaration!.typeParameters,
+        unboundNominalParameters: unboundNominalParameters,
+        onTypeBuilder: declarationBuilder.onType,
+        fileUri: fragment.fileUri,
+        fileOffset: fragment.nameOffset);
     return new _ExtensionInstanceSetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }
@@ -419,8 +429,12 @@ class ExtensionTypeInstancePropertyEncodingStrategy
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
         new SynthesizedExtensionTypeSignature(
-            declarationBuilder, unboundNominalParameters,
-            fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+            extensionTypeDeclarationBuilder: declarationBuilder,
+            extensionTypeTypeParameters:
+                fragment.enclosingDeclaration!.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            fileUri: fragment.fileUri,
+            fileOffset: fragment.nameOffset);
     return new _ExtensionTypeInstanceGetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }
@@ -434,8 +448,12 @@ class ExtensionTypeInstancePropertyEncodingStrategy
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
         new SynthesizedExtensionTypeSignature(
-            declarationBuilder, unboundNominalParameters,
-            fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+            extensionTypeDeclarationBuilder: declarationBuilder,
+            extensionTypeTypeParameters:
+                fragment.enclosingDeclaration!.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            fileUri: fragment.fileUri,
+            fileOffset: fragment.nameOffset);
     return new _ExtensionTypeInstanceSetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }

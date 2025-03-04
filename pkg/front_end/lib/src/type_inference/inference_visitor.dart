@@ -5542,6 +5542,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isExpressionInvocation: false, isImplicitCall: false);
   }
 
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitAugmentSuperInvocation(
       AugmentSuperInvocation node, DartType typeContext) {
     Member member = node.target;
@@ -5581,7 +5582,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new ExpressionInferenceResult(
           result.inferredType, result.applyResult(invocation));
     } else {
-      // Coverage-ignore-block(suite): Not run.
       // TODO(johnniwinther): Handle augmentation of field with inferred types.
       TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
       DartType receiverType = member.getterType;
@@ -8252,6 +8252,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(replacementType, replacement);
   }
 
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitAugmentSuperSet(
       AugmentSuperSet node, DartType typeContext) {
     Member member = node.target;
@@ -8262,11 +8263,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
           thisType!, member,
           hasNonObjectMemberAccess: true);
-      if (target.isInstanceMember ||
-          // Coverage-ignore(suite): Not run.
-          target.isObjectMember) {
+      if (target.isInstanceMember || target.isObjectMember) {
         if (instrumentation != null && receiverType == const DynamicType()) {
-          // Coverage-ignore-block(suite): Not run.
           instrumentation!.record(uriForInstrumentation, node.fileOffset,
               'target', new InstrumentationValueForMember(target.member!));
         }
@@ -8505,6 +8503,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitAugmentSuperGet(
       AugmentSuperGet node, DartType typeContext) {
     Member member = node.target;

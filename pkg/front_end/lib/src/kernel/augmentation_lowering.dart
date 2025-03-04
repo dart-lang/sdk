@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 const String _augmentedNamePrefix = '_#';
 const String _augmentedNameSuffix = '#augment';
 
+// Coverage-ignore(suite): Not run.
 /// Creates the synthesized name to use for the [index]th augmented
 /// member by the given [name] in [library].
 ///

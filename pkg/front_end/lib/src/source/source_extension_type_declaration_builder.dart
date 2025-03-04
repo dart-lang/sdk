@@ -61,7 +61,7 @@ class SourceExtensionTypeDeclarationBuilder
   final Modifiers _modifiers;
 
   @override
-  final List<ConstructorReferenceBuilder>? constructorReferences;
+  final List<ConstructorReferenceBuilder> constructorReferences;
 
   late final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
@@ -89,6 +89,8 @@ class SourceExtensionTypeDeclarationBuilder
   final IndexedContainer? indexedContainer;
 
   Nullability? _nullability;
+
+  SourceExtensionTypeDeclarationBuilder? _augmentation;
 
   SourceExtensionTypeDeclarationBuilder(
       {required this.name,
@@ -123,6 +125,16 @@ class SourceExtensionTypeDeclarationBuilder
         reference: indexedContainer?.reference)
       ..fileOffset = nameOffset;
   }
+
+  // TODO(johnniwinther): Remove this when augmentations are handled through
+  //  fragments.
+  @override
+  List<SourceExtensionTypeDeclarationBuilder>? get augmentations =>
+      _augmentation != null
+          ?
+          // Coverage-ignore(suite): Not run.
+          [_augmentation!]
+          : const [];
 
   // TODO(johnniwinther): Remove this when augmentations are handled through
   //  fragments.
@@ -162,6 +174,11 @@ class SourceExtensionTypeDeclarationBuilder
         indexedContainer: indexedContainer,
         containerType: ContainerType.ExtensionType,
         containerName: new ClassName(name));
+    SourceExtensionTypeDeclarationBuilder? augmentation = _augmentation;
+    if (augmentation != null) {
+      // Coverage-ignore-block(suite): Not run.
+      _applyAugmentation(augmentation);
+    }
   }
 
   @override
@@ -835,32 +852,55 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  void applyAugmentation(Builder augmentation) {
+  void addAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
+  }
+
+  // Coverage-ignore(suite): Not run.
+  SourceExtensionTypeDeclarationBuilder? _addAugmentation(
+      Builder augmentation) {
     if (augmentation is SourceExtensionTypeDeclarationBuilder) {
       augmentation._origin = this;
-      nameSpace.forEachLocalMember((String name, Builder member) {
-        Builder? memberAugmentation =
-            augmentation.nameSpace.lookupLocalMember(name, setter: false);
-        if (memberAugmentation != null) {
-          member.applyAugmentation(memberAugmentation);
-        }
-      });
-      nameSpace.forEachLocalSetter((String name, Builder member) {
-        Builder? memberAugmentation =
-            augmentation.nameSpace.lookupLocalMember(name, setter: true);
-        if (memberAugmentation != null) {
-          member.applyAugmentation(memberAugmentation);
-        }
-      });
-
-      // TODO(johnniwinther): Check that type parameters and on-type match
-      // with origin declaration.
+      _augmentation = augmentation;
+      return augmentation;
     } else {
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
           augmentation.fileOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
             fileUri, fileOffset, noLength)
       ]);
+      return null;
+    }
+  }
+
+  // Coverage-ignore(suite): Not run.
+  void _applyAugmentation(SourceExtensionTypeDeclarationBuilder augmentation) {
+    nameSpace.forEachLocalMember((String name, Builder member) {
+      Builder? memberAugmentation =
+          augmentation.nameSpace.lookupLocalMember(name, setter: false);
+      if (memberAugmentation != null) {
+        member.applyAugmentation(memberAugmentation);
+      }
+    });
+    nameSpace.forEachLocalSetter((String name, Builder member) {
+      Builder? memberAugmentation =
+          augmentation.nameSpace.lookupLocalMember(name, setter: true);
+      if (memberAugmentation != null) {
+        member.applyAugmentation(memberAugmentation);
+      }
+    });
+
+    // TODO(johnniwinther): Check that type parameters and on-type match
+    // with origin declaration.
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void applyAugmentation(Builder augmentation) {
+    SourceExtensionTypeDeclarationBuilder? extensionTypeDeclarationBuilder =
+        _addAugmentation(augmentation);
+    if (extensionTypeDeclarationBuilder != null) {
+      _applyAugmentation(extensionTypeDeclarationBuilder);
     }
   }
 

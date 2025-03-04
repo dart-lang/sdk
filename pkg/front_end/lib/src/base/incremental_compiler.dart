@@ -1635,7 +1635,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Library> removedLibraries = <Library>[];
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
-      // Coverage-ignore-block(suite): Not run.
       if (uri.isScheme("package")) continue;
       LibraryBuilder? builder =
           currentKernelTarget.loader.deregisterLoadedLibraryBuilder(uri);
@@ -1655,12 +1654,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         _componentProblems.removeLibrary(lib, uriTranslator, partsUsed);
 
         // Technically this isn't necessary as the uri is not a package-uri.
-        _incrementalSerializer?.invalidate(builder.fileUri);
+        _incrementalSerializer
+            // Coverage-ignore(suite): Not run.
+            ?.invalidate(builder.fileUri);
       }
     }
     hierarchy.applyTreeChanges(removedLibraries, const [], const []);
     if (removedDillBuilders) {
-      // Coverage-ignore-block(suite): Not run.
       _makeDillLoaderLibrariesUpToDateWithBuildersMap();
     }
 
@@ -1693,7 +1693,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       [Map<Uri, Source>? uriToSourceExtra,
       Set<Uri?>? partsUsed]) {
     uriToSource.remove(builder.fileUri);
-    // Coverage-ignore(suite): Not run.
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {

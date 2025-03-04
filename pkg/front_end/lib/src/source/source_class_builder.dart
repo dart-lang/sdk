@@ -125,7 +125,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   List<TypeBuilder>? _interfaceBuilders;
 
   @override
-  final List<ConstructorReferenceBuilder>? constructorReferences;
+  final List<ConstructorReferenceBuilder> constructorReferences;
 
   TypeBuilder? _mixedInTypeBuilder;
 
@@ -139,6 +139,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     return _isConflictingAugmentationMember ??= false;
   }
 
+  // Coverage-ignore(suite): Not run.
   void set isConflictingAugmentationMember(bool value) {
     assert(_isConflictingAugmentationMember == null,
         '$this.isConflictingAugmentationMember has already been fixed.');
@@ -178,6 +179,11 @@ class SourceClassBuilder extends ClassBuilderImpl
             isAugmentation: modifiers.isAugment) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
+
+  // TODO(johnniwinther): Remove this when augmentations are handled through
+  //  fragments.
+  @override
+  List<SourceClassBuilder>? get augmentations => _augmentations;
 
   // TODO(johnniwinther): Remove this when augmentations are handled through
   //  fragments.
@@ -233,10 +239,17 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   DeclarationNameSpace get nameSpace => _nameSpace;
 
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _introductory.metadata;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
+    List<SourceClassBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceClassBuilder augmentation in augmentations) {
+        nameSpaceBuilder.includeBuilders(augmentation.nameSpaceBuilder);
+      }
+    }
     _nameSpace = nameSpaceBuilder.buildNameSpace(
         loader: libraryBuilder.loader,
         problemReporting: libraryBuilder,
@@ -246,6 +259,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         indexedContainer: indexedClass,
         containerType: ContainerType.Class,
         containerName: new ClassName(name));
+    if (augmentations != null) {
+      for (SourceClassBuilder augmentation in augmentations) {
+        augmentation.buildScopes(coreLibrary);
+        _applyAugmentation(augmentation);
+      }
+    }
   }
 
   MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
@@ -374,8 +393,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   Class build(LibraryBuilder coreLibrary) {
     void buildBuilders(Builder declaration) {
       if (declaration.parent != this) {
+        // Coverage-ignore-block(suite): Not run.
         if (declaration.parent?.origin != origin) {
-          // Coverage-ignore-block(suite): Not run.
           if (fileUri != declaration.parent?.fileUri) {
             unexpected("$fileUri", "${declaration.parent?.fileUri}", fileOffset,
                 fileUri);
@@ -542,6 +561,14 @@ class SourceClassBuilder extends ClassBuilderImpl
         .filteredIterator(
             parent: this, includeDuplicates: false, includeAugmentations: true)
         .forEach(build);
+
+    List<SourceClassBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceClassBuilder augmentation in augmentations) {
+        augmentation.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
+      }
+    }
   }
 
   @override
@@ -711,27 +738,15 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  void applyAugmentation(Builder augmentation) {
+  void addAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
+  }
+
+  SourceClassBuilder? _addAugmentation(Builder augmentation) {
     if (augmentation is SourceClassBuilder) {
       augmentation.actualOrigin = this;
       (_augmentations ??= []).add(augmentation);
-
-      mergedScope.addAugmentationScope(augmentation);
-
-      int originLength = typeParameters?.length ?? 0;
-      int augmentationLength = augmentation.typeParameters?.length ?? 0;
-      if (originLength != augmentationLength) {
-        // Coverage-ignore-block(suite): Not run.
-        augmentation.addProblem(messagePatchClassTypeParametersMismatch,
-            augmentation.fileOffset, noLength, context: [
-          messagePatchClassOrigin.withLocation(fileUri, fileOffset, noLength)
-        ]);
-      } else if (typeParameters != null) {
-        int count = 0;
-        for (NominalParameterBuilder t in augmentation.typeParameters!) {
-          typeParameters![count++].applyAugmentation(t);
-        }
-      }
+      return augmentation;
     } else {
       // Coverage-ignore-block(suite): Not run.
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
@@ -739,6 +754,35 @@ class SourceClassBuilder extends ClassBuilderImpl
         messagePatchDeclarationOrigin.withLocation(
             fileUri, fileOffset, noLength)
       ]);
+      return null;
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void applyAugmentation(Builder augmentation) {
+    SourceClassBuilder? classBuilder = _addAugmentation(augmentation);
+    if (classBuilder != null) {
+      _applyAugmentation(classBuilder);
+    }
+  }
+
+  void _applyAugmentation(SourceClassBuilder augmentation) {
+    mergedScope.addAugmentationScope(augmentation);
+
+    int originLength = typeParameters?.length ?? 0;
+    int augmentationLength = augmentation.typeParameters?.length ?? 0;
+    if (originLength != augmentationLength) {
+      // Coverage-ignore-block(suite): Not run.
+      augmentation.addProblem(messagePatchClassTypeParametersMismatch,
+          augmentation.fileOffset, noLength, context: [
+        messagePatchClassOrigin.withLocation(fileUri, fileOffset, noLength)
+      ]);
+    } else if (typeParameters != null) {
+      int count = 0;
+      for (NominalParameterBuilder t in augmentation.typeParameters!) {
+        typeParameters![count++].applyAugmentation(t);
+      }
     }
   }
 
@@ -1324,13 +1368,14 @@ class SourceClassBuilder extends ClassBuilderImpl
         return;
       }
       if (builder is SourceMemberBuilder) {
-        count += builder.buildBodyNodes((
-            {required Member member,
-            Member? tearOff,
-            required BuiltMemberKind kind}) {
+        count += builder.buildBodyNodes(
+            // Coverage-ignore(suite): Not run.
+            (
+                {required Member member,
+                Member? tearOff,
+                required BuiltMemberKind kind}) {
           _addMemberToClass(builder, member);
           if (tearOff != null) {
-            // Coverage-ignore-block(suite): Not run.
             _addMemberToClass(builder, tearOff);
           }
         });
@@ -1354,9 +1399,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         !memberBuilder.isDuplicate &&
         !memberBuilder.isConflictingSetter) {
       if (memberBuilder.isConflictingAugmentationMember) {
-        if (member is Field &&
-                // Coverage-ignore(suite): Not run.
-                member.isStatic ||
+        // Coverage-ignore-block(suite): Not run.
+        if (member is Field && member.isStatic ||
             member is Procedure && member.isStatic) {
           member.name = new Name(
               '${member.name}'
@@ -2293,7 +2337,8 @@ TypeBuilder? _applyMixins(
 
       NominalParameterCopy nominalVariableCopy =
           NominalParameterCopy.copyTypeParameters(
-              unboundNominalParameters, typeParameters,
+              unboundNominalParameters: unboundNominalParameters,
+              oldParameterBuilders: typeParameters,
               kind: TypeParameterKind.extensionSynthesized,
               instanceTypeParameterAccess:
                   InstanceTypeParameterAccessState.Allowed)!;

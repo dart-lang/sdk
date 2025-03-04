@@ -263,7 +263,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       originImportUri.isScheme("dart") || fileUri.isScheme("org-dartlang-sdk");
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isPatch => forPatchLibrary;
 
   /// Returns the map of objects created in the [OutlineBuilder].
@@ -282,6 +281,13 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     assert(_libraryBuilder != null,
         "Library builder for $this has not been computed yet.");
     return _libraryBuilder!;
+  }
+
+  List<CompilationUnit>? _augmentations;
+
+  @override
+  void registerAugmentation(CompilationUnit augmentation) {
+    (_augmentations ??= []).add(augmentation);
   }
 
   @override
@@ -471,8 +477,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         "the compilation unit is finalized.");
     assert(_libraryBuilder == null,
         "Source library builder as already been created for $this.");
-    SourceLibraryBuilder libraryBuilder = _libraryBuilder =
-        new SourceLibraryBuilder(
+    SourceLibraryBuilder libraryBuilder =
+        _libraryBuilder = new SourceLibraryBuilder(
             compilationUnit: this,
             importUri: importUri,
             fileUri: fileUri,
@@ -481,7 +487,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             packageLanguageVersion: packageLanguageVersion,
             loader: loader,
             nameOrigin: _nameOrigin,
-            origin: _augmentationRoot?.libraryBuilder,
+            origin: _augmentationRoot
+                // Coverage-ignore(suite): Not run.
+                ?.libraryBuilder,
             target: library,
             indexedLibrary: indexedLibrary,
             referenceIsPartOwner: _referenceIsPartOwner,
@@ -590,14 +598,17 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   void includeParts(
       List<SourceCompilationUnit> includedParts, Set<Uri> usedParts) {
     _includeParts(
-        libraryBuilder, _libraryNameSpaceBuilder, includedParts, usedParts);
+        libraryBuilder: libraryBuilder,
+        libraryNameSpaceBuilder: _libraryNameSpaceBuilder,
+        includedParts: includedParts,
+        usedParts: usedParts);
   }
 
   void _includeParts(
-      SourceLibraryBuilder libraryBuilder,
-      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
-      List<SourceCompilationUnit> includedParts,
-      Set<Uri> usedParts) {
+      {required SourceLibraryBuilder libraryBuilder,
+      required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+      required List<SourceCompilationUnit> includedParts,
+      required Set<Uri> usedParts}) {
     Set<Uri> seenParts = new Set<Uri>();
     for (Part part in _builderFactoryResult.parts) {
       // TODO(johnniwinther): Use [part.offset] in messages.
@@ -615,8 +626,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
               ]);
         } else {
           usedParts.add(part.compilationUnit.importUri);
-          _includePart(libraryBuilder, libraryNameSpaceBuilder, this,
-              includedParts, part.compilationUnit, usedParts, part.offset);
+          _includePartIfValid(
+              libraryBuilder: libraryBuilder,
+              libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+              parentCompilationUnit: this,
+              includedParts: includedParts,
+              part: part.compilationUnit,
+              usedParts: usedParts,
+              partOffset: part.fileOffset,
+              partUri: fileUri);
         }
       } else {
         addProblem(
@@ -626,16 +644,33 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             fileUri);
       }
     }
+    if (_augmentations != null) {
+      for (CompilationUnit augmentation in _augmentations!) {
+        switch (augmentation) {
+          case SourceCompilationUnit():
+            _includePart(libraryBuilder, libraryNameSpaceBuilder, this,
+                includedParts, augmentation, usedParts,
+                partOffset: -1,
+                partUri: augmentation.fileUri,
+                allowPartInParts: true);
+          // Coverage-ignore(suite): Not run.
+          case DillCompilationUnit():
+            // TODO(johnniwinther): Report an error here.
+            throw new UnsupportedError("Unexpected augmentation $augmentation");
+        }
+      }
+    }
   }
 
-  void _includePart(
-      SourceLibraryBuilder libraryBuilder,
-      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
-      SourceCompilationUnit parentCompilationUnit,
-      List<SourceCompilationUnit> includedParts,
-      CompilationUnit part,
-      Set<Uri> usedParts,
-      int partOffset) {
+  void _includePartIfValid(
+      {required SourceLibraryBuilder libraryBuilder,
+      required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+      required SourceCompilationUnit parentCompilationUnit,
+      required List<SourceCompilationUnit> includedParts,
+      required CompilationUnit part,
+      required Set<Uri> usedParts,
+      required Uri partUri,
+      required int partOffset}) {
     switch (part) {
       case SourceCompilationUnit():
         if (part.partOfUri != null) {
@@ -680,38 +715,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           }
           return;
         }
-
-        // Language versions have to match. Except if (at least) one of them is
-        // invalid in which case we've already gotten an error about this.
-        if (parentCompilationUnit.languageVersion != part.languageVersion &&
-            // Coverage-ignore(suite): Not run.
-            parentCompilationUnit.languageVersion.valid &&
-            // Coverage-ignore(suite): Not run.
-            part.languageVersion.valid) {
-          // Coverage-ignore-block(suite): Not run.
-          // This is an error, but the part is not removed from the list of
-          // parts, so that metadata annotations can be associated with it.
-          List<LocatedMessage> context = <LocatedMessage>[];
-          if (parentCompilationUnit.languageVersion.isExplicit) {
-            context.add(messageLanguageVersionLibraryContext.withLocation(
-                parentCompilationUnit.languageVersion.fileUri!,
-                parentCompilationUnit.languageVersion.charOffset,
-                parentCompilationUnit.languageVersion.charCount));
-          }
-          if (part.languageVersion.isExplicit) {
-            context.add(messageLanguageVersionPartContext.withLocation(
-                part.languageVersion.fileUri!,
-                part.languageVersion.charOffset,
-                part.languageVersion.charCount));
-          }
-          parentCompilationUnit.addProblem(messageLanguageVersionMismatchInPart,
-              partOffset, noLength, parentCompilationUnit.fileUri,
-              context: context);
-        }
-
-        includedParts.add(part);
-        part.becomePart(libraryBuilder, libraryNameSpaceBuilder,
-            parentCompilationUnit, includedParts, usedParts);
+        _includePart(libraryBuilder, libraryNameSpaceBuilder,
+            parentCompilationUnit, includedParts, part, usedParts,
+            partOffset: partOffset,
+            partUri: partUri,
+            allowPartInParts:
+                parentCompilationUnit.libraryFeatures.enhancedParts.isEnabled);
       case DillCompilationUnit():
         // Trying to add a dill library builder as a part means that it exists
         // as a stand-alone library in the dill file.
@@ -728,6 +737,67 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
               parentCompilationUnit.fileUri);
         }
     }
+  }
+
+  void _includePart(
+      SourceLibraryBuilder libraryBuilder,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+      SourceCompilationUnit parentCompilationUnit,
+      List<SourceCompilationUnit> includedParts,
+      SourceCompilationUnit part,
+      Set<Uri> usedParts,
+      {required int partOffset,
+      required Uri partUri,
+      required bool allowPartInParts}) {
+    // Language versions have to match. Except if (at least) one of them is
+    // invalid in which case we've already gotten an error about this.
+    if (parentCompilationUnit.languageVersion != part.languageVersion &&
+        // Coverage-ignore(suite): Not run.
+        parentCompilationUnit.languageVersion.valid &&
+        // Coverage-ignore(suite): Not run.
+        part.languageVersion.valid) {
+      // Coverage-ignore-block(suite): Not run.
+      // This is an error, but the part is not removed from the list of
+      // parts, so that metadata annotations can be associated with it.
+      List<LocatedMessage> context = <LocatedMessage>[];
+      if (parentCompilationUnit.languageVersion.isExplicit) {
+        context.add(messageLanguageVersionLibraryContext.withLocation(
+            parentCompilationUnit.languageVersion.fileUri!,
+            parentCompilationUnit.languageVersion.charOffset,
+            parentCompilationUnit.languageVersion.charCount));
+      }
+
+      if (part.isPatch) {
+        if (part.languageVersion.isExplicit) {
+          // Patches are implicitly include, so if we have an explicit language
+          // version, then point to this instead of the top of the file.
+          partOffset = part.languageVersion.charOffset;
+          partUri = part.languageVersion.fileUri!;
+          context.add(messageLanguageVersionPatchContext.withLocation(
+              part.languageVersion.fileUri!,
+              part.languageVersion.charOffset,
+              part.languageVersion.charCount));
+        }
+        parentCompilationUnit.addProblem(messageLanguageVersionMismatchInPatch,
+            partOffset, noLength, partUri,
+            context: context);
+      } else {
+        if (part.languageVersion.isExplicit) {
+          context.add(messageLanguageVersionPartContext.withLocation(
+              part.languageVersion.fileUri!,
+              part.languageVersion.charOffset,
+              part.languageVersion.charCount));
+        }
+        parentCompilationUnit.addProblem(
+            messageLanguageVersionMismatchInPart, partOffset, noLength, partUri,
+            context: context);
+      }
+    }
+
+    includedParts.add(part);
+    part.becomePart(libraryBuilder, libraryNameSpaceBuilder,
+        parentCompilationUnit, includedParts, usedParts,
+        allowPartInParts: allowPartInParts);
   }
 
   void _becomePart(SourceLibraryBuilder libraryBuilder,
@@ -780,7 +850,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       SourceCompilationUnit parentCompilationUnit,
       List<SourceCompilationUnit> includedParts,
-      Set<Uri> usedParts) {
+      Set<Uri> usedParts,
+      {required bool allowPartInParts}) {
     assert(
         _libraryBuilder == null,
         "Compilation unit $this is already part of library $_libraryBuilder. "
@@ -788,14 +859,14 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _libraryBuilder = libraryBuilder;
     _partOfLibrary = libraryBuilder;
     _parentCompilationUnit = parentCompilationUnit;
-    if (!libraryFeatures.enhancedParts.isEnabled) {
+    if (!allowPartInParts) {
       if (_builderFactoryResult.parts.isNotEmpty) {
         List<LocatedMessage> context = <LocatedMessage>[
           messagePartInPartLibraryContext.withLocation(
               libraryBuilder.fileUri, -1, 1),
         ];
         for (Part part in _builderFactoryResult.parts) {
-          addProblem(messagePartInPart, part.offset, noLength, fileUri,
+          addProblem(messagePartInPart, part.fileOffset, noLength, fileUri,
               context: context);
           // Mark this part as used so we don't report it as orphaned.
           usedParts.add(part.compilationUnit.importUri);
@@ -806,7 +877,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     } else {
       _becomePart(libraryBuilder, libraryNameSpaceBuilder);
       _includeParts(
-          libraryBuilder, libraryNameSpaceBuilder, includedParts, usedParts);
+          libraryBuilder: libraryBuilder,
+          libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+          includedParts: includedParts,
+          usedParts: usedParts);
     }
   }
 

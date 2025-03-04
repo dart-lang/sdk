@@ -1,0 +1,52 @@
+library;
+import self as self;
+import "dart:test" as test;
+import "dart:core" as core;
+
+import "dart:test";
+
+static method main() → dynamic {
+  new test::Class::•().{test::Class::method}(){() → core::int};
+}
+
+library;
+import self as test;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+import "org-dartlang-testcase:///main_lib.dart" as prefix;
+
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
+class Class extends core::Object {
+  field core::int _field = #C2 /* from org-dartlang-testcase:///patch_lib.dart */;
+  synthetic constructor •() → test::Class
+    : super core::Object::•()
+    ;
+  @#C1
+  method /* from org-dartlang-testcase:///patch_lib.dart */ method() → core::int
+    return #C2;
+}
+@#C1
+extension Extension on core::int {
+  method method = test::Extension|method;
+  method tearoff method = test::Extension|get#method;
+  static field _field = test::Extension|_field;
+}
+static field core::int Extension|_field = #C2 /* from org-dartlang-testcase:///patch_lib.dart */;
+@#C1
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|method(lowered final core::int #this) → core::int
+  return #C2;
+static extension-member method Extension|get#method(lowered final core::int #this) → () → core::int
+  return () → core::int => test::Extension|method(#this);
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+static const field core::int value = #C2;
+
+constants  {
+  #C1 = _in::_Patch {}
+  #C2 = 5
+}

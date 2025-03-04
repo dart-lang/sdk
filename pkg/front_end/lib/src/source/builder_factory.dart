@@ -503,10 +503,17 @@ class NominalParameterCopy {
   /// methods and unnamed mixin applications, and for adding copies of
   /// extension type parameters to extension instance methods.
   static NominalParameterCopy? copyTypeParameters(
-      List<NominalParameterBuilder> unboundNominalParameters,
-      List<NominalParameterBuilder>? oldParameterBuilders,
-      {required TypeParameterKind kind,
+      {required List<NominalParameterBuilder> unboundNominalParameters,
+      required List<NominalParameterBuilder>? oldParameterBuilders,
+      List<TypeParameterFragment>? oldParameterFragments,
+      required TypeParameterKind kind,
       required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
+    assert(
+        oldParameterFragments == null ||
+            oldParameterBuilders?.length == oldParameterFragments.length,
+        "Invalid type parameter fragment count. "
+        "Expected ${oldParameterBuilders?.length}, "
+        "found ${oldParameterFragments.length}.");
     if (oldParameterBuilders == null || oldParameterBuilders.isEmpty) {
       return null;
     }
@@ -519,16 +526,20 @@ class NominalParameterCopy {
 
     List<NominalParameterBuilder> newVariableBuilders =
         <NominalParameterBuilder>[];
-    for (NominalParameterBuilder oldVariable in oldParameterBuilders) {
-      NominalParameterBuilder newVariable = new NominalParameterBuilder(
-          oldVariable.name, oldVariable.fileOffset, oldVariable.fileUri,
-          kind: kind,
-          variableVariance: oldVariable.parameter.isLegacyCovariant
-              ? null
-              :
-              // Coverage-ignore(suite): Not run.
-              oldVariable.variance,
-          isWildcard: oldVariable.isWildcard);
+    for (int index = 0; index < oldParameterBuilders.length; index++) {
+      NominalParameterBuilder oldVariable = oldParameterBuilders[index];
+      TypeParameterFragment? oldFragment = oldParameterFragments?[index];
+      Uri? fileUri = oldFragment?.fileUri ?? oldVariable.fileUri;
+      int fileOffset = oldFragment?.nameOffset ?? oldVariable.fileOffset;
+      NominalParameterBuilder newVariable =
+          new NominalParameterBuilder(oldVariable.name, fileOffset, fileUri,
+              kind: kind,
+              variableVariance: oldVariable.parameter.isLegacyCovariant
+                  ? null
+                  :
+                  // Coverage-ignore(suite): Not run.
+                  oldVariable.variance,
+              isWildcard: oldVariable.isWildcard);
       newVariableBuilders.add(newVariable);
       newToOldVariableMap[newVariable] = oldVariable;
       unboundNominalParameters.add(newVariable);
@@ -568,21 +579,27 @@ class SynthesizedExtensionSignature {
   SynthesizedExtensionSignature._(
       this.clonedDeclarationTypeParameters, this.thisFormal);
 
-  factory SynthesizedExtensionSignature(ExtensionBuilder declarationBuilder,
-      List<NominalParameterBuilder> unboundNominalParameters,
-      {required Uri fileUri, required int fileOffset}) {
+  factory SynthesizedExtensionSignature(
+      {required ExtensionBuilder declarationBuilder,
+      required List<TypeParameterFragment>? extensionTypeParameterFragments,
+      required TypeBuilder onTypeBuilder,
+      required List<NominalParameterBuilder> unboundNominalParameters,
+      required Uri fileUri,
+      required int fileOffset}) {
     List<NominalParameterBuilder>? clonedDeclarationTypeParameters;
 
     NominalParameterCopy? nominalVariableCopy =
         NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters, declarationBuilder.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            oldParameterBuilders: declarationBuilder.typeParameters,
+            oldParameterFragments: extensionTypeParameterFragments,
             kind: TypeParameterKind.extensionSynthesized,
             instanceTypeParameterAccess:
                 InstanceTypeParameterAccessState.Allowed);
 
     clonedDeclarationTypeParameters = nominalVariableCopy?.newParameterBuilders;
 
-    TypeBuilder thisType = declarationBuilder.onType;
+    TypeBuilder thisType = onTypeBuilder;
     if (nominalVariableCopy != null) {
       thisType = nominalVariableCopy.createInContext(thisType);
     }
@@ -611,15 +628,19 @@ class SynthesizedExtensionTypeSignature {
       this.clonedDeclarationTypeParameters, this.thisFormal);
 
   factory SynthesizedExtensionTypeSignature(
-      ExtensionTypeDeclarationBuilder declarationBuilder,
-      List<NominalParameterBuilder> unboundNominalParameters,
-      {required Uri fileUri,
+      {required ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder,
+      required List<TypeParameterFragment>? extensionTypeTypeParameters,
+      required List<NominalParameterBuilder> unboundNominalParameters,
+      required Uri fileUri,
       required int fileOffset}) {
     List<NominalParameterBuilder>? clonedDeclarationTypeParameters;
 
     NominalParameterCopy? nominalVariableCopy =
         NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters, declarationBuilder.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            oldParameterBuilders:
+                extensionTypeDeclarationBuilder.typeParameters,
+            oldParameterFragments: extensionTypeTypeParameters,
             kind: TypeParameterKind.extensionSynthesized,
             instanceTypeParameterAccess:
                 InstanceTypeParameterAccessState.Allowed);
@@ -627,10 +648,10 @@ class SynthesizedExtensionTypeSignature {
     clonedDeclarationTypeParameters = nominalVariableCopy?.newParameterBuilders;
 
     TypeBuilder thisType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        declarationBuilder, const NullabilityBuilder.omitted(),
-        arguments: declarationBuilder.typeParameters != null
+        extensionTypeDeclarationBuilder, const NullabilityBuilder.omitted(),
+        arguments: extensionTypeTypeParameters != null
             ? new List<TypeBuilder>.generate(
-                declarationBuilder.typeParameters!.length,
+                extensionTypeTypeParameters.length,
                 (int index) =>
                     new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                         clonedDeclarationTypeParameters![index],
