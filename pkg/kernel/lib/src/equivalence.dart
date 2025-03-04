@@ -1253,7 +1253,7 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   /// If run in a checking state, the [propertyName] is used for registering
   /// inequivalences.
   bool checkLists<E>(
-      List<E>? a, List<E>? b, bool Function(E?, E?, String) equivalentValues,
+      List<E>? a, List<E>? b, bool Function(E, E, String) equivalentValues,
       [String propertyName = '']) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
@@ -1276,8 +1276,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   ///
   /// If run in a checking state, the [propertyName] is used for registering
   /// inequivalences.
-  bool checkSets<E>(Set<E>? a, Set<E>? b, bool Function(E?, E?) matchingValues,
-      bool Function(E?, E?, String) equivalentValues,
+  bool checkSets<E>(Set<E>? a, Set<E>? b, bool Function(E, E) matchingValues,
+      bool Function(E, E, String) equivalentValues,
       [String propertyName = '']) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
@@ -1325,9 +1325,9 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   bool checkMaps<K, V>(
       Map<K, V>? a,
       Map<K, V>? b,
-      bool Function(K?, K?) matchingKeys,
-      bool Function(K?, K?, String) equivalentKeys,
-      bool Function(V?, V?, String) equivalentValues,
+      bool Function(K, K) matchingKeys,
+      bool Function(K, K, String) equivalentKeys,
+      bool Function(V, V, String) equivalentValues,
       [String propertyName = '']) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
@@ -1355,7 +1355,7 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
       if (hasFoundKey) {
         bKeys.remove(foundKey);
         if (!equivalentValues(
-            a[aKey], b[foundKey], '${propertyName}[${aKey}]')) {
+            a[aKey]!, b[foundKey]!, '${propertyName}[${aKey}]')) {
           return false;
         }
       } else {
@@ -5716,8 +5716,6 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, MapConstant node, MapConstant other) {
     return visitor.checkLists(node.entries, other.entries, (a, b, _) {
       if (identical(a, b)) return true;
-      if (a is! ConstantMapEntry) return false;
-      if (b is! ConstantMapEntry) return false;
       return checkConstantMapEntry(visitor, a, b);
     }, 'entries');
   }
@@ -5902,8 +5900,6 @@ class EquivalenceStrategy {
     return visitor.checkMaps(node.uriToSource, other.uriToSource,
         visitor.matchValues, visitor.checkValues, (a, b, _) {
       if (identical(a, b)) return true;
-      if (a is! Source) return false;
-      if (b is! Source) return false;
       return checkSource(visitor, a, b);
     }, 'uriToSource');
   }
@@ -5914,8 +5910,6 @@ class EquivalenceStrategy {
         node.metadata, other.metadata, visitor.matchValues, visitor.checkValues,
         (a, b, _) {
       if (identical(a, b)) return true;
-      if (a is! MetadataRepository) return false;
-      if (b is! MetadataRepository) return false;
       return checkMetadataRepository(visitor, a, b);
     }, 'metadata');
   }
@@ -6089,8 +6083,6 @@ class EquivalenceStrategy {
     return visitor.checkLists(node.memberDescriptors, other.memberDescriptors,
         (a, b, _) {
       if (identical(a, b)) return true;
-      if (a is! ExtensionMemberDescriptor) return false;
-      if (b is! ExtensionMemberDescriptor) return false;
       return checkExtensionMemberDescriptor(visitor, a, b);
     }, 'memberDescriptors');
   }
@@ -6192,8 +6184,6 @@ class EquivalenceStrategy {
     return visitor.checkLists(node.memberDescriptors, other.memberDescriptors,
         (a, b, _) {
       if (identical(a, b)) return true;
-      if (a is! ExtensionTypeMemberDescriptor) return false;
-      if (b is! ExtensionTypeMemberDescriptor) return false;
       return checkExtensionTypeMemberDescriptor(visitor, a, b);
     }, 'memberDescriptors');
   }
