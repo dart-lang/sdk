@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert' show JsonEncoder;
 import 'dart:developer' as developer;
 import 'dart:io';
@@ -22,6 +23,7 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
+import 'package:analysis_server/src/utilities/stream_string_stink.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -173,7 +175,6 @@ _CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
 }
 
 class AnalysisDriverTimingsPage extends DiagnosticPageWithNav
-    with PerformanceChartMixin
     implements PostablePage {
   static const _resetFormId = 'reset-driver-timers';
 
@@ -214,6 +215,47 @@ class AnalysisDriverTimingsPage extends DiagnosticPageWithNav
     }
 
     return this.path;
+  }
+}
+
+class AnalysisPerformanceLogPage extends WebSocketLoggingPage {
+  AnalysisPerformanceLogPage(DiagnosticsSite site)
+    : super(
+        site,
+        'analysis-performance-log',
+        'Analysis Performance Log',
+        description: 'Realtime logging from the Analysis Performance Log',
+      );
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    _writeWebSocketLogPanel();
+  }
+
+  @override
+  Future<void> handleWebSocket(WebSocket socket) async {
+    var logger = server.analysisPerformanceLogger;
+
+    // We were able to attach our temporary sink. Forward all data over the
+    // WebSocket and wait for it to close (this is done by the user clicking
+    // the Stop button or navigating away from the page).
+    var controller = StreamController<String>();
+    var sink = StreamStringSink(controller.sink);
+    try {
+      unawaited(socket.addStream(controller.stream));
+      logger.sink.addSink(sink);
+
+      // Wait for the socket to be closed so we can remove the secondary sink.
+      var completer = Completer<void>();
+      socket.listen(
+        null,
+        onDone: completer.complete,
+        onError: completer.complete,
+      );
+      await completer.future;
+    } finally {
+      logger.sink.removeSink(sink);
+    }
   }
 }
 
@@ -1280,6 +1322,7 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     pages.add(TimingPage(this));
     pages.add(ByteStoreTimingPage(this));
     pages.add(AnalysisDriverTimingsPage(this));
+    pages.add(AnalysisPerformanceLogPage(this));
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {
@@ -1979,6 +2022,121 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       h3('Slow requests');
       _emitTable(itemsSlow);
     }
+  }
+}
+
+/// A base class for pages that provide real-time logging over a WebSocket.
+abstract class WebSocketLoggingPage extends DiagnosticPageWithNav
+    implements WebSocketPage {
+  WebSocketLoggingPage(super.site, super.id, super.title, {super.description});
+
+  void button(String text, {String? id, String classes = '', String? onClick}) {
+    var attributes = {
+      'type': 'button',
+      if (id != null) 'id': id,
+      'class': 'btn $classes'.trim(),
+      if (onClick != null) 'onclick': onClick,
+      'value': text,
+    };
+
+    tag('input', attributes: attributes);
+  }
+
+  /// Writes an HTML tag for [tagName] with the given [attributes].
+  ///
+  /// If [gen] is supplied, it is executed to write child content to [buf].
+  void tag(
+    String tagName, {
+    Map<String, String>? attributes,
+    void Function()? gen,
+  }) {
+    buf.write('<$tagName');
+    if (attributes != null) {
+      for (var MapEntry(:key, :value) in attributes.entries) {
+        buf.write(' $key="${escape(value)}"');
+      }
+    }
+    buf.write('>');
+    gen?.call();
+    buf.writeln('</$tagName>');
+  }
+
+  /// Writes Start/Stop/Clear buttons and associated scripts to connect and
+  /// disconnect a websocket back to this page, along with a panel to show
+  /// any output received from the server over the WebSocket.
+  void _writeWebSocketLogPanel() {
+    // Add buttons to start/stop logging. Using "position: sticky" so they're
+    // always visible even when scrolled.
+    tag(
+      'div',
+      attributes: {
+        'style':
+            'position: sticky; top: 10px; text-align: right; margin-bottom: 20px;',
+      },
+      gen: () {
+        button(
+          'Start Logging',
+          id: 'btnStartLog',
+          classes: 'btn-danger',
+          onClick: 'startLogging()',
+        );
+        button(
+          'Stop Logging',
+          id: 'btnStopLog',
+          classes: 'btn-danger',
+          onClick: 'stopLogging()',
+        );
+        button('Clear', onClick: 'clearLog()');
+      },
+    );
+
+    // Write the log container.
+    pre(() {
+      tag('code', attributes: {'id': 'logContent'});
+    });
+
+    // Write the scripts to connect/disconnect the websocket and display the
+    // data.
+    buf.write('''
+<script>
+  let logContent = document.getElementById('logContent');
+  let btnEnable = document.getElementById('btnEnable');
+  let btnDisable = document.getElementById('btnDisable');
+  let socket;
+
+  function clearLog(data) {
+    logContent.textContent = '';
+  }
+
+  function append(data) {
+    logContent.appendChild(document.createTextNode(data));
+  }
+
+  function startLogging() {
+    append("Connecting...\\n");
+    socket = new WebSocket("${this.path}");
+    socket.addEventListener("open", (event) => {
+      append("Connected!\\n");
+    });
+    socket.addEventListener("close", (event) => {
+      append("Disconnected!\\n");
+      stopLogging();
+    });
+    socket.addEventListener("message", (event) => {
+      append(event.data);
+    });
+    btnEnable.disabled = true;
+    btnDisable.disabled = false;
+  }
+
+  function stopLogging() {
+    socket?.close(1000, 'User closed');
+    socket = undefined;
+    btnEnable.disabled = false;
+    btnDisable.disabled = true;
+  }
+</script>
+''');
   }
 }
 

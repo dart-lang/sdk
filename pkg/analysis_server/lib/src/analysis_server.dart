@@ -45,7 +45,6 @@ import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manage
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
-import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
@@ -204,6 +203,9 @@ abstract class AnalysisServer {
 
   final RequestStatisticsHelper? requestStatistics;
 
+  final PerformanceLog<TeeStringSink> analysisPerformanceLogger =
+      PerformanceLog<TeeStringSink>(TeeStringSink());
+
   /// Manages prompts telling the user about "dart fix".
   late final DartFixPromptManager _dartFixPrompt;
 
@@ -338,21 +340,21 @@ abstract class AnalysisServer {
     }
 
     var logName = options.newAnalysisDriverLog;
-    StringSink sink = NullStringSink();
     if (logName != null) {
       if (logName == 'stdout') {
-        sink = io.stdout;
+        analysisPerformanceLogger.sink.addSink(io.stdout);
       } else if (logName.startsWith('file:')) {
         var path = logName.substring('file:'.length);
-        sink = FileStringSink(path);
+        analysisPerformanceLogger.sink.addSink(FileStringSink(path));
       }
     }
 
     var requestStatistics = this.requestStatistics;
     if (requestStatistics != null) {
-      sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
+      analysisPerformanceLogger.sink.addSink(
+        requestStatistics.perfLoggerStringSink,
+      );
     }
-    var analysisPerformanceLogger = PerformanceLog(sink);
 
     byteStore = createByteStore(resourceProvider);
     fileContentCache = FileContentCache(resourceProvider);

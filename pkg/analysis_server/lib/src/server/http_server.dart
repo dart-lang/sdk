@@ -15,6 +15,9 @@ abstract class AbstractHttpHandler {
 
   /// Handle a POST request received by the HTTP server.
   void handlePostRequest(HttpRequest request);
+
+  /// Handle a request to upgrade to a WebSocket.
+  void handleWebSocketRequest(HttpRequest request);
 }
 
 /// Instances of the class [HttpServer] implement a simple HTTP server. The
@@ -93,22 +96,16 @@ class HttpAnalysisServer {
 
   /// Attach a listener to a newly created HTTP server.
   void _handleServer(HttpServer httpServer) {
-    httpServer.listen((HttpRequest request) {
-      var updateValues = request.headers[HttpHeaders.upgradeHeader];
-      if (request.method == 'GET') {
+    httpServer.listen((HttpRequest request) async {
+      if (WebSocketTransformer.isUpgradeRequest(request) &&
+          // For WebSockets, verify we're same origin (since the browser would
+          // not).
+          request.headers.value('origin') == request.requestedUri.origin) {
+        _httpHandler.handleWebSocketRequest(request);
+      } else if (request.method == 'GET') {
         _httpHandler.handleGetRequest(request);
       } else if (request.method == 'POST') {
         _httpHandler.handlePostRequest(request);
-      } else if (updateValues != null && updateValues.contains('websocket')) {
-        // We no longer support serving analysis server communications over
-        // WebSocket connections.
-        var response = request.response;
-        response.statusCode = HttpStatus.notFound;
-        response.headers.contentType = ContentType.text;
-        response.write(
-          'WebSocket connections not supported (${request.uri.path}).',
-        );
-        unawaited(response.close());
       } else {
         _returnUnknownRequest(request);
       }
