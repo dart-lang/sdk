@@ -354,7 +354,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         inferenceUsingBoundsIsEnabled = definingLibrary.featureSet
             .isEnabled(Feature.inference_using_bounds),
         options = TypeAnalyzerOptions(
-            nullSafetyEnabled: true,
             patternsEnabled:
                 definingLibrary.featureSet.isEnabled(Feature.patterns),
             inferenceUpdate3Enabled: definingLibrary.featureSet

@@ -1392,28 +1392,6 @@ main() {
           ], expectedErrors: {});
         });
 
-        test('Not reported in legacy mode', () {
-          // In legacy mode, the criteria for reporting a switch case that
-          // "falls through" are less accurate (since flow analysis isn't
-          // available in legacy mode).  This logic is not currently implemented
-          // in the shared analyzer.
-          h.enableLegacy();
-          h.run([
-            switch_(
-              expr('int'),
-              [
-                intLiteral(0).pattern.then([
-                  expr('int'),
-                ]),
-                default_.then([
-                  break_(),
-                ]),
-              ],
-              isLegacyExhaustive: false,
-            ),
-          ], expectedErrors: {});
-        });
-
         test('Not reported when patterns enabled', () {
           // When patterns are enabled, there is an implicit `break` at the end
           // of every switch body.
@@ -1434,87 +1412,6 @@ main() {
       });
 
       group('Case expression type mismatch:', () {
-        group('Pre-null safety:', () {
-          test('subtype', () {
-            h.enableLegacy();
-            h.run([
-              switch_(
-                expr('num'),
-                [
-                  expr('int').pattern.then([
-                    break_(),
-                  ]),
-                ],
-                isLegacyExhaustive: false,
-              ),
-            ]);
-          });
-
-          test('supertype', () {
-            h.enableLegacy();
-            h.run([
-              switch_(
-                expr('int'),
-                [
-                  expr('num').pattern.then([
-                    break_(),
-                  ]),
-                ],
-                isLegacyExhaustive: false,
-              ),
-            ]);
-          });
-
-          test('unrelated types', () {
-            h.enableLegacy();
-            h.run([
-              switch_(
-                expr('int')..errorId = 'SCRUTINEE',
-                [
-                  (expr('String')..errorId = 'EXPRESSION').pattern.then([
-                    break_(),
-                  ]),
-                ],
-                isLegacyExhaustive: false,
-              )
-            ], expectedErrors: {
-              'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
-                  'caseExpression: EXPRESSION, scrutineeType: int, '
-                  'caseExpressionType: String, nullSafetyEnabled: false)'
-            });
-          });
-
-          test('dynamic scrutinee', () {
-            h.enableLegacy();
-            h.run([
-              switch_(
-                expr('dynamic'),
-                [
-                  expr('int').pattern.then([
-                    break_(),
-                  ]),
-                ],
-                isLegacyExhaustive: false,
-              ),
-            ]);
-          });
-
-          test('dynamic case', () {
-            h.enableLegacy();
-            h.run([
-              switch_(
-                expr('int'),
-                [
-                  expr('dynamic').pattern.then([
-                    break_(),
-                  ]),
-                ],
-                isLegacyExhaustive: false,
-              ),
-            ]);
-          });
-        });
-
         group('Null safe, patterns disabled:', () {
           test('subtype', () {
             h.disablePatterns();
@@ -1546,7 +1443,7 @@ main() {
             ], expectedErrors: {
               'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
                   'caseExpression: EXPRESSION, scrutineeType: int, '
-                  'caseExpressionType: num, nullSafetyEnabled: true)'
+                  'caseExpressionType: num)'
             });
           });
 
@@ -1565,7 +1462,7 @@ main() {
             ], expectedErrors: {
               'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
                   'caseExpression: EXPRESSION, scrutineeType: int, '
-                  'caseExpressionType: String, nullSafetyEnabled: true)'
+                  'caseExpressionType: String)'
             });
           });
 
@@ -1599,7 +1496,7 @@ main() {
             ], expectedErrors: {
               'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
                   'caseExpression: EXPRESSION, scrutineeType: int, '
-                  'caseExpressionType: dynamic, nullSafetyEnabled: true)'
+                  'caseExpressionType: dynamic)'
             });
           });
         });

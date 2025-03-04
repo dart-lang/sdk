@@ -177,7 +177,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
       this.constructorDeclaration, this.operations)
       : options = new TypeAnalyzerOptions(
-            nullSafetyEnabled: true,
             patternsEnabled:
                 inferrer.libraryBuilder.libraryFeatures.patterns.isEnabled,
             inferenceUpdate3Enabled: inferrer

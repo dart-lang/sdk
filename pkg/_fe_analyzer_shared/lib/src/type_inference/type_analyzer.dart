@@ -432,17 +432,13 @@ mixin TypeAnalyzer<
     if (!options.patternsEnabled) {
       Expression? switchScrutinee = context.switchScrutinee;
       if (switchScrutinee != null) {
-        bool nullSafetyEnabled = options.nullSafetyEnabled;
-        bool matches = nullSafetyEnabled
-            ? operations.isSubtypeOf(expressionType, matchedValueType)
-            : operations.isAssignableTo(expressionType, matchedValueType);
+        bool matches = operations.isSubtypeOf(expressionType, matchedValueType);
         if (!matches) {
           caseExpressionTypeMismatchError = errors.caseExpressionTypeMismatch(
               caseExpression: expression,
               scrutinee: switchScrutinee,
               caseExpressionType: expressionType,
-              scrutineeType: matchedValueType,
-              nullSafetyEnabled: nullSafetyEnabled);
+              scrutineeType: matchedValueType);
         }
       }
     }
@@ -1974,7 +1970,6 @@ mixin TypeAnalyzer<
       //         n * Statement), where n = body.length
       lastCaseTerminates = !flow.switchStatement_afterCase();
       if (caseIndex < numCases - 1 &&
-          options.nullSafetyEnabled &&
           !options.patternsEnabled &&
           !lastCaseTerminates) {
         (switchCaseCompletesNormallyErrors ??= {})[caseIndex] = errors
@@ -2580,8 +2575,7 @@ abstract class TypeAnalyzerErrors<
       {required Expression scrutinee,
       required Expression caseExpression,
       required Type scrutineeType,
-      required Type caseExpressionType,
-      required bool nullSafetyEnabled});
+      required Type caseExpressionType});
 
   /// Called for variable that is assigned more than once.
   ///
@@ -2727,14 +2721,10 @@ abstract class TypeAnalyzerErrorsBase {
 ///
 /// The client is free to `implement` or `extend` this class.
 class TypeAnalyzerOptions {
-  final bool nullSafetyEnabled;
-
   final bool patternsEnabled;
 
   final bool inferenceUpdate3Enabled;
 
   TypeAnalyzerOptions(
-      {required this.nullSafetyEnabled,
-      required this.patternsEnabled,
-      required this.inferenceUpdate3Enabled});
+      {required this.patternsEnabled, required this.inferenceUpdate3Enabled});
 }
