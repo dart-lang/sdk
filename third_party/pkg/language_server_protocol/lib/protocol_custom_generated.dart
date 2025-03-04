@@ -1457,6 +1457,9 @@ class EditableArgument implements ToJsonable {
   /// parameter default or null.
   final bool hasArgument;
 
+  /// Whether the parameter is deprecated.
+  final bool isDeprecated;
+
   /// Whether this argument can be add/edited.
   ///
   /// If not, notEditableReason will contain an explanation for why.
@@ -1503,6 +1506,7 @@ class EditableArgument implements ToJsonable {
     this.displayValue,
     this.documentation,
     required this.hasArgument,
+    required this.isDeprecated,
     required this.isEditable,
     required this.isNullable,
     required this.isRequired,
@@ -1518,6 +1522,7 @@ class EditableArgument implements ToJsonable {
         displayValue,
         documentation,
         hasArgument,
+        isDeprecated,
         isEditable,
         isNullable,
         isRequired,
@@ -1536,6 +1541,7 @@ class EditableArgument implements ToJsonable {
         displayValue == other.displayValue &&
         documentation == other.documentation &&
         hasArgument == other.hasArgument &&
+        isDeprecated == other.isDeprecated &&
         isEditable == other.isEditable &&
         isNullable == other.isNullable &&
         isRequired == other.isRequired &&
@@ -1559,6 +1565,7 @@ class EditableArgument implements ToJsonable {
       result['documentation'] = documentation;
     }
     result['hasArgument'] = hasArgument;
+    result['isDeprecated'] = isDeprecated;
     result['isEditable'] = isEditable;
     result['isNullable'] = isNullable;
     result['isRequired'] = isRequired;
@@ -1590,6 +1597,10 @@ class EditableArgument implements ToJsonable {
         return false;
       }
       if (!_canParseBool(obj, reporter, 'hasArgument',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'isDeprecated',
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
@@ -1634,6 +1645,8 @@ class EditableArgument implements ToJsonable {
     final documentation = documentationJson as String?;
     final hasArgumentJson = json['hasArgument'];
     final hasArgument = hasArgumentJson as bool;
+    final isDeprecatedJson = json['isDeprecated'];
+    final isDeprecated = isDeprecatedJson as bool;
     final isEditableJson = json['isEditable'];
     final isEditable = isEditableJson as bool;
     final isNullableJson = json['isNullable'];
@@ -1656,6 +1669,7 @@ class EditableArgument implements ToJsonable {
       displayValue: displayValue,
       documentation: documentation,
       hasArgument: hasArgument,
+      isDeprecated: isDeprecated,
       isEditable: isEditable,
       isNullable: isNullable,
       isRequired: isRequired,

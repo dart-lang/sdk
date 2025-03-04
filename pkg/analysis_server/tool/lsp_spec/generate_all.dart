@@ -497,6 +497,11 @@ List<LspEntity> getCustomClasses() {
             'argument to be required, but still allow an explicit `null`.',
       ),
       field(
+        'isDeprecated',
+        type: 'boolean',
+        comment: 'Whether the parameter is deprecated.',
+      ),
+      field(
         'isEditable',
         type: 'boolean',
         comment:
