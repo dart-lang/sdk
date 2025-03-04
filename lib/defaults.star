@@ -11,7 +11,7 @@ _PROPERTIES = {"clobber": True}
 _DIMENSIONS = {
     "cpu": "x86-64",
     "host_class": "default",
-    "os": "Ubuntu-20",
+    "os": "Linux",
     "pool": "luci.dart.try",
 }
 _CACHES = {
@@ -34,6 +34,7 @@ _SLOW_SHARDS = {"shard_timeout": (90 * time.minute) // time.second}
 
 _ARM64 = {"cpu": "arm64"}
 _MAC = {"os": "Mac"}
+_LINUX = {"os": "Linux"}
 _FOCAL = {"os": "Ubuntu-20"}
 _JAMMY = {"os": "Ubuntu-22"}
 _NOBLE = {"os": "Ubuntu-24"}
@@ -56,7 +57,7 @@ experimental = _EXPERIMENTAL
 flutter_pool = _FLUTTER_POOL
 focal = _FOCAL
 jammy = _JAMMY
-linux = _FOCAL
+linux = _LINUX
 mac = _MAC
 noble = _NOBLE
 windows = _WINDOWS10
