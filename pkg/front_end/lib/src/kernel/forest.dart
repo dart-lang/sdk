@@ -933,6 +933,11 @@ class Forest {
     return new DotShorthand(innerExpression)..fileOffset = fileOffset;
   }
 
+  DotShorthandInvocation createDotShorthandInvocation(
+      int fileOffset, Name name, Arguments arguments) {
+    return new DotShorthandInvocation(name, arguments)..fileOffset = fileOffset;
+  }
+
   DotShorthandPropertyGet createDotShorthandPropertyGet(
       int fileOffset, Name name) {
     return new DotShorthandPropertyGet(name)..fileOffset = fileOffset;

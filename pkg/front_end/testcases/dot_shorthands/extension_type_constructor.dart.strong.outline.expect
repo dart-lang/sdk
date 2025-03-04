@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type IntegerExt(core::int integer) {
+  abstract extension-type-member representation-field get integer() → core::int;
+  constructor • = self::IntegerExt|constructor#;
+  constructor tearoff • = self::IntegerExt|constructor#_#new#tearOff;
+  constructor regular = self::IntegerExt|constructor#regular;
+  constructor tearoff regular = self::IntegerExt|constructor#_#regular#tearOff;
+}
+static extension-type-member method IntegerExt|constructor#(core::int integer) → self::IntegerExt% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member method IntegerExt|constructor#_#new#tearOff(core::int integer) → self::IntegerExt% /* erasure=core::int, declared=! */
+  return self::IntegerExt|constructor#(integer);
+static extension-type-member method IntegerExt|constructor#regular(core::int integer) → self::IntegerExt% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member method IntegerExt|constructor#_#regular#tearOff(core::int integer) → self::IntegerExt% /* erasure=core::int, declared=! */
+  return self::IntegerExt|constructor#regular(integer);
+static method main() → void
+  ;

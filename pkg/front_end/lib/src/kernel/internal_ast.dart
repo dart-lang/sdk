@@ -3248,6 +3248,38 @@ class DotShorthand extends InternalExpression {
   }
 }
 
+/// Internal expression for a dot shorthand head with arguments.
+/// (e.g. `.parse(42)`).
+///
+/// This node could represent a shorthand of a static method or a named
+/// constructor.
+class DotShorthandInvocation extends InternalExpression {
+  Name name;
+
+  Arguments arguments;
+
+  DotShorthandInvocation(this.name, this.arguments);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitDotShorthandInvocation(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "DotShorthandInvocation(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('.');
+    printer.writeName(name);
+    printer.writeArguments(arguments);
+  }
+}
+
 /// Internal expression for a dot shorthand head with no arguments.
 /// (e.g. `.zero`).
 ///

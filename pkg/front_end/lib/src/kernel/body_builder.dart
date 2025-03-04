@@ -10016,10 +10016,15 @@ class BodyBuilder extends StackListenerImpl
     assert(checkState(token, [ValueKinds.Selector]));
     Selector selector = pop() as Selector;
     if (libraryFeatures.dotShorthands.isEnabled) {
-      // TODO(kallentu): Handle invocations.
-
-      push(forest.createDotShorthandPropertyGet(
-          offsetForToken(token), selector.name));
+      if (selector is InvocationSelector) {
+        // e.g. `.parse(2)`
+        push(forest.createDotShorthandInvocation(
+            offsetForToken(token), selector.name, selector.arguments));
+      } else if (selector is PropertySelector) {
+        // e.g. `.zero`
+        push(forest.createDotShorthandPropertyGet(
+            offsetForToken(token), selector.name));
+      }
     }
   }
 }
