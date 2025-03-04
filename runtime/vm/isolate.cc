@@ -1596,7 +1596,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     } else {
       const Object& exception_str =
           Object::Handle(zone, DartLibraryCalls::ToString(exception));
-      if (!exception_str.IsString()) {
+      if (exception_str.IsUnwindError()) {
+        return StoreError(T, UnwindError::Cast(exception_str));
+      } else if (!exception_str.IsString()) {
         exception_cstr = exception.ToCString();
       } else {
         exception_cstr = exception_str.ToCString();
@@ -1604,7 +1606,15 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     }
 
     const Instance& stacktrace = Instance::Handle(zone, uhe.stacktrace());
-    stacktrace_cstr = stacktrace.ToCString();
+    const Object& stacktrace_str =
+        Object::Handle(zone, DartLibraryCalls::ToString(stacktrace));
+    if (stacktrace_str.IsUnwindError()) {
+      return StoreError(T, UnwindError::Cast(stacktrace_str));
+    } else if (!stacktrace_str.IsString()) {
+      stacktrace_cstr = stacktrace.ToCString();
+    } else {
+      stacktrace_cstr = stacktrace_str.ToCString();
+    }
   } else {
     exception_cstr = result.ToErrorCString();
   }
