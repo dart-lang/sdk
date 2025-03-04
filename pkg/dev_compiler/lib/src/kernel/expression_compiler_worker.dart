@@ -244,7 +244,6 @@ class ExpressionCompilerWorker {
       }, enableAsserts: enableAsserts)
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
-      ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
       ..verbose = verbose;
     requestStream ??= stdin
         .transform(utf8.decoder.fuse(json.decoder))
@@ -470,7 +469,7 @@ class ExpressionCompilerWorker {
         sourceMap: true,
         summarizeApi: false,
         moduleName: moduleName,
-        soundNullSafety: _compilerOptions.nnbdMode == NnbdMode.Strong,
+        soundNullSafety: true,
         canaryFeatures: _canaryFeatures,
         enableAsserts: _enableAsserts,
       ),

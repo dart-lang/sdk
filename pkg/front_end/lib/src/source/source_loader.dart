@@ -39,7 +39,6 @@ import '../base/import_chains.dart';
 import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
 import '../base/local_scope.dart';
-import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/ticker.dart' show Ticker;
@@ -618,19 +617,9 @@ class SourceLoader extends Loader {
       registerNnbdMismatchLibrary(
           libraryBuilder, messageInvalidNnbdDillLibrary);
     } else {
-      switch (nnbdMode) {
-        case NnbdMode.Weak:
-          if (libraryMode != NonNullableByDefaultCompiledMode.Weak) {
-            registerNnbdMismatchLibrary(
-                libraryBuilder, messageWeakWithStrongDillLibrary);
-          }
-          break;
-        case NnbdMode.Strong:
-          if (libraryMode != NonNullableByDefaultCompiledMode.Strong) {
-            registerNnbdMismatchLibrary(
-                libraryBuilder, messageStrongWithWeakDillLibrary);
-          }
-          break;
+      if (libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+        registerNnbdMismatchLibrary(
+            libraryBuilder, messageStrongWithWeakDillLibrary);
       }
     }
   }
@@ -936,8 +925,6 @@ severity: $severity
         libraryBuilder, bodyBuilderContext, scope, fileUri,
         formalParameterScope: formalParameterScope);
   }
-
-  NnbdMode get nnbdMode => target.context.options.nnbdMode;
 
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");

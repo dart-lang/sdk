@@ -13,7 +13,6 @@ import 'package:kernel/default_language_version.dart' as kernel
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_unstable/util.dart';
-import '../base/nnbd_mode.dart';
 import 'experimental_flags.dart'
     show
         AllowedExperimentalFlags,
@@ -223,9 +222,6 @@ class CompilerOptions {
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool writeFileOnCrashReport = true;
 
-  /// Whether nnbd weak or strong mode is used.
-  NnbdMode nnbdMode = NnbdMode.Strong;
-
   /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
   /// For instance used for language versioning (specifying the maximum
   /// version).
@@ -349,7 +345,6 @@ class CompilerOptions {
     }
     if (skipForDebugging != other.skipForDebugging) return false;
     if (writeFileOnCrashReport != other.writeFileOnCrashReport) return false;
-    if (nnbdMode != other.nnbdMode) return false;
     if (currentSdkVersion != other.currentSdkVersion) return false;
     if (emitDeps != other.emitDeps) return false;
     if (!equalSets(invocationModes, other.invocationModes)) return false;

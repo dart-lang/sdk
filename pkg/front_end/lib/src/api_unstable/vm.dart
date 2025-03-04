@@ -39,7 +39,6 @@ export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage, enableColors;
 export '../base/compiler_context.dart' show CompilerContext;
 export '../base/hybrid_file_system.dart' show HybridFileSystem;
-export '../base/nnbd_mode.dart' show NnbdMode;
 export '../base/processed_options.dart' show ProcessedOptions;
 export '../codes/cfe_codes.dart'
     show

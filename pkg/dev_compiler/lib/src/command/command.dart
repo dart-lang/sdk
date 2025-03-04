@@ -292,9 +292,7 @@ Future<CompilerResult> _compile(List<String> args,
             soundNullSafety: options.soundNullSafety)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
-        environmentDefines: declaredVariables,
-        nnbdMode:
-            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
+        environmentDefines: declaredVariables);
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     // If digests weren't given and if not in worker mode, create fake data and
@@ -334,9 +332,7 @@ Future<CompilerResult> _compile(List<String> args,
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
-        trackNeededDillLibraries: recordUsedInputs,
-        nnbdMode:
-            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
+        trackNeededDillLibraries: recordUsedInputs);
     var incrementalCompiler = compilerState.incrementalCompiler!;
     var cachedSdkInput = compileSdk
         ? null

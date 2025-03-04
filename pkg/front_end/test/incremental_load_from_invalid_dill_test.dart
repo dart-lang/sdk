@@ -10,8 +10,6 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
@@ -19,7 +17,6 @@ import "package:front_end/src/api_prototype/memory_file_system.dart"
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler, RecorderForTesting;
-import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/codes/cfe_codes.dart'
@@ -32,8 +29,7 @@ import 'package:front_end/src/codes/cfe_codes.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
-import 'package:kernel/kernel.dart'
-    show Component, Library, NonNullableByDefaultCompiledMode;
+import 'package:kernel/kernel.dart' show Component, Library;
 
 import 'incremental_suite.dart' show getOptions;
 
@@ -234,64 +230,6 @@ main() {
     // Create a dill with a reference to a non-existing sdk thing:
     // Should be ok (for now), but we shouldn't actually initialize from dill.
     fs.entityForUri(initializeFrom).writeAsBytesSync(dataLinkedToSdkWithFoo);
-    await compileExpectOk(false, entryPoint);
-
-    // Try to initialize from a dill which contains mixed compilation modes:
-    // Should be ok, but we shouldn't actually initialize from dill.
-    List<int> mixedPart1;
-    {
-      // Create a component that is compiled without NNBD.
-      Map<ExperimentalFlag, bool>? prevTesting =
-          options.defaultExperimentFlagsForTesting;
-      options.defaultExperimentFlagsForTesting = {
-        ExperimentalFlag.nonNullable: false
-      };
-      NnbdMode prevNnbd = options.nnbdMode;
-      options.nnbdMode = NnbdMode.Weak;
-      compiler = new IncrementalCompiler(
-          new CompilerContext(
-              new ProcessedOptions(options: options, inputs: [helper2File])),
-          null);
-
-      IncrementalCompilerResult result = await compiler.computeDelta();
-      Component c = result.component;
-      c.setMainMethodAndMode(
-          null, false, NonNullableByDefaultCompiledMode.Weak);
-      mixedPart1 = serializeComponent(c);
-      options.defaultExperimentFlagsForTesting = prevTesting;
-      options.nnbdMode = prevNnbd;
-    }
-
-    List<int> mixedPart2;
-    {
-      // Create a component that is compiled with strong NNBD.
-      Map<ExperimentalFlag, bool>? prevTesting =
-          options.defaultExperimentFlagsForTesting;
-      options.defaultExperimentFlagsForTesting = {
-        ExperimentalFlag.nonNullable: true
-      };
-      NnbdMode prevNnbd = options.nnbdMode;
-      options.nnbdMode = NnbdMode.Strong;
-      compiler = new IncrementalCompiler(
-          new CompilerContext(
-              new ProcessedOptions(options: options, inputs: [helperFile])),
-          null);
-      IncrementalCompilerResult result = await compiler.computeDelta();
-      Component c = result.component;
-      c.setMainMethodAndMode(
-          null, false, NonNullableByDefaultCompiledMode.Strong);
-      mixedPart2 = serializeComponent(c);
-      options.defaultExperimentFlagsForTesting = prevTesting;
-      options.nnbdMode = prevNnbd;
-    }
-
-    // Now mix the two components together and try to initialize from them.
-    // We expect the compilation to be OK but that the dill is not actually
-    // used to initialize from (as it's invalid because of the mixed mode).
-    List<int> mixed = [];
-    mixed.addAll(mixedPart1);
-    mixed.addAll(mixedPart2);
-    fs.entityForUri(initializeFrom).writeAsBytesSync(mixed);
     await compileExpectOk(false, entryPoint);
   }
 }

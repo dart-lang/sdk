@@ -8,7 +8,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
-import 'constant_evaluator.dart';
 import 'try_constant_evaluator.dart';
 
 class ConstConditionalSimplifier extends RemovingTransformer {
@@ -24,7 +23,6 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     this._component,
     ReportErrorFunction _reportError, {
     Map<String, String>? environmentDefines,
-    required EvaluationMode evaluationMode,
     bool Function(TreeNode)? shouldNotInline,
     CoreTypes? coreTypes,
     ClassHierarchy? classHierarchy,
@@ -42,7 +40,6 @@ class ConstConditionalSimplifier extends RemovingTransformer {
       _typeEnvironment,
       _reportError,
       environmentDefines: environmentDefines,
-      evaluationMode: evaluationMode,
       shouldNotInline: shouldNotInline,
     );
   }
@@ -133,9 +130,7 @@ class _ConstantEvaluator extends TryConstantEvaluator {
 
   _ConstantEvaluator(super.librarySupport, super.constantsBackend,
       super.component, super.typeEnvironment, super.reportError,
-      {super.environmentDefines,
-      required super.evaluationMode,
-      bool Function(TreeNode)? shouldNotInline})
+      {super.environmentDefines, bool Function(TreeNode)? shouldNotInline})
       : _shouldNotInline = shouldNotInline ?? ((_) => false);
 
   void _clearLocalCaches() {

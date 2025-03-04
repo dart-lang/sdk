@@ -50,7 +50,6 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
           enableTripleShift: true,
           enableAsserts: options.translatorOptions.enableAsserts,
           errorOnUnevaluatedConstant: true,
-          evaluationMode: kernel.EvaluationMode.strong,
         );
 
   @override

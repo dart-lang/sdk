@@ -19,7 +19,7 @@ import 'package:front_end/src/base/problems.dart';
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/kernel/constant_evaluator.dart' as constants
-    show EvaluationMode, transformLibraries, ErrorReporter;
+    show transformLibraries, ErrorReporter;
 import 'package:front_end/src/kernel/kernel_target.dart';
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/ast.dart';
@@ -43,8 +43,6 @@ bool skipNullEnvironment = false;
 void benchmark(Component component, List<Library> libraries) {
   if (tryWithNoEnvironment == null) throw "tryWithNoEnvironment not set";
   KernelTarget target = incrementalCompiler.kernelTargetForTesting!;
-  constants.EvaluationMode evaluationMode =
-      target.getConstantEvaluationModeForTesting();
 
   Uint8List serializedComponent = serializeComponent(component);
 
@@ -86,7 +84,6 @@ void benchmark(Component component, List<Library> libraries) {
             environmentDefines,
             environment,
             new SilentErrorReporter(),
-            evaluationMode,
             evaluateAnnotations: true,
             enableTripleShift: target.globalFeatures.tripleShift.isEnabled,
             enableConstFunctions:

@@ -15,7 +15,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerResult,
         DiagnosticMessage,
         kernelForProgram,
-        NnbdMode,
         Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -136,8 +135,7 @@ Future<CompilationResult> compileToModule(
     }
     ..explicitExperimentalFlags = options.feExperimentalFlags
     ..verbose = false
-    ..onDiagnostic = diagnosticMessageHandler
-    ..nnbdMode = NnbdMode.Strong;
+    ..onDiagnostic = diagnosticMessageHandler;
   if (options.multiRootScheme != null) {
     compilerOptions.fileSystem = MultiRootFileSystem(
         options.multiRootScheme!,

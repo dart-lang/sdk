@@ -22,7 +22,6 @@ import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 import 'package:test_runner/src/command_output.dart';
-import 'package:test_runner/src/feature.dart' show Feature;
 import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
@@ -167,10 +166,6 @@ List<String> _testFileOptions(TestFile testFile, {bool cfe = false}) {
     ...testFile.sharedOptions,
     if (testFile.experiments.isNotEmpty)
       "--enable-experiment=${testFile.experiments.join(',')}",
-    if (cfe) ...[
-      if (testFile.requirements.contains(Feature.nnbdWeak)) "--nnbd-weak",
-      if (testFile.requirements.contains(Feature.nnbdStrong)) "--nnbd-strong",
-    ]
   ];
 }
 

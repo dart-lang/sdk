@@ -122,7 +122,6 @@ Future compileToKernel(
     StandardFileSystem.instance,
     const <String>[],
     const <String, String>{},
-    nnbdMode: fe.NnbdMode.Strong,
   );
 
   void onDiagnostic(fe.DiagnosticMessage message) {

@@ -6,10 +6,6 @@ import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
-import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
@@ -72,26 +68,10 @@ Future<void> main(List<String> args) async {
       onFailure: onFailure,
       preserveWhitespaceInAnnotations: true,
       runTest: runTestFor(const TextRepresentationDataComputer(), [
-        const TextRepresentationConfig(normalMarker, 'normal'),
-        const TextRepresentationConfig(verboseMarker, 'verbose'),
-        const TextRepresentationConfig(limitedMarker, 'limited'),
+        const CfeTestConfig(normalMarker, 'normal'),
+        const CfeTestConfig(verboseMarker, 'verbose'),
+        const CfeTestConfig(limitedMarker, 'limited'),
       ]));
-}
-
-class TextRepresentationConfig extends CfeTestConfig {
-  const TextRepresentationConfig(String marker, String name)
-      : super(marker, name,
-            explicitExperimentalFlags: const {
-              ExperimentalFlag.nonNullable: true
-            },
-            nnbdMode: NnbdMode.Strong);
-
-  @override
-  void customizeCompilerOptions(CompilerOptions options, TestData testData) {
-    if (testData.name.endsWith('_opt_out.dart')) {
-      options.nnbdMode = NnbdMode.Weak;
-    }
-  }
 }
 
 class TextRepresentationDataComputer extends CfeDataComputer<String> {

@@ -9,18 +9,14 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart';
 
-import '../api_prototype/constant_evaluator.dart';
-
 /// Visitor that creates the [DelayedExpression] needed to match expressions,
 /// using [MatchingCache] to create cacheable expressions.
 class MatchingExpressionVisitor
     implements PatternVisitor1<DelayedExpression, CacheableExpression> {
   final MatchingCache matchingCache;
   final CoreTypes coreTypes;
-  final EvaluationMode evaluationMode;
 
-  MatchingExpressionVisitor(
-      this.matchingCache, this.coreTypes, this.evaluationMode);
+  MatchingExpressionVisitor(this.matchingCache, this.coreTypes);
 
   DelayedExpression visitPattern(
       Pattern node, CacheableExpression matchedExpression) {
@@ -312,29 +308,22 @@ class MatchingExpressionVisitor
                     node.indexGetTarget, node.indexGetType!, [keyExpression],
                     fileOffset: entry.fileOffset),
                 fileOffset: entry.fileOffset);
-        if (evaluationMode == EvaluationMode.strong) {
-          matchingExpression = DelayedAndExpression.merge(
-              matchingExpression,
-              new DelayedOrExpression(
-                  new DelayedNullCheckExpression(valueExpression,
-                      fileOffset: entry.fileOffset),
-                  new DelayedAndExpression(
-                      new DelayedIsExpression(
-                          new FixedExpression(
-                              createNullLiteral(fileOffset: entry.fileOffset),
-                              const NullType()),
-                          valueType,
-                          fileOffset: entry.fileOffset),
-                      containsExpression,
-                      fileOffset: entry.fileOffset),
-                  fileOffset: entry.fileOffset),
-              fileOffset: entry.fileOffset);
-        } else {
-          // Coverage-ignore-block(suite): Not run.
-          matchingExpression = DelayedAndExpression.merge(
-              matchingExpression, containsExpression,
-              fileOffset: entry.fileOffset);
-        }
+        matchingExpression = DelayedAndExpression.merge(
+            matchingExpression,
+            new DelayedOrExpression(
+                new DelayedNullCheckExpression(valueExpression,
+                    fileOffset: entry.fileOffset),
+                new DelayedAndExpression(
+                    new DelayedIsExpression(
+                        new FixedExpression(
+                            createNullLiteral(fileOffset: entry.fileOffset),
+                            const NullType()),
+                        valueType,
+                        fileOffset: entry.fileOffset),
+                    containsExpression,
+                    fileOffset: entry.fileOffset),
+                fileOffset: entry.fileOffset),
+            fileOffset: entry.fileOffset);
         valueExpression =
             new PromotedCacheableExpression(valueExpression, valueType);
 

@@ -115,7 +115,6 @@ Future<Uint8List> compileUnit(
       CompilerOptions()
         ..target = Dart2jsTarget("dart2js", TargetFlags())
         ..fileSystem = TestFileSystem(fs)
-        ..nnbdMode = NnbdMode.Strong
         ..additionalDills = additionalDills
         ..packagesFileUri = toTestUri('.dart_tool/package_config.json')
         ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};

@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -36,8 +35,7 @@ Future<void> main(List<String> args) async {
                 forceConstructorTearOffLoweringForTesting:
                     ConstructorTearOffLowering.all,
                 forceLateLoweringsForTesting: LateLowering.all,
-                forceLateLoweringSentinelForTesting: false),
-            nnbdMode: NnbdMode.Strong),
+                forceLateLoweringSentinelForTesting: false)),
         const CfeTestConfig(sentinelMarker, 'use sentinel',
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
@@ -46,8 +44,7 @@ Future<void> main(List<String> args) async {
                 forceConstructorTearOffLoweringForTesting:
                     ConstructorTearOffLowering.all,
                 forceLateLoweringsForTesting: LateLowering.all,
-                forceLateLoweringSentinelForTesting: true),
-            nnbdMode: NnbdMode.Strong)
+                forceLateLoweringSentinelForTesting: true))
       ]));
 }
 

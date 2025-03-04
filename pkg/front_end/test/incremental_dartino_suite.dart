@@ -17,7 +17,6 @@ import "package:front_end/src/api_prototype/terminal_color_support.dart"
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler;
-import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
@@ -214,7 +213,6 @@ Future<Context> createContext(
     ..verbose = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
-    ..nnbdMode = NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage message) {
       printDiagnosticMessage(message, print);
       if (message.severity == Severity.error) {
