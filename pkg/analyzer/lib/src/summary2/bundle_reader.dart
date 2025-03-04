@@ -2089,7 +2089,8 @@ class ResolutionReader {
       var enclosing = element.enclosingElement3 as InstanceElement;
 
       var declaration = enclosing.augmented.firstFragment;
-      var declarationTypeParameters = declaration.typeParameters;
+      var declarationTypeParameters =
+          declaration.typeParameters.map((tp) => tp.asElement2).toList();
 
       var augmentationSubstitution = Substitution.empty;
       if (enclosing != declaration) {
@@ -2113,7 +2114,7 @@ class ResolutionReader {
       var substitution = Substitution.empty;
       var typeArguments = _readTypeList();
       if (typeArguments.isNotEmpty) {
-        substitution = Substitution.fromPairs(
+        substitution = Substitution.fromPairs2(
           declarationTypeParameters,
           typeArguments,
         );

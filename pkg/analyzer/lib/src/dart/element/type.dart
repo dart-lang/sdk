@@ -296,15 +296,15 @@ class FunctionTypeImpl extends TypeImpl
 
   @override
   FunctionTypeImpl instantiate(List<DartType> argumentTypes) {
-    if (argumentTypes.length != typeFormals.length) {
+    if (argumentTypes.length != typeParameters.length) {
       throw ArgumentError("argumentTypes.length (${argumentTypes.length}) != "
-          "typeFormals.length (${typeFormals.length})");
+          "typeFormals.length (${typeParameters.length})");
     }
     if (argumentTypes.isEmpty) {
       return this;
     }
 
-    var substitution = Substitution.fromPairs(typeFormals, argumentTypes);
+    var substitution = Substitution.fromPairs2(typeParameters, argumentTypes);
 
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),

@@ -305,17 +305,23 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
   void _updatedAugmented(InstanceElementImpl augmentation) {
     var element = this.element;
     var firstFragment = this.firstFragment;
-    var firstTypeParameters = firstFragment.typeParameters;
+    var firstTypeParameters = element.typeParameters2;
 
     MapSubstitution toFirstFragment;
-    var augmentationTypeParameters = augmentation.typeParameters;
+    var augmentationTypeParameters = [
+      for (var tp in augmentation.typeParameters)
+        TypeParameterElementImpl2(
+          firstFragment: tp,
+          name3: tp.name.nullIfEmpty,
+        ),
+    ];
     if (augmentationTypeParameters.length == firstTypeParameters.length) {
-      toFirstFragment = Substitution.fromPairs(
+      toFirstFragment = Substitution.fromPairs2(
         augmentationTypeParameters,
         firstTypeParameters.instantiateNone(),
       );
     } else {
-      toFirstFragment = Substitution.fromPairs(
+      toFirstFragment = Substitution.fromPairs2(
         augmentationTypeParameters,
         List.filled(
           augmentationTypeParameters.length,
