@@ -10,7 +10,7 @@ import 'package:kernel/target/targets.dart'
 import 'package:kernel/type_environment.dart';
 
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    show ConstantEvaluator, ErrorReporter, EvaluationMode, SimpleErrorReporter;
+    show ConstantEvaluator, ErrorReporter, SimpleErrorReporter;
 
 import '../target_os.dart';
 import 'pragma.dart';
@@ -58,7 +58,6 @@ class VMConstantEvaluator extends ConstantEvaluator {
          enableConstFunctions: true,
          enableAsserts: enableAsserts,
          errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-         evaluationMode: EvaluationMode.strong,
        ) {
     // Only add Platform fields if the Platform class is part of the component
     // being evaluated.

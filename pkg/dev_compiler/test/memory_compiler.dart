@@ -72,8 +72,7 @@ Future<MemoryComponentResult> componentFromMemory(
           TargetFlags(trackWidgetCreation: false, soundNullSafety: true)),
       fileSystem: fe.HybridFileSystem(memoryFileSystem),
       environmentDefines: {},
-      explicitExperimentalFlags: explicitExperimentalFlags,
-      nnbdMode: fe.NnbdMode.Strong);
+      explicitExperimentalFlags: explicitExperimentalFlags);
   var result =
       await fe.compile(compilerState, [entryPoint], diagnosticMessageHandler);
   if (result == null) {

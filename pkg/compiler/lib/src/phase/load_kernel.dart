@@ -164,10 +164,6 @@ void _simplifyConstConditionals(
     reportMessage,
     environmentDefines: options.environment,
     classHierarchy: classHierarchy,
-    evaluationMode:
-        options.useLegacySubtyping
-            ? fe.EvaluationMode.weak
-            : fe.EvaluationMode.strong,
     shouldNotInline: shouldNotInline,
     removeAsserts: !options.enableUserAssertions,
   ).run();
@@ -198,10 +194,6 @@ void _doTransformsOnKernelLoad(
       (fe.LocatedMessage message, List<fe.LocatedMessage>? context) =>
           reportLocatedMessage(reporter, message, context),
       environment: Environment(options.environment),
-      evaluationMode:
-          options.useLegacySubtyping
-              ? fe.EvaluationMode.weak
-              : fe.EvaluationMode.strong,
     );
     StaticInteropClassEraser(coreTypes).visitComponent(component);
     global_transforms.transformLibraries(
@@ -347,8 +339,6 @@ Future<_LoadFromSourceResult> _loadFromSource(
     options.packageConfig,
     explicitExperimentalFlags: options.explicitExperimentalFlags,
     environmentDefines: environment,
-    nnbdMode:
-        options.useLegacySubtyping ? fe.NnbdMode.Weak : fe.NnbdMode.Strong,
     invocationModes: options.cfeInvocationModes,
     verbosity: verbosity,
   );

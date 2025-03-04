@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'utils/suite_utils.dart' show internalMain;
-import 'testing/environment_keys.dart';
 import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
-  environment[EnvironmentKeys.soundNullSafety] = "true";
   return FastaContext.create(suite, environment);
 }
 

@@ -12,7 +12,6 @@ class EnvironmentKeys {
   static const String semiFuzz = "semiFuzz";
   static const String skipTests = "skipTests";
   static const String skipVm = "skipVm";
-  static const String soundNullSafety = "soundNullSafety";
   static const String trace = "trace";
   static const String updateComments = "updateComments";
   static const String updateExpectations = "updateExpectations";

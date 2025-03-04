@@ -30,7 +30,6 @@ Future<void> main(List<String> arguments) async {
     "dart:core",
     "-Ddart.vm.product=false",
     "-Ddart.isVM=true",
-    "--nnbd-strong",
     "--single-root-scheme=org-dartlang-sdk",
     "--single-root-base=.",
     "org-dartlang-sdk:///sdk/lib/libraries.json",

@@ -10,7 +10,7 @@ import 'package:_js_interop_checks/src/transformations/shared_interop_transforme
 import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constantEvaluator show ConstantEvaluator, EvaluationMode;
+    as constantEvaluator show ConstantEvaluator;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -320,7 +320,6 @@ class WasmTarget extends Target {
         component,
         reportError,
         environmentDefines: environmentDefines,
-        evaluationMode: constantEvaluator.EvaluationMode.strong,
         coreTypes: coreTypes,
         classHierarchy: hierarchy,
         removeAsserts: removeAsserts,

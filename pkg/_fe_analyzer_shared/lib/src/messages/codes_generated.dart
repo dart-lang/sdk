@@ -1492,18 +1492,6 @@ Message _withArgumentsCombinedMemberSignatureFailed(String name, String name2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCompilingWithoutSoundNullSafety =
-    messageCompilingWithoutSoundNullSafety;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCompilingWithoutSoundNullSafety = const MessageCode(
-  "CompilingWithoutSoundNullSafety",
-  severity: Severity.info,
-  problemMessage: r"""Compiling without sound null safety!
-Dart 3 will only support sound null safety, see https://dart.dev/null-safety""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String string2)>
     templateConflictingModifiers =
     const Template<Message Function(String string, String string2)>(

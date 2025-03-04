@@ -17,7 +17,6 @@ import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 import '../base/common.dart';
 import '../base/messages.dart' show FormattedMessage;
-import '../base/nnbd_mode.dart';
 import '../kernel_generator_impl.dart' show InternalCompilerResult;
 import 'compiler_common.dart' show compileScript, toTestUri;
 import 'id_extractor.dart' show DataExtractor;
@@ -39,7 +38,6 @@ class CfeTestConfig extends TestConfig {
   // classes/members only.
   final bool compileSdk;
   final TestTargetFlags targetFlags;
-  final NnbdMode nnbdMode;
 
   const CfeTestConfig(super.marker, super.name,
       {this.explicitExperimentalFlags = const {},
@@ -47,8 +45,7 @@ class CfeTestConfig extends TestConfig {
       this.librariesSpecificationUri,
       this.packageConfigUri,
       this.compileSdk = false,
-      this.targetFlags = const TestTargetFlags(),
-      this.nnbdMode = NnbdMode.Strong});
+      this.targetFlags = const TestTargetFlags()});
 
   /// Called before running test on [testData].
   ///
@@ -210,7 +207,6 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
       new NoneTarget(config.targetFlags), config.targetFlags);
   options.explicitExperimentalFlags.addAll(config.explicitExperimentalFlags);
   options.allowedExperimentalFlagsForTesting = config.allowedExperimentalFlags;
-  options.nnbdMode = config.nnbdMode;
   if (config.librariesSpecificationUri != null) {
     Set<Uri> testFiles =
         testData.memorySourceFiles.keys.map(createUriForFileName).toSet();

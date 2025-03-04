@@ -994,7 +994,6 @@ AbstractClassMember:
   problemMessage: "Members of classes can't be declared to be 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
   analyzerCode: ParserErrorCode.ABSTRACT_CLASS_MEMBER
-  configuration: nnbd-weak
   script:
     - |
       abstract class C {abstract C.c();}
@@ -1299,7 +1298,6 @@ ExternalField:
   problemMessage: "Fields can't be declared to be 'external'."
   correctionMessage: "Try removing the keyword 'external', or replacing the field by an external getter and/or setter."
   analyzerCode: ParserErrorCode.EXTERNAL_FIELD
-  configuration: nnbd-weak
 
 ExternalFieldInitializer:
   problemMessage: "External fields cannot have initializers."
@@ -3762,7 +3760,6 @@ SuperAsExpression:
 SwitchExpressionNotAssignable:
   problemMessage: "Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression."
   analyzerCode: SWITCH_EXPRESSION_NOT_ASSIGNABLE
-  configuration: nnbd-weak
 
 SwitchExpressionNotAssignableCause:
   problemMessage: "The switch expression is here."
@@ -3770,7 +3767,6 @@ SwitchExpressionNotAssignableCause:
 
 SwitchExpressionNotSubtype:
   problemMessage: "Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression."
-  configuration: nnbd-weak
   script:
     - |
       // @dart=2.19
@@ -4744,7 +4740,6 @@ RethrowNotCatch:
 InvokeNonFunction:
   problemMessage: "'#name' isn't a function or method and can't be invoked."
   analyzerCode: INVOCATION_OF_NON_FUNCTION
-  configuration: nnbd-weak
   script: |
     abstract class Foo {
       int get f;
@@ -6160,13 +6155,6 @@ UnexpectedModifierInNonNnbd:
   problemMessage: "The modifier '#lexeme' is only available in null safe libraries."
   exampleAllowMoreCodes: true
   analyzerCode: UNEXPECTED_TOKEN
-
-CompilingWithoutSoundNullSafety:
-  problemMessage: "Compiling without sound null safety!\nDart 3 will only support sound null safety, see https://dart.dev/null-safety"
-  configuration: nnbd-weak,compile
-  severity: INFO
-  script: |
-    main() {}
 
 UnsupportedDartExt:
   problemMessage: "Dart native extensions are no longer supported."

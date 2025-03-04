@@ -16,7 +16,6 @@ import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 import '../api_prototype/file_system.dart' show FileSystem, NullFileSystem;
 import '../api_prototype/kernel_generator.dart' show CompilerResult;
 import '../base/compiler_context.dart' show CompilerContext;
-import '../base/nnbd_mode.dart' show NnbdMode;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../kernel_generator_impl.dart' show generateKernelInternal;
 import 'compiler_state.dart' show InitializedCompilerState;
@@ -85,7 +84,6 @@ export '../api_prototype/language_version.dart'
     show uriUsesLegacyLanguageVersion;
 export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
 export '../api_prototype/try_constant_evaluator.dart';
-export '../base/nnbd_mode.dart' show NnbdMode;
 export '../base/operator.dart' show Operator;
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -102,7 +100,6 @@ InitializedCompilerState initializeCompiler(
     {required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     Map<String, String>? environmentDefines,
     bool verify = false,
-    NnbdMode? nnbdMode,
     Set<InvocationMode> invocationModes = const <InvocationMode>{},
     Verbosity verbosity = Verbosity.all}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
@@ -118,7 +115,6 @@ InitializedCompilerState initializeCompiler(
           explicitExperimentalFlags) &&
       equalMaps(oldState.options.environmentDefines, environmentDefines) &&
       oldState.options.verify == verify &&
-      oldState.options.nnbdMode == nnbdMode &&
       equalSets(oldState.options.invocationModes, invocationModes) &&
       oldState.options.verbosity == verbosity) {
     return oldState;
@@ -135,7 +131,6 @@ InitializedCompilerState initializeCompiler(
     ..verify = verify
     ..invocationModes = invocationModes
     ..verbosity = verbosity;
-  if (nnbdMode != null) options.nnbdMode = nnbdMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

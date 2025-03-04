@@ -67,7 +67,6 @@ import '../api_prototype/incremental_kernel_generator.dart'
 import '../api_prototype/lowering_predicates.dart'
     show isExtensionThisName, syntheticThisName;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
-import '../base/nnbd_mode.dart';
 import '../builder/builder.dart' show Builder;
 import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
@@ -953,23 +952,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // Check compilation mode up against what we've seen here and set
     // `hasInvalidNnbdModeLibrary` accordingly.
     if (c.options.globalFeatures.nonNullable.isEnabled) {
-      switch (c.options.nnbdMode) {
-        case NnbdMode.Weak:
-          // Coverage-ignore(suite): Not run.
-          // Don't expect strong or invalid.
-          if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
-              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
-          }
-          break;
-        case NnbdMode.Strong:
-          // Don't expect weak or invalid.
-          if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
-              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            // Coverage-ignore-block(suite): Not run.
-            kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
-          }
-          break;
+      // Don't expect weak or invalid.
+      if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
+          seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+        // Coverage-ignore-block(suite): Not run.
+        kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
@@ -2635,19 +2622,8 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
                 checkCanonicalNames: true, createView: true)!;
 
         // Compute "output nnbd mode".
-        NonNullableByDefaultCompiledMode compiledMode;
-        if (context.options.globalFeatures.nonNullable.isEnabled) {
-          switch (context.options.nnbdMode) {
-            case NnbdMode.Weak:
-              compiledMode = NonNullableByDefaultCompiledMode.Weak;
-              break;
-            case NnbdMode.Strong:
-              compiledMode = NonNullableByDefaultCompiledMode.Strong;
-              break;
-          }
-        } else {
-          compiledMode = NonNullableByDefaultCompiledMode.Weak;
-        }
+        NonNullableByDefaultCompiledMode compiledMode =
+            NonNullableByDefaultCompiledMode.Strong;
 
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).

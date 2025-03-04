@@ -27,7 +27,6 @@ import '../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
-import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
@@ -177,8 +176,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   bool get isInferenceUpdate1Enabled =>
       libraryBuilder.isInferenceUpdate1Enabled;
 
-  NnbdMode get nnbdMode => libraryBuilder.loader.nnbdMode;
-
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
   DartType get bottomType => const NeverType.nonNullable();
@@ -269,7 +266,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Returns `true` if exceptions should be thrown in paths reachable only due
   /// to unsoundness in flow analysis in mixed mode.
-  bool get shouldThrowUnsoundnessException => nnbdMode != NnbdMode.Strong;
+  // TODO(johnniwinther): Remove this.
+  bool get shouldThrowUnsoundnessException => false;
 
   void registerIfUnreachableForTesting(TreeNode node, {bool? isReachable}) {
     if (dataForTesting == null) return;

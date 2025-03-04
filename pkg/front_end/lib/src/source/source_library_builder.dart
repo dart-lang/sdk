@@ -28,7 +28,6 @@ import '../base/export.dart' show Export;
 import '../base/import.dart' show Import;
 import '../base/messages.dart';
 import '../base/name_space.dart';
-import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';

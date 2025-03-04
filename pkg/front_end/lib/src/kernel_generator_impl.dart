@@ -19,7 +19,6 @@ import 'api_prototype/kernel_generator.dart';
 import 'base/compiler_context.dart' show CompilerContext;
 import 'base/crash.dart' show withCrashReporting;
 import 'base/instrumentation.dart';
-import 'base/nnbd_mode.dart';
 import 'base/processed_options.dart' show ProcessedOptions;
 import 'base/uri_offset.dart';
 import 'base/uri_translator.dart' show UriTranslator;
@@ -70,7 +69,6 @@ Future<InternalCompilerResult> generateKernelInternal(
   ProcessedOptions options = compilerContext.options;
   assert(options.haveBeenValidated, "Options have not been validated");
 
-  options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 
   SourceLoader? sourceLoader;
@@ -189,15 +187,7 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
     trimmedSummaryComponent.uriToSource.addAll(summaryComponent.uriToSource);
 
     NonNullableByDefaultCompiledMode compiledMode =
-        NonNullableByDefaultCompiledMode.Weak;
-    switch (options.nnbdMode) {
-      case NnbdMode.Weak:
-        compiledMode = NonNullableByDefaultCompiledMode.Weak;
-        break;
-      case NnbdMode.Strong:
-        compiledMode = NonNullableByDefaultCompiledMode.Strong;
-        break;
-    }
+        NonNullableByDefaultCompiledMode.Strong;
     if (kernelTarget.loader.hasInvalidNnbdModeLibrary) {
       compiledMode = NonNullableByDefaultCompiledMode.Invalid;
     }

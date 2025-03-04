@@ -11,11 +11,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show Severity, severityEnumValues;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show
-        CompilerOptions,
-        InvocationMode,
-        parseExperimentalArguments,
-        parseExperimentalFlags;
+    show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag, defaultExperimentalFlags;
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
@@ -24,7 +20,6 @@ import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
 import 'package:front_end/src/base/hybrid_file_system.dart'
     show HybridFileSystem;
-import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:kernel/ast.dart' show Location, Source;
@@ -55,24 +50,6 @@ class MessageTestDescription extends TestDescription {
 
   MessageTestDescription(this.uri, this.shortName, this.name, this.data,
       this.example, this.problem);
-}
-
-class Configuration {
-  final NnbdMode? nnbdMode;
-  final Set<InvocationMode> invocationModes;
-
-  const Configuration(this.nnbdMode, this.invocationModes);
-
-  CompilerOptions apply(CompilerOptions options) {
-    if (nnbdMode != null) {
-      options.nnbdMode = nnbdMode!;
-    }
-    options.invocationModes = invocationModes;
-    return options;
-  }
-
-  static const Configuration defaultConfiguration =
-      const Configuration(null, const {});
 }
 
 class MessageTestSuite extends ChainContext {
@@ -155,7 +132,6 @@ class MessageTestSuite extends ChainContext {
       const String spellingPostMessage = "\nIf the word(s) look okay, update "
           "'spell_checking_list_messages.txt' or "
           "'spell_checking_list_common.txt'.";
-      Configuration? configuration;
       Map<ExperimentalFlag, bool>? experimentalFlags;
 
       Source? source;
@@ -345,30 +321,6 @@ class MessageTestSuite extends ChainContext {
             }
             break;
 
-          case "configuration":
-            if (value is String) {
-              NnbdMode? nnbdMode;
-              Set<InvocationMode> invocationModes = {};
-              for (String part in value.split(',')) {
-                if (part.isEmpty) continue;
-                if (part == "nnbd-weak") {
-                  nnbdMode = NnbdMode.Weak;
-                } else if (part == "nnbd-strong") {
-                  nnbdMode = NnbdMode.Strong;
-                } else {
-                  InvocationMode? invocationMode =
-                      InvocationMode.fromName(part);
-                  if (invocationMode != null) {
-                    invocationModes.add(invocationMode);
-                  } else {
-                    throw new ArgumentError("Unknown configuration '$part'.");
-                  }
-                }
-              }
-              configuration = new Configuration(nnbdMode, invocationModes);
-            }
-            break;
-
           case "experiments":
             if (value is String) {
               experimentalFlags = parseExperimentalFlags(
@@ -404,8 +356,6 @@ class MessageTestSuite extends ChainContext {
         }
       }
       for (Example example in examples) {
-        example.configuration =
-            configuration ?? Configuration.defaultConfiguration;
         example.experimentalFlags =
             experimentalFlags ?? defaultExperimentalFlags;
       }
@@ -548,8 +498,6 @@ abstract class Example {
 
   bool allowMoreCodes = false;
 
-  late Configuration configuration;
-
   Map<ExperimentalFlag, bool>? experimentalFlags;
 
   Example(this.name, this.expectedCode);
@@ -683,7 +631,6 @@ class PartWrapExample extends Example {
 
   PartWrapExample(String name, String code, this.allowMoreCodes, this.example)
       : super(name, code) {
-    configuration = example.configuration;
     experimentalFlags = example.experimentalFlags;
   }
 
@@ -790,7 +737,7 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
     List<DiagnosticMessage> messages = <DiagnosticMessage>[];
 
     await suite.compiler.batchCompile(
-        example.configuration.apply(new CompilerOptions()
+        new CompilerOptions()
           ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
               .resolve("vm_platform_strong.dill")
           ..explicitExperimentalFlags = example.experimentalFlags ?? {}
@@ -799,7 +746,7 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
           ..packagesFileUri = packageConfigUri
           ..onDiagnostic = messages.add
           ..environmentDefines = const {}
-          ..omitPlatform = true),
+          ..omitPlatform = true,
         main,
         output);
 

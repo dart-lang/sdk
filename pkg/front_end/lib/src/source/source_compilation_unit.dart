@@ -992,16 +992,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   void buildOutlineNode(Library library) {
-    switch (loader.nnbdMode) {
-      case NnbdMode.Weak:
-        library.nonNullableByDefaultCompiledMode =
-            NonNullableByDefaultCompiledMode.Weak;
-        break;
-      case NnbdMode.Strong:
-        library.nonNullableByDefaultCompiledMode =
-            NonNullableByDefaultCompiledMode.Strong;
-        break;
-    }
+    library.nonNullableByDefaultCompiledMode =
+        NonNullableByDefaultCompiledMode.Strong;
     for (LibraryPart libraryPart in _builderFactoryResult.libraryParts) {
       library.addPart(libraryPart);
     }

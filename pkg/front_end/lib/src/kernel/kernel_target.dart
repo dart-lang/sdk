@@ -40,7 +40,6 @@ import '../base/messages.dart'
         templateFinalFieldNotInitializedByConstructor,
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
-import '../base/nnbd_mode.dart';
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/scope.dart' show AmbiguousBuilder;
 import '../base/ticker.dart' show Ticker;
@@ -71,7 +70,6 @@ import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'cfe_verifier.dart' show verifyComponent, verifyGetStaticType;
 import 'constant_evaluator.dart' as constants
     show
-        EvaluationMode,
         transformLibraries,
         transformProcedure,
         ConstantCoverage,
@@ -753,19 +751,8 @@ class KernelTarget {
     Component component = backendTarget.configureComponent(new Component(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
 
-    NonNullableByDefaultCompiledMode? compiledMode = null;
-    if (globalFeatures.nonNullable.isEnabled) {
-      switch (loader.nnbdMode) {
-        case NnbdMode.Weak:
-          compiledMode = NonNullableByDefaultCompiledMode.Weak;
-          break;
-        case NnbdMode.Strong:
-          compiledMode = NonNullableByDefaultCompiledMode.Strong;
-          break;
-      }
-    } else {
-      compiledMode = NonNullableByDefaultCompiledMode.Weak;
-    }
+    NonNullableByDefaultCompiledMode? compiledMode =
+        NonNullableByDefaultCompiledMode.Strong;
     if (loader.hasInvalidNnbdModeLibrary) {
       compiledMode = NonNullableByDefaultCompiledMode.Invalid;
     }
@@ -1588,7 +1575,6 @@ class KernelTarget {
 
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
-    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
 
     constants.ConstantEvaluationData constantEvaluationData =
         constants.transformLibraries(
@@ -1598,7 +1584,6 @@ class KernelTarget {
             environmentDefines,
             environment,
             new KernelConstantErrorReporter(loader),
-            evaluationMode,
             evaluateAnnotations: true,
             enableTripleShift: globalFeatures.tripleShift.isEnabled,
             enableConstFunctions: globalFeatures.constFunctions.isEnabled,
@@ -1641,8 +1626,6 @@ class KernelTarget {
   void runProcedureTransformations(Procedure procedure) {
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
-    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
-
     constants.transformProcedure(
       procedure,
       backendTarget,
@@ -1650,7 +1633,6 @@ class KernelTarget {
       environmentDefines,
       environment,
       new KernelConstantErrorReporter(loader),
-      evaluationMode,
       evaluateAnnotations: true,
       enableTripleShift: globalFeatures.tripleShift.isEnabled,
       enableConstFunctions: globalFeatures.constFunctions.isEnabled,
@@ -1662,22 +1644,6 @@ class KernelTarget {
     backendTarget.performTransformationsOnProcedure(
         loader.coreTypes, loader.hierarchy, procedure, environmentDefines,
         logger: (String msg) => ticker.logMs(msg));
-  }
-
-  constants.EvaluationMode getConstantEvaluationModeForTesting() =>
-      _getConstantEvaluationMode();
-
-  constants.EvaluationMode _getConstantEvaluationMode() {
-    // If nnbd is not enabled we will use weak evaluation mode. This is needed
-    // because the SDK might be agnostic and therefore needs to be weakened
-    // for legacy mode.
-    assert(
-        globalFeatures.nonNullable.isEnabled ||
-            // Coverage-ignore(suite): Not run.
-            loader.nnbdMode == NnbdMode.Weak,
-        "Non-weak nnbd mode found without experiment enabled: "
-        "${loader.nnbdMode}.");
-    return constants.EvaluationMode.fromNnbdMode(loader.nnbdMode);
   }
 
   void _verify({required bool allowVerificationErrorForTesting}) {
