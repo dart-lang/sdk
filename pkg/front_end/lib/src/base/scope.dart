@@ -1237,6 +1237,7 @@ abstract class MergedScope<T extends Builder> {
 
   SourceLibraryBuilder get originLibrary;
 
+  // Coverage-ignore(suite): Not run.
   void _addBuilderToMergedScope(
       String name, Builder newBuilder, Builder? existingBuilder,
       {required bool setter, required bool inPatchLibrary}) {
@@ -1276,7 +1277,6 @@ abstract class MergedScope<T extends Builder> {
                 ? templateNonPatchLibraryConflict.withArguments(name)
                 : templateNonAugmentationLibraryConflict.withArguments(name);
           } else {
-            // Coverage-ignore-block(suite): Not run.
             message = inPatchLibrary
                 ? templateNonPatchClassMemberConflict.withArguments(name)
                 : templateNonAugmentationClassMemberConflict
@@ -1312,9 +1312,7 @@ abstract class MergedScope<T extends Builder> {
         } else {
           message = inPatchLibrary
               ? templateUnmatchedPatchDeclaration.withArguments(name)
-              :
-              // Coverage-ignore(suite): Not run.
-              templateUnmatchedAugmentationDeclaration.withArguments(name);
+              : templateUnmatchedAugmentationDeclaration.withArguments(name);
         }
         originLibrary.addProblem(
             message, newBuilder.fileOffset, name.length, newBuilder.fileUri);
@@ -1351,6 +1349,7 @@ abstract class MergedScope<T extends Builder> {
     if (augmentationMember == null) {
       augmentationNameSpace.addLocalMember(name, member, setter: setter);
       if (member is ExtensionBuilder) {
+        // Coverage-ignore-block(suite): Not run.
         augmentationNameSpace.addExtension(member);
       }
     }
@@ -1364,7 +1363,9 @@ abstract class MergedScope<T extends Builder> {
     // `scope.forEachLocalMember`/`scope.forEachLocalSetter`.
 
     // Include all augmentation scope members to the origin scope.
-    nameSpace.forEachLocalMember((String name, Builder member) {
+    nameSpace.forEachLocalMember(
+        // Coverage-ignore(suite): Not run.
+        (String name, Builder member) {
       // In case of duplicates we use the first declaration.
       while (member.isDuplicate) {
         member = member.next!;
@@ -1374,6 +1375,7 @@ abstract class MergedScope<T extends Builder> {
           setter: false, inPatchLibrary: inPatchLibrary);
     });
     if (augmentations != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (String augmentedName in augmentations.keys) {
         for (Builder augmentation in augmentations[augmentedName]!) {
           _addBuilderToMergedScope(augmentedName, augmentation,
@@ -1382,7 +1384,9 @@ abstract class MergedScope<T extends Builder> {
         }
       }
     }
-    nameSpace.forEachLocalSetter((String name, Builder member) {
+    nameSpace.forEachLocalSetter(
+        // Coverage-ignore(suite): Not run.
+        (String name, Builder member) {
       // In case of duplicates we use the first declaration.
       while (member.isDuplicate) {
         member = member.next!;
@@ -1392,6 +1396,7 @@ abstract class MergedScope<T extends Builder> {
           setter: true, inPatchLibrary: inPatchLibrary);
     });
     if (setterAugmentations != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (String augmentedName in setterAugmentations.keys) {
         for (Builder augmentation in setterAugmentations[augmentedName]!) {
           _addBuilderToMergedScope(augmentedName, augmentation,
@@ -1400,7 +1405,9 @@ abstract class MergedScope<T extends Builder> {
         }
       }
     }
-    nameSpace.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
+    nameSpace.forEachLocalExtension(
+        // Coverage-ignore(suite): Not run.
+        (ExtensionBuilder extensionBuilder) {
       if (extensionBuilder is SourceExtensionBuilder &&
           extensionBuilder.isUnnamedExtension) {
         _originNameSpace.addExtension(extensionBuilder);
@@ -1420,7 +1427,9 @@ abstract class MergedScope<T extends Builder> {
       _addBuilderToAugmentationNameSpace(nameSpace, name, originMember,
           setter: true);
     });
-    _originNameSpace.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
+    _originNameSpace.forEachLocalExtension(
+        // Coverage-ignore(suite): Not run.
+        (ExtensionBuilder extensionBuilder) {
       if (extensionBuilder is SourceExtensionBuilder &&
           extensionBuilder.isUnnamedExtension) {
         nameSpace.addExtension(extensionBuilder);
@@ -1433,6 +1442,7 @@ abstract class MergedScope<T extends Builder> {
   bool _allowInjectedPublicMember(Builder newBuilder);
 }
 
+// Coverage-ignore(suite): Not run.
 class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
   MergedLibraryScope(SourceLibraryBuilder origin)
       : super(origin, origin.libraryNameSpace);
@@ -1464,11 +1474,14 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
         super(origin, origin.nameSpace);
 
   @override
+  // Coverage-ignore(suite): Not run.
   SourceLibraryBuilder get originLibrary => _origin.libraryBuilder;
 
   void _addAugmentationConstructorScope(DeclarationNameSpace nameSpace,
       {required bool inPatchLibrary}) {
-    nameSpace.forEachConstructor((String name, MemberBuilder newConstructor) {
+    nameSpace.forEachConstructor(
+        // Coverage-ignore(suite): Not run.
+        (String name, MemberBuilder newConstructor) {
       MemberBuilder? existingConstructor =
           _originConstructorNameSpace.lookupConstructor(name);
       bool isAugmentationBuilder = inPatchLibrary
@@ -1483,9 +1496,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
               inPatchLibrary
                   ? templateNonPatchConstructorConflict
                       .withArguments(newConstructor.fullNameForErrors)
-                  :
-                  // Coverage-ignore(suite): Not run.
-                  templateNonAugmentationConstructorConflict
+                  : templateNonAugmentationConstructorConflict
                       .withArguments(newConstructor.fullNameForErrors),
               newConstructor.fileOffset,
               noLength,
@@ -1503,9 +1514,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
               inPatchLibrary
                   ? templateUnmatchedPatchConstructor
                       .withArguments(newConstructor.fullNameForErrors)
-                  :
-                  // Coverage-ignore(suite): Not run.
-                  templateUnmatchedAugmentationConstructor
+                  : templateUnmatchedAugmentationConstructor
                       .withArguments(newConstructor.fullNameForErrors),
               newConstructor.fileOffset,
               noLength,
@@ -1514,7 +1523,6 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
           _originConstructorNameSpace.addConstructor(name, newConstructor);
           for (DeclarationNameSpace augmentationConstructorNameSpace
               in _augmentationConstructorNameSpaces.values) {
-            // Coverage-ignore-block(suite): Not run.
             _addConstructorToAugmentationScope(
                 augmentationConstructorNameSpace, name, newConstructor);
           }
@@ -1522,7 +1530,6 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
         if (inPatchLibrary &&
             !name.startsWith('_') &&
             !_allowInjectedPublicMember(newConstructor)) {
-          // Coverage-ignore-block(suite): Not run.
           originLibrary.addProblem(
               templatePatchInjectionFailed.withArguments(
                   name, originLibrary.importUri),
@@ -1561,13 +1568,13 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool _allowInjectedPublicMember(Builder newBuilder) {
     if (originLibrary.importUri.isScheme("dart") &&
         originLibrary.importUri.path.startsWith("_")) {
       return true;
     }
     if (newBuilder.isStatic) {
-      // Coverage-ignore-block(suite): Not run.
       return _origin.name.startsWith('_');
     }
     // TODO(johnniwinther): Restrict the use of injected public class members.
@@ -1576,10 +1583,10 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
 }
 
 extension on Builder {
+  // Coverage-ignore(suite): Not run.
   bool get isAugmentation {
     Builder self = this;
     if (self is SourceLibraryBuilder) {
-      // Coverage-ignore-block(suite): Not run.
       return self.isAugmentationLibrary;
     } else if (self is SourceClassBuilder) {
       return self.isAugmentation;
@@ -1602,6 +1609,7 @@ extension on Builder {
     return false;
   }
 
+  // Coverage-ignore(suite): Not run.
   void set isConflictingAugmentationMember(bool value) {
     Builder self = this;
     if (self is SourceMemberBuilder) {
@@ -1612,6 +1620,7 @@ extension on Builder {
     // TODO(johnniwinther): Handle all cases here.
   }
 
+  // Coverage-ignore(suite): Not run.
   bool _hasPatchAnnotation(Iterable<MetadataBuilder>? metadata) {
     if (metadata == null) {
       return false;
@@ -1624,6 +1633,7 @@ extension on Builder {
     return false;
   }
 
+  // Coverage-ignore(suite): Not run.
   bool get hasPatchAnnotation {
     Builder self = this;
     if (self is SourceFunctionBuilder) {
@@ -1636,9 +1646,7 @@ extension on Builder {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceMethodBuilder) {
       return _hasPatchAnnotation(self.metadata);
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (self is SourceExtensionTypeDeclarationBuilder) {
+    } else if (self is SourceExtensionTypeDeclarationBuilder) {
       return _hasPatchAnnotation(self.metadata);
     }
     return false;

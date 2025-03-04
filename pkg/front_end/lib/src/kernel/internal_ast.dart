@@ -815,9 +815,9 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (literal == null) {
-      // Coverage-ignore-block(suite): Not run.
       printer.write('$value');
     } else {
       printer.write(literal!);
@@ -2967,6 +2967,7 @@ class PropertySet extends InternalExpression {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// An augment super invocation of the form `augment super()`.
 ///
 /// This will be transformed into an [InstanceInvocation], [InstanceGet] plus
@@ -2994,17 +2995,16 @@ class AugmentSuperInvocation extends InternalExpression {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.PRIMARY;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super');
     printer.writeArguments(arguments);
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// An augment super read of the form `augment super`.
 ///
 /// This will be transformed into an [InstanceGet], [InstanceTearOff],
@@ -3029,16 +3029,15 @@ class AugmentSuperGet extends InternalExpression {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.PRIMARY;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super');
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// An augment super write of the form `augment super = e`.
 ///
 /// This will be transformed into an [InstanceSet], or [StaticSet] after type
@@ -3069,7 +3068,6 @@ class AugmentSuperSet extends InternalExpression {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super = ');
     printer.writeExpression(value);

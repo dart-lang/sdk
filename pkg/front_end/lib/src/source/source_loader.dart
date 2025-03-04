@@ -342,7 +342,6 @@ class SourceLoader extends Loader {
     _loadedLibraryBuilders[uri] = libraryBuilder;
   }
 
-  // Coverage-ignore(suite): Not run.
   LibraryBuilder? deregisterLoadedLibraryBuilder(Uri importUri) {
     LibraryBuilder? libraryBuilder = _loadedLibraryBuilders.remove(importUri);
     if (libraryBuilder != null) {
@@ -1245,6 +1244,7 @@ severity: $severity
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         library.augmentationLibraries;
     if (augmentationLibraries != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         await buildBody(augmentationLibrary);
       }
@@ -1425,24 +1425,6 @@ severity: $severity
       library.includeParts(usedParts);
     }
 
-    List<SourceLibraryBuilder> augmentationLibraries = [];
-
-    // Create augmentation libraries now that normal libraries have been
-    // created.
-    for (SourceCompilationUnit compilationUnit
-        in augmentationCompilationUnits) {
-      SourceLibraryBuilder sourceLibraryBuilder =
-          compilationUnit.createLibrary();
-      // TODO(johnniwinther): Avoid creating a [SourceLibraryBuilder]
-      // for augmentation libraries.
-      augmentationLibraries.add(sourceLibraryBuilder);
-    }
-
-    // Include parts in augment libraries.
-    for (SourceLibraryBuilder library in augmentationLibraries) {
-      library.includeParts(usedParts);
-    }
-
     for (MapEntry<Uri, SourceCompilationUnit> entry in parts.entries) {
       Uri uri = entry.key;
       SourceCompilationUnit part = entry.value;
@@ -1461,26 +1443,7 @@ severity: $severity
     }
     ticker.logMs("Resolved parts");
 
-    for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-      _compilationUnits.remove(augmentationLibrary.fileUri);
-      augmentationLibrary.origin.addAugmentationLibrary(augmentationLibrary);
-    }
     _sourceLibraryBuilders = sourceLibraries;
-    assert(
-        _compilationUnits.values.every((compilationUnit) =>
-            !(compilationUnit is SourceCompilationUnit &&
-                compilationUnit.isAugmenting)),
-        "Augmentation library found in libraryBuilders: " +
-            _compilationUnits.values
-                .where((compilationUnit) =>
-                    !(compilationUnit is SourceCompilationUnit &&
-                        compilationUnit.isAugmenting))
-                .join(', ') +
-            ".");
-    assert(
-        sourceLibraries.every((library) => !library.isAugmenting),
-        "Augmentation library found in sourceLibraryBuilders: "
-        "${sourceLibraries.where((library) => library.isAugmenting)}.");
     assert(
         _compilationUnits.values.every((compilationUnit) =>
             compilationUnit.loader != this ||
@@ -2687,6 +2650,7 @@ severity: $severity
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         libraryBuilder.augmentationLibraries;
     if (augmentationLibraries != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         _checkMainMethods(augmentationLibrary, listOfString);
       }

@@ -1,0 +1,174 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
+class Class extends core::Object {
+  @_in::patch
+  external constructor •(core::int value) → self2::Class;
+  @_in::patch
+  external constructor redirecting(core::int value) → self2::Class;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _injectedGenerative(core::int value) → self2::Class
+    ;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _injectedRedirecting(core::int value) → self2::Class
+    ;
+  @_in::patch
+  external static factory factory(core::int value) → self2::Class;
+  @_in::patch
+  external static factory redirectingFactory(core::int value) → self2::Class /* redirection-target: self2::Class::• */
+    return new self2::Class::•(value);
+  @_in::patch
+  external get instanceGetter() → core::int;
+  @_in::patch
+  external set instanceSetter(core::int value) → void;
+  @_in::patch
+  external method instanceMethod(core::int value) → void;
+  @_in::patch
+  external operator +(self2::Class a) → self2::Class;
+  @_in::patch
+  external static get staticGetter() → core::int;
+  @_in::patch
+  external static set staticSetter(core::int value) → void;
+  @_in::patch
+  external static method staticMethod(core::int value) → void;
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ _injectedFactory(core::int value) → self2::Class
+    ;
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ _injectedRedirectingFactory(core::int value) → self2::Class /* redirection-target: self2::Class::• */
+    return new self2::Class::•(value);
+  get /* from org-dartlang-testcase:///patch_lib.dart */ _injectedInstanceGetter() → core::int
+    ;
+  set /* from org-dartlang-testcase:///patch_lib.dart */ _injectedInstanceSetter(core::int value) → void
+    ;
+  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedInstanceMethod(core::int value) → void
+    ;
+  static get /* from org-dartlang-testcase:///patch_lib.dart */ _injectedStaticGetter() → core::int
+    ;
+  static set /* from org-dartlang-testcase:///patch_lib.dart */ _injectedStaticSetter(core::int value) → void
+    ;
+  static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedStaticMethod(core::int value) → void
+    ;
+}
+class _InjectedClass extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
+  field core::int instanceField;
+  static field core::int staticField;
+  constructor •(core::int value) → self2::_InjectedClass
+    ;
+  constructor redirecting(core::int value) → self2::_InjectedClass
+    ;
+  static factory factory(core::int value) → self2::_InjectedClass
+    ;
+  static factory redirectingFactory(core::int value) → self2::_InjectedClass /* redirection-target: self2::_InjectedClass::• */
+    return new self2::_InjectedClass::•(value);
+  get instanceGetter() → core::int
+    ;
+  set instanceSetter(core::int value) → void
+    ;
+  method instanceMethod(core::int value) → void
+    ;
+  static get staticGetter() → core::int
+    ;
+  static set staticSetter(core::int value) → void
+    ;
+  static method staticMethod(core::int value) → void
+    ;
+}
+@_in::patch
+extension Extension on self2::Class {
+  get extensionInstanceGetter = self2::Extension|get#extensionInstanceGetter;
+  method extensionInstanceMethod = self2::Extension|extensionInstanceMethod;
+  method tearoff extensionInstanceMethod = self2::Extension|get#extensionInstanceMethod;
+  operator - = self2::Extension|-;
+  static get extensionStaticGetter = get self2::Extension|extensionStaticGetter;
+  static method extensionStaticMethod = self2::Extension|extensionStaticMethod;
+  get _injectedExtensionInstanceGetter = self2::Extension|get#_injectedExtensionInstanceGetter;
+  method _injectedExtensionInstanceMethod = self2::Extension|_injectedExtensionInstanceMethod;
+  method tearoff _injectedExtensionInstanceMethod = self2::Extension|get#_injectedExtensionInstanceMethod;
+  static field _injectedExtensionStaticField = self2::Extension|_injectedExtensionStaticField;
+  static get _injectedExtensionStaticGetter = get self2::Extension|_injectedExtensionStaticGetter;
+  static method _injectedExtensionStaticMethod = self2::Extension|_injectedExtensionStaticMethod;
+  set extensionInstanceSetter = self2::Extension|set#extensionInstanceSetter;
+  static set extensionStaticSetter = set self2::Extension|extensionStaticSetter;
+  set _injectedExtensionInstanceSetter = self2::Extension|set#_injectedExtensionInstanceSetter;
+  static set _injectedExtensionStaticSetter = set self2::Extension|_injectedExtensionStaticSetter;
+}
+static field core::int Extension|_injectedExtensionStaticField /* from org-dartlang-testcase:///patch_lib.dart */;
+@_in::patch
+external static get topLevelGetter() → core::int;
+@_in::patch
+external static set topLevelSetter(core::int value) → void;
+@_in::patch
+external static method topLevelMethod(core::int value) → void;
+@_in::patch
+external static extension-member method Extension|get#extensionInstanceGetter(lowered final self2::Class #this) → core::int;
+@_in::patch
+external static extension-member method Extension|set#extensionInstanceSetter(lowered final self2::Class #this, core::int value) → void;
+@_in::patch
+external static extension-member method Extension|extensionInstanceMethod(lowered final self2::Class #this, core::int value) → void;
+static extension-member method Extension|get#extensionInstanceMethod(lowered final self2::Class #this) → (core::int) → void
+  return (core::int value) → void => self2::Extension|extensionInstanceMethod(#this, value);
+@_in::patch
+external static extension-member method Extension|-(lowered final self2::Class #this, self2::Class a) → self2::Class;
+@_in::patch
+external static extension-member get Extension|extensionStaticGetter() → core::int;
+@_in::patch
+external static extension-member set Extension|extensionStaticSetter(core::int value) → void;
+@_in::patch
+external static extension-member method Extension|extensionStaticMethod(core::int value) → void;
+static get /* from org-dartlang-testcase:///patch_lib.dart */ _injectedTopLevelGetter() → core::int
+  ;
+static set /* from org-dartlang-testcase:///patch_lib.dart */ _injectedTopLevelSetter(core::int value) → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedTopLevelMethod(core::int value) → void
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#_injectedExtensionInstanceGetter(lowered final self2::Class #this) → core::int
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|set#_injectedExtensionInstanceSetter(lowered final self2::Class #this, core::int value) → void
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionInstanceMethod(lowered final self2::Class #this, core::int value) → void
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#_injectedExtensionInstanceMethod(lowered final self2::Class #this) → (core::int) → void
+  return (core::int value) → void => self2::Extension|_injectedExtensionInstanceMethod(#this, value);
+static extension-member get /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionStaticGetter() → core::int
+  ;
+static extension-member set /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionStaticSetter(core::int value) → void
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionStaticMethod(core::int value) → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:63:1 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:29 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:12:5 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:16:27 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 37, effectively constant: 23

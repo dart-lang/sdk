@@ -47,7 +47,6 @@ class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isPatch => enclosingCompilationUnit.isPatch && modifiers.isAugment;
 
   @override

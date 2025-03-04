@@ -4168,6 +4168,13 @@ PatchClassOrigin:
   problemMessage: "This is the origin class."
   severity: CONTEXT
 
+PatchExtensionTypeParametersMismatch:
+  problemMessage: "A patch extension must have the same number of type variables as its origin extension."
+
+PatchExtensionOrigin:
+  problemMessage: "This is the origin extension."
+  severity: CONTEXT
+
 PatchDeclarationMismatch:
   problemMessage: "This patch doesn't match origin declaration."
 

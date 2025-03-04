@@ -221,7 +221,8 @@ abstract class SourceCompilationUnit
       LibraryNameSpaceBuilder libraryNameSpaceBuilder,
       SourceCompilationUnit parentCompilationUnit,
       List<SourceCompilationUnit> includedParts,
-      Set<Uri> usedParts);
+      Set<Uri> usedParts,
+      {required bool allowPartInParts});
 
   void buildOutlineExpressions(
       Annotatable annotatable, BodyBuilderContext bodyBuilderContext,
@@ -233,6 +234,10 @@ abstract class SourceCompilationUnit
   /// Return the primary message.
   Message reportFeatureNotEnabled(
       LibraryFeature feature, Uri fileUri, int charOffset, int length);
+
+  /// Registers that [augmentation] is a part of the library for which this is
+  /// the main compilation unit.
+  void registerAugmentation(CompilationUnit augmentation);
 
   /// Reports [message] on all compilation units that access this compilation
   /// unit.

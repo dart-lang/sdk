@@ -943,6 +943,8 @@ PatchClassTypeParametersMismatch/analyzerCode: Fail
 PatchClassTypeParametersMismatch/example: Fail
 PatchDeclarationMismatch/analyzerCode: Fail
 PatchDeclarationMismatch/example: Fail
+PatchExtensionTypeParametersMismatch/analyzerCode: Fail
+PatchExtensionTypeParametersMismatch/example: Fail
 PatchInjectionFailed/analyzerCode: Fail
 PatchInjectionFailed/example: Fail
 PatchNonExternal/analyzerCode: Fail

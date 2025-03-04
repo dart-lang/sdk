@@ -48,8 +48,10 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isPatch => enclosingCompilationUnit.isPatch && modifiers.isAugment;
+  bool get isPatch =>
+      enclosingCompilationUnit.isPatch &&
+      // Coverage-ignore(suite): Not run.
+      modifiers.isAugment;
 
   @override
   void addPrimaryConstructorField(FieldFragment fragment) {

@@ -15371,6 +15371,28 @@ const MessageCode messagePatchDeclarationOrigin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchExtensionOrigin = messagePatchExtensionOrigin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchExtensionOrigin = const MessageCode(
+  "PatchExtensionOrigin",
+  severity: Severity.context,
+  problemMessage: r"""This is the origin extension.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchExtensionTypeParametersMismatch =
+    messagePatchExtensionTypeParametersMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchExtensionTypeParametersMismatch =
+    const MessageCode(
+  "PatchExtensionTypeParametersMismatch",
+  problemMessage:
+      r"""A patch extension must have the same number of type variables as its origin extension.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_)>
     templatePatchInjectionFailed =
     const Template<Message Function(String name, Uri uri_)>(

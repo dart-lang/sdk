@@ -207,6 +207,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           forStaticAccess: true);
     }
     if (declaration == null && isAugmenting) {
+      // Coverage-ignore-block(suite): Not run.
       return origin.findStaticBuilder(
           name, fileOffset, fileUri, accessingLibrary,
           isSetter: isSetter);

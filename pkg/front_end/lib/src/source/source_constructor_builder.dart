@@ -57,8 +57,12 @@ abstract class SourceConstructorBuilder implements ConstructorBuilder {
   @override
   DeclarationBuilder get declarationBuilder;
 
+  void buildOutlineNodes(BuildNodesCallback f);
+
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+
+  int buildBodyNodes(BuildNodesCallback f);
 
   /// Infers the types of any untyped initializing formals.
   void inferFormalTypes(ClassHierarchyBase hierarchy);
@@ -151,6 +155,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   Builder get parent => declarationBuilder;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _introductory.metadata;
 
   @override
@@ -209,8 +214,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   List<SourceConstructorBuilder>? get augmentationsForTesting => _augmentations;
 
-  @override
-  void applyAugmentation(Builder augmentation) {
+  void _addAugmentation(Builder augmentation) {
     if (augmentation is SourceConstructorBuilderImpl) {
       if (checkAugmentation(
           augmentationLibraryBuilder: augmentation.libraryBuilder,
@@ -226,6 +230,17 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
           origin: this,
           augmentation: augmentation);
     }
+  }
+
+  @override
+  void addAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void applyAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
   }
 
   @override
@@ -551,6 +566,13 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
         // it has issues, so do the constructors.
         inErrorRecovery: inErrorRecovery);
     context.reportGenericFunctionTypesForFormals(formals);
+    List<SourceConstructorBuilderImpl>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceConstructorBuilderImpl augmentation in augmentations) {
+        count += augmentation.computeDefaultTypes(context,
+            inErrorRecovery: inErrorRecovery);
+      }
+    }
     return count;
   }
 
@@ -622,14 +644,33 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
         libraryBuilder: libraryBuilder,
         declarationConstructor: invokeTarget,
         delayedDefaultValueCloners: _delayedDefaultValueCloners);
+    List<SourceConstructorBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceConstructorBuilder augmentation in augmentations) {
+        augmentation.buildOutlineNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          // Don't add augmentations.
+        });
+      }
+    }
   }
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
     _introductory.buildBody();
-    if (!isAugmenting) return 0;
-    _introductory.finishAugmentation(origin);
-    return 1;
+    int count = 0;
+    List<SourceConstructorBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceConstructorBuilder augmentation in augmentations) {
+        count += augmentation.buildBodyNodes(f);
+      }
+    }
+    if (isAugmenting) {
+      _introductory.finishAugmentation(origin);
+    }
+    return count;
   }
 
   @override
@@ -707,9 +748,18 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
     beginInitializers = null;
     _hasBuiltOutlines = true;
+
+    List<SourceConstructorBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceConstructorBuilder augmentation in augmentations) {
+        augmentation.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
+      }
+    }
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get fullNameForErrors {
     return "${declarationBuilder.name}"
         "${name.isEmpty ? '' : '.$name'}";

@@ -88,10 +88,6 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
     DartType type = _typeBuilder.buildAliased(library, typeUse, hierarchy);
     Substitution substitution =
         _computeSubstitution(library, typeUse, hierarchy);
-    if ('$type'.contains('T*')) {
-      // Coverage-ignore-block(suite): Not run.
-      _typeBuilder.buildAliased(library, typeUse, hierarchy);
-    }
     return substitution.substituteType(type);
   }
 

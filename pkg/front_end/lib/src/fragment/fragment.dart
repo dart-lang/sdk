@@ -119,4 +119,7 @@ abstract interface class LibraryFragment {
 abstract interface class DeclarationFragment {
   /// Returns `true` if this is a patch declaration.
   bool get isPatch;
+
+  /// Type parameters declared on this declaration.
+  List<TypeParameterFragment>? get typeParameters;
 }

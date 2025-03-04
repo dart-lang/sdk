@@ -52,11 +52,11 @@ import self as test;
 import "dart:_internal" as _in;
 import "dart:core" as core;
 
+import "org-dartlang-malformed-uri:?%3Aa";
+export "org-dartlang-malformed-uri:?%3Ab";
 import "dart:_internal";
 import "org-dartlang-malformed-uri:?%3Ac";
 export "org-dartlang-malformed-uri:?%3Ad";
-import "org-dartlang-malformed-uri:?%3Aa";
-export "org-dartlang-malformed-uri:?%3Ab";
 
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class extends core::Object {

@@ -248,6 +248,10 @@ abstract class Builder {
 
   bool get isTypeParameter;
 
+  /// Adds [augmentation] to this declaration.
+  // TODO(johnniwinther): Remove this augmentations are based on fragments.
+  void addAugmentation(Builder augmentation);
+
   /// Applies [augmentation] to this declaration.
   void applyAugmentation(Builder augmentation);
 
@@ -353,6 +357,12 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isTypeParameter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void addAugmentation(Builder augmentation) {
+    unsupported("${runtimeType}.addAugmentation", fileOffset, fileUri);
+  }
 
   @override
   // Coverage-ignore(suite): Not run.

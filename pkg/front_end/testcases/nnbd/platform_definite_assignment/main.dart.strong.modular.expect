@@ -13,6 +13,18 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:17:5: Error: Non-nullable variable 'k' must be assigned before it can be used.
+//     k;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:25:12: Error: Non-nullable variable 'k' must be assigned before it can be used.
+//     return k;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:34:10: Error: Non-nullable variable 'k' must be assigned before it can be used.
+//   return k;
+//          ^
+//
 // pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:15:5: Error: Non-nullable variable 'k' must be assigned before it can be used.
 //     k;
 //     ^
@@ -30,18 +42,6 @@ library;
 //          ^
 //
 // pkg/front_end/testcases/nnbd/platform_definite_assignment/patch_lib.dart:42:10: Error: Non-nullable variable 'k' must be assigned before it can be used.
-//   return k;
-//          ^
-//
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:17:5: Error: Non-nullable variable 'k' must be assigned before it can be used.
-//     k;
-//     ^
-//
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:25:12: Error: Non-nullable variable 'k' must be assigned before it can be used.
-//     return k;
-//            ^
-//
-// pkg/front_end/testcases/nnbd/platform_definite_assignment/origin_lib.dart:34:10: Error: Non-nullable variable 'k' must be assigned before it can be used.
 //   return k;
 //          ^
 //

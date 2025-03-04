@@ -33,6 +33,7 @@ class RegularClassDeclaration implements ClassDeclaration {
   RegularClassDeclaration(this._fragment);
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override

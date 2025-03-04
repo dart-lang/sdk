@@ -123,6 +123,7 @@ abstract class BodyBuilderContext {
   /// Returns `true` if the enclosing entity is an extension.
   bool get isExtensionDeclaration => _declarationContext.isExtensionDeclaration;
 
+  // Coverage-ignore(suite): Not run.
   /// Looks up the static member by the given [name] in the origin of the
   /// enclosing declaration.
   Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
@@ -543,6 +544,7 @@ class _SourceClassBodyBuilderDeclarationContext
   bool get isAugmentationClass => _sourceClassBuilder.isAugmenting;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
     // The scope of an augmented method includes the origin class.
     return _sourceClassBuilder.origin

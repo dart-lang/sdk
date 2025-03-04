@@ -1,0 +1,238 @@
+library;
+import self as self;
+import "dart:test" as test;
+import "dart:core" as core;
+
+import "dart:test";
+
+static method main() → dynamic {
+  test::topLevelSetter = test::topLevelGetter;
+  test::topLevelMethod(42);
+  #C1;
+  test::Class c = new test::Class::•(42);
+  #C2;
+  new test::Class::redirecting(42);
+  #C3;
+  test::Class::factory(42);
+  #C4;
+  new test::Class::•(42);
+  #C5;
+  c.{test::Class::instanceSetter} = c.{test::Class::instanceGetter}{core::int};
+  c.{test::Class::instanceMethod}(42){(core::int) → void};
+  c.{test::Class::instanceMethod}{(core::int) → void};
+  c.{test::Class::+}(c){(test::Class) → test::Class};
+  test::Class::staticSetter = test::Class::staticGetter;
+  test::Class::staticMethod(42);
+  #C6;
+  test::Extension|set#extensionInstanceSetter(c, test::Extension|get#extensionInstanceGetter(c));
+  test::Extension|extensionInstanceMethod(c, 42);
+  test::Extension|get#extensionInstanceMethod(c);
+  test::Extension|-(c, c);
+  test::Extension|extensionStaticSetter = test::Extension|extensionStaticGetter;
+  test::Extension|extensionStaticMethod(42);
+  #C7;
+}
+
+library;
+import self as test;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C8
+class Class extends core::Object {
+  @#C8
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ •(core::int value) → test::Class
+    : super core::Object::•()
+    ;
+  @#C8
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirecting(core::int value) → test::Class
+    : this test::Class::•(value)
+    ;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _injectedGenerative(core::int value) → test::Class
+    : super core::Object::•()
+    ;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _injectedRedirecting(core::int value) → test::Class
+    : this test::Class::•(value)
+    ;
+  @#C8
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ factory(core::int value) → test::Class
+    return new test::Class::•(value);
+  @#C8
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirectingFactory(core::int value) → test::Class /* redirection-target: test::Class::• */
+    return new test::Class::•(value);
+  @#C8
+  get /* from org-dartlang-testcase:///patch_lib.dart */ instanceGetter() → core::int
+    return 42;
+  @#C8
+  set /* from org-dartlang-testcase:///patch_lib.dart */ instanceSetter(core::int value) → void {}
+  @#C8
+  method /* from org-dartlang-testcase:///patch_lib.dart */ instanceMethod(core::int value) → void {}
+  @#C8
+  operator /* from org-dartlang-testcase:///patch_lib.dart */ +(test::Class a) → test::Class
+    return this;
+  @#C8
+  static get /* from org-dartlang-testcase:///patch_lib.dart */ staticGetter() → core::int
+    return 42;
+  @#C8
+  static set /* from org-dartlang-testcase:///patch_lib.dart */ staticSetter(core::int value) → void {}
+  @#C8
+  static method /* from org-dartlang-testcase:///patch_lib.dart */ staticMethod(core::int value) → void {}
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ _injectedFactory(core::int value) → test::Class
+    return new test::Class::•(value);
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ _injectedRedirectingFactory(core::int value) → test::Class /* redirection-target: test::Class::• */
+    return new test::Class::•(value);
+  get /* from org-dartlang-testcase:///patch_lib.dart */ _injectedInstanceGetter() → core::int
+    return 42;
+  set /* from org-dartlang-testcase:///patch_lib.dart */ _injectedInstanceSetter(core::int value) → void {}
+  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedInstanceMethod(core::int value) → void {}
+  static get /* from org-dartlang-testcase:///patch_lib.dart */ _injectedStaticGetter() → core::int
+    return 42;
+  static set /* from org-dartlang-testcase:///patch_lib.dart */ _injectedStaticSetter(core::int value) → void {}
+  static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedStaticMethod(core::int value) → void {}
+}
+class _InjectedClass extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
+  field core::int instanceField = 42;
+  static field core::int staticField = 42;
+  constructor •(core::int value) → test::_InjectedClass
+    : super core::Object::•()
+    ;
+  constructor redirecting(core::int value) → test::_InjectedClass
+    : this test::_InjectedClass::•(value)
+    ;
+  static factory factory(core::int value) → test::_InjectedClass
+    return new test::_InjectedClass::•(value);
+  static factory redirectingFactory(core::int value) → test::_InjectedClass /* redirection-target: test::_InjectedClass::• */
+    return new test::_InjectedClass::•(value);
+  get instanceGetter() → core::int
+    return 42;
+  set instanceSetter(core::int value) → void {}
+  method instanceMethod(core::int value) → void {}
+  static get staticGetter() → core::int
+    return 42;
+  static set staticSetter(core::int value) → void {}
+  static method staticMethod(core::int value) → void {}
+}
+@#C8
+extension Extension on test::Class {
+  get extensionInstanceGetter = test::Extension|get#extensionInstanceGetter;
+  method extensionInstanceMethod = test::Extension|extensionInstanceMethod;
+  method tearoff extensionInstanceMethod = test::Extension|get#extensionInstanceMethod;
+  operator - = test::Extension|-;
+  static get extensionStaticGetter = get test::Extension|extensionStaticGetter;
+  static method extensionStaticMethod = test::Extension|extensionStaticMethod;
+  get _injectedExtensionInstanceGetter = test::Extension|get#_injectedExtensionInstanceGetter;
+  method _injectedExtensionInstanceMethod = test::Extension|_injectedExtensionInstanceMethod;
+  method tearoff _injectedExtensionInstanceMethod = test::Extension|get#_injectedExtensionInstanceMethod;
+  static field _injectedExtensionStaticField = test::Extension|_injectedExtensionStaticField;
+  static get _injectedExtensionStaticGetter = get test::Extension|_injectedExtensionStaticGetter;
+  static method _injectedExtensionStaticMethod = test::Extension|_injectedExtensionStaticMethod;
+  set extensionInstanceSetter = test::Extension|set#extensionInstanceSetter;
+  static set extensionStaticSetter = set test::Extension|extensionStaticSetter;
+  set _injectedExtensionInstanceSetter = test::Extension|set#_injectedExtensionInstanceSetter;
+  static set _injectedExtensionStaticSetter = set test::Extension|_injectedExtensionStaticSetter;
+}
+static field core::int Extension|_injectedExtensionStaticField = 42 /* from org-dartlang-testcase:///patch_lib.dart */;
+@#C8
+static get /* from org-dartlang-testcase:///patch_lib.dart */ topLevelGetter() → core::int
+  return 42;
+@#C8
+static set /* from org-dartlang-testcase:///patch_lib.dart */ topLevelSetter(core::int value) → void {}
+@#C8
+static method /* from org-dartlang-testcase:///patch_lib.dart */ topLevelMethod(core::int value) → void {}
+@#C8
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#extensionInstanceGetter(lowered final test::Class #this) → core::int
+  return 42;
+@#C8
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|set#extensionInstanceSetter(lowered final test::Class #this, core::int value) → void {}
+@#C8
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|extensionInstanceMethod(lowered final test::Class #this, core::int value) → void {}
+static extension-member method Extension|get#extensionInstanceMethod(lowered final test::Class #this) → (core::int) → void
+  return (core::int value) → void => test::Extension|extensionInstanceMethod(#this, value);
+@#C8
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|-(lowered final test::Class #this, test::Class a) → test::Class
+  return #this;
+@#C8
+static extension-member get /* from org-dartlang-testcase:///patch_lib.dart */ Extension|extensionStaticGetter() → core::int
+  return 42;
+@#C8
+static extension-member set /* from org-dartlang-testcase:///patch_lib.dart */ Extension|extensionStaticSetter(core::int value) → void {}
+@#C8
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|extensionStaticMethod(core::int value) → void {}
+static get /* from org-dartlang-testcase:///patch_lib.dart */ _injectedTopLevelGetter() → core::int
+  return 42;
+static set /* from org-dartlang-testcase:///patch_lib.dart */ _injectedTopLevelSetter(core::int value) → void {}
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedTopLevelMethod(core::int value) → void {
+  test::_injectedTopLevelSetter = test::_injectedTopLevelGetter;
+  test::_injectedTopLevelMethod(42);
+  #C9;
+  test::_InjectedClass i = new test::_InjectedClass::•(42);
+  #C10;
+  new test::_InjectedClass::redirecting(42);
+  #C11;
+  test::_InjectedClass::factory(42);
+  #C12;
+  new test::_InjectedClass::•(42);
+  #C13;
+  i.{test::_InjectedClass::instanceSetter} = i.{test::_InjectedClass::instanceGetter}{core::int};
+  i.{test::_InjectedClass::instanceMethod}(42){(core::int) → void};
+  i.{test::_InjectedClass::instanceMethod}{(core::int) → void};
+  test::_InjectedClass::staticSetter = test::_InjectedClass::staticGetter;
+  test::_InjectedClass::staticMethod(42);
+  #C14;
+  test::Class c = new test::Class::•(42);
+  new test::Class::_injectedGenerative(42);
+  #C15;
+  new test::Class::_injectedRedirecting(42);
+  #C16;
+  test::Class::_injectedFactory(42);
+  #C17;
+  new test::Class::•(42);
+  #C18;
+  c.{test::Class::_injectedInstanceSetter} = c.{test::Class::_injectedInstanceGetter}{core::int};
+  c.{test::Class::_injectedInstanceMethod}(42){(core::int) → void};
+  c.{test::Class::_injectedInstanceMethod}{(core::int) → void};
+  test::Class::_injectedStaticSetter = test::Class::_injectedStaticGetter;
+  test::Class::_injectedStaticMethod(42);
+  #C19;
+  test::Extension|set#_injectedExtensionInstanceSetter(c, test::Extension|get#_injectedExtensionInstanceGetter(c));
+  test::Extension|_injectedExtensionInstanceMethod(c, 42);
+  test::Extension|get#_injectedExtensionInstanceMethod(c);
+  test::Extension|_injectedExtensionStaticSetter = test::Extension|_injectedExtensionStaticGetter;
+  test::Extension|_injectedExtensionStaticMethod(42);
+  #C20;
+}
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#_injectedExtensionInstanceGetter(lowered final test::Class #this) → core::int
+  return 42;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|set#_injectedExtensionInstanceSetter(lowered final test::Class #this, core::int value) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionInstanceMethod(lowered final test::Class #this, core::int value) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#_injectedExtensionInstanceMethod(lowered final test::Class #this) → (core::int) → void
+  return (core::int value) → void => test::Extension|_injectedExtensionInstanceMethod(#this, value);
+static extension-member get /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionStaticGetter() → core::int
+  return 42;
+static extension-member set /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionStaticSetter(core::int value) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionStaticMethod(core::int value) → void {}
+
+constants  {
+  #C1 = static-tearoff test::topLevelMethod
+  #C2 = constructor-tearoff test::Class::•
+  #C3 = constructor-tearoff test::Class::redirecting
+  #C4 = constructor-tearoff test::Class::factory
+  #C5 = redirecting-factory-tearoff test::Class::redirectingFactory
+  #C6 = static-tearoff test::Class::staticMethod
+  #C7 = static-tearoff test::Extension|extensionStaticMethod
+  #C8 = _in::_Patch {}
+  #C9 = static-tearoff test::_injectedTopLevelMethod
+  #C10 = constructor-tearoff test::_InjectedClass::•
+  #C11 = constructor-tearoff test::_InjectedClass::redirecting
+  #C12 = constructor-tearoff test::_InjectedClass::factory
+  #C13 = redirecting-factory-tearoff test::_InjectedClass::redirectingFactory
+  #C14 = static-tearoff test::_InjectedClass::staticMethod
+  #C15 = constructor-tearoff test::Class::_injectedGenerative
+  #C16 = constructor-tearoff test::Class::_injectedRedirecting
+  #C17 = constructor-tearoff test::Class::_injectedFactory
+  #C18 = redirecting-factory-tearoff test::Class::_injectedRedirectingFactory
+  #C19 = static-tearoff test::Class::_injectedStaticMethod
+  #C20 = static-tearoff test::Extension|_injectedExtensionStaticMethod
+}
