@@ -643,15 +643,15 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitBinaryExpression(BinaryExpression node) {
-    var operatorElement = node.staticElement;
-    var operatorContainer = operatorElement?.enclosingElement3;
+    var operatorElement = node.element;
+    var operatorContainer = operatorElement?.enclosingElement2;
     switch (operatorContainer) {
-      case ExtensionElement():
+      case ExtensionElement2():
         return InvalidConstant.forEntity(
           node,
           CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
         );
-      case ExtensionTypeElement():
+      case ExtensionTypeElement2():
         return InvalidConstant.forEntity(
           node,
           CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD,
@@ -820,7 +820,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var typeArguments = classType.typeArguments;
     // The result is already instantiated during resolution;
     // [_dartObjectComputer.typeInstantiate] is unnecessary.
-    var typeElement = node.constructorName.type.element as TypeDefiningElement;
+    var typeElement =
+        node.constructorName.type.element2?.asElement as TypeDefiningElement;
 
     TypeAliasElement? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {
@@ -833,7 +834,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
-    var constructorElement = node.constructorName.staticElement?.declaration
+    var constructorElement = node.constructorName.element?.baseElement.asElement
         .ifTypeOrNull<ConstructorElementImpl>();
     if (constructorElement == null) {
       return InvalidConstant.forEntity(
@@ -937,7 +938,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // https://github.com/dart-lang/sdk/issues/47061
       return InvalidConstant.genericError(node);
     }
-    var constructor = node.constructorName.staticElement;
+    var constructor = node.constructorName.element?.asElement;
     if (constructor == null) {
       // Couldn't resolve the constructor so we can't compute a value.  No
       // problem - the error has already been reported.
@@ -1026,7 +1027,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitMethodInvocation(MethodInvocation node) {
-    var element = node.methodName.staticElement;
+    var element = node.methodName.element?.asElement;
     if (element is FunctionElement) {
       if (element.name == "identical") {
         NodeList<Expression> arguments = node.argumentList.arguments;
@@ -1087,7 +1088,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       errorNode: node,
       expression: null,
       identifier: null,
-      element: node.element,
+      element: node.element2.asElement,
       givenType: type,
     );
   }
@@ -1111,7 +1112,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     var prefixNode = node.prefix;
-    var prefixElement = prefixNode.staticElement;
+    var prefixElement = prefixNode.element?.asElement;
 
     // A top-level constant, imported with a prefix.
     if (prefixElement is PrefixElement) {
@@ -1139,13 +1140,13 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       errorNode: node,
       expression: node,
       identifier: node.identifier,
-      element: node.identifier.staticElement,
+      element: node.identifier.element?.asElement,
     );
   }
 
   @override
   Constant visitPrefixExpression(PrefixExpression node) {
-    var operatorElement = node.staticElement;
+    var operatorElement = node.element?.asElement;
     var operatorContainer = operatorElement?.enclosingElement3;
     switch (operatorContainer) {
       case ExtensionElement():
@@ -1182,10 +1183,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var target = node.target;
     if (target != null) {
       if (target is PrefixedIdentifierImpl &&
-          (target.staticElement is ExtensionElement ||
-              target.staticElement is ExtensionTypeElement)) {
+          (target.element?.asElement is ExtensionElement ||
+              target.element?.asElement is ExtensionTypeElement)) {
         var prefix = target.prefix;
-        if (prefix.staticElement is PrefixElement && target.isDeferred) {
+        if (prefix.element?.asElement is PrefixElement && target.isDeferred) {
           return _getDeferredLibraryError(node, target.identifier);
         }
 
@@ -1194,7 +1195,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           errorNode: node,
           expression: node,
           identifier: node.propertyName,
-          element: node.propertyName.staticElement,
+          element: node.propertyName.element?.asElement,
         );
       }
       var prefixResult = evaluateConstant(target);
@@ -1212,7 +1213,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       errorNode: node,
       expression: node,
       identifier: node.propertyName,
-      element: node.propertyName.staticElement,
+      element: node.propertyName.element?.asElement,
     );
   }
 
@@ -1318,7 +1319,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       errorNode: node,
       expression: node,
       identifier: node,
-      element: node.staticElement,
+      element: node.element?.asElement,
     );
   }
 
@@ -1677,7 +1678,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// an error, and `null` otherwise.
   Constant? _evaluatePropertyAccess(DartObjectImpl targetResult,
       SimpleIdentifier identifier, AstNode errorNode) {
-    var propertyElement = identifier.staticElement;
+    var propertyElement = identifier.element?.asElement;
     if (propertyElement is PropertyAccessorElement &&
         propertyElement.isGetter &&
         propertyElement.isStatic) {
@@ -1707,7 +1708,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return _dartObjectComputer.stringLength(errorNode, targetResult);
     }
 
-    var element = identifier.staticElement;
+    var element = identifier.element?.asElement;
     if (element != null && element is ExecutableElement && element.isStatic) {
       return null;
     }
@@ -2584,7 +2585,7 @@ class _InstanceCreationEvaluator {
         var value = SimpleIdentifierImpl(
           StringToken(TokenType.STRING, parameter.name, parameter.nameOffset),
         )
-          ..staticElement = parameter
+          ..element = parameter.asElement2
           ..setPseudoExpressionStaticType(parameter.type);
         if (parameter.isPositional) {
           superArguments.insert(positionalIndex++, value);
@@ -2595,7 +2596,7 @@ class _InstanceCreationEvaluator {
                 label: SimpleIdentifierImpl(
                   StringToken(
                       TokenType.STRING, parameter.name, parameter.nameOffset),
-                )..staticElement = parameter,
+                )..element = parameter.asElement2,
                 colon: StringToken(TokenType.COLON, ':', -1),
               ),
               expression: value,
@@ -3097,7 +3098,7 @@ class _InstanceCreationEvaluator {
       // an unresolved expression is evaluated. We do this to continue the
       // rest of the evaluation without producing unrelated errors.
       if (argument is NamedExpressionImpl) {
-        var parameterType = argument.element?.type ?? InvalidTypeImpl.instance;
+        var parameterType = argument.element2?.type ?? InvalidTypeImpl.instance;
         var argumentConstant =
             constantVisitor._valueOf(argument.expression, parameterType);
         if (argumentConstant is! DartObjectImpl) {

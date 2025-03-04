@@ -228,7 +228,7 @@ class ElementResolver {
         }
       }
     }
-    var importElement = node.element;
+    var importElement = node.libraryImport;
     if (importElement != null) {
       // The element is null when the URI is invalid
       var library = importElement.importedLibrary;

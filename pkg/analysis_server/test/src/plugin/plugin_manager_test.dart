@@ -739,10 +739,12 @@ class PluginSessionTest with ResourceProviderMixin {
     expect(session.pluginStoppedCompleter.isCompleted, isTrue);
   }
 
-  @failingTest
   void test_handleOnError() {
     session.handleOnError(<String>['message', 'trace']);
-    fail('The method handleOnError is not implemented');
+    expect(
+      notificationManager.pluginErrors.first,
+      'An error occurred while executing an analyzer plugin: message\ntrace',
+    );
   }
 
   Future<void> test_handleResponse() async {
@@ -780,6 +782,13 @@ class PluginSessionTest with ResourceProviderMixin {
     expect(
       await session.start(path.join(pluginPath, 'byteStore'), sdkPath),
       isFalse,
+    );
+    expect(
+      notificationManager.pluginErrors.first,
+      startsWith(
+        'An error occurred while executing an analyzer plugin: Plugin is not '
+        'compatible.',
+      ),
     );
   }
 
@@ -932,6 +941,13 @@ class TestNotificationManager implements AbstractNotificationManager {
 
   Map<String, Map<String, List<AnalysisError>>> recordedErrors =
       <String, Map<String, List<AnalysisError>>>{};
+
+  List<String> pluginErrors = [];
+
+  @override
+  void handlePluginError(String message) {
+    pluginErrors.add(message);
+  }
 
   @override
   void handlePluginNotification(String pluginId, Notification notification) {

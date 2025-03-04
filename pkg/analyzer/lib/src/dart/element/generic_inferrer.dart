@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, WarningCode;
 import 'package:analyzer/src/generated/inference_log.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -718,7 +719,7 @@ class GenericInferrer {
     } else if (errorEntity is Annotation) {
       if (genericMetadataIsEnabled) {
         // Only report an error if generic metadata is valid syntax.
-        var element = errorEntity.name.staticElement;
+        var element = errorEntity.name.element?.asElement;
         if (element != null && !element.hasOptionalTypeArgs) {
           String constructorName = errorEntity.constructorName == null
               ? errorEntity.name.name
@@ -731,7 +732,7 @@ class GenericInferrer {
         }
       }
     } else if (errorEntity is SimpleIdentifier) {
-      var element = errorEntity.staticElement;
+      var element = errorEntity.element?.asElement;
       if (element != null) {
         if (element is VariableElement) {
           // For variable elements, we check their type and possible alias type.

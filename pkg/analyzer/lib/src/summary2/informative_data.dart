@@ -2229,10 +2229,10 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     super.visitSimpleFormalParameter(node);
 
-    var element = node.declaredElement;
+    var fragment = node.declaredFragment;
     var identifier = node.name;
-    if (element is ParameterElementImpl && identifier != null) {
-      element.nameOffset = identifier.offset;
+    if (fragment is ParameterElementImpl && identifier != null) {
+      fragment.nameOffset = identifier.offset;
     }
   }
 

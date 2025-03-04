@@ -134,7 +134,7 @@ class Flags {
   static const String serverMode = '--server-mode';
 
   static const String soundNullSafety = '--sound-null-safety';
-  static const String noSoundNullSafety = '--no-sound-null-safety';
+
   static const String mergeFragmentsThreshold = '--merge-fragments-threshold';
 
   static const String writeResources = '--write-resources';

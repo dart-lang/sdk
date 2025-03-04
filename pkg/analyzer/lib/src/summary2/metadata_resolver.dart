@@ -99,7 +99,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     // We might have already accessed metadata flags, e.g. `hasDeprecated`,
     // before we finished metadata resolution, during `PrefixScope` building.
     // So, these flags are not accurate anymore, and we need to reset them.
-    node.element!.resetMetadataFlags();
+    node.libraryExport!.resetMetadataFlags();
   }
 
   @override

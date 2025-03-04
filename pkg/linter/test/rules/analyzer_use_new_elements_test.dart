@@ -151,7 +151,10 @@ void f(ClassDeclaration a) {
   a.declaredElement;
 }
 ''',
-      [lint(79, 15)],
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 79, 15),
+        lint(79, 15),
+      ],
     );
   }
 
@@ -164,7 +167,10 @@ void f(ClassDeclarationImpl a) {
   a.declaredElement;
 }
 ''',
-      [lint(87, 15)],
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 87, 15),
+        lint(87, 15),
+      ],
     );
   }
 

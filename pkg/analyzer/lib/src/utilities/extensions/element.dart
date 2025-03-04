@@ -617,6 +617,12 @@ extension ListOfTypeParameterElementExtension on List<TypeParameterElement> {
   }
 }
 
+extension LocalVariableElementImplExtension on LocalVariableElementImpl {
+  LocalVariableElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension MethodElement2Extension on MethodElement2 {
   MethodElement get asElement {
     if (this case MethodMember member) {

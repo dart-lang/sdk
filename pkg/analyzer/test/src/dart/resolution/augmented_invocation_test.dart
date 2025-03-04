@@ -47,7 +47,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@class::A::@constructor::named
-  element2: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+  fragment: package:test/a.dart::<fragment>::@class::A::@constructor::named
   staticType: A
 ''');
   }
@@ -84,7 +84,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@class::A::@constructor::new
-  element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+  fragment: package:test/a.dart::<fragment>::@class::A::@constructor::new
   staticType: A
 ''');
   }
@@ -166,7 +166,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@class::A::@method::foo
-  element2: package:test/a.dart::<fragment>::@class::A::@method::foo#element
+  fragment: package:test/a.dart::<fragment>::@class::A::@method::foo
   staticType: void
 ''');
   }
@@ -199,7 +199,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: void
 ''');
   }
@@ -235,7 +235,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: <null>
-  element2: <null>
+  fragment: <null>
   staticType: InvalidType
 ''');
   }
@@ -272,7 +272,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: int
 ''');
   }
@@ -305,7 +305,7 @@ AugmentedInvocation
         literal: ''
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: num
 ''');
   }
@@ -359,7 +359,7 @@ AugmentedInvocation
         staticType: String Function(int)
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: String
 ''');
   }
@@ -390,7 +390,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: int
 ''');
   }
@@ -429,7 +429,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: int
 ''');
   }
@@ -469,7 +469,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: String
 ''');
   }
@@ -514,7 +514,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: dynamic
 ''');
   }
@@ -587,7 +587,7 @@ ExpressionStatement
       leftParenthesis: (
       rightParenthesis: )
     element: package:test/a.dart::<fragment>::@getter::foo
-    element2: package:test/a.dart::<fragment>::@getter::foo#element
+    fragment: package:test/a.dart::<fragment>::@getter::foo
     staticType: InvalidType
   semicolon: ;
 ''');
@@ -705,7 +705,7 @@ ExpressionStatement
       leftParenthesis: (
       rightParenthesis: )
     element: package:test/a.dart::<fragment>::@getter::foo
-    element2: package:test/a.dart::<fragment>::@getter::foo#element
+    fragment: package:test/a.dart::<fragment>::@getter::foo
     staticType: InvalidType
   semicolon: ;
 ''');
@@ -746,7 +746,7 @@ ExpressionStatement
           staticType: int
       rightParenthesis: )
     element: package:test/a.dart::<fragment>::@setter::foo
-    element2: package:test/a.dart::<fragment>::@setter::foo#element
+    fragment: package:test/a.dart::<fragment>::@setter::foo
     staticType: InvalidType
   semicolon: ;
 ''');

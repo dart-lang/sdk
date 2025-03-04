@@ -4,8 +4,8 @@
 
 // ignore_for_file: analyzer_use_new_elements
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -19,7 +19,9 @@ class FindElement extends _FindElementBase {
   LibraryElement get libraryElement => unitElement.library;
 
   @override
-  CompilationUnitElement get unitElement => unit.declaredElement!;
+  CompilationUnitElementImpl get unitElement {
+    return unit.declaredFragment! as CompilationUnitElementImpl;
+  }
 
   LibraryExportElementImpl export(String targetUri) {
     LibraryExportElement? result;
@@ -95,7 +97,7 @@ class FindElement extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       label: (node) {
-        updateResult(node.label.staticElement!);
+        updateResult(node.label.element!.asElement!);
       },
     ));
 
@@ -105,17 +107,17 @@ class FindElement extends _FindElementBase {
     return result!;
   }
 
-  FunctionElement localFunction(String name) {
-    FunctionElement? result;
+  FunctionElementImpl localFunction(String name) {
+    FunctionElementImpl? result;
 
     unit.accept(FunctionAstVisitor(
       functionDeclarationStatement: (node) {
-        var element = node.functionDeclaration.declaredElement;
-        if (element is FunctionElement && element.name == name) {
+        var fragment = node.functionDeclaration.declaredFragment;
+        if (fragment is FunctionElementImpl && fragment.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }
-          result = element;
+          result = fragment;
         }
       },
     ));
@@ -126,11 +128,11 @@ class FindElement extends _FindElementBase {
     return result!;
   }
 
-  LocalVariableElement localVar(String name) {
-    LocalVariableElement? result;
+  LocalVariableElementImpl localVar(String name) {
+    LocalVariableElementImpl? result;
 
-    void updateResult(Element element) {
-      if (element is LocalVariableElement && element.name == name) {
+    void updateResult(Object element) {
+      if (element is LocalVariableElementImpl && element.name == name) {
         if (result != null) {
           throw StateError('Not unique: $name');
         }
@@ -140,16 +142,16 @@ class FindElement extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       catchClauseParameter: (node) {
-        updateResult(node.declaredElement!);
+        updateResult(node.declaredElement2!);
       },
       declaredIdentifier: (node) {
-        updateResult(node.declaredElement!);
+        updateResult(node.declaredFragment!);
       },
       declaredVariablePattern: (node) {
-        updateResult(node.declaredElement!);
+        updateResult(node.declaredFragment!);
       },
       variableDeclaration: (node) {
-        updateResult(node.declaredElement!);
+        updateResult(node.declaredFragment!);
       },
     ));
 
@@ -160,10 +162,10 @@ class FindElement extends _FindElementBase {
   }
 
   @override
-  ParameterElement parameter(String name) {
-    ParameterElement? result;
+  ParameterElementImpl parameter(String name) {
+    ParameterElementImpl? result;
 
-    void findIn(List<ParameterElement> parameters) {
+    void findIn(List<ParameterElementImpl> parameters) {
       for (var parameter in parameters) {
         if (parameter.name == name) {
           if (result != null) {
@@ -174,13 +176,13 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    void findInExecutables(List<ExecutableElement> executables) {
+    void findInExecutables(List<ExecutableElementImpl> executables) {
       for (var executable in executables) {
         findIn(executable.parameters);
       }
     }
 
-    void findInClasses(List<InterfaceElement> classes) {
+    void findInClasses(List<InterfaceElementImpl> classes) {
       for (var class_ in classes) {
         findInExecutables(class_.accessors);
         findInExecutables(class_.constructors);
@@ -203,7 +205,7 @@ class FindElement extends _FindElementBase {
 
     for (var alias in unitElement.typeAliases) {
       var aliasedElement = alias.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
+      if (aliasedElement is GenericFunctionTypeElementImpl) {
         findIn(aliasedElement.parameters);
       }
     }
@@ -211,8 +213,9 @@ class FindElement extends _FindElementBase {
     unit.accept(
       FunctionAstVisitor(functionExpression: (node, local) {
         if (local) {
-          var functionElement = node.declaredElement!;
-          findIn(functionElement.parameters);
+          node as FunctionExpressionImpl;
+          var declaredFragment = node.declaredFragment!;
+          findIn(declaredFragment.parameters);
         }
       }),
     );
@@ -228,7 +231,7 @@ class FindElement extends _FindElementBase {
 
     for (var partElement in unitElement.parts) {
       var uri = partElement.uri;
-      if (uri is DirectiveUriWithUnit) {
+      if (uri is DirectiveUriWithUnitImpl) {
         var unitElement = uri.unit;
         if ('${unitElement.source.uri}' == targetUri) {
           if (result != null) {
@@ -261,13 +264,14 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  TypeParameterElement typeParameter(String name) {
-    TypeParameterElement? result;
+  TypeParameterElementImpl typeParameter(String name) {
+    TypeParameterElementImpl? result;
 
     unit.accept(FunctionAstVisitor(
       typeParameter: (node) {
-        var element = node.declaredElement!;
-        if (element.name == name) {
+        node as TypeParameterImpl;
+        var element = node.declaredFragment!;
+        if (element.name2 == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
           }

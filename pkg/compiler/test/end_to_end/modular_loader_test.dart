@@ -48,7 +48,6 @@ main() {
       options: [
         '--input-dill=memory:c.dill',
         '--dill-dependencies=memory:a.dill,memory:b.dill,memory:unused.dill',
-        '--sound-null-safety',
       ],
       memorySourceFiles: {
         'a.dill': aDill,

@@ -11,8 +11,6 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'commandline_options.dart' show Flags;
 import 'util/util.dart';
 
-enum NullSafetyMode { unsound, sound }
-
 enum FeatureStatus { shipped, shipping, canary }
 
 enum CompilerPhase {
@@ -534,13 +532,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to generate code containing user's `assert` statements.
   bool enableUserAssertions = false;
 
-  /// Whether to generate code asserting that non-nullable parameters in opt-in
-  /// code are not null. In mixed mode code (some opting into non-nullable, some
-  /// not), null-safety is unsound, allowing `null` values to be assigned to
-  /// variables with non-nullable types. This assertion lets the opt-in code
-  /// operate with a stronger guarantee.
-  bool enableNullAssertions = false;
-
   /// Whether to generate code asserting that non-nullable return values of
   /// `@Native` methods or `JS()` invocations are checked for being non-null.
   /// Emits checks only in sound null-safety.
@@ -678,22 +669,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// migrated to null safety (but before sound null safety is enabled).
   bool experimentNullSafetyChecks = false;
 
-  /// Whether the compiler should emit code with unsound or sound semantics.
-  /// Since Dart 3.0 this is no longer inferred from sources, but defaults to
-  /// sound semantics.
-  ///
-  /// This option should rarely need to be accessed directly. Consider using
-  /// [useLegacySubtyping] instead.
-  NullSafetyMode nullSafetyMode = NullSafetyMode.sound;
-  bool _soundNullSafety = false;
-  bool _noSoundNullSafety = false;
-
   /// Whether to use legacy subtype semantics rather than null-safe semantics.
   /// This is `true` if unsound null-safety semantics are being used, since
   /// dart2js does not emit warnings for unsound null-safety.
-  bool get useLegacySubtyping {
-    return nullSafetyMode == NullSafetyMode.unsound;
-  }
+  bool get useLegacySubtyping => false;
 
   /// If specified, a bundle of optimizations to enable (or disable).
   int? optimizationLevel;
@@ -937,9 +916,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..enableUserAssertions =
           _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
-      ..enableNullAssertions =
-          _hasOption(options, Flags.enableCheckedMode) ||
-          _hasOption(options, Flags.enableNullAssertions)
       ..nativeNullAssertions = _hasOption(options, Flags.nativeNullAssertions)
       .._noNativeNullAssertions = _hasOption(
         options,
@@ -1014,8 +990,6 @@ class CompilerOptions implements DiagnosticOptions {
       .._cfeOnly = _hasOption(options, Flags.cfeOnly)
       .._stageFlag = _extractStringOption(options, '${Flags.stage}=', null)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
-      .._soundNullSafety = _hasOption(options, Flags.soundNullSafety)
-      .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety)
       .._mergeFragmentsThreshold = _extractIntOption(
         options,
         '${Flags.mergeFragmentsThreshold}=',
@@ -1094,12 +1068,6 @@ class CompilerOptions implements DiagnosticOptions {
         equalMaps(experimentalFlags, fe.defaultExperimentalFlags)) {
       throw ArgumentError("Missing required ${Flags.platformBinaries}");
     }
-    if (_soundNullSafety && _noSoundNullSafety) {
-      throw ArgumentError(
-        "'${Flags.soundNullSafety}' is incompatible with "
-        "'${Flags.noSoundNullSafety}'",
-      );
-    }
     if (nativeNullAssertions && _noNativeNullAssertions) {
       throw ArgumentError(
         "'${Flags.nativeNullAssertions}' is incompatible with "
@@ -1112,7 +1080,7 @@ class CompilerOptions implements DiagnosticOptions {
         "'${Flags.noInteropNullAssertions}'",
       );
     }
-    if (nullSafetyMode == NullSafetyMode.sound && experimentNullSafetyChecks) {
+    if (experimentNullSafetyChecks) {
       throw ArgumentError(
         '${Flags.experimentNullSafetyChecks} is incompatible '
         'with sound null safety.',
@@ -1134,9 +1102,6 @@ class CompilerOptions implements DiagnosticOptions {
       // TODO(sra): Use this for some null safety variant.
       features.forceCanary();
     }
-
-    if (_soundNullSafety) nullSafetyMode = NullSafetyMode.sound;
-    if (_noSoundNullSafety) nullSafetyMode = NullSafetyMode.unsound;
 
     if (optimizationLevel != null) {
       if (optimizationLevel == 0) {
@@ -1187,12 +1152,7 @@ class CompilerOptions implements DiagnosticOptions {
       omitLateNames = false;
     }
 
-    if (nullSafetyMode != NullSafetyMode.sound) {
-      // Technically, we should still assert if the user passed in a flag to
-      // assert, but this was not the behavior before, so to avoid a breaking
-      // change, we don't assert in unsound mode.
-      nativeNullAssertions = false;
-    } else if (_noNativeNullAssertions) {
+    if (_noNativeNullAssertions) {
       // Never assert if the user tells us not to.
       nativeNullAssertions = false;
     } else if (!nativeNullAssertions &&

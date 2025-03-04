@@ -4573,6 +4573,7 @@ void f(A a) {
 ''');
 
     var node = findNode.singleMethodInvocation;
+    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4583,7 +4584,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@class::A::@method::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
     element: <testLibraryFragment>::@class::A::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList
@@ -4974,6 +4975,7 @@ void f(A a) {
 ''');
 
     var node = findNode.singleMethodInvocation;
+    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4984,7 +4986,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <testLibraryFragment>::@mixin::A::@method::foo
+    staticElement: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
     element: <testLibraryFragment>::@mixin::A::@method::foo#element
     staticType: void Function()
   argumentList: ArgumentList

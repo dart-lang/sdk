@@ -2065,7 +2065,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     HInstruction value,
     DartType type,
   ) {
-    if (!options.enableNullAssertions) return value;
     if (!dartTypes.isNonNullableIfSound(type)) return value;
 
     // `operator==` is usually augmented to handle a `null`-argument before this

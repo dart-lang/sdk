@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: analyzer_use_new_elements
+// ignore_for_file: deprecated_member_use_from_same_package
 
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -149,7 +150,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element);
-      _writeElement2('element2', node.element2);
+      _writeFragment('fragment', node.fragment);
       _writeType('staticType', node.staticType);
     });
   }
@@ -778,7 +779,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       if (_withResolution) {
         _writeGenericFunctionTypeElement(
           'declaredElement',
-          node.declaredElement,
+          node.declaredFragment,
         );
       }
       _writeType('type', node.type);
@@ -2111,8 +2112,8 @@ Expected parent: (${parent.runtimeType}) $parent
       var declaredElement = parametersParent.declaredElement!;
       return declaredElement.parameters;
     } else if (parametersParent is GenericFunctionTypeImpl) {
-      var declaredElement = parametersParent.declaredElement!;
-      return declaredElement.parameters;
+      var declaredFragment = parametersParent.declaredFragment!;
+      return declaredFragment.parameters;
     } else if (parametersParent is MethodDeclaration) {
       var declaredElement = parametersParent.declaredElement!;
       return declaredElement.parameters;

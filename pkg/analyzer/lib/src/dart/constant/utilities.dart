@@ -6,11 +6,12 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Callback used by [ReferenceFinder] to report that a dependency was found.
 typedef ReferenceFinderCallback = void Function(
@@ -137,10 +138,9 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
-    if (node.declaredElement!.constructors
-        .any((ConstructorElement e) => e.isConst)) {
+    if (node.declaredFragment!.constructors.any((e) => e.isConst)) {
       // Instance vars marked "final" need to be included in the dependency
       // graph, since constant constructors implicitly use the values in their
       // initializers.
@@ -154,23 +154,23 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     super.visitConstructorDeclaration(node);
     if (node.constKeyword != null) {
-      var element = node.declaredElement;
-      if (element != null) {
-        constantsToCompute.add(element);
-        constantsToCompute.addAll(element.parameters);
+      var fragment = node.declaredFragment;
+      if (fragment != null) {
+        constantsToCompute.add(fragment);
+        constantsToCompute.addAll(fragment.parameters);
       }
     }
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
     super.visitDefaultFormalParameter(node);
     var defaultValue = node.defaultValue;
-    if (defaultValue != null && node.declaredElement != null) {
-      constantsToCompute.add(node.declaredElement!);
+    if (defaultValue != null && node.declaredFragment != null) {
+      constantsToCompute.add(node.declaredFragment!);
     }
   }
 
@@ -178,7 +178,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     super.visitEnumConstantDeclaration(node);
 
-    var element = node.declaredElement as ConstFieldElementImpl;
+    var element = node.declaredFragment as ConstFieldElementImpl;
     constantsToCompute.add(element);
 
     configuration.addErrorNode(
@@ -188,10 +188,10 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer;
-    var element = node.declaredElement!;
+    var element = node.declaredFragment!;
     if (initializer != null &&
         (node.isConst ||
             treatFinalInstanceVarAsConst &&
@@ -226,7 +226,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      var constructor = node.constructorName.staticElement?.declaration;
+      var constructor = node.constructorName.element?.baseElement.asElement;
       if (constructor != null && constructor.isConst) {
         _callback(constructor);
       }
@@ -247,7 +247,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     super.visitRedirectingConstructorInvocation(node);
-    var target = node.staticElement?.declaration;
+    var target = node.element?.baseElement.asElement;
     if (target != null) {
       _callback(target);
     }
@@ -255,7 +255,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var staticElement = node.staticElement;
+    var staticElement = node.element?.asElement;
     var element = staticElement is PropertyAccessorElement
         ? staticElement.variable2
         : staticElement;
@@ -267,7 +267,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     super.visitSuperConstructorInvocation(node);
-    var constructor = node.staticElement?.declaration;
+    var constructor = node.element?.baseElement.asElement;
     if (constructor != null) {
       _callback(constructor);
     }

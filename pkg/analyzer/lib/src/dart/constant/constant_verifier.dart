@@ -32,6 +32,7 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/exhaustiveness.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Instances of the class `ConstantVerifier` traverse an AST structure looking
 /// for additional errors and warnings not covered by the parser and resolver.
@@ -259,7 +260,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
       // We need to evaluate the constant to see if any errors occur during its
       // evaluation.
-      var constructor = node.constructorName.staticElement;
+      var constructor = node.constructorName.element?.asElement;
       if (constructor != null) {
         var constantVisitor =
             ConstantVisitor(_evaluationEngine, _currentLibrary, _errorReporter);

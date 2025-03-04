@@ -87,6 +87,7 @@ void f() {
 ''');
 
     var node = findNode.singleAssignmentExpression;
+    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
@@ -97,7 +98,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo::@parameter::_
+    parameter: <testLibraryFragment>::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readElement2: <null>

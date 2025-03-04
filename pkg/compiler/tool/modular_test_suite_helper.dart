@@ -143,7 +143,6 @@ abstract class CFEStep extends IOModularStep {
 
     List<String> args = [
       script,
-      '--sound-null-safety',
       ...stepArguments,
       '--exclude-non-sources',
       '--multi-root',
@@ -342,7 +341,6 @@ class ComputeClosedWorldStep extends IOModularStep {
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       if (_options.useSdk) '--invoker=modular_test',
-      Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -398,7 +396,6 @@ class GlobalAnalysisStep extends IOModularStep {
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       if (_options.useSdk) '--invoker=modular_test',
-      Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -464,7 +461,6 @@ class Dart2jsCodegenStep extends IOModularStep {
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       if (_options.useSdk) '--invoker=modular_test',
-      Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -528,7 +524,6 @@ class Dart2jsEmissionStep extends IOModularStep {
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       if (_options.useSdk) '--invoker=modular_test',
-      Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
@@ -594,7 +589,6 @@ class Dart2jsDumpInfoStep extends IOModularStep {
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       if (_options.useSdk) '--invoker=modular_test',
-      Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
