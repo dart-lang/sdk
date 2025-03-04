@@ -3667,6 +3667,7 @@ package:analyzer/dart/element/element2.dart:
     enclosingFragment (getter: InstanceFragment?)
     name2 (getter: String)
     nextFragment (getter: ConstructorFragment?)
+    offset (getter: int)
     periodOffset (getter: int?)
     previousFragment (getter: ConstructorFragment?)
     typeName (getter: String?)
@@ -3775,6 +3776,7 @@ package:analyzer/dart/element/element2.dart:
     new (constructor: ExtensionFragment Function())
     element (getter: ExtensionElement2)
     nextFragment (getter: ExtensionFragment?)
+    offset (getter: int)
     previousFragment (getter: ExtensionFragment?)
   ExtensionTypeElement2 (class extends Object implements InterfaceElement2):
     new (constructor: ExtensionTypeElement2 Function())
@@ -3815,6 +3817,7 @@ package:analyzer/dart/element/element2.dart:
     new (constructor: FieldFragment Function())
     element (getter: FieldElement2)
     nextFragment (getter: FieldFragment?)
+    offset (getter: int)
     previousFragment (getter: FieldFragment?)
   FormalParameterElement (class extends Object implements PromotableElement2, Annotatable, HasSinceSdkVersion, LocalElement2):
     new (constructor: FormalParameterElement Function())
@@ -3841,6 +3844,7 @@ package:analyzer/dart/element/element2.dart:
     new (constructor: FormalParameterFragment Function())
     element (getter: FormalParameterElement)
     nextFragment (getter: FormalParameterFragment?)
+    offset (getter: int)
     previousFragment (getter: FormalParameterFragment?)
   Fragment (class extends Object):
     new (constructor: Fragment Function())
@@ -3851,6 +3855,7 @@ package:analyzer/dart/element/element2.dart:
     name2 (getter: String?)
     nameOffset2 (getter: int?)
     nextFragment (getter: Fragment?)
+    offset (getter: int)
     previousFragment (getter: Fragment?)
   FunctionTypedElement2 (class extends Object implements TypeParameterizedElement2):
     new (constructor: FunctionTypedElement2 Function())
@@ -3873,6 +3878,7 @@ package:analyzer/dart/element/element2.dart:
     new (constructor: GenericFunctionTypeFragment Function())
     element (getter: GenericFunctionTypeElement2)
     nextFragment (getter: GenericFunctionTypeFragment?)
+    offset (getter: int)
     previousFragment (getter: GenericFunctionTypeFragment?)
   GetterElement (class extends Object implements PropertyAccessorElement2):
     new (constructor: GetterElement Function())
@@ -3884,6 +3890,7 @@ package:analyzer/dart/element/element2.dart:
     new (constructor: GetterFragment Function())
     element (getter: GetterElement)
     nextFragment (getter: GetterFragment?)
+    offset (getter: int)
     previousFragment (getter: GetterFragment?)
   HasSinceSdkVersion (class extends Object):
     new (constructor: HasSinceSdkVersion Function())
@@ -3960,6 +3967,7 @@ package:analyzer/dart/element/element2.dart:
     element (getter: JoinPatternVariableElement2)
     isConsistent (getter: bool)
     nextFragment (getter: JoinPatternVariableFragment?)
+    offset (getter: int)
     previousFragment (getter: JoinPatternVariableFragment?)
     variables2 (getter: List<PatternVariableFragment>)
   LabelElement2 (class extends Object implements Element2):
@@ -4035,6 +4043,7 @@ package:analyzer/dart/element/element2.dart:
     lineInfo (getter: LineInfo)
     mixins2 (getter: List<MixinFragment>)
     nextFragment (getter: LibraryFragment?)
+    offset (getter: int)
     partIncludes (getter: List<PartInclude>)
     prefixes (getter: List<PrefixElement2>)
     previousFragment (getter: LibraryFragment?)
@@ -4061,6 +4070,7 @@ package:analyzer/dart/element/element2.dart:
     fragments (getter: List<LocalFunctionFragment>)
   LocalFunctionFragment (class extends Object implements ExecutableFragment, LocalFragment):
     new (constructor: LocalFunctionFragment Function())
+    offset (getter: int)
   LocalVariableElement2 (class extends Object implements PromotableElement2, LocalElement2, Annotatable):
     new (constructor: LocalVariableElement2 Function())
     baseElement (getter: LocalVariableElement2)
@@ -4141,6 +4151,7 @@ package:analyzer/dart/element/element2.dart:
     new (constructor: MultiplyDefinedFragment Function())
     element (getter: MultiplyDefinedElement2)
     nextFragment (getter: Null)
+    offset (getter: int)
     previousFragment (getter: Null)
   Name (class extends Object):
     forElement (static method: Name? Function(Element2))
@@ -4236,6 +4247,7 @@ package:analyzer/dart/element/element2.dart:
     new (constructor: SetterFragment Function())
     element (getter: SetterElement)
     nextFragment (getter: SetterFragment?)
+    offset (getter: int)
     previousFragment (getter: SetterFragment?)
   ShowElementCombinator (see above)
   SuperFormalParameterElement2 (class extends Object implements FormalParameterElement):
@@ -4291,6 +4303,7 @@ package:analyzer/dart/element/element2.dart:
     new (constructor: TypeDefiningFragment Function())
     element (getter: TypeDefiningElement2)
     nextFragment (getter: TypeDefiningFragment?)
+    offset (getter: int)
     previousFragment (getter: TypeDefiningFragment?)
   TypeParameterElement2 (class extends Object implements TypeDefiningElement2):
     new (constructor: TypeParameterElement2 Function())

@@ -344,6 +344,18 @@ abstract class ConstructorFragment implements ExecutableFragment {
   @override
   ConstructorFragment? get nextFragment;
 
+  /// The offset of the constructor name.
+  ///
+  /// For a named constructor (e.g., `ClassName.foo()``), this is the offset to
+  /// the part of the constructor name that follows the `.`. For an unnamed
+  /// constructor (e.g., `ClassName();`), this is the offset of the class name
+  /// that appears in the constructor declaration.
+  ///
+  /// For an implicit constructor, this is the offset of the class name in the
+  /// class declaration.
+  @override
+  int get offset;
+
   /// The offset of the `.` before the name.
   ///
   /// It is `null` if the fragment is synthetic, or does not specify an
@@ -763,6 +775,13 @@ abstract class ExtensionFragment implements InstanceFragment {
   @override
   ExtensionFragment? get nextFragment;
 
+  /// The offset of the extension name.
+  ///
+  /// If the extension has no name, this is the offset of the `extension`
+  /// keyword.
+  @override
+  int get offset;
+
   @override
   ExtensionFragment? get previousFragment;
 }
@@ -885,6 +904,14 @@ abstract class FieldFragment implements PropertyInducingFragment {
   @override
   FieldFragment? get nextFragment;
 
+  /// The offset of the field name.
+  ///
+  /// If the field declaration is implicit, this is the offset of the name of
+  /// the containing element (e.g., for the `values` field of an enum, this is
+  /// the offset of the enum name).
+  @override
+  int get offset;
+
   @override
   FieldFragment? get previousFragment;
 }
@@ -1003,6 +1030,14 @@ abstract class FormalParameterFragment
   @override
   FormalParameterFragment? get nextFragment;
 
+  /// The offset of the parameter name.
+  ///
+  /// If the parameter is implicit (because it's the parameter of an implicit
+  /// setter that's induced by a field or top level variable declaration), this
+  /// is the offset of the field or top level variable name.
+  @override
+  int get offset;
+
   @override
   FormalParameterFragment? get previousFragment;
 }
@@ -1083,6 +1118,18 @@ abstract class Fragment {
   /// Returns `null` if this is the last fragment in the chain.
   Fragment? get nextFragment;
 
+  /// A canonical offset to the fragment within the source file.
+  ///
+  /// If the fragment has a name, this is equal to [nameOffset2]. Otherwise it
+  /// is the offset of some character within the fragment; see subclasses for
+  /// more information.
+  ///
+  /// If the fragment is of a kind that would normally have a name, but there is
+  /// no name due to error recovery, then the exact offset is unspecified, but
+  /// is guaranteed to be within the span of the tokens that constitute the
+  /// fragment's declaration.
+  int get offset;
+
   /// The previous fragment in the augmentation chain.
   ///
   /// Returns `null` if this is the first fragment in the chain.
@@ -1150,6 +1197,13 @@ abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
   @override
   GenericFunctionTypeFragment? get nextFragment;
 
+  /// The offset of the generic function type.
+  ///
+  /// Generic function types are not named, so the offset is the offset of the
+  /// first token in the generic function type.
+  @override
+  int get offset;
+
   @override
   GenericFunctionTypeFragment? get previousFragment;
 }
@@ -1184,6 +1238,14 @@ abstract class GetterFragment implements PropertyAccessorFragment {
 
   @override
   GetterFragment? get nextFragment;
+
+  /// The offset of the getter name.
+  ///
+  /// If the getter is implicit (because it's induced by a field or top level
+  /// variable declaration), this is the offset of the field or top level
+  /// variable name.
+  @override
+  int get offset;
 
   @override
   GetterFragment? get previousFragment;
@@ -1616,6 +1678,10 @@ abstract class JoinPatternVariableFragment implements PatternVariableFragment {
   @override
   JoinPatternVariableFragment? get nextFragment;
 
+  /// The offset of the first variable in the join.
+  @override
+  int get offset;
+
   @override
   JoinPatternVariableFragment? get previousFragment;
 
@@ -1900,6 +1966,11 @@ abstract class LibraryFragment implements Fragment, Annotatable {
   @override
   LibraryFragment? get nextFragment;
 
+  /// If this is the first fragment in the library and the library has `library`
+  /// declaration that specifies a name, the offset of the name; otherwise zero.
+  @override
+  int get offset;
+
   /// The `part` directives within this fragment.
   List<PartInclude> get partIncludes;
 
@@ -2010,6 +2081,13 @@ abstract class LocalFunctionFragment
   //  top-level functions.
   // @override
   // LocalFunctionFragment? get previousFragment;
+
+  /// The offset of the local function name.
+  ///
+  /// If the local function has no name (because it's a function expression),
+  /// this is the offset of the `(` that begins the function expression.
+  @override
+  int get offset;
 }
 
 /// A local variable.
@@ -2290,6 +2368,10 @@ abstract class MultiplyDefinedFragment implements Fragment {
 
   @override
   Null get nextFragment;
+
+  /// Always returns zero.
+  @override
+  int get offset;
 
   @override
   Null get previousFragment;
@@ -2593,6 +2675,14 @@ abstract class SetterFragment implements PropertyAccessorFragment {
   @override
   SetterFragment? get nextFragment;
 
+  /// The offset of the setter name.
+  ///
+  /// If the setter is implicit (because it's induced by a field or top level
+  /// variable declaration), this is the offset of the field or top level
+  /// variable name.
+  @override
+  int get offset;
+
   @override
   SetterFragment? get previousFragment;
 }
@@ -2803,6 +2893,13 @@ abstract class TypeDefiningFragment implements Fragment, Annotatable {
 
   @override
   TypeDefiningFragment? get nextFragment;
+
+  /// The offset of the type name.
+  ///
+  /// If the type in the language specification and not in any source file
+  /// (e.g., `dynamic`), this value is zero.
+  @override
+  int get offset;
 
   @override
   TypeDefiningFragment? get previousFragment;

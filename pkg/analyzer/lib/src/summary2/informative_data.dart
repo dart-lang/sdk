@@ -662,6 +662,7 @@ class InformativeDataApplier {
 
         if (element.prefix2 case var prefixFragment?) {
           prefixFragment.nameOffset2 = info.prefixOffset2;
+          prefixFragment.offset = info.prefixOffset;
         }
         _applyToCombinators(element.combinators, info.combinators);
       },
