@@ -1141,8 +1141,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     typeNode.accept(this);
 
     if (typeNode is GenericFunctionTypeImpl) {
-      fragment.aliasedElement =
-          typeNode.declaredFragment as GenericFunctionTypeElementImpl;
+      fragment.aliasedElement = typeNode.declaredFragment!;
     }
 
     elementBuilder.addFragment(fragment);

@@ -113,13 +113,13 @@ class TypesBuilder {
     );
   }
 
-  void _classDeclaration(ClassDeclaration node) {
-    var element = node.declaredFragment as ClassElementImpl;
+  void _classDeclaration( ClassDeclarationImpl node) {
+    var element = node.declaredFragment!;
 
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
       var type = extendsClause.superclass.type;
-      if (type is InterfaceType && _isInterfaceTypeClass(type)) {
+      if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
         element.supertype = type;
       }
     } else if (element.isDartCoreObject) {
@@ -133,11 +133,11 @@ class TypesBuilder {
     _updatedAugmented(element, withClause: node.withClause);
   }
 
-  void _classTypeAlias(ClassTypeAlias node) {
-    var element = node.declaredFragment as ClassElementImpl;
+  void _classTypeAlias( ClassTypeAliasImpl node) {
+    var element = node.declaredFragment!;
 
     var superType = node.superclass.type;
-    if (superType is InterfaceType && _isInterfaceTypeClass(superType)) {
+    if (superType is InterfaceTypeImpl && _isInterfaceTypeClass(superType)) {
       element.supertype = superType;
     }
 
@@ -155,19 +155,19 @@ class TypesBuilder {
   }
 
   void _declaration(AstNode node) {
-    if (node is ClassDeclaration) {
+    if (node is ClassDeclarationImpl) {
       _classDeclaration(node);
-    } else if (node is ClassTypeAlias) {
+    } else if (node is ClassTypeAliasImpl) {
       _classTypeAlias(node);
-    } else if (node is EnumDeclaration) {
+    } else if (node is EnumDeclarationImpl) {
       _enumDeclaration(node);
-    } else if (node is ExtensionDeclaration) {
+    } else if (node is ExtensionDeclarationImpl) {
       _extensionDeclaration(node);
     } else if (node is ExtensionTypeDeclarationImpl) {
       _extensionTypeDeclaration(node);
     } else if (node is FieldFormalParameterImpl) {
       _fieldFormalParameter(node);
-    } else if (node is FunctionDeclaration) {
+    } else if (node is FunctionDeclarationImpl) {
       var returnType = node.returnType?.type;
       if (returnType == null) {
         if (node.isSetter) {
@@ -176,17 +176,17 @@ class TypesBuilder {
           returnType = _dynamicType;
         }
       }
-      var fragment = node.declaredFragment as ExecutableElementImpl;
+      var fragment = node.declaredFragment!;
       fragment.returnType = returnType;
-    } else if (node is FunctionTypeAlias) {
+    } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
     } else if (node is FunctionTypedFormalParameterImpl) {
       _functionTypedFormalParameter(node);
     } else if (node is GenericFunctionTypeImpl) {
       _genericFunctionType(node);
-    } else if (node is GenericTypeAlias) {
+    } else if (node is GenericTypeAliasImpl) {
       _genericTypeAlias(node);
-    } else if (node is MethodDeclaration) {
+    } else if (node is MethodDeclarationImpl) {
       var returnType = node.returnType?.type;
       if (returnType == null) {
         if (node.isSetter) {
@@ -197,12 +197,12 @@ class TypesBuilder {
           returnType = _dynamicType;
         }
       }
-      var fragment = node.declaredFragment as ExecutableElementImpl;
+      var fragment = node.declaredFragment!;
       fragment.returnType = returnType;
-    } else if (node is MixinDeclaration) {
+    } else if (node is MixinDeclarationImpl) {
       _mixinDeclaration(node);
     } else if (node is SimpleFormalParameterImpl) {
-      var fragment = node.declaredFragment as ParameterElementImpl;
+      var fragment = node.declaredFragment!;
       fragment.type = node.type?.type ?? _dynamicType;
     } else if (node is SuperFormalParameterImpl) {
       _superFormalParameter(node);
@@ -212,7 +212,7 @@ class TypesBuilder {
       var type = node.type?.type;
       if (type != null) {
         for (var variable in node.variables) {
-          (variable.declaredFragment as VariableElementImpl).type = type;
+          variable.declaredFragment!.type = type;
         }
       }
     } else {
@@ -220,8 +220,8 @@ class TypesBuilder {
     }
   }
 
-  void _enumDeclaration(EnumDeclaration node) {
-    var fragment = node.declaredFragment as EnumElementImpl;
+  void _enumDeclaration(EnumDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
 
     fragment.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
@@ -230,8 +230,8 @@ class TypesBuilder {
     _updatedAugmented(fragment, withClause: node.withClause);
   }
 
-  void _extensionDeclaration(ExtensionDeclaration node) {
-    var fragment = node.declaredFragment as ExtensionElementImpl;
+  void _extensionDeclaration(ExtensionDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
     if (fragment.augmentationTarget == null) {
       if (node.onClause case var onClause?) {
         var extendedType = onClause.extendedType.typeOrThrow;
@@ -243,7 +243,7 @@ class TypesBuilder {
   }
 
   void _extensionTypeDeclaration(ExtensionTypeDeclarationImpl node) {
-    var fragment = node.declaredFragment as ExtensionTypeElementImpl;
+    var fragment = node.declaredFragment!;
 
     var typeSystem = fragment.library.typeSystem;
     var interfaces = node.implementsClause?.interfaces
@@ -259,7 +259,7 @@ class TypesBuilder {
   }
 
   void _fieldFormalParameter(FieldFormalParameterImpl node) {
-    var fragment = node.declaredFragment as FieldFormalParameterElementImpl;
+    var fragment = node.declaredFragment!;
     var parameterList = node.parameters;
     if (parameterList != null) {
       var type = _buildFunctionType(
@@ -280,8 +280,8 @@ class TypesBuilder {
     }).toFixedList();
   }
 
-  void _functionTypeAlias(FunctionTypeAlias node) {
-    var fragment = node.declaredFragment as TypeAliasElementImpl;
+  void _functionTypeAlias(FunctionTypeAliasImpl node) {
+    var fragment = node.declaredFragment!;
     var function = fragment.aliasedElement as GenericFunctionTypeElementImpl;
     function.returnType = node.returnType?.type ?? _dynamicType;
     fragment.aliasedType = function.type;
@@ -294,7 +294,7 @@ class TypesBuilder {
       node.parameters,
       _nullability(node, node.question != null),
     );
-    var fragment = node.declaredFragment as ParameterElementImpl;
+    var fragment = node.declaredFragment!;
     fragment.type = type;
   }
 
@@ -303,8 +303,8 @@ class TypesBuilder {
     fragment.returnType = node.returnType?.type ?? _dynamicType;
   }
 
-  void _genericTypeAlias(GenericTypeAlias node) {
-    var fragment = node.declaredFragment as TypeAliasElementImpl;
+  void _genericTypeAlias(GenericTypeAliasImpl node) {
+    var fragment = node.declaredFragment!;
     var featureSet = fragment.library.featureSet;
 
     var typeNode = node.type;
@@ -317,8 +317,8 @@ class TypesBuilder {
     }
   }
 
-  void _mixinDeclaration(MixinDeclaration node) {
-    var fragment = node.declaredFragment as MixinElementImpl;
+  void _mixinDeclaration(MixinDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
 
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
@@ -341,7 +341,7 @@ class TypesBuilder {
   }
 
   void _superFormalParameter(SuperFormalParameterImpl node) {
-    var fragment = node.declaredFragment as SuperFormalParameterElementImpl;
+    var fragment = node.declaredFragment!;
     var parameterList = node.parameters;
     if (parameterList != null) {
       var type = _buildFunctionType(

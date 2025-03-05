@@ -163,7 +163,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var constKeyword = node.constKeyword;
     if (constKeyword != null) {
       // Check and report cycles.
@@ -202,7 +202,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  visitEnumConstantDeclaration(covariant EnumConstantDeclarationImpl node) {
     super.visitEnumConstantDeclaration(node);
 
     var argumentList = node.arguments?.argumentList;
@@ -210,7 +210,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       _validateConstantArguments(argumentList);
     }
 
-    var element = node.declaredFragment as ConstFieldElementImpl;
+    var element = node.declaredFragment!;
     var result = element.evaluationResult;
     if (result is InvalidConstant) {
       _reportError(result, null);
@@ -218,7 +218,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     super.visitFunctionExpression(node);
     _validateDefaultValues(node.parameters);
   }
@@ -360,7 +360,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     super.visitMethodDeclaration(node);
     _validateDefaultValues(node.parameters);
   }
@@ -475,11 +475,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer;
     if (initializer != null && (node.isConst || node.isFinal)) {
-      var element = node.declaredFragment as VariableElementImpl;
+      var element = node.declaredFragment!;
       if (element is FieldElementImpl && !element.isStatic) {
         var enclosingFragment = element.enclosingFragment;
         if (enclosingFragment is ClassElementImpl &&
@@ -812,12 +812,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   /// Validates that the default value associated with each of the parameters in
   /// [parameters] is a constant expression.
-  void _validateDefaultValues(FormalParameterList? parameters) {
+  void _validateDefaultValues(covariant FormalParameterListImpl? parameters) {
     if (parameters == null) {
       return;
     }
-    for (FormalParameter parameter in parameters.parameters) {
-      if (parameter is DefaultFormalParameter) {
+    for (var parameter in parameters.parameters) {
+      if (parameter is DefaultFormalParameterImpl) {
         var defaultValue = parameter.defaultValue;
         Constant? result;
         if (defaultValue == null) {
@@ -832,7 +832,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           result = _evaluateAndReportError(
               defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
         }
-        var element = parameter.declaredFragment as VariableElementImpl;
+        var element = parameter.declaredFragment!;
         element.evaluationResult = result;
       }
     }

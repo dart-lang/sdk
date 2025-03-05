@@ -76,25 +76,25 @@ class DefaultTypesBuilder {
       }
     }
     for (var node in nodes) {
-      if (node is ClassDeclaration) {
+      if (node is ClassDeclarationImpl) {
         _build(node.typeParameters);
-      } else if (node is ClassTypeAlias) {
+      } else if (node is ClassTypeAliasImpl) {
         _build(node.typeParameters);
-      } else if (node is EnumDeclaration) {
+      } else if (node is EnumDeclarationImpl) {
         _build(node.typeParameters);
-      } else if (node is ExtensionDeclaration) {
+      } else if (node is ExtensionDeclarationImpl) {
         _build(node.typeParameters);
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclarationImpl) {
         _build(node.typeParameters);
-      } else if (node is FunctionTypeAlias) {
+      } else if (node is FunctionTypeAliasImpl) {
         _build(node.typeParameters);
-      } else if (node is GenericTypeAlias) {
+      } else if (node is GenericTypeAliasImpl) {
         _build(node.typeParameters);
-      } else if (node is MixinDeclaration) {
+      } else if (node is MixinDeclarationImpl) {
         _build(node.typeParameters);
-      } else if (node is FunctionDeclaration) {
+      } else if (node is FunctionDeclarationImpl) {
         _build(node.functionExpression.typeParameters);
-      } else if (node is MethodDeclaration) {
+      } else if (node is MethodDeclarationImpl) {
         _build(node.typeParameters);
       }
     }
@@ -174,11 +174,11 @@ class DefaultTypesBuilder {
   }
 
   /// Build actual default type [DartType]s from computed [TypeBuilder]s.
-  void _build(TypeParameterList? parameterList) {
+  void _build(TypeParameterListImpl? parameterList) {
     if (parameterList == null) return;
 
     for (var parameter in parameterList.typeParameters) {
-      var element = parameter.declaredFragment as TypeParameterElementImpl;
+      var element = parameter.declaredFragment!;
       var defaultType = element.defaultType;
       if (defaultType is TypeBuilder) {
         var builtType = defaultType.build();
@@ -250,7 +250,7 @@ class DefaultTypesBuilder {
 
     // Set computed TypeBuilder(s) as default types.
     for (var i = 0; i < length; i++) {
-      var element = nodes[i].declaredFragment as TypeParameterElementImpl;
+      var element = nodes[i].declaredFragment!;
       element.defaultType = bounds[i];
     }
   }

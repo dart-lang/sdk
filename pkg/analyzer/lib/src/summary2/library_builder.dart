@@ -261,7 +261,7 @@ class LibraryBuilder {
               executable.body.accept(collector);
             }
           }
-          var fragment = declaration.declaredFragment as MixinElementImpl;
+          var fragment = declaration.declaredFragment!;
           fragment.superInvokedNames = names.toList();
         }
       }

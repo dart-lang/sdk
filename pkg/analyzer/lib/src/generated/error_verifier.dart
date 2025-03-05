@@ -651,7 +651,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitEnumConstantDeclaration(
       covariant EnumConstantDeclarationImpl node) {
-    var fragment = node.declaredFragment as FieldElementImpl;
+    var fragment = node.declaredFragment!;
 
     _checkAugmentations(
       augmentKeyword: node.augmentKeyword,
@@ -1044,7 +1044,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    var fragment = node.declaredFragment as TypeAliasElementImpl;
+    var fragment = node.declaredFragment!;
 
     _checkAugmentations(
       augmentKeyword: node.augmentKeyword,
@@ -1054,8 +1054,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForMainFunction1(node.name, node.declaredFragment!);
-    _checkForTypeAliasCannotReferenceItself(
-        node.name, node.declaredFragment as TypeAliasElementImpl);
+    _checkForTypeAliasCannotReferenceItself(node.name, fragment);
     super.visitGenericTypeAlias(node);
   }
 
