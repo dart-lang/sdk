@@ -541,6 +541,7 @@ class LibraryBuilder {
       return _buildLibraryImportPrefixFragment(
         libraryFragment: containerUnit,
         unlinkedName: unlinked.name,
+        offset: unlinked.nameOffset,
         isDeferred: unlinked.deferredOffset != null,
       );
     });
@@ -642,6 +643,7 @@ class LibraryBuilder {
   PrefixFragmentImpl _buildLibraryImportPrefixFragment({
     required CompilationUnitElementImpl libraryFragment,
     required UnlinkedLibraryImportPrefixName? unlinkedName,
+    required int offset,
     required bool isDeferred,
   }) {
     var fragment = PrefixFragmentImpl(
@@ -649,7 +651,7 @@ class LibraryBuilder {
       name2: unlinkedName?.name,
       nameOffset2: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
-    );
+    )..offset = offset;
 
     var containerRef = libraryFragment.reference!;
     var refName = unlinkedName?.name ?? '${_nextUnnamedId++}';

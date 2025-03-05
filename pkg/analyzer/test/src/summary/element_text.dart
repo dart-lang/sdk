@@ -1046,6 +1046,9 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(fragment.isDeferred, ' deferred');
       _sink.write(' as ');
       _writeFragmentName(fragment);
+      if (fragment.offset != fragment.nameOffset2) {
+        _sink.write(' (offset=${fragment.offset})');
+      }
     }
   }
 

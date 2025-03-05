@@ -1115,6 +1115,19 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  int get offset {
+    if (!identical(this, library.definingCompilationUnit)) {
+      // Not the first fragment, so there is no name; return an offset of 0
+      return 0;
+    }
+    if (library.nameOffset < 0) {
+      // There is no name, so return an offset of 0
+      return 0;
+    }
+    return library.nameOffset;
+  }
+
+  @override
   List<PartInclude> get partIncludes => parts.cast<PartInclude>();
 
   @override
@@ -1565,6 +1578,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   Element get nonSynthetic {
     return isSynthetic ? enclosingElement3 : this;
   }
+
+  @override
+  int get offset => isSynthetic ? enclosingElement3.offset : _nameOffset;
 
   @override
   ConstructorFragment? get previousFragment => augmentationTarget;
@@ -2127,6 +2143,9 @@ class DynamicElementImpl extends ElementImpl
 
   @override
   Null get nextFragment => null;
+
+  @override
+  int get offset => 0;
 
   @override
   Null get previousFragment => null;
@@ -3918,6 +3937,9 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   }
 
   @override
+  int get offset => _nameOffset;
+
+  @override
   List<ParameterElementImpl> get parameters {
     linkedData?.read(this);
     return _parameters;
@@ -4100,6 +4122,9 @@ class ExtensionElementImpl extends InstanceElementImpl
   @override
   ExtensionElementImpl? get nextFragment =>
       super.nextFragment as ExtensionElementImpl?;
+
+  @override
+  int get offset => nameOffset2 ?? _codeOffset ?? 0;
 
   @override
   ExtensionElementImpl? get previousFragment =>
@@ -4447,6 +4472,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   FieldElementImpl? get nextFragment => super.nextFragment as FieldElementImpl?;
+
+  @override
+  int get offset => isSynthetic ? enclosingFragment!.offset : _nameOffset;
 
   @override
   FieldElementImpl? get previousFragment =>
@@ -5479,6 +5507,9 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   GenericFunctionTypeElementImpl? get nextFragment => null;
 
   @override
+  int get offset => _nameOffset;
+
+  @override
   List<ParameterElementImpl> get parameters {
     return _parameters;
   }
@@ -5878,6 +5909,9 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 
   @override
   InstanceFragment? get nextFragment => augmentation as InstanceFragment?;
+
+  @override
+  int get offset => _nameOffset;
 
   @override
   InstanceFragment? get previousFragment =>
@@ -7101,6 +7135,9 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
       super.nextFragment as JoinPatternVariableElementImpl?;
 
   @override
+  int get offset => variables[0].offset;
+
+  @override
   JoinPatternVariableElementImpl? get previousFragment =>
       super.previousFragment as JoinPatternVariableElementImpl?;
 
@@ -7250,6 +7287,9 @@ class LabelElementImpl extends ElementImpl
 
   @override
   LabelElementImpl? get nextFragment => null;
+
+  @override
+  int get offset => _nameOffset;
 
   @override
   LabelElementImpl? get previousFragment => null;
@@ -9446,6 +9486,9 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
   Null get nextFragment => null;
 
   @override
+  int get offset => 0;
+
+  @override
   Null get previousFragment => null;
 }
 
@@ -9492,6 +9535,9 @@ class NeverElementImpl extends ElementImpl
 
   @override
   Null get nextFragment => null;
+
+  @override
+  int get offset => 0;
 
   @override
   Null get previousFragment => null;
@@ -9840,6 +9886,9 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   Element get nonSynthetic {
     return setter.variable2;
   }
+
+  @override
+  int get offset => setter.offset;
 
   @override
   TypeImpl get type => setter.variable2.type;
@@ -10209,6 +10258,9 @@ class PrefixFragmentImpl implements PrefixFragment {
   int? nameOffset2;
 
   @override
+  int offset = 0;
+
+  @override
   final bool isDeferred;
 
   @override
@@ -10418,6 +10470,9 @@ class PropertyAccessorElementImpl_ImplicitGetter extends GetterFragmentImpl {
   }
 
   @override
+  int get offset => variable2.offset;
+
+  @override
   TypeImpl get returnType => variable2.type;
 
   @override
@@ -10470,6 +10525,9 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
 
   @override
   Element get nonSynthetic => variable2;
+
+  @override
+  int get offset => variable2.offset;
 
   @override
   List<ParameterElementImpl> get parameters {
@@ -11371,6 +11429,9 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   TypeAliasElementImpl? get nextFragment => null;
 
   @override
+  int get offset => nameOffset;
+
+  @override
   // TODO(augmentations): Support the fragment chain.
   TypeAliasElementImpl? get previousFragment => null;
 
@@ -11695,6 +11756,9 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   // TODO(augmentations): Support chaining between the fragments.
   TypeParameterElementImpl? get nextFragment => null;
+
+  @override
+  int get offset => nameOffset;
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
@@ -12068,6 +12132,9 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   String get name => super.name!;
+
+  @override
+  int get offset => nameOffset;
 
   @override
   TypeImpl get type => _type!;

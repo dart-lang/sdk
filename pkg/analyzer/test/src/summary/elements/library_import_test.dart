@@ -858,7 +858,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:math as <null-name>
+        dart:math as <null-name> (offset=21)
       prefixes
         <testLibraryFragment>::@prefix2::1
           fragments: @null

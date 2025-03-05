@@ -29,6 +29,7 @@ class PrefixedIdentifierResolver {
   }) {
     _resolver.analyzeExpression(node.prefix, _resolver.operations.unknownType);
     _resolver.popRewrite();
+    _resolver.checkUnreachableNode(node.identifier);
 
     var prefixElement = node.prefix.element;
     if (prefixElement is! PrefixElement2) {
