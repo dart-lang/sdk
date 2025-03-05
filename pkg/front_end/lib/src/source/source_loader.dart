@@ -618,6 +618,7 @@ class SourceLoader extends Loader {
           libraryBuilder, messageInvalidNnbdDillLibrary);
     } else {
       if (libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+        // Coverage-ignore-block(suite): Not run.
         registerNnbdMismatchLibrary(
             libraryBuilder, messageStrongWithWeakDillLibrary);
       }
@@ -1098,6 +1099,7 @@ severity: $severity
 
   Map<LibraryBuilder, Message>? _nnbdMismatchLibraries;
 
+  // Coverage-ignore(suite): Not run.
   void registerNnbdMismatchLibrary(
       LibraryBuilder libraryBuilder, Message message) {
     _nnbdMismatchLibraries ??= {};
@@ -1136,6 +1138,7 @@ severity: $severity
     currentUriForCrashReporting = null;
     logSummary(outlineSummaryTemplate);
     if (_nnbdMismatchLibraries != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (MapEntry<LibraryBuilder, Message> entry
           in _nnbdMismatchLibraries!.entries) {
         addProblem(entry.value, -1, noLength, entry.key.fileUri);

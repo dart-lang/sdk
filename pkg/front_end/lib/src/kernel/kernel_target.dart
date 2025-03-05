@@ -787,6 +787,7 @@ class KernelTarget {
 
   String? _getLibraryNnbdModeError(Component component) {
     if (loader.hasInvalidNnbdModeLibrary) {
+      // Coverage-ignore-block(suite): Not run.
       // At least 1 library should be invalid or there should be a mix of strong
       // and weak. For libraries we've just compiled it will be marked as
       // invalid, but for libraries loaded from dill they have their original

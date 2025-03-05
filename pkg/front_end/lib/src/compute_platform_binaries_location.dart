@@ -21,9 +21,8 @@ String? computePlatformDillName(Target target, void Function() onError) {
       // DDC is always compiled against the outline so we use it here by
       // default.
       return 'ddc_outline.dill';
-      // Coverage-ignore(suite): Not run.
-      //TODO(johnniwinther): Support using the full dill.
-      //return 'ddc_platform.dill';
+    //TODO(johnniwinther): Support using the full dill.
+    //return 'ddc_platform.dill';
     case 'dart2js':
       return 'dart2js_platform.dill';
     case 'dart2js_server':

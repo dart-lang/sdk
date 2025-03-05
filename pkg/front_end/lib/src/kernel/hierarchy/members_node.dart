@@ -1189,8 +1189,11 @@ class ClassMembersNode {
   }
 
   ClassMember? getStaticMember(Name name, bool isSetter) {
-    ClassMember? result =
-        isSetter ? classSetterMap[name] : classMemberMap[name];
+    ClassMember? result = isSetter
+        ?
+        // Coverage-ignore(suite): Not run.
+        classSetterMap[name]
+        : classMemberMap[name];
     if (result == null) {
       return null;
     } else if (result.isStatic) {

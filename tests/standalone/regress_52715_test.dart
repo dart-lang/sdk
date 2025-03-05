@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--deterministic
+
 // Formatting can break multitests, so don't format them.
 // dart format off
 
@@ -12,8 +14,10 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 
 void main() async {
-  final startRss = ProcessInfo.currentRss; //# measure: ok
+  // Wait to give `vm-service` isolate to startup and initialize.
+  await Future.delayed(const Duration(seconds: 1));
 
+  final startRss = ProcessInfo.currentRss; //# measure: ok
   for (var i = 0; i < 1024; i++) {
     final subscription = Directory.systemTemp.watch().listen((event) {});
     await subscription.cancel();
