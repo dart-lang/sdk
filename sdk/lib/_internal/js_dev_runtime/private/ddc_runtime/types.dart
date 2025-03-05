@@ -5,100 +5,14 @@
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
-_throwInvalidFlagError(String message) =>
-    throw UnsupportedError('Invalid flag combination.\n$message');
-
-/// When running the new runtime type system with weak null safety this flag
-/// gets toggled to change the behavior of the dart:_rti library when performing
-/// `is` and `as` checks.
-///
-/// This allows DDC to produce optional warnings or errors when tests pass but
-/// would fail in sound null safety.
 @notNull
-bool legacyTypeChecks = !JS_GET_FLAG('SOUND_NULL_SAFETY');
-
-/// Signals if the next type check should be considered to to be sound when
-/// running without sound null safety.
-///
-/// The provides a way for this library to communicate that intent to the
-/// dart:rti library.
-///
-/// This flag gets inlined by the compiler in the place of
-/// `JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')`.
-@notNull
-bool extraNullSafetyChecks = false;
-
-@notNull
-bool _weakNullSafetyWarnings = false;
-
-/// Sets the runtime mode to show warnings when types violate sound null safety.
-///
-/// This option is not compatible with weak null safety errors or sound null
-/// safety (the warnings will be errors).
-void weakNullSafetyWarnings(bool showWarnings) {
-  if (showWarnings && JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-    _throwInvalidFlagError(
-      'Null safety violations cannot be shown as warnings when running with '
-      'sound null safety.',
-    );
-  }
-
-  _weakNullSafetyWarnings = showWarnings;
-}
-
-@notNull
-bool _weakNullSafetyErrors = false;
-
-/// Sets the runtime mode to throw errors when types violate sound null safety.
-///
-/// This option is not compatible with weak null safety warnings (the warnings
-/// are now errors) or sound null safety (the errors are already errors).
-void weakNullSafetyErrors(bool showErrors) {
-  if (showErrors && JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-    _throwInvalidFlagError(
-      'Null safety violations are already thrown as errors when running with '
-      'sound null safety.',
-    );
-  }
-
-  if (showErrors && _weakNullSafetyWarnings) {
-    _throwInvalidFlagError(
-      'Null safety violations can be shown as warnings or thrown as errors, '
-      'not both.',
-    );
-  }
-
-  _weakNullSafetyErrors = showErrors;
-  extraNullSafetyChecks = showErrors;
-}
-
-@notNull
-bool _nonNullAsserts = false;
-
-/// Sets the runtime mode to insert non-null assertions on non-nullable method
-/// parameters.
-///
-/// When [weakNullSafetyWarnings] is also `true` the assertions will fail
-/// instead of printing a warning for the non-null parameters.
-void nonNullAsserts(bool enable) {
-  _nonNullAsserts = enable;
-}
-
-@notNull
-bool _nativeNonNullAsserts = JS_GET_FLAG('SOUND_NULL_SAFETY');
+bool _nativeNonNullAsserts = true;
 
 /// Enables null assertions on native APIs to make sure values returned from the
 /// browser are sound.
 ///
-/// These apply to dart:html and similar web libraries. Note that these only are
-/// added in sound null-safety only.
+/// These apply to dart:html and similar web libraries.
 void nativeNonNullAsserts(bool enable) {
-  if (enable && !JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-    _warn(
-      'Enabling `native-null-assertions` is only supported when sound null '
-      'safety is enabled.',
-    );
-  }
   // This value is only read from `checkNativeNonNull` and calls to that method
   // are only generated in sound null safe code.
   _nativeNonNullAsserts = enable;
@@ -207,37 +121,6 @@ F tearoffInterop<F extends Function?>(F f, bool checkReturnType) {
 
 void _warn(arg) {
   JS('void', 'console.warn(#)', arg);
-}
-
-void _nullWarn(message) {
-  if (_weakNullSafetyWarnings) {
-    _warn(
-      '$message\n'
-      'This will become a failure when runtime null safety is enabled.',
-    );
-  } else if (_weakNullSafetyErrors) {
-    throw TypeErrorImpl(message);
-  }
-}
-
-/// Tracks objects that have been compared against null (i.e., null is Type).
-/// Separating this null set out from _cacheMaps lets us fast-track common
-/// legacy type checks.
-/// TODO: Delete this set when legacy nullability is phased out.
-var _nullComparisonSet = JS<Object>('', 'new Set()');
-
-/// Warn on null cast failures when casting to a particular non-nullable
-/// `type`.  Note, we cache by type to avoid excessive warning messages at
-/// runtime.
-/// TODO(vsm): Consider changing all invocations to pass / cache on location
-/// instead.  That gives more useful feedback to the user.
-void _nullWarnOnType(type) {
-  bool result = JS('', '#.has(#)', _nullComparisonSet, type);
-  if (!result) {
-    JS('', '#.add(#)', _nullComparisonSet, type);
-    type = rti.createRuntimeType(JS<rti.Rti>('!', '#', type));
-    _nullWarn("Null is not a subtype of $type.");
-  }
 }
 
 void checkTypeBound(
