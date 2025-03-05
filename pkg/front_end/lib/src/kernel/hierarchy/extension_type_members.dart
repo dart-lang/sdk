@@ -282,8 +282,13 @@ class ExtensionTypeMembersNode {
 
   ClassMember? getStaticMember(Name name, bool isSetter) {
     ClassMember? result = isSetter
-        ? (extensionTypeSetableMap?[name] ?? nonExtensionTypeSetableMap?[name])
-        : (extensionTypeGetableMap?[name] ?? nonExtensionTypeGetableMap?[name]);
+        ?
+        // Coverage-ignore(suite): Not run.
+        (extensionTypeSetableMap?[name] ?? nonExtensionTypeSetableMap?[name])
+        : (extensionTypeGetableMap?[name] ??
+            nonExtensionTypeGetableMap
+                // Coverage-ignore(suite): Not run.
+                ?[name]);
     if (result == null) {
       return null;
     } else if (result.isStatic) {
