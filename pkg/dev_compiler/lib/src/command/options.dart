@@ -83,8 +83,6 @@ class Options {
   /// for more details.
   final Map<String, bool> experiments;
 
-  final bool soundNullSafety;
-
   /// Whether or not the `--canary` flag was specified during compilation.
   final bool canaryFeatures;
 
@@ -97,10 +95,6 @@ class Options {
 
   /// Whether the compiler is generating a dynamic module.
   final bool dynamicModule;
-
-  /// When `true` stars "*" will appear to represent legacy types when printing
-  /// runtime types in the compiled application.
-  final bool printLegacyStars = false;
 
   /// Raw precompiled macro options, each of the format
   /// `<program-uri>;<macro-library-uri>`.
@@ -128,22 +122,13 @@ class Options {
       this.multiRootScheme = 'org-dartlang-app',
       this.multiRootOutputPath,
       this.experiments = const {},
-      this.soundNullSafety = true,
       this.canaryFeatures = false,
       this.dynamicModule = false,
       this.precompiledMacros = const [],
       this.macroSerializationMode})
       : emitLibraryBundle = canaryFeatures &&
             moduleFormats.length == 1 &&
-            moduleFormats.single == ModuleFormat.ddc {
-    if (!soundNullSafety) {
-      throw ArgumentError.value(
-          soundNullSafety,
-          'soundNullSafety',
-          'Dart 3 only supports sound null safety, '
-              'see https://dart.dev/null-safety.\n');
-    }
-  }
+            moduleFormats.single == ModuleFormat.ddc;
 
   Options.fromArguments(ArgResults args)
       : this(
@@ -167,7 +152,6 @@ class Options {
             multiRootOutputPath: args['multi-root-output-path'] as String?,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
-            soundNullSafety: args['sound-null-safety'] as bool,
             canaryFeatures: args['canary'] as bool,
             dynamicModule: args['dynamic-module'] as bool,
             precompiledMacros: args['precompiled-macro'] as List<String>,
@@ -186,7 +170,6 @@ class Options {
             multiRootOutputPath: args['multi-root-output-path'] as String?,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
-            soundNullSafety: args['sound-null-safety'] as bool,
             canaryFeatures: args['canary'] as bool);
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
@@ -281,7 +264,8 @@ class Options {
       ..addMultiOption('enable-experiment',
           help: 'Enable/disable experimental language features.', hide: hide)
       ..addFlag('sound-null-safety',
-          help: 'Compile for sound null safety at runtime.',
+          help: 'Ignored and will be removed in a future version. '
+              'Sound null safety is always used.',
           negatable: false,
           defaultsTo: true)
       ..addFlag('canary',

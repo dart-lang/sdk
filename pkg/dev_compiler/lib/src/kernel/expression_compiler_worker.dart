@@ -191,7 +191,6 @@ class ExpressionCompilerWorker {
       explicitExperimentalFlags: explicitExperimentalFlags,
       sdkRoot: _argToUri(parsedArgs['sdk-root'] as String?),
       trackWidgetCreation: parsedArgs['track-widget-creation'] as bool,
-      soundNullSafety: parsedArgs['sound-null-safety'] as bool,
       moduleFormat: moduleFormat,
       canaryFeatures: parsedArgs['canary'] as bool,
       enableAsserts: parsedArgs['enable-asserts'] as bool,
@@ -218,7 +217,6 @@ class ExpressionCompilerWorker {
     Map<ExperimentalFlag, bool> explicitExperimentalFlags = const {},
     Uri? sdkRoot,
     bool trackWidgetCreation = false,
-    bool soundNullSafety = true,
     ModuleFormat moduleFormat = ModuleFormat.amd,
     bool canaryFeatures = false,
     bool enableAsserts = true,
@@ -234,9 +232,8 @@ class ExpressionCompilerWorker {
       ..sdkSummary = sdkSummary
       ..packagesFileUri = packagesFile
       ..librariesSpecificationUri = librariesSpecificationUri
-      ..target = DevCompilerTarget(TargetFlags(
-          trackWidgetCreation: trackWidgetCreation,
-          soundNullSafety: soundNullSafety))
+      ..target = DevCompilerTarget(
+          TargetFlags(trackWidgetCreation: trackWidgetCreation))
       ..fileSystem = fileSystem
       ..omitPlatform = true
       ..environmentDefines = addGeneratedVariables({
@@ -469,7 +466,6 @@ class ExpressionCompilerWorker {
         sourceMap: true,
         summarizeApi: false,
         moduleName: moduleName,
-        soundNullSafety: true,
         canaryFeatures: _canaryFeatures,
         enableAsserts: _enableAsserts,
       ),

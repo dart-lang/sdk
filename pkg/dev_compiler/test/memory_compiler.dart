@@ -68,8 +68,7 @@ Future<MemoryComponentResult> componentFromMemory(
       null,
       sourcePathToUri(defaultLibrarySpecPath),
       [],
-      DevCompilerTarget(
-          TargetFlags(trackWidgetCreation: false, soundNullSafety: true)),
+      DevCompilerTarget(TargetFlags(trackWidgetCreation: false)),
       fileSystem: fe.HybridFileSystem(memoryFileSystem),
       environmentDefines: {},
       explicitExperimentalFlags: explicitExperimentalFlags);
