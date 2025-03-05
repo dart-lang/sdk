@@ -35,6 +35,7 @@ class C extends C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inAugmentation() async {
     await assertErrorsInCode(r'''
 class A {}

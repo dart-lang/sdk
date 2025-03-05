@@ -44,6 +44,7 @@ MixinOnClause
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_in_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

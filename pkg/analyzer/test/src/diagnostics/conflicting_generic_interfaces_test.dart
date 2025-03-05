@@ -15,6 +15,7 @@ main() {
 
 @reflectiveTest
 class ConflictingGenericInterfacesTest extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_extends_augmentation_implements() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

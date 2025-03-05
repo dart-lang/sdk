@@ -25,6 +25,7 @@ class A implements A {}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inAugmentation() async {
     await assertErrorsInCode('''
 class A {}

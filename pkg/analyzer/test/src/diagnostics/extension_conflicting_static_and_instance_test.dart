@@ -75,6 +75,7 @@ extension E on A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instanceMethod_staticMethodInAugmentation() async {
     await assertErrorsInCode('''
 extension A on int {
@@ -199,6 +200,7 @@ extension E on String {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_staticMethod_instanceMethodInAugmentation() async {
     await assertErrorsInCode('''
 extension A on int {

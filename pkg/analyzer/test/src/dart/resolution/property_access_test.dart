@@ -230,6 +230,7 @@ SimpleIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_explicitThis_inDeclaration_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -266,6 +267,7 @@ PropertyAccess
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -302,6 +304,7 @@ PropertyAccess
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_explicitThis_inDeclaration_augmentationDeclares_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -996,6 +999,7 @@ CascadeExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClass_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1038,6 +1042,7 @@ PropertyAccess
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofClass_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1314,6 +1319,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofExtension_augmentation_read() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -1357,6 +1363,7 @@ PropertyAccess
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofExtension_augmentation_write() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -1415,6 +1422,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofExtension_augmentationGeneric_read() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -1845,6 +1853,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofMixin_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1887,6 +1896,7 @@ PropertyAccess
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_ofMixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'

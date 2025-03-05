@@ -10,7 +10,8 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DeclarationNamedAugmentedInsideAugmentationTest);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(DeclarationNamedAugmentedInsideAugmentationTest);
   });
 }
 

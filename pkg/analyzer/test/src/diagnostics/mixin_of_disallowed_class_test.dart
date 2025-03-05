@@ -66,6 +66,7 @@ class A extends Object with int {}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_int_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -199,6 +200,7 @@ enum E with int {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_int_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

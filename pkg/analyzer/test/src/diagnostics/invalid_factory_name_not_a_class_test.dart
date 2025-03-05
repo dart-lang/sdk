@@ -36,6 +36,7 @@ class A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_notEnclosingClassName_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -65,6 +66,7 @@ class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_valid_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

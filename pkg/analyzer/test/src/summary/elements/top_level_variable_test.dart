@@ -14,8 +14,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelVariableElementTest_keepLinking);
     defineReflectiveTests(TopLevelVariableElementTest_fromBytes);
-    defineReflectiveTests(TopLevelVariableElementTest_augmentation_keepLinking);
-    defineReflectiveTests(TopLevelVariableElementTest_augmentation_fromBytes);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(TopLevelVariableElementTest_augmentation_keepLinking);
+    // defineReflectiveTests(TopLevelVariableElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }

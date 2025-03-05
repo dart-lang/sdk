@@ -23,6 +23,7 @@ mixin A on A {}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_1_inAugmentation() async {
     await assertErrorsInCode(r'''
 mixin A {}

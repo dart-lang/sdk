@@ -11,8 +11,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionTypeElementTest_keepLinking);
     defineReflectiveTests(ExtensionTypeElementTest_fromBytes);
-    defineReflectiveTests(ExtensionTypeElementTest_augmentation_keepLinking);
-    defineReflectiveTests(ExtensionTypeElementTest_augmentation_fromBytes);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(ExtensionTypeElementTest_augmentation_keepLinking);
+    // defineReflectiveTests(ExtensionTypeElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }

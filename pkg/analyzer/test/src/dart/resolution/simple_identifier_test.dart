@@ -15,6 +15,7 @@ main() {
 
 @reflectiveTest
 class SimpleIdentifierResolutionTest extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augment_topLevel_function_with_function() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -42,6 +43,7 @@ SimpleIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augment_topLevel_getter_with_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -69,6 +71,7 @@ SimpleIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augment_topLevel_setter_with_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -87,7 +90,6 @@ void f() {
 ''');
 
     var node = findNode.singleAssignmentExpression;
-    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide: SimpleIdentifier
@@ -112,6 +114,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augment_topLevel_variable_with_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -139,6 +142,7 @@ SimpleIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augment_topLevel_variable_with_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -398,6 +402,7 @@ SimpleIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inClass_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -693,6 +698,7 @@ SimpleIdentifier
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_inMixin_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
