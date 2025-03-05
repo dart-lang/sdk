@@ -293,19 +293,19 @@ class InstanceMemberInferrer {
   }
 
   /// Infer type information for all of the instance members in the given
-  /// [classElement].
-  void _inferClass(InterfaceElementImpl classElement) {
-    if (classElement.isAugmentation) {
+  /// [classFragment].
+  void _inferClass(InterfaceElementImpl classFragment) {
+    if (classFragment.isAugmentation) {
       return;
     }
 
-    if (classElement.hasBeenInferred) {
+    if (classFragment.hasBeenInferred) {
       return;
     }
 
-    _setInducedModifier(classElement);
+    _setInducedModifier(classFragment);
 
-    if (!elementsBeingInferred.add(classElement)) {
+    if (!elementsBeingInferred.add(classFragment)) {
       // We have found a circularity in the class hierarchy. For now we just
       // stop trying to infer any type information for any classes that
       // inherit from any class in the cycle. We could potentially limit the
@@ -319,22 +319,22 @@ class InstanceMemberInferrer {
       // Ensure that all of instance members in the supertypes have had types
       // inferred for them.
       //
-      var augmented = classElement.augmented;
-      _inferType(classElement.supertype);
-      augmented.mixins.forEach(_inferType);
-      augmented.interfaces.forEach(_inferType);
+      var element = classFragment.element;
+      _inferType(classFragment.supertype);
+      element.mixins.forEach(_inferType);
+      element.interfaces.forEach(_inferType);
       //
       // Then infer the types for the members.
       //
       // TODO(scheglov): get other members from the container
-      currentInterfaceElement = classElement;
-      for (var container in classElement.withAugmentations) {
-        for (var field in classElement.fields) {
+      currentInterfaceElement = classFragment;
+      for (var container in classFragment.withAugmentations) {
+        for (var field in classFragment.fields) {
           _inferAccessorOrField(
             field: field,
           );
         }
-        for (var accessor in classElement.accessors) {
+        for (var accessor in classFragment.accessors) {
           _inferAccessorOrField(
             accessor: accessor,
           );
@@ -350,9 +350,9 @@ class InstanceMemberInferrer {
           _inferConstructor(constructor);
         }
       }
-      classElement.hasBeenInferred = true;
+      classFragment.hasBeenInferred = true;
     } finally {
-      elementsBeingInferred.remove(classElement);
+      elementsBeingInferred.remove(classFragment);
     }
   }
 

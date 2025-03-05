@@ -2956,8 +2956,9 @@ class _InstanceCreationEvaluator {
   }) {
     var superclass = definingType.superclass;
     if (superclass != null && !superclass.isDartCoreObject) {
-      var superConstructor =
-          superclass.lookUpConstructor(superName, _constructor.library);
+      var superConstructor = superclass
+          .lookUpConstructor2(superName, _constructor.library.asElement2)
+          ?.asElement;
       if (superConstructor == null) {
         return null;
       }

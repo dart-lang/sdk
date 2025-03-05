@@ -232,7 +232,7 @@ mixin ElementsTypesMixin {
   }) {
     var element = ExtensionElementImpl(name, 0);
     ExtensionElementImpl2(Reference.root(), element);
-    element.augmented.extendedType = extendedType;
+    element.element.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
     element.enclosingElement3 = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;

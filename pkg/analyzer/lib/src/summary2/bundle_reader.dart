@@ -2086,14 +2086,14 @@ class ResolutionReader {
     }
 
     if (memberFlags == Tag.MemberWithTypeArguments) {
-      var enclosing = element.enclosingElement3 as InstanceElement;
+      var enclosing = element.enclosingElement3 as InstanceElementImpl;
 
-      var declaration = enclosing.augmented.firstFragment;
+      var firstFragment = enclosing.element.firstFragment;
       var declarationTypeParameters =
-          declaration.typeParameters.map((tp) => tp.asElement2).toList();
+          firstFragment.typeParameters.map((tp) => tp.asElement2).toList();
 
       var augmentationSubstitution = Substitution.empty;
-      if (enclosing != declaration) {
+      if (enclosing != firstFragment) {
         var elementTypeParameters = enclosing.typeParameters;
         if (elementTypeParameters.length == declarationTypeParameters.length) {
           augmentationSubstitution = Substitution.fromPairs(

@@ -651,7 +651,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _builtRepresentationDeclaration(
         extensionNode: node,
         representation: node.representation,
-        extensionElement: fragment,
+        extensionFragment: fragment,
       );
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
@@ -1746,11 +1746,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   void _builtRepresentationDeclaration({
-    required ExtensionTypeElementImpl extensionElement,
+    required ExtensionTypeElementImpl extensionFragment,
     required ExtensionTypeDeclarationImpl extensionNode,
     required RepresentationDeclarationImpl representation,
   }) {
-    if (extensionElement.augmentationTarget != null) {
+    if (extensionFragment.augmentationTarget != null) {
       return;
     }
 
@@ -1794,7 +1794,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fieldCodeRangeLength,
     );
 
-    extensionElement.augmented.representation = fieldFragment;
+    extensionFragment.element.representation = fieldFragment;
 
     {
       String name;
@@ -1820,8 +1820,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         ..periodOffset = periodOffset
         ..nameEnd = nameEnd
         ..parameters = [formalParameterElement];
-      constructorFragment.typeName = extensionElement.name2;
-      constructorFragment.typeNameOffset = extensionElement.nameOffset2;
+      constructorFragment.typeName = extensionFragment.name2;
+      constructorFragment.typeNameOffset = extensionFragment.nameOffset2;
       if (representation.constructorName case var constructorName?) {
         constructorFragment.name2 = constructorName.name.lexeme;
         constructorFragment.nameOffset2 = constructorName.name.offset;
@@ -1834,7 +1834,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[constructorFragment] = representation;
       _enclosingContext.addConstructor(constructorFragment);
 
-      extensionElement.augmented.primaryConstructor = constructorFragment;
+      extensionFragment.element.primaryConstructor = constructorFragment;
     }
 
     representation.fieldType.accept(this);

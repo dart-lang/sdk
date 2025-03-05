@@ -235,7 +235,7 @@ class TypesBuilder {
     if (fragment.augmentationTarget == null) {
       if (node.onClause case var onClause?) {
         var extendedType = onClause.extendedType.typeOrThrow;
-        fragment.augmented.extendedType = extendedType;
+        fragment.element.extendedType = extendedType;
       }
     } else {
       _updatedAugmented(fragment);
@@ -383,9 +383,6 @@ class TypesBuilder {
     // Here we merge declaration and augmentations.
     // If there are no augmentations, nothing to do.
     var element = fragment.element;
-    if (element is! InstanceElementImpl2) {
-      return;
-    }
 
     var firstFragment = element.firstFragment;
     var firstTypeParameters =
@@ -691,7 +688,7 @@ class _MixinsInference {
       }
     } finally {
       element.mixinInferenceCallback = null;
-      switch (element.augmented) {
+      switch (element.element) {
         case InterfaceElementImpl2 augmented:
           augmented.mixins.addAll(declarationMixins);
       }

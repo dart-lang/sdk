@@ -852,7 +852,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<InterfaceTypeImpl> get superclassConstraints {
     var element = this.element;
-    var augmented = element.augmented;
+    var augmented = element.element;
     if (augmented is MixinElementImpl2) {
       var constraints = augmented.superclassConstraints;
       return _instantiateSuperTypes(constraints);
@@ -958,10 +958,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   SetterElement2OrMember? getSetter2(String setterName) =>
       getSetter(setterName)?.asElement2 as SetterElement2OrMember?;
 
+  @Deprecated('Use lookUpConstructor2() instead')
   @override
   ConstructorElementMixin? lookUpConstructor(
       String? constructorName, LibraryElement library) {
-    var augmented = element.augmented;
+    var augmented = element.element;
 
     // prepare base ConstructorElement
     ConstructorElementMixin? constructorElement;
@@ -982,7 +983,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   ConstructorElementMixin2? lookUpConstructor2(
       String? constructorName, LibraryElement2 library) {
-    return lookUpConstructor(constructorName, library.asElement)?.asElement2;
+    // prepare base ConstructorElement
+    ConstructorElementMixin2? constructorElement;
+    if (constructorName == null) {
+      constructorElement = element3.unnamedConstructor2;
+    } else {
+      constructorElement = element3.getNamedConstructor2(constructorName);
+    }
+    // not found or not accessible
+    if (constructorElement == null ||
+        !constructorElement.isAccessibleIn2(library)) {
+      return null;
+    }
+    // return member
+    return ConstructorMember.from2(constructorElement, this);
   }
 
   @override

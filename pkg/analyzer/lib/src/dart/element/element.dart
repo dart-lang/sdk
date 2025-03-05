@@ -182,11 +182,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  ClassElementImpl2 get augmented {
-    return element;
-  }
-
-  @override
   List<Element2> get children2 {
     throw StateError('This is a fragment');
   }
@@ -1604,7 +1599,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return result as InterfaceTypeImpl;
     }
 
-    var augmentedDeclaration = enclosingElement3.augmented.firstFragment;
+    var augmentedDeclaration = enclosingElement3.element.firstFragment;
     result = augmentedDeclaration.thisType;
     return _returnType = result as InterfaceTypeImpl;
   }
@@ -3702,11 +3697,6 @@ class EnumElementImpl extends InterfaceElementImpl
   EnumElementImpl(super.name, super.offset);
 
   @override
-  EnumElementImpl2 get augmented {
-    return element;
-  }
-
-  @override
   List<Element2> get children2 {
     throw StateError('This is a fragment');
   }
@@ -4073,11 +4063,6 @@ class ExtensionElementImpl extends InstanceElementImpl
   ExtensionElementImpl(super.name, super.nameOffset);
 
   @override
-  ExtensionElementImpl2 get augmented {
-    return element;
-  }
-
-  @override
   List<Element> get children => [
         ...super.children,
         ...accessors,
@@ -4102,7 +4087,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   TypeImpl get extendedType {
-    return augmented.extendedType;
+    return element.extendedType;
   }
 
   @override
@@ -4162,7 +4147,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   PropertyAccessorElementOrMember? getGetter(String getterName) {
-    for (var accessor in augmented.accessors) {
+    for (var accessor in element.accessors) {
       if (accessor.isGetter && accessor.name == getterName) {
         return accessor;
       }
@@ -4172,7 +4157,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   MethodElementOrMember? getMethod(String methodName) {
-    for (var method in augmented.methods) {
+    for (var method in element.methods) {
       if (method.name == methodName) {
         return method;
       }
@@ -4184,7 +4169,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   PropertyAccessorElement? getSetter(String setterName) {
     return InterfaceElementImpl.getSetterFromAccessors(
       setterName,
-      augmented.accessors,
+      element.accessors,
     );
   }
 }
@@ -4241,11 +4226,6 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ExtensionTypeElementImpl(super.name, super.nameOffset);
 
   @override
-  ExtensionTypeElementImpl2 get augmented {
-    return element;
-  }
-
-  @override
   List<Element2> get children2 {
     throw StateError('This is a fragment');
   }
@@ -4271,7 +4251,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   ConstructorElementImpl get primaryConstructor {
-    return augmented.primaryConstructor;
+    return element.primaryConstructor;
   }
 
   @override
@@ -4280,7 +4260,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   FieldElementImpl get representation {
-    return augmented.representation;
+    return element.representation;
   }
 
   @override
@@ -4288,7 +4268,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   DartType get typeErasure {
-    return augmented.typeErasure;
+    return element.typeErasure;
   }
 
   @Deprecated('Use Element2 and accept2() instead')
@@ -5856,7 +5836,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   InstanceElementImpl? get augmentationTarget;
 
   @override
-  InstanceElement2 get element => augmented as InstanceElement2;
+  InstanceElementImpl2 get element;
 
   @override
   CompilationUnitElementImpl get enclosingElement3 {
@@ -6131,32 +6111,13 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       firstFragment.isAccessibleIn(library as LibraryElement);
 
   @override
-  PropertyAccessorElement? lookUpGetter({
-    required String name,
-    required LibraryElement library,
-  }) {
-    return _implementationsOfGetter(name)
-        .firstWhereOrNull((getter) => getter.isAccessibleIn(library));
-  }
-
-  @override
   GetterElement? lookUpGetter2({
     required String name,
     required LibraryElement2 library,
   }) {
-    return lookUpGetter(
-      name: name,
-      library: library.asElement,
-    )?.asElement2 as GetterElement?;
-  }
-
-  @override
-  MethodElement? lookUpMethod({
-    required String name,
-    required LibraryElement library,
-  }) {
-    return _implementationsOfMethod(name).firstWhereOrNull(
-        (MethodElement method) => method.isAccessibleIn(library));
+    return _implementationsOfGetter2(name)
+            .firstWhereOrNull((getter) => getter.isAccessibleIn2(library))
+        as GetterElement?;
   }
 
   @override
@@ -6164,19 +6125,8 @@ abstract class InstanceElementImpl2 extends ElementImpl2
     required String name,
     required LibraryElement2 library,
   }) {
-    return lookUpMethod(
-      name: name,
-      library: library.asElement,
-    )?.asElement2;
-  }
-
-  @override
-  PropertyAccessorElement? lookUpSetter({
-    required String name,
-    required LibraryElement library,
-  }) {
-    return _implementationsOfSetter(name).firstWhereOrNull(
-        (PropertyAccessorElement setter) => setter.isAccessibleIn(library));
+    return _implementationsOfMethod2(name)
+        .firstWhereOrNull((method) => method.isAccessibleIn2(library));
   }
 
   @override
@@ -6184,10 +6134,9 @@ abstract class InstanceElementImpl2 extends ElementImpl2
     required String name,
     required LibraryElement2 library,
   }) {
-    return lookUpSetter(
-      name: name,
-      library: library.asElement,
-    )?.asElement2 as SetterElement?;
+    return _implementationsOfSetter2(name)
+            .firstWhereOrNull((setter) => setter.isAccessibleIn2(library))
+        as SetterElement?;
   }
 
   @override
@@ -6215,125 +6164,79 @@ abstract class InstanceElementImpl2 extends ElementImpl2
     }
   }
 
-  /// Return an iterable containing all of the implementations of a getter with
-  /// the given [name] that are defined in this class and any superclass of this
-  /// class (but not in interfaces).
-  ///
-  /// The getters that are returned are not filtered in any way. In particular,
-  /// they can include getters that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The getters are returned based on the depth of their defining class; if
-  /// this class contains a definition of the getter it will occur first, if
-  /// Object contains a definition of the getter it will occur last.
-  Iterable<PropertyAccessorElementOrMember> _implementationsOfGetter(
-      String name) sync* {
-    var visitedClasses = <AugmentedInstanceElement>{};
-    AugmentedInstanceElement? augmented = this;
-    while (augmented != null && visitedClasses.add(augmented)) {
-      var getter = augmented.getGetter(name);
-      if (getter != null) {
-        yield getter as PropertyAccessorElementOrMember;
-      }
-      if (augmented is! AugmentedInterfaceElement) {
-        return;
-      }
-      for (var mixin in augmented.mixins.reversed) {
-        mixin as InterfaceTypeImpl;
-        getter = mixin.element.augmented.getGetter(name);
-        if (getter != null) {
-          yield getter as PropertyAccessorElementOrMember;
-        }
-      }
-      var supertype = augmented.firstFragment.supertype;
-      supertype as InterfaceTypeImpl?;
-      augmented = supertype?.element.augmented;
-    }
-  }
-
   Iterable<PropertyAccessorElement2OrMember> _implementationsOfGetter2(
-      String name) {
-    return _implementationsOfGetter(name).map((e) => e.asElement2);
-  }
-
-  /// Return an iterable containing all of the implementations of a method with
-  /// the given [name] that are defined in this class and any superclass of this
-  /// class (but not in interfaces).
-  ///
-  /// The methods that are returned are not filtered in any way. In particular,
-  /// they can include methods that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The methods are returned based on the depth of their defining class; if
-  /// this class contains a definition of the method it will occur first, if
-  /// Object contains a definition of the method it will occur last.
-  Iterable<MethodElementOrMember> _implementationsOfMethod(String name) sync* {
-    var visitedClasses = <AugmentedInstanceElement>{};
-    AugmentedInstanceElement? augmented = this;
-    while (augmented != null && visitedClasses.add(augmented)) {
-      var method = augmented.getMethod(name);
-      if (method != null) {
-        yield method as MethodElementOrMember;
+      String name) sync* {
+    var visitedElements = <InstanceElement2>{};
+    InstanceElement2? element = this;
+    while (element != null && visitedElements.add(element)) {
+      var getter = element.getGetter2(name);
+      if (getter != null) {
+        yield getter as PropertyAccessorElement2OrMember;
       }
-      if (augmented is! AugmentedInterfaceElement) {
+      if (element is! InterfaceElement2) {
         return;
       }
-      for (var mixin in augmented.mixins.reversed) {
+      for (var mixin in element.mixins.reversed) {
         mixin as InterfaceTypeImpl;
-        method = mixin.element.augmented.getMethod(name);
-        if (method != null) {
-          yield method as MethodElementOrMember;
+        getter = mixin.element3.getGetter2(name);
+        if (getter != null) {
+          yield getter as PropertyAccessorElement2OrMember;
         }
       }
-      var supertype = augmented.firstFragment.supertype;
+      var supertype = element.firstFragment.supertype;
       supertype as InterfaceTypeImpl?;
-      augmented = supertype?.element.augmented;
+      element = supertype?.element3;
     }
   }
 
-  Iterable<MethodElement2OrMember> _implementationsOfMethod2(String name) {
-    return _implementationsOfMethod(name).map((e) => e.asElement2);
-  }
-
-  /// Return an iterable containing all of the implementations of a setter with
-  /// the given [name] that are defined in this class and any superclass of this
-  /// class (but not in interfaces).
-  ///
-  /// The setters that are returned are not filtered in any way. In particular,
-  /// they can include setters that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The setters are returned based on the depth of their defining class; if
-  /// this class contains a definition of the setter it will occur first, if
-  /// Object contains a definition of the setter it will occur last.
-  Iterable<PropertyAccessorElementOrMember> _implementationsOfSetter(
+  Iterable<MethodElement2OrMember> _implementationsOfMethod2(
       String name) sync* {
-    var visitedClasses = <AugmentedInstanceElement>{};
-    AugmentedInstanceElement? augmented = this;
-    while (augmented != null && visitedClasses.add(augmented)) {
-      var setter = augmented.getSetter(name);
-      if (setter != null) {
-        yield setter as PropertyAccessorElementOrMember;
+    var visitedElements = <InstanceElement2>{};
+    InstanceElement2? element = this;
+    while (element != null && visitedElements.add(element)) {
+      var method = element.getMethod2(name);
+      if (method != null) {
+        yield method as MethodElement2OrMember;
       }
-      if (augmented is! AugmentedInterfaceElement) {
+      if (element is! InterfaceElement2) {
         return;
       }
-      for (var mixin in augmented.mixins.reversed) {
+      for (var mixin in element.mixins.reversed) {
         mixin as InterfaceTypeImpl;
-        setter = mixin.element.augmented.getSetter(name);
-        if (setter != null) {
-          yield setter as PropertyAccessorElementOrMember;
+        method = mixin.element3.getMethod2(name);
+        if (method != null) {
+          yield method as MethodElement2OrMember;
         }
       }
-      var supertype = augmented.firstFragment.supertype;
+      var supertype = element.firstFragment.supertype;
       supertype as InterfaceTypeImpl?;
-      augmented = supertype?.element.augmented;
+      element = supertype?.element3;
     }
   }
 
   Iterable<PropertyAccessorElement2OrMember> _implementationsOfSetter2(
-      String name) {
-    return _implementationsOfSetter(name).map((e) => e.asElement2);
+      String name) sync* {
+    var visitedElements = <InstanceElement2>{};
+    InstanceElement2? element = this;
+    while (element != null && visitedElements.add(element)) {
+      var setter = element.getSetter2(name);
+      if (setter != null) {
+        yield setter as PropertyAccessorElement2OrMember;
+      }
+      if (element is! InterfaceElement2) {
+        return;
+      }
+      for (var mixin in element.mixins.reversed) {
+        mixin as InterfaceTypeImpl;
+        setter = mixin.element3.getSetter2(name);
+        if (setter != null) {
+          yield setter as PropertyAccessorElement2OrMember;
+        }
+      }
+      var supertype = element.firstFragment.supertype;
+      supertype as InterfaceTypeImpl?;
+      element = supertype?.element3;
+    }
   }
 
   void _readMembers() {
@@ -6381,9 +6284,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   InterfaceElementImpl? get augmentationTarget;
-
-  @override
-  InterfaceElementImpl2 get augmented;
 
   @override
   List<Element> get children => [
@@ -6499,7 +6399,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   InterfaceTypeImpl get thisType {
-    return augmented.thisType;
+    return element.thisType;
   }
 
   @override
@@ -8830,11 +8730,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(super.name, super.offset);
-
-  @override
-  MixinElementImpl2 get augmented {
-    return element;
-  }
 
   @override
   List<Element2> get children2 {
