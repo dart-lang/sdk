@@ -21,6 +21,11 @@ luci.notifier(
 )
 
 dart.ci_sandbox_builder(
+    "front-end-linux-release-x64",
+    category = "cfe|l",
+    on_cq = True,
+)
+dart.ci_sandbox_builder(
     "front-end-nnbd-linux-release-x64",
     category = "cfe|nnbd|l",
     location_filters = paths.to_location_filters(paths.cfe),
