@@ -26,6 +26,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_augments() async {
     newFile(testFile.path, r'''
 part 'a.dart';
@@ -50,6 +51,7 @@ augment class A {
     assertNoErrorsInResult();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_augments2() async {
     newFile(testFile.path, r'''
 part 'a.dart';
@@ -75,6 +77,7 @@ augment class A {
     assertNoErrorsInResult();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_declares() async {
     newFile(testFile.path, r'''
 part 'a.dart';

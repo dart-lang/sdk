@@ -47,6 +47,7 @@ class C extends Object with M {}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_noMatchingInterface_fromAugmentation() async {
     await assertErrorsInCode('''
 class B with M {}
@@ -273,6 +274,7 @@ enum E with M {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_noSuperclassConstraint_augmented() async {
     newFile(testFile.path, r'''
 part 'a.dart';

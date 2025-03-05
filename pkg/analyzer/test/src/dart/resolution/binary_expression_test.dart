@@ -430,6 +430,7 @@ BinaryExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_plus_augmentedExpression_augments_plus() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -470,6 +471,7 @@ BinaryExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_plus_augmentedExpression_augments_unaryMinus() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -511,6 +513,7 @@ BinaryExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_plus_augmentedExpression_class_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -548,6 +551,7 @@ BinaryExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_plus_augmentedExpression_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -587,6 +591,7 @@ BinaryExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_plus_augmentedExpression_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

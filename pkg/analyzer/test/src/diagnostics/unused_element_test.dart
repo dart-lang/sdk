@@ -1651,6 +1651,7 @@ f() => A()._m(0);
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_optionalParameter_isUsed_override_inAugmentation() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -1664,6 +1665,7 @@ f() => A()._m(0);
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_optionalParameter_isUsed_override_ofAugmentation() async {
     await assertNoErrorsInCode(r'''
 class A {

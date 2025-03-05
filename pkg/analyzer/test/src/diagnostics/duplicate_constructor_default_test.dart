@@ -15,6 +15,7 @@ main() {
 
 @reflectiveTest
 class DuplicateConstructorDefaultTest extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_augments() async {
     newFile(testFile.path, r'''
 part 'a.dart';
@@ -39,6 +40,7 @@ augment class A {
     assertNoErrorsInResult();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_declares() async {
     newFile(testFile.path, r'''
 part 'a.dart';

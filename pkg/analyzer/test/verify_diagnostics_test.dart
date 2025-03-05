@@ -71,6 +71,8 @@ class DocumentationValidator {
     'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE',
+    // Produces two diagnostics out of necessity.
+    'CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION',
     // Produces two diagnostic out of necessity.
     'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
     // Produces two diagnostic out of necessity.

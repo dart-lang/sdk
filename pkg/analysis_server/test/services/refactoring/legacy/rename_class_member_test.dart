@@ -1241,6 +1241,101 @@ class A<NewName> {
 }
 ''');
   }
+
+  Future<void> test_subclass_namedSuper_otherLibrary() async {
+    await indexTestUnit('''
+class Base {
+  final int foo;
+
+  Base({required this.foo});
+}
+''');
+    await indexUnit('$testPackageLibPath/sub1.dart', r'''
+import 'test.dart';
+
+class Sub1 extends Base {
+  Sub1({required super.foo});
+}
+''');
+    await indexUnit('$testPackageLibPath/sub2.dart', r'''
+import 'test.dart';
+
+class Sub2 extends Base {
+  @override
+  int get foo => 0;
+
+  Sub2({required super.foo});
+}
+''');
+    createRenameRefactoringAtString('foo;');
+    // check status
+    refactoring.newName = 'bar';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+    refactoringChange = await refactoring.createChange();
+    assertFileChangeResult('$testPackageLibPath/sub2.dart', '''
+import 'test.dart';
+
+class Sub2 extends Base {
+  @override
+  int get bar => 0;
+
+  Sub2({required super.bar});
+}
+''');
+    assertFileChangeResult('$testPackageLibPath/sub1.dart', '''
+import 'test.dart';
+
+class Sub1 extends Base {
+  Sub1({required super.bar});
+}
+''');
+  }
+
+  Future<void> test_subclass_namedSuper_sameLibrary() async {
+    await indexTestUnit('''
+class Base {
+  final int foo;
+
+  Base({required this.foo});
+}
+
+class Sub1 extends Base {
+  Sub1({required super.foo});
+}
+
+class Sub2 extends Base {
+  @override
+  int get foo => 0;
+
+  Sub2({required super.foo});
+}
+''');
+    createRenameRefactoringAtString('foo;');
+    // check status
+    refactoring.newName = 'bar';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+    refactoringChange = await refactoring.createChange();
+    assertTestChangeResult('''
+class Base {
+  final int bar;
+
+  Base({required this.bar});
+}
+
+class Sub1 extends Base {
+  Sub1({required super.bar});
+}
+
+class Sub2 extends Base {
+  @override
+  int get bar => 0;
+
+  Sub2({required super.bar});
+}
+''');
+  }
 }
 
 @reflectiveTest

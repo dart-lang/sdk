@@ -30,7 +30,7 @@ import '../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 import '../base/problems.dart' as problems
-    show internalProblem, unhandled, unsupported;
+    show internalProblem, unhandled, unsupported, unimplemented;
 import '../base/uri_offset.dart';
 import '../codes/cfe_codes.dart';
 import '../kernel/body_builder.dart' show combineStatements;
@@ -177,7 +177,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
       this.constructorDeclaration, this.operations)
       : options = new TypeAnalyzerOptions(
-            nullSafetyEnabled: true,
             patternsEnabled:
                 inferrer.libraryBuilder.libraryFeatures.patterns.isEnabled,
             inferenceUpdate3Enabled: inferrer
@@ -12112,6 +12111,63 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(rewrittenType, rewrittenExpr);
   }
 
+  ExpressionInferenceResult visitDotShorthandInvocation(
+      DotShorthandInvocation node, DartType typeContext) {
+    // Use the previously cached context type to determine the declaration
+    // member that we're trying to find.
+    DartType cachedContext = getDotShorthandContext().unwrapTypeSchemaView();
+    Member? member = findInterfaceMember(
+            cachedContext, node.name, node.fileOffset,
+            includeExtensionMethods: false,
+            isSetter: false,
+            isDotShorthand: true)
+        .member;
+
+    Expression expr;
+    if (member is Procedure) {
+      expr = new StaticInvocation(member, node.arguments)
+        ..fileOffset = node.fileOffset;
+    } else if (member == null && cachedContext is TypeDeclarationType) {
+      // Couldn't find a static method in the declaration so we'll try and find
+      // a constructor of that name instead.
+      Member? constructor =
+          findConstructor(cachedContext, node.name, node.fileOffset);
+      if (constructor is Constructor) {
+        // TODO(kallentu): Const constructors.
+        expr = new ConstructorInvocation(constructor, node.arguments,
+            isConst: false)
+          ..fileOffset = node.fileOffset;
+      } else if (constructor is Procedure) {
+        // [constructor] can be a [Procedure] if we have an extension type
+        // constructor.
+        expr = new StaticInvocation(constructor, node.arguments)
+          ..fileOffset = node.fileOffset;
+      } else {
+        // Coverage-ignore-block(suite): Not run.
+        // TODO(kallentu): This is temporary. Build a problem with an error
+        // specific to not being able to find a member named [node.name].
+        problems.unimplemented(
+            'Cannot find dot shorthand member of name ${node.name}',
+            node.fileOffset,
+            helper.uri);
+      }
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      // TODO(kallentu): This is temporary. Build a problem with an error on the
+      // bad context type.
+      problems.unimplemented(
+          'Cannot find dot shorthand member of name ${node.name} with '
+          'context $cachedContext',
+          node.fileOffset,
+          helper.uri);
+    }
+
+    ExpressionInferenceResult expressionInferenceResult =
+        inferExpression(expr, cachedContext);
+    flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);
+    return expressionInferenceResult;
+  }
+
   ExpressionInferenceResult visitDotShorthandPropertyGet(
       DotShorthandPropertyGet node, DartType typeContext) {
     // Use the previously cached context type to determine the declaration
@@ -12124,9 +12180,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ExpressionInferenceResult expressionInferenceResult;
     if (member == null) {
+      // Coverage-ignore-block(suite): Not run.
       // TODO(kallentu): This is temporary. Build a problem with an error
       // specific to not being able to find a member named [node.name].
-      throw 'Error: Cannot find dot shorthand member.';
+      problems.unimplemented(
+          'Cannot find dot shorthand member of name ${node.name}',
+          node.fileOffset,
+          helper.uri);
     } else if (member is Procedure && !member.isGetter) {
       // Tearoff like `Object.new`;
       expressionInferenceResult =

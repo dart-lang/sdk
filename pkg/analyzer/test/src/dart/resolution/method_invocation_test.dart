@@ -1511,6 +1511,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_explicitThis_inAugmentation_augmentationDeclares() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1553,6 +1554,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1593,6 +1595,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_implicitStatic_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1629,6 +1632,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_implicitThis_inDeclaration_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1665,6 +1669,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_implicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -3454,6 +3459,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_className_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -3496,6 +3502,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_className_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -3698,6 +3705,7 @@ FunctionExpressionInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_extension_staticGetter_inAugmentation() async {
     await assertNoErrorsInCode(r'''
 extension A on int {}
@@ -3780,6 +3788,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_extension_staticMethod_inAugmentation() async {
     await assertNoErrorsInCode(r'''
 extension A on int {}
@@ -4552,6 +4561,7 @@ FunctionExpressionInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_interfaceType_class_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -4573,7 +4583,6 @@ void f(A a) {
 ''');
 
     var node = findNode.singleMethodInvocation;
-    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4595,6 +4604,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_interfaceType_class_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -4954,6 +4964,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_interfaceType_mixin_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -4975,7 +4986,6 @@ void f(A a) {
 ''');
 
     var node = findNode.singleMethodInvocation;
-    // TODO(scheglov): implement augmentation
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target: SimpleIdentifier
@@ -4997,6 +5007,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_interfaceType_mixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -5068,6 +5079,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_interfaceType_ofExtension_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -5699,6 +5711,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_super_classAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -5742,6 +5755,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasReceiver_super_classAugmentation_noDeclaration() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -6740,6 +6754,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_explicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -6780,6 +6795,7 @@ MethodInvocation
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_implicitThis_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'

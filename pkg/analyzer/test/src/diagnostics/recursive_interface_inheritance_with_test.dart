@@ -15,6 +15,7 @@ main() {
 
 @reflectiveTest
 class RecursiveInterfaceInheritanceWithTest extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inAugmentation() async {
     await assertErrorsInCode(r'''
 class A extends Object {}

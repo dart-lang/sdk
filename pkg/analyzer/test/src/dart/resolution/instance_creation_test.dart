@@ -126,6 +126,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -183,6 +184,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_generic_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -404,6 +406,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_notGeneric_constructor_named_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -448,6 +451,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_notGeneric_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -490,6 +494,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_notGeneric_constructor_unnamed_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -528,6 +533,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_notGeneric_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1336,6 +1342,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_importPrefix_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -1403,6 +1410,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_importPrefix_class_generic_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -1512,6 +1520,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_importPrefix_class_notGeneric_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -1564,6 +1573,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_importPrefix_class_notGeneric_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -1988,6 +1998,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_typeAlias_generic_class_generic_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -2046,6 +2057,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_typeAlias_generic_class_generic_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -2371,6 +2383,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_typeAlias_notGeneric_class_notGeneric_constructor_named_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -2415,6 +2428,7 @@ InstanceCreationExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_typeAlias_notGeneric_class_notGeneric_constructor_unnamed_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'

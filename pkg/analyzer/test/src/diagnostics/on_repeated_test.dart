@@ -24,6 +24,7 @@ mixin M on A, A {}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_2times_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

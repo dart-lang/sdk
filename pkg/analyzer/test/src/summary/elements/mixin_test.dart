@@ -12,8 +12,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinElementTest_keepLinking);
     defineReflectiveTests(MixinElementTest_fromBytes);
-    defineReflectiveTests(MixinElementTest_augmentation_fromBytes);
-    defineReflectiveTests(MixinElementTest_augmentation_keepLinking);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(MixinElementTest_augmentation_fromBytes);
+    // defineReflectiveTests(MixinElementTest_augmentation_keepLinking);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }

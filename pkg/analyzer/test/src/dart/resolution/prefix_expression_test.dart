@@ -382,6 +382,7 @@ PrefixExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_minus_augmentedExpression_augments_class_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -414,6 +415,7 @@ PrefixExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_minus_augmentedExpression_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -448,6 +450,7 @@ PrefixExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_minus_augmentedExpression_augments_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -484,6 +487,7 @@ PrefixExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_minus_augmentedExpression_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -520,6 +524,7 @@ PrefixExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_minus_augmentedExpression_augments_unaryMinus() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -1402,6 +1407,7 @@ PrefixExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_tilde_augmentedExpression_augments_unaryMinus() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

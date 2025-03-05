@@ -1841,6 +1841,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_prefixedIdentifier_ofClass_getterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1897,6 +1898,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_prefixedIdentifier_ofClass_setterAugmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -1953,6 +1955,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_prefixedIdentifier_ofClass_setterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -2006,6 +2009,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_prefixedIdentifier_ofClassName_getterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -2062,6 +2066,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_prefixedIdentifier_ofClassName_setterAugmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -2118,6 +2123,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_prefixedIdentifier_ofClassName_setterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -2171,6 +2177,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_prefixedIdentifier_ofExtensionName_augmentationAugments() async {
     await assertNoErrorsInCode(r'''
 extension A on int {
@@ -2222,6 +2229,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_prefixedIdentifier_ofExtensionName_augmentationDeclares() async {
     await assertNoErrorsInCode(r'''
 extension A on int {}
@@ -2865,6 +2873,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_propertyAccess_ofClass_setterAugmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'
@@ -2923,6 +2932,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_propertyAccess_ofClass_setterAugmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart'

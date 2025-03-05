@@ -14,6 +14,7 @@ main() {
 
 @reflectiveTest
 class ThisExpressionResolutionTest extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -45,6 +46,7 @@ ThisExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

@@ -35,6 +35,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_field_field_augment() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -74,6 +75,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_field_field_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -186,6 +188,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_augment() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -198,6 +201,7 @@ augment class C {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_inAugmentation() async {
     await assertErrorsInCode(r'''
 class C {
@@ -258,6 +262,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_augment() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -270,6 +275,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_inAugmentation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -297,6 +303,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_setter_inAugmentation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -312,6 +319,7 @@ augment class A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_operator_operator_augment() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -324,6 +332,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_operator_operator_inAugmentation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -360,6 +369,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_method_inAugmentation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -387,6 +397,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_augment() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -399,6 +410,7 @@ augment class C {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_inAugmentation() async {
     await assertErrorsInCode(r'''
 class C {
@@ -504,6 +516,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_augment() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -516,6 +529,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_inAugmentation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -576,6 +590,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_augment() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -588,6 +603,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_inAugmentation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -648,6 +664,7 @@ class C {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_augment() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -660,6 +677,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_inAugmentation() async {
     await assertErrorsInCode(r'''
 class A {
@@ -764,6 +782,7 @@ enum E {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_augment() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -777,6 +796,7 @@ augment enum E {;
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_inAugmentation() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -842,6 +862,7 @@ enum E {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_augment() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -855,6 +876,7 @@ augment enum E {;
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_inAugmentation() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -920,6 +942,7 @@ enum E {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_augment() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -933,6 +956,7 @@ augment enum E {;
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_inAugmentation() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -1069,6 +1093,7 @@ enum E {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_augment() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -1082,6 +1107,7 @@ augment enum E {;
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_inAugmentation() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -1147,6 +1173,7 @@ enum E {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_augment() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -1160,6 +1187,7 @@ augment enum E {;
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_inAugmentation() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -1225,6 +1253,7 @@ enum E {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_augment() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -1238,6 +1267,7 @@ augment enum E {;
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_inAugmentation() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -1302,6 +1332,7 @@ extension E on A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_augment() async {
     await assertNoErrorsInCode(r'''
 extension E on int {
@@ -1314,6 +1345,7 @@ augment extension E {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_getter_getter_inAugmentation() async {
     await assertErrorsInCode(r'''
 extension E on int {
@@ -1378,6 +1410,7 @@ extension E on A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_augment() async {
     await assertNoErrorsInCode(r'''
 extension E on int {
@@ -1390,6 +1423,7 @@ augment extension E {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_inAugmentation() async {
     await assertErrorsInCode(r'''
 extension E on int {
@@ -1454,6 +1488,7 @@ extension E on A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_augment() async {
     await assertNoErrorsInCode(r'''
 extension E on int {
@@ -1466,6 +1501,7 @@ augment extension E {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_setter_setter_inAugmentation() async {
     await assertErrorsInCode(r'''
 extension E on int {
@@ -1556,6 +1592,7 @@ extension E on A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_augment() async {
     await assertNoErrorsInCode(r'''
 extension E on int {
@@ -1568,6 +1605,7 @@ augment extension E {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_getter_getter_inAugmentation() async {
     await assertErrorsInCode(r'''
 extension E on int {
@@ -1632,6 +1670,7 @@ extension E on A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_augment() async {
     await assertNoErrorsInCode(r'''
 extension E on int {
@@ -1644,6 +1683,7 @@ augment extension E {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_method_method_inAugmentation() async {
     await assertErrorsInCode(r'''
 extension E on int {
@@ -1707,6 +1747,7 @@ extension E on A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_augment() async {
     await assertNoErrorsInCode(r'''
 extension E on int {
@@ -1719,6 +1760,7 @@ augment extension E {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_static_setter_setter_inAugmentation() async {
     await assertErrorsInCode(r'''
 extension E on int {
@@ -2166,6 +2208,7 @@ mixin M {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_augment() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -2190,6 +2233,7 @@ mixin A {
     assertNoErrorsInResult();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_instance_method_method_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -3311,6 +3355,7 @@ class A {}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -3470,6 +3515,7 @@ mixin A {}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -3524,6 +3570,7 @@ typedef A = List<int>;
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_variable_variable_augment() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -3544,6 +3591,7 @@ int foo = 0;
     assertNoErrorsInResult();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_variable_variable_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

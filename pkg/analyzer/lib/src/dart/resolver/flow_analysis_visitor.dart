@@ -82,8 +82,6 @@ class FlowAnalysisHelper {
   /// The result for post-resolution stages of analysis, for testing only.
   final FlowAnalysisDataForTesting? dataForTesting;
 
-  final bool isNonNullableByDefault;
-
   /// Indicates whether initializers of implicitly typed variables should be
   /// accounted for by SSA analysis.  (In an ideal world, they always would be,
   /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
@@ -104,7 +102,6 @@ class FlowAnalysisHelper {
       : this._(
           typeSystemOperations,
           retainDataForTesting ? FlowAnalysisDataForTesting() : null,
-          isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
           respectImplicitlyTypedVarInitializers:
               featureSet.isEnabled(Feature.constructor_tearoffs),
           fieldPromotionEnabled:
@@ -116,7 +113,6 @@ class FlowAnalysisHelper {
   FlowAnalysisHelper._(
     this.typeOperations,
     this.dataForTesting, {
-    required this.isNonNullableByDefault,
     required this.respectImplicitlyTypedVarInitializers,
     required this.fieldPromotionEnabled,
     required this.inferenceUpdate4Enabled,
@@ -177,22 +173,15 @@ class FlowAnalysisHelper {
       dataForTesting!.assignedVariables[node] = assignedVariables
           as AssignedVariablesForTesting<AstNodeImpl, PromotableElementImpl2>;
     }
-    flow = isNonNullableByDefault
-        ? FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
-            PromotableElementImpl2, SharedTypeView>(
-            typeOperations,
-            assignedVariables!,
-            respectImplicitlyTypedVarInitializers:
-                respectImplicitlyTypedVarInitializers,
-            fieldPromotionEnabled: fieldPromotionEnabled,
-            inferenceUpdate4Enabled: inferenceUpdate4Enabled,
-          )
-        : FlowAnalysis<
-            AstNodeImpl,
-            StatementImpl,
-            ExpressionImpl,
-            PromotableElementImpl2,
-            SharedTypeView>.legacy(typeOperations, assignedVariables!);
+    flow = FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
+        PromotableElementImpl2, SharedTypeView>(
+      typeOperations,
+      assignedVariables!,
+      respectImplicitlyTypedVarInitializers:
+          respectImplicitlyTypedVarInitializers,
+      fieldPromotionEnabled: fieldPromotionEnabled,
+      inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+    );
   }
 
   /// This method is called whenever the [ResolverVisitor] leaves the body or
