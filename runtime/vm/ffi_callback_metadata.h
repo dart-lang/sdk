@@ -311,9 +311,17 @@ class FfiCallbackMetadata {
   Metadata* free_list_head_ = nullptr;
   Metadata* free_list_tail_ = nullptr;
 
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA) ||                                         \
+    (defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64))
   // TODO(https://dartbug.com/52579): Remove.
-  VirtualMemory* fuchsia_metadata_page_ = nullptr;
+  // On Fuchsia, we cannot duplicate the page containing the trampoline stub
+  // unless we plumb through from the embedder the VMO handle that was used to
+  // load the VM isolate snapshot.
+  // On simulator FFI, SimulatorFfiCallbackTrampoline cannot be duplicated
+  // because it contains a PC-relative call. It would need to be replaced with
+  // something like normal stub's PC-relative loading to a corresponding data
+  // page, or if we can assume the initial-exec code model a TLS load.
+  VirtualMemory* original_metadata_page_ = nullptr;
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallbackMetadata);

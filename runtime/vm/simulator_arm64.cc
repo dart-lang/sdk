@@ -18,6 +18,7 @@
 #include "vm/image_snapshot.h"
 #include "vm/native_arguments.h"
 #include "vm/os_thread.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -1677,6 +1678,8 @@ void Simulator::DoRedirectedCall(Instr* instr) {
   // We can't instrument the runtime.
   memory_.FlushAll();
 
+  ASSERT(Utils::IsAligned(get_register(SPREG), OS::ActivationFrameAlignment()));
+
   SimulatorSetjmpBuffer buffer(this);
   if (!DART_SETJMP(buffer.buffer_)) {
     int64_t saved_lr = get_register(LR);
@@ -1758,7 +1761,7 @@ struct CalloutContext {
   uword target;
 };
 
-extern "C" void FfiCalloutTrampoline(CalloutContext*);
+extern "C" void SimulatorFfiCalloutTrampoline(CalloutContext*);
 
 void Simulator::DoRedirectedFfiCall(Instr* instr) {
 #if !defined(HOST_ARCH_ARM64)
@@ -1778,15 +1781,26 @@ void Simulator::DoRedirectedFfiCall(Instr* instr) {
     CalloutContext ctxt;
     ctxt.simulator_stack_pointer = get_register(R31);
     ctxt.simulator_frame_pointer = get_register(FP);
-    for (intptr_t i = 0; i < 8; i++) {
-      ctxt.integer_arguments[i] = get_register(static_cast<Register>(R0 + i));
-      ctxt.double_arguments[i] =
-          get_vregisterd(static_cast<VRegister>(V0 + i), 0);
-    }
+    ctxt.integer_arguments[0] = get_register(R0);
+    ctxt.integer_arguments[1] = get_register(R1);
+    ctxt.integer_arguments[2] = get_register(R2);
+    ctxt.integer_arguments[3] = get_register(R3);
+    ctxt.integer_arguments[4] = get_register(R4);
+    ctxt.integer_arguments[5] = get_register(R5);
+    ctxt.integer_arguments[6] = get_register(R6);
+    ctxt.integer_arguments[7] = get_register(R7);
+    ctxt.double_arguments[0] = get_vregisterd(V0, 0);
+    ctxt.double_arguments[1] = get_vregisterd(V1, 0);
+    ctxt.double_arguments[2] = get_vregisterd(V2, 0);
+    ctxt.double_arguments[3] = get_vregisterd(V3, 0);
+    ctxt.double_arguments[4] = get_vregisterd(V4, 0);
+    ctxt.double_arguments[5] = get_vregisterd(V5, 0);
+    ctxt.double_arguments[6] = get_vregisterd(V6, 0);
+    ctxt.double_arguments[7] = get_vregisterd(V7, 0);
     ctxt.r8 = get_register(R8);
     ctxt.target = external;
 
-    FfiCalloutTrampoline(&ctxt);
+    SimulatorFfiCalloutTrampoline(&ctxt);
 
     if (IsTracingExecution()) {
       THR_Print("Return from FFI function at 0x%" Px "\n", external);
@@ -1797,6 +1811,8 @@ void Simulator::DoRedirectedFfiCall(Instr* instr) {
     set_register(instr, R1, ctxt.integer_arguments[1]);
     set_vregisterd(V0, 0, ctxt.double_arguments[0]);
     set_vregisterd(V1, 0, ctxt.double_arguments[1]);
+    set_vregisterd(V2, 0, ctxt.double_arguments[2]);
+    set_vregisterd(V3, 0, ctxt.double_arguments[3]);
 
     // Skip over hlt and blr.
     set_pc(saved_pc + 2 * Instr::kInstrSize);
@@ -1804,6 +1820,104 @@ void Simulator::DoRedirectedFfiCall(Instr* instr) {
     // Coming via long jump from a throw. Continue to exception handler.
   }
 #endif
+}
+
+struct CallbackContext {
+  uword integer_arguments[8];
+  uword double_arguments[8];
+  uword r8;
+  uword sp;
+};
+
+extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
+                                        uword trampoline) {
+  uword entry_point;
+  uword trampoline_type;
+  Thread* thread =
+      DLRT_GetFfiCallbackMetadata(trampoline, &entry_point, &trampoline_type);
+  if (thread == nullptr) {
+    // If GetFfiCallbackMetadata returned a null thread, it means that the async
+    // callback was invoked after it was deleted. In this case, do nothing.
+    return;
+  }
+
+  Simulator* sim = Simulator::Current();
+  ASSERT(sim != nullptr);
+  sim->DoRedirectedFfiCallback(thread, ctxt, entry_point, trampoline_type);
+}
+
+// Compare FfiCallbackTrampolineStub.
+void Simulator::DoRedirectedFfiCallback(Thread* thread,
+                                        CallbackContext* ctxt,
+                                        uword entry_point,
+                                        uword trampoline_type) {
+  // The C caller might not be using frame pointers, so we just hard-code a
+  // maximum frame size instead of using FP-SP like we do for callouts.
+  constexpr intptr_t kStackSlotsCopied = 128;
+
+  {
+    // <copy stack arguments>
+    // stp lr, thr, [sp, -16]!
+    uword* sp = reinterpret_cast<uword*>(get_register(R31, R31IsSP));
+    uword* sp_in = reinterpret_cast<uword*>(ctxt->sp);
+    for (intptr_t i = kStackSlotsCopied - 1; i >= 0; i--) {
+      *--sp = sp_in[i];
+    }
+    *--sp = get_register(LR);
+    *--sp = get_register(THR);
+    set_register(nullptr, R31, reinterpret_cast<uword>(sp));
+    COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
+                   2);
+  }
+
+  set_register(nullptr, R0, ctxt->integer_arguments[0]);
+  set_register(nullptr, R1, ctxt->integer_arguments[1]);
+  set_register(nullptr, R2, ctxt->integer_arguments[2]);
+  set_register(nullptr, R3, ctxt->integer_arguments[3]);
+  set_register(nullptr, R4, ctxt->integer_arguments[4]);
+  set_register(nullptr, R5, ctxt->integer_arguments[5]);
+  set_register(nullptr, R6, ctxt->integer_arguments[6]);
+  set_register(nullptr, R7, ctxt->integer_arguments[7]);
+  set_vregisterd(V0, 0, ctxt->double_arguments[0]);
+  set_vregisterd(V1, 0, ctxt->double_arguments[1]);
+  set_vregisterd(V2, 0, ctxt->double_arguments[2]);
+  set_vregisterd(V3, 0, ctxt->double_arguments[3]);
+  set_vregisterd(V4, 0, ctxt->double_arguments[4]);
+  set_vregisterd(V5, 0, ctxt->double_arguments[5]);
+  set_vregisterd(V6, 0, ctxt->double_arguments[6]);
+  set_vregisterd(V7, 0, ctxt->double_arguments[7]);
+  set_register(nullptr, R8, ctxt->r8);
+  set_register(nullptr, THR, reinterpret_cast<uword>(thread));
+
+  set_register(nullptr, LR, kEndSimulatingPC);
+  set_pc(entry_point);
+  Execute();
+
+  ctxt->integer_arguments[0] = get_register(R0);
+  ctxt->integer_arguments[1] = get_register(R1);
+  ctxt->double_arguments[0] = get_vregisterd(V0, 0);
+  ctxt->double_arguments[1] = get_vregisterd(V1, 0);
+  ctxt->double_arguments[2] = get_vregisterd(V2, 0);
+  ctxt->double_arguments[3] = get_vregisterd(V3, 0);
+
+  {
+    // ldp lr, thr, [sp], 16!
+    // <drop arguments>
+    uword* sp = reinterpret_cast<uword*>(get_register(R31, R31IsSP));
+    set_register(nullptr, THR, *sp++);
+    set_register(nullptr, LR, *sp++);
+    sp += kStackSlotsCopied;
+    set_register(nullptr, R31, reinterpret_cast<uword>(sp));
+    COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
+                   2);
+  }
+
+  if (trampoline_type ==
+      static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)) {
+    DLRT_ExitTemporaryIsolate();
+  } else {
+    thread->EnterSafepointToNative();
+  }
 }
 
 void Simulator::ClobberVolatileRegisters() {
@@ -3820,6 +3934,9 @@ void Simulator::Execute() {
   } else {
     ExecuteTrace();
   }
+
+  // We can't instrument the runtime.
+  memory_.FlushAll();
 }
 
 void Simulator::ExecuteNoTrace() {
@@ -3951,9 +4068,6 @@ int64_t Simulator::Call(int64_t entry,
   } else {
     return_value = get_register(R0);
   }
-
-  // We can't instrument the runtime.
-  memory_.FlushAll();
 
   return return_value;
 }

@@ -488,6 +488,7 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(USING_SIMULATOR) && !defined(DART_PRECOMPILER)
   // TODO(37299): FFI is not supported in SIMARM64.
+  // See Simulator::DoDirectedFfiCallback.
   __ Breakpoint();
 #else
   Label body;
@@ -552,7 +553,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, R4, R9);
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_GetFfiCallbackMetadata, R4,
+                           R9);
     } else {
       Label call;
       __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
@@ -630,7 +632,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitTemporaryIsolate, R4, R9);
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitTemporaryIsolate, R4, R9);
     } else {
       Label call;
       __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));

@@ -1414,6 +1414,9 @@ void Simulator::SupervisorCall(Instr* instr) {
   int svc = instr->SvcField();
   switch (svc) {
     case Instr::kSimulatorRedirectCode: {
+      ASSERT(Utils::IsAligned(get_register(SPREG),
+                              OS::ActivationFrameAlignment()));
+
       SimulatorSetjmpBuffer buffer(this);
 
       if (!DART_SETJMP(buffer.buffer_)) {

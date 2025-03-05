@@ -26,6 +26,7 @@ class Isolate;
 class Mutex;
 class SimulatorSetjmpBuffer;
 class Thread;
+struct CallbackContext;
 
 typedef struct {
   union {
@@ -99,6 +100,10 @@ class Simulator {
                int64_t parameter3,
                bool fp_return = false,
                bool fp_args = false);
+  void DoRedirectedFfiCallback(Thread* thread,
+                               CallbackContext* ctxt,
+                               uword entry_point,
+                               uword trampoline_type);
 
   // Runtime and native call support.
   enum CallKind {
