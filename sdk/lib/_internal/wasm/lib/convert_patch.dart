@@ -638,8 +638,23 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    * Adds slice of current chunk to string being built.
    *
    * The [start] positions is inclusive, [end] is exclusive.
+   * The [bits] is a bit-wise OR of the range of bytes/charcodes.
+   * The [codeUnitsCache] is pre-populated from the range of bytes/charcodes.
+   *
+   * The [codeUnitsCache] may be shorter than the range of bytes/charcodes in
+   * which case it cannot be used, the implementation has to populate a separate
+   * wasm array for the range.
+   *
+   * The [codeUnitsCache] should only be used if the [bits] indicate the string
+   * is ASCII as in that case the bytes in `[start..end[` we stored in the array
+   * are also code units.
    */
-  void addSliceToString(int start, int end, int bits);
+  void addSliceToString(
+    int start,
+    int end,
+    int bits,
+    WasmArray<WasmI16> codeUnitsCache,
+  );
 
   /**
    * Adds a string slice to the string being built.
@@ -659,26 +674,20 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    *
    * This is used for string literals that contain no escapes.
    */
-  String getString(int start, int end, int bits);
+  String getString(
+    int start,
+    int end,
+    int bits,
+    WasmArray<WasmI16> codeUnitsCache,
+  );
 
   /**
    * Same as [getString] but with [hash] containing the already computed string
    * hash.
-   */
-  String getStringWithHash(int start, int end, int bits, int hash);
-
-  /**
-   * Parse a slice of the current chunk as a number.
    *
-   * Since integers have a maximal value, and we don't track the value
-   * in the buffer, a sequence of digits can be either an int or a double.
-   * The `num.parse` function does the right thing.
-   *
-   * The format is expected to be correct.
+   * Used to create string objects for keys in json objects.
    */
-  num parseNum(int start, int end) {
-    return num.parse(getString(start, end, 0x7f));
-  }
+  String getJsonObjectKeyString(int start, int end, int bits, int hash);
 
   /**
    * Parse a slice of the current chunk as a double.
@@ -688,7 +697,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    * built exactly during parsing.
    */
   double parseDouble(int start, int end) {
-    return _jsParseFloat(getString(start, end, 0x7f));
+    return _jsParseFloat(getString(start, end, 0x7f, _emptyCodeUnitsCache));
   }
 
   /**
@@ -923,7 +932,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
               state == STATE_OBJECT_EMPTY || state == STATE_OBJECT_COMMA;
           state |= VALUE_READ_BITS;
           if (calculateHash) {
-            position = parseStringWithHash(position + 1);
+            position = parseStringUsedAsKey(position + 1);
           } else {
             position = parseString(position + 1);
           }
@@ -1132,18 +1141,19 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    * Returned position right after the final quote.
    */
   int parseString(int position) {
-    return _parseStringWithHashInternal(position, false);
+    return _parseStringInternal(position, false);
   }
 
   /**
-   * Same as [parseString] but also calculates the string hash.
+   * Same as [parseString] but the caller knows this string will be used as a
+   * key in a json object.
    */
-  int parseStringWithHash(int position) {
-    return _parseStringWithHashInternal(position, true);
+  int parseStringUsedAsKey(int position) {
+    return _parseStringInternal(position, true);
   }
 
   @pragma('wasm:prefer-inline')
-  int _parseStringWithHashInternal(int position, bool computeHash) {
+  int _parseStringInternal(int position, bool isJsonObjectKey) {
     // Format: '"'([^\x00-\x1f\\\"]|'\\'[bfnrt/\\"])*'"'
     // Initial position is right after first '"'.
     int start = position;
@@ -1151,6 +1161,45 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
     int char = 0;
     int bits = 0;
     int hash = 0;
+
+    // If our input is a JSString then we can obtain substrings using the
+    // `js-string:substring` function for it. That means we never have to go
+    // via an intermediary `WasmArray<WasmI16>` to create the JS string.
+    //
+    // If instead our intput is bytes (i.e., fused json+utf8 decoder) then we
+    // create JS strings using the `js-string:fromCharCodeArray` API. That
+    // requires copying bytes to an intermediary `WasmArray<WasmI16>`. To avoid
+    // doing two O(n) traversals over the input (first here in this function and
+    // later on when creating the array) - already when we consume the bytes
+    // here we opportunistically (i.e., assuming it's a shorter string,
+    // assuming it's ASCII) store the bytes into a pre-allocated
+    // `WasmArray<WasmI16>`. In the common case this will then avoid the
+    // additional O(n) pass.
+    //
+    // The `!isUtf16Input` condition below checks whether input is bytes (and
+    // will be compile-time evaluted to a constant due each parser returning a
+    // constant and the compiler copying the mixin for each implementation).
+    //
+    // Though if the string we currently parse is used as a key in a json
+    // object we'll with high likelyhood not need to allocate a JS String. This
+    // is due to the fact that we first try to look whether we have a matching
+    // string in the string intern cache. We therefore do not need (in the
+    // common case) go via an intermediary `WasmArray<WasmI16>`,  so we'll
+    // not popualte it for json keys.
+    //
+    // The `!isJsonObjectKey` condition below checks for that case.
+    final bool useCharCodeCache = !isUtf16Input && !isJsonObjectKey;
+    final WasmArray<WasmI16> codeUnitsCache;
+    final int codeUnitsCacheSize;
+    if (useCharCodeCache) {
+      codeUnitsCache = _codeUnitsCache;
+      codeUnitsCacheSize = _codeUnitsCacheSize;
+    } else {
+      codeUnitsCache = _emptyCodeUnitsCache;
+      codeUnitsCacheSize = _emptyCodeUnitsCacheSize;
+    }
+    int cacheIndex = 0;
+
     if (position < end) {
       do {
         // Caveat: do not combine the following two lines together. It helps
@@ -1159,39 +1208,38 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
         char = getChar(position);
         bits |= char; // Includes final '"', but that never matters.
         position++;
-        if (isUtf16Input && char > 0xFF) {
-          if (computeHash) {
-            hash = stringCombineHashes(hash, char);
+        if (!isUtf16Input || char <= 0xFF) {
+          if ((_characterAttributes.readUnsigned(char) &
+                  CHAR_SIMPLE_STRING_END) !=
+              0) {
+            break;
           }
-          continue;
         }
-        if ((_characterAttributes.readUnsigned(char) &
-                CHAR_SIMPLE_STRING_END) !=
-            0) {
-          break;
-        }
-        if (computeHash) {
+        if (isJsonObjectKey) {
           hash = stringCombineHashes(hash, char);
+        }
+        if (codeUnitsCacheSize > 0 && cacheIndex < codeUnitsCacheSize) {
+          codeUnitsCache.write(cacheIndex++, char);
         }
       } while (position < end);
       if (char == QUOTE) {
         int sliceEnd = position - 1;
         listener.handleString(
-          computeHash
-              ? getStringWithHash(
+          isJsonObjectKey
+              ? getJsonObjectKeyString(
                 start,
                 sliceEnd,
                 bits,
                 stringFinalizeHash(hash),
               )
-              : getString(start, sliceEnd, bits),
+              : getString(start, sliceEnd, bits, codeUnitsCache),
         );
         return sliceEnd + 1;
       }
       if (char == BACKSLASH) {
         int sliceEnd = position - 1;
         if (start < sliceEnd) {
-          final s = getString(start, sliceEnd, bits);
+          final s = getString(start, sliceEnd, bits, codeUnitsCache);
           beginString();
           addStringSliceToString(s);
         } else {
@@ -1204,7 +1252,9 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
       }
     }
     beginString();
-    if (start < end) addSliceToString(start, end, bits);
+    if (start < end) {
+      addSliceToString(start, end, bits, codeUnitsCache);
+    }
     return chunkString(STR_PLAIN);
   }
 
@@ -1252,10 +1302,25 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
     int end = chunkEnd;
     int start = position;
     int bits = 0;
+
+    final bool useCharCodeCache = !isUtf16Input;
+
+    final WasmArray<WasmI16> codeUnitsCache;
+    final int codeUnitsCacheSize;
+    if (useCharCodeCache) {
+      codeUnitsCache = _codeUnitsCache;
+      codeUnitsCacheSize = _codeUnitsCacheSize;
+    } else {
+      codeUnitsCache = _emptyCodeUnitsCache;
+      codeUnitsCacheSize = _emptyCodeUnitsCacheSize;
+    }
+
+    int cacheIndex = 0;
+
     while (true) {
       if (position == end) {
         if (position > start) {
-          addSliceToString(start, position, bits);
+          addSliceToString(start, position, bits, codeUnitsCache);
         }
         return chunkString(STR_PLAIN);
       }
@@ -1265,13 +1330,16 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
         char = getChar(position);
         bits |= char; // Includes final '"', but that never matters.
         position++;
-        if (isUtf16Input && char > 0xFF) {
-          continue;
+        if (!isUtf16Input || char <= 0xFF) {
+          if ((_characterAttributes.readUnsigned(char) &
+                  CHAR_SIMPLE_STRING_END) !=
+              0) {
+            break;
+          }
         }
-        if ((_characterAttributes.readUnsigned(char) &
-                CHAR_SIMPLE_STRING_END) !=
-            0) {
-          break;
+
+        if (cacheIndex < codeUnitsCacheSize) {
+          codeUnitsCache.write(cacheIndex++, char);
         }
       } while (position < end);
 
@@ -1282,7 +1350,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
       if (char == QUOTE) {
         int quotePosition = position - 1;
         if (quotePosition > start) {
-          addSliceToString(start, quotePosition, bits);
+          addSliceToString(start, quotePosition, bits, codeUnitsCache);
         }
         listener.handleString(endString());
         return position;
@@ -1294,13 +1362,14 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
 
       // Handle escape.
       if (position - 1 > start) {
-        addSliceToString(start, position - 1, bits);
+        addSliceToString(start, position - 1, bits, codeUnitsCache);
       }
 
       if (position == end) return chunkString(STR_ESCAPE);
       position = parseStringEscape(position);
       if (position == end) return position;
       start = position;
+      cacheIndex = 0;
       bits = 0;
     }
   }
@@ -1621,10 +1690,19 @@ class _JSStringImplParser extends _ChunkedJsonParserState
   int getChar(int position) => _chunkAsArray.readUnsigned(position);
 
   @pragma('wasm:prefer-inline')
-  String getString(int start, int end, int bits) =>
-      _chunkAsString.substringUnchecked(start, end);
+  String getString(
+    int start,
+    int end,
+    int bits,
+    WasmArray<WasmI16> codeUnitsCache,
+  ) {
+    // NOTE: We don't use [codeUnitsCache]. TFA's signature tree shaker should
+    // remove its usage and the caller shouldn't even populate anything (due
+    // to using [_emptyCodeUnitsCache]).
+    return _chunkAsString.substringUnchecked(start, end);
+  }
 
-  String getStringWithHash(int start, int end, int bits, int stringHash) {
+  String getJsonObjectKeyString(int start, int end, int bits, int stringHash) {
     return _internJSString(
       _chunkAsString,
       _chunkAsArray,
@@ -1638,7 +1716,12 @@ class _JSStringImplParser extends _ChunkedJsonParserState
     assert(stringBuffer.isEmpty);
   }
 
-  void addSliceToString(int start, int end, int bits) {
+  void addSliceToString(
+    int start,
+    int end,
+    int bits,
+    WasmArray<WasmI16> codeUnitsCache,
+  ) {
     addStringSliceToString(_chunkAsString.substringUnchecked(start, end));
   }
 
@@ -1669,7 +1752,7 @@ class _JSStringImplParser extends _ChunkedJsonParserState
   }
 
   double parseDouble(int start, int end) {
-    return _jsParseFloat(getString(start, end, 0x7f));
+    return _jsParseFloat(getString(start, end, 0x7f, _emptyCodeUnitsCache));
   }
 
   void close() {
@@ -1677,6 +1760,14 @@ class _JSStringImplParser extends _ChunkedJsonParserState
     _jsStringInternCache.fill(0, null, _jsStringInternCacheSize);
   }
 }
+
+const _emptyCodeUnitsCacheSize = 0;
+@pragma('wasm:initialize-at-startup')
+final _emptyCodeUnitsCache = WasmArray<WasmI16>(_emptyCodeUnitsCacheSize);
+
+const int _codeUnitsCacheSize = 512;
+@pragma("wasm:initialize-at-startup")
+final _codeUnitsCache = WasmArray<WasmI16>(_codeUnitsCacheSize);
 
 const int _jsStringInternCacheSize = 512;
 @pragma("wasm:initialize-at-startup")
@@ -1844,47 +1935,75 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
   @pragma('wasm:prefer-inline')
   int getChar(int position) => chunk.getUnchecked(position);
 
-  String getString(int start, int end, int bits) {
-    int length = end - start;
+  String getString(
+    int start,
+    int end,
+    int bits,
+    WasmArray<WasmI16> codeUnitsCache,
+  ) {
+    final int length = end - start;
     if (length == 0) return '';
 
     if (bits <= 0x7f) {
-      final result = JSStringImpl.fromAsciiBytes(
-        chunk.data,
-        chunk.offsetInElements + start,
-        chunk.offsetInElements + end,
-      );
+      return _stringFromBytesOrCache(start, end, codeUnitsCache);
     }
     beginString();
     addStringSliceToString(decoder.convertChunked(chunk, start, end));
     return endString();
   }
 
-  String getStringWithHash(int start, int end, int bits, int stringHash) {
+  String getJsonObjectKeyString(int start, int end, int bits, int stringHash) {
     // We can only rely on [stringHash] if [bits] tell us it was ASCII.
     if (bits <= 0x7f) {
       return _internJSStringFromAsciiSlice(chunk, stringHash, start, end);
     }
-    return getString(start, end, bits);
+    beginString();
+    addStringSliceToString(decoder.convertChunked(chunk, start, end));
+    return endString();
   }
 
   void beginString() {
+    assert(stringBuffer.isEmpty);
     decoder.reset();
-    stringBuffer.clear();
   }
 
-  void addSliceToString(int start, int end, int bits) {
+  void addSliceToString(
+    int start,
+    int end,
+    int bits,
+    WasmArray<WasmI16> codeUnitsCache,
+  ) {
     if (!decoder.expectsContinuation && bits <= 0x7f) {
       addStringSliceToString(
-        JSStringImpl.fromAsciiBytes(
+        _stringFromBytesOrCache(start, end, codeUnitsCache),
+      );
+      return;
+    }
+    addStringSliceToString(decoder.convertChunked(chunk, start, end));
+  }
+
+  JSStringImpl _stringFromBytesOrCache(
+    int start,
+    int end,
+    WasmArray<WasmI16> codeUnitsCache,
+  ) {
+    final length = end - start;
+    if (length <= codeUnitsCache.length) {
+      assert(
+        _verifyCacheIsValid(
+          codeUnitsCache,
           chunk.data,
           chunk.offsetInElements + start,
           chunk.offsetInElements + end,
         ),
       );
-      return;
+      return JSStringImpl.fromCharCodeArray(codeUnitsCache, 0, length);
     }
-    addStringSliceToString(decoder.convertChunked(chunk, start, end));
+    return JSStringImpl.fromAsciiBytes(
+      chunk.data,
+      chunk.offsetInElements + start,
+      chunk.offsetInElements + end,
+    );
   }
 
   void addStringSliceToString(String string) {
@@ -1921,6 +2040,22 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
     );
     return _jsParseFloat(result);
   }
+}
+
+bool _verifyCacheIsValid(
+  WasmArray<WasmI16> codeUnitsCache,
+  WasmArray<WasmI8> source,
+  int start,
+  int end,
+) {
+  final length = end - start;
+  assert(length <= codeUnitsCache.length);
+  for (int i = 0; i < length && i < codeUnitsCache.length; ++i) {
+    if (source.readUnsigned(start + i) != codeUnitsCache.readUnsigned(i)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
