@@ -32,8 +32,17 @@ void main() async {
   Isolate.spawn((_) => isolateMain(), null, onError: errorPort.sendPort);
   var errorAndStack = await errorPort.first as List<Object?>;
   Expect.listEquals([
-    "Instance of 'ThrowingToStringError'",
-    "Instance of 'ThrowingToStringStackTrace'",
+    "Instance of '${(#ThrowingToStringError).name}'",
+    "Instance of '${(#ThrowingToStringStackTrace).name}'",
   ], errorAndStack);
   asyncEnd();
+}
+
+final symbolToStringPattern = RegExp(r'^Symbol[(]"(?<name>.+)"[)]$');
+
+extension on Symbol {
+  String get name {
+    final match = symbolToStringPattern.firstMatch(toString())!;
+    return match.namedGroup('name')!;
+  }
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 // ignore: implementation_imports
@@ -180,6 +181,11 @@ extension ExpressionExtensions on Expression {
           // A non-generic class or extension type.
           return true;
         }
+      case PrefixExpression()
+          when (self.operand is IntegerLiteral ||
+                  self.operand is DoubleLiteral) &&
+              self.operator.type == TokenType.MINUS:
+        return self.operand.hasObviousType;
       case CascadeExpression():
         return self.target.hasObviousType;
       case AsExpression():
