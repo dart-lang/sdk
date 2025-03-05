@@ -887,12 +887,13 @@ PrefixExpression
   }
 
   test_propertyAccess_never_read() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Never x) {
-  // ignore: dead_code
   x.foo;
 }
-''');
+''', [
+      error(WarningCode.DEAD_CODE, 22, 4),
+    ]);
 
     var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
@@ -915,12 +916,13 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_never_read_hashCode() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Never x) {
-  // ignore: dead_code
   x.hashCode;
 }
-''');
+''', [
+      error(WarningCode.DEAD_CODE, 22, 9),
+    ]);
 
     var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
@@ -987,12 +989,13 @@ AssignmentExpression
   }
 
   test_propertyAccess_never_tearOff_toString() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Never x) {
-  // ignore: dead_code
   x.toString;
 }
-''');
+''', [
+      error(WarningCode.DEAD_CODE, 22, 9),
+    ]);
 
     var node = findNode.singlePrefixedIdentifier;
     assertResolvedNodeText(node, r'''
@@ -1143,12 +1146,13 @@ PrefixedIdentifier
   }
 
   test_propertyAccess_toString() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
-  // ignore: dead_code
   (throw '').toString;
 }
-''');
+''', [
+      error(WarningCode.DEAD_CODE, 24, 9),
+    ]);
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
@@ -1173,12 +1177,13 @@ PropertyAccess
   }
 
   test_throw_getter_hashCode() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
-  // ignore: dead_code
   (throw '').hashCode;
 }
-''');
+''', [
+      error(WarningCode.DEAD_CODE, 24, 9),
+    ]);
 
     var node = findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''

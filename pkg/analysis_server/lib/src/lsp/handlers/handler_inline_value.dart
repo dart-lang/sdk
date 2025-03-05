@@ -4,11 +4,13 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/extensions/positions.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_null_check_to_null_aware_element_or_entry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -66,13 +68,19 @@ class InlineValueHandler
         // Find the function that is executing. We will only show values for
         // this single function expression.
         var node = await server.getNodeAtOffset(filePath, stoppedOffset);
-        var function = node?.thisOrAncestorOfType<FunctionExpression>();
+        var function = node?.thisOrAncestorMatching(
+          (node) => node is FunctionExpression || node is MethodDeclaration,
+        );
         if (function == null) {
           return success(null);
         }
 
         var collector = _InlineValueCollector(lineInfo, applicableRange);
-        var visitor = _InlineValueVisitor(collector, function);
+        var visitor = _InlineValueVisitor(
+          server.lspClientConfiguration,
+          collector,
+          function,
+        );
         function.accept(visitor);
 
         return success(collector.values.values.toList());
@@ -117,18 +125,63 @@ class _InlineValueCollector {
 
   _InlineValueCollector(this.lineInfo, this.applicableRange);
 
-  /// Records a variable inline value for [element] with [offset]/[length].
+  /// Records an expression inline value for [element] with [offset]/[length].
   ///
-  /// Variable inline values are sent to the client without expressions/names
-  /// because the client can infer the name from the range and look it up from
-  /// the debuggers Scopes/Variables.
-  void recordVariableLookup(Element2? element, int offset, int length) {
-    if (element == null || element.isWildcardVariable) return;
-
+  /// Expression values are sent to the client without expressions because the
+  /// client can use the range from the source to get the expression.
+  void recordExpression(Element2? element, int offset, int length) {
     assert(offset >= 0);
     assert(length > 0);
+    if (element == null) return;
 
     var range = toRange(lineInfo, offset, length);
+
+    var value = InlineValue.t1(
+      InlineValueEvaluatableExpression(
+        range: range,
+        // We don't provide expression, because it always matches the source
+        // code and can be inferred.
+      ),
+    );
+    _record(value, element);
+  }
+
+  /// Records a variable inline value for [element] with [offset]/[length].
+  ///
+  /// Variable inline values are sent to the client without names because the
+  /// client can infer the name from the range and look it up from the debuggers
+  /// Scopes/Variables.
+  void recordVariableLookup(Element2? element, int offset, int length) {
+    assert(offset >= 0);
+    assert(length > 0);
+    if (element == null || element.isWildcardVariable) return;
+
+    var range = toRange(lineInfo, offset, length);
+
+    var value = InlineValue.t3(
+      InlineValueVariableLookup(
+        caseSensitiveLookup: true,
+        range: range,
+        // We don't provide name, because it always matches the source code
+        // for a variable and can be inferred.
+      ),
+    );
+    _record(value, element);
+  }
+
+  /// Extracts the range from an [InlineValue].
+  Range _getRange(InlineValue value) {
+    return value.map(
+      (expression) => expression.range,
+      (text) => text.range,
+      (variable) => variable.range,
+    );
+  }
+
+  /// Records an inline value [value] for [element] if it is within range and is
+  /// the latest one in the source for that element.
+  void _record(InlineValue value, Element2 element) {
+    var range = _getRange(value);
 
     // Never record anything outside of the visible range.
     if (!range.intersects(applicableRange)) {
@@ -137,34 +190,28 @@ class _InlineValueCollector {
 
     // We only want to show each variable once, so keep only the one furthest
     // into the source (closest to the execution pointer).
-    var existingPosition = values[element]?.map(
-      (expression) => expression.range.start,
-      (text) => text.range.start,
-      (variable) => variable.range.start,
-    );
-    if (existingPosition != null &&
-        existingPosition.isAfterOrEqual(range.start)) {
-      return;
+    if (values[element] case var existingValue?) {
+      var existingPosition = _getRange(existingValue).start;
+      if (existingPosition.isAfterOrEqual(range.start)) {
+        return;
+      }
     }
 
-    values[element] = InlineValue.t3(
-      InlineValueVariableLookup(
-        caseSensitiveLookup: true,
-        range: range,
-        // We don't provide name, because it always matches the source code
-        // for a variable and can be inferred.
-      ),
-    );
+    values[element] = value;
   }
 }
 
 /// Visits a function expression and reports nodes that should have inline
 /// values to [collector].
 class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
+  final LspClientConfiguration clientConfiguration;
   final _InlineValueCollector collector;
-  final FunctionExpression rootFunction;
+  final AstNode rootNode;
 
-  _InlineValueVisitor(this.collector, this.rootFunction);
+  _InlineValueVisitor(this.clientConfiguration, this.collector, this.rootNode);
+
+  bool get experimentalInlineValuesProperties =>
+      clientConfiguration.global.experimentalInlineValuesProperties;
 
   @override
   void visitFormalParameter(FormalParameter node) {
@@ -182,7 +229,7 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     // Don't descend into nested functions.
-    if (node != rootFunction) {
+    if (node != rootNode) {
       return;
     }
 
@@ -190,12 +237,53 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    switch (node.element) {
-      case LocalVariableElement2(name3: _?):
-      case FormalParameterElement():
-        collector.recordVariableLookup(node.element, node.offset, node.length);
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (experimentalInlineValuesProperties) {
+      var parent = node.parent;
+
+      // Never produce values for the left side of a property access.
+      var isTarget = parent is PropertyAccess && node == parent.realTarget;
+      if (!isTarget) {
+        collector.recordExpression(node.element, node.offset, node.length);
+      }
     }
+
+    super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    if (experimentalInlineValuesProperties && node.target is Identifier) {
+      collector.recordExpression(
+        node.canonicalElement,
+        node.offset,
+        node.length,
+      );
+    }
+
+    super.visitPropertyAccess(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var parent = node.parent;
+
+    // Never produce values for the left side of a prefixed identifier.
+    // Or parts of an invocation.
+    var isTarget = parent is PrefixedIdentifier && node == parent.prefix;
+    var isInvocation = parent is InvocationExpression;
+    if (!isTarget && !isInvocation) {
+      switch (node.element) {
+        case LocalVariableElement2(name3: _?):
+        case FormalParameterElement():
+          collector.recordVariableLookup(
+            node.element,
+            node.offset,
+            node.length,
+          );
+      }
+    }
+
     super.visitSimpleIdentifier(node);
   }
 

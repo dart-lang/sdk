@@ -191,6 +191,10 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   bool get completeFunctionCalls =>
       _settings['completeFunctionCalls'] as bool? ?? false;
 
+  /// A flag for including property access in Inline Values.
+  bool get experimentalInlineValuesProperties =>
+      _settings['experimentalInlineValuesProperties'] as bool? ?? false;
+
   /// A flag for enabling interactive refactors flagged as experimental.
   ///
   /// This flag is likely to be used by both analysis server developers (working

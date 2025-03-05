@@ -287,9 +287,8 @@ Future<CompilerResult> _compile(List<String> args,
         packageFile != null ? sourcePathToUri(packageFile) : null,
         sourcePathToUri(librarySpecPath),
         additionalDills,
-        DevCompilerTarget(TargetFlags(
-            trackWidgetCreation: trackWidgetCreation,
-            soundNullSafety: options.soundNullSafety)),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables);
@@ -326,9 +325,8 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(librarySpecPath),
         additionalDills,
         inputDigests,
-        DevCompilerTarget(TargetFlags(
-            trackWidgetCreation: trackWidgetCreation,
-            soundNullSafety: options.soundNullSafety)),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,

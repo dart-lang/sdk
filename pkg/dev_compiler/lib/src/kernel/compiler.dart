@@ -783,28 +783,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             libraries.any((l) => allowedNativeTest(l.importUri)));
     _ticker?.logMs('Emitted imports and extension symbols');
 
-    // Insert a check that runs when loading this module to verify that the null
-    // safety mode it was compiled in matches the mode used when compiling the
-    // dart sdk module.
-    //
-    // This serves as a sanity check at runtime that we don't have an
-    // infrastructure issue that loaded js files compiled with different modes
-    // into the same application.
-    js_ast.LiteralBool soundNullSafety;
-    switch (component.mode) {
-      case NonNullableByDefaultCompiledMode.Strong:
-        soundNullSafety = js_ast.LiteralBool(true);
-      case NonNullableByDefaultCompiledMode.Weak:
-        soundNullSafety = js_ast.LiteralBool(false);
-      default:
-        throw StateError('Unsupported Null Safety mode ${component.mode}, '
-            'in ${component.location?.file}.');
-    }
-    if (!_isBuildingSdk) {
-      items.add(_runtimeStatement(
-          '_checkModuleNullSafetyMode(#)', [soundNullSafety]));
-    }
-
     // Emit the hoisted type table cache variables
     items.addAll(_typeTable.dischargeBoundTypes());
     _ticker?.logMs('Emitted type table');
@@ -2517,12 +2495,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var body = <js_ast.Statement>[];
     var value = _emitIdentifier('value');
-    // Avoid adding a null checks on forwarding field setters.
-    if (field.hasSetter &&
-        _requiresExtraNullCheck(field.setterType, field.annotations)) {
-      body.add(
-          _nullSafetyParameterCheck(value, field.location, field.name.text));
-    }
     var args = field.isFinal
         ? [js_ast.Super(), name, value]
         : [
@@ -2718,16 +2690,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               member.fileOffset,
               member.name.text.length));
         if (!member.isFinal && !member.isConst) {
-          var body = <js_ast.Statement>[];
-          var value = _emitIdentifier('value');
-          if (_requiresExtraNullCheck(member.setterType, member.annotations)) {
-            body.add(_nullSafetyParameterCheck(
-                value, member.location, member.name.text));
-          }
-          // Even when no null check is present a dummy setter is still required
-          // to indicate writeable.
-          accessors.add(js_ast.Method(
-              access, js_ast.Fun([value], js_ast.Block(body)),
+          // A dummy setter is still required to indicate writeable.
+          accessors.add(js_ast.Method(access,
+              js_ast.Fun([_emitIdentifier('value')], js_ast.Block(const [])),
               isSetter: true));
         }
       } else if (member is Procedure) {
@@ -3753,15 +3718,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       FunctionNode fn, List<js_ast.Statement> Function() action) {
     var savedFunction = _currentFunction;
     _currentFunction = fn;
-    if (_isDartLibrary(_currentLibrary!, '_rti') ||
-        _isSdkInternalRuntime(_currentLibrary!)) {
-      _nullableInference.treatDeclaredTypesAsSound = true;
-    }
     _nullableInference.enterFunction(fn);
     var result = _withLetScope(action);
     _nullableInference.exitFunction(fn);
-    _nullableInference.treatDeclaredTypesAsSound = false;
-
     _currentFunction = savedFunction;
     return result;
   }
@@ -3793,48 +3752,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Returns true if the underlying type does not accept a null value.
   bool _mustBeNonNullable(DartType type) =>
       type.nullability == Nullability.nonNullable;
-
-  /// Returns `true` when an additional null check is needed because of the
-  /// null safety compile mode, the null safety migration status of the current
-  /// library and the provided [type] with its [annotations].
-  bool _requiresExtraNullCheck(DartType type, List<Expression> annotations) =>
-      !_options.soundNullSafety &&
-      // Libraries that haven't been migrated to null safety represent
-      // non-nullable as legacy.
-      _currentLibrary!.nonNullable == Nullability.nonNullable &&
-      _mustBeNonNullable(type) &&
-      !_annotatedNotNull(annotations) &&
-      // Trust the nullability of types in the dart:_rti library.
-      !_isDartLibrary(_currentLibrary!, '_rti');
-
-  /// Returns a null check for [value] that if fails produces an error message
-  /// containing the [location] and [name] of the original value being checked.
-  ///
-  /// This is used to generate checks for non-nullable parameters when running
-  /// with weak null safety. The checks can be silent, warn, or throw, depending
-  /// on the flags set in the SDK at runtime.
-  js_ast.Statement _nullSafetyParameterCheck(
-      js_ast.Identifier value, Location? location, String? name) {
-    // TODO(nshahan): Remove when weak mode null safety assertions are no longer
-    // supported.
-    // The check on `field.setterType` is per:
-    // https://github.com/dart-lang/language/blob/master/accepted/2.12/nnbd/feature-specification.md#automatic-debug-assertion-insertion
-    var condition = js.call('# == null', [value]);
-    // Offsets are not available for compiler-generated variables
-    // Get the best available location even if the offset is missing.
-    // https://github.com/dart-lang/sdk/issues/34942
-    return js.statement(' if (#) #;', [
-      condition,
-      _runtimeCall('nullFailed(#, #, #, #)', [
-        location != null
-            ? _cacheUri(location.file.toString())
-            : js_ast.LiteralNull(),
-        js.number(location?.line ?? -1),
-        js.number(location?.column ?? -1),
-        js.escapedString('$name')
-      ])
-    ]);
-  }
 
   /// Emits argument initializers, which handles optional/named args, as well
   /// as generic type checks needed due to our covariance.
@@ -3879,8 +3796,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       if (_annotatedNullCheck(p.annotations)) {
         body.add(_nullParameterCheck(jsParam));
-      } else if (_requiresExtraNullCheck(p.type, p.annotations)) {
-        body.add(_nullSafetyParameterCheck(jsParam, p.location, p.name));
       }
     }
 
@@ -3924,9 +3839,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _annotatedNullCheck(List<Expression> annotations) =>
       annotations.any(_nullableInference.isNullCheckAnnotation);
-
-  bool _annotatedNotNull(List<Expression> annotations) =>
-      annotations.any(_nullableInference.isNotNullAnnotation);
 
   bool _reifyGenericFunction(Member? m) =>
       m == null ||
@@ -5202,8 +5114,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// This is true for non-nullable native return types.
   bool _isNullCheckableNative(Member member) {
     var c = member.enclosingClass;
-    return _options.soundNullSafety &&
-        member.isExternal &&
+    return member.isExternal &&
         c != null &&
         _extensionTypes.isNativeClass(c) &&
         member is Procedure &&
@@ -6143,6 +6054,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           if (name == 'TYPE_REF') {
             return _emitType(typeArgs.single);
           }
+          // TODO(nshahan): Delete after uses are deleted from dart:_rti and the
+          // external signature is removed from dart:_foreign_helper.
           if (name == 'LEGACY_TYPE_REF') {
             return _emitType(
                 typeArgs.single.withDeclaredNullability(Nullability.legacy));
@@ -6184,22 +6097,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           var value = flag.value;
           return switch (value) {
             'DEV_COMPILER' => js.boolean(true),
-            'PRINT_LEGACY_STARS' => js.boolean(_options.printLegacyStars),
-            'LEGACY' => _options.soundNullSafety
-                ? js.boolean(false)
-                // When running the new runtime type system with weak null
-                // safety this flag gets toggled when performing `is` and `as`
-                // checks. This allows DDC to produce optional warnings or
-                // errors when tests pass but would fail in sound null safety.
-                : _runtimeCall('legacyTypeChecks'),
-            'SOUND_NULL_SAFETY' => js.boolean(_options.soundNullSafety),
-            'EXTRA_NULL_SAFETY_CHECKS' => _options.soundNullSafety
-                ? js.boolean(false)
-                // When running the new runtime type system with weak null
-                // safety this flag gets toggled when performing `is` and `as`
-                // checks. This allows DDC to produce optional warnings or
-                // errors when tests pass but would fail in sound null safety.
-                : _runtimeCall('extraNullSafetyChecks'),
+            // TODO(nshahan): Delete 'PRINT_LEGACY_STARS', 'LEGACY', and
+            // 'EXTRA_NULL_SAFETY_CHECKS' after uses are deleted from dart:_rti.
+            'PRINT_LEGACY_STARS' => js.boolean(false),
+            'LEGACY' => js.boolean(false),
+            'EXTRA_NULL_SAFETY_CHECKS' => js.boolean(false),
             'MINIFIED' => js.boolean(false),
             'VARIANCE' =>
               // Variance is turned on by default, but only interfaces that have
@@ -6501,7 +6403,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Add a check to make sure any JS() values from a native type are typed
     // properly in sound null-safety.
-    if (_isWebLibrary(_currentLibrary!.importUri) && _options.soundNullSafety) {
+    if (_isWebLibrary(_currentLibrary!.importUri)) {
       var type = node.getStaticType(_staticTypeContext);
       if (type.isPotentiallyNonNullable) {
         result = _runtimeCall('checkNativeNonNull(#)', [result]);
@@ -6610,15 +6512,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Returns true if [expr] can be null.
-  bool _isNullable(Expression expr) {
-    if (_isDartLibrary(_currentLibrary!, '_rti') ||
-        _isSdkInternalRuntime(_currentLibrary!)) {
-      _nullableInference.treatDeclaredTypesAsSound = true;
-    }
-    final result = _nullableInference.isNullable(expr);
-    _nullableInference.treatDeclaredTypesAsSound = false;
-    return result;
-  }
+  bool _isNullable(Expression expr) => _nullableInference.isNullable(expr);
 
   js_ast.Expression _emitJSDoubleEq(List<js_ast.Expression> args,
       {bool negated = false}) {
@@ -7657,7 +7551,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var headerOptions = [
       if (_options.canaryFeatures) 'canary',
       if (_options.emitLibraryBundle) 'emitLibraryBundle',
-      'soundNullSafety(${_options.soundNullSafety})',
       'enableAsserts(${_options.enableAsserts})',
     ];
     var enabledExperiments = <String>[];

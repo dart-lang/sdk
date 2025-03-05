@@ -171,10 +171,10 @@ void f(int a) {
     await assertErrorsInCode(r'''
 Never doNotReturn() => throw 0;
 
-// ignore: unnecessary_type_check_true
 test() => doNotReturn() is int;
 ''', [
-      error(WarningCode.DEAD_CODE, 99, 4),
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 43, 20),
+      error(WarningCode.DEAD_CODE, 60, 4),
     ]);
   }
 

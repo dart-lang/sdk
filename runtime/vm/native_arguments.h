@@ -22,10 +22,10 @@ class Thread;
 #if defined(TESTING) || defined(DEBUG)
 
 #if defined(USING_SIMULATOR)
+// The simulator/isolate might not exist yet for an async FFI callback, so do
+// not check. An equivalent check exists in the simulator itself.
 #define CHECK_STACK_ALIGNMENT                                                  \
   {                                                                            \
-    uword current_sp = Simulator::Current()->get_register(SPREG);              \
-    ASSERT(Utils::IsAligned(current_sp, OS::ActivationFrameAlignment()));      \
   }
 #elif defined(DART_HOST_OS_WINDOWS)
 // The compiler may dynamically align the stack on Windows, so do not check.

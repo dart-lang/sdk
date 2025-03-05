@@ -6,17 +6,17 @@
 // we need it be executable in contexts where we cannot JIT. (Alternatively, we
 // could start requiring the VM snapshot to be provided in every mode.)
 
-#if defined(__aarch64__)
+#if defined(__aarch64__) && defined(SIMULATOR_FFI)
 
 .text
 
 #if defined(__APPLE__)
-.globl _FfiCalloutTrampoline
-_FfiCalloutTrampoline:
+.globl _SimulatorFfiCalloutTrampoline
+_SimulatorFfiCalloutTrampoline:
 #else
-.globl FfiCalloutTrampoline
-.type FfiCalloutTrampoline, %function
-FfiCalloutTrampoline:
+.globl SimulatorFfiCalloutTrampoline
+.type SimulatorFfiCalloutTrampoline, %function
+SimulatorFfiCalloutTrampoline:
 #endif
   stp fp, lr, [sp, #-16]!
   mov fp, sp
@@ -39,22 +39,14 @@ FfiCalloutTrampoline:
   // Load the ABI argument registers. Note that Dart FFI does not support
   // full 128-bit SIMD arguments, so we don't need to set the full V
   // registers.
-  ldr x0, [x19, #32]  // CalloutContext.integer_arguments[0]
-  ldr x1, [x19, #40]
-  ldr x2, [x19, #48]
-  ldr x3, [x19, #56]
-  ldr x4, [x19, #64]
-  ldr x5, [x19, #72]
-  ldr x6, [x19, #80]
-  ldr x7, [x19, #88]
-  ldr d0, [x19, #96]  // CalloutContext.double_arguments[0]
-  ldr d1, [x19, #104]
-  ldr d2, [x19, #112]
-  ldr d3, [x19, #120]
-  ldr d4, [x19, #128]
-  ldr d5, [x19, #136]
-  ldr d6, [x19, #144]
-  ldr d7, [x19, #152]
+  ldp x0, x1, [x19, #32]  // CalloutContext.integer_arguments[0]
+  ldp x2, x3, [x19, #48]
+  ldp x4, x5, [x19, #64]
+  ldp x6, x7, [x19, #80]
+  ldp d0, d1, [x19, #96]  // CalloutContext.double_arguments[0]
+  ldp d2, d3, [x19, #112]
+  ldp d4, d5, [x19, #128]
+  ldp d6, d7, [x19, #144]
   ldr x8, [x19, #160]  // CalloutContext.r8
 
   // Call target.
@@ -62,17 +54,79 @@ FfiCalloutTrampoline:
   blr lr
 
   // Save the ABI result registers.
-  str x0, [x19, #32]  // CalloutContext.integer_arguments[0]
-  str x1, [x19, #40]
-  str d0, [x19, #96]  // CalloutContext.double_arguments[0]
-  str d1, [x19, #104]
+  stp x0, x1, [x19, #32]  // CalloutContext.integer_arguments[0]
+  stp d0, d1, [x19, #96]  // CalloutContext.double_arguments[0]
+  stp d2, d3, [x19, #112]
 
   add sp, fp, -16
   ldp x19, x20, [sp], #16
   ldp fp, lr, [sp], #16
   ret
 #if !defined(__APPLE__)
-.size FfiCalloutTrampoline,.-FfiCalloutTrampoline
+.size SimulatorFfiCalloutTrampoline,.-SimulatorFfiCalloutTrampoline
 #endif
 
-#endif  // defined(__aarch64__)
+#if defined(__APPLE__)
+.globl _SimulatorFfiCallbackTrampoline
+_SimulatorFfiCallbackTrampoline:
+#else
+.globl SimulatorFfiCallbackTrampoline
+.type SimulatorFfiCallbackTrampoline, %function
+SimulatorFfiCallbackTrampoline:
+#endif
+  // FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8150
+  .rept 8150
+  adr x9, 0
+  b .Lbody
+  .endr
+.Lbody:
+  mov x10, sp
+  stp fp, lr, [sp, #-16]!
+  mov fp, sp
+
+  add sp, sp, -144  // Allocate CallbackContext
+
+  // Save ABI argument registers.
+  stp x0, x1, [sp, #0]  // CallbackContext.integer_arguments[0]
+  stp x2, x3, [sp, #16]
+  stp x4, x5, [sp, #32]
+  stp x6, x7, [sp, #48]
+  stp d0, d1, [sp, #64]  // CallbackContext.double_arguments[0]
+  stp d2, d3, [sp, #80]
+  stp d4, d5, [sp, #96]
+  stp d6, d7, [sp, #112]
+  str x8, [sp, #128]  // CallbackContext.r8
+  str x10, [sp, #136]  // CallbackContext.sp
+
+  // Pass arguments registers and thunk address to the runtime.
+  mov x0, sp
+  mov x1, x9  // I.e., which callback.
+#if defined(__APPLE__)
+  bl _DoRedirectedFfiCallback
+#else
+  bl DoRedirectedFfiCallback
+#endif
+
+  // Load ABI result registers.
+  ldp x0, x1, [sp, #0]  // CallbackContext.integer_arguments[0]
+  ldp d0, d1, [sp, #64]  // CallbackContext.double_arguments[0]
+  ldp d2, d3, [sp, #80]
+
+  mov sp, fp
+  ldp fp, lr, [sp], #16
+  ret
+#if !defined(__APPLE__)
+.size SimulatorFfiCallbackTrampoline,.-SimulatorFfiCallbackTrampoline
+#endif
+
+#if defined(__APPLE__)
+.globl _SimulatorFfiCallbackTrampolineEnd
+_SimulatorFfiCallbackTrampolineEnd:
+#else
+.globl SimulatorFfiCallbackTrampolineEnd
+.type SimulatorFfiCallbackTrampolineEnd, %function
+SimulatorFfiCallbackTrampolineEnd:
+#endif
+  brk 0
+
+#endif  // defined(__aarch64__) && defined(SIMULATOR_FFI)

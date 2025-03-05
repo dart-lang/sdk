@@ -123,7 +123,6 @@ suggestions
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/59724')
   Future<void> test_field2() async {
     allowedIdentifiers = const {'myField'};
     await computeSuggestions('''
@@ -163,6 +162,44 @@ suggestions
     await computeSuggestions('''
 class MyClass1 {
   /// This doc should suggest the commented getter name [myG^].
+  int get myGetter => 0;
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  myGetter
+    kind: getter
+''');
+  }
+
+  Future<void> test_getter2() async {
+    allowedIdentifiers = const {'myGetter'};
+    await computeSuggestions('''
+/// This is unrelated but should suggest name [MyExtension1.myG^].
+var myVariable = 0;
+
+extension MyExtension1 {
+  int get myGetter => 0;
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  myGetter
+    kind: getter
+''');
+  }
+
+  Future<void> test_getter3() async {
+    allowedIdentifiers = const {'myGetter'};
+    await computeSuggestions('''
+/// This is unrelated but should suggest name [MyExtensionType1.myG^].
+var myVariable = 0;
+
+extension type MyExtensionType1(int i) {
   int get myGetter => 0;
 }
 ''');

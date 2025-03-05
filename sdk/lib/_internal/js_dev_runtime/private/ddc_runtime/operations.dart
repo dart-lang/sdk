@@ -340,11 +340,7 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
       var error =
           "Dynamic call with missing required named arguments: "
           "$argNames.";
-      if (!JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-        _nullWarn(error);
-      } else {
-        return error;
-      }
+      return error;
     }
   }
   // Now that we know the signature matches, we can perform type checks.
@@ -557,9 +553,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
       for (var i = 0; i < typeParameterCount; i++) {
         var bound = JS<rti.Rti>('!', '#[#]', typeParameterBounds, i);
         var typeArg = JS<rti.Rti>('!', '#[#]', typeArgs, i);
-        // TODO(nshahan): Skip type checks when the bound is a top type once
-        // there is no longer any warnings/errors in weak null safety mode.
-        if (bound != typeArg) {
+        if (bound != typeArg && !rti.isSoundTopType(bound)) {
           var instantiatedBound = rti.substitute(bound, typeArgs);
           var validSubtype = rti.isSubtype(
             JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),
@@ -728,27 +722,17 @@ bool test(bool? obj) {
 }
 
 bool dtest(obj) {
-  // Only throw an AssertionError in weak mode for compatibility. Strong mode
-  // should throw a TypeError.
-  if (obj is! bool)
-    booleanConversionFailed(JS_GET_FLAG('SOUND_NULL_SAFETY') ? obj : test(obj));
+  if (obj is! bool) {
+    var actual = typeName(getReifiedType(obj));
+    throw TypeErrorImpl("type '$actual' is not a 'bool' in boolean expression");
+  }
   return obj;
-}
-
-Never booleanConversionFailed(obj) {
-  var actual = typeName(getReifiedType(obj));
-  throw TypeErrorImpl("type '$actual' is not a 'bool' in boolean expression");
 }
 
 asInt(obj) {
   // Note: null (and undefined) will fail this test.
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    if (obj == null && !JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-      _nullWarnOnType(JS('', '#', int));
-      return null;
-    } else {
-      castError(obj, JS('', '#', int));
-    }
+    castError(obj, JS('', '#', int));
   }
   return obj;
 }
@@ -772,18 +756,13 @@ _notNull(x) {
 
 /// Checks for null or undefined and returns [x].
 ///
-/// Throws a [TypeError] when [x] is null or undefined (under sound null safety
-/// mode) or emits a runtime warning (otherwise).
+/// Throws a [TypeError] when [x] is null or undefined.
 ///
 /// This is only used by the compiler when casting from nullable to non-nullable
 /// variants of the same type.
 nullCast(x, type) {
   if (x == null) {
-    if (!JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-      _nullWarnOnType(type);
-    } else {
-      castError(x, type);
-    }
+    castError(x, type);
   }
   return x;
 }
@@ -1024,39 +1003,36 @@ String str(obj) {
   if (obj is String) return obj;
   if (obj == null) return "null";
   var probe = JS('', '#[#]', obj, extensionSymbol('toString'));
-  // TODO(40614): Declare `result` as String once non-nullability is sound.
-  final result =
-      JS<bool>('!', '# !== void 0', probe)
-          // If this object has a Dart toString method, call it.
-          ? JS('', '#.call(#)', probe, obj)
-          // Otherwise call the native JavaScript toString method.
-          // This differs from dart2js to provide a more useful toString at
-          // development time if one is available.
-          // If obj does not have a native toString method this will throw but
-          // that matches the behavior of dart2js and it would be misleading to
-          // make this work at development time but allow it to fail in
-          // production.
-          : JS('', '#.toString()', obj);
+  if (JS<bool>('!', '# !== void 0', probe)) {
+    // If this object has a Dart toString method, call it.
+    return JS<String>('', '#.call(#)', probe, obj);
+  }
+  // Otherwise call the native JavaScript toString method.
+  // This differs from dart2js to provide a more useful toString at
+  // development time if one is available.
+  // If obj does not have a native toString method this will throw but that
+  // matches the behavior of dart2js and it would be misleading to make this
+  // work at development time but allow it to fail in production.
+  var result = JS('', '#.toString()', obj);
+
   if (result is String) return result;
-  // Since Dart 2.0, `null` is the only other option.
-  throw ArgumentError.value(obj, 'object', "toString method returned 'null'");
+  // It is possible that it doesn't throw but also doesn't return a String so we
+  // the result must be checked.
+  throw ArgumentError.value(
+    obj,
+    'obj',
+    'The JavaScript `.toString()` method did not return a String',
+  );
 }
 
 /// An version of [str] that is optimized for values that we know have the Dart
 /// Core Object members on their prototype chain somewhere so it is safe to
 /// immediately call `.toString()` directly.
 ///
-/// Converts to a non-null [String], equivalent to
-/// `dart.notNull(dart.toString(obj))`.
-///
 /// Only called from generated code for string interpolation.
 @notNull
 String strSafe(obj) {
-  // TODO(40614): Declare `result` as String once non-nullability is sound.
-  final result = JS('', '#[#]()', obj, extensionSymbol('toString'));
-  if (result is String) return result;
-  // Since Dart 2.0, `null` is the only other option.
-  throw ArgumentError.value(obj, 'object', "toString method returned 'null'");
+  return JS('', '#[#]()', obj, extensionSymbol('toString'));
 }
 
 /// Helper method for `.noSuchMethod` used when the receiver isn't statically

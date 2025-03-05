@@ -1038,16 +1038,17 @@ PrefixedIdentifier
   }
 
   test_instance_getter_fromInstance_Never() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 extension E on Never {
   int get foo => 0;
 }
 
 f(Never a) {
-  // ignore: dead_code
   a.foo;
 }
-''');
+''', [
+      error(WarningCode.DEAD_CODE, 63, 4),
+    ]);
     var access = findNode.prefixed('a.foo');
     assertResolvedNodeText(access, r'''
 PrefixedIdentifier

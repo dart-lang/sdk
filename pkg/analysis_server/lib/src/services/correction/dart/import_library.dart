@@ -74,18 +74,18 @@ class ImportLibrary extends MultiCorrectionProducer {
     }
     return [
       for (var name in names)
-        if (await name.getProducers() case var producers?) ...producers,
+        if (await name.producers case var producers?) ...producers,
     ];
   }
 
   /// A map of all the error codes that this fix can be applied to and the
   /// generators that can be used to apply the fix.
   Map<ErrorCode, List<MultiProducerGenerator>> get _errorCodesWhereThisIsValid {
-    var constructors = _ImportKind.values.map((key) => key.fn).toList();
+    var producerGenerators = _ImportKind.values.map((key) => key.fn).toList();
     var nonLintMultiProducers = registeredFixGenerators.nonLintMultiProducers;
     return {
       for (var MapEntry(:key, :value) in nonLintMultiProducers.entries)
-        if (value.containsAny(constructors)) key: value,
+        if (value.containsAny(producerGenerators)) key: value,
     };
   }
 
@@ -162,22 +162,27 @@ class ImportLibrary extends MultiCorrectionProducer {
     return (importCombinator, importCombinatorMultiple);
   }
 
-  /// Returns a list of one or two import corrections.
+  /// Returns a list of two or four import correction producers.
   ///
-  /// If [includeRelativeFix] is `false`, only one correction, with an absolute
-  /// import path, is returned. Otherwise, a correction with an absolute import
-  /// path and a correction with a relative path are returned.
-  /// If the `always_use_package_imports` lint rule is active then only the
-  /// package import is returned.
-  /// If `prefer_relative_imports` is active then the relative path is returned.
-  /// Otherwise, both are returned in the order: absolute, relative.
+  /// For each import path used in the return values, one returned correction
+  /// producer uses a 'show' combinator, and one does not.
+  ///
+  /// If [includeRelativeFix] is `false`, only two correction producers, with
+  /// absolute import paths, are returned. Otherwise, correction producers with
+  /// absolute import paths and correction producers with relative paths are
+  /// returned. If the `always_use_package_imports` lint rule is enabled then
+  /// only correction producers using the package import are returned. If the
+  /// `prefer_relative_imports` lint rule is enabled then only correction
+  /// producers using the relative path are returned. Otherwise, correction
+  /// producers using both types of paths are returned in the order: absolute
+  /// imports, relative imports.
   List<ResolvedCorrectionProducer> _importLibrary(
     FixKind fixKind,
     FixKind fixKindShow,
     Uri library,
     String name, {
-    String? prefix,
-    bool includeRelativeFix = false,
+    required String? prefix,
+    required bool includeRelativeFix,
   }) {
     if (!includeRelativeFix) {
       return [
@@ -564,10 +569,10 @@ class ImportLibrary extends MultiCorrectionProducer {
   ///
   /// If we have unresolved code like `foo.bar()` then we have two options:
   /// - Import of some library, prefixed with `foo`, that contains a top-level
-  /// function called bar;
-  /// - Import of some library that contains a top-level propriety or class
-  /// called `foo` that has a method called `bar` (has to be static for a
-  /// _class_ with that name).
+  ///   function called `bar`.
+  /// - Import of some library that contains a top-level propriety or class-like
+  ///   member called `foo` that has a method called `bar` (has to be static for
+  ///   a class-like member with that name).
   List<_PrefixedName> _namesForMethodInvocation(
     String name,
     AstNode? parent,
@@ -711,8 +716,9 @@ class ImportLibrary extends MultiCorrectionProducer {
         ),
       ];
     }
-    if (targetNode.mightBeImplicitConstructor) {
-      var typeName = (targetNode as SimpleIdentifier).name;
+    if (targetNode is SimpleIdentifier &&
+        targetNode.mightBeImplicitConstructor) {
+      var typeName = targetNode.name;
       return [
         _PrefixedName(
           name: typeName,
@@ -729,8 +735,8 @@ class ImportLibrary extends MultiCorrectionProducer {
     return const [];
   }
 
-  /// Runs the entire compilation unit to find all errors for unresolved names
-  /// where this fix can be applied besides the current diagnostic.
+  /// Searches all diagnostics reported for this compilation unit for unresolved
+  /// names where this fix can be applied besides the current diagnostic.
   Future<Set<String>> _otherUnresolvedNames(String? prefix, String name) async {
     var errorsForThisFix = _errorCodesWhereThisIsValid;
     var errors =
@@ -802,9 +808,8 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [
@@ -882,9 +887,8 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -973,9 +977,8 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_uriText];
@@ -1017,9 +1020,8 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -1081,9 +1083,8 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [
@@ -1109,12 +1110,11 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
   }
 }
 
-/// This is a data class that holds the information needed to generate producers
-/// for a given name and prefix.
+/// Information needed to generate producers for a given [name] and [prefix].
 ///
 /// This is used in normal cases simply to generate the producers, but for the
-/// [_ImportLibraryCombinatorMultiple] it is used to save the different names
-/// that are being added to the combinator.
+/// [_ImportLibraryCombinatorMultiple] correction producer, it is used to save
+/// the different names that are being added to the combinator.
 class _PrefixedName {
   /// Whether to ignore the prefix.
   ///
@@ -1123,32 +1123,33 @@ class _PrefixedName {
   final bool ignorePrefix;
   final String? prefix;
   final String name;
-  final _ProducersGenerators? _producerGenerators;
+  final _ProducersGenerators _producerGenerators;
 
   _PrefixedName({
     required this.name,
     this.prefix,
-    required _ProducersGenerators? producerGenerators,
+    required _ProducersGenerators producerGenerators,
     this.ignorePrefix = false,
   }) : _producerGenerators = producerGenerators;
 
-  Future<List<ResolvedCorrectionProducer>>? getProducers() =>
-      _producerGenerators?.call(prefix, name);
+  Future<List<ResolvedCorrectionProducer>>? get producers =>
+      _producerGenerators(prefix, name);
 }
 
-extension on AstNode {
+extension on SimpleIdentifier {
   /// Whether this [AstNode] is in a location where an implicit constructor
   /// invocation would be allowed.
   bool get mightBeImplicitConstructor {
-    if (this is SimpleIdentifier) {
-      var parent = this.parent;
-      if (parent is MethodInvocation) {
-        return parent.realTarget == null;
-      }
+    var parent = this.parent;
+    if (parent is MethodInvocation) {
+      return parent.realTarget == null;
     }
+
     return false;
   }
+}
 
+extension on AstNode {
   /// The "type name" of this node if it might represent a type, and `null`
   /// otherwise.
   String? get nameOfType {

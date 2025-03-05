@@ -507,7 +507,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, RAX,
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_GetFfiCallbackMetadata, RAX,
                            TMP);
     } else {
       __ movq(RAX, Immediate(
@@ -586,7 +586,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitTemporaryIsolate, RAX, TMP);
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitTemporaryIsolate, RAX,
+                           TMP);
     } else {
       __ movq(RAX,
               Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
