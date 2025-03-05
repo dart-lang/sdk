@@ -3171,7 +3171,7 @@ package:analyzer/dart/element/element.dart:
     session (getter: AnalysisSession?)
     sinceSdkVersion (getter: Version?)
     source (getter: Source?)
-    accept (method: T? Function<T>(ElementVisitor<T>))
+    accept (method: T? Function<T>(ElementVisitor<T>), deprecated)
     getDisplayString (method: String Function({bool multiline, bool withNullability}))
     getExtendedDisplayName (method: String Function(String?))
     isAccessibleIn (method: bool Function(LibraryElement))
@@ -3179,7 +3179,7 @@ package:analyzer/dart/element/element.dart:
     thisOrAncestorMatching3 (method: E? Function<E extends Element>(bool Function(Element)))
     thisOrAncestorOfType (method: E? Function<E extends Element>())
     thisOrAncestorOfType3 (method: E? Function<E extends Element>())
-    visitChildren (method: void Function(ElementVisitor<dynamic>))
+    visitChildren (method: void Function(ElementVisitor<dynamic>), deprecated)
   ElementAnnotation (class extends Object implements ConstantEvaluationTarget):
     new (constructor: ElementAnnotation Function())
     constantEvaluationErrors (getter: List<AnalysisError>?)
@@ -3264,7 +3264,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: ElementLocation Function())
     components (getter: List<String>)
     encoding (getter: String)
-  ElementVisitor (class<R> extends Object):
+  ElementVisitor (class<R> extends Object, deprecated):
     new (constructor: ElementVisitor<R> Function())
     visitClassElement (method: R? Function(ClassElement))
     visitCompilationUnitElement (method: R? Function(CompilationUnitElement))
@@ -4620,7 +4620,7 @@ package:analyzer/dart/element/type_visitor.dart:
     visitTypeParameterType (method: R Function(TypeParameterType, A))
     visitVoidType (method: R Function(VoidType, A))
 package:analyzer/dart/element/visitor.dart:
-  GeneralizingElementVisitor (class<R> extends Object implements ElementVisitor<R>):
+  GeneralizingElementVisitor (class<R> extends Object implements ElementVisitor<R>, deprecated):
     new (constructor: GeneralizingElementVisitor<R> Function())
     visitClassElement (method: R? Function(ClassElement))
     visitCompilationUnitElement (method: R? Function(CompilationUnitElement))
@@ -4653,7 +4653,7 @@ package:analyzer/dart/element/visitor.dart:
     visitTypeAliasElement (method: R? Function(TypeAliasElement))
     visitTypeParameterElement (method: R? Function(TypeParameterElement))
     visitVariableElement (method: R? Function(VariableElement))
-  RecursiveElementVisitor (class<R> extends Object implements ElementVisitor<R>):
+  RecursiveElementVisitor (class<R> extends Object implements ElementVisitor<R>, deprecated):
     new (constructor: RecursiveElementVisitor<R> Function())
     visitClassElement (method: R? Function(ClassElement))
     visitCompilationUnitElement (method: R? Function(CompilationUnitElement))
@@ -4681,7 +4681,7 @@ package:analyzer/dart/element/visitor.dart:
     visitTopLevelVariableElement (method: R? Function(TopLevelVariableElement))
     visitTypeAliasElement (method: R? Function(TypeAliasElement))
     visitTypeParameterElement (method: R? Function(TypeParameterElement))
-  SimpleElementVisitor (class<R> extends Object implements ElementVisitor<R>):
+  SimpleElementVisitor (class<R> extends Object implements ElementVisitor<R>, deprecated):
     new (constructor: SimpleElementVisitor<R> Function())
     visitClassElement (method: R? Function(ClassElement))
     visitCompilationUnitElement (method: R? Function(CompilationUnitElement))
@@ -4709,7 +4709,7 @@ package:analyzer/dart/element/visitor.dart:
     visitTopLevelVariableElement (method: R? Function(TopLevelVariableElement))
     visitTypeAliasElement (method: R? Function(TypeAliasElement))
     visitTypeParameterElement (method: R? Function(TypeParameterElement))
-  ThrowingElementVisitor (class<R> extends Object implements ElementVisitor<R>):
+  ThrowingElementVisitor (class<R> extends Object implements ElementVisitor<R>, deprecated):
     new (constructor: ThrowingElementVisitor<R> Function())
     visitClassElement (method: R? Function(ClassElement))
     visitCompilationUnitElement (method: R? Function(CompilationUnitElement))

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
@@ -414,7 +413,7 @@ bool _hasFieldOrMethod(ClassMember element, String name) =>
 /// If `true` is returned, children of [element] will be visited.
 typedef ElementProcessor = bool Function(Element2 element);
 
-/// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
+/// A [GeneralizingElementVisitor2] adapter for [ElementProcessor].
 class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   final ElementProcessor processor;
 

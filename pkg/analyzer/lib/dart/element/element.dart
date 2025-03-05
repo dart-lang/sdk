@@ -797,6 +797,7 @@ abstract class Element implements AnalysisTarget {
   ///
   /// Returns the value returned by the visitor as a result of visiting this
   /// element.
+  @Deprecated('Use Element2 and accept2() instead')
   T? accept<T>(ElementVisitor<T> visitor);
 
   /// Returns the presentation of this element as it should appear when
@@ -862,6 +863,7 @@ abstract class Element implements AnalysisTarget {
 
   /// Uses the given [visitor] to visit all of the children of this element.
   /// There is no guarantee of the order in which the children will be visited.
+  @Deprecated('Use Element2 and visitChildren2() instead')
   void visitChildren(ElementVisitor visitor);
 }
 
@@ -1194,6 +1196,7 @@ abstract class ElementLocation {
 ///   visited, and
 /// * ThrowingElementVisitor which implements every visit method by throwing an
 ///   exception.
+@Deprecated('Use ElementVisitor2 instead')
 abstract class ElementVisitor<R> {
   R? visitClassElement(ClassElement element);
 

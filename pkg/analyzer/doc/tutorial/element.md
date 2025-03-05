@@ -135,12 +135,12 @@ parameters). Hence, you'd want to create a subclass of
 `GeneralizingElementVisitor`.
 
 ```dart
-class ParameterCounter extends GeneralizingElementVisitor<void> {
+class ParameterCounter extends GeneralizingElementVisitor2<void> {
   int maxParameterCount = 0;
 
   @override
-  void visitExecutableElement(ExecutableElement element) {
-    maxParameterCount = math.max(maxParameterCount, element.parameters.length);
+  void visitExecutableElement(ExecutableElement2 element) {
+    maxParameterCount = math.max(maxParameterCount, element.formalParameters.length);
     super.visitExecutableElement(element);
   }
 }
