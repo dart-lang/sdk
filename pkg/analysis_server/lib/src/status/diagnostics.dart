@@ -528,7 +528,7 @@ class CollectReportPage extends DiagnosticPage {
       uniqueKnownFiles.addAll(knownFiles);
 
       var collectedOptionsData = _collectOptionsData(data);
-      contextData['lints'] = collectedOptionsData.lints.toList();
+      contextData['lints'] = collectedOptionsData.lints.sorted();
       contextData['plugins'] = collectedOptionsData.plugins.toList();
     }
     collectedData['uniqueKnownFiles'] = uniqueKnownFiles.length;
