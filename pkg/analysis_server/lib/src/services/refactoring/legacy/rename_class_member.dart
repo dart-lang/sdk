@@ -171,6 +171,10 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     }
   }
 
+  Future<void> _addThisEdit(SourceReference reference, String newName) async {
+    reference.addEdit(change, 'this.$newName');
+  }
+
   String _newPotentialId() {
     assert(includePotential);
     var id = potentialEditIds.length.toString();
@@ -180,6 +184,9 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   Future<void> _updateReferences() async {
     var references = getSourceReferences(_validator.references);
+    var unshadowed = getSourceReferences(
+      _validator.unshadowed,
+    ).map((r) => r.element);
 
     for (var reference in references) {
       var element = reference.element;
@@ -191,6 +198,12 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           element is FieldFormalParameterElement2 &&
           element.isNamed) {
         await _addPrivateNamedFormalParameterEdit(reference, element);
+        continue;
+      }
+
+      if (unshadowed.contains(reference.element) &&
+          reference.element is ExecutableElement2) {
+        await _addThisEdit(reference, newName);
         continue;
       }
 
@@ -317,7 +330,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
 
 class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   final String name;
-  final List<LocalElement2> elements = [];
+  final List<Element2> elements = [];
 
   _LocalElementsCollector(this.name);
 
@@ -346,6 +359,17 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.element;
+    if (element is GetterElement && element.name3 == name) {
+      if (element.variable3 case TopLevelVariableElement2 variable) {
+        elements.add(variable);
+      }
+    }
+    super.visitSimpleIdentifier(node);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.name.lexeme == name) {
       var element = node.declaredFragment?.element;
@@ -358,11 +382,19 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   }
 }
 
-class _MatchShadowedByLocal {
+class _MatchShadowedBy {
   final SearchMatch match;
-  final LocalElement2 localElement;
+  final Element2 element;
 
-  _MatchShadowedByLocal(this.match, this.localElement);
+  _MatchShadowedBy(this.match, this.element);
+}
+
+class _MatchShadowedByLocal extends _MatchShadowedBy {
+  @override
+  final LocalElement2 element;
+
+  _MatchShadowedByLocal(SearchMatch match, this.element)
+    : super(match, element);
 }
 
 /// Helper to check if the renamed [element] will cause any conflicts.
@@ -371,6 +403,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
 
   Set<Element2> elements = {};
   List<SearchMatch> references = [];
+  List<SearchMatch> unshadowed = [];
 
   _RenameClassMemberValidator(
     SearchEngine searchEngine,
@@ -404,15 +437,15 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     }
     // usage of the renamed Element is shadowed by a local element
     {
-      var conflict = await _getShadowingLocalElement();
+      var conflict = await _getLocalShadowingElement();
       if (conflict != null) {
-        var localElement = conflict.localElement;
+        var element = conflict.element;
         result.addError(
           format(
             "Usage of renamed {0} will be shadowed by {1} '{2}'.",
             elementKind.displayName,
-            getElementKindName(localElement),
-            localElement.displayName,
+            getElementKindName(element),
+            element.displayName,
           ),
           newLocation_fromMatch(conflict.match),
         );
@@ -426,11 +459,11 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     return result;
   }
 
-  Future<_MatchShadowedByLocal?> _getShadowingLocalElement() async {
-    var localElementMap = <LibraryFragment, List<LocalElement2>>{};
-    var visibleRangeMap = <LocalElement2, SourceRange>{};
+  Future<_MatchShadowedBy?> _getLocalShadowingElement() async {
+    var localElementMap = <LibraryFragment, List<Element2>>{};
+    var visibleRangeMap = <Element2, SourceRange>{};
 
-    Future<List<LocalElement2>> getLocalElements(Element2 element) async {
+    Future<List<Element2>> getLocalElements(Element2 element) async {
       var unitFragment = element.firstFragment.libraryFragment;
       if (unitFragment == null) {
         return const [];
@@ -464,11 +497,20 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       }
       // Check local elements that might shadow the reference.
       var localElements = await getLocalElements(match.element);
+      if (element.kind == ElementKind.FIELD) {
+        for (var element in localElements.avoidableShadowsForField) {
+          unshadowed.addAll(await searchEngine.searchReferences(element));
+          localElements.remove(element);
+        }
+      }
       for (var localElement in localElements) {
         var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
             elementRange.intersects(match.sourceRange)) {
-          return _MatchShadowedByLocal(match, localElement);
+          if (localElement is LocalElement2) {
+            return _MatchShadowedByLocal(match, localElement);
+          }
+          return _MatchShadowedBy(match, localElement);
         }
       }
     }
@@ -511,5 +553,22 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         result.addError(message, newLocation_fromMatch(reference));
       }
     }
+  }
+}
+
+extension on Element2 {
+  bool get canAvoidShadowForField {
+    return switch (kind) {
+      ElementKind.LOCAL_VARIABLE ||
+      ElementKind.TOP_LEVEL_VARIABLE ||
+      ElementKind.PARAMETER => true,
+      _ => false,
+    };
+  }
+}
+
+extension on List<Element2> {
+  List<Element2> get avoidableShadowsForField {
+    return where((e) => e.canAvoidShadowForField).toList();
   }
 }

@@ -1242,6 +1242,100 @@ class A<NewName> {
 ''');
   }
 
+  Future<void> test_shadowingLocalVariable_addsThis() async {
+    await indexTestUnit('''
+class A {
+  final int? _value;
+
+  const A(this._value);
+
+  A copyWith() {
+    var value = _get();
+    return A(value ?? _value);
+  }
+
+  int? _get() => null;
+}
+''');
+    createRenameRefactoringAtString('_value;');
+    // check status
+    refactoring.newName = 'value';
+    await assertSuccessfulRefactoring('''
+class A {
+  final int? value;
+
+  const A(this.value);
+
+  A copyWith() {
+    var value = _get();
+    return A(value ?? this.value);
+  }
+
+  int? _get() => null;
+}
+''');
+  }
+
+  Future<void> test_shadowingParameter_addsThis() async {
+    await indexTestUnit('''
+class A {
+  final int? _value;
+
+  const A(this._value);
+
+  A copyWith({int? value}) {
+    return A(value ?? _value);
+  }
+}
+''');
+    createRenameRefactoringAtString('_value;');
+    // check status
+    refactoring.newName = 'value';
+    await assertSuccessfulRefactoring('''
+class A {
+  final int? value;
+
+  const A(this.value);
+
+  A copyWith({int? value}) {
+    return A(value ?? this.value);
+  }
+}
+''');
+  }
+
+  Future<void> test_shadowingTopLevelVariable_addsThis() async {
+    await indexTestUnit('''
+int? value = 0;
+
+class A {
+  final int? _value;
+
+  const A(this._value);
+
+  A copyWith() {
+    return A(value ?? _value);
+  }
+}
+''');
+    createRenameRefactoringAtString('_value;');
+    // check status
+    refactoring.newName = 'value';
+    await assertSuccessfulRefactoring('''
+int? value = 0;
+
+class A {
+  final int? value;
+
+  const A(this.value);
+
+  A copyWith() {
+    return A(value ?? this.value);
+  }
+}
+''');
+  }
+
   Future<void> test_subclass_namedSuper_otherLibrary() async {
     await indexTestUnit('''
 class Base {
