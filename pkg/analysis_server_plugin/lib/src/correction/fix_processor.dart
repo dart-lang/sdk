@@ -12,11 +12,17 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
-Future<List<Fix>> computeFixes(DartFixContext context) async {
+Future<List<Fix>> computeFixes(DartFixContext context,
+    {FixPerformance? performance}) async {
   return [
-    ...await FixProcessor(context).compute(),
+    ...await FixProcessor(context).compute(performance: performance),
     ...await FixInFileProcessor(context).compute(),
   ];
+}
+
+/// A callback for recording fix request timings.
+class FixPerformance {
+  Duration? computeTime;
 }
 
 /// The computer for Dart fixes.
@@ -27,8 +33,12 @@ class FixProcessor {
 
   FixProcessor(this._fixContext);
 
-  Future<List<Fix>> compute() async {
+  Future<List<Fix>> compute({FixPerformance? performance}) async {
+    var timer = Stopwatch();
+    timer.start();
     await _addFromProducers();
+    timer.stop();
+    performance?.computeTime = timer.elapsed;
     return _fixes;
   }
 

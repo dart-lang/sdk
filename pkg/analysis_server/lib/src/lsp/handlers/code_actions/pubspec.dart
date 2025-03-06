@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generato
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:yaml/yaml.dart';
 
 /// Produces [CodeAction]s from Pubspec fixes.
@@ -32,7 +33,9 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<CodeActionWithPriority>> getAssistActions() async => [];
 
   @override
-  Future<List<CodeActionWithPriority>> getFixActions() async {
+  Future<List<CodeActionWithPriority>> getFixActions(
+    OperationPerformance? performance,
+  ) async {
     var session = await server.getAnalysisSession(path);
     if (session == null) {
       return [];

@@ -17,6 +17,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:meta/meta.dart';
 
 typedef CodeActionWithPriority = ({CodeAction action, int priority});
@@ -171,7 +172,9 @@ abstract class AbstractCodeActionsProducer
 
   Future<List<CodeActionWithPriority>> getAssistActions();
 
-  Future<List<CodeActionWithPriority>> getFixActions();
+  Future<List<CodeActionWithPriority>> getFixActions(
+    OperationPerformance? performance,
+  );
 
   Future<List<Either2<CodeAction, Command>>> getRefactorActions();
 

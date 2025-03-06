@@ -18,6 +18,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
@@ -596,6 +597,10 @@ class CollectReportPage extends DiagnosticPage {
     collectPerformance(
       server.recentPerformance.completion.items.toList(),
       'Completion',
+    );
+    collectPerformance(
+      server.recentPerformance.getFixes.items.toList(),
+      'GetFixes',
     );
     collectPerformance(
       server.recentPerformance.requests.items.toList(),
@@ -1312,6 +1317,7 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
       pages.add(PluginsPage(this, server));
     }
     pages.add(CompletionPage(this));
+    pages.add(GetFixesPage(this));
     if (server is LegacyAnalysisServer) {
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
@@ -1529,6 +1535,71 @@ class FeedbackPage extends DiagnosticPage {
     ], (line) => buf.writeln(line));
 
     p('Thanks!');
+  }
+}
+
+class GetFixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
+  GetFixesPage(DiagnosticsSite site)
+    : super(
+        site,
+        'getFixes',
+        'Get Fixes',
+        description: 'Latency statistics for getting fixes.',
+      );
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  List<GetFixesPerformance> get performanceItems =>
+      server.recentPerformance.getFixes.items.toList();
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    var requests = performanceItems;
+
+    if (requests.isEmpty) {
+      blankslate('No fix requests recorded.');
+      return;
+    }
+
+    var fastCount =
+        requests.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p(
+      '${requests.length} results; ${printPercentage(fastCount / requests.length)} within 100ms.',
+    );
+
+    drawChart(requests);
+
+    // Emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln('<tr><th>Time</th><th>Source</th><th>Snippet</th></tr>');
+    for (var request in requests) {
+      var shortName = pathContext.basename(request.path);
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right">'
+        '${_formatTiming(request)}'
+        '</td>'
+        '<td>${escape(shortName)}</td>'
+        '<td><code>${escape(request.snippet)}</code></td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
+  }
+
+  String _formatTiming(GetFixesPerformance request) {
+    var buffer = StringBuffer();
+    buffer.write(printMilliseconds(request.elapsedInMilliseconds));
+
+    var latency = request.requestLatency;
+    if (latency != null) {
+      buffer
+        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
+        ..write(printMilliseconds(latency))
+        ..write(')</small>');
+    }
+
+    return buffer.toString();
   }
 }
 

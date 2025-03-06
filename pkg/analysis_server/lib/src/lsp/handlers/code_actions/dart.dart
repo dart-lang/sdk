@@ -12,6 +12,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisOptions, Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
@@ -23,6 +24,7 @@ import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Produces [CodeAction]s from Dart source commands, fixes, assists and
 /// refactors from the server.
@@ -151,7 +153,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<CodeActionWithPriority>> getFixActions() async {
+  Future<List<CodeActionWithPriority>> getFixActions(
+    OperationPerformance? performance,
+  ) async {
     // These fixes are only provided as literal CodeActions.
     if (!supportsLiterals) {
       return [];
@@ -181,7 +185,24 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           unitResult: unitResult,
           error: error,
         );
-        var fixes = await computeFixes(context);
+
+        // TODO(pq): move this timer UP?
+        var peformanceTracker = FixPerformance();
+
+        var fixes = await computeFixes(context, performance: peformanceTracker);
+
+        if (performance != null) {
+          server.recentPerformance.getFixes.add(
+            GetFixesPerformance(
+              performance: performance,
+              path: path,
+              content: unitResult.content,
+              offset: offset,
+              requestLatency: peformanceTracker.computeTime!.inMilliseconds,
+            ),
+          );
+        }
+
         if (fixes.isNotEmpty) {
           var diagnostic = toDiagnostic(
             server.uriConverter,
