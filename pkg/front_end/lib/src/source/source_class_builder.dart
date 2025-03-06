@@ -1403,8 +1403,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         if (member is Field && member.isStatic ||
             member is Procedure && member.isStatic) {
           member.name = new Name(
-              '${member.name}'
-              '#${memberBuilder.libraryBuilder.augmentationIndex}',
+              '${member.name}',
               member.name.library);
         } else {
           return;

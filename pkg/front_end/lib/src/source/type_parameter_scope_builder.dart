@@ -1984,10 +1984,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
 }
 
 class LibraryNameSpaceBuilder {
-  final Map<String, List<Builder>> augmentations = {};
-
-  final Map<String, List<Builder>> setterAugmentations = {};
-
   List<Fragment> _fragments = [];
 
   void addFragment(Fragment fragment) {
@@ -2119,13 +2115,7 @@ class LibraryNameSpaceBuilder {
         extensions.add(declaration as SourceExtensionBuilder);
       } else if (declaration.isAugment) {
         // Coverage-ignore-block(suite): Not run.
-        if (existing != null) {
-          if (declaration.isSetter) {
-            (setterAugmentations[name] ??= []).add(declaration);
-          } else {
-            (augmentations[name] ??= []).add(declaration);
-          }
-        } else {
+        if (existing == null) {
           // TODO(cstefantsova): Report an error.
         }
       }

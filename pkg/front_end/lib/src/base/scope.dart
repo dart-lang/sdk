@@ -1442,28 +1442,6 @@ abstract class MergedScope<T extends Builder> {
   bool _allowInjectedPublicMember(Builder newBuilder);
 }
 
-// Coverage-ignore(suite): Not run.
-class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
-  MergedLibraryScope(SourceLibraryBuilder origin)
-      : super(origin, origin.libraryNameSpace);
-
-  @override
-  SourceLibraryBuilder get originLibrary => _origin;
-
-  void addAugmentationScope(SourceLibraryBuilder builder) {
-    _addAugmentationScope(builder, builder.libraryNameSpace,
-        augmentations: builder.augmentations,
-        setterAugmentations: builder.setterAugmentations,
-        inPatchLibrary: builder.isPatchLibrary);
-  }
-
-  @override
-  bool _allowInjectedPublicMember(Builder newBuilder) {
-    return originLibrary.importUri.isScheme("dart") &&
-        originLibrary.importUri.path.startsWith("_");
-  }
-}
-
 class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
   final DeclarationNameSpace _originConstructorNameSpace;
   Map<SourceClassBuilder, DeclarationNameSpace>
