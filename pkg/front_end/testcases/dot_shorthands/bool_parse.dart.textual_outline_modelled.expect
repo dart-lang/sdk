@@ -1,0 +1,3 @@
+void fn(bool b) {}
+
+void main() {}
