@@ -1207,6 +1207,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  bool isDotShorthand(ExpressionImpl node) {
+    // TODO(kallentu): Implement this for dot shorthand equality implementation.
+    return false;
+  }
+
+  @override
   bool isLegacySwitchExhaustive(AstNode node, SharedTypeView expressionType) =>
       legacySwitchExhaustiveness!.isExhaustive;
 

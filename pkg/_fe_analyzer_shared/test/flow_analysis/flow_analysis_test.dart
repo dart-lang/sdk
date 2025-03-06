@@ -9039,6 +9039,18 @@ main() {
           ]);
         });
 
+        test('Using dot shorthands in relational pattern', () {
+          h.addMember('C', 'field', 'C');
+          h.run([
+            ifCase(
+                expr('C'),
+                relationalPattern('==', dotShorthandHead('field').dotShorthand),
+                [
+                  checkReachable(true),
+                ]),
+          ]);
+        });
+
         test('Null pattern promotes unchanged scrutinee', () {
           var x = Var('x');
           h.run([

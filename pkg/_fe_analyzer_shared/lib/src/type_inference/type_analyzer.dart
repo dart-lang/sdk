@@ -1685,11 +1685,16 @@ mixin TypeAnalyzer<
     if (isEquality && parameterType != null) {
       parameterType = operations.makeNullable(parameterType);
     }
-    SharedTypeView operandType = analyzeExpression(
-        operand,
-        parameterType == null
-            ? operations.unknownType
-            : operations.typeToSchema(parameterType));
+
+    SharedTypeSchemaView operandSchema;
+    if (isDotShorthand(operand)) {
+      operandSchema = operations.typeToSchema(matchedValueType);
+    } else if (parameterType != null) {
+      operandSchema = operations.typeToSchema(parameterType);
+    } else {
+      operandSchema = operations.unknownType;
+    }
+    SharedTypeView operandType = analyzeExpression(operand, operandSchema);
     if (isEquality) {
       flow.equalityRelationalPattern_end(operand, operandType,
           notEqual: operator?.kind == RelationalOperatorKind.notEquals,
@@ -2317,6 +2322,9 @@ mixin TypeAnalyzer<
   ///
   /// Stack effect: none.
   void handleSwitchScrutinee(SharedTypeView type);
+
+  /// Queries whether [node] is a dot shorthand.
+  bool isDotShorthand(Expression node);
 
   /// Queries whether the switch statement or expression represented by [node]
   /// was exhaustive.  [expressionType] is the static type of the scrutinee.

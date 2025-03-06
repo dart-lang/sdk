@@ -152,6 +152,9 @@ Statement do_(List<ProtoStatement> body, ProtoExpression condition) {
       location: location);
 }
 
+Expression dotShorthandHead(String name) =>
+    new DotShorthandHead._(name, location: computeLocation());
+
 /// Creates a pseudo-expression having type [typeStr] that otherwise has no
 /// effect on flow analysis.
 ConstExpression expr(String typeStr) =>
@@ -3383,6 +3386,46 @@ class ObjectPattern extends Pattern {
   }
 }
 
+// Represents the head of a dot shorthand.
+// e.g. `.zero`
+class DotShorthandHead extends Expression {
+  final String name;
+
+  DotShorthandHead._(this.name, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {}
+
+  @override
+  String toString() => '.$name';
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    return h.typeAnalyzer.analyzeDotShorthandHeadExpression(this, name, schema);
+  }
+}
+
+// Represents the entire dot shorthand expression.
+// e.g. `.current.errorZone`
+class DotShorthand extends Expression {
+  final Expression expr;
+
+  DotShorthand._(this.expr, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    expr.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$expr';
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    return h.typeAnalyzer.analyzeDotShorthandExpression(expr, schema);
+  }
+}
+
 class ParenthesizedExpression extends Expression {
   final Expression expr;
 
@@ -3888,6 +3931,14 @@ mixin ProtoExpression
   Expression get not {
     var location = computeLocation();
     return new Not._(asExpression(location: location), location: location);
+  }
+
+  /// If `this` is an expression `x`, creates a dot shorthand wrapper around
+  /// `x`.
+  Expression get dotShorthand {
+    var location = computeLocation();
+    return new DotShorthand._(asExpression(location: location),
+        location: location);
   }
 
   /// If `this` is an expression `x`, creates the expression `(x)`.
@@ -5594,6 +5645,19 @@ class _MiniAstTypeAnalyzer
     return new ExpressionTypeAnalysisResult(type: SharedTypeView(nullType));
   }
 
+  ExpressionTypeAnalysisResult analyzeDotShorthandHeadExpression(
+      Expression node, String name, SharedTypeSchemaView schema) {
+    _irBuilder.atom(name, Kind.expression, location: node.location);
+    return new ExpressionTypeAnalysisResult(
+        type: SharedTypeView(getDotShorthandContext().unwrapTypeSchemaView()));
+  }
+
+  ExpressionTypeAnalysisResult analyzeDotShorthandExpression(
+      Expression expression, SharedTypeSchemaView schema) {
+    var type = analyzeDotShorthand(expression, schema);
+    return new ExpressionTypeAnalysisResult(type: type);
+  }
+
   ExpressionTypeAnalysisResult analyzeParenthesizedExpression(
       Expression node, Expression expression, SharedTypeSchemaView schema) {
     var type = analyzeExpression(expression, schema);
@@ -6042,6 +6106,11 @@ class _MiniAstTypeAnalyzer
 
   @override
   void handleSwitchScrutinee(SharedTypeView type) {}
+
+  @override
+  bool isDotShorthand(Node node) {
+    return node is DotShorthand;
+  }
 
   @override
   bool isLegacySwitchExhaustive(
