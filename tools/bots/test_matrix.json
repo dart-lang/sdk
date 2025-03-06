@@ -604,11 +604,6 @@
         "use-sdk": false
       }
     },
-    "cfe-weak-(linux|mac|win)": {
-      "options": {
-        "compiler": "fasta"
-      }
-    },
     "cfe-strong-(linux|mac|win)": {
       "options": {
         "compiler": "fasta"
@@ -728,18 +723,6 @@
             "kernel_platform_files",
             "runtime"
           ]
-        },
-        {
-          "name": "front_end weak tests",
-          "arguments": [
-            "-ncfe-weak-${system}",
-            "co19",
-            "corelib",
-            "language",
-            "lib"
-          ],
-          "fileset": "front-end",
-          "shards": 2
         },
         {
           "name": "front_end strong tests",
