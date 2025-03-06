@@ -18,21 +18,17 @@ class Server {
     server.listen((request) {
       final response = request.response;
 
+      // WARNING: this authenticate header is malformed because of missing commas between the arguments
       if (request.uri.path == "/malformedAuthenticate") {
-        // see https://www.rfc-editor.org/rfc/rfc6750.html#section-3
-        if (request.headers[HttpHeaders.authorizationHeader] != null) {
-          response.statusCode = HttpStatus.unauthorized;
-          response.headers.set(HttpHeaders.wwwAuthenticateHeader, "Bearer realm=\"realm\", error=\"invalid_token\"");
-        } else {
-          response.statusCode = HttpStatus.unauthorized;
-          response.headers.set(HttpHeaders.wwwAuthenticateHeader, "Bearer realm=\"realm\"");
-        }
+        response.statusCode = HttpStatus.unauthorized;
+        response.headers.set(HttpHeaders.wwwAuthenticateHeader, "Bearer realm=\"realm\" error=\"invalid_token\"");
         response.close();
         return;
       }
 
+      // NOTE: see https://www.rfc-editor.org/rfc/rfc6750.html#section-3 regarding the authenticate response header field
       if (request.headers[HttpHeaders.authorizationHeader] != null) {
-        final token = request.uri.path.substring(1);
+        final token = base64.encode(utf8.encode(request.uri.path.substring(1)));
         Expect.equals(1, request.headers[HttpHeaders.authorizationHeader]!.length);
         final authorizationHeaderParts = request.headers[HttpHeaders.authorizationHeader]![0].split(" ");
         Expect.equals("Bearer", authorizationHeaderParts[0]);
@@ -60,14 +56,21 @@ class Server {
 
 }
 
-void testInvalidBearerCredentials() {
-  Expect.throws(() => HttpClientBearerCredentials("§(&$)"));
+void testValidBearerTokens() {
+  HttpClientBearerCredentials("977ce44bc56dc5000c9d2c329e682547");
+  HttpClientBearerCredentials("dGVzdHRlc3R0ZXN0dGVzdA==");
+  HttpClientBearerCredentials("dGVzdHRl_3R0ZXN-dGVzdA==");
+  HttpClientBearerCredentials("dGVzdHRl/3R0ZXN+dGVzdA==");
+}
+
+void testInvalidBearerTokens() {
+  Expect.throws(() => HttpClientBearerCredentials("§(&%)"));
   Expect.throws(() => HttpClientBearerCredentials("áéîöü"));
   Expect.throws(() => HttpClientBearerCredentials("あいうえお"));
   Expect.throws(() => HttpClientBearerCredentials("     "));
 }
 
-void testBearerNoCredentials() async {
+void testBearerWithoutCredentials() async {
   final server = await Server().start();
   final client = HttpClient();
 
@@ -88,7 +91,7 @@ void testBearerNoCredentials() async {
   client.close();
 }
 
-void testBearerCredentials() async {
+void testBearerWithCredentials() async {
   final server = await Server().start();
   final client = HttpClient();
 
@@ -114,14 +117,14 @@ void testBearerCredentials() async {
   client.close();
 }
 
-void testBearerAuthenticateCallback() async {
+void testBearerWithAuthenticateCallback() async {
   final server = await Server().start();
   final client = HttpClient();
 
   client.authenticate = (url, scheme, realm) async {
     Expect.equals("Bearer", scheme);
     Expect.equals("realm", realm);
-    String token = url.path.substring(1);
+    String token = base64.encode(utf8.encode(url.path.substring(1)));
     await Future.delayed(const Duration(milliseconds: 10));
     client.addCredentials(url, realm!, new HttpClientBearerCredentials(token));
     return true;
@@ -144,30 +147,14 @@ void testBearerAuthenticateCallback() async {
   client.close();
 }
 
-void testMalformedAuthenticateHeaderNoAuthHandler() async {
+void testMalformedAuthenticateHeaderWithoutCredentials() async {
   final server = await Server().start();
   final client = HttpClient();
   final uri = Uri.parse("http://${server.host}:${server.port}/malformedAuthenticate");
 
-  // Request should resolve normally if no authentication is configured
+  // the request should resolve normally if no authentication is configured
   final request = await client.getUrl(uri);
   final response = await request.close();
-
-  server.shutdown();
-  client.close();
-}
-
-void testMalformedAuthenticateHeaderWithAuthHandler() async {
-  final server = await Server().start();
-  final client = HttpClient();
-  final uri = Uri.parse("http://${server.host}:${server.port}/malformedAuthenticate");
-
-  // Request should throw an exception if the authenticate handler is set
-  client.authenticate = (url, scheme, realm) async => false;
-  await asyncExpectThrows<HttpException>(() async {
-    final request = await client.getUrl(uri);
-    final response = await request.close();
-  });
 
   server.shutdown();
   client.close();
@@ -177,14 +164,30 @@ void testMalformedAuthenticateHeaderWithCredentials() async {
   final server = await Server().start();
   final client = HttpClient();
   final uri = Uri.parse("http://${server.host}:${server.port}/malformedAuthenticate");
-  final token = base64.encode(utf8.encode("token"));
+  final token = base64.encode(utf8.encode("test"));
 
-  // Request should throw an exception if credentials have been added
+  // the request should throw an exception if credentials have been added
   client.addCredentials(uri, "realm", HttpClientBearerCredentials(token));
-  await asyncExpectThrows<HttpException>(() async {
+  await asyncExpectThrows<HttpException>(Future(() async {
     final request = await client.getUrl(uri);
     final response = await request.close();
-  });
+  }));
+
+  server.shutdown();
+  client.close();
+}
+
+void testMalformedAuthenticateHeaderWithAuthenticateCallback() async {
+  final server = await Server().start();
+  final client = HttpClient();
+  final uri = Uri.parse("http://${server.host}:${server.port}/malformedAuthenticate");
+
+  // the request should throw an exception if the authenticate handler is set
+  client.authenticate = (url, scheme, realm) async => false;
+  await asyncExpectThrows<HttpException>(Future(() async {
+    final request = await client.getUrl(uri);
+    final response = await request.close();
+  }));
 
   server.shutdown();
   client.close();
@@ -208,13 +211,14 @@ void testLocalServerBearer() async {
 }
 
 main() {
-  testInvalidBearerCredentials();
-  testBearerNoCredentials();
-  testBearerCredentials();
-  testBearerAuthenticateCallback();
-  testMalformedAuthenticateHeaderNoAuthHandler();
-  testMalformedAuthenticateHeaderWithAuthHandler();
+  testValidBearerTokens();
+  testInvalidBearerTokens();
+  testBearerWithoutCredentials();
+  testBearerWithCredentials();
+  testBearerWithAuthenticateCallback();
+  testMalformedAuthenticateHeaderWithoutCredentials();
   testMalformedAuthenticateHeaderWithCredentials();
+  testMalformedAuthenticateHeaderWithAuthenticateCallback();
   // These tests are not normally run. They can be used for locally
   // testing with another web server (e.g. Apache).
   //testLocalServerBearer();
