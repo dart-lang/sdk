@@ -2408,7 +2408,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
-          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             requiredPositional a
@@ -2509,7 +2508,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
-          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             optionalNamed a

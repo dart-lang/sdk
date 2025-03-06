@@ -234,7 +234,6 @@ class ElementFactory {
     MethodElementImpl method = MethodElementImpl(methodName, 0);
     method.parameters = _requiredParameters(argumentTypes);
     method.returnType = returnType;
-    MethodElementImpl2(Reference.root(), methodName, method);
     return method;
   }
 

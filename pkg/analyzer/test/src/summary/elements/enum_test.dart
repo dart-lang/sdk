@@ -4957,7 +4957,6 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         foo
-          reference: <testLibrary>::@enum::E::@method::foo
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
           typeParameters
             U
@@ -5131,7 +5130,6 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         toString
-          reference: <testLibrary>::@enum::E::@method::toString
           firstFragment: <testLibraryFragment>::@enum::E::@method::toString
 ''');
   }
@@ -8671,7 +8669,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
     class B
       reference: <testLibrary>::@class::B
@@ -8683,7 +8680,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
     class C
       reference: <testLibrary>::@class::C
@@ -8696,7 +8692,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::C::@method::foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
     class alias D
       reference: <testLibrary>::@class::D
@@ -9940,7 +9935,6 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         foo
-          reference: <testLibrary>::@enum::E::@method::foo
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
           metadata
             Annotation
@@ -10267,7 +10261,6 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
       methods
         bar
-          reference: <testLibrary>::@enum::E::@method::bar
           firstFragment: <testLibraryFragment>::@enum::E::@method::bar
           metadata
             Annotation

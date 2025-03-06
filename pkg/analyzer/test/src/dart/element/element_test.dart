@@ -1725,6 +1725,7 @@ class A {
     expect(classA.lookUpMethod2(name: 'm', library: library), same(method));
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_lookUpMethod_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
@@ -2086,7 +2087,6 @@ class _AbstractTypeSystemTest extends AbstractTypeSystemTest {
     var element = ClassElementImpl2(Reference.root(), fragment);
     element.mixins = fragment.mixins;
     element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return fragment;
   }
@@ -2119,7 +2119,6 @@ class _AbstractTypeSystemTest extends AbstractTypeSystemTest {
     var element = MixinElementImpl2(Reference.root(), fragment);
     element.superclassConstraints = fragment.superclassConstraints;
     element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return fragment;
   }

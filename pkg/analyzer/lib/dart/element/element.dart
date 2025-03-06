@@ -131,12 +131,6 @@ abstract class AugmentedInstanceElement {
   /// all its augmentations.
   List<ElementAnnotation> get metadata;
 
-  /// The methods declared in this element.
-  ///
-  /// `MethodAugmentationElement`s replace corresponding elements, other
-  /// [MethodElement]s are appended.
-  List<MethodElement> get methods;
-
   /// The type of `this` expression.
   DartType get thisType;
 
@@ -145,9 +139,6 @@ abstract class AugmentedInstanceElement {
 
   /// Returns the getter from [accessors] that has the given [name].
   PropertyAccessorElement? getGetter(String name);
-
-  /// Returns the method from [methods] that has the given [name].
-  MethodElement? getMethod(String name);
 
   /// Returns the setter from [accessors] that has the given [name].
   PropertyAccessorElement? getSetter(String name);

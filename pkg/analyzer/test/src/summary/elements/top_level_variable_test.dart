@@ -2436,7 +2436,6 @@ library
       firstFragment: <testLibraryFragment>::@extension::E
       methods
         static f
-          reference: <testLibrary>::@extension::E::@method::f
           firstFragment: <testLibraryFragment>::@extension::E::@method::f
   topLevelVariables
     hasInitializer x

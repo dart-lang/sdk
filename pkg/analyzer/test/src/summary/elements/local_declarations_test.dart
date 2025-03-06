@@ -160,7 +160,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -328,7 +327,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }

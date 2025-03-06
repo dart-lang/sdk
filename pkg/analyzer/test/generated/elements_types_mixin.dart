@@ -141,7 +141,6 @@ mixin ElementsTypesMixin {
     var element = ClassElementImpl2(Reference.root(), fragment);
     element.mixins = fragment.mixins;
     element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return fragment;
   }
@@ -172,7 +171,6 @@ mixin ElementsTypesMixin {
     var element = ClassElementImpl2(Reference.root(), fragment);
     element.mixins = fragment.mixins;
     element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return element;
   }
@@ -506,7 +504,6 @@ mixin ElementsTypesMixin {
     var element = MixinElementImpl2(Reference.root(), fragment);
     element.superclassConstraints = fragment.superclassConstraints;
     element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return fragment;
   }
@@ -529,7 +526,6 @@ mixin ElementsTypesMixin {
     var element = MixinElementImpl2(Reference.root(), fragment);
     element.superclassConstraints = fragment.superclassConstraints;
     element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return element;
   }

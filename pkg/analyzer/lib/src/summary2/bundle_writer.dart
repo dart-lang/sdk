@@ -164,7 +164,6 @@ class BundleWriter {
         _resolutionSink._writeElementList(element.fields);
         _resolutionSink._writeElementList(element.constructors);
         _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
       }
 
       if (!fragment.isMixinApplication) {
@@ -258,7 +257,6 @@ class BundleWriter {
         _resolutionSink._writeElementList(element.fields);
         _resolutionSink._writeElementList(element.constructors);
         _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
       }
 
       _writeList(
@@ -320,7 +318,6 @@ class BundleWriter {
         _resolutionSink.writeType(element.extendedType);
         _resolutionSink._writeElementList(element.fields);
         _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
       }
 
       _writeList(
@@ -353,7 +350,6 @@ class BundleWriter {
         _resolutionSink._writeElementList(element.fields);
         _resolutionSink._writeElementList(element.accessors);
         _resolutionSink._writeElementList(element.constructors);
-        _resolutionSink._writeElementList(element.methods);
         _resolutionSink.writeType(element.typeErasure);
       }
 
@@ -493,7 +489,6 @@ class BundleWriter {
   void _writeMethodElement(MethodElementImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(fragment);
-    _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
     _sink._writeStringReference(fragment.name);
     MethodElementFlags.write(_sink, fragment);
@@ -528,7 +523,6 @@ class BundleWriter {
         _resolutionSink._writeTypeList(element.interfaces);
         _resolutionSink._writeElementList(element.fields);
         _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
       }
 
       _writeList(

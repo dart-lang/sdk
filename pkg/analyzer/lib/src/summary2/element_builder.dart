@@ -1244,20 +1244,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         if (fragment.isAugmentation) {
           fragment.augmentationTargetAny = lastFragment;
         }
-
-        if (fragment.isAugmentation && lastFragment is MethodElementImpl) {
-          lastFragment.augmentation = fragment;
-          fragment.element = lastFragment.element;
-        } else {
-          var element = MethodElementImpl2(
-            enclosingBuilder.element.reference!
-                .getChild('@method')
-                .addChild(refName),
-            fragment.name2,
-            fragment,
-          );
-          enclosingBuilder.element.internal_methods2.add(element);
-        }
       }
     }
     executableFragment.hasImplicitReturnType = node.returnType == null;

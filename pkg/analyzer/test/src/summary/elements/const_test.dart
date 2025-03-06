@@ -7022,7 +7022,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static length
-          reference: <testLibrary>::@class::C::@method::length
           firstFragment: <testLibraryFragment>::@class::C::@method::length
   topLevelVariables
     const hasInitializer v
@@ -8840,7 +8839,6 @@ library
                 expression: expression_1
       methods
         methodPositional
-          reference: <testLibrary>::@class::C::@method::methodPositional
           firstFragment: <testLibraryFragment>::@class::C::@method::methodPositional
           formalParameters
             optionalPositional hasImplicitType p
@@ -8848,13 +8846,11 @@ library
               constantInitializer
                 expression: expression_2
         methodPositionalWithoutDefault
-          reference: <testLibrary>::@class::C::@method::methodPositionalWithoutDefault
           firstFragment: <testLibraryFragment>::@class::C::@method::methodPositionalWithoutDefault
           formalParameters
             optionalPositional hasImplicitType p
               type: dynamic
         methodNamed
-          reference: <testLibrary>::@class::C::@method::methodNamed
           firstFragment: <testLibraryFragment>::@class::C::@method::methodNamed
           formalParameters
             optionalNamed hasImplicitType p
@@ -8864,7 +8860,6 @@ library
                 fragment: <testLibraryFragment>::@class::C::@method::methodNamed::@parameter::p
                 expression: expression_3
         methodNamedWithoutDefault
-          reference: <testLibrary>::@class::C::@method::methodNamedWithoutDefault
           firstFragment: <testLibraryFragment>::@class::C::@method::methodNamedWithoutDefault
           formalParameters
             optionalNamed hasImplicitType p
@@ -10171,7 +10166,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -10527,7 +10521,6 @@ library
       firstFragment: <testLibraryFragment>::@extension::E
       methods
         static f
-          reference: <testLibrary>::@extension::E::@method::f
           firstFragment: <testLibraryFragment>::@extension::E::@method::f
   topLevelVariables
     const hasInitializer x
@@ -18394,7 +18387,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::a
       methods
         static m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }

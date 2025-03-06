@@ -4157,7 +4157,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   MethodElementOrMember? getMethod(String methodName) {
-    for (var method in element.methods) {
+    for (var method in methods) {
       if (method.name == methodName) {
         return method;
       }
@@ -5933,11 +5933,6 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   List<PropertyAccessorElementOrMember> accessors = [];
 
   @override
-  List<MethodElementOrMember> methods = [];
-
-  final List<MethodElementImpl2> internal_methods2 = [];
-
-  @override
   InstanceElement2 get baseElement => this;
 
   @override
@@ -6007,8 +6002,7 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   List<MethodElementImpl2> get methods2 {
-    _readMembers();
-    return internal_methods2;
+    return firstFragment.methods.map((e) => e.asElement2).toList();
   }
 
   @override
@@ -6073,18 +6067,6 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   @override
   GetterElement? getGetter2(String name) {
     return getters2.firstWhereOrNull((e) => e.name3 == name);
-  }
-
-  @override
-  MethodElement? getMethod(String name) {
-    var length = methods.length;
-    for (var i = 0; i < length; i++) {
-      var method = methods[i];
-      if (method.name == name) {
-        return method;
-      }
-    }
-    return null;
   }
 
   @override
@@ -8547,7 +8529,7 @@ class MethodElementImpl extends ExecutableElementImpl
     with AugmentableElement<MethodElementImpl>
     implements MethodElementOrMember, MethodFragment {
   @override
-  late MethodElementImpl2 element;
+  late final MethodElementImpl2 element = MethodElementImpl2(name, this);
 
   @override
   String? name2;
@@ -8648,18 +8630,12 @@ class MethodElementImpl2 extends ExecutableElementImpl2
         _HasSinceSdkVersionMixin
     implements MethodElement2OrMember {
   @override
-  final Reference reference;
-
-  @override
   final String? name3;
 
   @override
   final MethodElementImpl firstFragment;
 
-  MethodElementImpl2(this.reference, this.name3, this.firstFragment) {
-    reference.element2 = this;
-    firstFragment.element = this;
-  }
+  MethodElementImpl2(this.name3, this.firstFragment);
 
   @override
   MethodElement2 get baseElement => this;

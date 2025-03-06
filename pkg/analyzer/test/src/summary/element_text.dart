@@ -2066,11 +2066,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _elementPrinter.writeElementList('accessors', sorted);
     }
 
-    void writeMethods() {
-      var sorted = element.methods.sortedBy((e) => e.name);
-      _elementPrinter.writeElementList('methods', sorted);
-    }
-
     _sink.writelnWithIndent('augmented');
     _sink.withIndent(() {
       switch (element) {
@@ -2080,7 +2075,6 @@ class _ElementWriter extends _AbstractElementWriter {
           writeFields();
           writeConstructors();
           writeAccessors();
-          writeMethods();
         case EnumElementImpl2():
           _elementPrinter.writeTypeList('mixins', element.mixins);
           _elementPrinter.writeTypeList('interfaces', element.interfaces);
@@ -2091,17 +2085,14 @@ class _ElementWriter extends _AbstractElementWriter {
           );
           writeConstructors();
           writeAccessors();
-          writeMethods();
         case ExtensionElementImpl2():
           writeFields();
           writeAccessors();
-          writeMethods();
         case ExtensionTypeElementImpl2():
           _elementPrinter.writeTypeList('interfaces', element.interfaces);
           writeFields();
           writeConstructors();
           writeAccessors();
-          writeMethods();
         case MixinElementImpl2():
           _elementPrinter.writeTypeList(
             'superclassConstraints',
@@ -2110,7 +2101,6 @@ class _ElementWriter extends _AbstractElementWriter {
           _elementPrinter.writeTypeList('interfaces', element.interfaces);
           writeFields();
           writeAccessors();
-          writeMethods();
         default:
           // TODO(scheglov): Add other types and properties
           throw UnimplementedError('${e.runtimeType}');

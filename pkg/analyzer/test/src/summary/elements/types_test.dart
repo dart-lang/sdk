@@ -502,7 +502,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           typeParameters
             V
@@ -664,7 +663,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         call
-          reference: <testLibrary>::@class::C::@method::call
           firstFragment: <testLibraryFragment>::@class::C::@method::call
     class D
       reference: <testLibrary>::@class::D
@@ -1341,7 +1339,6 @@ library
           superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeDefault::@constructor::new#element
       methods
         ==
-          reference: <testLibrary>::@class::X1::@method::==
           firstFragment: <testLibraryFragment>::@class::X1::@method::==
           formalParameters
             requiredPositional hasImplicitType other
@@ -1356,7 +1353,6 @@ library
           superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeObject::@constructor::new#element
       methods
         ==
-          reference: <testLibrary>::@class::X2::@method::==
           firstFragment: <testLibraryFragment>::@class::X2::@method::==
           formalParameters
             requiredPositional hasImplicitType other
@@ -1371,7 +1367,6 @@ library
           superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeInt::@constructor::new#element
       methods
         ==
-          reference: <testLibrary>::@class::X3::@method::==
           firstFragment: <testLibraryFragment>::@class::X3::@method::==
           formalParameters
             requiredPositional hasImplicitType other
@@ -1896,7 +1891,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -3196,7 +3190,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         g
-          reference: <testLibrary>::@class::C::@method::g
           firstFragment: <testLibraryFragment>::@class::C::@method::g
           typeParameters
             V
@@ -3290,7 +3283,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         g
-          reference: <testLibrary>::@class::C::@method::g
           firstFragment: <testLibraryFragment>::@class::C::@method::g
           typeParameters
             V

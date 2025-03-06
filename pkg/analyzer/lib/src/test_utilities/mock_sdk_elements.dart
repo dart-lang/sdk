@@ -949,7 +949,6 @@ class _MockSdkElementsBuilder {
     element.fields = fragment.fields;
     element.constructors = fragment.constructors;
     element.accessors = fragment.accessors;
-    element.methods = fragment.methods;
   }
 
   LibraryElementImpl _buildCore() {
@@ -1087,7 +1086,6 @@ class _MockSdkElementsBuilder {
           .toList()
       ..returnType = returnType
       ..typeParameters = typeFormals;
-    MethodElementImpl2(Reference.root(), name, fragment);
     return fragment;
   }
 

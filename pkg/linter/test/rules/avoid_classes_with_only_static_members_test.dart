@@ -59,6 +59,7 @@ augment class A {
     await assertNoDiagnosticsInFile(b.path);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_staticMethod() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
