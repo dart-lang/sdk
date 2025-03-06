@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 
 /// Returns the fragment that is either [fragment], or one of its direct or
@@ -22,7 +21,7 @@ void visitChildren(Element2 element, BoolElementProcessor processor) {
 /// If `true` is returned, children of [element] will be visited.
 typedef BoolElementProcessor = bool Function(Element2 element);
 
-/// A [GeneralizingElementVisitor] adapter for [BoolElementProcessor].
+/// A [GeneralizingElementVisitor2] adapter for [BoolElementProcessor].
 class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   final BoolElementProcessor processor;
 

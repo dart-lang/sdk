@@ -164,7 +164,7 @@ class _ClassVerifier {
   final FeatureSet featureSet;
   final LibraryElementImpl library;
   final Uri libraryUri;
-  final InterfaceElement classElement;
+  final InterfaceElementImpl classElement;
 
   final Token classNameToken;
   final List<ClassMember> members;
@@ -202,12 +202,12 @@ class _ClassVerifier {
     }
 
     var fragment = classElement;
-    var augmented = fragment.augmented;
-    var declaration = augmented.firstFragment;
+    var element = fragment.element;
+    var firstFragment = element.firstFragment;
 
-    if (declaration is! EnumElement &&
-        declaration is ClassElement &&
-        !declaration.isAbstract &&
+    if (firstFragment is! EnumElementImpl &&
+        firstFragment is ClassElementImpl &&
+        !firstFragment.isAbstract &&
         implementsDartCoreEnum) {
       reporter.atToken(
         classNameToken,
@@ -216,23 +216,23 @@ class _ClassVerifier {
       return true;
     }
 
-    if (_checkForRecursiveInterfaceInheritance(declaration.asElement2)) {
+    if (_checkForRecursiveInterfaceInheritance(firstFragment.asElement2)) {
       return true;
     }
 
     // Compute the interface of the class.
-    var interface = inheritance.getInterface(declaration);
+    var interface = inheritance.getInterface(firstFragment);
 
     // Report conflicts between direct superinterfaces of the class.
     for (var conflict in interface.conflicts) {
       _reportInconsistentInheritance(classNameToken, conflict);
     }
 
-    if (declaration.supertype != null) {
-      directSuperInterfaces.add(declaration.supertype!);
+    if (firstFragment.supertype != null) {
+      directSuperInterfaces.add(firstFragment.supertype!);
     }
-    if (augmented is AugmentedMixinElement) {
-      directSuperInterfaces.addAll(augmented.superclassConstraints);
+    if (element is MixinElementImpl2) {
+      directSuperInterfaces.addAll(element.superclassConstraints);
     }
 
     // Each mixin in `class C extends S with M0, M1, M2 {}` is equivalent to:
@@ -243,14 +243,14 @@ class _ClassVerifier {
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
     var mixinNodes = withClause?.mixinTypes;
-    var mixinTypes = declaration.mixins;
+    var mixinTypes = firstFragment.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
-      var mixinType = mixinTypes[i] as InterfaceTypeImpl;
+      var mixinType = mixinTypes[i];
       _checkDeclaredMembers(mixinNodes![i], mixinType, mixinIndex: i);
       directSuperInterfaces.add(mixinType);
     }
 
-    directSuperInterfaces.addAll(augmented.interfaces);
+    directSuperInterfaces.addAll(element.interfaces);
 
     // Check the members of the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
@@ -261,7 +261,7 @@ class _ClassVerifier {
           var fieldElement = field.declaredFragment! as FieldElementImpl;
           _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
-          if (!member.isStatic && declaration is! EnumElement) {
+          if (!member.isStatic && firstFragment is! EnumElement) {
             _checkIllegalEnumValuesDeclaration(field.name);
           }
           if (!member.isStatic) {
@@ -279,7 +279,7 @@ class _ClassVerifier {
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
         }
-        if (!member.isStatic && declaration is! EnumElement) {
+        if (!member.isStatic && firstFragment is! EnumElement) {
           _checkIllegalEnumValuesDeclaration(member.name);
         }
       }
@@ -291,10 +291,10 @@ class _ClassVerifier {
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: reporter,
-    ).checkInterface((fragment as InterfaceElementImpl).asElement2, interface);
+    ).checkInterface(element, interface);
 
-    if (declaration is ClassElement && !declaration.isAbstract ||
-        declaration is EnumElement) {
+    if (firstFragment is ClassElementImpl && !firstFragment.isAbstract ||
+        firstFragment is EnumElementImpl) {
       List<ExecutableElement>? inheritedAbstract;
 
       for (var name in interface.map.keys) {
@@ -310,11 +310,11 @@ class _ClassVerifier {
           if (_reportConcreteClassWithAbstractMember(name.name)) {
             continue;
           }
-          if (_isNotImplementedInConcreteSuperClass(declaration, name)) {
+          if (_isNotImplementedInConcreteSuperClass(firstFragment, name)) {
             continue;
           }
           // We already reported ILLEGAL_ENUM_VALUES_INHERITANCE.
-          if (declaration is EnumElement &&
+          if (firstFragment is EnumElement &&
               const {'values', 'values='}.contains(name.name)) {
             continue;
           }
@@ -449,9 +449,9 @@ class _ClassVerifier {
     if (typeElement is ClassElement2 &&
         typeElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
-      if (classElement is ClassElement && classElement.isAbstract ||
-          classElement is EnumElement ||
-          classElement is MixinElement) {
+      if (classElement is ClassElementImpl && classElement.isAbstract ||
+          classElement is EnumElementImpl ||
+          classElement is MixinElementImpl) {
         return false;
       }
       hasEnum?.call();
@@ -566,15 +566,15 @@ class _ClassVerifier {
       }
     }
 
-    var augmented = classElement.augmented;
+    var element = classElement.element;
 
-    for (var type in augmented.interfaces) {
+    for (var type in element.interfaces) {
       if (_checkDirectSuperType(type: type)) {
         return true;
       }
     }
 
-    for (var type in augmented.mixins) {
+    for (var type in element.mixins) {
       if (_checkDirectSuperType(type: type)) {
         return true;
       }
@@ -803,7 +803,7 @@ class _ClassVerifier {
     Name name,
   ) {
     var superElement = classElement.supertype?.element3;
-    if (superElement is ClassElement2 && !superElement.isAbstract) {
+    if (superElement is ClassElementImpl2 && !superElement.isAbstract) {
       var superInterface = inheritance.getInterface2(superElement);
       return superInterface.map.containsKey(name);
     }
@@ -981,8 +981,8 @@ class _ClassVerifier {
   /// Verify that [classElement] complies with all `@mustBeOverridden`-annotated
   /// members in all of its supertypes.
   void _verifyMustBeOverridden() {
-    var classElement = this.classElement.asElement2;
-    if (classElement is! ClassElement2 ||
+    var classElement = this.classElement.element;
+    if (classElement is! ClassElementImpl2 ||
         classElement.isAbstract ||
         classElement.isSealed) {
       // We only care about concrete classes.

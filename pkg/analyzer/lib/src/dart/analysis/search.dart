@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -27,15 +26,30 @@ Fragment _getEnclosingFragment(
   CompilationUnitElementImpl libraryFragment,
   int offset,
 ) {
-  var finder = _ContainingFragmentFinder(offset);
-  libraryFragment.accept(finder);
-  var result = finder.containingFragment;
-  if (result == null) {
-    throw StateError(
-      'No containing fragment in ${libraryFragment.source.fullName} at $offset',
-    );
+  Fragment? visitFragment(Fragment fragment) {
+    var fragmentImpl = fragment as ElementImpl;
+    var codeOffset = fragmentImpl.codeOffset;
+    var codeLength = fragmentImpl.codeLength;
+    if (codeOffset == null || codeLength == null) {
+      return null;
+    }
+
+    var codeEnd = codeOffset + codeLength;
+    if (codeOffset <= offset && offset <= codeEnd) {
+      for (var child in fragment.children3) {
+        var result = visitFragment(child);
+        if (result != null) {
+          return result;
+        }
+      }
+      return fragment;
+    }
+
+    return null;
   }
-  return result;
+
+  var result = visitFragment(libraryFragment);
+  return result ?? libraryFragment;
 }
 
 DeclarationKind? _getSearchElementKind(Element2 element) {
@@ -1087,24 +1101,6 @@ class WorkspaceSymbols {
       _pathToIndex[path] = index;
     }
     return index;
-  }
-}
-
-/// A visitor that finds the deep-most [ElementImpl] that contains the [offset].
-class _ContainingFragmentFinder extends GeneralizingElementVisitor<void> {
-  final int offset;
-  Fragment? containingFragment;
-
-  _ContainingFragmentFinder(this.offset);
-
-  @override
-  void visitElement(covariant ElementImpl element) {
-    if (element.codeOffset != null &&
-        element.codeOffset! <= offset &&
-        offset <= element.codeOffset! + element.codeLength!) {
-      containingFragment = element as Fragment;
-      super.visitElement(element);
-    }
   }
 }
 

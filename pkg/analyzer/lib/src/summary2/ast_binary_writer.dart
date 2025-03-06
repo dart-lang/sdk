@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
@@ -743,13 +742,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     _writeByte(Tag.SimpleFormalParameter);
 
     _writeOptionalNode(node.type);
     _storeNormalFormalParameter(node, node.keyword);
 
-    var element = node.declaredFragment as ParameterElementImpl;
+    var element = node.declaredFragment!;
     _sink.writeByte(element.inheritsCovariant ? 1 : 0);
   }
 
@@ -894,8 +893,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   void _storeForLoopParts(ForLoopParts node) {}
 
-  void _storeFormalParameter(FormalParameter node) {
-    var element = node.declaredFragment as ParameterElementImpl;
+  void _storeFormalParameter(FormalParameterImpl node) {
+    var element = node.declaredFragment!;
     _writeActualType(_sink, element.type);
   }
 
@@ -914,7 +913,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _storeNormalFormalParameter(
-    NormalFormalParameter node,
+    NormalFormalParameterImpl node,
     Token? keyword, {
     bool hasQuestion = false,
   }) {

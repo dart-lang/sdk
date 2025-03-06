@@ -68,10 +68,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var outerScope = scope;
 
-    var element = node.declaredFragment as ClassElementImpl;
+    var element = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
@@ -94,10 +94,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     var outerScope = scope;
 
-    var element = node.declaredFragment as ClassElementImpl;
+    var element = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
@@ -142,10 +142,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as EnumElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
@@ -175,10 +175,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as ExtensionElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
@@ -204,10 +204,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration(
+      covariant ExtensionTypeDeclarationImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as ExtensionTypeElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
@@ -236,10 +237,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
+  void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as FieldFormalParameterElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
@@ -260,10 +261,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as ExecutableElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       outerScope,
@@ -286,10 +287,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as TypeAliasElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       outerScope,
@@ -306,10 +307,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameter(
+      covariant FunctionTypedFormalParameterImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as ParameterElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
@@ -325,11 +327,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitGenericFunctionType(GenericFunctionType node) {
-    var nodeImpl = node as GenericFunctionTypeImpl;
+  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as GenericFunctionTypeElementImpl;
+    var fragment = node.declaredFragment!;
     scope = TypeParameterScope(
       outerScope,
       fragment.typeParameters.map((e) => e.asElement2).toList(),
@@ -340,8 +341,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.parameters.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
-    var builder = FunctionTypeBuilder.of(nodeImpl, nullabilitySuffix);
-    nodeImpl.type = builder;
+    var builder = FunctionTypeBuilder.of(node, nullabilitySuffix);
+    node.type = builder;
     nodesToBuildType.addDeclaration(node);
     nodesToBuildType.addTypeBuilder(builder);
 
@@ -349,10 +350,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as TypeAliasElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       outerScope,
@@ -380,10 +381,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as ExecutableElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
@@ -401,10 +402,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as MixinElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
@@ -522,10 +523,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitSuperFormalParameter(SuperFormalParameter node) {
+  void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     var outerScope = scope;
 
-    var fragment = node.declaredFragment as SuperFormalParameterElementImpl;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
@@ -552,11 +553,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitTypeParameter(TypeParameter node) {
+  void visitTypeParameter(covariant TypeParameterImpl node) {
     var bound = node.bound;
     if (bound != null) {
       bound.accept(this);
-      var fragment = node.declaredFragment as TypeParameterElementImpl;
+      var fragment = node.declaredFragment!;
       fragment.bound = bound.type;
       nodesToBuildType.addDeclaration(node);
     }

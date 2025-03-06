@@ -151,39 +151,6 @@ abstract class AugmentedInstanceElement {
 
   /// Returns the setter from [accessors] that has the given [name].
   PropertyAccessorElement? getSetter(String name);
-
-  /// Returns the element representing the getter that results from looking up
-  /// the given [name] in this class with respect to the given [library],
-  /// or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 17.18 Lookup.
-  PropertyAccessorElement? lookUpGetter({
-    required String name,
-    required LibraryElement library,
-  });
-
-  /// Returns the element representing the method that results from looking up
-  /// the given [name] in this class with respect to the given [library],
-  /// or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 17.18 Lookup.
-  MethodElement? lookUpMethod({
-    required String name,
-    required LibraryElement library,
-  });
-
-  /// Returns the element representing the setter that results from looking up
-  /// the given [name] in this class with respect to the given [library],
-  /// or `null` if the look up fails.
-  ///
-  /// The behavior of this method is defined by the Dart Language Specification
-  /// in section 17.18 Lookup.
-  PropertyAccessorElement? lookUpSetter({
-    required String name,
-    required LibraryElement library,
-  });
 }
 
 /// The result of applying augmentations to a [InterfaceElement].
@@ -250,10 +217,6 @@ abstract class ClassElement implements InterfaceElement {
   @experimental
   @override
   ClassElement? get augmentationTarget;
-
-  @experimental
-  @override
-  AugmentedClassElement get augmented;
 
   /// Whether the class or its superclass declares a non-final instance field.
   bool get hasNonFinalField;
@@ -797,6 +760,7 @@ abstract class Element implements AnalysisTarget {
   ///
   /// Returns the value returned by the visitor as a result of visiting this
   /// element.
+  @Deprecated('Use Element2 and accept2() instead')
   T? accept<T>(ElementVisitor<T> visitor);
 
   /// Returns the presentation of this element as it should appear when
@@ -862,6 +826,7 @@ abstract class Element implements AnalysisTarget {
 
   /// Uses the given [visitor] to visit all of the children of this element.
   /// There is no guarantee of the order in which the children will be visited.
+  @Deprecated('Use Element2 and visitChildren2() instead')
   void visitChildren(ElementVisitor visitor);
 }
 
@@ -1194,6 +1159,7 @@ abstract class ElementLocation {
 ///   visited, and
 /// * ThrowingElementVisitor which implements every visit method by throwing an
 ///   exception.
+@Deprecated('Use ElementVisitor2 instead')
 abstract class ElementVisitor<R> {
   R? visitClassElement(ClassElement element);
 
@@ -1259,10 +1225,6 @@ abstract class EnumElement implements InterfaceElement {
   @experimental
   @override
   EnumElement? get augmentationTarget;
-
-  @experimental
-  @override
-  AugmentedEnumElement get augmented;
 }
 
 /// An element representing an executable object, including functions, methods,
@@ -1356,10 +1318,6 @@ abstract class ExtensionElement implements InstanceElement {
   @override
   ExtensionElement? get augmentationTarget;
 
-  @experimental
-  @override
-  AugmentedExtensionElement get augmented;
-
   /// The type that is extended by this extension.
   DartType get extendedType;
 
@@ -1396,10 +1354,6 @@ abstract class ExtensionTypeElement implements InterfaceElement {
   @experimental
   @override
   ExtensionTypeElement? get augmentationTarget;
-
-  @experimental
-  @override
-  AugmentedExtensionTypeElement get augmented;
 
   /// The primary constructor of this extension.
   ConstructorElement get primaryConstructor;
@@ -1574,13 +1528,6 @@ abstract class InstanceElement
   @experimental
   InstanceElement? get augmentationTarget;
 
-  /// The result of merging augmentations.
-  ///
-  /// It includes the members of the base element and its augmentations as
-  /// specified by the merge operations.
-  @experimental
-  AugmentedInstanceElement get augmented;
-
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -1612,10 +1559,6 @@ abstract class InterfaceElement implements InstanceElement {
 
   @override
   InterfaceElement? get augmentationTarget;
-
-  @experimental
-  @override
-  AugmentedInterfaceElement get augmented;
 
   /// The declared constructors.
   ///
@@ -2095,10 +2038,6 @@ abstract class MixinElement implements InterfaceElement {
   @experimental
   @override
   MixinElement? get augmentationTarget;
-
-  @experimental
-  @override
-  AugmentedMixinElement get augmented;
 
   /// Whether the mixin is a base mixin.
   ///

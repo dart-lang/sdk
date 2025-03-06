@@ -268,23 +268,23 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
 
   void _addFirstFragment() {
     var firstFragment = this.firstFragment;
-    var augmented = firstFragment.augmented;
+    var element = firstFragment.element;
 
-    augmented.fields.addAll(firstFragment.fields);
-    augmented.accessors.addAll(firstFragment.accessors);
-    augmented.methods.addAll(firstFragment.methods);
+    element.fields.addAll(firstFragment.fields);
+    element.accessors.addAll(firstFragment.accessors);
+    element.methods.addAll(firstFragment.methods);
 
-    if (augmented is InterfaceElementImpl2) {
+    if (element is InterfaceElementImpl2) {
       if (firstFragment is InterfaceElementImpl) {
-        augmented.mixins.addAll(firstFragment.mixins);
-        augmented.interfaces.addAll(firstFragment.interfaces);
-        augmented.constructors.addAll(firstFragment.constructors);
+        element.mixins.addAll(firstFragment.mixins);
+        element.interfaces.addAll(firstFragment.interfaces);
+        element.constructors.addAll(firstFragment.constructors);
       }
     }
 
-    if (augmented is MixinElementImpl2) {
+    if (element is MixinElementImpl2) {
       if (firstFragment is MixinElementImpl) {
-        augmented.superclassConstraints.addAll(
+        element.superclassConstraints.addAll(
           firstFragment.superclassConstraints,
         );
       }

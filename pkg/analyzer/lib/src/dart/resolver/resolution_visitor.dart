@@ -624,7 +624,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     FieldFormalParameterElementImpl fragment;
     if (node.parent is DefaultFormalParameter) {
-      fragment = node.declaredFragment as FieldFormalParameterElementImpl;
+      fragment = node.declaredFragment!;
     } else {
       var nameToken = node.name;
       if (_elementWalker != null) {
@@ -833,7 +833,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   ) {
     ParameterElementImpl fragment;
     if (node.parent is DefaultFormalParameter) {
-      fragment = node.declaredFragment as ParameterElementImpl;
+      fragment = node.declaredFragment!;
     } else {
       var nameToken = node.name;
       if (_elementWalker != null) {
@@ -1209,7 +1209,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     ParameterElementImpl fragment;
     if (node.parent is DefaultFormalParameter) {
-      fragment = node.declaredFragment as ParameterElementImpl;
+      fragment = node.declaredFragment!;
     } else {
       var nameToken = node.name;
       if (_elementWalker != null) {
@@ -1389,7 +1389,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(covariant TypeParameterImpl node) {
-    var fragment = node.declaredFragment as TypeParameterElementImpl;
+    var fragment = node.declaredFragment!;
 
     _setOrCreateMetadataElements(fragment, node.metadata);
 
@@ -1455,7 +1455,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variables = node.variables;
     for (var i = 0; i < variables.length; i++) {
       var variable = variables[i];
-      var element = variable.declaredFragment as ElementImpl;
+      var element = variable.declaredFragment!;
       _setOrCreateMetadataElements(element, annotations, visitNodes: false);
 
       var offset = (i == 0 ? node.parent! : variable).offset;

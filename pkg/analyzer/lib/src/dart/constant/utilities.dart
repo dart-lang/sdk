@@ -175,10 +175,10 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration(covariant EnumConstantDeclarationImpl node) {
     super.visitEnumConstantDeclaration(node);
 
-    var element = node.declaredFragment as ConstFieldElementImpl;
+    var element = node.declaredFragment!;
     constantsToCompute.add(element);
 
     configuration.addErrorNode(

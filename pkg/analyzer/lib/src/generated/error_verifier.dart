@@ -524,15 +524,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    var element = node.declaredFragment!;
-    var augmented = element.augmented;
-    var declarationElement = augmented.firstFragment;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    var firstFragment = element.firstFragment;
 
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     try {
-      _enclosingClass = declarationElement.asElement2;
-      _checkClassInheritance(declarationElement, node, node.superclass,
+      _enclosingClass = firstFragment.asElement2;
+      _checkClassInheritance(firstFragment, node, node.superclass,
           node.withClause, node.implementsClause);
       _checkForMainFunction1(node.name, node.declaredFragment!);
       _checkForMixinClassErrorCodes(
@@ -651,7 +651,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitEnumConstantDeclaration(
       covariant EnumConstantDeclarationImpl node) {
-    var fragment = node.declaredFragment as FieldElementImpl;
+    var fragment = node.declaredFragment!;
 
     _checkAugmentations(
       augmentKeyword: node.augmentKeyword,
@@ -683,9 +683,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
 
-      var augmented = declaredFragment.augmented;
-      var declarationElement = augmented.firstFragment;
-      _enclosingClass = declarationElement.asElement2;
+      var element = declaredFragment.element;
+      _enclosingClass = element;
 
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
@@ -695,11 +694,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       if (implementsClause != null || withClause != null) {
         _checkClassInheritance(
-            declarationElement, node, null, withClause, implementsClause);
+            firstFragment, node, null, withClause, implementsClause);
       }
 
       if (!declaredFragment.isAugmentation) {
-        if (declaredFragment.augmented.constants.isEmpty) {
+        if (element.constants.isEmpty) {
           errorReporter.atToken(
             node.name,
             CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS,
@@ -709,7 +708,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       var members = node.members;
       libraryContext.constructorFieldsVerifier
-          .addConstructors(errorReporter, augmented, members);
+          .addConstructors(errorReporter, element, members);
       _checkForFinalNotInitializedInClass(declaredFragment, members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredFragment!);
@@ -794,7 +793,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     try {
       var declaredFragment = node.declaredFragment!;
-      var declaredElement = declaredFragment.augmented;
+      var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
 
       _checkAugmentations(
@@ -1045,7 +1044,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    var fragment = node.declaredFragment as TypeAliasElementImpl;
+    var fragment = node.declaredFragment!;
 
     _checkAugmentations(
       augmentKeyword: node.augmentKeyword,
@@ -1055,8 +1054,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     _checkForMainFunction1(node.name, node.declaredFragment!);
-    _checkForTypeAliasCannotReferenceItself(
-        node.name, node.declaredFragment as TypeAliasElementImpl);
+    _checkForTypeAliasCannotReferenceItself(node.name, fragment);
     super.visitGenericTypeAlias(node);
   }
 
@@ -1252,9 +1250,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
 
-      var augmented = declaredFragment.augmented;
-      var declarationElement = augmented.firstFragment;
-      _enclosingClass = declarationElement.asElement2;
+      _enclosingClass = declaredElement;
 
       List<ClassMember> members = node.members;
       _checkForBuiltInIdentifierAsName(
@@ -1266,13 +1262,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       // Only do error checks only if there is a non-null clause.
       if (onClause != null || implementsClause != null) {
-        _checkMixinInheritance(
-            declarationElement, node, onClause, implementsClause);
+        _checkMixinInheritance(firstFragment, node, onClause, implementsClause);
       }
 
       _checkForConflictingClassMembers(declaredFragment);
       _checkForFinalNotInitializedInClass(declaredFragment, members);
-      _checkForMainFunction1(node.name, declarationElement);
+      _checkForMainFunction1(node.name, firstFragment);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
@@ -1793,7 +1788,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var declaration = target.augmented.firstFragment;
+    var firstFragment = target.element.firstFragment;
 
     void singleModifier({
       required String modifierName,
@@ -1820,41 +1815,41 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Sealed classes are also abstract, report just `sealed` mismatch.
-    if (!declaration.isSealed) {
+    if (!firstFragment.isSealed) {
       singleModifier(
         modifierName: 'abstract',
-        declarationFlag: declaration.isAbstract,
+        declarationFlag: firstFragment.isAbstract,
         augmentationModifier: augmentationNode.abstractKeyword,
       );
     }
 
     singleModifier(
       modifierName: 'base',
-      declarationFlag: declaration.isBase,
+      declarationFlag: firstFragment.isBase,
       augmentationModifier: augmentationNode.baseKeyword,
     );
 
     singleModifier(
       modifierName: 'final',
-      declarationFlag: declaration.isFinal,
+      declarationFlag: firstFragment.isFinal,
       augmentationModifier: augmentationNode.finalKeyword,
     );
 
     singleModifier(
       modifierName: 'interface',
-      declarationFlag: declaration.isInterface,
+      declarationFlag: firstFragment.isInterface,
       augmentationModifier: augmentationNode.interfaceKeyword,
     );
 
     singleModifier(
       modifierName: 'mixin',
-      declarationFlag: declaration.isMixinClass,
+      declarationFlag: firstFragment.isMixinClass,
       augmentationModifier: augmentationNode.mixinKeyword,
     );
 
     singleModifier(
       modifierName: 'sealed',
-      declarationFlag: declaration.isSealed,
+      declarationFlag: firstFragment.isSealed,
       augmentationModifier: augmentationNode.sealedKeyword,
     );
   }
@@ -3664,12 +3659,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
   /// [CompileTimeErrorCode.FINAL_NOT_INITIALIZED].
   void _checkForFinalNotInitializedInClass(
-    InstanceElementImpl container,
+    InstanceElementImpl fragment,
     List<ClassMember> members,
   ) {
-    if (container is InterfaceElementImpl) {
-      var augmented = container.augmented;
-      for (var constructor in augmented.constructors2) {
+    if (fragment is InterfaceElementImpl) {
+      var element = fragment.element;
+      for (var constructor in element.constructors2) {
         if (constructor.isGenerative && !constructor.isSynthetic) {
           return;
         }
@@ -6100,12 +6095,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var target = augmentationElement.augmentationTarget;
-    if (target == null) {
+    var fragment = augmentationElement.augmentationTarget;
+    if (fragment == null) {
       return;
     }
 
-    var declaration = target.augmented.firstFragment;
+    var firstFragment = fragment.element.firstFragment;
 
     void singleModifier({
       required String modifierName,
@@ -6133,7 +6128,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     singleModifier(
       modifierName: 'base',
-      declarationFlag: declaration.isBase,
+      declarationFlag: firstFragment.isBase,
       augmentationModifier: augmentationNode.baseKeyword,
     );
   }

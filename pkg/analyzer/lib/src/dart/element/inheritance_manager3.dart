@@ -573,14 +573,14 @@ class InheritanceManager3 {
     return conflicts;
   }
 
-  Interface _getInterfaceClass(InterfaceElementImpl element) {
-    var augmented = element.augmented;
+  Interface _getInterfaceClass(InterfaceElementImpl fragment) {
+    var element = fragment.element;
 
     var namedCandidates = <Name, List<ExecutableElementOrMember>>{};
     var superImplemented = <Map<Name, ExecutableElementOrMember>>[];
     var implemented = <Name, ExecutableElementOrMember>{};
 
-    InterfaceType? superType = element.supertype;
+    InterfaceType? superType = fragment.supertype;
 
     Interface? superTypeInterface;
     if (superType != null) {
@@ -607,7 +607,7 @@ class InheritanceManager3 {
     // multiple candidates happen only when we merge super and multiple
     // interfaces. Consider using `Map<Name, ExecutableElement>` here.
     var mixinsConflicts = <List<Conflict>>[];
-    for (var mixin in augmented.mixins) {
+    for (var mixin in element.mixins) {
       var mixinElement = mixin.element;
       var substitution = Substitution.fromInterfaceType(mixin);
       var mixinInterface = getInterface(mixinElement);
@@ -661,7 +661,7 @@ class InheritanceManager3 {
       {
         var map = <Name, ExecutableElementOrMember>{};
         _findMostSpecificFromNamedCandidates(
-          element,
+          fragment,
           map,
           candidatesFromSuperAndMixin,
           doTopMerge: true,
@@ -683,7 +683,7 @@ class InheritanceManager3 {
       superImplemented.add(implemented);
     }
 
-    for (var interface in augmented.interfaces) {
+    for (var interface in element.interfaces) {
       _addCandidates(
         namedCandidates: namedCandidates,
         substitution: Substitution.fromInterfaceType(interface),
@@ -692,11 +692,11 @@ class InheritanceManager3 {
     }
 
     implemented = Map.of(implemented);
-    _addImplemented(implemented, element, augmented);
+    _addImplemented(implemented, fragment, element);
 
     // If a class declaration has a member declaration, the signature of that
     // member declaration becomes the signature in the interface.
-    var declared = _getTypeMembers(element, augmented);
+    var declared = _getTypeMembers(fragment, element);
 
     // If a class declaration does not have a member declaration with a
     // particular name, but some super-interfaces do have a member with that
@@ -706,14 +706,14 @@ class InheritanceManager3 {
     // signature becomes the signature of the class's interface.
     var interface = Map.of(declared);
     List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
-      element,
+      fragment,
       interface,
       namedCandidates,
       doTopMerge: true,
     );
 
     var noSuchMethodForwarders = <Name>{};
-    if (element is ClassElementImpl && element.isAbstract) {
+    if (fragment is ClassElementImpl && fragment.isAbstract) {
       if (superTypeInterface != null) {
         noSuchMethodForwarders = superTypeInterface.noSuchMethodForwarders;
       }
@@ -742,7 +742,7 @@ class InheritanceManager3 {
 
     implemented =
         implemented.map<Name, ExecutableElementOrMember>((key, value) {
-      var result = _inheritCovariance(element, namedCandidates, key, value);
+      var result = _inheritCovariance(fragment, namedCandidates, key, value);
       return MapEntry(key, result);
     });
 
@@ -765,12 +765,12 @@ class InheritanceManager3 {
   ///
   /// We handle "has an extension type member" and "has a non-extension type
   /// member" portions, considering redeclaration and conflicts.
-  Interface _getInterfaceExtensionType(ExtensionTypeElement element) {
-    var augmented = element.augmented;
+  Interface _getInterfaceExtensionType(ExtensionTypeElementImpl fragment) {
+    var element = fragment.element;
 
     // Add instance members implemented by the element itself.
     var declared = <Name, ExecutableElementOrMember>{};
-    _addImplemented(declared, element, augmented);
+    _addImplemented(declared, fragment, element);
 
     // Prepare precluded names.
     var precludedNames = <Name>{};
@@ -793,8 +793,7 @@ class InheritanceManager3 {
     // Prepare candidates for inheritance.
     var extensionCandidates = <Name, _ExtensionTypeCandidates>{};
     var notExtensionCandidates = <Name, _ExtensionTypeCandidates>{};
-    for (var interface in augmented.interfaces) {
-      interface as InterfaceTypeImpl;
+    for (var interface in element.interfaces) {
       var substitution = Substitution.fromInterfaceType(interface);
       for (var entry in getInterface(interface.element).map.entries) {
         var name = entry.key;
@@ -897,7 +896,7 @@ class InheritanceManager3 {
       }
 
       var combinedSignature = combineSignatures(
-        targetClass: element,
+        targetClass: fragment,
         candidates: notPrecluded,
         doTopMerge: true,
         name: name,
@@ -956,11 +955,11 @@ class InheritanceManager3 {
     );
   }
 
-  Interface _getInterfaceMixin(MixinElementImpl element) {
-    var augmented = element.augmented;
+  Interface _getInterfaceMixin(MixinElementImpl fragment) {
+    var element = fragment.element;
 
     var superCandidates = <Name, List<ExecutableElementOrMember>>{};
-    for (var constraint in augmented.superclassConstraints) {
+    for (var constraint in element.superclassConstraints) {
       var substitution = Substitution.fromInterfaceType(constraint);
       var interfaceObj = getInterface(constraint.element);
       _addCandidates(
@@ -974,14 +973,14 @@ class InheritanceManager3 {
     // from its superclass constraints, whether it is abstract or concrete.
     var superInterface = <Name, ExecutableElementOrMember>{};
     var superConflicts = _findMostSpecificFromNamedCandidates(
-      element,
+      fragment,
       superInterface,
       superCandidates,
       doTopMerge: true,
     );
 
     var interfaceCandidates = Map.of(superCandidates);
-    for (var interface in augmented.interfaces) {
+    for (var interface in element.interfaces) {
       _addCandidates(
         namedCandidates: interfaceCandidates,
         substitution: Substitution.fromInterfaceType(interface),
@@ -989,18 +988,18 @@ class InheritanceManager3 {
       );
     }
 
-    var declared = _getTypeMembers(element, augmented);
+    var declared = _getTypeMembers(fragment, element);
 
     var interface = Map.of(declared);
     var interfaceConflicts = _findMostSpecificFromNamedCandidates(
-      element,
+      fragment,
       interface,
       interfaceCandidates,
       doTopMerge: true,
     );
 
     var implemented = <Name, ExecutableElementOrMember>{};
-    _addImplemented(implemented, element, augmented);
+    _addImplemented(implemented, fragment, element);
 
     return Interface._(
       map: interface,

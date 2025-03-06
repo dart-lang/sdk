@@ -133,6 +133,7 @@ class ConstructorMember extends ExecutableMember
   @override
   ConstructorElementImpl2 get _element2 => declaration.asElement2;
 
+  @Deprecated('Use Element2 and accept2() instead')
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitConstructorElement(this);
@@ -522,6 +523,7 @@ class FieldFormalParameterMember extends ParameterMember
   @override
   bool get isCovariant => declaration.isCovariant;
 
+  @Deprecated('Use Element2 and accept2() instead')
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitFieldFormalParameterElement(this);
@@ -671,6 +673,7 @@ class FieldMember extends VariableMember
   @override
   FieldElement2 get _element2 => declaration.asElement2;
 
+  @Deprecated('Use Element2 and accept2() instead')
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
 
@@ -1044,6 +1047,7 @@ abstract class Member implements Element {
 
   /// Use the given [visitor] to visit all of the children of this element.
   /// There is no guarantee of the order in which the children will be visited.
+  @Deprecated('Use Element2 and visitChildren2() instead')
   @override
   void visitChildren(ElementVisitor visitor) {
     for (Element child in children) {
@@ -1131,6 +1135,7 @@ class MethodMember extends ExecutableMember
   @override
   MethodElement2 get _element2 => declaration.asElement2;
 
+  @Deprecated('Use Element2 and accept2() instead')
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 
@@ -1317,6 +1322,7 @@ class ParameterMember extends VariableMember
   @override
   FormalParameterElement get _element2 => declaration.asElement2;
 
+  @Deprecated('Use Element2 and accept2() instead')
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitParameterElement(this);
@@ -1495,6 +1501,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
     return variable;
   }
 
+  @Deprecated('Use Element2 and accept2() instead')
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitPropertyAccessorElement(this);
@@ -1637,6 +1644,7 @@ class SuperFormalParameterMember extends ParameterMember
   FormalParameterElement? get superConstructorParameter2 =>
       superConstructorParameter?.asElement2;
 
+  @Deprecated('Use Element2 and accept2() instead')
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitSuperFormalParameterElement(this);
@@ -1711,6 +1719,7 @@ class TopLevelVariableMember extends VariableMember
   @override
   TopLevelVariableElement2 get _element2 => declaration.asElement2;
 
+  @Deprecated('Use Element2 and accept2() instead')
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitTopLevelVariableElement(this);

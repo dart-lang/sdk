@@ -1993,7 +1993,7 @@ class _ElementWriter extends _AbstractElementWriter {
   void _validateAugmentedInstanceElement(InstanceElementImpl e) {
     InstanceElementImpl? current = e;
     while (current != null) {
-      expect(current.augmented, same(e.augmented));
+      expect(current.element, same(e.element));
       expect(current.thisType, same(e.thisType));
       switch (e) {
         case ExtensionElementImpl():
@@ -2043,10 +2043,10 @@ class _ElementWriter extends _AbstractElementWriter {
       }
     }
 
-    var augmented = e.augmented;
+    var element = e.element;
 
     void writeFields() {
-      var sorted = augmented.fields.sortedBy((e) => e.name);
+      var sorted = element.fields.sortedBy((e) => e.name);
       _elementPrinter.writeElementList('fields', sorted);
     }
 
@@ -2054,60 +2054,60 @@ class _ElementWriter extends _AbstractElementWriter {
       if (!configuration.withConstructors) {
         return;
       }
-      if (augmented is InterfaceElementImpl2) {
-        var sorted = augmented.constructors.sortedBy((e) => e.name);
+      if (element is InterfaceElementImpl2) {
+        var sorted = element.constructors.sortedBy((e) => e.name);
         expect(sorted, isNotEmpty);
         _elementPrinter.writeElementList('constructors', sorted);
       }
     }
 
     void writeAccessors() {
-      var sorted = augmented.accessors.sortedBy((e) => e.name);
+      var sorted = element.accessors.sortedBy((e) => e.name);
       _elementPrinter.writeElementList('accessors', sorted);
     }
 
     void writeMethods() {
-      var sorted = augmented.methods.sortedBy((e) => e.name);
+      var sorted = element.methods.sortedBy((e) => e.name);
       _elementPrinter.writeElementList('methods', sorted);
     }
 
     _sink.writelnWithIndent('augmented');
     _sink.withIndent(() {
-      switch (augmented) {
-        case AugmentedClassElement():
-          _elementPrinter.writeTypeList('mixins', augmented.mixins);
-          _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+      switch (element) {
+        case ClassElementImpl2():
+          _elementPrinter.writeTypeList('mixins', element.mixins);
+          _elementPrinter.writeTypeList('interfaces', element.interfaces);
           writeFields();
           writeConstructors();
           writeAccessors();
           writeMethods();
-        case AugmentedEnumElement():
-          _elementPrinter.writeTypeList('mixins', augmented.mixins);
-          _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+        case EnumElementImpl2():
+          _elementPrinter.writeTypeList('mixins', element.mixins);
+          _elementPrinter.writeTypeList('interfaces', element.interfaces);
           writeFields();
           _elementPrinter.writeElementList(
             'constants',
-            augmented.constants.sortedBy((e) => e.name),
+            element.constants.sortedBy((e) => e.name),
           );
           writeConstructors();
           writeAccessors();
           writeMethods();
-        case AugmentedExtensionElement():
+        case ExtensionElementImpl2():
           writeFields();
           writeAccessors();
           writeMethods();
-        case AugmentedExtensionTypeElement():
-          _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+        case ExtensionTypeElementImpl2():
+          _elementPrinter.writeTypeList('interfaces', element.interfaces);
           writeFields();
           writeConstructors();
           writeAccessors();
           writeMethods();
-        case AugmentedMixinElement():
+        case MixinElementImpl2():
           _elementPrinter.writeTypeList(
             'superclassConstraints',
-            augmented.superclassConstraints,
+            element.superclassConstraints,
           );
-          _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+          _elementPrinter.writeTypeList('interfaces', element.interfaces);
           writeFields();
           writeAccessors();
           writeMethods();

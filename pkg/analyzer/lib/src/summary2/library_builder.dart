@@ -149,25 +149,22 @@ class LibraryBuilder {
       return false;
     }
 
-    for (var classElement in element.topLevelElements) {
-      if (classElement is! ClassElementImpl) continue;
-      if (classElement.isMixinApplication) continue;
-      if (classElement.augmentationTarget != null) continue;
-      if (hasConstructor(classElement)) continue;
+    for (var classFragment in element.topLevelElements) {
+      if (classFragment is! ClassElementImpl) continue;
+      if (classFragment.isMixinApplication) continue;
+      if (classFragment.augmentationTarget != null) continue;
+      if (hasConstructor(classFragment)) continue;
 
       var constructor = ConstructorElementImpl('', -1)..isSynthetic = true;
-      var containerRef = classElement.reference!.getChild('@constructor');
+      var containerRef = classFragment.reference!.getChild('@constructor');
       var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
-      constructor.typeName = classElement.name2;
+      constructor.typeName = classFragment.name2;
       constructor.name2 = 'new';
 
-      classElement.constructors = [constructor].toFixedList();
-
-      if (classElement.augmented case ClassElementImpl2 augmented) {
-        augmented.constructors = classElement.constructors;
-      }
+      classFragment.constructors = [constructor].toFixedList();
+      classFragment.element.constructors = classFragment.constructors;
     }
   }
 
@@ -211,8 +208,8 @@ class LibraryBuilder {
   }
 
   void buildEnumSyntheticConstructors() {
-    bool hasConstructor(EnumElementImpl element) {
-      for (var constructor in element.augmented.constructors) {
+    bool hasConstructor(EnumElementImpl fragment) {
+      for (var constructor in fragment.element.constructors) {
         if (constructor.isGenerative || constructor.name == '') {
           return true;
         }
@@ -220,29 +217,27 @@ class LibraryBuilder {
       return false;
     }
 
-    for (var enumElement in element.topLevelElements) {
-      if (enumElement is! EnumElementImpl) continue;
-      if (enumElement.augmentationTarget != null) continue;
-      if (hasConstructor(enumElement)) continue;
+    for (var enumFragment in element.topLevelElements) {
+      if (enumFragment is! EnumElementImpl) continue;
+      if (enumFragment.augmentationTarget != null) continue;
+      if (hasConstructor(enumFragment)) continue;
 
       var constructor = ConstructorElementImpl('', -1)
         ..isConst = true
         ..isSynthetic = true;
-      var containerRef = enumElement.reference!.getChild('@constructor');
+      var containerRef = enumFragment.reference!.getChild('@constructor');
       var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
-      constructor.typeName = enumElement.name2;
+      constructor.typeName = enumFragment.name2;
       constructor.name2 = 'new';
 
-      enumElement.constructors = [
-        ...enumElement.constructors,
+      enumFragment.constructors = [
+        ...enumFragment.constructors,
         constructor,
       ].toFixedList();
 
-      if (enumElement.augmented case EnumElementImpl2 augmented) {
-        augmented.constructors = enumElement.constructors;
-      }
+      enumFragment.element.constructors = enumFragment.constructors;
     }
   }
 
@@ -266,7 +261,7 @@ class LibraryBuilder {
               executable.body.accept(collector);
             }
           }
-          var fragment = declaration.declaredFragment as MixinElementImpl;
+          var fragment = declaration.declaredFragment!;
           fragment.superInvokedNames = names.toList();
         }
       }
@@ -286,41 +281,42 @@ class LibraryBuilder {
 
   void replaceConstFieldsIfNoConstConstructor() {
     var withConstConstructors = Set<ClassElementImpl>.identity();
-    for (var classElement in element.topLevelElements) {
-      if (classElement is! ClassElementImpl) continue;
-      if (classElement.isMixinApplication) continue;
-      if (classElement.isAugmentation) continue;
-      var hasConst = classElement.augmented.constructors.any((e) => e.isConst);
+    for (var classFragment in element.topLevelElements) {
+      if (classFragment is! ClassElementImpl) continue;
+      if (classFragment.isMixinApplication) continue;
+      if (classFragment.isAugmentation) continue;
+      var hasConst = classFragment.element.constructors.any((e) => e.isConst);
       if (hasConst) {
-        withConstConstructors.add(classElement);
+        withConstConstructors.add(classFragment);
       }
     }
 
-    for (var fieldElement in finalInstanceFields) {
-      var enclosing = fieldElement.enclosingElement3;
-      var augmented = enclosing.ifTypeOrNull<ClassElementImpl>()?.augmented;
-      if (augmented == null) continue;
-      if (!withConstConstructors.contains(augmented.firstFragment)) {
-        fieldElement.constantInitializer = null;
+    for (var fieldFragment in finalInstanceFields) {
+      var enclosing = fieldFragment.enclosingElement3;
+      var element = enclosing.ifTypeOrNull<ClassElementImpl>()?.element;
+      if (element == null) continue;
+      if (!withConstConstructors.contains(element.firstFragment)) {
+        fieldFragment.constantInitializer = null;
       }
     }
   }
 
   void resolveConstructorFieldFormals() {
-    for (var interface in element.topLevelElements) {
-      if (interface is! InterfaceElementImpl) {
+    for (var interfaceFragment in element.topLevelElements) {
+      if (interfaceFragment is! InterfaceElementImpl) {
         continue;
       }
 
-      if (interface is ClassElementImpl && interface.isMixinApplication) {
+      if (interfaceFragment is ClassElementImpl &&
+          interfaceFragment.isMixinApplication) {
         continue;
       }
 
-      var augmented = interface.augmented;
-      for (var constructor in interface.constructors) {
+      var element = interfaceFragment.element;
+      for (var constructor in interfaceFragment.constructors) {
         for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterElementImpl) {
-            parameter.field = augmented.getField(parameter.name);
+            parameter.field = element.getField(parameter.name);
           }
         }
       }
@@ -357,22 +353,22 @@ class LibraryBuilder {
   void setDefaultSupertypes() {
     var shouldResetClassHierarchies = false;
     var objectType = element.typeProvider.objectType;
-    for (var interface in element.topLevelElements) {
-      switch (interface) {
+    for (var interfaceFragment in element.topLevelElements) {
+      switch (interfaceFragment) {
         case ClassElementImpl():
-          if (interface.augmentationTarget != null) continue;
-          if (interface.isDartCoreObject) continue;
-          if (interface.supertype == null) {
+          if (interfaceFragment.augmentationTarget != null) continue;
+          if (interfaceFragment.isDartCoreObject) continue;
+          if (interfaceFragment.supertype == null) {
             shouldResetClassHierarchies = true;
-            interface.supertype = objectType;
+            interfaceFragment.supertype = objectType;
           }
         case MixinElementImpl():
-          if (interface.augmentationTarget != null) continue;
-          var augmented = interface.augmented;
-          if (augmented.superclassConstraints.isEmpty) {
+          if (interfaceFragment.augmentationTarget != null) continue;
+          var element = interfaceFragment.element;
+          if (element.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
-            interface.superclassConstraints = [objectType];
-            augmented.superclassConstraints = [objectType];
+            interfaceFragment.superclassConstraints = [objectType];
+            element.superclassConstraints = [objectType];
           }
       }
     }

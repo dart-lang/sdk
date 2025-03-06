@@ -336,12 +336,12 @@ class MemberDuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void _checkClassMembers(
-    InstanceElement fragment,
+    InstanceElementImpl fragment,
     List<ClassMemberImpl> members,
   ) {
-    var declarationElement = fragment.augmented.firstFragment;
+    var firstFragment = fragment.element.firstFragment;
 
-    var elementContext = _getElementContext(declarationElement);
+    var elementContext = _getElementContext(firstFragment);
     var constructorNames = elementContext.constructorNames;
     var instanceGetters = elementContext.instanceGetters;
     var instanceSetters = elementContext.instanceSetters;
@@ -355,7 +355,7 @@ class MemberDuplicateDefinitionVerifier {
           if (member.augmentKeyword != null) {
             continue;
           }
-          if (member.returnType.name != declarationElement.name) {
+          if (member.returnType.name != firstFragment.name) {
             // [member] is erroneous; do not count it as a possible duplicate.
             continue;
           }
@@ -404,9 +404,9 @@ class MemberDuplicateDefinitionVerifier {
       }
     }
 
-    if (declarationElement is InterfaceElement) {
+    if (firstFragment is InterfaceElementImpl) {
       _checkConflictingConstructorAndStatic(
-        interfaceElement: declarationElement,
+        interfaceElement: firstFragment,
         staticGetters: staticGetters,
         staticSetters: staticSetters,
       );
@@ -414,12 +414,12 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   void _checkClassStatic(
-    InstanceElement fragment,
+    InstanceElementImpl fragment,
     List<ClassMember> members,
   ) {
-    var declarationElement = fragment.augmented.firstFragment;
+    var firstFragment = fragment.element.firstFragment;
 
-    var elementContext = _getElementContext(declarationElement);
+    var elementContext = _getElementContext(firstFragment);
     var instanceGetters = elementContext.instanceGetters;
     var instanceSetters = elementContext.instanceSetters;
 
@@ -434,8 +434,8 @@ class MemberDuplicateDefinitionVerifier {
             String name = identifier.lexeme;
             if (instanceGetters.containsKey(name) ||
                 instanceSetters.containsKey(name)) {
-              if (declarationElement is InterfaceElement) {
-                String className = declarationElement.name;
+              if (firstFragment is InterfaceElementImpl) {
+                String className = firstFragment.name;
                 _errorReporter.atToken(
                   identifier,
                   CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
@@ -451,8 +451,8 @@ class MemberDuplicateDefinitionVerifier {
           String name = identifier.lexeme;
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {
-            if (declarationElement is InterfaceElement) {
-              String className = declarationElement.name;
+            if (firstFragment is InterfaceElementImpl) {
+              String className = firstFragment.name;
               _errorReporter.atToken(
                 identifier,
                 CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
@@ -578,10 +578,10 @@ class MemberDuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void _checkEnum(EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    var declarationElement = fragment.augmented.firstFragment;
-    var declarationName = declarationElement.name;
+    var firstFragment = fragment.element.firstFragment;
+    var declarationName = firstFragment.name;
 
-    var elementContext = _getElementContext(declarationElement);
+    var elementContext = _getElementContext(firstFragment);
     var staticGetters = elementContext.staticGetters;
 
     for (var constant in node.constants) {
@@ -613,13 +613,13 @@ class MemberDuplicateDefinitionVerifier {
         continue;
       }
       var baseName = accessor.displayName;
-      var inherited = _getInheritedMember(declarationElement, baseName);
+      var inherited = _getInheritedMember(firstFragment, baseName);
       if (inherited is MethodElement) {
         _errorReporter.atElement2(
           accessor.asElement2,
           CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
           arguments: [
-            declarationElement.displayName,
+            firstFragment.displayName,
             baseName,
             inherited.enclosingElement3.displayName,
           ],
@@ -635,13 +635,13 @@ class MemberDuplicateDefinitionVerifier {
         continue;
       }
       var baseName = method.displayName;
-      var inherited = _getInheritedMember(declarationElement, baseName);
+      var inherited = _getInheritedMember(firstFragment, baseName);
       if (inherited is PropertyAccessorElement) {
         _errorReporter.atElement2(
           method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
           arguments: [
-            declarationElement.displayName,
+            firstFragment.displayName,
             baseName,
             inherited.enclosingElement3.displayName,
           ],
@@ -652,8 +652,8 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkEnumStatic(EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    var declarationElement = fragment.augmented.firstFragment;
-    var declarationName = declarationElement.name;
+    var firstFragment = fragment.element.firstFragment;
+    var declarationName = firstFragment.name;
 
     for (var accessor in fragment.accessors) {
       if (accessor.source != _currentUnit.source) {
@@ -661,7 +661,7 @@ class MemberDuplicateDefinitionVerifier {
       }
       var baseName = accessor.displayName;
       if (accessor.isStatic) {
-        var instance = _getInterfaceMember(declarationElement, baseName);
+        var instance = _getInterfaceMember(firstFragment, baseName);
         if (instance != null && baseName != 'values') {
           _errorReporter.atElement2(
             accessor.asElement2,
@@ -678,7 +678,7 @@ class MemberDuplicateDefinitionVerifier {
       }
       var baseName = method.displayName;
       if (method.isStatic) {
-        var instance = _getInterfaceMember(declarationElement, baseName);
+        var instance = _getInterfaceMember(firstFragment, baseName);
         if (instance != null) {
           _errorReporter.atElement2(
             method.asElement2,
@@ -698,9 +698,9 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkExtensionStatic(covariant ExtensionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    var declarationElement = fragment.augmented.firstFragment;
+    var firstFragment = fragment.element.firstFragment;
 
-    var elementContext = _getElementContext(declarationElement);
+    var elementContext = _getElementContext(firstFragment);
     var instanceGetters = elementContext.instanceGetters;
     var instanceSetters = elementContext.instanceSetters;
 
@@ -739,14 +739,14 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    var element = fragment.augmented.firstFragment;
-    var primaryConstructorName = element.constructors.first.name;
-    var representationGetter = element.representation.getter!;
-    _getElementContext(element)
+    var firstFragment = fragment.element.firstFragment;
+    var primaryConstructorName = firstFragment.constructors.first.name;
+    var representationGetter = firstFragment.representation.getter!;
+    _getElementContext(firstFragment)
       ..constructorNames.add(primaryConstructorName)
       ..instanceGetters[representationGetter.name] = representationGetter;
 
-    _checkClassMembers(element, node.members);
+    _checkClassMembers(firstFragment, node.members);
   }
 
   void _checkMixin(MixinDeclarationImpl node) {
