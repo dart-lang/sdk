@@ -7,6 +7,7 @@
 ///
 /// This is an experimental feature and not expected to be useful except for low
 /// level framework authors.
+// ignore: unnecessary_library_name
 library meta_dart2js;
 
 /// An annotation for methods to request that dart2js does not inline the
