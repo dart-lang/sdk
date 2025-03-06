@@ -54,9 +54,7 @@ class ElementFactory {
       fragment.typeParameters = typeParameters(parameterNames);
     }
 
-    var element = ClassElementImpl2(Reference.root(), fragment);
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
+    ClassElementImpl2(Reference.root(), fragment);
 
     return fragment;
   }
@@ -83,9 +81,7 @@ class ElementFactory {
     fragment.interfaces = interfaces;
     fragment.constructors = const <ConstructorElementImpl>[];
 
-    var element = ClassElementImpl2(Reference.root(), fragment);
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
+    ClassElementImpl2(Reference.root(), fragment);
 
     return fragment;
   }

@@ -157,18 +157,6 @@ abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
   @override
   InterfaceElement get firstFragment;
 
-  /// The interfaces implemented by this element.
-  ///
-  /// This is a union of interfaces declared by the class declaration and
-  /// all its augmentations.
-  List<InterfaceType> get interfaces;
-
-  /// The mixins applied by this class or in its augmentations.
-  ///
-  /// This is a union of mixins applied by the class declaration and all its
-  /// augmentations.
-  List<InterfaceType> get mixins;
-
   @override
   InterfaceType get thisType;
 

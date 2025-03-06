@@ -944,8 +944,6 @@ class _MockSdkElementsBuilder {
 
   void _buildClassElement(ClassElementImpl fragment) {
     var element = fragment.element;
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
     element.fields = fragment.fields;
     element.constructors = fragment.constructors;
     element.accessors = fragment.accessors;

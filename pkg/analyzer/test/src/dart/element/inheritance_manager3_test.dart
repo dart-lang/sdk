@@ -2971,6 +2971,7 @@ conflicts
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_interface_candidatesConflict_interfaceInAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

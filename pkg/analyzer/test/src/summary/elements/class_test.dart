@@ -20539,7 +20539,6 @@ library
       supertype: Object
       mixins
         M<int>
-        M<int>
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::S::@constructor::new
@@ -27702,7 +27701,6 @@ library
       firstFragment: <testLibraryFragment>::@class::C1
       supertype: A
       mixins
-        M1
         M1
       constructors
         synthetic new

@@ -3021,8 +3021,6 @@ package:analyzer/dart/element/element.dart:
     new (constructor: AugmentedInterfaceElement Function())
     constructors (getter: List<ConstructorElement>)
     firstFragment (getter: InterfaceElement)
-    interfaces (getter: List<InterfaceType>)
-    mixins (getter: List<InterfaceType>)
     thisType (getter: InterfaceType)
     unnamedConstructor (getter: ConstructorElement?)
     getNamedConstructor (method: ConstructorElement? Function(String))

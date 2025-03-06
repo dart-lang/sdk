@@ -1527,7 +1527,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
           typeErasure: int
           interfaces
-            B
+            Object
           fields
             final it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1545,7 +1545,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
           typeErasure: int
           interfaces
-            A
+            Object
           fields
             final it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1644,7 +1644,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
           typeErasure: int
           interfaces
-            A
+            Object
           fields
             final it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it

@@ -6683,10 +6683,6 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   /// Should be used only when the element has no type parameters.
   InterfaceTypeImpl? _nullableInstance;
 
-  List<InterfaceTypeImpl> _interfaces = [];
-
-  List<InterfaceTypeImpl> _mixins = [];
-
   @override
   List<ConstructorElementMixin> constructors = [];
 
@@ -6746,12 +6742,8 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
           .map2;
 
   @override
-  List<InterfaceTypeImpl> get interfaces => _interfaces;
-
-  set interfaces(List<InterfaceType> values) {
-    // TODO(paulberry): eliminate this cast by changing the type of the `values`
-    // parameter
-    _interfaces = values.cast();
+  List<InterfaceTypeImpl> get interfaces {
+    return firstFragment.interfaces;
   }
 
   set isSimplyBounded(bool value) {
@@ -6762,22 +6754,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   List<InterfaceTypeImpl> get mixins {
-    if (firstFragment.mixinInferenceCallback case var callback?) {
-      var mixins = callback(firstFragment);
-      if (mixins != null) {
-        // TODO(paulberry): eliminate this cast by changing the type of
-        // `InterfaceElementImpl.mixinInferenceCallback`.
-        return _mixins = mixins.cast();
-      }
-    }
-
-    return _mixins;
-  }
-
-  set mixins(List<InterfaceType> value) {
-    // TODO(paulberry): eliminate this cast by changing the type of the `value`
-    // parameter.
-    _mixins = value.cast();
+    return firstFragment.mixins;
   }
 
   @override

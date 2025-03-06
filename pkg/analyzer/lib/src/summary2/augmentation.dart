@@ -275,8 +275,6 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
 
     if (element is InterfaceElementImpl2) {
       if (firstFragment is InterfaceElementImpl) {
-        element.mixins.addAll(firstFragment.mixins);
-        element.interfaces.addAll(firstFragment.interfaces);
         element.constructors.addAll(firstFragment.constructors);
       }
     }

@@ -142,8 +142,6 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
 
     if (element.augmentationTarget == null) {
       var augmented = element.augmentedInternal;
-      augmented.mixins = reader._readInterfaceTypeList();
-      augmented.interfaces = reader._readInterfaceTypeList();
       augmented.fields = reader.readElementList();
       augmented.constructors = reader.readElementList();
       augmented.accessors = reader.readElementList();
@@ -382,8 +380,6 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
     element.interfaces = reader._readInterfaceTypeList();
     if (element.augmentationTarget == null) {
       var augmented = element.augmentedInternal;
-      augmented.mixins = reader._readInterfaceTypeList();
-      augmented.interfaces = reader._readInterfaceTypeList();
       augmented.fields = reader.readElementList();
       augmented.constructors = reader.readElementList();
       augmented.accessors = reader.readElementList();
@@ -451,7 +447,6 @@ class ExtensionTypeElementLinkedData
     element.interfaces = reader._readInterfaceTypeList();
     if (element.augmentationTarget == null) {
       var augmented = element.augmentedInternal;
-      augmented.interfaces = reader._readInterfaceTypeList();
       augmented.fields = reader.readElementList();
       augmented.accessors = reader.readElementList();
       augmented.constructors = reader.readElementList();
@@ -1972,7 +1967,6 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     if (element.augmentationTarget == null) {
       var augmented = element.augmentedInternal;
       augmented.superclassConstraints = reader._readInterfaceTypeList();
-      augmented.interfaces = reader._readInterfaceTypeList();
       augmented.fields = reader.readElementList();
       augmented.accessors = reader.readElementList();
     }

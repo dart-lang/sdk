@@ -2084,9 +2084,7 @@ class _AbstractTypeSystemTest extends AbstractTypeSystemTest {
     fragment.mixins = mixins;
     fragment.methods = methods;
 
-    var element = ClassElementImpl2(Reference.root(), fragment);
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
+    ClassElementImpl2(Reference.root(), fragment);
 
     return fragment;
   }
@@ -2118,7 +2116,6 @@ class _AbstractTypeSystemTest extends AbstractTypeSystemTest {
 
     var element = MixinElementImpl2(Reference.root(), fragment);
     element.superclassConstraints = fragment.superclassConstraints;
-    element.interfaces = fragment.interfaces;
 
     return fragment;
   }

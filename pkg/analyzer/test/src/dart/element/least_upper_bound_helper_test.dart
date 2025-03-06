@@ -127,10 +127,16 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     var classC = class_2(name: "C");
     var classD = class_2(name: "D");
     var classE = class_2(name: "E");
-    classB.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
-    classC.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
-    classD.interfaces = <InterfaceType>[interfaceTypeNone(classC)];
-    classE.interfaces = <InterfaceType>[
+    classB.firstFragment.interfaces = <InterfaceType>[
+      interfaceTypeNone(classA)
+    ];
+    classC.firstFragment.interfaces = <InterfaceType>[
+      interfaceTypeNone(classA)
+    ];
+    classD.firstFragment.interfaces = <InterfaceType>[
+      interfaceTypeNone(classC)
+    ];
+    classE.firstFragment.interfaces = <InterfaceType>[
       interfaceTypeNone(classB),
       interfaceTypeNone(classD)
     ];
@@ -160,7 +166,9 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     var classC = class_2(name: "C", superType: interfaceTypeNone(classA));
     var classD = class_2(name: "D", superType: interfaceTypeNone(classC));
     var classE = class_2(name: "E", superType: interfaceTypeNone(classB));
-    classE.interfaces = <InterfaceType>[interfaceTypeNone(classD)];
+    classE.firstFragment.interfaces = <InterfaceType>[
+      interfaceTypeNone(classD)
+    ];
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE extends typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -199,8 +207,8 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     var classA = class_2(name: "A");
     var classB = class_2(name: "B");
     var classC = class_2(name: "C");
-    classB.interfaces = [interfaceTypeNone(classA)];
-    classC.interfaces = [interfaceTypeNone(classB)];
+    classB.firstFragment.interfaces = [interfaceTypeNone(classA)];
+    classC.firstFragment.interfaces = [interfaceTypeNone(classB)];
     expect(_toElement(classA), 2);
     expect(_toElement(classB), 3);
     expect(_toElement(classC), 4);
