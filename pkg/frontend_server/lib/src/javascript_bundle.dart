@@ -98,7 +98,7 @@ class IncrementalJavaScriptBundler {
       if (errors.isNotEmpty) {
         throw new Exception(errors.join('/n') +
             '\nHot reload rejected due to unsupported changes. '
-                'Use hot restart instead.');
+                'Try performing a hot restart instead.');
       }
     }
     _currentComponent = partialComponent;
