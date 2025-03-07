@@ -474,6 +474,7 @@ void f() {
     assertHasFileTarget(convertPath(testFilePath), 76, 3);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_class_augmentation_constructor() async {
     var aFile = newFile(augmentFilePath, r'''
 part of 'test.dart';

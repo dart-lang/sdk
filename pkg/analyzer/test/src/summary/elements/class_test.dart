@@ -10914,8 +10914,6 @@ library
             fields
               <testLibraryFragment>::@class::C::@field::foo::@def::0
               <testLibraryFragment>::@class::C::@field::foo::@def::1
-            constructors
-              <testLibraryFragment>::@class::C::@constructor::new
             accessors
               <testLibraryFragment>::@class::C::@getter::foo::@def::0
               <testLibraryFragment>::@class::C::@getter::foo::@def::1
@@ -11059,8 +11057,6 @@ library
             fields
               <testLibraryFragment>::@class::C::@field::foo::@def::0
               <testLibraryFragment>::@class::C::@field::foo::@def::1
-            constructors
-              <testLibraryFragment>::@class::C::@constructor::new
             accessors
               <testLibraryFragment>::@class::C::@getter::foo
               <testLibraryFragment>::@class::C::@setter::foo::@def::0

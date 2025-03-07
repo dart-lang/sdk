@@ -148,23 +148,11 @@ abstract class AugmentedInstanceElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
-  /// The constructors declared in this element.
-  ///
-  /// `ConstructorAugmentationElement`s replace corresponding elements,
-  /// other [ConstructorElement]s are appended.
-  List<ConstructorElement> get constructors;
-
   @override
   InterfaceElement get firstFragment;
 
   @override
   InterfaceType get thisType;
-
-  /// The unnamed constructor from [constructors].
-  ConstructorElement? get unnamedConstructor;
-
-  /// Returns the constructor from [constructors] that has the given [name].
-  ConstructorElement? getNamedConstructor(String name);
 }
 
 /// The result of applying augmentations to a [MixinElement].

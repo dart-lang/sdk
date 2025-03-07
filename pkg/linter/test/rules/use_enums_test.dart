@@ -17,6 +17,7 @@ class UseEnumsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.use_enums;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

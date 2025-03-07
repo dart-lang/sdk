@@ -273,12 +273,6 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     element.fields.addAll(firstFragment.fields);
     element.accessors.addAll(firstFragment.accessors);
 
-    if (element is InterfaceElementImpl2) {
-      if (firstFragment is InterfaceElementImpl) {
-        element.constructors.addAll(firstFragment.constructors);
-      }
-    }
-
     if (element is MixinElementImpl2) {
       if (firstFragment is MixinElementImpl) {
         element.superclassConstraints.addAll(
@@ -301,7 +295,6 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
 
   void _updatedAugmented(InstanceElementImpl augmentation) {
     var element = this.element;
-    var firstFragment = this.firstFragment;
     var firstTypeParameters = element.typeParameters2;
 
     MapSubstitution toFirstFragment;
@@ -325,24 +318,6 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
           InvalidTypeImpl.instance,
         ),
       );
-    }
-
-    if (augmentation is InterfaceElementImpl &&
-        firstFragment is InterfaceElementImpl &&
-        element is InterfaceElementImpl2) {
-      element.constructors = [
-        ...element.constructors.notAugmented,
-        ...augmentation.constructors.notAugmented.map((element) {
-          if (toFirstFragment.map.isEmpty) {
-            return element;
-          }
-          return ConstructorMember(
-            declaration: element,
-            augmentationSubstitution: toFirstFragment,
-            substitution: Substitution.empty,
-          );
-        }),
-      ];
     }
 
     element.fields = [

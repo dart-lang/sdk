@@ -3019,11 +3019,8 @@ package:analyzer/dart/element/element.dart:
     getSetter (method: PropertyAccessorElement? Function(String))
   AugmentedInterfaceElement (class extends Object implements AugmentedInstanceElement):
     new (constructor: AugmentedInterfaceElement Function())
-    constructors (getter: List<ConstructorElement>)
     firstFragment (getter: InterfaceElement)
     thisType (getter: InterfaceType)
-    unnamedConstructor (getter: ConstructorElement?)
-    getNamedConstructor (method: ConstructorElement? Function(String))
   AugmentedMixinElement (class extends AugmentedInterfaceElement):
     new (constructor: AugmentedMixinElement Function())
     superclassConstraints (getter: List<InterfaceType>)

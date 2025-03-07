@@ -143,7 +143,6 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     if (element.augmentationTarget == null) {
       var augmented = element.augmentedInternal;
       augmented.fields = reader.readElementList();
-      augmented.constructors = reader.readElementList();
       augmented.accessors = reader.readElementList();
     }
 
@@ -381,7 +380,6 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
     if (element.augmentationTarget == null) {
       var augmented = element.augmentedInternal;
       augmented.fields = reader.readElementList();
-      augmented.constructors = reader.readElementList();
       augmented.accessors = reader.readElementList();
     }
     applyConstantOffsets?.perform();
@@ -449,7 +447,6 @@ class ExtensionTypeElementLinkedData
       var augmented = element.augmentedInternal;
       augmented.fields = reader.readElementList();
       augmented.accessors = reader.readElementList();
-      augmented.constructors = reader.readElementList();
       augmented
         ..primaryConstructor = element.constructors.first
         ..representation = element.fields.first

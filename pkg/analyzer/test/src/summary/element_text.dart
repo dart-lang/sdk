@@ -2050,17 +2050,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _elementPrinter.writeElementList('fields', sorted);
     }
 
-    void writeConstructors() {
-      if (!configuration.withConstructors) {
-        return;
-      }
-      if (element is InterfaceElementImpl2) {
-        var sorted = element.constructors.sortedBy((e) => e.name);
-        expect(sorted, isNotEmpty);
-        _elementPrinter.writeElementList('constructors', sorted);
-      }
-    }
-
     void writeAccessors() {
       var sorted = element.accessors.sortedBy((e) => e.name);
       _elementPrinter.writeElementList('accessors', sorted);
@@ -2073,7 +2062,6 @@ class _ElementWriter extends _AbstractElementWriter {
           _elementPrinter.writeTypeList('mixins', element.mixins);
           _elementPrinter.writeTypeList('interfaces', element.interfaces);
           writeFields();
-          writeConstructors();
           writeAccessors();
         case EnumElementImpl2():
           _elementPrinter.writeTypeList('mixins', element.mixins);
@@ -2083,7 +2071,6 @@ class _ElementWriter extends _AbstractElementWriter {
             'constants',
             element.constants.sortedBy((e) => e.name),
           );
-          writeConstructors();
           writeAccessors();
         case ExtensionElementImpl2():
           writeFields();
@@ -2091,7 +2078,6 @@ class _ElementWriter extends _AbstractElementWriter {
         case ExtensionTypeElementImpl2():
           _elementPrinter.writeTypeList('interfaces', element.interfaces);
           writeFields();
-          writeConstructors();
           writeAccessors();
         case MixinElementImpl2():
           _elementPrinter.writeTypeList(

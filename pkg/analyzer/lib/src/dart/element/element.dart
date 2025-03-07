@@ -497,11 +497,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
       implicitConstructor.nameOffset = -1;
       implicitConstructor.name2 = superclassConstructor.name2;
 
-      implicitConstructor.element = ConstructorElementImpl2(
-        superclassConstructor.element.name3,
-        implicitConstructor,
-      );
-
       var containerRef = reference!.getChild('@constructor');
       var referenceName = name.ifNotEmptyOrElse('new');
       var implicitReference = containerRef.getChild(referenceName);
@@ -587,8 +582,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
       return implicitConstructor;
     }).toList(growable: false);
-
-    augmentedInternal.constructors = _constructors;
   }
 }
 
@@ -695,7 +688,7 @@ class ClassElementImpl2 extends InterfaceElementImpl2
     }
 
     // With only private non-factory constructors.
-    for (var constructor in constructors) {
+    for (var constructor in constructors2) {
       if (constructor.isPublic || constructor.isFactory) {
         return false;
       }
@@ -1406,6 +1399,9 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 class ConstructorElementImpl extends ExecutableElementImpl
     with AugmentableElement<ConstructorElementImpl>, ConstructorElementMixin
     implements ConstructorElement, ConstructorFragment {
+  late final ConstructorElementImpl2 element =
+      ConstructorElementImpl2(name.ifNotEmptyOrElse('new'), this);
+
   /// The super-constructor which this constructor is invoking, or `null` if
   /// this constructor is not generative, or is redirecting, or the
   /// super-constructor is not resolved, or the enclosing class is `Object`.
@@ -1447,9 +1443,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   bool isConstantEvaluated = false;
 
-  /// The element corresponding to this fragment.
-  ConstructorElementImpl2? _element;
-
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
   ConstructorElementImpl(super.name, super.offset);
@@ -1490,32 +1483,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
     } else {
       return className;
     }
-  }
-
-  @override
-  ConstructorElementImpl2 get element {
-    if (_element != null) {
-      return _element!;
-    }
-
-    ConstructorFragment firstFragment = this;
-    var previousFragment = firstFragment.previousFragment;
-    while (previousFragment != null) {
-      firstFragment = previousFragment;
-      previousFragment = firstFragment.previousFragment;
-    }
-    firstFragment as ConstructorElementImpl;
-
-    // As a side-effect of creating the element, all of the fragments in the
-    // chain will have their `_element` set to the newly created element.
-    return ConstructorElementImpl2(
-      firstFragment.name2,
-      firstFragment,
-    );
-  }
-
-  set element(ConstructorElementImpl2 element) {
-    _element = element;
   }
 
   @override
@@ -1675,13 +1642,7 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   @override
   final ConstructorElementImpl firstFragment;
 
-  ConstructorElementImpl2(this.name3, this.firstFragment) {
-    ConstructorElementImpl? fragment = firstFragment;
-    while (fragment != null) {
-      fragment.element = this;
-      fragment = fragment.nextFragment;
-    }
-  }
+  ConstructorElementImpl2(this.name3, this.firstFragment);
 
   @override
   ConstructorElementImpl2 get baseElement => this;
@@ -6683,9 +6644,6 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   /// Should be used only when the element has no type parameters.
   InterfaceTypeImpl? _nullableInstance;
 
-  @override
-  List<ConstructorElementMixin> constructors = [];
-
   InterfaceTypeImpl? _thisType;
 
   @override
@@ -6702,8 +6660,8 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   @override
   List<ConstructorElementImpl2> get constructors2 {
     _readMembers();
-    return constructors
-        .map((constructor) => constructor.declaration.element)
+    return firstFragment.constructors
+        .map((constructor) => constructor.element)
         .toList();
   }
 
@@ -6781,15 +6739,9 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   @override
-  ConstructorElementMixin? get unnamedConstructor {
-    // TODO(scheglov): this is a hack
-    firstFragment.constructors;
-    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
+  ConstructorElementMixin2? get unnamedConstructor2 {
+    return getNamedConstructor2('new');
   }
-
-  @override
-  ConstructorElementMixin2? get unnamedConstructor2 =>
-      unnamedConstructor?.asElement2;
 
   @override
   ExecutableElement2? getInheritedConcreteMember(Name name) =>
@@ -6806,12 +6758,6 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
       (session as AnalysisSessionImpl)
           .inheritanceManager
           .getMember4(this, name);
-
-  @override
-  ConstructorElementMixin? getNamedConstructor(String name) {
-    name = name.ifEqualThen('new', '');
-    return constructors.firstWhereOrNull((element) => element.name == name);
-  }
 
   @override
   ConstructorElementMixin2? getNamedConstructor2(String name) {

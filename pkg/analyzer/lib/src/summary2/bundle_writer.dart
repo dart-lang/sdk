@@ -160,7 +160,6 @@ class BundleWriter {
       if (fragment.augmentationTarget == null) {
         var element = fragment.element;
         _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.constructors);
         _resolutionSink._writeElementList(element.accessors);
       }
 
@@ -251,7 +250,6 @@ class BundleWriter {
       if (fragment.augmentationTarget == null) {
         var element = fragment.element;
         _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.constructors);
         _resolutionSink._writeElementList(element.accessors);
       }
 
@@ -344,7 +342,6 @@ class BundleWriter {
         var element = fragment.element;
         _resolutionSink._writeElementList(element.fields);
         _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.constructors);
         _resolutionSink.writeType(element.typeErasure);
       }
 

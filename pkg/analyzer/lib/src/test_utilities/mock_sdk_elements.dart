@@ -945,7 +945,6 @@ class _MockSdkElementsBuilder {
   void _buildClassElement(ClassElementImpl fragment) {
     var element = fragment.element;
     element.fields = fragment.fields;
-    element.constructors = fragment.constructors;
     element.accessors = fragment.accessors;
   }
 

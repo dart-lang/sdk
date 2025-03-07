@@ -489,8 +489,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var moreChecks = _checkClassInheritance(
             declarationElement, node, superclass, withClause, implementsClause);
         if (moreChecks) {
-          _checkForNoDefaultSuperConstructorImplicit(
-              declaredFragment, augmented);
+          _checkForNoDefaultSuperConstructorImplicit(declaredFragment);
         }
       }
 
@@ -4670,22 +4669,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Check that if the given class [element] implicitly calls default
+  /// Check that if the given class [fragment] implicitly calls default
   /// constructor of its superclass, there should be such default constructor -
   /// implicit or explicit.
   ///
   /// See [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT].
   void _checkForNoDefaultSuperConstructorImplicit(
-    ClassElementImpl element,
-    AugmentedClassElement augmented,
+    ClassElementImpl fragment,
   ) {
     // do nothing if there is explicit constructor
-    var constructors = augmented.constructors;
+    var constructors = fragment.element.constructors2;
     if (!constructors[0].isSynthetic) {
       return;
     }
     // prepare super
-    var superType = element.supertype;
+    var superType = fragment.supertype;
     if (superType == null) {
       return;
     }
@@ -4695,11 +4693,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         errorReporter.atElement2(
-          element.asElement2,
+          fragment.asElement2,
           CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
           arguments: [
             superElement.name,
-            element.name,
+            fragment.name,
             superUnnamedConstructor,
           ],
         );
@@ -4714,9 +4712,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // Don't report this diagnostic for non-subtypable classes because the
       // real problem was already reported.
       errorReporter.atElement2(
-        element.asElement2,
+        fragment.asElement2,
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
-        arguments: [superType, element.displayName],
+        arguments: [superType, fragment.displayName],
       );
     }
   }
