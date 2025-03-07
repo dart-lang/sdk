@@ -235,7 +235,7 @@ void testMalformedAuthenticateHeaderWithAuthHandler() {
     // Request should throw an exception if the authenticate handler is set
     client.authenticate = (url, scheme, realm) async => false;
     await asyncExpectThrows<HttpException>(
-      client.getUrl(uri).then((request) => request.close()));
+        client.getUrl(uri).then((request) => request.close()));
 
     server.shutdown();
     client.close();
@@ -252,7 +252,7 @@ void testMalformedAuthenticateHeaderWithCredentials() {
     client.addCredentials(
         uri, 'realm', HttpClientBasicCredentials('dart', 'password'));
     await asyncExpectThrows<HttpException>(
-      client.getUrl(uri).then((request) => request.close()));
+        client.getUrl(uri).then((request) => request.close()));
 
     server.shutdown();
     client.close();
@@ -284,11 +284,13 @@ void testLocalServerBearer() async {
 
   client.authenticate = (url, scheme, realm) async {
     final token = base64.encode(utf8.encode("test"));
-    client.addCredentials(Uri.parse("http://127.0.0.1/bearer"), "test", HttpClientBearerCredentials(token));
+    client.addCredentials(Uri.parse("http://127.0.0.1/bearer"), "test",
+        HttpClientBearerCredentials(token));
     return true;
   };
 
-  final request = await client.getUrl(Uri.parse("http://127.0.0.1/bearer/test"));
+  final request =
+      await client.getUrl(Uri.parse("http://127.0.0.1/bearer/test"));
   final response = await request.close();
   Expect.equals(HttpStatus.ok, response.statusCode);
   await response.drain();

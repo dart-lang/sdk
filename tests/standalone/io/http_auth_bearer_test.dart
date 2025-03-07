@@ -10,7 +10,6 @@ import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 class Server {
-
   late HttpServer server;
 
   Future<Server> start() async {
@@ -18,7 +17,8 @@ class Server {
     server.listen((request) {
       final response = request.response;
 
-      // WARNING: this authenticate header is malformed because of missing commas between the arguments
+      // WARNING: this authenticate header is malformed because of missing
+      // commas between the arguments
       if (request.uri.path == "/malformedAuthenticate") {
         response.statusCode = HttpStatus.unauthorized;
         response.headers.set(HttpHeaders.wwwAuthenticateHeader, "Bearer realm=\"realm\" error=\"invalid_token\"");
@@ -26,22 +26,27 @@ class Server {
         return;
       }
 
-      // NOTE: see https://www.rfc-editor.org/rfc/rfc6750.html#section-3 regarding the authenticate response header field
+      // NOTE: see RFC6750 section 3 regarding the authenticate response header
+      // field
+      // https://www.rfc-editor.org/rfc/rfc6750.html#section-3
       if (request.headers[HttpHeaders.authorizationHeader] != null) {
         final token = base64.encode(utf8.encode(request.uri.path.substring(1)));
-        Expect.equals(1, request.headers[HttpHeaders.authorizationHeader]!.length);
-        final authorizationHeaderParts = request.headers[HttpHeaders.authorizationHeader]![0].split(" ");
+        Expect.equals(
+            1, request.headers[HttpHeaders.authorizationHeader]!.length);
+        final authorizationHeaderParts =
+            request.headers[HttpHeaders.authorizationHeader]![0].split(" ");
         Expect.equals("Bearer", authorizationHeaderParts[0]);
         if (token != authorizationHeaderParts[1]) {
           response.statusCode = HttpStatus.unauthorized;
-          response.headers.set(HttpHeaders.wwwAuthenticateHeader, "Bearer realm=\"realm\", error=\"invalid_token\"");
+          response.headers.set(HttpHeaders.wwwAuthenticateHeader,
+              "Bearer realm=\"realm\", error=\"invalid_token\"");
         }
       } else {
         response.statusCode = HttpStatus.unauthorized;
-        response.headers.set(HttpHeaders.wwwAuthenticateHeader, "Bearer realm=\"realm\"");
+        response.headers
+            .set(HttpHeaders.wwwAuthenticateHeader, "Bearer realm=\"realm\"");
       }
       response.close();
-
     });
     return this;
   }
@@ -53,7 +58,6 @@ class Server {
   String get host => server.address.address;
 
   int get port => server.port;
-
 }
 
 void testValidBearerTokens() {
@@ -104,7 +108,10 @@ void testBearerWithCredentials() async {
 
   for (int i = 0; i < 5; i++) {
     final token = base64.encode(utf8.encode("test$i"));
-    client.addCredentials(Uri.parse("http://${server.host}:${server.port}/test$i"), "realm", HttpClientBearerCredentials(token));
+    client.addCredentials(
+        Uri.parse("http://${server.host}:${server.port}/test$i"),
+        "realm",
+        HttpClientBearerCredentials(token));
   }
 
   await Future.wait([
@@ -150,7 +157,8 @@ void testBearerWithAuthenticateCallback() async {
 void testMalformedAuthenticateHeaderWithoutCredentials() async {
   final server = await Server().start();
   final client = HttpClient();
-  final uri = Uri.parse("http://${server.host}:${server.port}/malformedAuthenticate");
+  final uri =
+      Uri.parse("http://${server.host}:${server.port}/malformedAuthenticate");
 
   // the request should resolve normally if no authentication is configured
   final request = await client.getUrl(uri);
@@ -163,7 +171,8 @@ void testMalformedAuthenticateHeaderWithoutCredentials() async {
 void testMalformedAuthenticateHeaderWithCredentials() async {
   final server = await Server().start();
   final client = HttpClient();
-  final uri = Uri.parse("http://${server.host}:${server.port}/malformedAuthenticate");
+  final uri =
+      Uri.parse("http://${server.host}:${server.port}/malformedAuthenticate");
   final token = base64.encode(utf8.encode("test"));
 
   // the request should throw an exception if credentials have been added
@@ -180,7 +189,8 @@ void testMalformedAuthenticateHeaderWithCredentials() async {
 void testMalformedAuthenticateHeaderWithAuthenticateCallback() async {
   final server = await Server().start();
   final client = HttpClient();
-  final uri = Uri.parse("http://${server.host}:${server.port}/malformedAuthenticate");
+  final uri =
+      Uri.parse("http://${server.host}:${server.port}/malformedAuthenticate");
 
   // the request should throw an exception if the authenticate handler is set
   client.authenticate = (url, scheme, realm) async => false;
@@ -198,11 +208,13 @@ void testLocalServerBearer() async {
 
   client.authenticate = (url, scheme, realm) async {
     final token = base64.encode(utf8.encode("test"));
-    client.addCredentials(Uri.parse("http://127.0.0.1/bearer"), "test", HttpClientBearerCredentials(token));
+    client.addCredentials(Uri.parse("http://127.0.0.1/bearer"), "test",
+        HttpClientBearerCredentials(token));
     return true;
   };
 
-  final request = await client.getUrl(Uri.parse("http://127.0.0.1/bearer/test"));
+  final request =
+      await client.getUrl(Uri.parse("http://127.0.0.1/bearer/test"));
   final response = await request.close();
   Expect.equals(HttpStatus.ok, response.statusCode);
   await response.drain();

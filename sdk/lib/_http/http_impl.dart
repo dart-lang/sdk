@@ -4046,6 +4046,8 @@ final class _HttpClientBearerCredentials extends _HttpClientCredentials
   String token;
 
   _HttpClientBearerCredentials(this.token) {
+    // verify token according to RFC-6750 section 2.1
+    // https://www.rfc-editor.org/rfc/rfc6750.html#section-2.1
     if (RegExp(r'[^0-9A-Za-z\-._~+/=]').hasMatch(token)) {
       throw ArgumentError.value(token, "token", "Invalid characters");
     }
