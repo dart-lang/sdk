@@ -1576,9 +1576,9 @@ class GetFixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       var shortName = pathContext.basename(request.path);
       buf.writeln(
         '<tr>'
-        '<td class="pre right">'
+        '<td class="pre right"><a href="/timing?id=${request.id}&kind=getFixes">'
         '${_formatTiming(request)}'
-        '</td>'
+        '</a></td>'
         '<td>${escape(shortName)}</td>'
         '<td><code>${escape(request.snippet)}</code></td>'
         '</tr>',
@@ -1989,6 +1989,8 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     List<RequestPerformance>? itemsSlow;
     if (kind == 'completion') {
       items = server.recentPerformance.completion.items.toList();
+    } else if (kind == 'getFixes') {
+      items = server.recentPerformance.getFixes.items.toList();
     } else {
       items = server.recentPerformance.requests.items.toList();
       itemsSlow = server.recentPerformance.slowRequests.items.toList();
