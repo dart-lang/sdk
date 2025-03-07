@@ -180,11 +180,11 @@ class Foo {
     "external": true
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null|subclass=Object]",
+  "inferredReturnType": "[null|subclass=Object|powerset=1]",
   "parameters": [
     {
       "name": "a",
-      "type": "[exact=JSUInt31]",
+      "type": "[exact=JSUInt31|powerset=0]",
       "declaredType": "dynamic"
     }
   ],
@@ -210,11 +210,11 @@ class Foo {
     "external": true
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null|subclass=Object]",
+  "inferredReturnType": "[null|subclass=Object|powerset=1]",
   "parameters": [
     {
       "name": "a",
-      "type": "[null|exact=JSUInt31]",
+      "type": "[null|exact=JSUInt31|powerset=1]",
       "declaredType": "dynamic"
     }
   ],
@@ -240,16 +240,16 @@ class Foo {
     "external": true
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null|subclass=Object]",
+  "inferredReturnType": "[null|subclass=Object|powerset=1]",
   "parameters": [
     {
       "name": "a",
-      "type": "[exact=JSUInt31]",
+      "type": "[exact=JSUInt31|powerset=0]",
       "declaredType": "dynamic"
     },
     {
       "name": "b",
-      "type": "[null|exact=JSUInt31]",
+      "type": "[null|exact=JSUInt31|powerset=1]",
       "declaredType": "dynamic"
     }
   ],
@@ -304,7 +304,7 @@ external mixedPositionalArgs(a, [dynamic? b]);
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
@@ -314,11 +314,11 @@ external mixedPositionalArgs(a, [dynamic? b]);
 }],
  holding=[
   {"id":"function/dart:_interceptors::getNativeInterceptor"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs","mask":"[subclass=LegacyJavaScriptObject]"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs","mask":"[subclass=LegacyJavaScriptObject]"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singleArg","mask":"[subclass=LegacyJavaScriptObject]"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg","mask":"[subclass=LegacyJavaScriptObject]"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg","mask":"[subclass=LegacyJavaScriptObject]"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs","mask":"[subclass=LegacyJavaScriptObject|powerset=0]"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.mixedPositionalArgs","mask":"[subclass=LegacyJavaScriptObject|powerset=0]"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singleArg","mask":"[subclass=LegacyJavaScriptObject|powerset=0]"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg","mask":"[subclass=LegacyJavaScriptObject|powerset=0]"},
+  {"id":"function/memory:sdk/tests/web/native/main.dart::Foo.singlePositionalArg","mask":"[subclass=LegacyJavaScriptObject|powerset=0]"},
   {"id":"function/package:expect/expect.dart::Expect.equals"}]
 */
 main() {

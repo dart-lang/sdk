@@ -4,7 +4,7 @@
 
 // Test for Container type for Lists with huge or negative sizes.
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   hugeList1();
   hugeList2();
@@ -12,35 +12,35 @@ main() {
   hugeList4();
 }
 
-/*member: thing:[null]*/
+/*member: thing:[null|powerset=1]*/
 dynamic thing;
 
-/*member: _huge1:[subclass=JSPositiveInt]*/
+/*member: _huge1:[subclass=JSPositiveInt|powerset=0]*/
 final _huge1 = 5000000000;
 
-/*member: hugeList1:Container([exact=JSFixedArray], element: [null], length: null)*/
+/*member: hugeList1:Container([exact=JSFixedArray|powerset=0], element: [null|powerset=1], length: null, powerset: 0)*/
 hugeList1() => List.filled(_huge1, thing);
 
 const _huge2a = 10000000000 * 10000000000;
 
-/*member: _huge2b:[subclass=JSPositiveInt]*/
+/*member: _huge2b:[subclass=JSPositiveInt|powerset=0]*/
 final _huge2b = _huge2a;
 
-/*member: hugeList2:Container([exact=JSFixedArray], element: [null], length: null)*/
+/*member: hugeList2:Container([exact=JSFixedArray|powerset=0], element: [null|powerset=1], length: null, powerset: 0)*/
 hugeList2() => List.filled(_huge2b, thing);
 
 const _huge3a = -10000000;
 
-/*member: _huge3b:[subclass=JSInt]*/
+/*member: _huge3b:[subclass=JSInt|powerset=0]*/
 final _huge3b = _huge3a;
 
-/*member: hugeList3:Container([exact=JSFixedArray], element: [null], length: null)*/
+/*member: hugeList3:Container([exact=JSFixedArray|powerset=0], element: [null|powerset=1], length: null, powerset: 0)*/
 hugeList3() => List.filled(_huge3b, thing);
 
 // 'Small' limits are still tracked.
 
-/*member: _huge4:[exact=JSUInt31]*/
+/*member: _huge4:[exact=JSUInt31|powerset=0]*/
 final _huge4 = 10000000;
 
-/*member: hugeList4:Container([exact=JSFixedArray], element: [null], length: 10000000)*/
+/*member: hugeList4:Container([exact=JSFixedArray|powerset=0], element: [null|powerset=1], length: 10000000, powerset: 0)*/
 hugeList4() => List.filled(_huge4, thing);

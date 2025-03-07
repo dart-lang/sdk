@@ -143,7 +143,7 @@ class DictionaryTypeMask extends MapTypeMask {
 
   @override
   String toString() {
-    return 'Dictionary($forwardTo, key: $keyType, '
-        'value: $valueType, map: $_typeMap)';
+    return 'Dictionary($forwardTo, key: $keyType, value: $valueType, '
+        'map: $_typeMap, powerset: ${TypeMask.powersetToString(powerset)})';
   }
 }

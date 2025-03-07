@@ -131,11 +131,11 @@ mixin Mixin {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [
     {
       "name": "t",
-      "type": "[exact=JSUInt31]",
+      "type": "[exact=JSUInt31|powerset=0]",
       "declaredType": "int"
     }
   ],
@@ -219,11 +219,11 @@ mixin Mixin {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [
     {
       "name": "t",
-      "type": "Union([exact=JSString], [exact=JSUInt31])",
+      "type": "Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)",
       "declaredType": "int"
     }
   ],
@@ -306,7 +306,7 @@ class Clazz = Super<int> with Mixin;
     "external": false
   },
   "returnType": "Subclass",
-  "inferredReturnType": "[exact=Subclass]",
+  "inferredReturnType": "[exact=Subclass|powerset=0]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
@@ -330,7 +330,7 @@ class Subclass extends Clazz {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 1,
@@ -372,7 +372,7 @@ class Subclass extends Clazz {
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,
@@ -395,7 +395,7 @@ class Subclass extends Clazz {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,

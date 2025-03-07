@@ -4,12 +4,12 @@
 
 import 'dart:html';
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   createRectangle();
 }
 
-/*member: createRectangle:[subclass=DomRectReadOnly]*/
+/*member: createRectangle:[subclass=DomRectReadOnly|powerset=0]*/
 Rectangle createRectangle()
 // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
 native;

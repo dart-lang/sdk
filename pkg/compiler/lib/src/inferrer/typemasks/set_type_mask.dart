@@ -95,5 +95,7 @@ class SetTypeMask extends AllocationTypeMask {
   int get hashCode => Hashing.objectHash(elementType, super.hashCode);
 
   @override
-  String toString() => 'Set($forwardTo, element: $elementType)';
+  String toString() =>
+      'Set($forwardTo, element: $elementType, '
+      'powerset: ${TypeMask.powersetToString(powerset)})';
 }

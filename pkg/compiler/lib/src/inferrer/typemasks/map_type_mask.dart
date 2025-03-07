@@ -134,6 +134,7 @@ class MapTypeMask extends AllocationTypeMask {
 
   @override
   String toString() {
-    return 'Map($forwardTo, key: $keyType, value: $valueType)';
+    return 'Map($forwardTo, key: $keyType, value: $valueType, '
+        'powerset: ${TypeMask.powersetToString(powerset)})';
   }
 }

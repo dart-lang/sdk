@@ -879,6 +879,7 @@ class FlatTypeMask extends TypeMask {
       if (isExact) 'exact=${base!.name}',
       if (isSubclass) 'subclass=${base!.name}',
       if (isSubtype) 'subtype=${base!.name}',
+      'powerset=${TypeMask.powersetToString(powerset)}',
     ], '|');
     buffer.write(']');
     return buffer.toString();

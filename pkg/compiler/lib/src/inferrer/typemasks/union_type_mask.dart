@@ -488,7 +488,8 @@ class UnionTypeMask extends TypeMask {
       if (hasLateSentinel) 'sentinel',
       ...disjointMasks.map((TypeMask mask) => mask.toString()).toList()..sort(),
     ].join(", ");
-    return 'Union($masksString)';
+    return 'Union($masksString, '
+        'powerset: ${TypeMask.powersetToString(powerset)})';
   }
 
   @override

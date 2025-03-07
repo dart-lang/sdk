@@ -552,4 +552,6 @@ abstract class TypeMask implements AbstractValue {
     MemberHierarchyBuilder memberHierarchyBuilder,
     JClosedWorld closedWorld,
   );
+
+  static String powersetToString(Bitset powerset) => '$powerset';
 }

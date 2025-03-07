@@ -5,115 +5,117 @@
 /// Regression test for Issue #33761: is-checks and null-checks were assumed to
 /// be true even in nested non-condition contexts.
 
-/*member: argIsNonNull1:[null]*/
-argIsNonNull1(/*[exact=JSUInt31]*/ x) {
+/*member: argIsNonNull1:[null|powerset=1]*/
+argIsNonNull1(/*[exact=JSUInt31|powerset=0]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*member: nonNull1:[null]*/
+/*member: nonNull1:[null|powerset=1]*/
 void nonNull1() {
   var x = 1;
-  if (x /*invoke: [subclass=JSInt]*/ == null) return;
+  if (x /*invoke: [subclass=JSInt|powerset=0]*/ == null) return;
   argIsNonNull1(x);
 }
 
-/*member: argIsNonNull2:[null]*/
-argIsNonNull2(/*[exact=JSUInt31]*/ x) {
+/*member: argIsNonNull2:[null|powerset=1]*/
+argIsNonNull2(/*[exact=JSUInt31|powerset=0]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*member: nonNull2:[null]*/
+/*member: nonNull2:[null|powerset=1]*/
 void nonNull2() {
   var x = 1;
-  if ((x /*invoke: [subclass=JSInt]*/ == null) /*invoke: [exact=JSBool]*/ ==
+  if ((x /*invoke: [subclass=JSInt|powerset=0]*/ ==
+          null) /*invoke: [exact=JSBool|powerset=0]*/ ==
       true)
     return;
   argIsNonNull2(x);
 }
 
-/*member: argIsNonNull3:[null]*/
-argIsNonNull3(/*[exact=JSUInt31]*/ x) {
+/*member: argIsNonNull3:[null|powerset=1]*/
+argIsNonNull3(/*[exact=JSUInt31|powerset=0]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*member: nonNull3:[null]*/
+/*member: nonNull3:[null|powerset=1]*/
 void nonNull3() {
   var x = 1;
-  if ((x /*invoke: [subclass=JSInt]*/ == null) /*invoke: [exact=JSBool]*/ !=
+  if ((x /*invoke: [subclass=JSInt|powerset=0]*/ ==
+          null) /*invoke: [exact=JSBool|powerset=0]*/ !=
       false)
     return;
   argIsNonNull3(x);
 }
 
-/*member: argIsNonNull4:[null]*/
-argIsNonNull4(/*[exact=JSUInt31]*/ x) {
+/*member: argIsNonNull4:[null|powerset=1]*/
+argIsNonNull4(/*[exact=JSUInt31|powerset=0]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*member: discard:Value([exact=JSBool], value: false)*/
-discard(/*[exact=JSBool]*/ x) => false;
+/*member: discard:Value([exact=JSBool|powerset=0], value: false, powerset: 0)*/
+discard(/*[exact=JSBool|powerset=0]*/ x) => false;
 
-/*member: nonNull4:[null]*/
+/*member: nonNull4:[null|powerset=1]*/
 void nonNull4() {
   var x = 1;
-  if (discard(x /*invoke: [subclass=JSInt]*/ != null)) return;
+  if (discard(x /*invoke: [subclass=JSInt|powerset=0]*/ != null)) return;
   argIsNonNull4(x);
 }
 
-/*member: argIsNonNull5:[null]*/
-argIsNonNull5(/*[exact=JSUInt31]*/ x) {
+/*member: argIsNonNull5:[null|powerset=1]*/
+argIsNonNull5(/*[exact=JSUInt31|powerset=0]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*member: nonNull5:[null]*/
+/*member: nonNull5:[null|powerset=1]*/
 void nonNull5() {
   var x = 1;
-  if (x /*invoke: [subclass=JSInt]*/ != null ? false : false) return;
+  if (x /*invoke: [subclass=JSInt|powerset=0]*/ != null ? false : false) return;
   argIsNonNull5(x);
 }
 
-/*member: argIsNonNull6:[null]*/
-argIsNonNull6(/*[exact=JSUInt31]*/ x) {
+/*member: argIsNonNull6:[null|powerset=1]*/
+argIsNonNull6(/*[exact=JSUInt31|powerset=0]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*member: nonNull6:[null]*/
+/*member: nonNull6:[null|powerset=1]*/
 void nonNull6() {
   var x = 1;
-  if (( /*[exact=JSBool]*/ (/*[exact=JSBool]*/ y) => y && false)(
-    x /*invoke: [subclass=JSInt]*/ != null,
-  ))
+  if (( /*[exact=JSBool|powerset=0]*/ (/*[exact=JSBool|powerset=0]*/ y) =>
+      y && false)(x /*invoke: [subclass=JSInt|powerset=0]*/ != null))
     return;
   argIsNonNull6(x);
 }
 
-/*member: argIsNonNull7:[null]*/
-argIsNonNull7(/*[exact=JSUInt31]*/ x) {
+/*member: argIsNonNull7:[null|powerset=1]*/
+argIsNonNull7(/*[exact=JSUInt31|powerset=0]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*member: nonNull7:[null]*/
+/*member: nonNull7:[null|powerset=1]*/
 void nonNull7() {
   var f = false;
   var x = 1;
-  if (f ? (throw x /*invoke: [subclass=JSInt]*/ != null) : false) return;
+  if (f ? (throw x /*invoke: [subclass=JSInt|powerset=0]*/ != null) : false)
+    return;
   argIsNonNull7(x);
 }
 
-/*member: argIsNonNull8:[null]*/
-argIsNonNull8(/*[exact=JSUInt31]*/ x) {
+/*member: argIsNonNull8:[null|powerset=1]*/
+argIsNonNull8(/*[exact=JSUInt31|powerset=0]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*member: nonNull8:[null]*/
+/*member: nonNull8:[null|powerset=1]*/
 void nonNull8() {
   var f = false;
   var x = 1;
-  if (f ?? (x /*invoke: [subclass=JSInt]*/ != null)) return;
+  if (f ?? (x /*invoke: [subclass=JSInt|powerset=0]*/ != null)) return;
   argIsNonNull8(x);
 }
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 void main() {
   nonNull1();
   nonNull2();

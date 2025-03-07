@@ -445,7 +445,8 @@ class RecordTypeMask extends TypeMask {
 
   @override
   String toString() {
-    return '[Record($shape, $types)]';
+    return '[Record($shape, $types, '
+        'powerset: ${TypeMask.powersetToString(powerset)})]';
   }
 
   @override

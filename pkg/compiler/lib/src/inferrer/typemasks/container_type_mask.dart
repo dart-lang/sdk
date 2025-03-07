@@ -121,6 +121,7 @@ class ContainerTypeMask extends AllocationTypeMask {
 
   @override
   String toString() {
-    return 'Container($forwardTo, element: $elementType, length: $length)';
+    return 'Container($forwardTo, element: $elementType, length: $length, '
+        'powerset: ${TypeMask.powersetToString(powerset)})';
   }
 }
