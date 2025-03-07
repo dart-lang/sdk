@@ -2750,6 +2750,17 @@
           ]
         },
         {
+          "name": "dart2wasm dynamic modules",
+          "script": "out/ReleaseX64/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dynamic_modules/test/runner/main.dart",
+            "-ndart2wasm-linux-${runtime}",
+            "-rdart2wasm",
+            "--verbose"
+          ]
+        },
+        {
           "name": "dart2wasm tests",
           "arguments": [
             "-ndart2wasm-linux-${runtime}",
