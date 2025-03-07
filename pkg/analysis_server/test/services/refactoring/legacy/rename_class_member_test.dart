@@ -19,6 +19,134 @@ void main() {
 
 @reflectiveTest
 class RenameClassMemberClassTest extends RenameRefactoringTest {
+  Future<void> test_atConstructor_named() async {
+    await indexTestUnit('''
+class A {
+  final int foo;
+
+  A({this.foo = 0});
+}
+''');
+    createRenameRefactoringAtString('foo = 0');
+    // check status
+    refactoring.newName = 'bar';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+  }
+
+  Future<void> test_atConstructor_named_subclasses() async {
+    await indexTestUnit('''
+class A {
+  final int foo;
+
+  A({this.foo = 0});
+}
+
+class B extends A {
+  B({super.foo});
+}
+
+class C extends A {
+  C(int foo) : super(foo: foo);
+}
+''');
+    createRenameRefactoringAtString('foo = 0');
+    // check status
+    refactoring.newName = 'bar';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+    await assertSuccessfulRefactoring('''
+class A {
+  final int bar;
+
+  A({this.bar = 0});
+}
+
+class B extends A {
+  B({super.bar});
+}
+
+class C extends A {
+  C(int foo) : super(bar: foo);
+}
+''');
+  }
+
+  Future<void> test_atConstructor_named_subclasses_toPrivate() async {
+    await indexTestUnit('''
+class A {
+  final int foo;
+
+  A({this.foo = 0});
+}
+
+class B extends A {
+  B({super.foo});
+}
+''');
+    createRenameRefactoringAtString('foo = 0');
+    // check status
+    refactoring.newName = '_foo';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+    await assertSuccessfulRefactoring('''
+class A {
+  final int _foo;
+
+  A({int foo = 0}) : _foo = foo;
+}
+
+class B extends A {
+  B({super.foo});
+}
+''');
+  }
+
+  Future<void> test_atConstructor_positional() async {
+    await indexTestUnit('''
+class A {
+  int foo = 0;
+
+  A(this.foo);
+}
+''');
+    createRenameRefactoringAtString('foo);');
+    // check status
+    refactoring.newName = 'bar';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+  }
+
+  Future<void> test_atConstructor_positional_subclasses_toPrivate() async {
+    await indexTestUnit('''
+class A {
+  int foo = 0;
+
+  A(this.foo); // marker
+}
+
+class B extends A {
+  B(super.foo);
+}
+''');
+    createRenameRefactoringAtString('foo); // marker');
+    // check status
+    refactoring.newName = '_foo';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+    await assertSuccessfulRefactoring('''
+class A {
+  int _foo = 0;
+
+  A(this._foo); // marker
+}
+
+class B extends A {
+  B(super.foo);
+}
+''');
+  }
+
   Future<void> test_checkFinalConditions_classNameConflict_sameClass() async {
     await indexTestUnit('''
 class NewName {
