@@ -128,12 +128,15 @@ void testBearerWithAuthenticateCallback() async {
   final server = await Server().start();
   final client = HttpClient();
 
+  final callbacks = <String>{}
+
   client.authenticate = (url, scheme, realm) async {
     Expect.equals("Bearer", scheme);
     Expect.equals("realm", realm);
+    callbacks.add(url.path.substring(1));
     String token = base64.encode(utf8.encode(url.path.substring(1)));
     await Future.delayed(const Duration(milliseconds: 10));
-    client.addCredentials(url, realm!, new HttpClientBearerCredentials(token));
+    client.addCredentials(url, realm!, HttpClientBearerCredentials(token));
     return true;
   };
 
@@ -149,6 +152,9 @@ void testBearerWithAuthenticateCallback() async {
       makeRequest(Uri.parse("http://${server.host}:${server.port}/test$i")),
     ],
   ]);
+
+  // assert that all authenticate callbacks have actually been called
+  Expect.setEquals({for (int i = 0; i < 5; i++) "test$i"}, callbacks);
 
   server.shutdown();
   client.close();
