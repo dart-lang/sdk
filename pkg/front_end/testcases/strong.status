@@ -95,6 +95,7 @@ general/export_dart_conflict/main: SemiFuzzFailure
 general/factory_patch/main: SemiFuzzFailure
 general/inject_private_patch/main: SemiFuzzFailure
 general/inject_public/main: SemiFuzzFailure
+general/invalid_patch/main: SemiFuzzFailure
 general/issue45101/main: SemiFuzzFailure
 general/mixin_from_patch/main: SemiFuzzFailure
 general/multiple_class_patches/main: SemiFuzzFailure
@@ -105,6 +106,7 @@ general/patch_conflict/main: SemiFuzzFailure
 general/patch_extends_implements/main: SemiFuzzFailure
 general/patch_extension_scope/main: SemiFuzzFailure
 general/patch_getter/main: SemiFuzzFailure
+general/patch_internal/main: SemiFuzzFailure
 general/patch_prefix_access/main: SemiFuzzFailure
 general/patch_type_parameters/main: SemiFuzzFailure
 general/tear_off_patch/main: SemiFuzzFailure

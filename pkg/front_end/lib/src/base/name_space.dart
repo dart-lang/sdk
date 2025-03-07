@@ -172,6 +172,7 @@ class NameSpaceImpl implements NameSpace {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachLocalMember(void Function(String name, Builder member) f) {
     if (_getables != null) {
       for (MapEntry<String, Builder> entry in _getables!.entries) {
@@ -181,6 +182,7 @@ class NameSpaceImpl implements NameSpace {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachLocalSetter(void Function(String name, MemberBuilder member) f) {
     if (_setables != null) {
       for (MapEntry<String, MemberBuilder> entry in _setables!.entries) {

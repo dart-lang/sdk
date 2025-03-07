@@ -13,6 +13,7 @@ import '../base/export.dart';
 import '../base/identifiers.dart' show Identifier;
 import '../base/import.dart';
 import '../base/modifiers.dart';
+import '../base/scope.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -97,7 +98,10 @@ abstract class BuilderFactory {
   void beginNamedMixinApplication(
       String name, int charOffset, List<TypeParameterFragment>? typeParameters);
 
-  void endNamedMixinApplication(String name);
+  // TODO(johnniwinther): Avoid returning the type parameter scope here. Should
+  // named mixin applications be created in the begin method, similar to the
+  // other declarations?
+  LookupScope endNamedMixinApplication(String name);
 
   void endNamedMixinApplicationForParserRecovery(
       List<TypeParameterFragment>? typeParameters);

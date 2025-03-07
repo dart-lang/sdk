@@ -335,6 +335,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// `true` if this is an augmentation library.
   bool get isAugmentationLibrary => compilationUnit.forAugmentationLibrary;
 
+  // Coverage-ignore(suite): Not run.
   /// `true` if this is a patch library.
   bool get isPatchLibrary => compilationUnit.forPatchLibrary;
 
@@ -648,11 +649,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // recording the non-synthetic instance fields and getters of each.
     Iterator<SourceClassBuilder> classIterator = localMembersIteratorOfType();
     while (classIterator.moveNext()) {
-      SourceClassBuilder class_ = classIterator.current;
-      ClassInfo<Class> classInfo = fieldPromotability.addClass(class_.actualCls,
-          isAbstract: class_.isAbstract);
+      SourceClassBuilder classBuilder = classIterator.current;
+      ClassInfo<Class> classInfo = fieldPromotability.addClass(classBuilder.cls,
+          isAbstract: classBuilder.isAbstract);
       Iterator<SourceMemberBuilder> memberIterator =
-          class_.fullMemberIterator<SourceMemberBuilder>();
+          classBuilder.fullMemberIterator<SourceMemberBuilder>();
       while (memberIterator.moveNext()) {
         SourceMemberBuilder member = memberIterator.current;
         if (member.isStatic) continue;

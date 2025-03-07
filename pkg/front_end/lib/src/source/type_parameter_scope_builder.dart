@@ -107,7 +107,9 @@ sealed class _PreBuilder {
   /// map the [NameSpace], they are not directly marked as duplicate if they
   /// do not conflict with other setters.
   void createBuilders(
-      void Function(Fragment, {bool conflictingSetter}) createBuilder);
+      void Function(Fragment,
+              {bool conflictingSetter, List<Fragment>? augmentations})
+          createBuilder);
 }
 
 /// [_PreBuilder] for properties, i.e. fields, getters and setters.
@@ -732,7 +734,9 @@ class _PropertyPreBuilder extends _PreBuilder {
 
   @override
   void createBuilders(
-      void Function(Fragment, {bool conflictingSetter}) createBuilder) {
+      void Function(Fragment,
+              {bool conflictingSetter, List<Fragment>? augmentations})
+          createBuilder) {
     if (getter != null) {
       createBuilder(getter!.fragment);
     }
@@ -856,11 +860,11 @@ class _ConstructorPreBuilder extends _PreBuilder {
 
   @override
   void createBuilders(
-      void Function(Fragment, {bool conflictingSetter}) createBuilder) {
-    createBuilder(fragment.fragment);
-    for (_FragmentName fragmentName in augmentations) {
-      createBuilder(fragmentName.fragment);
-    }
+      void Function(Fragment,
+              {bool conflictingSetter, List<Fragment>? augmentations})
+          createBuilder) {
+    createBuilder(fragment.fragment,
+        augmentations: augmentations.map((f) => f.fragment).toList());
   }
 }
 
@@ -984,11 +988,11 @@ class _DeclarationPreBuilder extends _PreBuilder {
 
   @override
   void createBuilders(
-      void Function(Fragment, {bool conflictingSetter}) createBuilder) {
-    createBuilder(fragment.fragment);
-    for (_FragmentName fragmentName in augmentations) {
-      createBuilder(fragmentName.fragment);
-    }
+      void Function(Fragment,
+              {bool conflictingSetter, List<Fragment>? augmentations})
+          createBuilder) {
+    createBuilder(fragment.fragment,
+        augmentations: augmentations.map((f) => f.fragment).toList());
   }
 }
 
@@ -1215,7 +1219,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
     }
   }
 
-  void createBuilder(Fragment fragment, {bool conflictingSetter = false}) {
+  void createBuilder(Fragment fragment,
+      {bool conflictingSetter = false, List<Fragment>? augmentations}) {
     switch (fragment) {
       case TypedefFragment():
         Reference? reference = indexedLibrary?.lookupTypedef(fragment.name);
@@ -1233,22 +1238,75 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           loader.buildersCreatedWithReferences[reference] = typedefBuilder;
         }
       case ClassFragment():
-        IndexedClass? indexedClass =
-            indexedLibrary?.lookupIndexedClass(fragment.name);
+        String name = fragment.name;
+        DeclarationNameSpaceBuilder nameSpaceBuilder =
+            fragment.toDeclarationNameSpaceBuilder();
+        ClassDeclaration introductoryDeclaration =
+            new RegularClassDeclaration(fragment);
+
+        Modifiers modifiers = fragment.modifiers;
+        List<ClassDeclaration> augmentationDeclarations = [];
+        if (augmentations != null) {
+          int introductoryTypeParameterCount =
+              fragment.typeParameters?.length ?? 0;
+          for (Fragment augmentation in augmentations) {
+            // Promote [augmentation] to [ClassFragment].
+            augmentation as ClassFragment;
+
+            // TODO(johnniwinther): Check that other modifiers are consistent.
+            if (augmentation.modifiers.declaresConstConstructor) {
+              modifiers |= Modifiers.DeclaresConstConstructor;
+            }
+            augmentationDeclarations
+                .add(new RegularClassDeclaration(augmentation));
+            nameSpaceBuilder
+                .includeBuilders(augmentation.toDeclarationNameSpaceBuilder());
+
+            int augmentationTypeParameterCount =
+                augmentation.typeParameters?.length ?? 0;
+            if (introductoryTypeParameterCount !=
+                augmentationTypeParameterCount) {
+              problemReporting.addProblem(
+                  messagePatchClassTypeParametersMismatch,
+                  augmentation.nameOffset,
+                  name.length,
+                  augmentation.fileUri,
+                  context: [
+                    messagePatchClassOrigin.withLocation(
+                        fragment.fileUri, fragment.nameOffset, name.length)
+                  ]);
+            } else if (augmentation.typeParameters != null) {
+              int count = 0;
+              for (TypeParameterFragment t in augmentation.typeParameters!) {
+                fragment.typeParameters![count++].builder
+                    .applyAugmentation(t.builder);
+              }
+            }
+          }
+        }
+        IndexedClass? indexedClass = indexedLibrary?.lookupIndexedClass(name);
         SourceClassBuilder classBuilder = new SourceClassBuilder(
-            modifiers: fragment.modifiers,
-            name: fragment.name,
+            modifiers: modifiers,
+            name: name,
             typeParameters: fragment.typeParameters?.builders,
             typeParameterScope: fragment.typeParameterScope,
-            nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
+            nameSpaceBuilder: nameSpaceBuilder,
             libraryBuilder: enclosingLibraryBuilder,
-            constructorReferences: fragment.constructorReferences,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset,
             indexedClass: indexedClass,
-            classDeclaration: new RegularClassDeclaration(fragment));
+            introductory: introductoryDeclaration,
+            augmentations: augmentationDeclarations);
         fragment.builder = classBuilder;
         fragment.bodyScope.declarationBuilder = classBuilder;
+        if (augmentations != null) {
+          for (Fragment augmentation in augmentations) {
+            augmentation as ClassFragment;
+            augmentation.builder = classBuilder;
+            augmentation.bodyScope.declarationBuilder = classBuilder;
+          }
+          augmentations = null;
+        }
         builders.add(new _AddBuilder(
             fragment.name, classBuilder, fragment.fileUri, fragment.fileOffset,
             inPatch: fragment.enclosingCompilationUnit.isPatch));
@@ -1268,11 +1326,10 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             typeParameterScope: fragment.typeParameterScope,
             nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
             libraryBuilder: enclosingLibraryBuilder,
-            constructorReferences: fragment.constructorReferences,
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset,
             indexedClass: indexedClass,
-            classDeclaration: new MixinDeclaration(fragment));
+            introductory: new MixinDeclaration(fragment));
         fragment.builder = mixinBuilder;
         fragment.bodyScope.declarationBuilder = mixinBuilder;
         builders.add(new _AddBuilder(
@@ -1306,12 +1363,11 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             typeParameterScope: typeParameterScope,
             nameSpaceBuilder: nameSpaceBuilder,
             libraryBuilder: enclosingLibraryBuilder,
-            constructorReferences: [],
             fileUri: fragment.fileUri,
             nameOffset: fragment.nameOffset,
             indexedClass: referencesFromIndexedClass,
             mixedInTypeBuilder: mixin,
-            classDeclaration: classDeclaration);
+            introductory: classDeclaration);
         mixinApplications[classBuilder] = mixin;
         fragment.builder = classBuilder;
         builders.add(new _AddBuilder(
@@ -1333,7 +1389,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             interfaceBuilders: fragment.interfaces,
             enumElements: fragment.enumElements,
             libraryBuilder: enclosingLibraryBuilder,
-            constructorReferences: fragment.constructorReferences,
             fileUri: fragment.fileUri,
             startOffset: fragment.startOffset,
             nameOffset: fragment.nameOffset,
@@ -1353,6 +1408,45 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               enumBuilder;
         }
       case ExtensionFragment():
+        DeclarationNameSpaceBuilder nameSpaceBuilder =
+            fragment.toDeclarationNameSpaceBuilder();
+        List<ExtensionFragment> augmentationFragments = [];
+        if (augmentations != null) {
+          int introductoryTypeParameterCount =
+              fragment.typeParameters?.length ?? 0;
+          int nameLength = fragment.isUnnamed ? noLength : fragment.name.length;
+
+          for (Fragment augmentation in augmentations) {
+            // Promote [augmentation] to [ExtensionFragment].
+            augmentation as ExtensionFragment;
+
+            augmentationFragments.add(augmentation);
+            nameSpaceBuilder
+                .includeBuilders(augmentation.toDeclarationNameSpaceBuilder());
+
+            int augmentationTypeParameterCount =
+                augmentation.typeParameters?.length ?? 0;
+            if (introductoryTypeParameterCount !=
+                augmentationTypeParameterCount) {
+              problemReporting.addProblem(
+                  messagePatchExtensionTypeParametersMismatch,
+                  augmentation.nameOrExtensionOffset,
+                  nameLength,
+                  augmentation.fileUri,
+                  context: [
+                    messagePatchExtensionOrigin.withLocation(fragment.fileUri,
+                        fragment.nameOrExtensionOffset, nameLength)
+                  ]);
+            } else if (augmentation.typeParameters != null) {
+              int count = 0;
+              for (TypeParameterFragment t in augmentation.typeParameters!) {
+                fragment.typeParameters![count++].builder
+                    .applyAugmentation(t.builder);
+              }
+            }
+          }
+          augmentations = null;
+        }
         Reference? reference;
         if (!fragment.extensionName.isUnnamedExtension) {
           reference = indexedLibrary?.lookupExtension(fragment.name);
@@ -1363,7 +1457,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             startOffset: fragment.startOffset,
             nameOffset: fragment.nameOrExtensionOffset,
             endOffset: fragment.endOffset,
-            fragment: fragment,
+            introductory: fragment,
+            augmentations: augmentationFragments,
+            nameSpaceBuilder: nameSpaceBuilder,
             reference: reference);
         builders.add(new _AddBuilder(fragment.name, extensionBuilder,
             fragment.fileUri, fragment.fileOffset,
@@ -1970,6 +2066,11 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             fragment.fileUri, fragment.nameOffset,
             inPatch: fragment.enclosingDeclaration.isPatch));
     }
+    if (augmentations != null) {
+      for (Fragment augmentation in augmentations) {
+        createBuilder(augmentation);
+      }
+    }
   }
 
   for (_PreBuilder preBuilder in nonConstructorPreBuilders) {
@@ -2114,7 +2215,6 @@ class LibraryNameSpaceBuilder {
         // output.
         extensions.add(declaration as SourceExtensionBuilder);
       } else if (declaration.isAugment) {
-        // Coverage-ignore-block(suite): Not run.
         if (existing == null) {
           // TODO(cstefantsova): Report an error.
         }
@@ -2392,6 +2492,8 @@ class DeclarationNameSpaceBuilder {
       if (addBuilder.inPatch &&
           !name.startsWith('_') &&
           !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
+        // TODO(johnniwinther): Test adding a no-name constructor in the patch,
+        // either as an injected or duplicated constructor.
         problemReporting.addProblem(
             templatePatchInjectionFailed.withArguments(
                 name, enclosingLibraryBuilder.importUri),

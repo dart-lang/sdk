@@ -130,7 +130,7 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
       features.addElement(Tags.scope, name);
     });
 
-    for (Member m in clsBuilder.actualCls.members) {
+    for (Member m in clsBuilder.cls.members) {
       if (m is Procedure &&
           (m.isMemberSignature ||
               (m.isForwardingStub && !m.isForwardingSemiStub))) {

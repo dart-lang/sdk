@@ -23,8 +23,11 @@ abstract class ClassDeclaration {
   void buildOutlineExpressions(
       {required Annotatable annotatable,
       required SourceLibraryBuilder libraryBuilder,
+      required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
       required bool createFileUriExpression});
+
+  int resolveConstructorReferences(SourceLibraryBuilder libraryBuilder);
 }
 
 class RegularClassDeclaration implements ClassDeclaration {
@@ -77,6 +80,7 @@ class RegularClassDeclaration implements ClassDeclaration {
   void buildOutlineExpressions(
       {required Annotatable annotatable,
       required SourceLibraryBuilder libraryBuilder,
+      required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
       required bool createFileUriExpression}) {
     MetadataBuilder.buildAnnotations(
@@ -87,6 +91,21 @@ class RegularClassDeclaration implements ClassDeclaration {
         _fragment.fileUri,
         _fragment.enclosingScope,
         createFileUriExpression: createFileUriExpression);
+
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(libraryBuilder,
+            bodyBuilderContext, classHierarchy, _fragment.typeParameterScope);
+      }
+    }
+  }
+
+  @override
+  int resolveConstructorReferences(SourceLibraryBuilder libraryBuilder) {
+    for (ConstructorReferenceBuilder ref in _fragment.constructorReferences) {
+      ref.resolveIn(bodyScope, libraryBuilder);
+    }
+    return _fragment.constructorReferences.length;
   }
 }
 
@@ -140,6 +159,7 @@ class EnumDeclaration implements ClassDeclaration {
   void buildOutlineExpressions(
       {required Annotatable annotatable,
       required SourceLibraryBuilder libraryBuilder,
+      required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
       required bool createFileUriExpression}) {
     MetadataBuilder.buildAnnotations(
@@ -150,6 +170,21 @@ class EnumDeclaration implements ClassDeclaration {
         _fragment.fileUri,
         _fragment.enclosingScope,
         createFileUriExpression: createFileUriExpression);
+
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(libraryBuilder,
+            bodyBuilderContext, classHierarchy, _fragment.typeParameterScope);
+      }
+    }
+  }
+
+  @override
+  int resolveConstructorReferences(SourceLibraryBuilder libraryBuilder) {
+    for (ConstructorReferenceBuilder ref in _fragment.constructorReferences) {
+      ref.resolveIn(bodyScope, libraryBuilder);
+    }
+    return _fragment.constructorReferences.length;
   }
 }
 
@@ -204,6 +239,7 @@ class NamedMixinApplication implements ClassDeclaration {
   void buildOutlineExpressions(
       {required Annotatable annotatable,
       required SourceLibraryBuilder libraryBuilder,
+      required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
       required bool createFileUriExpression}) {
     MetadataBuilder.buildAnnotations(
@@ -214,6 +250,18 @@ class NamedMixinApplication implements ClassDeclaration {
         _fragment.fileUri,
         _fragment.enclosingScope,
         createFileUriExpression: createFileUriExpression);
+
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(libraryBuilder,
+            bodyBuilderContext, classHierarchy, _fragment.typeParameterScope);
+      }
+    }
+  }
+
+  @override
+  int resolveConstructorReferences(SourceLibraryBuilder libraryBuilder) {
+    return 0;
   }
 }
 
@@ -274,8 +322,14 @@ class AnonymousMixinApplication implements ClassDeclaration {
   void buildOutlineExpressions(
       {required Annotatable annotatable,
       required SourceLibraryBuilder libraryBuilder,
+      required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
       required bool createFileUriExpression}) {}
+
+  @override
+  int resolveConstructorReferences(SourceLibraryBuilder libraryBuilder) {
+    return 0;
+  }
 }
 
 class MixinDeclaration implements ClassDeclaration {
@@ -329,6 +383,7 @@ class MixinDeclaration implements ClassDeclaration {
   void buildOutlineExpressions(
       {required Annotatable annotatable,
       required SourceLibraryBuilder libraryBuilder,
+      required ClassHierarchy classHierarchy,
       required BodyBuilderContext bodyBuilderContext,
       required bool createFileUriExpression}) {
     MetadataBuilder.buildAnnotations(
@@ -339,5 +394,21 @@ class MixinDeclaration implements ClassDeclaration {
         _fragment.fileUri,
         _fragment.enclosingScope,
         createFileUriExpression: createFileUriExpression);
+
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(libraryBuilder,
+            bodyBuilderContext, classHierarchy, _fragment.typeParameterScope);
+      }
+    }
+  }
+
+  @override
+  int resolveConstructorReferences(SourceLibraryBuilder libraryBuilder) {
+    for (ConstructorReferenceBuilder ref in _fragment.constructorReferences) {
+      // Coverage-ignore-block(suite): Not run.
+      ref.resolveIn(bodyScope, libraryBuilder);
+    }
+    return _fragment.constructorReferences.length;
   }
 }

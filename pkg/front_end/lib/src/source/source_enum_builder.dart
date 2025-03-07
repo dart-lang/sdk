@@ -15,7 +15,6 @@ import 'package:kernel/type_environment.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/scope.dart';
 import '../builder/builder.dart';
-import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
@@ -80,7 +79,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
       required DeclarationNameSpaceBuilder nameSpaceBuilder,
       required List<EnumElementFragment> enumElements,
       required SourceLibraryBuilder libraryBuilder,
-      required List<ConstructorReferenceBuilder> constructorReferences,
       required Uri fileUri,
       required this.startOffset,
       required int nameOffset,
@@ -97,11 +95,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
             typeParameterScope: typeParameterScope,
             nameSpaceBuilder: nameSpaceBuilder,
             libraryBuilder: libraryBuilder,
-            constructorReferences: constructorReferences,
             fileUri: fileUri,
             nameOffset: nameOffset,
             indexedClass: indexedClass,
-            classDeclaration: classDeclaration);
+            introductory: classDeclaration);
 
   factory SourceEnumBuilder(
       {required String name,
@@ -110,7 +107,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
       required List<TypeBuilder>? interfaceBuilders,
       required List<EnumElementFragment> enumElements,
       required SourceLibraryBuilder libraryBuilder,
-      required List<ConstructorReferenceBuilder> constructorReferences,
       required Uri fileUri,
       required int startOffset,
       required int nameOffset,
@@ -127,7 +123,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
         nameSpaceBuilder: nameSpaceBuilder,
         enumElements: enumElements,
         libraryBuilder: libraryBuilder,
-        constructorReferences: constructorReferences,
         fileUri: fileUri,
         startOffset: startOffset,
         nameOffset: nameOffset,
