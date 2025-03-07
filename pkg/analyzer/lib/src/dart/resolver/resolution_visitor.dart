@@ -712,7 +712,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       node.declaredFragment = fragment;
       expression.declaredFragment = fragment;
     } else {
-      var functionFragment = node.declaredFragment as FunctionElementImpl;
+      var functionFragment = node.declaredFragment as LocalFunctionFragmentImpl;
       functionFragment.element = LocalFunctionElementImpl(functionFragment);
 
       fragment = functionFragment;
@@ -779,7 +779,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    var fragment = FunctionElementImpl.forOffset(node.offset);
+    var fragment = LocalFunctionFragmentImpl.forOffset(node.offset);
     fragment.element = LocalFunctionElementImpl(fragment);
 
     _elementHolder.enclose(fragment);
@@ -1495,7 +1495,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var node = statement.functionDeclaration;
     var nameToken = node.name;
 
-    var fragment = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
+    var fragment =
+        LocalFunctionFragmentImpl(nameToken.lexeme, nameToken.offset);
     fragment.name2 = nameToken.nameIfNotEmpty;
     fragment.nameOffset2 = nameToken.offsetIfNotEmpty;
     node.declaredFragment = fragment;

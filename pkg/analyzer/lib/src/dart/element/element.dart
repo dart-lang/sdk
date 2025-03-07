@@ -816,7 +816,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
-  List<FunctionElementImpl> _functions = const [];
+  List<TopLevelFunctionFragmentImpl> _functions = const [];
 
   List<MixinElementImpl> _mixins = const [];
 
@@ -973,13 +973,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       extensionTypes.cast<ExtensionTypeFragment>();
 
   @override
-  List<FunctionElementImpl> get functions {
+  List<TopLevelFunctionFragmentImpl> get functions {
     return _functions;
   }
 
   /// Set the top-level functions contained in this compilation unit to the
   ///  given[functions].
-  set functions(List<FunctionElementImpl> functions) {
+  set functions(List<TopLevelFunctionFragmentImpl> functions) {
     for (var function in functions) {
       function.enclosingElement3 = this;
     }
@@ -5272,25 +5272,16 @@ mixin FragmentedTypeParameterizedElementMixin<
 }
 
 /// A concrete implementation of a [FunctionElement].
-class FunctionElementImpl extends ExecutableElementImpl
-    with AugmentableElement<FunctionElementImpl>
+sealed class FunctionElementImpl extends ExecutableElementImpl
     implements
         FunctionElement,
         FunctionTypedElementImpl,
-        LocalFunctionFragment,
-        TopLevelFunctionFragment,
         ExecutableElementOrMember {
   @override
   String? name2;
 
   @override
   int? nameOffset2;
-
-  /// The element corresponding to this fragment.
-  // TODO(brianwilkerson): Use either `LocalFunctionElement` or
-  //  `TopLevelFunctionElement` when this class is split.
-  @override
-  late ExecutableElementImpl2 element;
 
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
@@ -5299,14 +5290,6 @@ class FunctionElementImpl extends ExecutableElementImpl
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
   FunctionElementImpl.forOffset(int nameOffset) : super("", nameOffset);
-
-  @override
-  List<Element2> get children2 {
-    if (enclosingElement3 is LibraryFragment) {
-      return element.children2;
-    }
-    throw StateError('Not an Element2');
-  }
 
   @override
   ExecutableElementImpl get declaration => this;
@@ -5333,35 +5316,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
-  bool get isDartCoreIdentical {
-    return isStatic && name == 'identical' && library.isDartCore;
-  }
-
-  @override
-  bool get isEntryPoint {
-    return isStatic && displayName == FunctionElement.MAIN_FUNCTION_NAME;
-  }
-
-  /// Whether this function element represents a top-level function, and is
-  /// therefore safe to treat as a fragment.
-  bool get isTopLevelFunction =>
-      enclosingElement3 is CompilationUnitElementImpl;
-
-  @override
   ElementKind get kind => ElementKind.FUNCTION;
-
-  @override
-  FunctionElementImpl? get nextFragment => augmentation;
-
-  @override
-  FunctionElementImpl? get previousFragment => augmentationTarget;
-
-  @override
-  bool get _includeNameOffsetInIdentifier {
-    return super._includeNameOffsetInIdentifier ||
-        enclosingElement3 is ExecutableElement ||
-        enclosingElement3 is VariableElement;
-  }
 
   @Deprecated('Use Element2 and accept2() instead')
   @override
@@ -7444,7 +7399,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  FunctionElementImpl get loadLibraryFunction {
+  TopLevelFunctionFragmentImpl get loadLibraryFunction {
     return loadLibraryFunction2.firstFragment;
   }
 
@@ -7837,7 +7792,7 @@ final class LoadLibraryFunctionProvider {
   TopLevelFunctionElementImpl _create(LibraryElementImpl library) {
     var name = FunctionElement.LOAD_LIBRARY_NAME;
 
-    var fragment = FunctionElementImpl(name, -1);
+    var fragment = TopLevelFunctionFragmentImpl(name, -1);
     fragment.name2 = name;
     fragment.isSynthetic = true;
     fragment.isStatic = true;
@@ -7855,7 +7810,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
     with WrappedElementMixin
     implements LocalFunctionElement {
   @override
-  final FunctionElementImpl _wrappedElement;
+  final LocalFunctionFragmentImpl _wrappedElement;
 
   LocalFunctionElementImpl(this._wrappedElement) {
     _wrappedElement.element = this;
@@ -7869,7 +7824,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   Element2? get enclosingElement2 => null;
 
   @override
-  FunctionElementImpl get firstFragment => _wrappedElement;
+  LocalFunctionFragmentImpl get firstFragment => _wrappedElement;
 
   @override
   List<FormalParameterElementMixin> get formalParameters =>
@@ -7878,9 +7833,9 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
           .toList();
 
   @override
-  List<FunctionElementImpl> get fragments {
+  List<LocalFunctionFragmentImpl> get fragments {
     return [
-      for (FunctionElementImpl? fragment = firstFragment;
+      for (LocalFunctionFragmentImpl? fragment = firstFragment;
           fragment != null;
           fragment = fragment.nextFragment)
         fragment,
@@ -7927,6 +7882,43 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitLocalFunctionElement(this);
+  }
+}
+
+/// A concrete implementation of a [LocalFunctionFragment].
+class LocalFunctionFragmentImpl extends FunctionElementImpl
+    with AugmentableElement<LocalFunctionFragmentImpl>
+    implements LocalFunctionFragment {
+  /// The element corresponding to this fragment.
+  @override
+  late LocalFunctionElementImpl element;
+
+  LocalFunctionFragmentImpl(super.name, super.offset);
+
+  LocalFunctionFragmentImpl.forOffset(super.nameOffset) : super.forOffset();
+
+  @override
+  Never get children2 {
+    throw StateError('Not an Element2');
+  }
+
+  @override
+  bool get isDartCoreIdentical => false;
+
+  @override
+  bool get isEntryPoint => false;
+
+  @override
+  LocalFunctionFragmentImpl? get nextFragment => augmentation;
+
+  @override
+  LocalFunctionFragmentImpl? get previousFragment => augmentationTarget;
+
+  @override
+  bool get _includeNameOffsetInIdentifier {
+    return super._includeNameOffsetInIdentifier ||
+        enclosingElement3 is ExecutableElement ||
+        enclosingElement3 is VariableElement;
   }
 }
 
@@ -10932,7 +10924,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   final Reference reference;
 
   @override
-  final FunctionElementImpl firstFragment;
+  final TopLevelFunctionFragmentImpl firstFragment;
 
   TopLevelFunctionElementImpl(this.reference, this.firstFragment) {
     reference.element2 = this;
@@ -10946,9 +10938,9 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   Element2? get enclosingElement2 => firstFragment._enclosingElement3?.library2;
 
   @override
-  List<FunctionElementImpl> get fragments {
+  List<TopLevelFunctionFragmentImpl> get fragments {
     return [
-      for (FunctionElementImpl? fragment = firstFragment;
+      for (TopLevelFunctionFragmentImpl? fragment = firstFragment;
           fragment != null;
           fragment = fragment.nextFragment)
         fragment,
@@ -10965,8 +10957,8 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
-  FunctionElementImpl get lastFragment {
-    return super.lastFragment as FunctionElementImpl;
+  TopLevelFunctionFragmentImpl get lastFragment {
+    return super.lastFragment as TopLevelFunctionFragmentImpl;
   }
 
   @override
@@ -10981,6 +10973,43 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitTopLevelFunctionElement(this);
   }
+}
+
+/// A concrete implementation of a [TopLevelFunctionFragment].
+class TopLevelFunctionFragmentImpl extends FunctionElementImpl
+    with AugmentableElement<TopLevelFunctionFragmentImpl>
+    implements TopLevelFunctionFragment {
+  /// The element corresponding to this fragment.
+  @override
+  late TopLevelFunctionElementImpl element;
+
+  TopLevelFunctionFragmentImpl(super.name, super.offset);
+
+  @override
+  List<Element2> get children2 => element.children2;
+
+  @override
+  CompilationUnitElementImpl get enclosingElement3 =>
+      super.enclosingElement3 as CompilationUnitElementImpl;
+
+  @override
+  set enclosingElement3(covariant CompilationUnitElementImpl element);
+
+  @override
+  bool get isDartCoreIdentical {
+    return name == 'identical' && library.isDartCore;
+  }
+
+  @override
+  bool get isEntryPoint {
+    return displayName == FunctionElement.MAIN_FUNCTION_NAME;
+  }
+
+  @override
+  TopLevelFunctionFragmentImpl? get nextFragment => augmentation;
+
+  @override
+  TopLevelFunctionFragmentImpl? get previousFragment => augmentationTarget;
 }
 
 /// A concrete implementation of a [TopLevelVariableElement].

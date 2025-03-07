@@ -881,7 +881,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _libraryBuilder.elementBuilderSetters[name] = elementBuilder;
       }
     } else {
-      var fragment = FunctionElementImpl(name, nameOffset);
+      var fragment = TopLevelFunctionFragmentImpl(name, nameOffset);
       fragment.name2 = _getFragmentName(nameToken);
       fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
       fragment.isAugmentation = node.augmentKeyword != null;
@@ -1920,7 +1920,7 @@ class _EnclosingContext {
   final List<ExtensionElementImpl> _extensions = [];
   final List<ExtensionTypeElementImpl> _extensionTypes = [];
   final List<FieldElementImpl> _fields = [];
-  final List<FunctionElementImpl> _functions = [];
+  final List<TopLevelFunctionFragmentImpl> _functions = [];
   final List<MethodElementImpl> _methods = [];
   final List<MixinElementImpl> _mixins = [];
   final List<ParameterElementImpl> _parameters = [];
@@ -1974,7 +1974,7 @@ class _EnclosingContext {
     return fragment.reference!;
   }
 
-  List<FunctionElementImpl> get functions {
+  List<TopLevelFunctionFragmentImpl> get functions {
     return _functions.toFixedList();
   }
 
@@ -2060,7 +2060,7 @@ class _EnclosingContext {
     _bindReference(reference, element);
   }
 
-  Reference addFunction(String name, FunctionElementImpl element) {
+  Reference addFunction(String name, TopLevelFunctionFragmentImpl element) {
     _functions.add(element);
     var containerName =
         element.isAugmentation ? '@functionAugmentation' : '@function';

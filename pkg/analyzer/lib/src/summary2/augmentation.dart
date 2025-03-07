@@ -384,13 +384,13 @@ class SetterElementBuilder
 }
 
 class TopLevelFunctionElementBuilder extends FragmentedElementBuilder<
-    TopLevelFunctionElementImpl, FunctionElementImpl> {
+    TopLevelFunctionElementImpl, TopLevelFunctionFragmentImpl> {
   TopLevelFunctionElementBuilder({
     required super.element,
     required super.firstFragment,
   });
 
-  void addFragment(FunctionElementImpl fragment) {
+  void addFragment(TopLevelFunctionFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
       lastFragment.augmentation = fragment;
       lastFragment = fragment;

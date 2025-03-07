@@ -401,10 +401,10 @@ class BundleWriter {
     _sink._writeOptionalStringReference(fragment.name2);
   }
 
-  void _writeFunctionElement(FunctionElementImpl fragment) {
+  void _writeFunctionElement(TopLevelFunctionFragmentImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    var element = fragment.element as TopLevelFunctionElementImpl;
+    var element = fragment.element;
 
     _writeReference(fragment);
     _writeReference2(element.reference);

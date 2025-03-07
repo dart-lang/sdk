@@ -1207,7 +1207,7 @@ class LibraryReader {
       var fragmentName = _readFragmentName();
       var name = reference.elementName;
 
-      var fragment = FunctionElementImpl(name, -1);
+      var fragment = TopLevelFunctionFragmentImpl(name, -1);
       fragment.name2 = fragmentName;
 
       if (reference2.element2 case TopLevelFunctionElementImpl element?) {
