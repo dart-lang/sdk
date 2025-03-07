@@ -22,9 +22,7 @@ class SurroundWithIfTest extends AssistProcessorTest {
   Future<void> test_encloseForWithPattern() async {
     await resolveTestCode('''
 void f() {
-// start
-  for (var (a, b) = (0, 1); a <= 13; (a, b) = (b, a + b)) print(a);
-// end
+  [!for (var (a, b) = (0, 1); a <= 13; (a, b) = (b, a + b)) print(a);!]
 }
 ''');
     await assertHasAssist('''
@@ -41,10 +39,8 @@ void f() {
   Future<void> test_twoStatements() async {
     await resolveTestCode('''
 void f() {
-// start
-  print(0);
-  print(1);
-// end
+  [!print(0);
+  print(1);!]
 }
 ''');
     await assertHasAssist('''

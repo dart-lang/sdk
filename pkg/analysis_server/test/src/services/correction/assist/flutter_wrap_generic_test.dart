@@ -31,7 +31,7 @@ class FlutterWrapGenericTest extends AssistProcessorTest {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return Te/*caret*/xt('');
+    return Te^xt('');
   }
 }
 ''');
@@ -56,7 +56,7 @@ class FakeFlutter {
 
   Future<void> test_minimal() async {
     await resolveTestCode('''
-/*caret*/x(){}
+^x(){}
 ''');
     await assertNoAssist();
   }
@@ -67,7 +67,7 @@ import 'package:flutter/widgets.dart';
 build() {
   return Container(
     child: Row(
-      children: [/*caret*/
+      children: [^
         Text('111'),
         Text('222'),
         Container(),
@@ -104,12 +104,10 @@ import 'package:flutter/widgets.dart';
 build() {
   return Container(
     child: Row(
-      children: [/*caret*/
-// start
-        Transform(),
+      children: [
+        [!Transform(),
         Object(),
-        AspectRatio(),
-// end
+        AspectRatio(),!]
       ],
     ),
   );
@@ -124,7 +122,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     return Container(
-      child: /*caret*/DefaultTextStyle(
+      child: ^DefaultTextStyle(
         child: Row(
           children: [
             Container(
@@ -163,7 +161,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
   Widget f() {\r
     return Container(\r
-      child: /*caret*/DefaultTextStyle(\r
+      child: ^DefaultTextStyle(\r
         child: Row(\r
           children: [\r
             Container(\r
@@ -205,7 +203,7 @@ abstract class Foo extends Widget {
 }
 
 Widget f(Foo foo) {
-  return foo./*caret*/bar;
+  return foo.^bar;
 }
 ''');
     await assertHasAssist('''
@@ -230,7 +228,7 @@ abstract class Foo extends Widget {
 }
 
 Widget f(Foo foo) {
-  return /*caret*/foo.bar;
+  return ^foo.bar;
 }
 ''');
     await assertHasAssist('''
@@ -252,7 +250,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     var obj;
-    return Row(children: [/*caret*/ Container()]);
+    return Row(children: [^ Container()]);
   }
 }
 ''');
@@ -264,7 +262,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return /*caret*/Container();
+    return ^Container();
   }
 }
 ''');
@@ -283,7 +281,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return ClipRect./*caret*/rect();
+    return ClipRect.^rect();
   }
 }
 ''');
@@ -303,7 +301,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     var container = Container();
-    return /*caret*/container;
+    return ^container;
   }
 }
 ''');

@@ -33,7 +33,7 @@ Widget build(bool b) {
   return Row(
     children: [
       Text('aaa'),
-      if (b) /*caret*/Text('bbb'),
+      if (b) ^Text('bbb'),
       Text('ccc'),
     ],
   );
@@ -65,7 +65,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     return Container(
-      child: /*caret*/Text('aaa'),
+      child: ^Text('aaa'),
     );
   }
 }
@@ -95,10 +95,8 @@ class FakeFlutter {
   Widget f() {
     return Row(children: [
       Text('aaa'),
-// start
-      Text('bbb'),
-      Text('ccc'),
-// end
+      [!Text('bbb'),
+      Text('ccc'),!]
       Text('ddd'),
     ]);
   }
@@ -131,7 +129,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     return Container(
-      child: Text/*caret*/('aaa'),
+      child: Text^('aaa'),
     );
   }
 }

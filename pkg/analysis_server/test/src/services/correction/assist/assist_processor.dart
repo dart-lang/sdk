@@ -10,6 +10,7 @@ import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -45,23 +46,26 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   void addTestSource(String code) {
     code = normalizeSource(code);
     var eol = code.contains('\r\n') ? '\r\n' : '\n';
-    var offset = code.indexOf('/*caret*/');
-    if (offset >= 0) {
-      var endOffset = offset + '/*caret*/'.length;
-      code = code.substring(0, offset) + code.substring(endOffset);
-      _offset = offset;
-      _length = 0;
+    var startOffset = code.indexOf('// start$eol');
+    var endOffset = code.indexOf('// end$eol');
+    if (startOffset >= 0 && endOffset >= 0) {
+      var startLength = '// start$eol'.length;
+      code =
+          code.substring(0, startOffset) +
+          code.substring(startOffset + startLength, endOffset) +
+          code.substring(endOffset + '// end$eol'.length);
+      _offset = startOffset;
+      _length = endOffset - startLength - _offset;
     } else {
-      var startOffset = code.indexOf('// start$eol');
-      var endOffset = code.indexOf('// end$eol');
-      if (startOffset >= 0 && endOffset >= 0) {
-        var startLength = '// start$eol'.length;
-        code =
-            code.substring(0, startOffset) +
-            code.substring(startOffset + startLength, endOffset) +
-            code.substring(endOffset + '// end$eol'.length);
-        _offset = startOffset;
-        _length = endOffset - startLength - _offset;
+      var parsedCode = TestCode.parse(code);
+      code = parsedCode.code;
+      if (parsedCode.positions.isNotEmpty) {
+        _offset = parsedCode.position.offset;
+        _length = 0;
+      } else if (parsedCode.ranges.isNotEmpty) {
+        var range = parsedCode.range.sourceRange;
+        _offset = range.offset;
+        _length = range.length;
       } else {
         _offset = 0;
         _length = 0;
@@ -102,6 +106,9 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
             MapEntry(key, value.map(normalizeNewlinesForPlatform).toList()),
       );
     }
+    // Remove any marker in the expected code. We allow markers to prevent an
+    // otherwise empty line from having the leading whitespace be removed.
+    expected = TestCode.parse(expected).code;
     var assist = await _assertHasAssist();
     _change = assist.change;
     expect(_change.id, kind.id);

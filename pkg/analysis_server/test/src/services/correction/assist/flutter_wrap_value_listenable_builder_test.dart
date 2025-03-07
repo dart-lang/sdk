@@ -31,7 +31,7 @@ class FlutterWrapValueListenableBuilderTest extends AssistProcessorTest {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  /*caret*/Text('a');
+  ^Text('a');
 }
 ''');
     await assertHasAssist('''
@@ -53,7 +53,7 @@ void f() {
   import 'package:flutter/widgets.dart';
 
   void f(ValueListenable<int> v) {
-    /*caret*/ValueListenableBuilder<int>(
+    ^ValueListenableBuilder<int>(
       valueListenable: v,
       builder: (context, value, _) {
         return Text('a');
@@ -88,7 +88,7 @@ void f() {
     ValueListenableBuilder<int>(
       valueListenable: v,
       builder: (context, value, _) {
-        return /*caret*/Text('a');
+        return ^Text('a');
       }
     );
   }
@@ -121,7 +121,7 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return const /*caret*/Text('hi');
+    return const ^Text('hi');
   }
 }
 ''');
@@ -152,7 +152,7 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return const /*caret*/Text('hi');
+    return const ^Text('hi');
   }
 }
 ''');

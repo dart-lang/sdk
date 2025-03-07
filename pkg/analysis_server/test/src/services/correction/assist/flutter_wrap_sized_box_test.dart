@@ -32,7 +32,7 @@ class FlutterWrapSizedBoxTest extends AssistProcessorTest {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return /*caret*/Container();
+    return ^Container();
   }
 }
 ''');
@@ -57,7 +57,7 @@ class MyWidget extends StatelessWidget {
 }
 
 Widget f() {
-  return MyWidget./*caret*/named();
+  return MyWidget.^named();
 }
 ''');
     await assertHasAssist('''
@@ -80,7 +80,7 @@ Widget f() {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return /*caret*/SizedBox();
+    return ^SizedBox();
   }
 }
 ''');
@@ -93,7 +93,7 @@ import 'package:flutter/widgets.dart';
 
 void f() {
   Widget w;
-  w = /*caret*/Container();
+  w = ^Container();
 }
 ''');
     await assertHasAssist('''
@@ -110,7 +110,7 @@ void f() {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  Widget f() => /*caret*/Container();
+  Widget f() => ^Container();
 }
 ''');
     await assertHasAssist('''
@@ -126,7 +126,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  Widget w = /*caret*/Container();
+  Widget w = ^Container();
 }
 ''');
     await assertHasAssist('''

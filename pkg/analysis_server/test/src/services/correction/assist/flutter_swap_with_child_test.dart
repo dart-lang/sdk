@@ -30,7 +30,7 @@ class FlutterSwapWithChildTest extends AssistProcessorTest {
 import 'package:flutter/material.dart';
 build() {
   return Scaffold(
-    body: /*caret*/GestureDetector(
+    body: ^GestureDetector(
       onTap: () => startResize(),
       child: Center(
         child: Container(
@@ -76,7 +76,7 @@ class Foo extends StatefulWidget {
 class _State extends State<Foo> {
   @override
   Widget build(BuildContext context) {
-    return /*caret*/Expanded(
+    return ^Expanded(
       flex: 2,
       child: GestureDetector(
         child: Text(
@@ -119,7 +119,7 @@ class _State extends State<Foo> {
 import 'package:flutter/material.dart';
 build() {
   return Scaffold(
-    body: /*caret*/Column(
+    body: ^Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(8),
@@ -154,7 +154,7 @@ startResize() {}
 import 'package:flutter/material.dart';
 build() {
   return Scaffold(
-    body: /*caret*/Column(
+    body: ^Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(8),

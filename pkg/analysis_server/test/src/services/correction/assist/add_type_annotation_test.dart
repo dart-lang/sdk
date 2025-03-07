@@ -38,7 +38,7 @@ class A {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 class A {
-  /*caret*/final f = 0;
+  ^final f = 0;
 }
 ''');
     await assertNoAssist();
@@ -244,7 +244,7 @@ part 'test.dart';
     addTestSource(r'''
 part of 'app.dart';
 void f() {
-  var /*caret*/v = getMap();
+  var ^v = getMap();
 }
 ''');
 

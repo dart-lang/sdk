@@ -101,12 +101,7 @@ void f() {
   Future<void> test_selectionTooLarge() async {
     await resolveTestCode('''
 void f() {
-  if (1 == 1
-// start
-&& 2
-// end
-== 2
-) {
+  if (1 == 1 [!&& 2!] == 2) {
     print(0);
   }
   print(3 == 3 && 4 == 4);

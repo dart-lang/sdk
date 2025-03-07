@@ -21,7 +21,7 @@ class ConvertToMapLiteralTest extends AssistProcessorTest {
 
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''
-Map m = Ma/*caret*/p();
+Map m = Ma^p();
 ''');
     await assertHasAssist('''
 Map m = {};
@@ -31,7 +31,7 @@ Map m = {};
   Future<void> test_default_linkedHashMap() async {
     await resolveTestCode('''
 import 'dart:collection';
-var m = LinkedHashMa/*caret*/p();
+var m = LinkedHashMa^p();
 ''');
     await assertHasAssist('''
 import 'dart:collection';
@@ -41,7 +41,7 @@ var m = {};
 
   Future<void> test_default_minimal() async {
     await resolveTestCode('''
-var m = Ma/*caret*/p();
+var m = Ma^p();
 ''');
     await assertHasAssist('''
 var m = {};
@@ -50,7 +50,7 @@ var m = {};
 
   Future<void> test_default_newKeyword() async {
     await resolveTestCode('''
-var m = new Ma/*caret*/p();
+var m = new Ma^p();
 ''');
     await assertHasAssist('''
 var m = {};
@@ -59,7 +59,7 @@ var m = {};
 
   Future<void> test_default_typeArg() async {
     await resolveTestCode('''
-var m = Ma/*caret*/p<String, int>();
+var m = Ma^p<String, int>();
 ''');
     await assertHasAssist('''
 var m = <String, int>{};

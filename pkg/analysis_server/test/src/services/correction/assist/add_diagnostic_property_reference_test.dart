@@ -32,7 +32,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class W extends Widget {
-  bool /*caret*/property = true;
+  bool ^property = true;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -62,7 +62,7 @@ import 'package:flutter/widgets.dart';
 class W {}
 
 augment class W extends Widget {
-  String get foo/*caret*/ => '';
+  String get foo^ => '';
 }
 ''');
     await assertNoAssist();
@@ -72,7 +72,7 @@ augment class W extends Widget {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 mixin MyMixin {
-  String get foo/*caret*/() {}
+  String get foo^() {}
 }
 ''');
     await assertNoAssist();
@@ -81,7 +81,7 @@ mixin MyMixin {
   Future<void> test_notAvailable_outsideDiagnosticable() async {
     await resolveTestCode('''
 class C {
-  String get f/*caret*/ => '';
+  String get f^ => '';
 }
 ''');
     await assertNoAssist();

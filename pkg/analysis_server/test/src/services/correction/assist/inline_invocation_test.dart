@@ -22,7 +22,7 @@ class InlineInvocationTest extends AssistProcessorTest {
 
   Future<void> test_add_emptyTarget() async {
     await resolveTestCode('''
-var l = []..ad/*caret*/d('a')..add('b');
+var l = []..ad^d('a')..add('b');
 ''');
     await assertHasAssist('''
 var l = ['a']..add('b');
@@ -33,14 +33,14 @@ var l = ['a']..add('b');
     createAnalysisOptionsFile(lints: [LintNames.prefer_inlined_adds]);
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-var l = []..ad/*caret*/d('a')..add('b');
+var l = []..ad^d('a')..add('b');
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_add_nonEmptyTarget() async {
     await resolveTestCode('''
-var l = ['a']..ad/*caret*/d('b')..add('c');
+var l = ['a']..ad^d('b')..add('c');
 ''');
     await assertHasAssist('''
 var l = ['a', 'b']..add('c');
@@ -50,7 +50,7 @@ var l = ['a', 'b']..add('c');
   Future<void> test_add_nonLiteralArgument() async {
     await resolveTestCode('''
 var e = 'b';
-var l = ['a']..add/*caret*/(e);
+var l = ['a']..add^(e);
 ''');
     await assertHasAssist('''
 var e = 'b';
@@ -61,21 +61,21 @@ var l = ['a', e];
   Future<void> test_add_nonLiteralTarget() async {
     await resolveTestCode('''
 var l1 = [];
-var l2 = l1..ad/*caret*/d('b')..add('c');
+var l2 = l1..ad^d('b')..add('c');
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_add_notFirst() async {
     await resolveTestCode('''
-var l = ['a']..add('b')../*caret*/add('c');
+var l = ['a']..add('b')..^add('c');
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_addAll_emptyTarget() async {
     await resolveTestCode('''
-var l = []..add/*caret*/All(['a'])..addAll(['b']);
+var l = []..add^All(['a'])..addAll(['b']);
 ''');
     await assertHasAssist('''
 var l = ['a']..addAll(['b']);
@@ -86,14 +86,14 @@ var l = ['a']..addAll(['b']);
     createAnalysisOptionsFile(lints: [LintNames.prefer_inlined_adds]);
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-var l = []..add/*caret*/All(['a'])..addAll(['b']);
+var l = []..add^All(['a'])..addAll(['b']);
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_addAll_nonEmptyTarget() async {
     await resolveTestCode('''
-var l = ['a']..add/*caret*/All(['b'])..addAll(['c']);
+var l = ['a']..add^All(['b'])..addAll(['c']);
 ''');
     await assertHasAssist('''
 var l = ['a', 'b']..addAll(['c']);
@@ -103,7 +103,7 @@ var l = ['a', 'b']..addAll(['c']);
   Future<void> test_addAll_nonLiteralArgument() async {
     await resolveTestCode('''
 var l1 = <String>[];
-var l2 = ['a']..add/*caret*/All(l1);
+var l2 = ['a']..add^All(l1);
 ''');
     await assertNoAssist();
   }
@@ -111,14 +111,14 @@ var l2 = ['a']..add/*caret*/All(l1);
   Future<void> test_addAll_nonLiteralTarget() async {
     await resolveTestCode('''
 var l1 = [];
-var l2 = l1..addAl/*caret*/l(['b'])..addAll(['c']);
+var l2 = l1..addAl^l(['b'])..addAll(['c']);
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_addAll_notFirst() async {
     await resolveTestCode('''
-var l = ['a']..addAll(['b'])../*caret*/addAll(['c']);
+var l = ['a']..addAll(['b'])..^addAll(['c']);
 ''');
     await assertNoAssist();
   }
