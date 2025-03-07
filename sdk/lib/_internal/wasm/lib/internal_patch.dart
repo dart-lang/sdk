@@ -194,7 +194,7 @@ String jsonEncode(String object) => jsStringToDartString(
 /// Bounds checks are disabled with `--omit-bounds-checks`, which is implied by
 /// `-O4`.
 ///
-/// Reads of this variable is evaluated before the TFA by the constant
+/// Reads of this variable are evaluated before the TFA by the constant
 /// evaluator, and its value depends on `--omit-bounds-checks`.
 external bool get checkBounds;
 
@@ -203,7 +203,7 @@ external bool get checkBounds;
 /// If minification is on we do not retain specific error message details (e.g.
 /// omit the index in index errors).
 ///
-/// Reads of this variable is evaluated before the TFA by the constant
+/// Reads of this variable are evaluated before the TFA by the constant
 /// evaluator, and its value depends on `--minify`.
 external bool get minify;
 
@@ -212,9 +212,18 @@ external bool get minify;
 /// Enables shortcuts in some runtime logic if it is known that no support is
 /// needed for dynamic modules.
 ///
-/// Reads of this variable is evaluated before the TFA by the constant
+/// Reads of this variable are evaluated before the TFA by the constant
 /// evaluator, and its value depends on `--dynamic-module-main`.
 external bool get hasDynamicModuleSupport;
+
+/// Whether deferred loading is enabled.
+///
+/// If true, then there may be deferred modules that can be loaded at runtime.
+///
+/// Reads of this variable are evaluated before the TFA by the constant
+/// evaluator, and its value depends on `--enable-deferred-loading` and
+/// `--enable-multi-module-stress-test-mode`.
+external bool get deferredLoadingEnabled;
 
 /// Compiler intrinsic to push an element to a Wasm array in a class field or
 /// variable.

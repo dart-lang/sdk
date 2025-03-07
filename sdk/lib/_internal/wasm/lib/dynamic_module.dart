@@ -4,10 +4,10 @@
 
 part of "internal_patch.dart";
 
-@pragma("wasm:import", "deferredLibraryHelper.loadDynamicModuleFromUri")
+@pragma("wasm:import", "moduleLoadingHelper.loadDynamicModuleFromUri")
 external WasmExternRef _loadModuleFromUri(WasmExternRef moduleUri);
 
-@pragma("wasm:import", "deferredLibraryHelper.loadDynamicModuleFromBytes")
+@pragma("wasm:import", "moduleLoadingHelper.loadDynamicModuleFromBytes")
 external WasmExternRef _loadModuleFromBytes(WasmExternRef moduleUri);
 
 @patch

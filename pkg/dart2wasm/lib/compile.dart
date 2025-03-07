@@ -331,6 +331,9 @@ Future<CompilationResult> compileToModule(
       translator.functions.translatedProcedures,
       translator.internalizedStringsForJSRuntime,
       translator.options.requireJsStringBuiltin,
+      translator.options.enableDeferredLoading ||
+          translator.options.enableMultiModuleStressTestMode ||
+          translator.dynamicModuleSupportEnabled,
       mode);
 
   final supportJs = _generateSupportJs(options.translatorOptions);
