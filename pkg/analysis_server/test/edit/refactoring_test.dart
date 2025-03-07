@@ -2739,7 +2739,7 @@ void f() {
       expect(problems, hasLength(1));
       assertResultProblemsError(
         problems,
-        "Duplicate local variable 'newName'.",
+        "Duplicate local variable of name 'newName' at f in 'test.dart'.",
       );
     });
   }

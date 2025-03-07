@@ -54,6 +54,7 @@ package:analyzer/dart/analysis/code_style_options.dart:
   CodeStyleOptions (class extends Object):
     new (constructor: CodeStyleOptions Function())
     addTrailingCommas (getter: bool)
+    avoidRenamingMethodParameters (getter: bool)
     finalInForEach (getter: bool)
     makeLocalsFinal (getter: bool)
     preferConstDeclarations (getter: bool)

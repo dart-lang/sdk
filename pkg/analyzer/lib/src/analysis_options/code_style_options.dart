@@ -20,6 +20,10 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get addTrailingCommas => _isLintEnabled('require_trailing_commas');
 
   @override
+  bool get avoidRenamingMethodParameters =>
+      _isLintEnabled('avoid_renaming_method_parameters');
+
+  @override
   bool get finalInForEach => _isLintEnabled('prefer_final_in_for_each');
 
   @override
