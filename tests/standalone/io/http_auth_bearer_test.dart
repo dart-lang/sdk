@@ -63,12 +63,11 @@ class Server {
 void testValidBearerTokens() {
   HttpClientBearerCredentials("977ce44bc56dc5000c9d2c329e682547");
   HttpClientBearerCredentials("dGVzdHRlc3R0ZXN0dGVzdA==");
-  HttpClientBearerCredentials("dGVzdHRl_3R0ZXN-dGVzdA==");
-  HttpClientBearerCredentials("dGVzdHRl/3R0ZXN+dGVzdA==");
+  HttpClientBearerCredentials("mF_9.B5f-4.1JqM");
 }
 
 void testInvalidBearerTokens() {
-  Expect.throws(() => HttpClientBearerCredentials("§(&%)"));
+  Expect.throws(() => HttpClientBearerCredentials("#(&%)"));
   Expect.throws(() => HttpClientBearerCredentials("áéîöü"));
   Expect.throws(() => HttpClientBearerCredentials("あいうえお"));
   Expect.throws(() => HttpClientBearerCredentials("     "));
