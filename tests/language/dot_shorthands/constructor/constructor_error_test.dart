@@ -42,4 +42,9 @@ void main() {
   // ^
   // [analyzer] unspecified
   // [cfe] unspecified
+
+  UnnamedConstructor Function() ctorTearoff = .new;
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
 }
