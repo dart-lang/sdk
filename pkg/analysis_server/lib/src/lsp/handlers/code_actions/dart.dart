@@ -186,7 +186,6 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           error: error,
         );
 
-        // TODO(pq): move this timer UP?
         var peformanceTracker = FixPerformance();
 
         var fixes = await computeFixes(context, performance: peformanceTracker);
@@ -199,6 +198,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
               content: unitResult.content,
               offset: offset,
               requestLatency: peformanceTracker.computeTime!.inMilliseconds,
+              producerTimings: peformanceTracker.producerTimings,
             ),
           );
         }

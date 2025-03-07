@@ -1571,14 +1571,19 @@ class GetFixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
 
     // Emit the data as a table
     buf.writeln('<table>');
-    buf.writeln('<tr><th>Time</th><th>Source</th><th>Snippet</th></tr>');
+    buf.writeln(
+      '<tr><th>Time</th><th align = "left" title="Time in correction producer `compute()` calls">Producer.compute()</th><th align = "left">Source</th><th>Snippet</th></tr>',
+    );
+
     for (var request in requests) {
       var shortName = pathContext.basename(request.path);
+      var (producerTime, producerDetails) = _producerDetails(request);
       buf.writeln(
         '<tr>'
         '<td class="pre right"><a href="/timing?id=${request.id}&kind=getFixes">'
         '${_formatTiming(request)}'
         '</a></td>'
+        '<td><abbr title="$producerDetails">${printMilliseconds(producerTime)}</abbr></td>'
         '<td>${escape(shortName)}</td>'
         '<td><code>${escape(request.snippet)}</code></td>'
         '</tr>',
@@ -1600,6 +1605,24 @@ class GetFixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     }
 
     return buffer.toString();
+  }
+
+  (int, String) _producerDetails(GetFixesPerformance request) {
+    var details = StringBuffer();
+
+    var totalProducerTime = 0;
+    var producerTimings = request.producerTimings;
+
+    for (var timing
+        in producerTimings.sortedBy((t) => t.elapsedTime).reversed) {
+      var producerTime = timing.elapsedTime;
+      totalProducerTime += producerTime;
+      details.write(timing.className);
+      details.write(': ');
+      details.writeln(printMilliseconds(producerTime));
+    }
+
+    return (totalProducerTime, details.toString());
   }
 }
 

@@ -212,6 +212,7 @@ class EditGetFixesHandler extends LegacyHandler
                 content: unitResult.content,
                 offset: offset,
                 requestLatency: peformanceTracker.computeTime!.inMilliseconds,
+                producerTimings: peformanceTracker.producerTimings,
               ),
             );
           } on InconsistentAnalysisException {

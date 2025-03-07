@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/server/performance.dart';
+import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 
 // TODO(pq): update to share w/ completion_performance
 /// Compute a string representing a get fixes request at the
@@ -38,6 +39,7 @@ String _computeSourceSnippet(String contents, int offset) {
 class GetFixesPerformance extends RequestPerformance {
   final String path;
   final String snippet;
+  final List<ProducerTiming> producerTimings;
 
   GetFixesPerformance({
     required super.performance,
@@ -45,6 +47,7 @@ class GetFixesPerformance extends RequestPerformance {
     super.requestLatency,
     required String content,
     required int offset,
+    required this.producerTimings,
   }) : snippet = _computeSourceSnippet(content, offset),
        super(operation: 'GetFixes');
 

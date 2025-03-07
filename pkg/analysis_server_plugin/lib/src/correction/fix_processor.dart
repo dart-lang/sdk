@@ -15,30 +15,42 @@ import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_except
 Future<List<Fix>> computeFixes(DartFixContext context,
     {FixPerformance? performance}) async {
   return [
-    ...await FixProcessor(context).compute(performance: performance),
+    ...await FixProcessor(context, performance: performance).compute(),
     ...await FixInFileProcessor(context).compute(),
   ];
 }
 
+/// Timing information for a producer's call to `compute()`.
+typedef ProducerTiming = ({
+  /// The producer class name.
+  String className,
+
+  /// The time elapsed during `compute()`.
+  int elapsedTime,
+});
+
 /// A callback for recording fix request timings.
 class FixPerformance {
   Duration? computeTime;
+  List<ProducerTiming> producerTimings = [];
 }
 
 /// The computer for Dart fixes.
 class FixProcessor {
   final DartFixContext _fixContext;
+  final FixPerformance? _performance;
+  final Stopwatch _timer = Stopwatch();
 
   final List<Fix> _fixes = <Fix>[];
 
-  FixProcessor(this._fixContext);
+  FixProcessor(this._fixContext, {FixPerformance? performance})
+      : _performance = performance;
 
-  Future<List<Fix>> compute({FixPerformance? performance}) async {
-    var timer = Stopwatch();
-    timer.start();
+  Future<List<Fix>> compute() async {
+    _timer.start();
     await _addFromProducers();
-    timer.stop();
-    performance?.computeTime = timer.elapsed;
+    _timer.stop();
+    _performance?.computeTime = _timer.elapsed;
     return _fixes;
   }
 
@@ -74,7 +86,18 @@ class FixProcessor {
           ChangeBuilder(workspace: _fixContext.workspace, eol: producer.eol);
       try {
         var fixKind = producer.fixKind;
-        await producer.compute(builder);
+
+        if (_performance != null) {
+          var startTime = _timer.elapsedMilliseconds;
+          await producer.compute(builder);
+          _performance.producerTimings.add((
+            className: producer.runtimeType.toString(),
+            elapsedTime: _timer.elapsedMilliseconds - startTime,
+          ));
+        } else {
+          await producer.compute(builder);
+        }
+
         assert(
           !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
           'Producers used in bulk fixes must not modify the FixKind during '
