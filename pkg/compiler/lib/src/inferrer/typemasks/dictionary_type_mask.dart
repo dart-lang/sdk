@@ -67,21 +67,10 @@ class DictionaryTypeMask extends MapTypeMask {
   }
 
   @override
-  DictionaryTypeMask withSpecialValues({
-    bool? isNullable,
-    bool? hasLateSentinel,
-  }) {
-    isNullable ??= this.isNullable;
-    hasLateSentinel ??= this.hasLateSentinel;
-    if (isNullable == this.isNullable &&
-        hasLateSentinel == this.hasLateSentinel) {
-      return this;
-    }
+  DictionaryTypeMask withPowerset(Bitset powerset) {
+    if (powerset == this.powerset) return this;
     return DictionaryTypeMask(
-      forwardTo.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      ),
+      forwardTo.withPowerset(powerset),
       allocationNode,
       allocationElement,
       keyType,
@@ -100,10 +89,9 @@ class DictionaryTypeMask extends MapTypeMask {
   @override
   TypeMask? _unionSpecialCases(
     TypeMask other,
-    CommonMasks domain, {
-    required bool isNullable,
-    required bool hasLateSentinel,
-  }) {
+    CommonMasks domain,
+    Bitset powerset,
+  ) {
     if (other is DictionaryTypeMask) {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       TypeMask newKeyType = keyType.union(other.keyType, domain);

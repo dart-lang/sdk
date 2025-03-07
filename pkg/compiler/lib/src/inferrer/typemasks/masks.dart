@@ -64,11 +64,13 @@ class CommonMasks with AbstractValueDomain {
   /// calls [createMask] to create the mask and cache it.
   T getCachedMask<T extends TypeMask>(
     ClassEntity? base,
-    FlatTypeMaskKind kind,
-    EnumSet<TypeMaskSpecialValue> specialValues,
+    Bitset flags,
     T Function() createMask,
   ) {
-    final key = (kind.index << _numSpecialValues) | specialValues.mask.bits;
+    final kind = FlatTypeMask._lookupKind(flags);
+    final key =
+        (kind.index << _numSpecialValues) |
+        _specialValueDomain.restrict(flags).bits;
     // `null` is a valid base so we allow it as a key in the map.
     final Map<ClassEntity?, TypeMask> cachedMasks =
         _canonicalizedTypeMasks[key] ??= {};
@@ -440,13 +442,7 @@ class CommonMasks with AbstractValueDomain {
         isPrecise &= fieldType.isPrecise;
       }
       return finish(
-        RecordTypeMask.createRecord(
-          this,
-          types,
-          shape,
-          isNullable: nullable,
-          hasLateSentinel: false,
-        ),
+        RecordTypeMask.createRecord(this, types, shape, isNullable: nullable),
         isPrecise,
       );
     }
@@ -465,12 +461,10 @@ class CommonMasks with AbstractValueDomain {
   TypeMask includeNull(TypeMask mask) => mask.nullable();
 
   @override
-  TypeMask excludeLateSentinel(TypeMask mask) =>
-      mask.withSpecialValues(hasLateSentinel: false);
+  TypeMask excludeLateSentinel(TypeMask mask) => mask.withoutLateSentinel();
 
   @override
-  TypeMask includeLateSentinel(TypeMask mask) =>
-      mask.withSpecialValues(hasLateSentinel: true);
+  TypeMask includeLateSentinel(TypeMask mask) => mask.withLateSentinel();
 
   @override
   AbstractBool containsType(TypeMask typeMask, ClassEntity cls) {

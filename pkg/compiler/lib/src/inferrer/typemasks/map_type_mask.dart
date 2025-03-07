@@ -63,18 +63,10 @@ class MapTypeMask extends AllocationTypeMask {
   }
 
   @override
-  MapTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
-    isNullable ??= this.isNullable;
-    hasLateSentinel ??= this.hasLateSentinel;
-    if (isNullable == this.isNullable &&
-        hasLateSentinel == this.hasLateSentinel) {
-      return this;
-    }
+  MapTypeMask withPowerset(Bitset powerset) {
+    if (powerset == this.powerset) return this;
     return MapTypeMask(
-      forwardTo.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      ),
+      forwardTo.withPowerset(powerset),
       allocationNode,
       allocationElement,
       keyType,
@@ -88,10 +80,9 @@ class MapTypeMask extends AllocationTypeMask {
   @override
   TypeMask? _unionSpecialCases(
     TypeMask other,
-    CommonMasks domain, {
-    required bool isNullable,
-    required bool hasLateSentinel,
-  }) {
+    CommonMasks domain,
+    Bitset powerset,
+  ) {
     if (other is MapTypeMask) {
       TypeMask newKeyType = keyType.union(other.keyType, domain);
       TypeMask newValueType = valueType.union(other.valueType, domain);

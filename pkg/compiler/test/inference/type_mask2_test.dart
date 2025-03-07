@@ -10,6 +10,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
+import 'package:compiler/src/util/bitset.dart';
 import '../helpers/type_test_helper.dart';
 
 void main() {
@@ -34,8 +35,10 @@ checkMasks(
   List<ClassEntity>? containedClasses,
 }) {
   final commonMasks = closedWorld.abstractValueDomain as CommonMasks;
-  bool isNullable = masks.any((FlatTypeMask mask) => mask.isNullable);
-  bool hasLateSentinel = masks.any((FlatTypeMask mask) => mask.hasLateSentinel);
+  var powerset = masks.fold(
+    Bitset.empty(),
+    (powerset, mask) => powerset.union(mask.powerset),
+  );
   List<FlatTypeMask> disjoint = <FlatTypeMask>[];
   UnionTypeMask.unionOfHelper(masks, disjoint, commonMasks);
   Expect.listEquals(
@@ -45,12 +48,7 @@ checkMasks(
   );
   if (flattened == null) {
     Expect.throws(
-      () => UnionTypeMask.flatten(
-        disjoint,
-        commonMasks,
-        includeNull: isNullable,
-        includeLateSentinel: hasLateSentinel,
-      ),
+      () => UnionTypeMask.flatten(disjoint, commonMasks, powerset),
       (e) => e is ArgumentError,
       'Expect argument error on flattening of $disjoint.',
     );
@@ -58,8 +56,7 @@ checkMasks(
     TypeMask flattenResult = UnionTypeMask.flatten(
       disjoint,
       commonMasks,
-      includeNull: isNullable,
-      includeLateSentinel: hasLateSentinel,
+      powerset,
     );
     Expect.equals(
       flattened,

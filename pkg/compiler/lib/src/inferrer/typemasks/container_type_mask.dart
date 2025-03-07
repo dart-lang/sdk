@@ -69,21 +69,10 @@ class ContainerTypeMask extends AllocationTypeMask {
   }
 
   @override
-  ContainerTypeMask withSpecialValues({
-    bool? isNullable,
-    bool? hasLateSentinel,
-  }) {
-    isNullable ??= this.isNullable;
-    hasLateSentinel ??= this.hasLateSentinel;
-    if (isNullable == this.isNullable &&
-        hasLateSentinel == this.hasLateSentinel) {
-      return this;
-    }
+  ContainerTypeMask withPowerset(Bitset powerset) {
+    if (powerset == this.powerset) return this;
     return ContainerTypeMask(
-      forwardTo.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      ),
+      forwardTo.withPowerset(powerset),
       allocationNode,
       allocationElement,
       elementType,
@@ -97,10 +86,9 @@ class ContainerTypeMask extends AllocationTypeMask {
   @override
   TypeMask? _unionSpecialCases(
     TypeMask other,
-    CommonMasks domain, {
-    required bool isNullable,
-    required bool hasLateSentinel,
-  }) {
+    CommonMasks domain,
+    Bitset powerset,
+  ) {
     if (other is ContainerTypeMask) {
       final newElementType = elementType.union(other.elementType, domain);
       final newLength = (length == other.length) ? length : null;

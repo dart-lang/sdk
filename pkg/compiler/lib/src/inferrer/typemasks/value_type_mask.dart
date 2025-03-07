@@ -38,37 +38,22 @@ class ValueTypeMask extends ForwardingTypeMask {
   }
 
   @override
-  ValueTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
-    isNullable ??= this.isNullable;
-    hasLateSentinel ??= this.hasLateSentinel;
-    if (isNullable == this.isNullable &&
-        hasLateSentinel == this.hasLateSentinel) {
-      return this;
-    }
-    return ValueTypeMask(
-      forwardTo.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      ),
-      value,
-    );
+  ValueTypeMask withPowerset(Bitset powerset) {
+    if (powerset == this.powerset) return this;
+    return ValueTypeMask(forwardTo.withPowerset(powerset), value);
   }
 
   @override
   TypeMask? _unionSpecialCases(
     TypeMask other,
-    CommonMasks domain, {
-    required bool isNullable,
-    required bool hasLateSentinel,
-  }) {
+    CommonMasks domain,
+    Bitset powerset,
+  ) {
     if (other is ValueTypeMask &&
         forwardTo.withoutSpecialValues() ==
             other.forwardTo.withoutSpecialValues() &&
         value == other.value) {
-      return withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      );
+      return withPowerset(powerset);
     }
     return null;
   }

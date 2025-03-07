@@ -116,15 +116,12 @@ enum TypeMaskSpecialValue { null_, lateSentinel }
 
 final _numSpecialValues = TypeMaskSpecialValue.values.length;
 
-EnumSet<TypeMaskSpecialValue> _composeSpecialValues({
-  required bool isNullable,
-  required bool hasLateSentinel,
-}) {
-  EnumSet<TypeMaskSpecialValue> result = EnumSet.empty();
-  if (isNullable) result = result.add(TypeMaskSpecialValue.null_);
-  if (hasLateSentinel) result = result.add(TypeMaskSpecialValue.lateSentinel);
-  return result;
-}
+final _specialValueDomain = EnumSetDomain<TypeMaskSpecialValue>(
+  0,
+  TypeMaskSpecialValue.values,
+);
+
+final _powersetDomains = ComposedEnumSetDomains([_specialValueDomain]);
 
 /// A type mask represents a set of contained classes, but the
 /// operations on it are not guaranteed to be precise and they may
@@ -438,24 +435,39 @@ abstract class TypeMask implements AbstractValue {
     return 'Unknown type mask $mask.';
   }
 
-  /// Returns a nullable variant of this [TypeMask].
-  TypeMask nullable() => withSpecialValues(isNullable: true);
+  Bitset get powerset;
 
-  /// Returns a non-nullable variant of this [TypeMask].
-  TypeMask nonNullable() => withSpecialValues(isNullable: false);
+  TypeMask withPowerset(Bitset powerset);
 
   /// Returns a variant of this [TypeMask] whose value is neither `null` nor
   /// the late sentinel.
   TypeMask withoutSpecialValues() =>
-      withSpecialValues(isNullable: false, hasLateSentinel: false);
+      withPowerset(_specialValueDomain.clear(powerset));
 
-  TypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel});
+  /// Returns a nullable variant of this [TypeMask].
+  TypeMask nullable() => withPowerset(
+    _specialValueDomain.add(powerset, TypeMaskSpecialValue.null_),
+  );
+
+  /// Returns a non-nullable variant of this [TypeMask].
+  TypeMask nonNullable() => withPowerset(
+    _specialValueDomain.remove(powerset, TypeMaskSpecialValue.null_),
+  );
+
+  TypeMask withLateSentinel() => withPowerset(
+    _specialValueDomain.add(powerset, TypeMaskSpecialValue.lateSentinel),
+  );
+
+  TypeMask withoutLateSentinel() => withPowerset(
+    _specialValueDomain.remove(powerset, TypeMaskSpecialValue.lateSentinel),
+  );
 
   /// Whether nothing matches this mask, not even null.
   bool get isEmpty;
 
   /// Whether null is a valid value of this mask.
-  bool get isNullable;
+  bool get isNullable =>
+      _specialValueDomain.contains(powerset, TypeMaskSpecialValue.null_);
 
   /// Whether the only possible value in this mask is Null.
   bool get isNull;
@@ -464,7 +476,8 @@ abstract class TypeMask implements AbstractValue {
   AbstractBool get isLateSentinel;
 
   /// Whether a late sentinel is a valid value of this mask.
-  bool get hasLateSentinel => isLateSentinel.isPotentiallyTrue;
+  bool get hasLateSentinel =>
+      _specialValueDomain.contains(powerset, TypeMaskSpecialValue.lateSentinel);
 
   /// Whether this [TypeMask] is empty or only represents
   /// [TypeMaskSpecialValue]s (i.e. `null` and the late sentinel).

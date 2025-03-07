@@ -12,15 +12,13 @@ abstract class ForwardingTypeMask extends TypeMask {
   const ForwardingTypeMask();
 
   @override
+  Bitset get powerset => forwardTo.powerset;
+  @override
   bool get isEmptyOrSpecial => forwardTo.isEmptyOrSpecial;
   @override
   bool get isEmpty => forwardTo.isEmpty;
   @override
-  bool get isNullable => forwardTo.isNullable;
-  @override
   bool get isNull => forwardTo.isNull;
-  @override
-  bool get hasLateSentinel => forwardTo.hasLateSentinel;
   @override
   AbstractBool get isLateSentinel => forwardTo.isLateSentinel;
   @override
@@ -86,35 +84,22 @@ abstract class ForwardingTypeMask extends TypeMask {
     if (this == other) {
       return this;
     }
-    bool isNullable = this.isNullable || other.isNullable;
-    bool hasLateSentinel = this.hasLateSentinel || other.hasLateSentinel;
+    final powerset = this.powerset.union(other.powerset);
     if (isEmptyOrSpecial) {
-      return other.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      );
+      return other.withPowerset(powerset);
     }
     if (other.isEmptyOrSpecial) {
-      return withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      );
+      return withPowerset(powerset);
     }
-    return _unionSpecialCases(
-          other,
-          domain,
-          isNullable: isNullable,
-          hasLateSentinel: hasLateSentinel,
-        ) ??
+    return _unionSpecialCases(other, domain, powerset) ??
         forwardTo.union(other, domain);
   }
 
   TypeMask? _unionSpecialCases(
     TypeMask other,
-    CommonMasks domain, {
-    required bool isNullable,
-    required bool hasLateSentinel,
-  }) => null;
+    CommonMasks domain,
+    Bitset powerset,
+  ) => null;
 
   @override
   bool isDisjoint(TypeMask other, JClosedWorld closedWorld) {
@@ -125,10 +110,7 @@ abstract class ForwardingTypeMask extends TypeMask {
   TypeMask intersection(TypeMask other, CommonMasks domain) {
     TypeMask forwardIntersection = forwardTo.intersection(other, domain);
     if (forwardIntersection.isEmptyOrSpecial) return forwardIntersection;
-    return withSpecialValues(
-      isNullable: forwardIntersection.isNullable,
-      hasLateSentinel: forwardIntersection.hasLateSentinel,
-    );
+    return withPowerset(forwardIntersection.powerset);
   }
 
   @override
