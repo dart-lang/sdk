@@ -103,9 +103,8 @@ returnIntOrNull() {
   /*current: [exact=ArrayIterator]*/
   /*moveNext: [exact=ArrayIterator]*/
   for (
-      // ignore: unused_local_variable
-      var b
-      in [42]) {
+  // ignore: unused_local_variable
+  var b in [42]) {
     int? bar = 42;
     /*[null|exact=JSUInt31]*/
     f() => bar;

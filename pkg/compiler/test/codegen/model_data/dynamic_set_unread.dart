@@ -94,8 +94,7 @@ class Class4b implements Class4a {
    elided,
    set=simple
   */
-  int?
-  field4;
+  int? field4;
 }
 
 /*member: method4:calls=[set$field4(1)],params=1*/

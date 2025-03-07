@@ -101,8 +101,7 @@ class JsToFrontendMap {
     return {
       for (final member in set.map(toBackendMember))
         // Members that are not live don't have a corresponding backend member.
-        if (member != null)
-          member,
+        if (member != null) member,
     };
   }
 
@@ -110,8 +109,7 @@ class JsToFrontendMap {
     return {
       for (final member in set.map(toBackendMember))
         // Members that are not live don't have a corresponding backend member.
-        if (member != null)
-          member as FieldEntity,
+        if (member != null) member as FieldEntity,
     };
   }
 
@@ -119,8 +117,7 @@ class JsToFrontendMap {
     return {
       for (final member in set.map(toBackendMember))
         // Members that are not live don't have a corresponding backend member.
-        if (member != null)
-          member as FunctionEntity,
+        if (member != null) member as FunctionEntity,
     };
   }
 

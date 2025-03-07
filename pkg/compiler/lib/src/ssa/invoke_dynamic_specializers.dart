@@ -241,12 +241,9 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     }
     // TODO(johnniwinther): Merge this and the following if statement.
     if (index.isInteger(abstractValueDomain).isPotentiallyFalse &&
-            // TODO(johnniwinther): Support annotations on the possible targets
-            // and used their parameter check policy here.
-            closedWorld
-            .annotationsData
-            .getParameterCheckPolicy(null)
-            .isEmitted) {
+        // TODO(johnniwinther): Support annotations on the possible targets
+        // and used their parameter check policy here.
+        closedWorld.annotationsData.getParameterCheckPolicy(null).isEmitted) {
       // We want the right checked mode error.
       return null;
     }
@@ -371,12 +368,9 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     }
     HInstruction index = instruction.inputs.last;
     if (index.isInteger(abstractValueDomain).isPotentiallyFalse &&
-            // TODO(johnniwinther): Support annotations on the possible targets
-            // and used their parameter check policy here.
-            closedWorld
-            .annotationsData
-            .getParameterCheckPolicy(null)
-            .isEmitted) {
+        // TODO(johnniwinther): Support annotations on the possible targets
+        // and used their parameter check policy here.
+        closedWorld.annotationsData.getParameterCheckPolicy(null).isEmitted) {
       // We want the right checked mode error.
       return null;
     }

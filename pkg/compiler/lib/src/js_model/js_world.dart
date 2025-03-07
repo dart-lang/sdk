@@ -556,21 +556,21 @@ class JClosedWorld implements World {
   ) {
     return selector.name == Identifiers.call &&
         (receiver == null ||
-                // This is logically equivalent to the former implementation using
-                // `abstractValueDomain.contains` (which wrapped `containsMask`).
-                // The switch to `abstractValueDomain.containsType` is because
-                // `contains` was generally unsound but happened to work correctly
-                // here. See https://dart-review.googlesource.com/c/sdk/+/130565
-                // for further discussion.
-                //
-                // This checks if the receiver mask contains the entire type cone
-                // originating from [_functionLub] and may therefore be unsound if
-                // the receiver mask contains only part of the type cone. (Is this
-                // possible?)
-                //
-                // TODO(fishythefish): Use `isDisjoint` or equivalent instead of
-                // `containsType` once we can ensure it's fast enough.
-                abstractValueDomain
+            // This is logically equivalent to the former implementation using
+            // `abstractValueDomain.contains` (which wrapped `containsMask`).
+            // The switch to `abstractValueDomain.containsType` is because
+            // `contains` was generally unsound but happened to work correctly
+            // here. See https://dart-review.googlesource.com/c/sdk/+/130565
+            // for further discussion.
+            //
+            // This checks if the receiver mask contains the entire type cone
+            // originating from [_functionLub] and may therefore be unsound if
+            // the receiver mask contains only part of the type cone. (Is this
+            // possible?)
+            //
+            // TODO(fishythefish): Use `isDisjoint` or equivalent instead of
+            // `containsType` once we can ensure it's fast enough.
+            abstractValueDomain
                 .containsType(receiver, _functionLub)
                 .isPotentiallyTrue);
   }
