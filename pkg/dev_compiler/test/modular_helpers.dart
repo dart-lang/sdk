@@ -325,12 +325,5 @@ Future<void> resolveScripts(Options options) async {
       'bin',
       Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
     );
-  } else {
-    // This can be removed once we stop supporting ia32 architecture.
-    _dartdevcScript = await resolve('pkg/dev_compiler/bin/dartdevc.dart',
-        'snapshots/dartdevc.dart.snapshot');
-    _kernelWorkerScript = await resolve('utils/bazel/kernel_worker.dart',
-        'snapshots/kernel_worker.dart.snapshot');
-    _dartExecutable = Platform.resolvedExecutable;
   }
 }
