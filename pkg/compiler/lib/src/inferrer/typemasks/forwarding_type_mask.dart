@@ -25,13 +25,13 @@ abstract class ForwardingTypeMask extends TypeMask {
   bool get isExact => forwardTo.isExact;
 
   @override
-  bool isInMask(TypeMask other, JClosedWorld closedWorld) {
-    return forwardTo.isInMask(other, closedWorld);
+  bool isInMask(TypeMask other, CommonMasks domain) {
+    return forwardTo.isInMask(other, domain);
   }
 
   @override
-  bool containsMask(TypeMask other, JClosedWorld closedWorld) {
-    return forwardTo.containsMask(other, closedWorld);
+  bool containsMask(TypeMask other, CommonMasks domain) {
+    return forwardTo.containsMask(other, domain);
   }
 
   @override
@@ -86,10 +86,10 @@ abstract class ForwardingTypeMask extends TypeMask {
     }
     final powerset = this.powerset.union(other.powerset);
     if (isEmptyOrSpecial) {
-      return other.withPowerset(powerset);
+      return other.withPowerset(powerset, domain);
     }
     if (other.isEmptyOrSpecial) {
-      return withPowerset(powerset);
+      return withPowerset(powerset, domain);
     }
     return _unionSpecialCases(other, domain, powerset) ??
         forwardTo.union(other, domain);
@@ -110,7 +110,7 @@ abstract class ForwardingTypeMask extends TypeMask {
   TypeMask intersection(TypeMask other, CommonMasks domain) {
     TypeMask forwardIntersection = forwardTo.intersection(other, domain);
     if (forwardIntersection.isEmptyOrSpecial) return forwardIntersection;
-    return withPowerset(forwardIntersection.powerset);
+    return withPowerset(forwardIntersection.powerset, domain);
   }
 
   @override
@@ -122,8 +122,8 @@ abstract class ForwardingTypeMask extends TypeMask {
   }
 
   @override
-  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
-    return forwardTo.canHit(element, name, closedWorld);
+  bool canHit(MemberEntity element, Name name, CommonMasks domain) {
+    return forwardTo.canHit(element, name, domain);
   }
 
   @override

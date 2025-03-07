@@ -318,10 +318,11 @@ main() {}
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
     ElementEnvironment elementEnvironment =
         compiler.backendClosedWorldForTesting!.elementEnvironment;
+    final domain = closedWorld.abstractValueDomain as CommonMasks;
     checkInvariant(enqueuer, elementEnvironment);
 
     Object createConstraint(ClassEntity cls) {
-      return TypeMask.subtype(cls, closedWorld);
+      return TypeMask.subtype(cls, domain);
     }
 
     for (Impact impact in impacts) {

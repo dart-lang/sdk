@@ -38,9 +38,9 @@ class ValueTypeMask extends ForwardingTypeMask {
   }
 
   @override
-  ValueTypeMask withPowerset(Bitset powerset) {
+  ValueTypeMask withPowerset(Bitset powerset, CommonMasks domain) {
     if (powerset == this.powerset) return this;
-    return ValueTypeMask(forwardTo.withPowerset(powerset), value);
+    return ValueTypeMask(forwardTo.withPowerset(powerset, domain), value);
   }
 
   @override
@@ -50,10 +50,10 @@ class ValueTypeMask extends ForwardingTypeMask {
     Bitset powerset,
   ) {
     if (other is ValueTypeMask &&
-        forwardTo.withoutSpecialValues() ==
-            other.forwardTo.withoutSpecialValues() &&
+        forwardTo.withoutSpecialValues(domain) ==
+            other.forwardTo.withoutSpecialValues(domain) &&
         value == other.value) {
-      return withPowerset(powerset);
+      return withPowerset(powerset, domain);
     }
     return null;
   }

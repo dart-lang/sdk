@@ -67,10 +67,10 @@ class DictionaryTypeMask extends MapTypeMask {
   }
 
   @override
-  DictionaryTypeMask withPowerset(Bitset powerset) {
+  DictionaryTypeMask withPowerset(Bitset powerset, CommonMasks domain) {
     if (powerset == this.powerset) return this;
     return DictionaryTypeMask(
-      forwardTo.withPowerset(powerset),
+      forwardTo.withPowerset(powerset, domain),
       allocationNode,
       allocationElement,
       keyType,
@@ -99,14 +99,14 @@ class DictionaryTypeMask extends MapTypeMask {
       Map<String, TypeMask> mappings = {};
       _typeMap.forEach((k, v) {
         if (!other._typeMap.containsKey(k)) {
-          mappings[k] = v.nullable();
+          mappings[k] = v.nullable(domain);
         }
       });
       other._typeMap.forEach((k, v) {
         if (_typeMap.containsKey(k)) {
           mappings[k] = v.union(_typeMap[k]!, domain);
         } else {
-          mappings[k] = v.nullable();
+          mappings[k] = v.nullable(domain);
         }
       });
       return DictionaryTypeMask(

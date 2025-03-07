@@ -69,10 +69,10 @@ class ContainerTypeMask extends AllocationTypeMask {
   }
 
   @override
-  ContainerTypeMask withPowerset(Bitset powerset) {
+  ContainerTypeMask withPowerset(Bitset powerset, CommonMasks domain) {
     if (powerset == this.powerset) return this;
     return ContainerTypeMask(
-      forwardTo.withPowerset(powerset),
+      forwardTo.withPowerset(powerset, domain),
       allocationNode,
       allocationElement,
       elementType,

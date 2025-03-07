@@ -57,10 +57,10 @@ class SetTypeMask extends AllocationTypeMask {
   }
 
   @override
-  SetTypeMask withPowerset(Bitset powerset) {
+  SetTypeMask withPowerset(Bitset powerset, CommonMasks domain) {
     if (powerset == this.powerset) return this;
     return SetTypeMask(
-      forwardTo.withPowerset(powerset),
+      forwardTo.withPowerset(powerset, domain),
       allocationNode,
       allocationElement,
       elementType,

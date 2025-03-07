@@ -10,49 +10,39 @@ import '../../js_model/js_world.dart' show JClosedWorld;
 import 'masks.dart';
 
 /// Computes the [TypeMask] for the constant [value].
-TypeMask computeTypeMask(
-  CommonMasks abstractValueDomain,
-  JClosedWorld closedWorld,
-  ConstantValue value,
-) {
-  return value.accept(ConstantValueTypeMasks(abstractValueDomain), closedWorld);
+TypeMask computeTypeMask(CommonMasks abstractValueDomain, ConstantValue value) {
+  return value.accept(ConstantValueTypeMasks(abstractValueDomain), null);
 }
 
-class ConstantValueTypeMasks
-    extends ConstantValueVisitor<TypeMask, JClosedWorld> {
+class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Null> {
   final CommonMasks _abstractValueDomain;
   const ConstantValueTypeMasks(this._abstractValueDomain);
 
+  JClosedWorld get closedWorld => _abstractValueDomain.closedWorld;
+
   @override
-  TypeMask visitConstructed(
-    ConstructedConstantValue constant,
-    JClosedWorld closedWorld,
-  ) {
+  TypeMask visitConstructed(ConstructedConstantValue constant, _) {
     if (closedWorld.interceptorData.isInterceptedClass(constant.type.element)) {
       return _abstractValueDomain.nonNullType;
     }
-    return TypeMask.nonNullExact(constant.type.element, closedWorld);
+    return TypeMask.nonNullExact(constant.type.element, _abstractValueDomain);
   }
 
   @override
-  TypeMask visitRecord(RecordConstantValue constant, JClosedWorld closedWorld) {
+  TypeMask visitRecord(RecordConstantValue constant, _) {
     final representation = closedWorld.recordData.representationForShape(
       constant.shape,
     );
     if (representation == null) return _abstractValueDomain.recordType;
-    return TypeMask.nonNullExact(representation.cls, closedWorld);
+    return TypeMask.nonNullExact(representation.cls, _abstractValueDomain);
   }
 
   @override
-  TypeMask visitDeferredGlobal(
-    DeferredGlobalConstantValue constant,
-    JClosedWorld closedWorld,
-  ) {
-    return constant.referenced.accept(this, closedWorld);
-  }
+  TypeMask visitDeferredGlobal(DeferredGlobalConstantValue constant, _) =>
+      constant.referenced.accept(this, null);
 
   @override
-  TypeMask visitDouble(DoubleConstantValue constant, JClosedWorld closedWorld) {
+  TypeMask visitDouble(DoubleConstantValue constant, _) {
     // We have to recognize double constants that are 'is int'.
     if (constant_system.isInt(constant)) {
       if (constant.isMinusZero) {
@@ -65,55 +55,35 @@ class ConstantValueTypeMasks
   }
 
   @override
-  TypeMask visitDummyInterceptor(
-    DummyInterceptorConstantValue constant,
-    JClosedWorld closedWorld,
-  ) {
-    return _abstractValueDomain.dynamicType;
-  }
+  TypeMask visitDummyInterceptor(DummyInterceptorConstantValue constant, _) =>
+      _abstractValueDomain.dynamicType;
 
   @override
-  TypeMask visitLateSentinel(
-    LateSentinelConstantValue constant,
-    JClosedWorld closedWorld,
-  ) => _abstractValueDomain.lateSentinelType;
+  TypeMask visitLateSentinel(LateSentinelConstantValue constant, _) =>
+      _abstractValueDomain.lateSentinelType;
 
   @override
-  TypeMask visitUnreachable(
-    UnreachableConstantValue constant,
-    JClosedWorld closedWorld,
-  ) {
-    return _abstractValueDomain.emptyType;
-  }
+  TypeMask visitUnreachable(UnreachableConstantValue constant, _) =>
+      _abstractValueDomain.emptyType;
 
   @override
-  TypeMask visitJsName(JsNameConstantValue constant, JClosedWorld closedWorld) {
-    return _abstractValueDomain.stringType;
-  }
+  TypeMask visitJsName(JsNameConstantValue constant, _) =>
+      _abstractValueDomain.stringType;
 
   @override
-  TypeMask visitBool(BoolConstantValue constant, JClosedWorld closedWorld) {
-    return _abstractValueDomain.boolType;
-  }
+  TypeMask visitBool(BoolConstantValue constant, _) =>
+      _abstractValueDomain.boolType;
 
   @override
-  TypeMask visitFunction(
-    FunctionConstantValue constant,
-    JClosedWorld closedWorld,
-  ) {
-    return _abstractValueDomain.functionType;
-  }
+  TypeMask visitFunction(FunctionConstantValue constant, _) =>
+      _abstractValueDomain.functionType;
 
   @override
-  TypeMask visitInstantiation(
-    InstantiationConstantValue constant,
-    JClosedWorld closedWorld,
-  ) {
-    return _abstractValueDomain.functionType;
-  }
+  TypeMask visitInstantiation(InstantiationConstantValue constant, _) =>
+      _abstractValueDomain.functionType;
 
   @override
-  TypeMask visitInt(IntConstantValue constant, JClosedWorld closedWorld) {
+  TypeMask visitInt(IntConstantValue constant, _) {
     if (constant.isUInt31()) return _abstractValueDomain.uint31Type;
     if (constant.isUInt32()) return _abstractValueDomain.uint32Type;
     if (constant.isPositive()) return _abstractValueDomain.positiveIntType;
@@ -121,49 +91,35 @@ class ConstantValueTypeMasks
   }
 
   @override
-  TypeMask visitInterceptor(
-    InterceptorConstantValue constant,
-    JClosedWorld closedWorld,
-  ) {
-    return _abstractValueDomain.nonNullType;
-  }
+  TypeMask visitInterceptor(InterceptorConstantValue constant, _) =>
+      _abstractValueDomain.nonNullType;
 
   @override
-  TypeMask visitList(ListConstantValue constant, JClosedWorld closedWorld) {
-    return _abstractValueDomain.constListType;
-  }
+  TypeMask visitList(ListConstantValue constant, _) =>
+      _abstractValueDomain.constListType;
 
   @override
-  TypeMask visitSet(SetConstantValue constant, JClosedWorld closedWorld) {
-    return _abstractValueDomain.constSetType;
-  }
+  TypeMask visitSet(SetConstantValue constant, _) =>
+      _abstractValueDomain.constSetType;
 
   @override
-  TypeMask visitMap(MapConstantValue constant, JClosedWorld closedWorld) {
-    return _abstractValueDomain.constMapType;
-  }
+  TypeMask visitMap(MapConstantValue constant, _) =>
+      _abstractValueDomain.constMapType;
 
   @override
-  TypeMask visitNull(NullConstantValue constant, JClosedWorld closedWorld) {
-    return _abstractValueDomain.nullType;
-  }
+  TypeMask visitNull(NullConstantValue constant, _) =>
+      _abstractValueDomain.nullType;
 
   @override
-  TypeMask visitString(StringConstantValue constant, JClosedWorld closedWorld) {
-    return _abstractValueDomain.stringType;
-  }
+  TypeMask visitString(StringConstantValue constant, _) =>
+      _abstractValueDomain.stringType;
 
   @override
-  TypeMask visitType(TypeConstantValue constant, JClosedWorld closedWorld) {
-    return _abstractValueDomain.typeType;
-  }
+  TypeMask visitType(TypeConstantValue constant, _) =>
+      _abstractValueDomain.typeType;
 
   @override
-  TypeMask visitJavaScriptObject(
-    JavaScriptObjectConstantValue constant,
-    JClosedWorld closedWorld,
-  ) {
-    // TODO(sra): Change to plain JavaScript object.
-    return _abstractValueDomain.dynamicType;
-  }
+  TypeMask visitJavaScriptObject(JavaScriptObjectConstantValue constant, _) =>
+      // TODO(sra): Change to plain JavaScript object.
+      _abstractValueDomain.dynamicType;
 }

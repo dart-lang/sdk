@@ -49,7 +49,7 @@ class RecordTypeMask extends TypeMask {
     // If any field is empty then this record is not instantiable and we
     // simplify to an empty mask.
     if (types.any((e) => e.isEmpty)) {
-      return domain.emptyType.withPowerset(powerset);
+      return domain.emptyType.withPowerset(powerset, domain);
     }
     return RecordTypeMask._(types, shape, powerset);
   }
@@ -84,7 +84,7 @@ class RecordTypeMask extends TypeMask {
   }
 
   @override
-  RecordTypeMask withPowerset(Bitset powerset) {
+  RecordTypeMask withPowerset(Bitset powerset, CommonMasks domain) {
     if (powerset == this.powerset) return this;
     return RecordTypeMask._(types, shape, powerset);
   }
@@ -120,38 +120,38 @@ class RecordTypeMask extends TypeMask {
         // If the two records have different shapes use the union of their flat
         // mask representations.
         return toFlatTypeMask(
-          domain._closedWorld,
-        ).union(other.toFlatTypeMask(domain._closedWorld), domain);
+          domain,
+        ).union(other.toFlatTypeMask(domain), domain);
       }
     }
     if (other is FlatTypeMask) {
       if (other.isEmptyOrSpecial) {
-        return withPowerset(powerset);
+        return withPowerset(powerset, domain);
       }
       final otherBase = other.base!;
-      final recordClass = _classForRecord(domain._closedWorld);
+      final recordClass = _classForRecord(domain.closedWorld);
       if (recordClass != null) {
-        if (domain._closedWorld.classHierarchy.isSubclassOf(
+        if (domain.closedWorld.classHierarchy.isSubclassOf(
           otherBase,
           recordClass,
         )) {
           // Other is the same shape (though possibly a specialization) with
           // dynamic fields so just use the flat mask of this shape. This treats
           // all the fields as dynamic.
-          return toFlatTypeMask(domain._closedWorld);
-        } else if (domain._closedWorld.classHierarchy.isSubtypeOf(
+          return toFlatTypeMask(domain);
+        } else if (domain.closedWorld.classHierarchy.isSubtypeOf(
           recordClass,
           otherBase,
         )) {
           // Other is a supertype of this shape so it encompasses this shape as
           // well. Use a subtype check to check for the Record interface.
-          return other.withPowerset(powerset);
+          return other.withPowerset(powerset, domain);
         }
       }
     }
 
     // Default to union of type cone on record class with other mask.
-    return toFlatTypeMask(domain._closedWorld).union(other, domain);
+    return toFlatTypeMask(domain).union(other, domain);
   }
 
   @override
@@ -176,30 +176,30 @@ class RecordTypeMask extends TypeMask {
         );
       }
     } else if (other is FlatTypeMask && !other.isEmptyOrSpecial) {
-      if (other.containsAll(domain._closedWorld)) {
+      if (other.containsAll(domain.closedWorld)) {
         // Top type encompasses this record so just update flags.
-        return withPowerset(powerset);
+        return withPowerset(powerset, domain);
       }
       final otherBase = other.base!;
-      final recordClass = _classForRecord(domain._closedWorld);
+      final recordClass = _classForRecord(domain.closedWorld);
       if (recordClass != null) {
         // If a class for the shape does not exist then it must not be an
         // an instantiated shape (created for a type test) and the intersection
         // will default to empty.
-        if (domain._closedWorld.classHierarchy.isSubtypeOf(
+        if (domain.closedWorld.classHierarchy.isSubtypeOf(
           recordClass,
           otherBase,
         )) {
           // This record is encompassed in `other` so maintain the current
           // shape.
-          return withPowerset(powerset);
-        } else if (domain._closedWorld.classHierarchy.isSubclassOf(
+          return withPowerset(powerset, domain);
+        } else if (domain.closedWorld.classHierarchy.isSubclassOf(
           otherBase,
           recordClass,
         )) {
           // Other is a specialization of this shape. We don't know the field
           // types on this specialization so we just use the class itself.
-          return other.withPowerset(powerset);
+          return other.withPowerset(powerset, domain);
         }
       }
     } else if (other is UnionTypeMask) {
@@ -216,8 +216,8 @@ class RecordTypeMask extends TypeMask {
       TypeMaskSpecialValue.lateSentinel,
     );
     return isNullable
-        ? FlatTypeMask.empty(hasLateSentinel: hasLateSentinel)
-        : FlatTypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
+        ? FlatTypeMask.empty(domain, hasLateSentinel: hasLateSentinel)
+        : FlatTypeMask.nonNullEmpty(domain, hasLateSentinel: hasLateSentinel);
   }
 
   @override
@@ -238,7 +238,7 @@ class RecordTypeMask extends TypeMask {
   }
 
   @override
-  bool containsMask(TypeMask other, JClosedWorld closedWorld) {
+  bool containsMask(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
     if (other.isNullable && !isNullable) return false;
     if (other.hasLateSentinel && !hasLateSentinel) return false;
@@ -250,12 +250,12 @@ class RecordTypeMask extends TypeMask {
       for (var i = 0; i < types.length; i++) {
         final type = types[i];
         final otherType = otherTypes[i];
-        if (!type.containsMask(otherType, closedWorld)) return false;
+        if (!type.containsMask(otherType, domain)) return false;
       }
       return true;
     } else if (other is UnionTypeMask) {
       // Must contain all submasks on `other`.
-      return other.disjointMasks.every((e) => containsMask(e, closedWorld));
+      return other.disjointMasks.every((e) => containsMask(e, domain));
     } else if (other is FlatTypeMask) {
       if (other.isEmptyOrSpecial) return true;
     }
@@ -312,7 +312,7 @@ class RecordTypeMask extends TypeMask {
   }
 
   @override
-  bool isInMask(TypeMask other, JClosedWorld closedWorld) {
+  bool isInMask(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
     if (isNullable && !other.isNullable) return false;
     if (hasLateSentinel && !other.hasLateSentinel) return false;
@@ -324,21 +324,21 @@ class RecordTypeMask extends TypeMask {
       for (var i = 0; i < types.length; i++) {
         final type = types[i];
         final otherType = otherTypes[i];
-        if (!type.isInMask(otherType, closedWorld)) return false;
+        if (!type.isInMask(otherType, domain)) return false;
       }
       return true;
     } else if (other is FlatTypeMask) {
       if (other.isEmptyOrSpecial) return false;
-      if (other.containsAll(closedWorld)) return true;
+      if (other.containsAll(domain.closedWorld)) return true;
       final otherBase = other.base!;
-      final recordClass = _classForRecord(closedWorld);
+      final recordClass = _classForRecord(domain.closedWorld);
       if (recordClass == null) {
         // If a class for the shape does not exist then it must not be an
         // an instantiated shape (created for a type test) and this won't
         // be a subtype of that mask.
         return false;
       }
-      if (closedWorld.classHierarchy.isSubtypeOf(recordClass, otherBase)) {
+      if (domain.classHierarchy.isSubtypeOf(recordClass, otherBase)) {
         // If this record class is a subtype of `other.base` then each field
         // on other is considered dynamic and therefore a supertype of each
         // field on this. Use subtype to check against the `Record` interface.
@@ -346,7 +346,7 @@ class RecordTypeMask extends TypeMask {
       }
     } else if (other is UnionTypeMask) {
       // Must be contained by some submask on `other`.
-      return other.disjointMasks.any((e) => isInMask(e, closedWorld));
+      return other.disjointMasks.any((e) => isInMask(e, domain));
     }
     return false;
   }
@@ -364,39 +364,40 @@ class RecordTypeMask extends TypeMask {
     return closedWorld.recordData.representationForShape(shape)?.cls;
   }
 
-  FlatTypeMask toFlatTypeMask(JClosedWorld closedWorld) {
+  FlatTypeMask toFlatTypeMask(CommonMasks domain) {
     final recordClass =
-        _classForRecord(closedWorld) ??
-        closedWorld.commonElements.recordArityClass(shape.fieldCount);
-    if (closedWorld.classHierarchy.hasAnyStrictSubclass(recordClass)) {
+        _classForRecord(domain.closedWorld) ??
+        domain.closedWorld.commonElements.recordArityClass(shape.fieldCount);
+    if (domain.closedWorld.classHierarchy.hasAnyStrictSubclass(recordClass)) {
       return isNullable
           ? FlatTypeMask.subclass(
             recordClass,
-            closedWorld,
+            domain,
             hasLateSentinel: hasLateSentinel,
           )
           : FlatTypeMask.nonNullSubclass(
             recordClass,
-            closedWorld,
+            domain,
             hasLateSentinel: hasLateSentinel,
           );
     } else {
       return isNullable
           ? FlatTypeMask.exact(
             recordClass,
-            closedWorld,
+            domain,
             hasLateSentinel: hasLateSentinel,
           )
           : FlatTypeMask.nonNullExact(
             recordClass,
-            closedWorld,
+            domain,
             hasLateSentinel: hasLateSentinel,
           );
     }
   }
 
   @override
-  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
+  bool canHit(MemberEntity element, Name name, CommonMasks domain) {
+    final closedWorld = domain.closedWorld;
     if (element.enclosingClass == closedWorld.commonElements.jsNullClass) {
       return isNullable;
     }
@@ -411,16 +412,14 @@ class RecordTypeMask extends TypeMask {
       return true;
     }
 
-    return toFlatTypeMask(closedWorld).canHit(element, name, closedWorld);
+    return toFlatTypeMask(domain).canHit(element, name, domain);
   }
 
   @override
   MemberEntity? locateSingleMember(Selector selector, CommonMasks domain) {
     // Delegate the check to the flat mask for the record class of this record.
     // The field-specific information on this record isn't useful here.
-    return toFlatTypeMask(
-      domain._closedWorld,
-    ).locateSingleMember(selector, domain);
+    return toFlatTypeMask(domain).locateSingleMember(selector, domain);
   }
 
   @override

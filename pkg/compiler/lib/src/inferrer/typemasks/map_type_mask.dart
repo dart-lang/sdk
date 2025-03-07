@@ -63,10 +63,10 @@ class MapTypeMask extends AllocationTypeMask {
   }
 
   @override
-  MapTypeMask withPowerset(Bitset powerset) {
+  MapTypeMask withPowerset(Bitset powerset, CommonMasks domain) {
     if (powerset == this.powerset) return this;
     return MapTypeMask(
-      forwardTo.withPowerset(powerset),
+      forwardTo.withPowerset(powerset, domain),
       allocationNode,
       allocationElement,
       keyType,
@@ -94,10 +94,7 @@ class MapTypeMask extends AllocationTypeMask {
       // doesn't need the compiler.
       assert(
         other.keyType ==
-            TypeMask.nonNullExact(
-              domain.commonElements.jsStringClass,
-              domain._closedWorld,
-            ),
+            TypeMask.nonNullExact(domain.commonElements.jsStringClass, domain),
       );
       TypeMask newKeyType = keyType.union(other.keyType, domain);
       TypeMask newValueType = other._typeMap.values.fold(

@@ -8,6 +8,10 @@ part of 'masks.dart';
 /// only increasing set of [TypeMask]s, that is, once a mask is added it cannot
 /// be removed.
 class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
+  final CommonMasks domain;
+
+  IncreasingTypeMaskSet(this.domain);
+
   bool isAll = false;
   Set<TypeMask>? _masks;
 
@@ -16,7 +20,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
     if (isAll) return true;
     if (_masks == null) return false;
     for (TypeMask mask in _masks!) {
-      if (mask.canHit(element, name, world)) return true;
+      if (mask.canHit(element, name, domain)) return true;
     }
     return false;
   }
@@ -26,7 +30,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
     if (isAll) {
       TypeMask mask = TypeMask.subclass(
         world.commonElements.objectClass,
-        world,
+        domain,
       );
       return mask.needsNoSuchMethodHandling(selector, world);
     }
@@ -61,29 +65,30 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
   }
 }
 
-class TypeMaskStrategy implements AbstractValueStrategy {
+class TypeMaskStrategy implements AbstractValueStrategy<CommonMasks> {
   const TypeMaskStrategy();
 
   @override
-  AbstractValueDomain createDomain(JClosedWorld closedWorld) {
-    return CommonMasks(closedWorld);
-  }
+  CommonMasks createDomain(JClosedWorld closedWorld) =>
+      CommonMasks(closedWorld);
 
   @override
-  SelectorConstraintsStrategy createSelectorStrategy() {
-    return TypeMaskSelectorStrategy();
-  }
+  SelectorConstraintsStrategy createSelectorStrategy(CommonMasks domain) =>
+      TypeMaskSelectorStrategy(domain);
 }
 
 class TypeMaskSelectorStrategy implements SelectorConstraintsStrategy {
-  const TypeMaskSelectorStrategy();
+  final CommonMasks domain;
+
+  const TypeMaskSelectorStrategy(this.domain);
 
   @override
   UniverseSelectorConstraints createSelectorConstraints(
     Selector selector,
     covariant TypeMask? initialConstraint,
   ) {
-    return IncreasingTypeMaskSet()..addReceiverConstraint(initialConstraint);
+    return IncreasingTypeMaskSet(domain)
+      ..addReceiverConstraint(initialConstraint);
   }
 
   @override
@@ -95,7 +100,7 @@ class TypeMaskSelectorStrategy implements SelectorConstraintsStrategy {
     Selector selector = dynamicUse.selector;
     final mask = dynamicUse.receiverConstraint as TypeMask?;
     return selector.appliesUnnamed(member) &&
-        (mask == null || mask.canHit(member, selector.memberName, world));
+        (mask == null || mask.canHit(member, selector.memberName, domain));
   }
 }
 
@@ -114,8 +119,6 @@ enum TypeMaskKind {
 /// Specific values that are independently tracked.
 enum TypeMaskSpecialValue { null_, lateSentinel }
 
-final _numSpecialValues = TypeMaskSpecialValue.values.length;
-
 final _specialValueDomain = EnumSetDomain<TypeMaskSpecialValue>(
   0,
   TypeMaskSpecialValue.values,
@@ -129,170 +132,156 @@ final _powersetDomains = ComposedEnumSetDomains([_specialValueDomain]);
 abstract class TypeMask implements AbstractValue {
   const TypeMask();
 
-  factory TypeMask.empty({bool hasLateSentinel = false}) =>
-      FlatTypeMask.empty(hasLateSentinel: hasLateSentinel);
+  factory TypeMask.empty(CommonMasks domain, {bool hasLateSentinel = false}) =>
+      FlatTypeMask.empty(domain, hasLateSentinel: hasLateSentinel);
 
   factory TypeMask.exact(
     ClassEntity base,
-    JClosedWorld closedWorld, {
+    CommonMasks domain, {
     bool hasLateSentinel = false,
   }) {
     assert(
-      closedWorld.classHierarchy.isInstantiated(base),
+      domain.classHierarchy.isInstantiated(base),
       failedAt(
         base,
         "Cannot create exact type mask for uninstantiated "
-        "class $base.\n${closedWorld.classHierarchy.dump(base)}",
+        "class $base.\n${domain.classHierarchy.dump(base)}",
       ),
     );
-    return FlatTypeMask.exact(
-      base,
-      closedWorld,
-      hasLateSentinel: hasLateSentinel,
-    );
+    return FlatTypeMask.exact(base, domain, hasLateSentinel: hasLateSentinel);
   }
 
   factory TypeMask.exactOrEmpty(
     ClassEntity base,
-    JClosedWorld closedWorld, {
+    CommonMasks domain, {
     bool hasLateSentinel = false,
   }) {
-    if (closedWorld.classHierarchy.isInstantiated(base)) {
-      return FlatTypeMask.exact(
-        base,
-        closedWorld,
-        hasLateSentinel: hasLateSentinel,
-      );
+    if (domain.classHierarchy.isInstantiated(base)) {
+      return FlatTypeMask.exact(base, domain, hasLateSentinel: hasLateSentinel);
     }
-    return TypeMask.empty(hasLateSentinel: hasLateSentinel);
+    return TypeMask.empty(domain, hasLateSentinel: hasLateSentinel);
   }
 
   factory TypeMask.subclass(
     ClassEntity base,
-    JClosedWorld closedWorld, {
+    CommonMasks domain, {
     bool hasLateSentinel = false,
   }) {
     assert(
-      closedWorld.classHierarchy.isInstantiated(base),
+      domain.classHierarchy.isInstantiated(base),
       failedAt(
         base,
         "Cannot create subclass type mask for uninstantiated "
-        "class $base.\n${closedWorld.classHierarchy.dump(base)}",
+        "class $base.\n${domain.classHierarchy.dump(base)}",
       ),
     );
-    final topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
+    final topmost = domain.closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
-      return TypeMask.empty(hasLateSentinel: hasLateSentinel);
-    } else if (closedWorld.classHierarchy.hasAnyStrictSubclass(topmost)) {
+      return TypeMask.empty(domain, hasLateSentinel: hasLateSentinel);
+    } else if (domain.classHierarchy.hasAnyStrictSubclass(topmost)) {
       return FlatTypeMask.subclass(
         topmost,
-        closedWorld,
+        domain,
         hasLateSentinel: hasLateSentinel,
       );
     } else {
-      return TypeMask.exact(
-        topmost,
-        closedWorld,
-        hasLateSentinel: hasLateSentinel,
-      );
+      return TypeMask.exact(topmost, domain, hasLateSentinel: hasLateSentinel);
     }
   }
 
   factory TypeMask.subtype(
     ClassEntity base,
-    JClosedWorld closedWorld, {
+    CommonMasks domain, {
     bool hasLateSentinel = false,
   }) {
-    final topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
+    final topmost = domain.closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
-      return TypeMask.empty(hasLateSentinel: hasLateSentinel);
+      return TypeMask.empty(domain, hasLateSentinel: hasLateSentinel);
     }
-    if (closedWorld.classHierarchy.hasOnlySubclasses(topmost)) {
+    if (domain.classHierarchy.hasOnlySubclasses(topmost)) {
       return TypeMask.subclass(
         topmost,
-        closedWorld,
+        domain,
         hasLateSentinel: hasLateSentinel,
       );
     }
-    if (closedWorld.classHierarchy.hasAnyStrictSubtype(topmost)) {
+    if (domain.classHierarchy.hasAnyStrictSubtype(topmost)) {
       return FlatTypeMask.subtype(
         topmost,
-        closedWorld,
+        domain,
         hasLateSentinel: hasLateSentinel,
       );
     } else {
-      return TypeMask.exact(
-        topmost,
-        closedWorld,
-        hasLateSentinel: hasLateSentinel,
-      );
+      return TypeMask.exact(topmost, domain, hasLateSentinel: hasLateSentinel);
     }
   }
 
-  factory TypeMask.nonNullEmpty({bool hasLateSentinel = false}) =>
-      FlatTypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
+  factory TypeMask.nonNullEmpty(
+    CommonMasks domain, {
+    bool hasLateSentinel = false,
+  }) => FlatTypeMask.nonNullEmpty(domain, hasLateSentinel: hasLateSentinel);
 
   factory TypeMask.nonNullExact(
     ClassEntity base,
-    JClosedWorld closedWorld, {
+    CommonMasks domain, {
     bool hasLateSentinel = false,
   }) {
     assert(
-      closedWorld.classHierarchy.isInstantiated(base),
+      domain.classHierarchy.isInstantiated(base),
       failedAt(
         base,
         "Cannot create exact type mask for uninstantiated "
-        "class $base.\n${closedWorld.classHierarchy.dump(base)}",
+        "class $base.\n${domain.classHierarchy.dump(base)}",
       ),
     );
     return FlatTypeMask.nonNullExact(
       base,
-      closedWorld,
+      domain,
       hasLateSentinel: hasLateSentinel,
     );
   }
 
   factory TypeMask.nonNullExactOrEmpty(
     ClassEntity base,
-    JClosedWorld closedWorld, {
+    CommonMasks domain, {
     bool hasLateSentinel = false,
   }) {
-    if (closedWorld.classHierarchy.isInstantiated(base)) {
+    if (domain.classHierarchy.isInstantiated(base)) {
       return FlatTypeMask.nonNullExact(
         base,
-        closedWorld,
+        domain,
         hasLateSentinel: hasLateSentinel,
       );
     }
-    return TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
+    return TypeMask.nonNullEmpty(domain, hasLateSentinel: hasLateSentinel);
   }
 
   factory TypeMask.nonNullSubclass(
     ClassEntity base,
-    JClosedWorld closedWorld, {
+    CommonMasks domain, {
     bool hasLateSentinel = false,
   }) {
     assert(
-      closedWorld.classHierarchy.isInstantiated(base),
+      domain.classHierarchy.isInstantiated(base),
       failedAt(
         base,
         "Cannot create subclass type mask for uninstantiated "
-        "class $base.\n${closedWorld.classHierarchy.dump(base)}",
+        "class $base.\n${domain.classHierarchy.dump(base)}",
       ),
     );
-    final topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
+    final topmost = domain.closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
-      return TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
-    } else if (closedWorld.classHierarchy.hasAnyStrictSubclass(topmost)) {
+      return TypeMask.nonNullEmpty(domain, hasLateSentinel: hasLateSentinel);
+    } else if (domain.classHierarchy.hasAnyStrictSubclass(topmost)) {
       return FlatTypeMask.nonNullSubclass(
         topmost,
-        closedWorld,
+        domain,
         hasLateSentinel: hasLateSentinel,
       );
     } else {
       return TypeMask.nonNullExact(
         topmost,
-        closedWorld,
+        domain,
         hasLateSentinel: hasLateSentinel,
       );
     }
@@ -300,30 +289,30 @@ abstract class TypeMask implements AbstractValue {
 
   factory TypeMask.nonNullSubtype(
     ClassEntity base,
-    JClosedWorld closedWorld, {
+    CommonMasks domain, {
     bool hasLateSentinel = false,
   }) {
-    final topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
+    final topmost = domain.closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
-      return TypeMask.nonNullEmpty(hasLateSentinel: hasLateSentinel);
+      return TypeMask.nonNullEmpty(domain, hasLateSentinel: hasLateSentinel);
     }
-    if (closedWorld.classHierarchy.hasOnlySubclasses(topmost)) {
+    if (domain.classHierarchy.hasOnlySubclasses(topmost)) {
       return TypeMask.nonNullSubclass(
         topmost,
-        closedWorld,
+        domain,
         hasLateSentinel: hasLateSentinel,
       );
     }
-    if (closedWorld.classHierarchy.hasAnyStrictSubtype(topmost)) {
+    if (domain.classHierarchy.hasAnyStrictSubtype(topmost)) {
       return FlatTypeMask.nonNullSubtype(
         topmost,
-        closedWorld,
+        domain,
         hasLateSentinel: hasLateSentinel,
       );
     } else {
       return TypeMask.nonNullExact(
         topmost,
-        closedWorld,
+        domain,
         hasLateSentinel: hasLateSentinel,
       );
     }
@@ -437,29 +426,33 @@ abstract class TypeMask implements AbstractValue {
 
   Bitset get powerset;
 
-  TypeMask withPowerset(Bitset powerset);
+  TypeMask withPowerset(Bitset powerset, CommonMasks domain);
 
   /// Returns a variant of this [TypeMask] whose value is neither `null` nor
   /// the late sentinel.
-  TypeMask withoutSpecialValues() =>
-      withPowerset(_specialValueDomain.clear(powerset));
+  TypeMask withoutSpecialValues(CommonMasks domain) =>
+      withPowerset(_specialValueDomain.clear(powerset), domain);
 
   /// Returns a nullable variant of this [TypeMask].
-  TypeMask nullable() => withPowerset(
+  TypeMask nullable(CommonMasks domain) => withPowerset(
     _specialValueDomain.add(powerset, TypeMaskSpecialValue.null_),
+    domain,
   );
 
   /// Returns a non-nullable variant of this [TypeMask].
-  TypeMask nonNullable() => withPowerset(
+  TypeMask nonNullable(CommonMasks domain) => withPowerset(
     _specialValueDomain.remove(powerset, TypeMaskSpecialValue.null_),
+    domain,
   );
 
-  TypeMask withLateSentinel() => withPowerset(
+  TypeMask withLateSentinel(CommonMasks domain) => withPowerset(
     _specialValueDomain.add(powerset, TypeMaskSpecialValue.lateSentinel),
+    domain,
   );
 
-  TypeMask withoutLateSentinel() => withPowerset(
+  TypeMask withoutLateSentinel(CommonMasks domain) => withPowerset(
     _specialValueDomain.remove(powerset, TypeMaskSpecialValue.lateSentinel),
+    domain,
   );
 
   /// Whether nothing matches this mask, not even null.
@@ -497,13 +490,13 @@ abstract class TypeMask implements AbstractValue {
   /// mask, i.e., this mask is in [other]. However, the inverse does not hold.
   /// Enable [UnionTypeMask.performExtraContainsCheck] to be notified of
   /// false negatives.
-  bool isInMask(TypeMask other, JClosedWorld closedWorld);
+  bool isInMask(TypeMask other, CommonMasks domain);
 
   /// If this returns `true`, [other] is guaranteed to be a subtype of this
   /// mask, i.e. this mask contains [other]. However, the inverse does not hold.
   /// Enable [UnionTypeMask.performExtraContainsCheck] to be notified of
   /// false negatives.
-  bool containsMask(TypeMask other, JClosedWorld closedWorld);
+  bool containsMask(TypeMask other, CommonMasks domain);
 
   /// Returns whether this type mask is an instance of [cls].
   bool satisfies(ClassEntity cls, JClosedWorld closedWorld);
@@ -534,7 +527,7 @@ abstract class TypeMask implements AbstractValue {
   ///
   ///
   /// [name] is used to ensure library privacy is taken into account.
-  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld);
+  bool canHit(MemberEntity element, Name name, CommonMasks domain);
 
   /// Returns whether this [TypeMask] applied to [selector] can hit a
   /// [noSuchMethod].

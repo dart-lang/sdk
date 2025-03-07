@@ -726,21 +726,26 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
   }
 }
 
-class WrappedAbstractValueStrategy implements AbstractValueStrategy {
+class WrappedAbstractValueStrategy
+    implements AbstractValueStrategy<WrappedAbstractValueDomain> {
   final AbstractValueStrategy _abstractValueStrategy;
   const WrappedAbstractValueStrategy(this._abstractValueStrategy);
 
   @override
-  AbstractValueDomain createDomain(JClosedWorld closedWorld) {
+  WrappedAbstractValueDomain createDomain(JClosedWorld closedWorld) {
     return WrappedAbstractValueDomain(
       _abstractValueStrategy.createDomain(closedWorld),
     );
   }
 
   @override
-  SelectorConstraintsStrategy createSelectorStrategy() {
+  SelectorConstraintsStrategy createSelectorStrategy(
+    WrappedAbstractValueDomain domain,
+  ) {
     return WrappedSelectorStrategy(
-      _abstractValueStrategy.createSelectorStrategy(),
+      _abstractValueStrategy.createSelectorStrategy(
+        domain._abstractValueDomain,
+      ),
     );
   }
 }

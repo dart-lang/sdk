@@ -28,6 +28,7 @@ TypeMask interceptorOrComparable(
   JClosedWorld closedWorld, {
   bool nullable = false,
 }) {
+  final domain = closedWorld.abstractValueDomain as CommonMasks;
   // TODO(johnniwinther): The mock libraries are missing 'Comparable' and
   // therefore consider the union of for instance 'String' and 'num' to be
   // 'Interceptor' and not 'Comparable'. Maybe the union mask should be changed
@@ -38,7 +39,7 @@ TypeMask interceptorOrComparable(
         closedWorld.commonElements.coreLibrary,
         'Comparable',
       )!,
-      closedWorld,
+      domain,
     );
   } else {
     return TypeMask.nonNullSubtype(
@@ -46,7 +47,7 @@ TypeMask interceptorOrComparable(
         closedWorld.commonElements.coreLibrary,
         'Comparable',
       )!,
-      closedWorld,
+      domain,
     );
   }
 }

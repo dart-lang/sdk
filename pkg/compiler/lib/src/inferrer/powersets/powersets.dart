@@ -1019,12 +1019,12 @@ class PowersetDomain with AbstractValueDomain {
   }
 }
 
-class PowersetStrategy implements AbstractValueStrategy {
+class PowersetStrategy implements AbstractValueStrategy<PowersetDomain> {
   final AbstractValueStrategy _abstractValueStrategy;
   const PowersetStrategy(this._abstractValueStrategy);
 
   @override
-  AbstractValueDomain createDomain(JClosedWorld closedWorld) {
+  PowersetDomain createDomain(JClosedWorld closedWorld) {
     return PowersetDomain(
       _abstractValueStrategy.createDomain(closedWorld),
       PowersetBitsDomain(closedWorld),
@@ -1032,9 +1032,11 @@ class PowersetStrategy implements AbstractValueStrategy {
   }
 
   @override
-  SelectorConstraintsStrategy createSelectorStrategy() {
+  SelectorConstraintsStrategy createSelectorStrategy(PowersetDomain domain) {
     return PowersetsSelectorStrategy(
-      _abstractValueStrategy.createSelectorStrategy(),
+      _abstractValueStrategy.createSelectorStrategy(
+        domain._abstractValueDomain,
+      ),
     );
   }
 }
