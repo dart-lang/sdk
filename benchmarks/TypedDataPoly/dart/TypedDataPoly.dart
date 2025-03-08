@@ -42,10 +42,10 @@ class Base extends BenchmarkBase {
 
   @override
   void report() {
-    final double millisecondsPerExercise = measure();
+    final double microsecondsPerExercise = measure();
     // Report time in nanoseconds per element. [exercise] runs [run] 10 times,
     // and each [run] does 10 summations.
-    final double score = millisecondsPerExercise * 1000.0 / n / 10.0 / 10.0;
+    final double score = microsecondsPerExercise * 1000.0 / n / 10.0 / 10.0;
     print('$name(RunTime): $score ns.');
   }
 
