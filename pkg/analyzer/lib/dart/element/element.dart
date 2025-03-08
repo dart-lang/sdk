@@ -93,17 +93,6 @@ abstract class AugmentedExtensionTypeElement
     implements AugmentedInterfaceElement {
   @override
   ExtensionTypeElement get firstFragment;
-
-  /// The primary constructor of this extension.
-  ConstructorElement get primaryConstructor;
-
-  /// The representation of this extension.
-  FieldElement get representation;
-
-  /// The extension type erasure, obtained by recursively replacing every
-  /// subterm which is an extension type by the corresponding representation
-  /// type.
-  DartType get typeErasure;
 }
 
 /// The result of applying augmentations to a [InstanceElement].

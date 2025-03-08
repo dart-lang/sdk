@@ -4176,6 +4176,9 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
     implements ExtensionTypeElement, ExtensionTypeFragment {
   late ExtensionTypeElementImpl2 augmentedInternal;
 
+  @override
+  late DartType typeErasure;
+
   /// Whether the element has direct or indirect reference to itself,
   /// in representation.
   bool hasRepresentationSelfReference = false;
@@ -4212,7 +4215,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   ConstructorElementImpl get primaryConstructor {
-    return element.primaryConstructor;
+    return constructors.first;
   }
 
   @override
@@ -4221,16 +4224,11 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   FieldElementImpl get representation {
-    return element.representation;
+    return fields.first;
   }
 
   @override
   FieldFragment get representation2 => representation as FieldFragment;
-
-  @override
-  DartType get typeErasure {
-    return element.typeErasure;
-  }
 
   @Deprecated('Use Element2 and accept2() instead')
   @override
@@ -4251,15 +4249,6 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
 
   @override
   final ExtensionTypeElementImpl firstFragment;
-
-  @override
-  late ConstructorElementImpl primaryConstructor;
-
-  @override
-  late FieldElementImpl representation;
-
-  @override
-  late DartType typeErasure;
 
   ExtensionTypeElementImpl2(this.reference, this.firstFragment) {
     reference.element2 = this;
@@ -4301,10 +4290,17 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
   }
 
   @override
-  ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
+  ConstructorElement2 get primaryConstructor2 {
+    return firstFragment.primaryConstructor.element;
+  }
 
   @override
-  FieldElement2OrMember get representation2 => representation.asElement2;
+  FieldElement2OrMember get representation2 {
+    return firstFragment.representation.asElement2;
+  }
+
+  @override
+  DartType get typeErasure => firstFragment.typeErasure;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {

@@ -3005,9 +3005,6 @@ package:analyzer/dart/element/element.dart:
   AugmentedExtensionTypeElement (class extends Object implements AugmentedInterfaceElement):
     new (constructor: AugmentedExtensionTypeElement Function())
     firstFragment (getter: ExtensionTypeElement)
-    primaryConstructor (getter: ConstructorElement)
-    representation (getter: FieldElement)
-    typeErasure (getter: DartType)
   AugmentedInstanceElement (class extends Object):
     new (constructor: AugmentedInstanceElement Function())
     accessors (getter: List<PropertyAccessorElement>)

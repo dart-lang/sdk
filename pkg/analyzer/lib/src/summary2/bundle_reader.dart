@@ -447,11 +447,8 @@ class ExtensionTypeElementLinkedData
       var augmented = element.augmentedInternal;
       augmented.fields = reader.readElementList();
       augmented.accessors = reader.readElementList();
-      augmented
-        ..primaryConstructor = element.constructors.first
-        ..representation = element.fields.first
-        ..typeErasure = reader.readRequiredType();
     }
+    element.typeErasure = reader.readRequiredType();
     applyConstantOffsets?.perform();
   }
 }

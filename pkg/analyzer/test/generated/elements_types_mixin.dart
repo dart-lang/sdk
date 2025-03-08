@@ -249,11 +249,10 @@ mixin ElementsTypesMixin {
     field.type = representationType;
     fragment.fields = [field];
 
+    fragment.typeErasure = representationType;
+
     var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
-    element
-      ..representation = field
-      ..typeErasure = representationType
-      ..fields = fragment.fields;
+    element.fields = fragment.fields;
 
     return fragment;
   }
@@ -274,11 +273,10 @@ mixin ElementsTypesMixin {
     field.type = representationType;
     fragment.fields = [field];
 
+    fragment.typeErasure = representationType;
+
     var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
-    element
-      ..representation = field
-      ..typeErasure = representationType
-      ..fields = fragment.fields;
+    element.fields = fragment.fields;
 
     return element;
   }

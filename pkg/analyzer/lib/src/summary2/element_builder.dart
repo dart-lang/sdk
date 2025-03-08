@@ -1779,8 +1779,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fieldCodeRangeLength,
     );
 
-    extensionFragment.element.representation = fieldFragment;
-
     {
       String name;
       int? periodOffset;
@@ -1818,8 +1816,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       representation.constructorFragment = constructorFragment;
       _linker.elementNodes[constructorFragment] = representation;
       _enclosingContext.addConstructor(constructorFragment);
-
-      extensionFragment.element.primaryConstructor = constructorFragment;
     }
 
     representation.fieldType.accept(this);

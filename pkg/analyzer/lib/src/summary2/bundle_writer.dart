@@ -342,8 +342,8 @@ class BundleWriter {
         var element = fragment.element;
         _resolutionSink._writeElementList(element.fields);
         _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink.writeType(element.typeErasure);
       }
+      _resolutionSink.writeType(fragment.typeErasure);
 
       _writeList(
         fragment.fields.where((e) => !e.isSynthetic).toList(),
