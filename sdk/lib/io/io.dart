@@ -228,6 +228,7 @@ export 'dart:_http'
         HttpClientResponseCompressionState,
         HttpClientCredentials,
         HttpClientBasicCredentials,
+        HttpClientBearerCredentials,
         HttpClientDigestCredentials,
         HttpConnectionInfo,
         RedirectInfo,
