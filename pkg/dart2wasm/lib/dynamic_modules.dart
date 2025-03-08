@@ -6,8 +6,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
-import 'package:vm/metadata/procedure_attributes.dart'
-    show ProcedureAttributesMetadataRepository;
 import 'package:vm/transformations/dynamic_interface_annotator.dart'
     as dynamic_interface_annotator;
 import 'package:vm/transformations/pragma.dart';
@@ -21,7 +19,6 @@ import 'dispatch_table.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'kernel_nodes.dart';
 import 'modules.dart';
-import 'reference_extensions.dart';
 import 'target.dart';
 import 'translator.dart';
 import 'types.dart' show InstanceConstantInterfaceType;
@@ -317,22 +314,18 @@ class DynamicModuleInfo {
       translator.component.dynamicModuleEntryPoint;
   bool get isDynamicModule => dynamicEntryPoint != null;
   late final w.FunctionBuilder initFunction;
+  late final MainModuleMetadata metadata;
 
-  Map<Class, int>? _classIdMapping;
-  Map<Class, int>? get classIdMapping => _classIdMapping;
+  Map<Class, ClassMetadata> get classMetadata => metadata.classMetadata;
 
-  Map<Member, (int, int)>? _selectorIds;
-  Map<Member, (int, int)>? get selectorIds => _selectorIds;
+  Map<Member, (int, int)> get selectorIds => metadata.selectorIds;
 
-  List<Reference>? _callableReferences;
-  List<Reference>? get callableReferences => _callableReferences;
-
-  List<Class>? _dfsOrderClassIds;
-  List<Class>? get dfsOrderClassIds => _dfsOrderClassIds;
+  List<Class> get dfsOrderClassIds => metadata.dfsOrderClassIds;
 
   late final w.Global moduleIdGlobal;
 
-  final Map<String, int> _updateableDispatchKeys;
+  Map<String, int> get _updateableDispatchKeys =>
+      metadata.updateableFunctionsInMain;
   // null is used to indicate that skipDynamic was passed for this key.
   final Map<int, w.BaseFunction?> _updateableFunctions = {};
 
@@ -346,43 +339,7 @@ class DynamicModuleInfo {
   late final w.ModuleBuilder dynamicModule =
       translator.modules.firstWhere((m) => m != translator.mainModule);
 
-  DynamicModuleInfo(this.translator, DynamicModuleMetadata? serializedMetadata)
-      : _updateableDispatchKeys =
-            serializedMetadata?.updateableFunctionsInMain ?? {} {
-    if (serializedMetadata != null) {
-      assert(isDynamicModule);
-      final globalIdRepository = translator
-              .component.metadata[DynamicModuleGlobalIdRepository.repositoryTag]
-          as DynamicModuleGlobalIdRepository;
-      final Map<int, TreeNode> globalIdToNode = {};
-      globalIdRepository.mapping.forEach((node, globalId) {
-        globalIdToNode[globalId] = node;
-      });
-
-      final assignedClassIds = <Class, int>{};
-      serializedMetadata.classIds.forEach((globalId, classId) {
-        assignedClassIds[globalIdToNode[globalId] as Class] = classId;
-      });
-      _classIdMapping = assignedClassIds;
-
-      final assignedSelectorIds = <Member, (int, int)>{};
-      serializedMetadata.selectorIds.forEach((globalId, selectorIds) {
-        assignedSelectorIds[globalIdToNode[globalId] as Member] = selectorIds;
-      });
-      _selectorIds = assignedSelectorIds;
-
-      _dfsOrderClassIds = [
-        for (final globalId in serializedMetadata.dfsOrderClassIds)
-          globalIdToNode[globalId] as Class
-      ];
-
-      _callableReferences = [
-        for (final reference in serializedMetadata.callableReferences)
-          _referenceForFlag(
-              globalIdToNode[reference.$1] as Member, reference.$2)
-      ];
-    }
-  }
+  DynamicModuleInfo(this.translator, this.metadata);
 
   void initDynamicModule() {
     dynamicModule.functions.start = initFunction = dynamicModule.functions
@@ -391,6 +348,8 @@ class DynamicModuleInfo {
 
     // Make sure the exception tag is exported from the main module.
     translator.getExceptionTag(dynamicModule);
+
+    _generateDynamicModuleCallableReferences();
 
     if (isDynamicModule) {
       _initDynamicModuleId();
@@ -424,6 +383,37 @@ class DynamicModuleInfo {
     b.i32_const(rangeSize);
     translator.callReference(translator.registerModuleClassRange.reference, b);
     b.global_set(moduleIdGlobal);
+  }
+
+  void _generateDynamicModuleCallableReferences() {
+    final references =
+        translator.dynamicModuleInfo!.metadata.callableReferences;
+
+    for (final reference in references) {
+      final member = reference.asMember;
+
+      if (member.isInstanceMember) {
+        final selector = translator.dispatchTable.selectorForTarget(reference);
+        final targetRanges = selector
+            .targets(unchecked: false, dynamicModule: false)
+            .targetRanges
+            .followedBy(selector
+                .targets(unchecked: true, dynamicModule: false)
+                .targetRanges);
+        // Instance members are only callable if their enclosing class is
+        // allocated.
+        for (final (:range, :target) in targetRanges) {
+          if (target != reference) continue;
+          for (int classId = range.start; classId <= range.end; ++classId) {
+            translator.functions.recordClassTargetUse(classId, target);
+          }
+        }
+      } else {
+        // Generate static members immediately since they are unconditionally
+        // callable.
+        translator.functions.getFunction(reference);
+      }
+    }
   }
 
   void finishDynamicModule() {
@@ -610,99 +600,6 @@ class DynamicModuleInfo {
                 .isEmpty);
     translator.convertType(
         b, updatedSignature.outputs.single, signature.outputs.single);
-  }
-
-  DynamicModuleMetadata toMetadata(WasmCompilerOptions options) {
-    assert(!isDynamicModule);
-    final globalIdRepository = translator
-            .component.metadata[DynamicModuleGlobalIdRepository.repositoryTag]
-        as DynamicModuleGlobalIdRepository;
-
-    final classIdMapping = <int, int>{};
-    translator.classIdNumbering.classIds.forEach((cls, id) {
-      classIdMapping[globalIdRepository.mapping[cls]!] =
-          (id as AbsoluteClassId).value;
-    });
-
-    final selectorIdMapping = <int, (int, int)>{};
-    final procedureMetadata =
-        (translator.component.metadata["vm.procedure-attributes.metadata"]
-                as ProcedureAttributesMetadataRepository)
-            .mapping;
-    for (final library in translator.libraries) {
-      for (final cls in library.classes) {
-        for (final member in cls.procedures) {
-          if (!member.isInstanceMember) continue;
-          final globalId = globalIdRepository.mapping[member];
-          // TFA might add placeholders for removed members. We can ignore
-          // these.
-          if (globalId == null) continue;
-          selectorIdMapping[globalId] = (
-            procedureMetadata[member]!.getterSelectorId,
-            procedureMetadata[member]!.methodOrSetterSelectorId
-          );
-        }
-        for (final member in cls.fields) {
-          if (!member.isInstanceMember) continue;
-          final globalId = globalIdRepository.mapping[member];
-          // TFA might add placeholders for removed members. We can ignore
-          // these.
-          if (globalId == null) continue;
-          selectorIdMapping[globalId] = (
-            procedureMetadata[member]!.getterSelectorId,
-            procedureMetadata[member]!.methodOrSetterSelectorId
-          );
-        }
-      }
-    }
-
-    final dfsOrderClassIds = <int>[];
-    for (final cls in translator.classIdNumbering.dfsOrder) {
-      dfsOrderClassIds.add(globalIdRepository.mapping[cls]!);
-    }
-
-    final callableMemberIds = <(int, int)>[];
-    for (final export in translator.functions.dynamicModuleCallable) {
-      final exportMember = export.asMember;
-      final flag = _flagForReference(export);
-      callableMemberIds.add((globalIdRepository.mapping[exportMember]!, flag));
-    }
-    return DynamicModuleMetadata(
-        classIdMapping,
-        selectorIdMapping,
-        dfsOrderClassIds,
-        callableMemberIds,
-        _updateableDispatchKeys,
-        options.translatorOptions,
-        options.environment);
-  }
-
-  static int _flagForReference(Reference reference) {
-    if (reference.isImplicitGetter) return 0;
-    if (reference.isImplicitSetter) return 1;
-    if (reference.isTearOffReference) return 2;
-    if (reference.isConstructorBodyReference) return 3;
-    if (reference.isInitializerReference) return 4;
-    if (reference.isTypeCheckerReference) return 5;
-    if (reference.isCheckedEntryReference) return 6;
-    if (reference.isUncheckedEntryReference) return 7;
-    if (reference.isBodyReference) return 8;
-    assert(reference == reference.asMember.reference);
-    return 9;
-  }
-
-  static Reference _referenceForFlag(Member member, int flag) {
-    if (flag == 0) return (member as Field).getterReference;
-    if (flag == 1) return (member as Field).setterReference!;
-    if (flag == 2) return (member as Procedure).tearOffReference;
-    if (flag == 3) return (member as Constructor).constructorBodyReference;
-    if (flag == 4) return (member as Constructor).initializerReference;
-    if (flag == 5) return member.typeCheckerReference;
-    if (flag == 6) return member.checkedEntryReference;
-    if (flag == 7) return member.uncheckedEntryReference;
-    if (flag == 8) return member.bodyReference;
-    assert(flag == 9);
-    return member.reference;
   }
 }
 

@@ -373,6 +373,14 @@ class ClassInfoCollector {
         // conservative and mark it as not being final.
         struct.hasAnySubtypes = true;
       }
+
+      if (translator.isDynamicModule) {
+        final brandIndex =
+            translator.dynamicModuleInfo!.classMetadata[cls]?.brandIndex;
+        if (brandIndex != null) {
+          translator.typesBuilder.addBrandTypeAssignment(struct, brandIndex);
+        }
+      }
     }
     translator.classesSupersFirst.add(info);
     translator.classInfo[cls] = info;
@@ -700,9 +708,10 @@ class ClassIdNumbering {
     final implementors = <Class, List<Class>>{};
     final classIds = <Class, ClassId>{};
 
-    final savedMapping = translator.dynamicModuleInfo?.classIdMapping;
-    if (savedMapping != null) {
-      savedMapping.forEach((cls, classId) {
+    if (translator.isDynamicModule) {
+      final savedMapping = translator.dynamicModuleInfo!.classMetadata;
+      savedMapping.forEach((cls, info) {
+        final classId = info.classId;
         classIds[cls] = AbsoluteClassId(classId);
         savedMaxClassId = max(savedMaxClassId ?? -2, classId);
         if (!cls.isAbstract && !cls.isAnonymousMixin) {
@@ -796,8 +805,7 @@ class ClassIdNumbering {
     }
 
     // Make a list of the depth-first pre-order traversal.
-    final dfsOrder =
-        translator.dynamicModuleInfo?.dfsOrderClassIds ?? <Class>[];
+    final dfsOrder = [...?translator.dynamicModuleInfo?.dfsOrderClassIds];
     final inDfsOrder = {...dfsOrder};
 
     // Maps any class to a dense range of concrete class ids that are subclasses
@@ -907,6 +915,9 @@ final class AbsoluteClassId extends ClassId {
   int get _localValue => value;
 
   AbsoluteClassId(this.value);
+
+  @override
+  String toString() => 'Absolute($value)';
 }
 
 final class RelativeClassId extends ClassId {
@@ -915,6 +926,9 @@ final class RelativeClassId extends ClassId {
   int get _localValue => relativeValue;
 
   RelativeClassId(this.relativeValue);
+
+  @override
+  String toString() => 'Relative($relativeValue)';
 }
 
 // A range of class ids, both ends inclusive.

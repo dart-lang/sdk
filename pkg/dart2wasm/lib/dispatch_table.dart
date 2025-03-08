@@ -397,7 +397,8 @@ class DispatchTable {
         (_dynamicMethods[member.name.text] ??= {}).add(selector);
       }
     }
-    final mainModuleIds = translator.dynamicModuleInfo?.selectorIds?[member];
+
+    final mainModuleIds = translator.dynamicModuleInfo?.selectorIds[member];
     if (mainModuleIds != null) {
       selector._mainModuleIds[member] =
           isGetter ? mainModuleIds.$1 : mainModuleIds.$2;

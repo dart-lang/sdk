@@ -3,8 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
+import 'package:vm/metadata/procedure_attributes.dart'
+    show ProcedureAttributesMetadataRepository;
 
+import 'class_info.dart';
 import 'compiler_options.dart';
+import 'dynamic_modules.dart';
+import 'intrinsics.dart' show MemberIntrinsic;
+import 'reference_extensions.dart';
 import 'serialization.dart';
 import 'translator.dart';
 
@@ -30,24 +37,41 @@ class DynamicModuleGlobalIdRepository extends MetadataRepository<int> {
   void writeToBinary(int globalId, Node node, BinarySink sink) {}
 }
 
+class ClassMetadata {
+  final int classId;
+  final int? brandIndex;
+
+  ClassMetadata(this.classId, this.brandIndex);
+
+  factory ClassMetadata.deserialize(DataDeserializer source) {
+    final classId = source.readInt() - 1;
+    final brandIndex = source.readInt();
+    return ClassMetadata(classId, brandIndex == 0 ? null : brandIndex - 1);
+  }
+
+  void serialize(DataSerializer sink) {
+    sink.writeInt(classId + 1);
+    sink.writeInt(brandIndex == null ? 0 : brandIndex! + 1);
+  }
+}
+
 /// Metadata produced by the main module.
 ///
 /// This data will get serialized as part of the main module compilation process
 /// and will be provided as an input to be deserialized by subsequent dynamic
 /// module compilations.
-class DynamicModuleMetadata {
-  /// Global kernel class ID to dart2wasm class hierarchy class ID.
-  final Map<int, int> classIds;
+class MainModuleMetadata {
+  /// Class to metadata about the class
+  final Map<Class, ClassMetadata> classMetadata;
 
-  /// Global kernel member ID to getter and setter/method selector ID.
-  final Map<int, (int, int)> selectorIds;
+  /// Member to getter and setter/method selector ID.
+  final Map<Member, (int, int)> selectorIds;
 
   /// Global kernel class IDs in class hierarchy dfs order.
-  final List<int> dfsOrderClassIds;
+  final List<Class> dfsOrderClassIds;
 
-  /// References for all targets callable from the main module represented as
-  /// member global ID and reference type.
-  final List<(int, int)> callableReferences;
+  /// References for all targets callable from the main module.
+  final Set<Reference> callableReferences;
 
   /// Key names of updateable functions defined in the main module.
   final Map<String, int> updateableFunctionsInMain;
@@ -57,8 +81,8 @@ class DynamicModuleMetadata {
   final TranslatorOptions mainModuleTranslatorOptions;
   final Map<String, String> mainModuleEnvironment;
 
-  DynamicModuleMetadata(
-      this.classIds,
+  MainModuleMetadata._(
+      this.classMetadata,
       this.selectorIds,
       this.dfsOrderClassIds,
       this.callableReferences,
@@ -66,26 +90,78 @@ class DynamicModuleMetadata {
       this.mainModuleTranslatorOptions,
       this.mainModuleEnvironment);
 
-  void serialize(BinaryDataSink sink) {
-    sink.writeInt(classIds.length);
-    classIds.forEach((globalClassId, classId) {
-      sink.writeInt(globalClassId);
-      sink.writeClassId(classId);
+  MainModuleMetadata.empty(
+      this.mainModuleTranslatorOptions, this.mainModuleEnvironment)
+      : classMetadata = {},
+        selectorIds = {},
+        dfsOrderClassIds = [],
+        callableReferences = {},
+        updateableFunctionsInMain = {};
+
+  void initialize(Component component, CoreTypes coreTypes) {
+    _initializeCallableReferences(component, coreTypes);
+  }
+
+  void finalize(Translator translator) {
+    translator.classInfo.forEach((cls, info) {
+      final id =
+          cls.isAnonymousMixin ? -1 : (info.classId as AbsoluteClassId).value;
+      final structType = info.struct;
+      final brandIndex =
+          translator.typesBuilder.brandTypeAssignments[structType];
+      classMetadata[cls] = ClassMetadata(id, brandIndex);
+    });
+
+    final procedureMetadata =
+        (translator.component.metadata["vm.procedure-attributes.metadata"]
+                as ProcedureAttributesMetadataRepository)
+            .mapping;
+    for (final library in translator.libraries) {
+      for (final cls in library.classes) {
+        for (final member in cls.procedures) {
+          if (!member.isInstanceMember) continue;
+          selectorIds[member] = (
+            procedureMetadata[member]!.getterSelectorId,
+            procedureMetadata[member]!.methodOrSetterSelectorId
+          );
+        }
+        for (final member in cls.fields) {
+          if (!member.isInstanceMember) continue;
+          selectorIds[member] = (
+            procedureMetadata[member]!.getterSelectorId,
+            procedureMetadata[member]!.methodOrSetterSelectorId
+          );
+        }
+      }
+    }
+
+    for (final cls in translator.classIdNumbering.dfsOrder) {
+      dfsOrderClassIds.add(cls);
+    }
+  }
+
+  void serialize(Translator translator, DataSerializer sink) {
+    finalize(translator);
+
+    sink.writeInt(classMetadata.length);
+    classMetadata.forEach((cls, metadata) {
+      sink.writeClass(cls);
+      metadata.serialize(sink);
     });
     sink.writeInt(selectorIds.length);
-    selectorIds.forEach((globalMemberId, selectorIds) {
-      sink.writeInt(globalMemberId);
+    selectorIds.forEach((member, selectorIds) {
+      final wroteMember = sink.writeMember(member);
+      if (!wroteMember) return;
       sink.writeInt(selectorIds.$1);
       sink.writeInt(selectorIds.$2);
     });
     sink.writeInt(dfsOrderClassIds.length);
-    for (final classId in dfsOrderClassIds) {
-      sink.writeClassId(classId);
+    for (final cls in dfsOrderClassIds) {
+      sink.writeClass(cls);
     }
     sink.writeInt(callableReferences.length);
-    for (final callableMemberId in callableReferences) {
-      sink.writeInt(callableMemberId.$1);
-      sink.writeInt(callableMemberId.$2);
+    for (final reference in callableReferences) {
+      sink.writeReference(reference);
     }
     sink.writeInt(updateableFunctionsInMain.length);
     updateableFunctionsInMain.forEach((stringKey, key) {
@@ -101,33 +177,33 @@ class DynamicModuleMetadata {
     });
   }
 
-  static DynamicModuleMetadata deserialize(BinaryDataSource source) {
-    final classIdMappingLength = source.readInt();
-    final classIds = <int, int>{};
-    for (int i = 0; i < classIdMappingLength; i++) {
-      final globalClassId = source.readInt();
-      final classId = source.readClassId();
-      classIds[globalClassId] = classId;
+  static MainModuleMetadata deserialize(DataDeserializer source) {
+    final classMetadataLength = source.readInt();
+    final classMetadata = <Class, ClassMetadata>{};
+    for (int i = 0; i < classMetadataLength; i++) {
+      final cls = source.readClass();
+      final metadata = ClassMetadata.deserialize(source);
+      classMetadata[cls] = metadata;
     }
 
     final selectorIdMappingLength = source.readInt();
-    final selectorIds = <int, (int, int)>{};
+    final selectorIds = <Member, (int, int)>{};
     for (int i = 0; i < selectorIdMappingLength; i++) {
-      final globalMemberId = source.readInt();
+      final member = source.readMember();
       final getterSelectorId = source.readInt();
       final setterOrMethodSelectorId = source.readInt();
-      selectorIds[globalMemberId] =
-          (getterSelectorId, setterOrMethodSelectorId);
+      selectorIds[member] = (getterSelectorId, setterOrMethodSelectorId);
     }
-    final dfsOrderClassIdsLength = source.readInt();
-    final dfsOrderClassIds = <int>[];
-    for (int i = 0; i < dfsOrderClassIdsLength; i++) {
-      dfsOrderClassIds.add(source.readClassId());
+    final dfsOrderClassesLength = source.readInt();
+    final dfsOrderClasses = <Class>[];
+    for (int i = 0; i < dfsOrderClassesLength; i++) {
+      dfsOrderClasses.add(source.readClass());
     }
-    final callableMemberIdsLength = source.readInt();
-    final callableMemberIds = <(int, int)>[];
-    for (int i = 0; i < callableMemberIdsLength; i++) {
-      callableMemberIds.add((source.readInt(), source.readInt()));
+    final callableMembersLength = source.readInt();
+    final callableMembers = <Reference>{};
+    for (int i = 0; i < callableMembersLength; i++) {
+      final reference = source.readReference();
+      callableMembers.add(reference);
     }
     final updateableFunctionsInMainLength = source.readInt();
     final updateableFunctionsInMain = <String, int>{};
@@ -145,11 +221,11 @@ class DynamicModuleMetadata {
       mainModuleEnvironment[key] = value;
     }
 
-    return DynamicModuleMetadata(
-        classIds,
+    return MainModuleMetadata._(
+        classMetadata,
         selectorIds,
-        dfsOrderClassIds,
-        callableMemberIds,
+        dfsOrderClasses,
+        callableMembers,
         updateableFunctionsInMain,
         mainModuleTranslatorOptions,
         mainModuleEnvironment);
@@ -251,6 +327,65 @@ class DynamicModuleMetadata {
 
     if (!mapEquals(options.environment, mainModuleEnvironment)) {
       fail('environment mismatch');
+    }
+  }
+
+  void _initializeCallableReferences(Component component, CoreTypes coreTypes) {
+    void collectCallableReference(Reference reference) {
+      final member = reference.asMember;
+
+      if (member.isExternal) {
+        final isGeneratedIntrinsic = member is Procedure &&
+            MemberIntrinsic.fromProcedure(coreTypes, member) != null;
+        if (!isGeneratedIntrinsic) return;
+      }
+      callableReferences.add(reference);
+    }
+
+    final procedureAttributeMetadata =
+        (component.metadata["vm.procedure-attributes.metadata"]
+                as ProcedureAttributesMetadataRepository)
+            .mapping;
+    void collectCallableReferences(Member member) {
+      if (member is Procedure) {
+        collectCallableReference(member.reference);
+        if (member.isInstanceMember &&
+            member.kind == ProcedureKind.Method &&
+            procedureAttributeMetadata[member]!.hasTearOffUses) {
+          collectCallableReference(member.tearOffReference);
+        }
+      } else if (member is Field) {
+        collectCallableReference(member.getterReference);
+        if (member.hasSetter) {
+          collectCallableReference(member.setterReference!);
+        }
+      } else if (member is Constructor) {
+        if (member.enclosingClass == coreTypes.numClass ||
+            member.enclosingClass == coreTypes.boolClass ||
+            member.enclosingClass ==
+                coreTypes.index.getClass('dart:_boxed_int', 'BoxedInt') ||
+            member.enclosingClass ==
+                coreTypes.index.getClass('dart:_boxed_double', 'BoxedDouble')) {
+          return;
+        }
+        collectCallableReference(member.reference);
+        collectCallableReference(member.initializerReference);
+        collectCallableReference(member.constructorBodyReference);
+      }
+    }
+
+    for (final lib in component.libraries) {
+      for (final member in lib.members) {
+        if (!member.isDynamicModuleCallable(coreTypes)) continue;
+        collectCallableReferences(member);
+      }
+
+      for (final cls in lib.classes) {
+        for (final member in cls.members) {
+          if (!member.isDynamicModuleCallable(coreTypes)) continue;
+          collectCallableReferences(member);
+        }
+      }
     }
   }
 }
