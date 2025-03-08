@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21,7 +21,8 @@ class Server {
       // commas between the arguments
       if (request.uri.path == "/malformedAuthenticate") {
         response.statusCode = HttpStatus.unauthorized;
-        response.headers.set(HttpHeaders.wwwAuthenticateHeader, "Bearer realm=\"realm\" error=\"invalid_token\"");
+        response.headers.set(HttpHeaders.wwwAuthenticateHeader,
+            "Bearer realm=\"realm\" error=\"invalid_token\"");
         response.close();
         return;
       }
@@ -127,7 +128,7 @@ void testBearerWithAuthenticateCallback() async {
   final server = await Server().start();
   final client = HttpClient();
 
-  final callbacks = <String>{}
+  final callbacks = <String>{};
 
   client.authenticate = (url, scheme, realm) async {
     Expect.equals("Bearer", scheme);
