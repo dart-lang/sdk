@@ -5137,7 +5137,8 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      If the value can be computed without storing it in a field, then try using a getter or a method:
+      If the value can be computed without storing it in a field, then try
+      using a getter or a method:
 
       ```dart
       extension E on String {
@@ -5147,7 +5148,8 @@ CompileTimeErrorCode:
       }
       ```
 
-      If the value must be stored, but is the same for every instance, try using a static field:
+      If the value must be stored, but is the same for every instance,
+      try using a static field:
 
       ```dart
       extension E on String {
@@ -5155,7 +5157,8 @@ CompileTimeErrorCode:
       }
       ```
 
-      If each instance needs to have its own value stored, then try using a getter and setter pair backed by a static Expando:
+      If each instance needs to have its own value stored, then try
+      using a getter and setter pair backed by a static `Expando`:
 
       ```dart
       extension E on SomeType {
