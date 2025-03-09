@@ -75,6 +75,6 @@ Future plans for Dart are included in the combined Dart and Flutter
 [patent_grant]: https://github.com/dart-lang/sdk/blob/main/PATENT_GRANT
 [pubsite]: https://pub.dev
 [repo]: https://github.com/dart-lang/sdk
-[roadmap]: https://github.com/flutter/flutter/wiki/Roadmap
+[roadmap]: https://github.com/flutter/flutter/blob/master/docs/roadmap/Roadmap.md
 [tools]: https://dart.dev/tools
 [website]: https://dart.dev
