@@ -29,6 +29,7 @@ Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
 late Options _options;
 late String _dart2jsScript;
 late String _kernelWorkerAotScript;
+late String _kernelWorkerScript;
 
 const dillSummaryId = DataId("summary.dill");
 const dillId = DataId("full.dill");
@@ -126,6 +127,7 @@ abstract class CFEStep extends IOModularStep {
       sources = getSources(module);
     }
 
+    var isAot = File(_kernelWorkerAotScript).existsSync();
     var script = _kernelWorkerAotScript;
     var sdkPath = p.dirname(p.dirname(Platform.resolvedExecutable));
     var executable = p.absolute(
@@ -133,6 +135,11 @@ abstract class CFEStep extends IOModularStep {
       'bin',
       Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
     );
+    if (!isAot) {
+      // This can be removed once we stop supporting ia32 architecture.
+      script = _kernelWorkerScript;
+      executable = Platform.resolvedExecutable;
+    }
 
     List<String> args = [
       script,
@@ -729,6 +736,10 @@ Future<void> resolveScripts(Options options) async {
   _kernelWorkerAotScript = await resolve(
     'utils/bazel/kernel_worker.dart',
     'snapshots/kernel_worker_aot.dart.snapshot',
+  );
+  _kernelWorkerScript = await resolve(
+    'utils/bazel/kernel_worker.dart',
+    'snapshots/kernel_worker.dart.snapshot',
   );
 }
 

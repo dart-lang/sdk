@@ -1195,15 +1195,18 @@ class DDCKernelGenerator {
   DDCKernelGenerator(this.config, this.verbose);
 
   Future<int> generate() async {
-    var exitCode = 0;
     if (!File(dartdevc).existsSync()) {
-      exitCode = 1;
-      expect(exitCode, 0,
-          reason: 'Unable to locate snapshot for compiler $dartdevc');
+      // This can be removed once we stop supporting ia32 architecture.
+      dartdevc = p.join(
+          sdkPath, 'dart-sdk', 'bin', 'snapshots', 'dartdevc.dart.snapshot');
+      kernelWorker = p.join(sdkPath, 'dart-sdk', 'bin', 'snapshots',
+          'kernel_worker.dart.snapshot');
+      dartExecutable = Platform.resolvedExecutable;
     }
     Directory.fromUri(config.outputPath).createSync();
 
     // generate summaries
+    var exitCode = 0;
     for (var module in config.modules.values) {
       exitCode = await _generateSummary(module);
       expect(exitCode, 0,
