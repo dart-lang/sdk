@@ -57,7 +57,7 @@ There are more documents in our repo at [docs](https://github.com/dart-lang/sdk/
 
 ## Contributing to Dart
 
-The easiest way to contribute to Dart is to [file issues][dartbug].
+The easiest way to contribute to Dart is to [file issues][issues].
 
 You can also contribute patches, as described in [Contributing][contrib].
 
@@ -69,12 +69,12 @@ Future plans for Dart are included in the combined Dart and Flutter
 [building]: https://github.com/dart-lang/sdk/blob/main/docs/Building.md
 [codelabs]: https://dart.dev/codelabs
 [contrib]: https://github.com/dart-lang/sdk/blob/main/CONTRIBUTING.md
-[dartbug]: http://dartbug.com
+[issues]: https://github.com/dart-lang/sdk/issues
 [lang]: https://dart.dev/guides/language/language-tour
 [license]: https://github.com/dart-lang/sdk/blob/main/LICENSE
 [patent_grant]: https://github.com/dart-lang/sdk/blob/main/PATENT_GRANT
 [pubsite]: https://pub.dev
 [repo]: https://github.com/dart-lang/sdk
-[roadmap]: https://github.com/flutter/flutter/wiki/Roadmap
+[roadmap]: https://github.com/flutter/flutter/blob/master/docs/roadmap/Roadmap.md
 [tools]: https://dart.dev/tools
 [website]: https://dart.dev
