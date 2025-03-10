@@ -13,7 +13,7 @@ class Location {
   String toString() => 'Location[$uri:$line:$column]';
 }
 
-class Messages {
+class LspMessages {
   static Map<String, dynamic> initNotification = {
     'jsonrpc': '2.0',
     'method': 'initialized',

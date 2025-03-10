@@ -7,11 +7,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'io_utils.dart';
-import 'messages.dart';
+import 'legacy_messages.dart';
+import 'lsp_messages.dart';
 
-enum LaunchFrom { Source, Dart, Aot }
-
-abstract class LspBenchmark {
+abstract class DartLanguageServerBenchmark {
   static const int verbosity = 0;
   final Uri repoDir = computeRepoDirUri();
   late final Process p;
@@ -29,17 +28,22 @@ abstract class LspBenchmark {
   final RegExp _newLineRegExp = RegExp('\r?\n');
   final Map<int, OutstandingRequest> _outstandingRequestsWithId = {};
 
-  Duration? firstAnalyzingDuration;
+  bool _addedInitialAnalysisDuration = false;
+  List<DurationInfo> durationInfo = [];
 
-  LspBenchmark() {
+  final bool _lsp;
+
+  DartLanguageServerBenchmark({required bool useLspProtocol})
+    : _lsp = useLspProtocol {
     _checkCorrectDart();
   }
+
   List<Uri> get additionalWorkspaceUris => const [];
   Uri? get cacheFolder => null;
+
   LaunchFrom get launchFrom => LaunchFrom.Source;
 
   Uri get rootUri;
-
   Future<void> afterInitialization();
 
   void exit() {
@@ -48,18 +52,11 @@ abstract class LspBenchmark {
   }
 
   Future<void> run() async {
-    await _launch();
-    p.stdout.listen(_listenToStdout);
-    p.stderr.listen(stderr.add);
-    longRunningRequestsTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      _checkLongRunningRequests,
-    );
-
-    await _initialize(p);
-    print('Should now be initialized.');
-
-    await afterInitialization();
+    if (_lsp) {
+      await _runLsp();
+    } else {
+      await _runLegacy();
+    }
   }
 
   Future<OutstandingRequest?> send(Map<String, dynamic> json) async {
@@ -75,6 +72,9 @@ abstract class LspBenchmark {
     OutstandingRequest? result;
 
     dynamic possibleId = json['id'];
+    if (!_lsp && possibleId is String && int.tryParse(possibleId) != null) {
+      possibleId = int.tryParse(possibleId);
+    }
     if (possibleId is int) {
       if (possibleId > largestIdSeen) {
         largestIdSeen = possibleId;
@@ -86,9 +86,14 @@ abstract class LspBenchmark {
       }
     }
 
-    // Header is always ascii, body is always utf8!
-    p.stdin.add(asciiEncodedHeader);
+    if (_lsp) {
+      // Header is always ascii, body is always utf8!
+      p.stdin.add(asciiEncodedHeader);
+    }
     p.stdin.add(utf8EncodedBody);
+    if (!_lsp) {
+      p.stdin.add(const [10]);
+    }
     await p.stdin.flush();
     if (verbosity > 2) {
       print('\n\nMessage sent\n\n');
@@ -104,7 +109,10 @@ abstract class LspBenchmark {
       isAnalyzing = await _analyzingCompleter.future;
     }
     print('isAnalyzing is now done after ${stopwatch.elapsed}');
-    firstAnalyzingDuration ??= stopwatch.elapsed;
+    if (!_addedInitialAnalysisDuration) {
+      _addedInitialAnalysisDuration = true;
+      durationInfo.add(DurationInfo('Initial analysis', stopwatch.elapsed));
+    }
   }
 
   void _checkCorrectDart() {
@@ -151,18 +159,39 @@ abstract class LspBenchmark {
         _buffer[l - 4] == 13;
   }
 
-  Future<void> _initialize(Process p) async {
-    OutstandingRequest? request = await send(
-      Messages.initMessage(pid, rootUri, additionalWorkspaceUris),
+  bool _endsWithLf() {
+    var l = _buffer.length;
+    return l > 1 && _buffer[l - 1] == 10;
+  }
+
+  Future<void> _initializeLegacy() async {
+    await send(LegacyMessages.getVersion(largestIdSeen + 1));
+    await send(LegacyMessages.setSubscriptionsStatus(largestIdSeen + 1));
+    await send(LegacyMessages.updateOptions(largestIdSeen + 1));
+    await send(LegacyMessages.setClientCapabilities(largestIdSeen + 1));
+    await send(
+      LegacyMessages.setAnalysisRoots(largestIdSeen + 1, [
+        rootUri,
+        ...additionalWorkspaceUris,
+      ]),
     );
-    await request?.completer.future;
-    await send(Messages.initNotification);
 
     // Wait until it's done analyzing.
     await waitWhileAnalyzing();
   }
 
-  Future<void> _launch() async {
+  Future<void> _initializeLsp() async {
+    OutstandingRequest? request = await send(
+      LspMessages.initMessage(pid, rootUri, additionalWorkspaceUris),
+    );
+    await request?.completer.future;
+    await send(LspMessages.initNotification);
+
+    // Wait until it's done analyzing.
+    await waitWhileAnalyzing();
+  }
+
+  Future<void> _launch({required bool lsp}) async {
     if (_launched) throw 'Already launched';
     _launched = true;
 
@@ -187,7 +216,7 @@ abstract class LspBenchmark {
           '--enable-vm-service',
           '--profiler',
           serverFile.path,
-          '--lsp',
+          lsp ? '--protocol=lsp' : '--protocol=analyzer',
           '--port=9102',
           ...cacheFolderArgs,
         ]);
@@ -195,7 +224,7 @@ abstract class LspBenchmark {
         // TODO(jensj): Option of wrapping in `perf record -g` call.
         p = await Process.start(Platform.resolvedExecutable, [
           'language-server',
-          '--lsp',
+          lsp ? '--protocol=lsp' : '--protocol=analyzer',
           '--port=9102',
           ...cacheFolderArgs,
         ]);
@@ -216,7 +245,7 @@ abstract class LspBenchmark {
         }
         p = await Process.start(aotRuntime.path, [
           serverFile.path,
-          '--lsp',
+          lsp ? '--protocol=lsp' : '--protocol=analyzer',
           '--port=9102',
           ...cacheFolderArgs,
         ]);
@@ -238,7 +267,7 @@ abstract class LspBenchmark {
           '${utf8.decode(_buffer)}',
         );
       }
-      if (_headerContentLength == null && _endsWithCrLfCrLf()) {
+      if (_lsp == true && _headerContentLength == null && _endsWithCrLfCrLf()) {
         String headerRaw = utf8.decode(_buffer);
         _buffer.clear();
         // Use a regex that makes the '\r' optional to handle "The Dart VM service
@@ -259,20 +288,26 @@ abstract class LspBenchmark {
             break;
           }
         }
-      } else if (_headerContentLength != null &&
-          _buffer.length == _headerContentLength!) {
+      } else if ((_lsp == true &&
+              _headerContentLength != null &&
+              _buffer.length == _headerContentLength!) ||
+          (_lsp == false && _endsWithLf())) {
         String messageString = utf8.decode(_buffer);
         _buffer.clear();
         _headerContentLength = null;
         Map<String, dynamic> message =
             json.decode(messageString) as Map<String, dynamic>;
 
-        // {"jsonrpc":"2.0","method":"$/analyzerStatus","params":{"isAnalyzing":false}}
-        dynamic method = message['method'];
-        if (method == r'$/analyzerStatus') {
+        // LSP: {"jsonrpc":"2.0","method":"$/analyzerStatus","params":{"isAnalyzing":false}}
+        // Analyzer: {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
+        if ((_lsp == true && message['method'] == r'$/analyzerStatus') ||
+            (_lsp == false && message['event'] == 'server.status')) {
           dynamic params = message['params'];
           if (params is Map) {
-            dynamic isAnalyzing = params['isAnalyzing'];
+            dynamic isAnalyzing =
+                _lsp == true
+                    ? params['isAnalyzing']
+                    : params['analysis']?['isAnalyzing'];
             if (isAnalyzing is bool) {
               _analyzingCompleter.complete(isAnalyzing);
               _analyzingCompleter = Completer<bool>();
@@ -283,6 +318,11 @@ abstract class LspBenchmark {
           }
         }
         dynamic possibleId = message['id'];
+        if (_lsp == false &&
+            possibleId is String &&
+            int.tryParse(possibleId) != null) {
+          possibleId = int.tryParse(possibleId);
+        }
         if (possibleId is int) {
           if (possibleId > largestIdSeen) {
             largestIdSeen = possibleId;
@@ -318,7 +358,48 @@ abstract class LspBenchmark {
       }
     }
   }
+
+  Future<void> _runLegacy() async {
+    assert(!_lsp);
+    await _launch(lsp: false);
+    p.stdout.listen(_listenToStdout);
+    p.stderr.listen(stderr.add);
+    longRunningRequestsTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      _checkLongRunningRequests,
+    );
+
+    await _initializeLegacy();
+    print('Should now be initialized.');
+
+    await afterInitialization();
+  }
+
+  Future<void> _runLsp() async {
+    assert(_lsp);
+    await _launch(lsp: true);
+    p.stdout.listen(_listenToStdout);
+    p.stderr.listen(stderr.add);
+    longRunningRequestsTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      _checkLongRunningRequests,
+    );
+
+    await _initializeLsp();
+    print('Should now be initialized.');
+
+    await afterInitialization();
+  }
 }
+
+class DurationInfo {
+  final String name;
+  final Duration duration;
+
+  DurationInfo(this.name, this.duration);
+}
+
+enum LaunchFrom { Source, Dart, Aot }
 
 class OutstandingRequest {
   final Stopwatch stopwatch = Stopwatch();
