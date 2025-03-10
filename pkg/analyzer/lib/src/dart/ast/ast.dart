@@ -6303,11 +6303,12 @@ sealed class ExpressionImpl extends AstNodeImpl
           return null;
         case ArgumentList():
         case Expression():
-        case IfElement():
         case ForElement():
+        case IfElement():
+        case InterpolationExpression():
         case MapLiteralEntry():
-        case SpreadElement():
         case NullAwareElement():
+        case SpreadElement():
         case VariableDeclaration():
           break;
         default:

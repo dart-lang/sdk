@@ -30,26 +30,26 @@ extension GenericExtension<T extends core::Object? = dynamic> on T% {
   method method4 = test::GenericExtension|method4;
   method tearoff method4 = test::GenericExtension|get#method4;
 }
-@#C1
-static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|method1(lowered final core::int #this) → core::int
-  return 42;
-static extension-member method IntExtension|get#method1(lowered final core::int #this) → () → core::int
-  return () → core::int => test::IntExtension|method1(#this);
-@#C1
-static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|method3<T extends core::Object? = dynamic>(lowered final test::GenericExtension|method3::T% #this) → core::int
-  return 42;
-static extension-member method GenericExtension|get#method3<T extends core::Object? = dynamic>(lowered final test::GenericExtension|get#method3::T% #this) → () → core::int
-  return () → core::int => test::GenericExtension|method3<test::GenericExtension|get#method3::T%>(#this);
 static method method1() → dynamic {
   test::IntExtension|method1(0);
   test::IntExtension|method2(0);
   test::GenericExtension|method3<core::int>(0);
   test::GenericExtension|method4<core::int>(0);
 }
+@#C1
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|method1(lowered final core::int #this) → core::int
+  return 42;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|get#method1(lowered final core::int #this) → () → core::int
+  return () → core::int => test::IntExtension|method1(#this);
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|method2(lowered final core::int #this) → core::int
   return 43;
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|get#method2(lowered final core::int #this) → () → core::int
   return () → core::int => test::IntExtension|method2(#this);
+@#C1
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|method3<T extends core::Object? = dynamic>(lowered final test::GenericExtension|method3::T% #this) → core::int
+  return 42;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|get#method3<T extends core::Object? = dynamic>(lowered final test::GenericExtension|get#method3::T% #this) → () → core::int
+  return () → core::int => test::GenericExtension|method3<test::GenericExtension|get#method3::T%>(#this);
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|method4<T extends core::Object? = dynamic>(lowered final test::GenericExtension|method4::T% #this) → core::int
   return 43;
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|get#method4<T extends core::Object? = dynamic>(lowered final test::GenericExtension|get#method4::T% #this) → () → core::int

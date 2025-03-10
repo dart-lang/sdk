@@ -4527,7 +4527,7 @@ LintCode:
       **DO** use Flutter TODO format.
 
       From the [Flutter
-      docs](https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo#comments):
+      docs](https://github.com/flutter/flutter/blob/main/docs/contributing/Style-guide-for-Flutter-repo.md#comments):
 
       > TODOs should include the string TODO in all caps, followed by the GitHub
       username of the person with the best context about the problem referenced by the
@@ -14226,7 +14226,7 @@ LintCode:
     state:
       stable: "3.8"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

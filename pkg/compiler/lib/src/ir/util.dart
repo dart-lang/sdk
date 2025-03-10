@@ -248,10 +248,10 @@ bool _isWebLibrary(Uri importUri) =>
             importUri.path == 'web_gl' ||
             importUri.path == 'web_sql' ||
             importUri.path == 'html_common') ||
-        // Mock web library path for testing.
-        importUri
-        .path
-        .contains('native_null_assertions/web_library_interfaces.dart');
+    // Mock web library path for testing.
+    importUri.path.contains(
+      'native_null_assertions/web_library_interfaces.dart',
+    );
 
 bool nodeIsInWebLibrary(ir.TreeNode? node) {
   if (node == null) return false;

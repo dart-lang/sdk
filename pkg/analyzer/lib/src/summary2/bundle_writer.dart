@@ -157,15 +157,6 @@ class BundleWriter {
       _resolutionSink.writeType(fragment.supertype);
       _resolutionSink._writeTypeList(fragment.mixins);
       _resolutionSink._writeTypeList(fragment.interfaces);
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink._writeTypeList(element.mixins);
-        _resolutionSink._writeTypeList(element.interfaces);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.constructors);
-        _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
-      }
 
       if (!fragment.isMixinApplication) {
         var membersOffset = _sink.offset;
@@ -251,15 +242,6 @@ class BundleWriter {
       _resolutionSink.writeType(fragment.supertype);
       _resolutionSink._writeTypeList(fragment.mixins);
       _resolutionSink._writeTypeList(fragment.interfaces);
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink._writeTypeList(element.mixins);
-        _resolutionSink._writeTypeList(element.interfaces);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.constructors);
-        _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
-      }
 
       _writeList(
         fragment.fields.where((e) {
@@ -318,9 +300,6 @@ class BundleWriter {
       if (fragment.augmentationTarget == null) {
         var element = fragment.element;
         _resolutionSink.writeType(element.extendedType);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
       }
 
       _writeList(
@@ -347,15 +326,7 @@ class BundleWriter {
 
     _writeTypeParameters(fragment.typeParameters, () {
       _resolutionSink._writeTypeList(fragment.interfaces);
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink._writeTypeList(element.interfaces);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.constructors);
-        _resolutionSink._writeElementList(element.methods);
-        _resolutionSink.writeType(element.typeErasure);
-      }
+      _resolutionSink.writeType(fragment.typeErasure);
 
       _writeList(
         fragment.fields.where((e) => !e.isSynthetic).toList(),
@@ -413,10 +384,10 @@ class BundleWriter {
     _sink._writeOptionalStringReference(fragment.name2);
   }
 
-  void _writeFunctionElement(FunctionElementImpl fragment) {
+  void _writeFunctionElement(TopLevelFunctionFragmentImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    var element = fragment.element as TopLevelFunctionElementImpl;
+    var element = fragment.element;
 
     _writeReference(fragment);
     _writeReference2(element.reference);
@@ -493,7 +464,6 @@ class BundleWriter {
   void _writeMethodElement(MethodElementImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(fragment);
-    _writeReference2(fragment.element.reference);
     _writeFragmentName(fragment);
     _sink._writeStringReference(fragment.name);
     MethodElementFlags.write(_sink, fragment);
@@ -525,10 +495,6 @@ class BundleWriter {
       if (fragment.augmentationTarget == null) {
         var element = fragment.element;
         _resolutionSink._writeTypeList(element.superclassConstraints);
-        _resolutionSink._writeTypeList(element.interfaces);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
-        _resolutionSink._writeElementList(element.methods);
       }
 
       _writeList(

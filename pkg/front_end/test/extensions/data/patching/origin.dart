@@ -22,21 +22,8 @@
  extension-onType=String!
 */
 extension Extension on String {
-  /*member: Extension|get#instanceMethod:
-   builder-name=instanceMethod,
-   builder-params=[#this],
-   member-name=Extension|get#instanceMethod,
-   member-params=[#this]
-  */
   external int instanceMethod();
 
-  /*member: Extension|get#genericInstanceMethod:
-   builder-name=genericInstanceMethod,
-   builder-params=[#this,t],
-   builder-type-params=[T],
-   member-name=Extension|get#genericInstanceMethod,
-   member-params=[#this]
-  */
   external T genericInstanceMethod<T>(T t);
 
   external static int staticMethod();
@@ -72,24 +59,8 @@ extension Extension on String {
  extension-type-params=[T]
 */
 extension GenericExtension<T> on T {
-  /*member: GenericExtension|get#instanceMethod:
-   builder-name=instanceMethod,
-   builder-params=[#this],
-   builder-type-params=[T],
-   member-name=GenericExtension|get#instanceMethod,
-   member-params=[#this],
-   member-type-params=[T]
-  */
   external int instanceMethod();
 
-  /*member: GenericExtension|get#genericInstanceMethod:
-   builder-name=genericInstanceMethod,
-   builder-params=[#this,t],
-   builder-type-params=[T,T],
-   member-name=GenericExtension|get#genericInstanceMethod,
-   member-params=[#this],
-   member-type-params=[#T]
-  */
   external T genericInstanceMethod<T>(T t);
 
   external static int staticMethod();

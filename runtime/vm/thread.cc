@@ -218,6 +218,13 @@ void Thread::InitVMConstants() {
   LEAF_RUNTIME_ENTRY_LIST(INIT_VALUE)
 #undef INIT_VALUE
 
+#if defined(SIMULATOR_FFI)
+  // FfiCallInstr calls this through the CallNativeThroughSafepoint stub instead
+  // of like a normal leaf runtime call.
+  PropagateError_entry_point_ =
+      kPropagateErrorRuntimeEntry.GetEntryPointNoRedirect();
+#endif
+
 // Setup the thread specific reusable handles.
 #define REUSABLE_HANDLE_ALLOCATION(object)                                     \
   this->object##_handle_ = this->AllocateReusableHandle<object>();

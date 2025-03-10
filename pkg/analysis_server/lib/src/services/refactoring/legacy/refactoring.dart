@@ -495,6 +495,17 @@ abstract class RenameRefactoring implements Refactoring {
     if (element is LibraryElement2) {
       return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
     }
+    if (enclosingElement?.thisOrAncestorOfType2<InterfaceElement2>()
+        case var enclosingElement?) {
+      if (element case FieldFormalParameterElement2(:var field2?)) {
+        return RenameClassMemberRefactoringImpl(
+          workspace,
+          sessionHelper,
+          enclosingElement,
+          field2,
+        );
+      }
+    }
     if (element is FormalParameterElement) {
       return RenameParameterRefactoringImpl(workspace, sessionHelper, element);
     }

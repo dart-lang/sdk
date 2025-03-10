@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   closurizedCallToString();
 }
@@ -12,20 +12,20 @@ main() {
 // method in the closed world.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class.:[exact=Class]*/
+/*member: Class.:[exact=Class|powerset=0]*/
 class Class {
-  /*member: Class.call:Value([exact=JSBool], value: true)*/
+  /*member: Class.call:Value([exact=JSBool|powerset=0], value: true, powerset: 0)*/
   call() => true;
 }
 
-/*member: closurizedCallToString:[exact=JSString]*/
+/*member: closurizedCallToString:[exact=JSString|powerset=0]*/
 closurizedCallToString() {
   var c = Class();
-  c. /*invoke: [exact=Class]*/ call(); // Make `Class.call` live.
-  var local = /*[exact=JSUInt31]*/ () => 42;
-  local. /*invoke: [subclass=Closure]*/ toString();
+  c. /*invoke: [exact=Class|powerset=0]*/ call(); // Make `Class.call` live.
+  var local = /*[exact=JSUInt31|powerset=0]*/ () => 42;
+  local. /*invoke: [subclass=Closure|powerset=0]*/ toString();
   local();
-  local. /*invoke: [subclass=Closure]*/ toString();
+  local. /*invoke: [subclass=Closure|powerset=0]*/ toString();
   local.call();
-  return local. /*invoke: [subclass=Closure]*/ toString();
+  return local. /*invoke: [subclass=Closure|powerset=0]*/ toString();
 }

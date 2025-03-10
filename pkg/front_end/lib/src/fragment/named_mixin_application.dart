@@ -15,6 +15,7 @@ class NamedMixinApplicationFragment implements Fragment {
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final List<TypeParameterFragment>? typeParameters;
+  final LookupScope typeParameterScope;
   final TypeBuilder? supertype;
   final List<TypeBuilder> mixins;
   final List<TypeBuilder>? interfaces;
@@ -32,6 +33,7 @@ class NamedMixinApplicationFragment implements Fragment {
       required this.modifiers,
       required this.metadata,
       required this.typeParameters,
+      required this.typeParameterScope,
       required this.supertype,
       required this.mixins,
       required this.interfaces,

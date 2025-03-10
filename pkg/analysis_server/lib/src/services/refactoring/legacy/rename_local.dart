@@ -17,6 +17,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 
 class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   final RefactoringStatus result;
@@ -88,7 +89,12 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
       if (_isVisibleWithTarget(declaredElement)) {
         conflictingLocals.add(declaredElement);
         var nodeKind = declaredElement.kind.displayName;
-        var message = "Duplicate $nodeKind '$newName'.";
+        var message = format(
+          "Duplicate {0} of name '{1}'{2}.",
+          nodeKind,
+          newName,
+          declaredElement.declarationLocation,
+        );
         result.addError(message, newLocation_fromElement(declaredElement));
         return;
       }
@@ -198,5 +204,28 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
     var references = await searchEngine.searchReferences(element);
     processor.addReferenceEdits(references);
+  }
+}
+
+extension on Element2 {
+  String get declarationLocation {
+    var sourceName = firstFragment.libraryFragment!.source.shortName;
+    var executable = enclosingElement2;
+    String className = '';
+    String executableName = '';
+    if (executable is MethodElement2) {
+      var namescope = executable.enclosingElement2 as ClassElement2?;
+      className = namescope?.displayName ?? '';
+      if (className.isNotEmpty && executable.displayName.isNotEmpty) {
+        className += '.';
+      }
+      executableName = executable.displayName;
+    } else if (executable is TopLevelFunctionElement) {
+      executableName = executable.displayName;
+    }
+    if (executableName.isEmpty) {
+      return " in '$sourceName'";
+    }
+    return " at $className$executableName in '$sourceName'";
   }
 }

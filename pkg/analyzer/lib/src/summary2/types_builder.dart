@@ -431,10 +431,6 @@ class TypesBuilder {
           firstFragment.supertype = superType;
         }
       }
-
-      element.interfaces.addAll(
-        toFirst.mapInterfaceTypes(fragment.interfaces),
-      );
     }
 
     if (fragment is MixinElementImpl && element is MixinElementImpl2) {
@@ -688,10 +684,6 @@ class _MixinsInference {
       }
     } finally {
       element.mixinInferenceCallback = null;
-      switch (element.element) {
-        case InterfaceElementImpl2 augmented:
-          augmented.mixins.addAll(declarationMixins);
-      }
     }
   }
 

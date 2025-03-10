@@ -2045,72 +2045,25 @@ class _ElementWriter extends _AbstractElementWriter {
 
     var element = e.element;
 
-    void writeFields() {
-      var sorted = element.fields.sortedBy((e) => e.name);
-      _elementPrinter.writeElementList('fields', sorted);
-    }
-
-    void writeConstructors() {
-      if (!configuration.withConstructors) {
-        return;
-      }
-      if (element is InterfaceElementImpl2) {
-        var sorted = element.constructors.sortedBy((e) => e.name);
-        expect(sorted, isNotEmpty);
-        _elementPrinter.writeElementList('constructors', sorted);
-      }
-    }
-
-    void writeAccessors() {
-      var sorted = element.accessors.sortedBy((e) => e.name);
-      _elementPrinter.writeElementList('accessors', sorted);
-    }
-
-    void writeMethods() {
-      var sorted = element.methods.sortedBy((e) => e.name);
-      _elementPrinter.writeElementList('methods', sorted);
-    }
-
     _sink.writelnWithIndent('augmented');
     _sink.withIndent(() {
       switch (element) {
         case ClassElementImpl2():
           _elementPrinter.writeTypeList('mixins', element.mixins);
           _elementPrinter.writeTypeList('interfaces', element.interfaces);
-          writeFields();
-          writeConstructors();
-          writeAccessors();
-          writeMethods();
         case EnumElementImpl2():
           _elementPrinter.writeTypeList('mixins', element.mixins);
           _elementPrinter.writeTypeList('interfaces', element.interfaces);
-          writeFields();
-          _elementPrinter.writeElementList(
-            'constants',
-            element.constants.sortedBy((e) => e.name),
-          );
-          writeConstructors();
-          writeAccessors();
-          writeMethods();
         case ExtensionElementImpl2():
-          writeFields();
-          writeAccessors();
-          writeMethods();
+          break;
         case ExtensionTypeElementImpl2():
           _elementPrinter.writeTypeList('interfaces', element.interfaces);
-          writeFields();
-          writeConstructors();
-          writeAccessors();
-          writeMethods();
         case MixinElementImpl2():
           _elementPrinter.writeTypeList(
             'superclassConstraints',
             element.superclassConstraints,
           );
           _elementPrinter.writeTypeList('interfaces', element.interfaces);
-          writeFields();
-          writeAccessors();
-          writeMethods();
         default:
           // TODO(scheglov): Add other types and properties
           throw UnimplementedError('${e.runtimeType}');

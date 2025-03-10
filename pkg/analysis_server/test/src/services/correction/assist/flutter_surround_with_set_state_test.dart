@@ -30,13 +30,11 @@ class FlutterSurroundWithSetStateTest extends AssistProcessorTest {
     // caused errors in code assuming the node would have a parent.
     await resolveTestCode('''
 void f() {
-// start
-  print(0);
+  [!print(0);
 }
 
 other() {
-  print(1);
-// end
+  print(1);!]
 }
 ''');
     await assertNoAssist();
@@ -51,10 +49,8 @@ class Stateless {
   int _count2 = 0;
 
   void increment() {
-// start
-    ++_count1;
-    ++_count2;
-// end
+    [!++_count1;
+    ++_count2;!]
   }
 }
 ''');
@@ -70,10 +66,8 @@ class MyState extends State {
   int _count2 = 0;
 
   void increment() {
-// start
-    ++_count1;
-    ++_count2;
-// end
+    [!++_count1;
+    ++_count2;!]
   }
 }
 ''');

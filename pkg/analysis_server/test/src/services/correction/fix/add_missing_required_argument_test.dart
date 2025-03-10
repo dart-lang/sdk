@@ -344,11 +344,15 @@ void f() {
     await assertHasFix('''
 test({required int a, required int bcd}) {}
 void f() {
-  test(a: null);
+  test(a: null, bcd: null);
 }
 ''', errorFilter: (error) => error.message.contains("'a'"));
   }
 
+  /// Asserts that no fix is available for other diagnostics than the first one.
+  ///
+  /// This has no fix because the [test_multiple_1of2] should trigger the fix
+  /// since it is the first error in the list.
   Future<void> test_multiple_2of2() async {
     await resolveTestCode('''
 test({required int a, required int bcd}) {}
@@ -356,12 +360,7 @@ void f() {
   test();
 }
 ''');
-    await assertHasFix('''
-test({required int a, required int bcd}) {}
-void f() {
-  test(bcd: null);
-}
-''', errorFilter: (error) => error.message.contains("'bcd'"));
+    await assertNoFix(errorFilter: (error) => error.message.contains("'bcd'"));
   }
 
   Future<void> test_nonNullable() async {

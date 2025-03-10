@@ -1648,7 +1648,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
     Procedure? readTarget;
     Procedure? invokeTarget;
     if (getterBuilder != null) {
-      if (getterBuilder.isGetter) {
+      if (getterBuilder.isField) {
+        assert(!getterBuilder.isStatic && getterBuilder.isExternal);
+        readTarget = getterBuilder.readTarget as Procedure?;
+      } else if (getterBuilder.isGetter) {
         assert(!getterBuilder.isStatic);
         readTarget = getterBuilder.readTarget as Procedure?;
       } else if (getterBuilder.isRegularMethod) {
@@ -1670,7 +1673,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
     }
     Procedure? writeTarget;
     if (setterBuilder != null) {
-      if (setterBuilder.isSetter) {
+      if (setterBuilder.isField) {
+        assert(!setterBuilder.isStatic && setterBuilder.isExternal);
+        writeTarget = setterBuilder.writeTarget as Procedure?;
+      } else if (setterBuilder.isSetter) {
         assert(!setterBuilder.isStatic);
         writeTarget = setterBuilder.writeTarget as Procedure?;
         // Coverage-ignore-block(suite): Not run.

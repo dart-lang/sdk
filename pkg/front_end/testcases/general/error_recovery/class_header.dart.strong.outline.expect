@@ -2757,24 +2757,24 @@ class N extends core::Object {
   synthetic constructor •() → self::N
     ;
 }
-class C#8#0 extends core::Object {
-  synthetic constructor •() → self::C#8#0
+class C#8 extends core::Object {
+  synthetic constructor •() → self::C#8
     ;
 }
 class N2 extends core::Object {
   synthetic constructor •() → self::N2
     ;
 }
-class B#10#0 extends core::Object {
-  synthetic constructor •() → self::B#10#0
+class B#10 extends core::Object {
+  synthetic constructor •() → self::B#10
     ;
 }
 class N3 extends core::Object {
   synthetic constructor •() → self::N3
     ;
 }
-class D#7#0 extends core::Object {
-  synthetic constructor •() → self::D#7#0
+class D#7 extends core::Object {
+  synthetic constructor •() → self::D#7
     ;
 }
 class N6 extends core::Object {

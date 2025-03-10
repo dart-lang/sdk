@@ -4088,6 +4088,17 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 
   // Keep the following code in sync with `StubCode::JumpToFrameStub()`.
 
+  // Check if we exited generated from FFI. If so do transition - this is needed
+  // because normally runtime calls transition back to generated via destructor
+  // of TransitionGeneratedToVM/Native that is part of runtime boilerplate
+  // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
+  // have this boilerplate, don't have this stack resource, have to transition
+  // explicitly.
+  if (thread->exit_through_ffi() == dart::Thread::kExitThroughFfi) {
+    thread->ExitSafepoint();
+    thread->set_execution_state(Thread::kThreadInGenerated);
+  }
+
   // Unwind the C++ stack and continue simulation in the target frame.
   set_pc(static_cast<int64_t>(pc));
   set_register(nullptr, SP, static_cast<int64_t>(sp));

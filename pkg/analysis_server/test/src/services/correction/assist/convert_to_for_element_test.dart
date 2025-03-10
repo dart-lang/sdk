@@ -23,7 +23,7 @@ class ConvertToForElementTest extends AssistProcessorTest {
   Future<void> test_mapFromIterable_complexKey() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
-  return Map.fromIt/*caret*/erable(i, key: (e) {
+  return Map.fromIt^erable(i, key: (e) {
     var result = e * 2;
     return result;
   }, value: (e) => e + 3);
@@ -35,7 +35,7 @@ f(Iterable<int> i) {
   Future<void> test_mapFromIterable_complexValue() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
-  return Map.fromIt/*caret*/erable(i, key: (e) => e * 2, value: (e) {
+  return Map.fromIt^erable(i, key: (e) => e * 2, value: (e) {
     var result = e  + 3;
     return result;
   });
@@ -49,7 +49,7 @@ f(Iterable<int> i) {
     await resolveTestCode('''
 f(Iterable<int> i) {
   var k = 3;
-  return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => k);
+  return Map.fromIt^erable(i, key: (k) => k * 2, value: (v) => k);
 }
 ''');
     await assertHasAssist('''
@@ -69,7 +69,7 @@ f(Iterable<int> i) {
     await resolveTestCode('''
 f(Iterable<int> i) {
   var k = 3;
-  return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => k);
+  return Map.fromIt^erable(i, key: (k) => k * 2, value: (v) => k);
 }
 ''');
     await assertNoAssist();
@@ -79,7 +79,7 @@ f(Iterable<int> i) {
   test_mapFromIterable_differentParameterNames_usedInKey_noConflictInValue() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
-  return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => 0);
+  return Map.fromIt^erable(i, key: (k) => k * 2, value: (v) => 0);
 }
 ''');
     await assertHasAssist('''
@@ -94,7 +94,7 @@ f(Iterable<int> i) {
     await resolveTestCode('''
 f(Iterable<int> i) {
   var e = 2;
-  return Map.fromIt/*caret*/erable(i, key: (k) => k * e, value: (v) => v + e);
+  return Map.fromIt^erable(i, key: (k) => k * e, value: (v) => v + e);
 }
 ''');
     await assertHasAssist('''
@@ -109,7 +109,7 @@ f(Iterable<int> i) {
   test_mapFromIterable_differentParameterNames_usedInKeyAndValue_noConflictWithDefault() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
-  return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => v + 3);
+  return Map.fromIt^erable(i, key: (k) => k * 2, value: (v) => v + 3);
 }
 ''');
     await assertHasAssist('''
@@ -124,7 +124,7 @@ f(Iterable<int> i) {
     await resolveTestCode('''
 f(Iterable<int> i) {
   int v = 0;
-  return Map.fromIt/*caret*/erable(i, key: (k) => v++, value: (v) => v * 10);
+  return Map.fromIt^erable(i, key: (k) => v++, value: (v) => v * 10);
 }
 ''');
     await assertHasAssist('''
@@ -140,7 +140,7 @@ f(Iterable<int> i) {
     await resolveTestCode('''
 f(Iterable<int> i) {
   int index = 0;
-  return Map.fromIt/*caret*/erable(i, key: (k) => index++, value: (v) => v * 10);
+  return Map.fromIt^erable(i, key: (k) => index++, value: (v) => v * 10);
 }
 ''');
     await assertHasAssist('''
@@ -154,7 +154,7 @@ f(Iterable<int> i) {
   Future<void> test_mapFromIterable_missingKey() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
-  return Map.fromIt/*caret*/erable(i, value: (e) => e + 3);
+  return Map.fromIt^erable(i, value: (e) => e + 3);
 }
 ''');
     await assertNoAssist();
@@ -163,7 +163,7 @@ f(Iterable<int> i) {
   Future<void> test_mapFromIterable_missingKeyAndValue() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
-  return Map.fromIt/*caret*/erable(i);
+  return Map.fromIt^erable(i);
 }
 ''');
     await assertNoAssist();
@@ -172,7 +172,7 @@ f(Iterable<int> i) {
   Future<void> test_mapFromIterable_missingValue() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
-  return Map.fromIt/*caret*/erable(i, key: (e) => e * 2);
+  return Map.fromIt^erable(i, key: (e) => e * 2);
 }
 ''');
     await assertNoAssist();
@@ -181,7 +181,7 @@ f(Iterable<int> i) {
   Future<void> test_mapFromIterable_notMapFromIterable() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
-  return A.fromIt/*caret*/erable(i, key: (e) => e * 2, value: (e) => e + 3);
+  return A.fromIt^erable(i, key: (e) => e * 2, value: (e) => e + 3);
 }
 class A {
   A.fromIterable(i, {key, value});
@@ -193,7 +193,7 @@ class A {
   Future<void> test_mapFromIterable_sameParameterNames() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
-  return Map.fromIt/*caret*/erable(i, key: (e) => e * 2, value: (e) => e + 3);
+  return Map.fromIt^erable(i, key: (e) => e * 2, value: (e) => e + 3);
 }
 ''');
     await assertHasAssist('''
@@ -207,7 +207,7 @@ f(Iterable<int> i) {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 f() {
-  return new Unde/*caret*/fined();
+  return new Unde^fined();
 }
 ''');
     await assertNoAssist();

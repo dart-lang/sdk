@@ -17,9 +17,12 @@ class Class2 {
 test() {
   new Class._private(); // Ok
   new Class._privateInjected(); // Ok
+  const Class3._(); // Ok
 }
 
 class Subclass extends Class {
   Subclass.private() : super._private(); // Ok
   Subclass.privateInjected() : super._privateInjected(); // Ok
 }
+
+class Class3 {}

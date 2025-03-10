@@ -220,7 +220,8 @@ class FunctionElementFlags {
   static const int _isGenerator = 1 << 4;
   static const int _isStatic = 1 << 5;
 
-  static void read(SummaryDataReader reader, FunctionElementImpl element) {
+  static void read(
+      SummaryDataReader reader, TopLevelFunctionFragmentImpl element) {
     var byte = reader.readByte();
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;

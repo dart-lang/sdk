@@ -165,11 +165,7 @@ class _DebuggingSession {
       'dds_aot.dart.snapshot',
     ].join(Platform.pathSeparator);
     if (FileSystemEntity.typeSync(script) == FileSystemEntityType.notFound) {
-      script = [
-        dartDir,
-        'gen',
-        'dds_aot.dart.snapshot',
-      ].join(Platform.pathSeparator);
+      script = [dartDir, 'dds_aot.dart.snapshot'].join(Platform.pathSeparator);
       if (FileSystemEntity.typeSync(script) == FileSystemEntityType.notFound) {
         executable = [dartDir, dart].join(Platform.pathSeparator);
         script = 'development-service';

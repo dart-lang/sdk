@@ -290,7 +290,6 @@ library
               type: int
       methods
         m
-          reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
           formalParameters
             requiredPositional v
@@ -1994,7 +1993,6 @@ library
         Object
       methods
         foo
-          reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
 ''');
   }
@@ -2070,7 +2068,6 @@ library
         A
       methods
         A
-          reference: <testLibrary>::@mixin::B::@method::A
           firstFragment: <testLibraryFragment>::@mixin::B::@method::A
 ''');
   }

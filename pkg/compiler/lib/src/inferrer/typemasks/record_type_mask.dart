@@ -15,10 +15,9 @@ class RecordTypeMask extends TypeMask {
   final List<TypeMask> types;
 
   final RecordShape shape;
+
   @override
-  final bool isNullable;
-  @override
-  final bool hasLateSentinel;
+  final Bitset powerset;
 
   static TypeMask createRecord(
     CommonMasks domain,
@@ -27,29 +26,36 @@ class RecordTypeMask extends TypeMask {
     bool isNullable = false,
     bool hasLateSentinel = false,
   }) {
+    var powerset = Bitset.empty();
+    if (isNullable) {
+      powerset = _specialValueDomain.add(powerset, TypeMaskSpecialValue.null_);
+    }
+    if (hasLateSentinel) {
+      powerset = _specialValueDomain.add(
+        powerset,
+        TypeMaskSpecialValue.lateSentinel,
+      );
+    }
+    return createRecordWithPowerset(domain, types, shape, powerset);
+  }
+
+  static TypeMask createRecordWithPowerset(
+    CommonMasks domain,
+    List<TypeMask> types,
+    RecordShape shape,
+    Bitset powerset,
+  ) {
     assert(types.length == shape.fieldCount);
     // If any field is empty then this record is not instantiable and we
     // simplify to an empty mask.
     if (types.any((e) => e.isEmpty)) {
-      return domain.emptyType.withSpecialValues(
-        isNullable: isNullable,
-        hasLateSentinel: hasLateSentinel,
-      );
+      return domain.emptyType.withPowerset(powerset, domain);
     }
-    return RecordTypeMask._(
-      types,
-      shape,
-      isNullable: isNullable,
-      hasLateSentinel: hasLateSentinel,
-    );
+    return RecordTypeMask._(types, shape, powerset);
   }
 
-  RecordTypeMask._(
-    this.types,
-    this.shape, {
-    required this.isNullable,
-    required this.hasLateSentinel,
-  }) : assert(types.length == shape.fieldCount);
+  RecordTypeMask._(this.types, this.shape, this.powerset)
+    : assert(types.length == shape.fieldCount);
 
   /// Deserializes a [ContainerTypeMask] object from [source].
   factory RecordTypeMask.readFromDataSource(
@@ -61,15 +67,9 @@ class RecordTypeMask extends TypeMask {
       () => TypeMask.readFromDataSource(source, domain),
     );
     final shape = RecordShape.readFromDataSource(source);
-    final isNullable = source.readBool();
-    final hasLateSentinel = source.readBool();
+    final powerset = Bitset(source.readInt());
     source.end(tag);
-    return RecordTypeMask._(
-      types,
-      shape,
-      isNullable: isNullable,
-      hasLateSentinel: hasLateSentinel,
-    );
+    return RecordTypeMask._(types, shape, powerset);
   }
 
   /// Serializes this [ContainerTypeMask] to [sink].
@@ -79,32 +79,20 @@ class RecordTypeMask extends TypeMask {
     sink.begin(tag);
     sink.writeList(types, (TypeMask value) => value.writeToDataSink(sink));
     shape.writeToDataSink(sink);
-    sink.writeBool(isNullable);
-    sink.writeBool(hasLateSentinel);
+    sink.writeInt(powerset.bits);
     sink.end(tag);
   }
 
   @override
-  RecordTypeMask withSpecialValues({bool? isNullable, bool? hasLateSentinel}) {
-    isNullable ??= this.isNullable;
-    hasLateSentinel ??= this.hasLateSentinel;
-    if (isNullable == this.isNullable &&
-        hasLateSentinel == this.hasLateSentinel) {
-      return this;
-    }
-    return RecordTypeMask._(
-      types,
-      shape,
-      isNullable: isNullable,
-      hasLateSentinel: hasLateSentinel,
-    );
+  RecordTypeMask withPowerset(Bitset powerset, CommonMasks domain) {
+    if (powerset == this.powerset) return this;
+    return RecordTypeMask._(types, shape, powerset);
   }
 
   @override
   TypeMask union(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
-    final newIsNullable = isNullable || other.isNullable;
-    final newHasLateSentinel = hasLateSentinel || other.hasLateSentinel;
+    final powerset = this.powerset.union(other.powerset);
     if (other is RecordTypeMask) {
       // NB: We take the slightly lenient strategy of, assuming the same shape,
       // collapsing the union of two records into a single record unioning the
@@ -122,62 +110,54 @@ class RecordTypeMask extends TypeMask {
           final otherType = otherTypes[index];
           return type.union(otherType, domain);
         });
-        return RecordTypeMask.createRecord(
+        return RecordTypeMask.createRecordWithPowerset(
           domain,
           unionedFields,
           shape,
-          isNullable: newIsNullable,
-          hasLateSentinel: newHasLateSentinel,
+          powerset,
         );
       } else {
         // If the two records have different shapes use the union of their flat
         // mask representations.
         return toFlatTypeMask(
-          domain._closedWorld,
-        ).union(other.toFlatTypeMask(domain._closedWorld), domain);
+          domain,
+        ).union(other.toFlatTypeMask(domain), domain);
       }
     }
     if (other is FlatTypeMask) {
       if (other.isEmptyOrSpecial) {
-        return withSpecialValues(
-          isNullable: newIsNullable,
-          hasLateSentinel: newHasLateSentinel,
-        );
+        return withPowerset(powerset, domain);
       }
       final otherBase = other.base!;
-      final recordClass = _classForRecord(domain._closedWorld);
+      final recordClass = _classForRecord(domain.closedWorld);
       if (recordClass != null) {
-        if (domain._closedWorld.classHierarchy.isSubclassOf(
+        if (domain.closedWorld.classHierarchy.isSubclassOf(
           otherBase,
           recordClass,
         )) {
           // Other is the same shape (though possibly a specialization) with
           // dynamic fields so just use the flat mask of this shape. This treats
           // all the fields as dynamic.
-          return toFlatTypeMask(domain._closedWorld);
-        } else if (domain._closedWorld.classHierarchy.isSubtypeOf(
+          return toFlatTypeMask(domain);
+        } else if (domain.closedWorld.classHierarchy.isSubtypeOf(
           recordClass,
           otherBase,
         )) {
           // Other is a supertype of this shape so it encompasses this shape as
           // well. Use a subtype check to check for the Record interface.
-          return other.withSpecialValues(
-            isNullable: newIsNullable,
-            hasLateSentinel: newHasLateSentinel,
-          );
+          return other.withPowerset(powerset, domain);
         }
       }
     }
 
     // Default to union of type cone on record class with other mask.
-    return toFlatTypeMask(domain._closedWorld).union(other, domain);
+    return toFlatTypeMask(domain).union(other, domain);
   }
 
   @override
   TypeMask intersection(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
-    final newIsNullable = isNullable && other.isNullable;
-    final newHasLateSentinel = hasLateSentinel && other.hasLateSentinel;
+    final powerset = this.powerset.intersection(other.powerset);
     if (other is RecordTypeMask) {
       if (shape == other.shape) {
         // The two records must have the same shape to have any intersection.
@@ -188,48 +168,38 @@ class RecordTypeMask extends TypeMask {
           final otherType = otherTypes[index];
           return type.intersection(otherType, domain);
         });
-        return RecordTypeMask.createRecord(
+        return RecordTypeMask.createRecordWithPowerset(
           domain,
           intersectedFields,
           shape,
-          isNullable: newIsNullable,
-          hasLateSentinel: newHasLateSentinel,
+          powerset,
         );
       }
     } else if (other is FlatTypeMask && !other.isEmptyOrSpecial) {
-      if (other.containsAll(domain._closedWorld)) {
+      if (other.containsAll(domain.closedWorld)) {
         // Top type encompasses this record so just update flags.
-        return withSpecialValues(
-          isNullable: newIsNullable,
-          hasLateSentinel: newHasLateSentinel,
-        );
+        return withPowerset(powerset, domain);
       }
       final otherBase = other.base!;
-      final recordClass = _classForRecord(domain._closedWorld);
+      final recordClass = _classForRecord(domain.closedWorld);
       if (recordClass != null) {
         // If a class for the shape does not exist then it must not be an
         // an instantiated shape (created for a type test) and the intersection
         // will default to empty.
-        if (domain._closedWorld.classHierarchy.isSubtypeOf(
+        if (domain.closedWorld.classHierarchy.isSubtypeOf(
           recordClass,
           otherBase,
         )) {
           // This record is encompassed in `other` so maintain the current
           // shape.
-          return withSpecialValues(
-            isNullable: newIsNullable,
-            hasLateSentinel: newHasLateSentinel,
-          );
-        } else if (domain._closedWorld.classHierarchy.isSubclassOf(
+          return withPowerset(powerset, domain);
+        } else if (domain.closedWorld.classHierarchy.isSubclassOf(
           otherBase,
           recordClass,
         )) {
           // Other is a specialization of this shape. We don't know the field
           // types on this specialization so we just use the class itself.
-          return other.withSpecialValues(
-            isNullable: newIsNullable,
-            hasLateSentinel: newHasLateSentinel,
-          );
+          return other.withPowerset(powerset, domain);
         }
       }
     } else if (other is UnionTypeMask) {
@@ -237,9 +207,17 @@ class RecordTypeMask extends TypeMask {
       return other.intersection(this, domain);
     }
     // We weren't able to find any matching classes so we default to empty.
-    return newIsNullable
-        ? FlatTypeMask.empty(hasLateSentinel: newHasLateSentinel)
-        : FlatTypeMask.nonNullEmpty(hasLateSentinel: newHasLateSentinel);
+    final isNullable = _specialValueDomain.contains(
+      powerset,
+      TypeMaskSpecialValue.null_,
+    );
+    final hasLateSentinel = _specialValueDomain.contains(
+      powerset,
+      TypeMaskSpecialValue.lateSentinel,
+    );
+    return isNullable
+        ? FlatTypeMask.empty(domain, hasLateSentinel: hasLateSentinel)
+        : FlatTypeMask.nonNullEmpty(domain, hasLateSentinel: hasLateSentinel);
   }
 
   @override
@@ -260,7 +238,7 @@ class RecordTypeMask extends TypeMask {
   }
 
   @override
-  bool containsMask(TypeMask other, JClosedWorld closedWorld) {
+  bool containsMask(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
     if (other.isNullable && !isNullable) return false;
     if (other.hasLateSentinel && !hasLateSentinel) return false;
@@ -272,12 +250,12 @@ class RecordTypeMask extends TypeMask {
       for (var i = 0; i < types.length; i++) {
         final type = types[i];
         final otherType = otherTypes[i];
-        if (!type.containsMask(otherType, closedWorld)) return false;
+        if (!type.containsMask(otherType, domain)) return false;
       }
       return true;
     } else if (other is UnionTypeMask) {
       // Must contain all submasks on `other`.
-      return other.disjointMasks.every((e) => containsMask(e, closedWorld));
+      return other.disjointMasks.every((e) => containsMask(e, domain));
     } else if (other is FlatTypeMask) {
       if (other.isEmptyOrSpecial) return true;
     }
@@ -334,7 +312,7 @@ class RecordTypeMask extends TypeMask {
   }
 
   @override
-  bool isInMask(TypeMask other, JClosedWorld closedWorld) {
+  bool isInMask(TypeMask other, CommonMasks domain) {
     other = TypeMask.nonForwardingMask(other);
     if (isNullable && !other.isNullable) return false;
     if (hasLateSentinel && !other.hasLateSentinel) return false;
@@ -346,21 +324,21 @@ class RecordTypeMask extends TypeMask {
       for (var i = 0; i < types.length; i++) {
         final type = types[i];
         final otherType = otherTypes[i];
-        if (!type.isInMask(otherType, closedWorld)) return false;
+        if (!type.isInMask(otherType, domain)) return false;
       }
       return true;
     } else if (other is FlatTypeMask) {
       if (other.isEmptyOrSpecial) return false;
-      if (other.containsAll(closedWorld)) return true;
+      if (other.containsAll(domain.closedWorld)) return true;
       final otherBase = other.base!;
-      final recordClass = _classForRecord(closedWorld);
+      final recordClass = _classForRecord(domain.closedWorld);
       if (recordClass == null) {
         // If a class for the shape does not exist then it must not be an
         // an instantiated shape (created for a type test) and this won't
         // be a subtype of that mask.
         return false;
       }
-      if (closedWorld.classHierarchy.isSubtypeOf(recordClass, otherBase)) {
+      if (domain.classHierarchy.isSubtypeOf(recordClass, otherBase)) {
         // If this record class is a subtype of `other.base` then each field
         // on other is considered dynamic and therefore a supertype of each
         // field on this. Use subtype to check against the `Record` interface.
@@ -368,7 +346,7 @@ class RecordTypeMask extends TypeMask {
       }
     } else if (other is UnionTypeMask) {
       // Must be contained by some submask on `other`.
-      return other.disjointMasks.any((e) => isInMask(e, closedWorld));
+      return other.disjointMasks.any((e) => isInMask(e, domain));
     }
     return false;
   }
@@ -386,39 +364,40 @@ class RecordTypeMask extends TypeMask {
     return closedWorld.recordData.representationForShape(shape)?.cls;
   }
 
-  FlatTypeMask toFlatTypeMask(JClosedWorld closedWorld) {
+  FlatTypeMask toFlatTypeMask(CommonMasks domain) {
     final recordClass =
-        _classForRecord(closedWorld) ??
-        closedWorld.commonElements.recordArityClass(shape.fieldCount);
-    if (closedWorld.classHierarchy.hasAnyStrictSubclass(recordClass)) {
+        _classForRecord(domain.closedWorld) ??
+        domain.closedWorld.commonElements.recordArityClass(shape.fieldCount);
+    if (domain.closedWorld.classHierarchy.hasAnyStrictSubclass(recordClass)) {
       return isNullable
           ? FlatTypeMask.subclass(
             recordClass,
-            closedWorld,
+            domain,
             hasLateSentinel: hasLateSentinel,
           )
           : FlatTypeMask.nonNullSubclass(
             recordClass,
-            closedWorld,
+            domain,
             hasLateSentinel: hasLateSentinel,
           );
     } else {
       return isNullable
           ? FlatTypeMask.exact(
             recordClass,
-            closedWorld,
+            domain,
             hasLateSentinel: hasLateSentinel,
           )
           : FlatTypeMask.nonNullExact(
             recordClass,
-            closedWorld,
+            domain,
             hasLateSentinel: hasLateSentinel,
           );
     }
   }
 
   @override
-  bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld) {
+  bool canHit(MemberEntity element, Name name, CommonMasks domain) {
+    final closedWorld = domain.closedWorld;
     if (element.enclosingClass == closedWorld.commonElements.jsNullClass) {
       return isNullable;
     }
@@ -433,16 +412,14 @@ class RecordTypeMask extends TypeMask {
       return true;
     }
 
-    return toFlatTypeMask(closedWorld).canHit(element, name, closedWorld);
+    return toFlatTypeMask(domain).canHit(element, name, domain);
   }
 
   @override
   MemberEntity? locateSingleMember(Selector selector, CommonMasks domain) {
     // Delegate the check to the flat mask for the record class of this record.
     // The field-specific information on this record isn't useful here.
-    return toFlatTypeMask(
-      domain._closedWorld,
-    ).locateSingleMember(selector, domain);
+    return toFlatTypeMask(domain).locateSingleMember(selector, domain);
   }
 
   @override
@@ -467,7 +444,8 @@ class RecordTypeMask extends TypeMask {
 
   @override
   String toString() {
-    return '[Record($shape, $types)]';
+    return '[Record($shape, $types, '
+        'powerset: ${TypeMask.powersetToString(powerset)})]';
   }
 
   @override

@@ -14,6 +14,12 @@ extension Extension on String {
    member-params=[#this]
   */
   @patch
+  /*member: Extension|get#instanceMethod:
+   builder-name=instanceMethod,
+   builder-params=[#this],
+   member-name=Extension|get#instanceMethod,
+   member-params=[#this]
+  */
   int instanceMethod() => 42;
 
   /*member: Extension|genericInstanceMethod:
@@ -25,6 +31,15 @@ extension Extension on String {
    member-type-params=[T]
   */
   @patch
+  /*member: Extension|get#genericInstanceMethod:
+   builder-name=genericInstanceMethod,
+   builder-params=[
+    #this,
+    t],
+   builder-type-params=[T],
+   member-name=Extension|get#genericInstanceMethod,
+   member-params=[#this]
+  */
   T genericInstanceMethod<T>(T t) => t;
 
   /*member: Extension|staticMethod:
@@ -92,6 +107,14 @@ extension GenericExtension<T> on T {
    member-type-params=[T]
   */
   @patch
+  /*member: GenericExtension|get#instanceMethod:
+   builder-name=instanceMethod,
+   builder-params=[#this],
+   builder-type-params=[T],
+   member-name=GenericExtension|get#instanceMethod,
+   member-params=[#this],
+   member-type-params=[T]
+  */
   int instanceMethod() => 42;
 
   /*member: GenericExtension|genericInstanceMethod:
@@ -103,6 +126,18 @@ extension GenericExtension<T> on T {
    member-type-params=[#T,T]
   */
   @patch
+  /*member: GenericExtension|get#genericInstanceMethod:
+   builder-name=genericInstanceMethod,
+   builder-params=[
+    #this,
+    t],
+   builder-type-params=[
+    T,
+    T],
+   member-name=GenericExtension|get#genericInstanceMethod,
+   member-params=[#this],
+   member-type-params=[#T]
+  */
   T genericInstanceMethod<T>(T t) => t;
 
   /*member: GenericExtension|staticMethod:

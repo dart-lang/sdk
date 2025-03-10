@@ -18,22 +18,16 @@ main() {
 
 class Class {
   @pragma('dart2js:noInline')
-  /*2:Class.instancePositional1[function-entry$1]*/ instancePositional1(
-    a, [
-    b = 42,
-    c = 87,
-  ]) {
+  /*2:Class.instancePositional1[function-entry$1]*/
+  instancePositional1(a, [b = 42, c = 87]) {
     print('instancePositional1($a,$b,$c)');
     /*3:Class.instancePositional1*/
     instancePositional2(1, 2);
   }
 
   @pragma('dart2js:noInline')
-  /*4:Class.instancePositional2[function-entry$2]*/ instancePositional2(
-    a, [
-    b = 42,
-    c = 87,
-  ]) {
+  /*4:Class.instancePositional2[function-entry$2]*/
+  instancePositional2(a, [b = 42, c = 87]) {
     print('instancePositional2($a,$b,$c)');
     /*5:Class.instancePositional2*/
     instancePositional3(3, 4, 5);
@@ -47,48 +41,32 @@ class Class {
   }
 
   @pragma('dart2js:noInline')
-  /*7:Class.instanceNamed1[function-entry$1]*/ instanceNamed1(
-    a, {
-    b = 42,
-    c = 87,
-    d = 735,
-  }) {
+  /*7:Class.instanceNamed1[function-entry$1]*/
+  instanceNamed1(a, {b = 42, c = 87, d = 735}) {
     print('instanceNamed1($a,b:$b,c:$c,d:$d)');
     /*8:Class.instanceNamed1*/
     instanceNamed2(1, b: 2);
   }
 
   @pragma('dart2js:noInline')
-  /*9:Class.instanceNamed2[function-entry$1$b]*/ instanceNamed2(
-    a, {
-    b = 42,
-    c = 87,
-    d = 735,
-  }) {
+  /*9:Class.instanceNamed2[function-entry$1$b]*/
+  instanceNamed2(a, {b = 42, c = 87, d = 735}) {
     print('instanceNamed2($a,b:$b,c:$c,d:$d)');
     /*10:Class.instanceNamed2*/
     instanceNamed3(3, c: 123);
   }
 
   @pragma('dart2js:noInline')
-  /*11:Class.instanceNamed3[function-entry$1$c]*/ instanceNamed3(
-    a, {
-    b = 42,
-    c = 87,
-    d = 735,
-  }) {
+  /*11:Class.instanceNamed3[function-entry$1$c]*/
+  instanceNamed3(a, {b = 42, c = 87, d = 735}) {
     print('instanceNamed3($a,b:$b,c:$c,d:$d)');
     /*12:Class.instanceNamed3*/
     instanceNamed4(4, c: 45, b: 76);
   }
 
   @pragma('dart2js:noInline')
-  /*13:Class.instanceNamed4[function-entry$1$b$c]*/ instanceNamed4(
-    a, {
-    b = 42,
-    c = 87,
-    d = 735,
-  }) {
+  /*13:Class.instanceNamed4[function-entry$1$b$c]*/
+  instanceNamed4(a, {b = 42, c = 87, d = 735}) {
     print('instanceNamed4($a,b:$b,c:$c,d:$d)');
     /*14:Class.instanceNamed4*/
     instanceNamed5(5, c: 6, b: 7, d: 8);

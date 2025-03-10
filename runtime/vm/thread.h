@@ -485,6 +485,7 @@ class Thread : public ThreadState {
     kExitThroughRuntimeCall = 2,
   };
 
+  uword exit_through_ffi() { return exit_through_ffi_; }
   static intptr_t exit_through_ffi_offset() {
     return OFFSET_OF(Thread, exit_through_ffi_);
   }

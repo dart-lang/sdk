@@ -121,13 +121,13 @@ class Class extends core::Object {
   @#C1
   method /* from org-dartlang-testcase:///patch_lib.dart */ missingOriginMethod() → void {}
 }
-class existingOriginDeclaration#1#0 extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
-  synthetic constructor •() → self2::existingOriginDeclaration#1#0
+class existingOriginDeclaration#1 extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
+  synthetic constructor •() → self2::existingOriginDeclaration#1
     : super core::Object::•()
     ;
 }
-class ExistingOriginClass#1#0 extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
-  synthetic constructor •() → self2::ExistingOriginClass#1#0
+class ExistingOriginClass#1 extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
+  synthetic constructor •() → self2::ExistingOriginClass#1
     : super core::Object::•()
     ;
 }

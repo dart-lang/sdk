@@ -328,7 +328,6 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
-          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
           sinceSdkVersion: 2.15.0
 ''');
@@ -384,7 +383,6 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
-          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
           sinceSdkVersion: 2.16.0
 ''');
@@ -440,7 +438,6 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
-          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
           sinceSdkVersion: 2.15.0
 ''');
@@ -835,7 +832,6 @@ library
           sinceSdkVersion: 2.15.0
       methods
         foo
-          reference: dart:foo::@enum::E::@method::foo
           firstFragment: dart:foo::<fragment>::@enum::E::@method::foo
           sinceSdkVersion: 2.15.0
 ''');
@@ -891,7 +887,6 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
-          reference: dart:foo::@extension::E::@method::foo
           firstFragment: dart:foo::<fragment>::@extension::E::@method::foo
           sinceSdkVersion: 2.15.0
 ''');
@@ -950,7 +945,6 @@ library
         Object
       methods
         foo
-          reference: dart:foo::@mixin::M::@method::foo
           firstFragment: dart:foo::<fragment>::@mixin::M::@method::foo
           sinceSdkVersion: 2.15.0
 ''');

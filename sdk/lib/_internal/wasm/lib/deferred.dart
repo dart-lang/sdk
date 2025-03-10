@@ -10,7 +10,7 @@ final Map<String, Set<String>> _loadedLibraries = {};
 
 external Map<String, Map<String, List<String>>> get _importMapping;
 
-@pragma("wasm:import", "deferredLibraryHelper.loadModule")
+@pragma("wasm:import", "moduleLoadingHelper.loadModule")
 external WasmExternRef _loadModule(WasmExternRef moduleName);
 
 class DeferredNotLoadedError extends Error implements NoSuchMethodError {
@@ -47,6 +47,10 @@ Future<void> loadLibrary(String enclosingLibrary, String importPrefix) {
     // but loaded eagerly.
     (_loadedLibraries[enclosingLibrary] ??= {}).add(importPrefix);
     return Future.value();
+  }
+
+  if (!deferredLoadingEnabled) {
+    throw DeferredLoadException('Compiler did not enable deferred loading.');
   }
 
   // Start loading modules

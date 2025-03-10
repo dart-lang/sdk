@@ -210,7 +210,7 @@ abstract final class DartFixKind {
   static const ADD_MISSING_REQUIRED_ARGUMENT = FixKind(
     'dart.fix.add.missingRequiredArgument',
     70,
-    "Add required argument '{0}'",
+    'Add {0} required argument{1}',
   );
   static const ADD_MISSING_SWITCH_CASES = FixKind(
     'dart.fix.add.missingSwitchCases',
@@ -1143,22 +1143,22 @@ abstract final class DartFixKind {
   static const REMOVE_AWAIT = FixKind(
     'dart.fix.remove.await',
     DartFixKindPriority.standard,
-    'Remove await',
+    "Remove 'await'",
   );
   static const REMOVE_AWAIT_MULTI = FixKind(
     'dart.fix.remove.await.multi',
     DartFixKindPriority.inFile,
-    'Remove awaits in file',
+    "Remove 'await's in file",
   );
   static const REMOVE_BREAK = FixKind(
     'dart.fix.remove.break',
     DartFixKindPriority.standard,
-    'Remove break',
+    "Remove 'break'",
   );
   static const REMOVE_BREAK_MULTI = FixKind(
     'dart.fix.remove.break.multi',
     DartFixKindPriority.inFile,
-    'Remove unnecessary breaks in file',
+    "Remove unnecessary 'break's in file",
   );
   static const REMOVE_CHARACTER = FixKind(
     'dart.fix.remove.character',
@@ -1193,7 +1193,7 @@ abstract final class DartFixKind {
   static const REMOVE_CONST = FixKind(
     'dart.fix.remove.const',
     DartFixKindPriority.standard,
-    'Remove const',
+    "Remove 'const'",
   );
   static const REMOVE_CONSTRUCTOR = FixKind(
     'dart.fix.remove.constructor',
@@ -1223,12 +1223,12 @@ abstract final class DartFixKind {
   static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE = FixKind(
     'dart.fix.remove.deprecatedNewInCommentReference',
     DartFixKindPriority.standard,
-    'Remove deprecated new keyword',
+    "Remove deprecated 'new' keyword",
   );
   static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE_MULTI = FixKind(
     'dart.fix.remove.deprecatedNewInCommentReference.multi',
     DartFixKindPriority.inFile,
-    'Remove deprecated new keyword in file',
+    "Remove deprecated 'new' keyword in file",
   );
   static const REMOVE_DUPLICATE_CASE = FixKind(
     'dart.fix.remove.duplicateCase',
@@ -1547,7 +1547,7 @@ abstract final class DartFixKind {
   static const REMOVE_UNNECESSARY_CONST = FixKind(
     'dart.fix.remove.unnecessaryConst',
     DartFixKindPriority.standard,
-    'Remove unnecessary const keyword',
+    "Remove unnecessary 'const' keyword",
   );
   static const REMOVE_UNNECESSARY_CONST_MULTI = FixKind(
     'dart.fix.remove.unnecessaryConst.multi',

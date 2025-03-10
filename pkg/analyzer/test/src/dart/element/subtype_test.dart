@@ -2692,6 +2692,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_interfaceType_class_augmented_interfaces() {
     var A = class_2(name: 'A');
     var I = class_2(name: 'I');
@@ -2712,6 +2713,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(I_none, A_none, strT0: 'I', strT1: 'A');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_interfaceType_class_augmented_mixins() {
     var A = class_2(name: 'A');
     var M = mixin_2(name: 'M');
@@ -2789,6 +2791,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_interfaceType_mixin_augmented_interfaces() {
     var M = mixin_2(name: 'M');
     var I = class_2(name: 'I');

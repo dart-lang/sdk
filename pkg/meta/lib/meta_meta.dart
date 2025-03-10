@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Annotations that describe the intended use of other annotations.
+// ignore: unnecessary_library_name
 library meta_meta;
 
 /// An annotation used on classes that are intended to be used as annotations

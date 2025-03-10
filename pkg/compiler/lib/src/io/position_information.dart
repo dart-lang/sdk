@@ -46,18 +46,15 @@ class PositionSourceInformation extends SourceInformation {
         .readIndexedOrNullNoCache<SourceLocation>(
           () => SourceLocation.readFromDataSource(source),
         );
-    List<FrameContext>? inliningContext = source
-        .readIndexedOrNullNoCache<List<FrameContext>>(
-          () =>
-              // FrameContext must be cached since PositionSourceInformation.==
-              // requires identity comparison on the objects in inliningContext.
-              source
-              .readList(
-                () => source.readIndexed(
-                  () => FrameContext.readFromDataSource(source),
-                ),
-              ),
-        );
+    List<FrameContext>?
+    inliningContext = source.readIndexedOrNullNoCache<List<FrameContext>>(
+      () =>
+      // FrameContext must be cached since PositionSourceInformation.==
+      // requires identity comparison on the objects in inliningContext.
+      source.readList(
+        () => source.readIndexed(() => FrameContext.readFromDataSource(source)),
+      ),
+    );
     source.end(tag);
     return PositionSourceInformation(
       startPosition,

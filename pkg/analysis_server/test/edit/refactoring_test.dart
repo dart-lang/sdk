@@ -2036,29 +2036,6 @@ void f() {
     );
   }
 
-  Future<void> test_classMember_field_onFieldFormalParameter_named_private() {
-    addTestFile('''
-class A {
-  final int test;
-  A({this.test = 0});
-}
-void f() {
-  A(test: 42);
-}
-''');
-
-    return getRefactoringResult(() {
-      return sendRenameRequest('test: 42', '_new');
-    }).then((result) {
-      var problems = result.finalProblems;
-      expect(problems, hasLength(1));
-      assertResultProblemsError(
-        problems,
-        "The parameter 'test' is named and can not be private.",
-      );
-    });
-  }
-
   Future<void> test_classMember_getter() {
     addTestFile('''
 class A {
@@ -2762,7 +2739,7 @@ void f() {
       expect(problems, hasLength(1));
       assertResultProblemsError(
         problems,
-        "Duplicate local variable 'newName'.",
+        "Duplicate local variable of name 'newName' at f in 'test.dart'.",
       );
     });
   }

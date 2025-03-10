@@ -6754,10 +6754,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ExpressionInfo<SharedTypeView>? equalityInfo =
         flowAnalysis.equalityOperand_end(left);
 
-    Expression? equals;
+    // When evaluating exactly a dot shorthand in the RHS, we use the LHS type
+    // to provide the context type for the shorthand.
+    DartType rightTypeContext =
+        right is DotShorthand ? leftType : const UnknownType();
     ExpressionInferenceResult rightResult =
-        inferExpression(right, const UnknownType(), isVoidAllowed: false);
+        inferExpression(right, rightTypeContext, isVoidAllowed: false);
 
+    Expression? equals;
     if (_isNull(right)) {
       equals = new EqualsNull(left)..fileOffset = fileOffset;
     } else if (_isNull(left)) {
@@ -12198,6 +12202,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);
     return expressionInferenceResult;
+  }
+
+  @override
+  bool isDotShorthand(Expression node) {
+    return node is DotShorthand;
   }
 }
 

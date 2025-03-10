@@ -54,6 +54,7 @@ package:analyzer/dart/analysis/code_style_options.dart:
   CodeStyleOptions (class extends Object):
     new (constructor: CodeStyleOptions Function())
     addTrailingCommas (getter: bool)
+    avoidRenamingMethodParameters (getter: bool)
     finalInForEach (getter: bool)
     makeLocalsFinal (getter: bool)
     preferConstDeclarations (getter: bool)
@@ -2991,46 +2992,6 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  AugmentedClassElement (class extends Object implements AugmentedInterfaceElement):
-    new (constructor: AugmentedClassElement Function())
-    firstFragment (getter: ClassElement)
-  AugmentedEnumElement (class extends Object implements AugmentedInterfaceElement):
-    new (constructor: AugmentedEnumElement Function())
-    constants (getter: List<FieldElement>)
-    firstFragment (getter: EnumElement)
-  AugmentedExtensionElement (class extends Object implements AugmentedInstanceElement):
-    new (constructor: AugmentedExtensionElement Function())
-    extendedType (getter: DartType)
-  AugmentedExtensionTypeElement (class extends Object implements AugmentedInterfaceElement):
-    new (constructor: AugmentedExtensionTypeElement Function())
-    firstFragment (getter: ExtensionTypeElement)
-    primaryConstructor (getter: ConstructorElement)
-    representation (getter: FieldElement)
-    typeErasure (getter: DartType)
-  AugmentedInstanceElement (class extends Object):
-    new (constructor: AugmentedInstanceElement Function())
-    accessors (getter: List<PropertyAccessorElement>)
-    fields (getter: List<FieldElement>)
-    firstFragment (getter: InstanceElement)
-    metadata (getter: List<ElementAnnotation>)
-    methods (getter: List<MethodElement>)
-    thisType (getter: DartType)
-    getField (method: FieldElement? Function(String))
-    getGetter (method: PropertyAccessorElement? Function(String))
-    getMethod (method: MethodElement? Function(String))
-    getSetter (method: PropertyAccessorElement? Function(String))
-  AugmentedInterfaceElement (class extends Object implements AugmentedInstanceElement):
-    new (constructor: AugmentedInterfaceElement Function())
-    constructors (getter: List<ConstructorElement>)
-    firstFragment (getter: InterfaceElement)
-    interfaces (getter: List<InterfaceType>)
-    mixins (getter: List<InterfaceType>)
-    thisType (getter: InterfaceType)
-    unnamedConstructor (getter: ConstructorElement?)
-    getNamedConstructor (method: ConstructorElement? Function(String))
-  AugmentedMixinElement (class extends AugmentedInterfaceElement):
-    new (constructor: AugmentedMixinElement Function())
-    superclassConstraints (getter: List<InterfaceType>)
   BindPatternVariableElement (class extends Object implements PatternVariableElement):
     new (constructor: BindPatternVariableElement Function())
   ClassElement (class extends Object implements InterfaceElement):
@@ -5361,6 +5322,10 @@ package:analyzer/src/task/api/model.dart:
     source (getter: Source?)
 package:analyzer/src/workspace/workspace.dart:
   Workspace (non-public)
+package:analyzer/utilities/extensions/uri.dart:
+  UriExtension (extension on Uri):
+    isImplementation (getter: bool)
+    isSamePackageAs (method: bool Function(Uri))
 dart:async:
   Future (referenced)
   Stream (referenced)

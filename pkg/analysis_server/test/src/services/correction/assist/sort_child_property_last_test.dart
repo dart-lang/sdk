@@ -77,7 +77,7 @@ import 'package:flutter/material.dart';
 void f() {
   Column(
     mainAxisAlignment: MainAxisAlignment.start,
-    /*caret*/children: <Widget>[
+    ^children: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
       Text('ccccccccc'),
@@ -110,7 +110,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Column(
-    /*caret*/children: <Widget>[
+    ^children: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
       Text('ccccccccc'),
@@ -127,7 +127,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Column(
-    /*caret*/children: <Widget>[
+    ^children: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
       Text('ccccccccc'),
@@ -157,7 +157,7 @@ void f() {
 import 'package:flutter/material.dart';
 void f() {
   Column(
-    /*caret*/children: <Widget>[
+    ^children: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
       Text('ccccccccc'),

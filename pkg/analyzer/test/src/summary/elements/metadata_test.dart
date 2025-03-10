@@ -741,7 +741,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::foo
       methods
         bar
-          reference: <testLibrary>::@class::C::@method::bar
           firstFragment: <testLibraryFragment>::@class::C::@method::bar
           metadata
             Annotation
@@ -5313,7 +5312,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           metadata
             Annotation
@@ -5499,7 +5497,6 @@ library
         Object
       methods
         m
-          reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
           metadata
             Annotation
@@ -5885,7 +5882,6 @@ library
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
       methods
         bar
-          reference: <testLibrary>::@mixin::M::@method::bar
           firstFragment: <testLibraryFragment>::@mixin::M::@method::bar
           metadata
             Annotation
@@ -6641,7 +6637,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         method
-          reference: <testLibrary>::@class::A::@method::method
           firstFragment: <testLibraryFragment>::@class::A::@method::method
           metadata
             Annotation
@@ -9795,7 +9790,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType x

@@ -4,9 +4,10 @@
 
 import 'relativize.dart';
 
+// Converts a path input from the command line to a URI.
 Uri resolveInputUri(String path) {
   Uri uri;
-  if (path.indexOf(":") == -1) {
+  if (!path.contains(":")) {
     uri = new Uri.file(path, windows: isWindows);
   } else if (!isWindows) {
     uri = parseUri(path);
@@ -30,7 +31,7 @@ Uri parseUri(String path) {
 Uri resolveAmbiguousWindowsPath(String path) {
   try {
     return new Uri.file(path, windows: isWindows);
-  } on ArgumentError catch (_) {
+  } on ArgumentError {
     return parseUri(path);
   }
 }

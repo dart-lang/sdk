@@ -385,12 +385,21 @@ abstract final class _StringBase implements String {
 
   int indexOf(Pattern pattern, [int start = 0]) {
     if ((start < 0) || (start > this.length)) {
-      throw new RangeError.range(start, 0, this.length, "start");
+      throw RangeError.range(start, 0, this.length, "start");
     }
     if (pattern is String) {
       String other = pattern;
-      int maxIndex = this.length - other.length;
-      // TODO: Use an efficient string search (e.g. BMH).
+      var otherLength = other.length;
+      if (otherLength == 0) return start;
+      if (otherLength == 1) {
+        int codeUnit = other.codeUnitAt(0);
+        for (var index = start; index < this.length; index++) {
+          if (codeUnit == this.codeUnitAt(index)) return index;
+        }
+        return -1;
+      }
+      int maxIndex = this.length - otherLength;
+      // TODO: Use an efficient string search (e.g., BMH).
       for (int index = start; index <= maxIndex; index++) {
         if (_substringMatches(index, other)) {
           return index;
@@ -399,8 +408,6 @@ abstract final class _StringBase implements String {
       return -1;
     }
     for (int i = start; i <= this.length; i++) {
-      // TODO(11276); This has quadratic behavior because matchAsPrefix tries
-      // to find a later match too. Optimize matchAsPrefix to avoid this.
       if (pattern.matchAsPrefix(this, i) != null) return i;
     }
     return -1;
@@ -424,8 +431,6 @@ abstract final class _StringBase implements String {
       return -1;
     }
     for (int i = start; i >= 0; i--) {
-      // TODO(11276); This has quadratic behavior because matchAsPrefix tries
-      // to find a later match too. Optimize matchAsPrefix to avoid this.
       if (pattern.matchAsPrefix(this, i) != null) return i;
     }
     return -1;
@@ -604,13 +609,10 @@ abstract final class _StringBase implements String {
   }
 
   bool contains(Pattern pattern, [int startIndex = 0]) {
-    if (pattern is String) {
-      if (startIndex < 0 || startIndex > this.length) {
-        throw new RangeError.range(startIndex, 0, this.length);
-      }
+    if (startIndex >= 0 && startIndex <= this.length) {
       return indexOf(pattern, startIndex) >= 0;
     }
-    return pattern.allMatches(this.substring(startIndex)).isNotEmpty;
+    throw RangeError.range(startIndex, 0, this.length, "startIndex");
   }
 
   String replaceFirst(
@@ -618,16 +620,6 @@ abstract final class _StringBase implements String {
     String replacement, [
     int startIndex = 0,
   ]) {
-    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
-    if (pattern == null) {
-      throw new ArgumentError.notNull("pattern");
-    }
-    if (replacement == null) {
-      throw new ArgumentError.notNull("replacement");
-    }
-    if (startIndex == null) {
-      throw new ArgumentError.notNull("startIndex");
-    }
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     Iterator iterator =
         startIndex == 0
@@ -708,7 +700,7 @@ abstract final class _StringBase implements String {
     if (replacementIsOneByte &&
         length < _maxJoinReplaceOneByteStringLength &&
         this._isOneByte) {
-      // TODO(lrn): Is there a cut-off point, or is runtime always faster?
+      // TODO: Is there a cut-off point, or is runtime always faster?
       return _joinReplaceAllOneByteResult(this, matches, length);
     }
     return _joinReplaceAllResult(this, matches, length, replacementIsOneByte);

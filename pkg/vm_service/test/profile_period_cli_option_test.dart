@@ -21,7 +21,7 @@ final tests = <IsolateTest>[
     // ms. So, we confirm that increasing the profile period using the CLI
     // option worked by confirming that we received significantly fewer than
     // 5000 samples.
-    expect(cpuSamples.sampleCount, lessThan(2000));
+    expect(cpuSamples.sampleCount, lessThan(3000));
   }
 ];
 

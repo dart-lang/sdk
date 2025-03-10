@@ -8,10 +8,10 @@ import 'abstract_value_domain.dart';
 
 /// Strategy for the abstraction of runtime values used by the global type
 /// inference.
-abstract class AbstractValueStrategy {
+abstract class AbstractValueStrategy<T extends AbstractValueDomain> {
   /// Creates the abstract value domain for [closedWorld].
-  AbstractValueDomain createDomain(covariant JClosedWorld closedWorld);
+  T createDomain(JClosedWorld closedWorld);
 
   /// Creates the [SelectorConstraintsStrategy] used by the backend enqueuer.
-  SelectorConstraintsStrategy createSelectorStrategy();
+  SelectorConstraintsStrategy createSelectorStrategy(T domain);
 }

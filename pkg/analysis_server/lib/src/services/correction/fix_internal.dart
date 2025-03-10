@@ -956,10 +956,24 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.NON_BOOL_CONDITION: [AddNeNull.new, AddAwait.nonBool],
   CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR: [AddConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
+  ],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_KEY: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
+  ],
   CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY: [AddConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE: [RemoveConst.new],
+  CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
+  ],
   CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION: [
     AddConst.new,
   ],
+  CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT: [RemoveConst.new],
   CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION: [
     AddMissingSwitchCases.new,
   ],
@@ -1006,8 +1020,12 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
   ],
+  CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY: [RemoveConst.new],
   CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY: [
     ConvertToNullAwareSetElement.new,
+  ],
+  CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY: [
+    RemoveConst.new,
   ],
   CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED: [
     AddClassModifier.baseModifier,

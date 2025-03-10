@@ -1207,6 +1207,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  bool isDotShorthand(ExpressionImpl node) {
+    // TODO(kallentu): Implement this for dot shorthand equality implementation.
+    return false;
+  }
+
+  @override
   bool isLegacySwitchExhaustive(AstNode node, SharedTypeView expressionType) =>
       legacySwitchExhaustiveness!.isExhaustive;
 
@@ -2330,8 +2336,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // to be visited in the context of the constructor field initializer node.
     //
     var fieldName = node.fieldName;
-    var fieldElement = enclosingClass!.getField(fieldName.name);
-    fieldName.element = fieldElement.asElement2;
+    var fieldElement = enclosingClass!.getField2(fieldName.name);
+    fieldName.element = fieldElement;
     var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
     var expression = node.expression;
     analyzeExpression(expression, SharedTypeSchemaView(fieldType));
@@ -2339,7 +2345,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
     if (fieldElement != null) {
       var enclosingConstructor = enclosingFunction as ConstructorElementImpl2;
-      checkForFieldInitializerNotAssignable(node, fieldElement.asElement2,
+      checkForFieldInitializerNotAssignable(node, fieldElement,
           isConstConstructor: enclosingConstructor.isConst,
           whyNotPromoted: whyNotPromoted);
     }

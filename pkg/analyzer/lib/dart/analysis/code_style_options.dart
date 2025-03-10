@@ -13,6 +13,11 @@ abstract class CodeStyleOptions {
   /// should be inserted in function calls and declarations.
   bool get addTrailingCommas;
 
+  /// Whether the `avoid_renaming_method_parameters` is enabled and method
+  /// parameters should not be renamed separately from the other
+  /// implementations.
+  bool get avoidRenamingMethodParameters;
+
   /// Whether local variables should be `final` inside a for-loop.
   bool get finalInForEach;
 

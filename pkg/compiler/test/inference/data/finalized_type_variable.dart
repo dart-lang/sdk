@@ -2,80 +2,86 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: AppView.:[subclass=AppView]*/
+/*member: AppView.:[subclass=AppView|powerset=0]*/
 abstract class AppView<T> {
-  /*member: AppView.ctx:Union(null, [exact=CardComponent2], [exact=CardComponent])*/
+  /*member: AppView.ctx:Union(null, [exact=CardComponent2|powerset=0], [exact=CardComponent|powerset=0], powerset: 1)*/
   T? ctx;
 }
 
-/*member: CardComponent.:[exact=CardComponent]*/
+/*member: CardComponent.:[exact=CardComponent|powerset=0]*/
 class CardComponent {
-  /*member: CardComponent.title:Value([null|exact=JSString], value: "foo")*/
+  /*member: CardComponent.title:Value([null|exact=JSString|powerset=1], value: "foo", powerset: 1)*/
   String? title;
 }
 
-/*member: ViewCardComponent.:[exact=ViewCardComponent]*/
+/*member: ViewCardComponent.:[exact=ViewCardComponent|powerset=0]*/
 class ViewCardComponent extends AppView<CardComponent> {
-  /*member: ViewCardComponent._title:Value([null|exact=JSString], value: "foo")*/
+  /*member: ViewCardComponent._title:Value([null|exact=JSString|powerset=1], value: "foo", powerset: 1)*/
   var _title;
 
   @pragma('dart2js:noInline')
-  set ng_title(String /*Value([exact=JSString], value: "foo")*/ value) {
-    if ( /*invoke: [exact=ViewCardComponent]*/ checkBinding(
-      /*[exact=ViewCardComponent]*/ _title,
+  set ng_title(
+    String /*Value([exact=JSString|powerset=0], value: "foo", powerset: 0)*/
+    value,
+  ) {
+    if ( /*invoke: [exact=ViewCardComponent|powerset=0]*/ checkBinding(
+      /*[exact=ViewCardComponent|powerset=0]*/ _title,
       value,
     )) {
-      /*[exact=ViewCardComponent]*/
-      ctx!. /*update: [exact=CardComponent]*/ title = value;
-      /*update: [exact=ViewCardComponent]*/
+      /*[exact=ViewCardComponent|powerset=0]*/
+      ctx!. /*update: [exact=CardComponent|powerset=0]*/ title = value;
+      /*update: [exact=ViewCardComponent|powerset=0]*/
       _title = value;
     }
   }
 
-  /*member: ViewCardComponent.checkBinding:Value([exact=JSBool], value: true)*/
+  /*member: ViewCardComponent.checkBinding:Value([exact=JSBool|powerset=0], value: true, powerset: 0)*/
   checkBinding(
-    /*Value([null|exact=JSString], value: "foo")*/ a,
-    /*Value([exact=JSString], value: "foo")*/ b,
+    /*Value([null|exact=JSString|powerset=1], value: "foo", powerset: 1)*/ a,
+    /*Value([exact=JSString|powerset=0], value: "foo", powerset: 0)*/ b,
   ) => true;
 }
 
-/*member: CardComponent2.:[exact=CardComponent2]*/
+/*member: CardComponent2.:[exact=CardComponent2|powerset=0]*/
 class CardComponent2 {
-  /*member: CardComponent2.title:Value([null|exact=JSString], value: "bar")*/
+  /*member: CardComponent2.title:Value([null|exact=JSString|powerset=1], value: "bar", powerset: 1)*/
   String? title;
 }
 
-/*member: ViewCardComponent2.:[exact=ViewCardComponent2]*/
+/*member: ViewCardComponent2.:[exact=ViewCardComponent2|powerset=0]*/
 class ViewCardComponent2 extends AppView<CardComponent2> {
-  /*member: ViewCardComponent2._title:Value([null|exact=JSString], value: "bar")*/
+  /*member: ViewCardComponent2._title:Value([null|exact=JSString|powerset=1], value: "bar", powerset: 1)*/
   var _title;
 
   @pragma('dart2js:noInline')
-  set ng_title(String /*Value([exact=JSString], value: "bar")*/ value) {
-    if ( /*invoke: [exact=ViewCardComponent2]*/ checkBinding(
-      /*[exact=ViewCardComponent2]*/ _title,
+  set ng_title(
+    String /*Value([exact=JSString|powerset=0], value: "bar", powerset: 0)*/
+    value,
+  ) {
+    if ( /*invoke: [exact=ViewCardComponent2|powerset=0]*/ checkBinding(
+      /*[exact=ViewCardComponent2|powerset=0]*/ _title,
       value,
     )) {
-      /*[exact=ViewCardComponent2]*/
-      ctx!. /*update: [exact=CardComponent2]*/ title = value;
-      /*update: [exact=ViewCardComponent2]*/
+      /*[exact=ViewCardComponent2|powerset=0]*/
+      ctx!. /*update: [exact=CardComponent2|powerset=0]*/ title = value;
+      /*update: [exact=ViewCardComponent2|powerset=0]*/
       _title = value;
     }
   }
 
-  /*member: ViewCardComponent2.checkBinding:Value([exact=JSBool], value: true)*/
+  /*member: ViewCardComponent2.checkBinding:Value([exact=JSBool|powerset=0], value: true, powerset: 0)*/
   checkBinding(
-    /*Value([null|exact=JSString], value: "bar")*/ a,
-    /*Value([exact=JSString], value: "bar")*/ b,
+    /*Value([null|exact=JSString|powerset=1], value: "bar", powerset: 1)*/ a,
+    /*Value([exact=JSString|powerset=0], value: "bar", powerset: 0)*/ b,
   ) => true;
 }
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   var c1 = ViewCardComponent();
-  c1. /*update: [exact=ViewCardComponent]*/ ctx = CardComponent();
-  c1. /*update: [exact=ViewCardComponent]*/ ng_title = 'foo';
+  c1. /*update: [exact=ViewCardComponent|powerset=0]*/ ctx = CardComponent();
+  c1. /*update: [exact=ViewCardComponent|powerset=0]*/ ng_title = 'foo';
   var c2 = ViewCardComponent2();
-  c2. /*update: [exact=ViewCardComponent2]*/ ctx = CardComponent2();
-  c2. /*update: [exact=ViewCardComponent2]*/ ng_title = 'bar';
+  c2. /*update: [exact=ViewCardComponent2|powerset=0]*/ ctx = CardComponent2();
+  c2. /*update: [exact=ViewCardComponent2|powerset=0]*/ ng_title = 'bar';
 }

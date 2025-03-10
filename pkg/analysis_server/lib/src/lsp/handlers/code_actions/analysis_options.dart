@@ -12,6 +12,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:yaml/yaml.dart';
 
@@ -35,7 +36,9 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<CodeActionWithPriority>> getAssistActions() async => [];
 
   @override
-  Future<List<CodeActionWithPriority>> getFixActions() async {
+  Future<List<CodeActionWithPriority>> getFixActions(
+    OperationPerformance? performance,
+  ) async {
     var session = await server.getAnalysisSession(path);
     if (session == null) {
       return [];

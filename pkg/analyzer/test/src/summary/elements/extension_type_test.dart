@@ -1527,7 +1527,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
           typeErasure: int
           interfaces
-            B
+            Object
           fields
             final it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1545,7 +1545,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
           typeErasure: int
           interfaces
-            A
+            Object
           fields
             final it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1644,7 +1644,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
           typeErasure: int
           interfaces
-            A
+            Object
           fields
             final it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2408,7 +2408,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
-          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             requiredPositional a
@@ -2509,7 +2508,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
-          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             optionalNamed a
@@ -2628,7 +2626,7 @@ library
                   type: InvalidType
                   codeOffset: 17
                   codeLength: 0
-                  field: <testLibraryFragment>::@extensionType::A::@field::<empty>
+                  field: <null>
           accessors
             synthetic get <empty> @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::<empty>

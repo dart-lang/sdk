@@ -1231,14 +1231,6 @@ severity: $severity
     // [library] is only nullable so we can call this a "dummy-time" to get rid
     // of a semi-leak.
     if (library == null) return;
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        library.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      // Coverage-ignore-block(suite): Not run.
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        await buildBody(augmentationLibrary);
-      }
-    }
 
     // We tokenize source files twice to keep memory usage low. This is the
     // second time, and the first time was in [buildOutline] above. So this
@@ -2637,15 +2629,6 @@ severity: $severity
 
   void _checkMainMethods(
       SourceLibraryBuilder libraryBuilder, DartType listOfString) {
-    Iterable<SourceLibraryBuilder>? augmentationLibraries =
-        libraryBuilder.augmentationLibraries;
-    if (augmentationLibraries != null) {
-      // Coverage-ignore-block(suite): Not run.
-      for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-        _checkMainMethods(augmentationLibrary, listOfString);
-      }
-    }
-
     Builder? mainBuilder =
         libraryBuilder.exportNameSpace.lookupLocalMember('main', setter: false);
     mainBuilder ??=

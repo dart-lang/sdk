@@ -42,7 +42,7 @@ void main() {
   // Mixin
   IntegerMixin? integerMixin = .mixinOne;
   const IntegerMixin? constIntegerMixin = .mixinConstOne;
-  var integerMixinList = <IntegerMixin?>[.one, .two, .one];
+  var integerMixinList = <IntegerMixin?>[.mixinOne, .mixinTwo, .mixinOne];
 
   // Null assertion on a nullable static member.
   NullableInteger? nullableInteger = .one;

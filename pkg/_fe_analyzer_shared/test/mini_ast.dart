@@ -28,8 +28,8 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry, RecordPatternField;
-import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:test/test.dart';
@@ -151,6 +151,9 @@ Statement do_(List<ProtoStatement> body, ProtoExpression condition) {
       condition.asExpression(location: location),
       location: location);
 }
+
+Expression dotShorthandHead(String name) =>
+    new DotShorthandHead._(name, location: computeLocation());
 
 /// Creates a pseudo-expression having type [typeStr] that otherwise has no
 /// effect on flow analysis.
@@ -1235,6 +1238,46 @@ class Do extends Statement {
     h.typeAnalyzer.analyzeDoLoop(this, body, condition);
     h.irBuilder.apply('do', [Kind.statement, Kind.expression], Kind.statement,
         location: location);
+  }
+}
+
+// Represents the entire dot shorthand expression.
+// e.g. `.current.errorZone`
+class DotShorthand extends Expression {
+  final Expression expr;
+
+  DotShorthand._(this.expr, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    expr.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$expr';
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    return h.typeAnalyzer.analyzeDotShorthandExpression(expr, schema);
+  }
+}
+
+// Represents the head of a dot shorthand.
+// e.g. `.zero`
+class DotShorthandHead extends Expression {
+  final String name;
+
+  DotShorthandHead._(this.name, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {}
+
+  @override
+  String toString() => '.$name';
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    return h.typeAnalyzer.analyzeDotShorthandHeadExpression(this, name, schema);
   }
 }
 
@@ -2729,6 +2772,23 @@ class MiniAstOperations
     }
   }
 
+  @override
+  TypeConstraintGenerator<Var, Type, String, Node>
+      createTypeConstraintGenerator(
+          {required TypeConstraintGenerationDataForTesting?
+              typeConstraintGenerationDataForTesting,
+          required List<SharedTypeParameterView> typeParametersToInfer,
+          required TypeAnalyzerOperations<Var, Type, String>
+              typeAnalyzerOperations,
+          required bool inferenceUsingBoundsIsEnabled}) {
+    return TypeConstraintGatherer({
+      for (var typeParameter in typeParametersToInfer)
+        typeParameter
+            .unwrapTypeParameterViewAsTypeParameterStructure<TypeParameter>()
+            .name
+    });
+  }
+
   /// Returns the downward inference result of a type with the given [name],
   /// in the [context]. For example infer `List<int>` from `Iterable<int>`.
   Type downwardInfer(String name, Type context) {
@@ -3177,23 +3237,6 @@ class MiniAstOperations
   @override
   Type withNullabilitySuffixInternal(Type type, NullabilitySuffix modifier) {
     return type.withNullability(modifier);
-  }
-
-  @override
-  TypeConstraintGenerator<Var, Type, String, Node>
-      createTypeConstraintGenerator(
-          {required TypeConstraintGenerationDataForTesting?
-              typeConstraintGenerationDataForTesting,
-          required List<SharedTypeParameterView> typeParametersToInfer,
-          required TypeAnalyzerOperations<Var, Type, String>
-              typeAnalyzerOperations,
-          required bool inferenceUsingBoundsIsEnabled}) {
-    return TypeConstraintGatherer({
-      for (var typeParameter in typeParametersToInfer)
-        typeParameter
-            .unwrapTypeParameterViewAsTypeParameterStructure<TypeParameter>()
-            .name
-    });
   }
 }
 
@@ -3877,6 +3920,14 @@ mixin ProtoCollectionElement<Self extends ProtoCollectionElement<dynamic>> {
 /// variable).
 mixin ProtoExpression
     implements ProtoStatement<Expression>, ProtoCollectionElement<Expression> {
+  /// If `this` is an expression `x`, creates a dot shorthand wrapper around
+  /// `x`.
+  Expression get dotShorthand {
+    var location = computeLocation();
+    return new DotShorthand._(asExpression(location: location),
+        location: location);
+  }
+
   /// If `this` is an expression `x`, creates the expression `x!`.
   Expression get nonNullAssert {
     var location = computeLocation();
@@ -5509,6 +5560,19 @@ class _MiniAstTypeAnalyzer
     flow.doStatement_end(condition);
   }
 
+  ExpressionTypeAnalysisResult analyzeDotShorthandExpression(
+      Expression expression, SharedTypeSchemaView schema) {
+    var type = analyzeDotShorthand(expression, schema);
+    return new ExpressionTypeAnalysisResult(type: type);
+  }
+
+  ExpressionTypeAnalysisResult analyzeDotShorthandHeadExpression(
+      Expression node, String name, SharedTypeSchemaView schema) {
+    _irBuilder.atom(name, Kind.expression, location: node.location);
+    return new ExpressionTypeAnalysisResult(
+        type: SharedTypeView(getDotShorthandContext().unwrapTypeSchemaView()));
+  }
+
   void analyzeExpressionStatement(Expression expression) {
     analyzeExpression(expression, operations.unknownType);
   }
@@ -6042,6 +6106,11 @@ class _MiniAstTypeAnalyzer
 
   @override
   void handleSwitchScrutinee(SharedTypeView type) {}
+
+  @override
+  bool isDotShorthand(Node node) {
+    return node is DotShorthand;
+  }
 
   @override
   bool isLegacySwitchExhaustive(

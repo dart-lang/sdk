@@ -396,7 +396,6 @@ library
           firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
       methods
         bar
-          reference: <testLibrary>::@extension::E::@method::bar
           firstFragment: <testLibraryFragment>::@extension::E::@method::bar
           metadata
             Annotation

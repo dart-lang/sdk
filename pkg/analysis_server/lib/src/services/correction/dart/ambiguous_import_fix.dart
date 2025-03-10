@@ -28,7 +28,9 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       prefix = node.importPrefix?.name.lexeme;
     } else if (node is SimpleIdentifier) {
       element = node.element;
-      if (node.parent case PrefixedIdentifier(prefix: var currentPrefix)) {
+      if (node.parent case PrefixedIdentifier(
+        prefix: var currentPrefix,
+      ) when currentPrefix != node) {
         prefix = currentPrefix.name;
       }
     }

@@ -1,4 +1,4 @@
-/*spec.library: 
+/*library: 
  constant=[
   {
   "id": "constant/B.C_A = new A.A();\n",
@@ -31,89 +31,6 @@
   "size": 41,
   "outputUnit": "outputUnit/main",
   "code": "B.JSArray_methods = J.JSArray.prototype;\n"
-},
-  {
-  "id": "constant/B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n",
-  "kind": "constant",
-  "name": "",
-  "size": 59,
-  "outputUnit": "outputUnit/main",
-  "code": "B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n"
-},
-  {
-  "id": "constant/B.List_A = A._setArrayType(makeConstList([B.C_A]), A.findType(\"JSArray<A>\"));\n",
-  "kind": "constant",
-  "name": "",
-  "size": 78,
-  "outputUnit": "outputUnit/main",
-  "code": "B.List_A = A._setArrayType(makeConstList([B.C_A]), A.findType(\"JSArray<A>\"));\n"
-}],
- deferredFiles=[{}],
- dependencies=[{}],
- library=[{
-  "id": "library/memory:sdk/tests/web/native/main.dart::",
-  "kind": "library",
-  "name": "<unnamed>",
-  "size": 475,
-  "children": [
-    "class/memory:sdk/tests/web/native/main.dart::A",
-    "class/memory:sdk/tests/web/native/main.dart::C",
-    "classType/memory:sdk/tests/web/native/main.dart::A",
-    "field/memory:sdk/tests/web/native/main.dart::constList",
-    "function/memory:sdk/tests/web/native/main.dart::F",
-    "function/memory:sdk/tests/web/native/main.dart::main"
-  ],
-  "canonicalUri": "memory:sdk/tests/web/native/main.dart"
-}],
- outputUnits=[{
-  "id": "outputUnit/main",
-  "kind": "outputUnit",
-  "name": "main",
-  "filename": "out",
-  "imports": []
-}]
-*/
-/*kernel.library: 
- constant=[
-  {
-  "id": "constant/B.C_A = new A.A();\n",
-  "kind": "constant",
-  "name": "",
-  "size": 19,
-  "outputUnit": "outputUnit/main",
-  "code": "B.C_A = new A.A();\n"
-},
-  {
-  "id": "constant/B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n",
-  "kind": "constant",
-  "name": "",
-  "size": 131,
-  "outputUnit": "outputUnit/main",
-  "code": "B.C_JS_CONST = function getTagFallback(o) {\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n};\n"
-},
-  {
-  "id": "constant/B.Interceptor_methods = J.Interceptor.prototype;\n",
-  "kind": "constant",
-  "name": "",
-  "size": 49,
-  "outputUnit": "outputUnit/main",
-  "code": "B.Interceptor_methods = J.Interceptor.prototype;\n"
-},
-  {
-  "id": "constant/B.JSArray_methods = J.JSArray.prototype;\n",
-  "kind": "constant",
-  "name": "",
-  "size": 41,
-  "outputUnit": "outputUnit/main",
-  "code": "B.JSArray_methods = J.JSArray.prototype;\n"
-},
-  {
-  "id": "constant/B.JSString_methods = J.JSString.prototype;\n",
-  "kind": "constant",
-  "name": "",
-  "size": 43,
-  "outputUnit": "outputUnit/main",
-  "code": "B.JSString_methods = J.JSString.prototype;\n"
 },
   {
   "id": "constant/B.JavaScriptObject_methods = J.JavaScriptObject.prototype;\n",
@@ -186,7 +103,7 @@ class C {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::C",
   "children": [],
-  "inferredType": "[exact=Error]",
+  "inferredType": "[exact=Error|powerset=0]",
   "code": "",
   "type": "dynamic"
 }],
@@ -203,12 +120,12 @@ class C {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::C",
   "children": [],
-  "inferredType": "[subclass=JSPositiveInt]",
+  "inferredType": "[subclass=JSPositiveInt|powerset=0]",
   "code": "$.C_counter = 0;\n",
   "type": "int"
 }]*/
   static int counter = 0;
-  /*spec.member: C.y:
+  /*member: C.y:
    function=[{
   "id": "field/memory:sdk/tests/web/native/main.dart::C.y",
   "kind": "field",
@@ -217,28 +134,7 @@ class C {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::C",
   "children": [],
-  "inferredType": "[exact=JSBool]",
-  "code": "_lazy($, \"C_y\", \"$get$C_y\", () => {\n      var t1 = $.C_counter + 1;\n      $.C_counter = t1;\n      return t1 === 4;\n    });\n",
-  "type": "bool"
-}],
-   holding=[
-    {"id":"field/memory:sdk/tests/web/native/main.dart::C.counter"},
-    {"id":"field/memory:sdk/tests/web/native/main.dart::C.counter"},
-    {"id":"function/dart:_js_helper::throwCyclicInit"},
-    {"id":"function/dart:_late_helper::throwLateFieldADI"},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::C.compute","mask":"inlined"},
-    {"id":"function/memory:sdk/tests/web/native/main.dart::C.compute"}]
-  */
-  /*kernel.member: C.y:
-   function=[{
-  "id": "field/memory:sdk/tests/web/native/main.dart::C.y",
-  "kind": "field",
-  "name": "y",
-  "size": 124,
-  "outputUnit": "outputUnit/main",
-  "parent": "class/memory:sdk/tests/web/native/main.dart::C",
-  "children": [],
-  "inferredType": "[null|exact=JSBool]",
+  "inferredType": "[exact=JSBool|powerset=0]",
   "code": "_lazy($, \"C_y\", \"$get$C_y\", () => {\n      var t1 = $.C_counter + 1;\n      $.C_counter = t1;\n      return t1 === 4;\n    });\n",
   "type": "bool"
 }],
@@ -266,7 +162,7 @@ class C {
     "external": false
   },
   "returnType": "bool",
-  "inferredReturnType": "[exact=JSBool]",
+  "inferredReturnType": "[exact=JSBool|powerset=0]",
   "parameters": [],
   "sideEffects": "SideEffects(reads static; writes static)",
   "inlinedCount": 1,
@@ -294,11 +190,11 @@ class C {
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[exact=C]",
+  "inferredReturnType": "[exact=C|powerset=0]",
   "parameters": [
     {
       "name": "message",
-      "type": "[exact=Error]",
+      "type": "[exact=Error|powerset=0]",
       "declaredType": "Object"
     }
   ],
@@ -326,11 +222,11 @@ class C {
     "external": false
   },
   "returnType": "C",
-  "inferredReturnType": "[exact=C]",
+  "inferredReturnType": "[exact=C|powerset=0]",
   "parameters": [
     {
       "name": "object",
-      "type": "[exact=JSUInt31]",
+      "type": "[exact=JSUInt31|powerset=0]",
       "declaredType": "dynamic"
     }
   ],
@@ -364,7 +260,7 @@ class C {
     "external": false
   },
   "returnType": "void",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
@@ -409,7 +305,7 @@ class A {
   "outputUnit": "outputUnit/main",
   "parent": "class/memory:sdk/tests/web/native/main.dart::A",
   "children": [],
-  "inferredType": "Value([exact=JSString], value: \"hello\")",
+  "inferredType": "Value([exact=JSString|powerset=0], value: \"hello\", powerset: 0)",
   "code": "",
   "type": "dynamic"
 }]*/
@@ -430,7 +326,7 @@ class A {
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[exact=A]",
+  "inferredReturnType": "[exact=A|powerset=0]",
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 1,
@@ -449,7 +345,7 @@ class A {
   "outputUnit": "outputUnit/main",
   "parent": "library/memory:sdk/tests/web/native/main.dart::",
   "children": [],
-  "inferredType": "Container([exact=JSUnmodifiableArray], element: [exact=A], length: 1)",
+  "inferredType": "Container([exact=JSUnmodifiableArray|powerset=0], element: [exact=A|powerset=0], length: 1, powerset: 0)",
   "code": "",
   "type": "List<A>"
 }]*/
@@ -471,7 +367,7 @@ final constList = const [const A()];
     "external": false
   },
   "returnType": "dynamic",
-  "inferredReturnType": "[null]",
+  "inferredReturnType": "[null|powerset=1]",
   "parameters": [],
   "sideEffects": "SideEffects(reads anything; writes anything)",
   "inlinedCount": 0,

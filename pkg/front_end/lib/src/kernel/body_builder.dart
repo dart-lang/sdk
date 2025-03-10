@@ -3333,11 +3333,12 @@ class BodyBuilder extends StackListenerImpl
           declaration.parent as ExtensionBuilder;
       MemberBuilder? setterBuilder =
           _getCorrespondingSetterBuilder(scope, declaration, name, nameOffset);
-      if (declaration.isField) {
+      if (declaration.isField && !declaration.isExternal) {
         declaration = null;
       }
       if (setterBuilder != null &&
-          (setterBuilder.isField || setterBuilder.isStatic)) {
+          ((setterBuilder.isField && !setterBuilder.isExternal) ||
+              setterBuilder.isStatic)) {
         setterBuilder = null;
       }
       if ((declaration == null && setterBuilder == null) ||

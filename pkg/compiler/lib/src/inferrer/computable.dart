@@ -708,18 +708,22 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
   }
 }
 
-class ComputableAbstractValueStrategy implements AbstractValueStrategy {
+class ComputableAbstractValueStrategy
+    implements AbstractValueStrategy<ComputableAbstractValueDomain> {
   final AbstractValueStrategy _wrappedStrategy;
 
   const ComputableAbstractValueStrategy(this._wrappedStrategy);
 
   @override
-  AbstractValueDomain createDomain(JClosedWorld closedWorld) =>
+  ComputableAbstractValueDomain createDomain(JClosedWorld closedWorld) =>
       ComputableAbstractValueDomain(_wrappedStrategy.createDomain(closedWorld));
 
   @override
-  SelectorConstraintsStrategy createSelectorStrategy() =>
-      ComputableSelectorStrategy(_wrappedStrategy.createSelectorStrategy());
+  SelectorConstraintsStrategy createSelectorStrategy(
+    ComputableAbstractValueDomain domain,
+  ) => ComputableSelectorStrategy(
+    _wrappedStrategy.createSelectorStrategy(domain._wrappedDomain),
+  );
 }
 
 class ComputableSelectorStrategy implements SelectorConstraintsStrategy {

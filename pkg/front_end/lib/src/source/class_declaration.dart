@@ -2,14 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../base/problems.dart';
-import '../base/scope.dart';
 import '../builder/builder.dart';
-import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
-import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 
 /// Common interface for builders for a class declarations in source code, such
@@ -83,52 +79,6 @@ abstract class ClassDeclarationBuilder
   Iterator<T> localConstructorIterator<T extends MemberBuilder>();
 }
 
-mixin ClassDeclarationBuilderMixin implements ClassDeclarationBuilder {
-  List<ConstructorReferenceBuilder> get constructorReferences;
-
-  List<ClassDeclarationBuilderMixin>? get augmentations;
-
-  LookupScope get bodyScope;
-
-  int resolveConstructorReferences(SourceLibraryBuilder library) {
-    int count = 0;
-    if (constructorReferences.isNotEmpty) {
-      for (ConstructorReferenceBuilder ref in constructorReferences) {
-        ref.resolveIn(bodyScope, library);
-      }
-    }
-    List<ClassDeclarationBuilderMixin>? augmentations = this.augmentations;
-    if (augmentations != null) {
-      for (ClassDeclarationBuilderMixin augmentation in augmentations) {
-        count += augmentation.resolveConstructorReferences(library);
-      }
-    }
-    return count;
-  }
-
-  void resolveConstructorRedirections() {
-    Iterator<MemberBuilder> iterator = nameSpace.filteredConstructorIterator(
-        parent: null, includeDuplicates: true, includeAugmentations: false);
-    while (iterator.moveNext()) {
-      MemberBuilder declaration = iterator.current;
-      if (declaration.declarationBuilder?.origin != origin) {
-        unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
-            fileOffset, fileUri);
-      }
-      if (declaration is SourceFactoryBuilder) {
-        declaration.resolveRedirectingFactory();
-      }
-    }
-  }
-
-  @override
-  int resolveConstructors(SourceLibraryBuilder library) {
-    int count = resolveConstructorReferences(library);
-    resolveConstructorRedirections();
-    return count;
-  }
-}
-
 abstract class ClassDeclarationAugmentationAccess<
     D extends ClassDeclarationBuilder> {
   D getOrigin(D classDeclaration);
@@ -145,8 +95,12 @@ class ClassDeclarationMemberIterator<D extends ClassDeclarationBuilder,
   factory ClassDeclarationMemberIterator.full(
       ClassDeclarationAugmentationAccess<D> access, D classBuilder,
       {required bool includeDuplicates}) {
-    return new ClassDeclarationMemberIterator._(access.getOrigin(classBuilder),
-        access.getAugmentations(classBuilder)?.iterator,
+    return new ClassDeclarationMemberIterator._(
+        access.getOrigin(classBuilder),
+        access
+            .getAugmentations(classBuilder)
+            // Coverage-ignore(suite): Not run.
+            ?.iterator,
         includeDuplicates: includeDuplicates);
   }
 
@@ -172,7 +126,10 @@ class ClassDeclarationMemberIterator<D extends ClassDeclarationBuilder,
         return true;
       }
     }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+    if (augmentationBuilders != null &&
+        // Coverage-ignore(suite): Not run.
+        augmentationBuilders!.moveNext()) {
+      // Coverage-ignore-block(suite): Not run.
       D augmentationClassDeclaration = augmentationBuilders!.current;
       _iterator = augmentationClassDeclaration.nameSpace.filteredIterator<T>(
           parent: augmentationClassDeclaration,
@@ -258,7 +215,10 @@ class ClassDeclarationConstructorIterator<D extends ClassDeclarationBuilder,
       {required bool includeDuplicates}) {
     return new ClassDeclarationConstructorIterator._(
         access.getOrigin(classBuilder),
-        access.getAugmentations(classBuilder)?.iterator,
+        access
+            .getAugmentations(classBuilder)
+            // Coverage-ignore(suite): Not run.
+            ?.iterator,
         includeDuplicates: includeDuplicates);
   }
 
@@ -284,7 +244,10 @@ class ClassDeclarationConstructorIterator<D extends ClassDeclarationBuilder,
         return true;
       }
     }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+    if (augmentationBuilders != null &&
+        // Coverage-ignore(suite): Not run.
+        augmentationBuilders!.moveNext()) {
+      // Coverage-ignore-block(suite): Not run.
       D augmentationClassDeclaration = augmentationBuilders!.current;
       _iterator = augmentationClassDeclaration.nameSpace
           .filteredConstructorIterator<T>(
@@ -317,7 +280,10 @@ class ClassDeclarationConstructorNameIterator<D extends ClassDeclarationBuilder,
       {required bool includeDuplicates}) {
     return new ClassDeclarationConstructorNameIterator._(
         access.getOrigin(classDeclaration),
-        access.getAugmentations(classDeclaration)?.iterator,
+        access
+            .getAugmentations(classDeclaration)
+            // Coverage-ignore(suite): Not run.
+            ?.iterator,
         includeDuplicates: includeDuplicates);
   }
 
@@ -336,7 +302,10 @@ class ClassDeclarationConstructorNameIterator<D extends ClassDeclarationBuilder,
         return true;
       }
     }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+    if (augmentationBuilders != null &&
+        // Coverage-ignore(suite): Not run.
+        augmentationBuilders!.moveNext()) {
+      // Coverage-ignore-block(suite): Not run.
       D augmentationClassDeclaration = augmentationBuilders!.current;
       _iterator = augmentationClassDeclaration.nameSpace
           .filteredConstructorNameIterator<T>(

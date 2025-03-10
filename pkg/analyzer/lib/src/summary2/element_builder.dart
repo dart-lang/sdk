@@ -881,7 +881,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _libraryBuilder.elementBuilderSetters[name] = elementBuilder;
       }
     } else {
-      var fragment = FunctionElementImpl(name, nameOffset);
+      var fragment = TopLevelFunctionFragmentImpl(name, nameOffset);
       fragment.name2 = _getFragmentName(nameToken);
       fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
       fragment.isAugmentation = node.augmentKeyword != null;
@@ -1243,20 +1243,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         var lastFragment = enclosingBuilder.replaceGetter(fragment);
         if (fragment.isAugmentation) {
           fragment.augmentationTargetAny = lastFragment;
-        }
-
-        if (fragment.isAugmentation && lastFragment is MethodElementImpl) {
-          lastFragment.augmentation = fragment;
-          fragment.element = lastFragment.element;
-        } else {
-          var element = MethodElementImpl2(
-            enclosingBuilder.element.reference!
-                .getChild('@method')
-                .addChild(refName),
-            fragment.name2,
-            fragment,
-          );
-          enclosingBuilder.element.internal_methods2.add(element);
         }
       }
     }
@@ -1793,8 +1779,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fieldCodeRangeLength,
     );
 
-    extensionFragment.element.representation = fieldFragment;
-
     {
       String name;
       int? periodOffset;
@@ -1832,8 +1816,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       representation.constructorFragment = constructorFragment;
       _linker.elementNodes[constructorFragment] = representation;
       _enclosingContext.addConstructor(constructorFragment);
-
-      extensionFragment.element.primaryConstructor = constructorFragment;
     }
 
     representation.fieldType.accept(this);
@@ -1934,7 +1916,7 @@ class _EnclosingContext {
   final List<ExtensionElementImpl> _extensions = [];
   final List<ExtensionTypeElementImpl> _extensionTypes = [];
   final List<FieldElementImpl> _fields = [];
-  final List<FunctionElementImpl> _functions = [];
+  final List<TopLevelFunctionFragmentImpl> _functions = [];
   final List<MethodElementImpl> _methods = [];
   final List<MixinElementImpl> _mixins = [];
   final List<ParameterElementImpl> _parameters = [];
@@ -1988,7 +1970,7 @@ class _EnclosingContext {
     return fragment.reference!;
   }
 
-  List<FunctionElementImpl> get functions {
+  List<TopLevelFunctionFragmentImpl> get functions {
     return _functions.toFixedList();
   }
 
@@ -2074,7 +2056,7 @@ class _EnclosingContext {
     _bindReference(reference, element);
   }
 
-  Reference addFunction(String name, FunctionElementImpl element) {
+  Reference addFunction(String name, TopLevelFunctionFragmentImpl element) {
     _functions.add(element);
     var containerName =
         element.isAugmentation ? '@functionAugmentation' : '@function';

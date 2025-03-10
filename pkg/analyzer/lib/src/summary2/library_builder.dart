@@ -141,19 +141,11 @@ class LibraryBuilder {
   }
 
   void buildClassSyntheticConstructors() {
-    bool hasConstructor(ClassElementImpl element) {
-      if (element.constructors.isNotEmpty) return true;
-      if (element.augmentation case var augmentation?) {
-        return hasConstructor(augmentation);
-      }
-      return false;
-    }
-
     for (var classFragment in element.topLevelElements) {
       if (classFragment is! ClassElementImpl) continue;
       if (classFragment.isMixinApplication) continue;
       if (classFragment.augmentationTarget != null) continue;
-      if (hasConstructor(classFragment)) continue;
+      if (classFragment.constructors.isNotEmpty) continue;
 
       var constructor = ConstructorElementImpl('', -1)..isSynthetic = true;
       var containerRef = classFragment.reference!.getChild('@constructor');
@@ -164,7 +156,6 @@ class LibraryBuilder {
       constructor.name2 = 'new';
 
       classFragment.constructors = [constructor].toFixedList();
-      classFragment.element.constructors = classFragment.constructors;
     }
   }
 
@@ -209,8 +200,8 @@ class LibraryBuilder {
 
   void buildEnumSyntheticConstructors() {
     bool hasConstructor(EnumElementImpl fragment) {
-      for (var constructor in fragment.element.constructors) {
-        if (constructor.isGenerative || constructor.name == '') {
+      for (var constructor in fragment.element.constructors2) {
+        if (constructor.isGenerative || constructor.name3 == 'new') {
           return true;
         }
       }
@@ -236,8 +227,6 @@ class LibraryBuilder {
         ...enumFragment.constructors,
         constructor,
       ].toFixedList();
-
-      enumFragment.element.constructors = enumFragment.constructors;
     }
   }
 
@@ -285,7 +274,7 @@ class LibraryBuilder {
       if (classFragment is! ClassElementImpl) continue;
       if (classFragment.isMixinApplication) continue;
       if (classFragment.isAugmentation) continue;
-      var hasConst = classFragment.element.constructors.any((e) => e.isConst);
+      var hasConst = classFragment.element.constructors2.any((e) => e.isConst);
       if (hasConst) {
         withConstConstructors.add(classFragment);
       }
@@ -316,7 +305,7 @@ class LibraryBuilder {
       for (var constructor in interfaceFragment.constructors) {
         for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterElementImpl) {
-            parameter.field = element.getField(parameter.name);
+            parameter.field = element.getField2(parameter.name)?.asElement;
           }
         }
       }

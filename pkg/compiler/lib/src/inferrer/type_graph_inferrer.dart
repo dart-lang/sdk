@@ -95,10 +95,8 @@ class TypeGraphInferrer implements TypesInferrer {
       }
 
       bool throwsAlways =
-              // Always throws if the return type was inferred to be non-null empty.
-              abstractValueDomain
-              .isEmpty(returnType)
-              .isDefinitelyTrue;
+          // Always throws if the return type was inferred to be non-null empty.
+          abstractValueDomain.isEmpty(returnType).isDefinitelyTrue;
 
       bool isCalledOnce = typeInformation.isCalledExactlyOnce;
 

@@ -158,17 +158,7 @@ Future<CompilationResult> compileToModule(
     compilerOptions.compileSdk = true;
   }
 
-  DynamicModuleMetadata? dynamicModuleMetadata;
   final dynamicMainModuleUri = options.dynamicModuleMainUri;
-  if (dynamicMainModuleUri != null && options.dynamicInterfaceUri == null) {
-    final filename = options.dynamicModuleMetadataFile ??
-        Uri.parse(
-            path.setExtension(dynamicMainModuleUri.toFilePath(), '.dyndata'));
-    final dynamicModuleMetadataBytes =
-        await File.fromUri(filename).readAsBytes();
-    final source = BinaryDataSource(dynamicModuleMetadataBytes);
-    dynamicModuleMetadata = DynamicModuleMetadata.deserialize(source);
-  }
 
   final dynamicModuleMainUri = await resolveUri(options.dynamicModuleMainUri);
   final dynamicInterfaceUri = await resolveUri(options.dynamicInterfaceUri);
@@ -177,10 +167,7 @@ Future<CompilationResult> compileToModule(
   final isDynamicModule =
       dynamicModuleMainUri != null && dynamicInterfaceUri == null;
   if (isDynamicModule) {
-    dynamicModuleMetadata!.verifyDynamicModuleOptions(options);
     compilerOptions.additionalDills.add(dynamicModuleMainUri);
-  } else if (isDynamicMainModule) {
-    DynamicModuleMetadata.verifyMainModuleOptions(options);
   }
 
   CompilerResult? compilerResult;
@@ -268,7 +255,20 @@ Future<CompilationResult> compileToModule(
 
   moduleStrategy.prepareComponent();
 
-  if (isDynamicMainModule) {
+  MainModuleMetadata mainModuleMetadata =
+      MainModuleMetadata.empty(options.translatorOptions, options.environment);
+
+  if (isDynamicModule) {
+    final filename = options.dynamicModuleMetadataFile ??
+        Uri.parse(
+            path.setExtension(dynamicMainModuleUri!.toFilePath(), '.dyndata'));
+    final dynamicModuleMetadataBytes =
+        await File.fromUri(filename).readAsBytes();
+    final source = DataDeserializer(dynamicModuleMetadataBytes, component);
+    mainModuleMetadata = MainModuleMetadata.deserialize(source);
+    mainModuleMetadata.verifyDynamicModuleOptions(options);
+  } else if (isDynamicMainModule) {
+    MainModuleMetadata.verifyMainModuleOptions(options);
     writeComponentToBinary(component, dynamicModuleMainUri.path,
         includeSource: false);
   }
@@ -301,9 +301,13 @@ Future<CompilationResult> compileToModule(
 
   final moduleOutputData = moduleStrategy.buildModuleOutputData();
 
+  if (isDynamicMainModule) {
+    mainModuleMetadata.initialize(component, coreTypes);
+  }
+
   var translator = Translator(component, coreTypes, libraryIndex, recordClasses,
       moduleOutputData, options.translatorOptions,
-      dynamicModuleMetadata: dynamicModuleMetadata,
+      mainModuleMetadata: mainModuleMetadata,
       enableDynamicModules: dynamicModuleMainUri != null);
 
   String? depFile = options.depFile;
@@ -331,6 +335,9 @@ Future<CompilationResult> compileToModule(
       translator.functions.translatedProcedures,
       translator.internalizedStringsForJSRuntime,
       translator.options.requireJsStringBuiltin,
+      translator.options.enableDeferredLoading ||
+          translator.options.enableMultiModuleStressTestMode ||
+          translator.dynamicModuleSupportEnabled,
       mode);
 
   final supportJs = _generateSupportJs(options.translatorOptions);
@@ -338,9 +345,9 @@ Future<CompilationResult> compileToModule(
     final filename = options.dynamicModuleMetadataFile ??
         Uri.parse(
             path.setExtension(dynamicMainModuleUri!.toFilePath(), '.dyndata'));
-    final sink = BinaryDataSink();
-    translator.dynamicModuleInfo!.toMetadata(options).serialize(sink);
-    await File.fromUri(filename).writeAsBytes(sink.takeBytes());
+    final serializer = DataSerializer(translator.component);
+    translator.dynamicModuleInfo!.metadata.serialize(translator, serializer);
+    await File.fromUri(filename).writeAsBytes(serializer.takeBytes());
   }
 
   return CompilationSuccess(wasmModules, jsRuntime, supportJs);

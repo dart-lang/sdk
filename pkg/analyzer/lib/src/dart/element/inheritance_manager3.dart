@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/fine/requirements.dart';
-import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
@@ -462,10 +461,10 @@ class InheritanceManager3 {
 
   void _addImplemented(
     Map<Name, ExecutableElement> implemented,
-    InterfaceElement element,
-    AugmentedInterfaceElement augmented,
+    InterfaceElementImpl fragment,
+    InterfaceElementImpl2 element,
   ) {
-    var libraryUri = element.librarySource.uri;
+    var libraryUri = fragment.librarySource.uri;
 
     void addMember(ExecutableElement member) {
       if (!member.isAbstract && !member.isStatic) {
@@ -474,8 +473,9 @@ class InheritanceManager3 {
       }
     }
 
-    augmented.methods.forEach(addMember);
-    augmented.accessors.forEach(addMember);
+    element.methods2.map((e) => e.asElement).forEach(addMember);
+    element.getters2.map((e) => e.asElement).forEach(addMember);
+    element.setters2.map((e) => e.asElement).forEach(addMember);
   }
 
   void _addMixinMembers({
@@ -1088,11 +1088,6 @@ class InheritanceManager3 {
       result.parameters = transformedParameters;
       result.returnType = executable.returnType;
       result.typeParameters = executable.typeParameters.cast();
-      result.element = MethodElementImpl2(
-        Reference.root(), // TODO(scheglov): wrong
-        executable.name,
-        result,
-      );
       return result;
     }
 
@@ -1165,11 +1160,6 @@ class InheritanceManager3 {
       result.returnType = resultType.returnType;
       // TODO(scheglov): check if can type cast instead
       result.parameters = resultType.parameters.cast();
-      result.element = MethodElementImpl2(
-        Reference.root(), // TODO(scheglov): wrong
-        firstMethod.name,
-        result,
-      );
       return result;
     } else {
       var firstAccessor = first as PropertyAccessorElement;
@@ -1203,29 +1193,26 @@ class InheritanceManager3 {
   }
 
   static Map<Name, ExecutableElementOrMember> _getTypeMembers(
-    InterfaceElement element,
-    InterfaceElementImpl2 augmented,
+    InterfaceElementImpl fragment,
+    InterfaceElementImpl2 element,
   ) {
     var declared = <Name, ExecutableElementOrMember>{};
-    var libraryUri = element.librarySource.uri;
+    var libraryUri = fragment.librarySource.uri;
 
-    var methods = augmented.methods;
-    for (var i = 0; i < methods.length; i++) {
-      var method = methods[i];
-      if (!method.isStatic) {
-        var name = Name(libraryUri, method.name);
-        declared[name] = method;
+    void addMember(ExecutableElementOrMember member) {
+      if (!member.isStatic) {
+        var name = Name(libraryUri, member.name);
+        declared[name] = member;
       }
     }
 
-    var accessors = augmented.accessors;
-    for (var i = 0; i < accessors.length; i++) {
-      var accessor = accessors[i];
-      if (!accessor.isStatic) {
-        var name = Name(libraryUri, accessor.name);
-        declared[name] = accessor;
-      }
-    }
+    element.methods2.map((e) => e.asElement).forEach(addMember);
+    element.getters2
+        .map((e) => e.asElement as PropertyAccessorElementImpl)
+        .forEach(addMember);
+    element.setters2
+        .map((e) => e.asElement as PropertyAccessorElementImpl)
+        .forEach(addMember);
 
     return declared;
   }

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
+import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
@@ -201,7 +202,19 @@ class EditGetFixesHandler extends LegacyHandler
 
           List<Fix> fixes;
           try {
-            fixes = await computeFixes(context);
+            var peformanceTracker = FixPerformance();
+            fixes = await computeFixes(context, performance: peformanceTracker);
+
+            server.recentPerformance.getFixes.add(
+              GetFixesPerformance(
+                performance: performance,
+                path: file,
+                content: unitResult.content,
+                offset: offset,
+                requestLatency: peformanceTracker.computeTime!.inMilliseconds,
+                producerTimings: peformanceTracker.producerTimings,
+              ),
+            );
           } on InconsistentAnalysisException {
             fixes = [];
           } catch (exception, stackTrace) {

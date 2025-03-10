@@ -5876,7 +5876,6 @@ class Parser {
 
       // The entire shorthand is parsed at this point.
       listener.handleDotShorthandContext(dot);
-      return token;
     }
 
     return _parsePrecedenceExpressionLoop(

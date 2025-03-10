@@ -624,10 +624,8 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::A::@method::foo::@def::0
           firstFragment: <testLibraryFragment>::@class::A::@method::foo::@def::0
         foo
-          reference: <testLibrary>::@class::A::@method::foo::@def::1
           firstFragment: <testLibraryFragment>::@class::A::@method::foo::@def::1
 ''');
   }

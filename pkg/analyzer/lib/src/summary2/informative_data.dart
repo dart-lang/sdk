@@ -568,7 +568,7 @@ class InformativeDataApplier {
     FunctionElement element,
     _InfoFunctionDeclaration info,
   ) {
-    element as FunctionElementImpl;
+    element as TopLevelFunctionFragmentImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;

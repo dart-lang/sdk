@@ -18,7 +18,9 @@ void testCurrent() {
 }
 
 void testPlatformVersionCompatibility() {
-  final abiStringFromPlatformVersion = Platform.version.split('"')[1];
+  final abiStringFromPlatformVersion = Platform.version
+      .split('"')[1]
+      .replaceAll("sim", "");
   final abiStringFromCurrent = Abi.current().toString();
   Expect.equals(abiStringFromPlatformVersion, abiStringFromCurrent);
 }

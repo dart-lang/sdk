@@ -2,15 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class ClassElementBuilder
@@ -33,7 +26,6 @@ class ClassElementBuilder
       lastFragment = fragment;
 
       fragment.augmentedInternal = element;
-      _updatedAugmented(fragment);
     }
   }
 }
@@ -58,7 +50,6 @@ class EnumElementBuilder
       lastFragment = fragment;
 
       fragment.augmentedInternal = element;
-      _updatedAugmented(fragment);
     }
   }
 }
@@ -82,7 +73,6 @@ class ExtensionElementBuilder extends InstanceElementBuilder<
       lastFragment = fragment;
 
       fragment.augmentedInternal = element;
-      _updatedAugmented(fragment);
     }
   }
 }
@@ -107,7 +97,6 @@ class ExtensionTypeElementBuilder extends InstanceElementBuilder<
       lastFragment = fragment;
 
       fragment.augmentedInternal = element;
-      _updatedAugmented(fragment);
     }
   }
 }
@@ -270,18 +259,6 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     var firstFragment = this.firstFragment;
     var element = firstFragment.element;
 
-    element.fields.addAll(firstFragment.fields);
-    element.accessors.addAll(firstFragment.accessors);
-    element.methods.addAll(firstFragment.methods);
-
-    if (element is InterfaceElementImpl2) {
-      if (firstFragment is InterfaceElementImpl) {
-        element.mixins.addAll(firstFragment.mixins);
-        element.interfaces.addAll(firstFragment.interfaces);
-        element.constructors.addAll(firstFragment.constructors);
-      }
-    }
-
     if (element is MixinElementImpl2) {
       if (firstFragment is MixinElementImpl) {
         element.superclassConstraints.addAll(
@@ -300,84 +277,6 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
     target ??= constructors[name];
     target ??= methods[name];
     return target;
-  }
-
-  void _updatedAugmented(InstanceElementImpl augmentation) {
-    var element = this.element;
-    var firstFragment = this.firstFragment;
-    var firstTypeParameters = element.typeParameters2;
-
-    MapSubstitution toFirstFragment;
-    var augmentationTypeParameters = [
-      for (var tp in augmentation.typeParameters)
-        TypeParameterElementImpl2(
-          firstFragment: tp,
-          name3: tp.name.nullIfEmpty,
-        ),
-    ];
-    if (augmentationTypeParameters.length == firstTypeParameters.length) {
-      toFirstFragment = Substitution.fromPairs2(
-        augmentationTypeParameters,
-        firstTypeParameters.instantiateNone(),
-      );
-    } else {
-      toFirstFragment = Substitution.fromPairs2(
-        augmentationTypeParameters,
-        List.filled(
-          augmentationTypeParameters.length,
-          InvalidTypeImpl.instance,
-        ),
-      );
-    }
-
-    if (augmentation is InterfaceElementImpl &&
-        firstFragment is InterfaceElementImpl &&
-        element is InterfaceElementImpl2) {
-      element.constructors = [
-        ...element.constructors.notAugmented,
-        ...augmentation.constructors.notAugmented.map((element) {
-          if (toFirstFragment.map.isEmpty) {
-            return element;
-          }
-          return ConstructorMember(
-            declaration: element,
-            augmentationSubstitution: toFirstFragment,
-            substitution: Substitution.empty,
-          );
-        }),
-      ];
-    }
-
-    element.fields = [
-      ...element.fields.notAugmented,
-      ...augmentation.fields.notAugmented.map((element) {
-        if (toFirstFragment.map.isEmpty) {
-          return element;
-        }
-        return FieldMember(element, toFirstFragment, Substitution.empty);
-      }),
-    ];
-
-    element.accessors = [
-      ...element.accessors.notAugmented,
-      ...augmentation.accessors.notAugmented.map((element) {
-        if (toFirstFragment.map.isEmpty) {
-          return element;
-        }
-        return PropertyAccessorMember(
-            element, toFirstFragment, Substitution.empty);
-      }),
-    ];
-
-    element.methods = [
-      ...element.methods.notAugmented,
-      ...augmentation.methods.notAugmented.map((element) {
-        if (toFirstFragment.map.isEmpty) {
-          return element;
-        }
-        return MethodMember(element, toFirstFragment, Substitution.empty);
-      }),
-    ];
   }
 }
 
@@ -400,7 +299,6 @@ class MixinElementBuilder
       lastFragment = fragment;
 
       fragment.augmentedInternal = element;
-      _updatedAugmented(fragment);
     }
   }
 }
@@ -422,13 +320,13 @@ class SetterElementBuilder
 }
 
 class TopLevelFunctionElementBuilder extends FragmentedElementBuilder<
-    TopLevelFunctionElementImpl, FunctionElementImpl> {
+    TopLevelFunctionElementImpl, TopLevelFunctionFragmentImpl> {
   TopLevelFunctionElementBuilder({
     required super.element,
     required super.firstFragment,
   });
 
-  void addFragment(FunctionElementImpl fragment) {
+  void addFragment(TopLevelFunctionFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
@@ -466,17 +364,5 @@ class TypeAliasElementBuilder extends FragmentedElementBuilder<
       lastFragment = fragment;
       fragment.element = element;
     }
-  }
-}
-
-extension<T extends ExecutableElement> on List<T> {
-  Iterable<T> get notAugmented {
-    return where((e) => e.augmentation == null);
-  }
-}
-
-extension<T extends PropertyInducingElement> on List<T> {
-  Iterable<T> get notAugmented {
-    return where((e) => e.augmentation == null);
   }
 }

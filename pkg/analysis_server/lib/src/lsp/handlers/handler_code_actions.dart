@@ -237,7 +237,7 @@ class CodeActionHandler
               for (var computer in actionComputers)
                 ...await performance.runAsync(
                   '${computer.name}.getFixActions',
-                  (_) => computer.getFixActions(),
+                  (_) => computer.getFixActions(message.performance),
                 ),
             ]),
 

@@ -119,7 +119,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             optionalNamed covariant a
@@ -188,7 +187,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             optionalPositional covariant a
@@ -256,7 +254,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional covariant a
@@ -378,7 +375,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::A::@method::f
           firstFragment: <testLibraryFragment>::@class::A::@method::f
           formalParameters
             requiredPositional covariant t
@@ -395,7 +391,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         f
-          reference: <testLibrary>::@class::B::@method::f
           firstFragment: <testLibraryFragment>::@class::B::@method::f
           formalParameters
             requiredPositional covariant t
@@ -503,7 +498,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             optionalNamed covariant a
@@ -519,7 +513,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             optionalNamed covariant a
@@ -589,7 +582,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional g
@@ -674,7 +666,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional g
@@ -741,7 +732,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional g
@@ -805,7 +795,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional g
@@ -1227,7 +1216,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static positional
-          reference: <testLibrary>::@class::C::@method::positional
           firstFragment: <testLibraryFragment>::@class::C::@method::positional
           formalParameters
             optionalPositional hasImplicitType x
@@ -1235,7 +1223,6 @@ library
               constantInitializer
                 expression: expression_0
         static named
-          reference: <testLibrary>::@class::C::@method::named
           firstFragment: <testLibraryFragment>::@class::C::@method::named
           formalParameters
             optionalNamed hasImplicitType x

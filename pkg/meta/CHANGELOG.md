@@ -1,3 +1,7 @@
+## 1.16.1-wip
+
+- Update SDK constraints to `^3.5.0`.
+
 ## 1.16.0
 
 - Add `TargetKind`s to a few annotations to match custom-wired behavior that the

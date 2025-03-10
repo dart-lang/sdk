@@ -77,7 +77,7 @@ var l = <int>[];
   Future<void> test_generic_setLiteral_ambiguous() async {
     await resolveTestCode('''
 Set f() {
-  /*caret*/Set s = {};
+  ^Set s = {};
   return s;
 }
 ''');

@@ -1793,7 +1793,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           typeParameters
             U
@@ -2232,7 +2231,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@getter::bar
       methods
         static baz
-          reference: <testLibrary>::@class::A::@method::baz
           firstFragment: <testLibraryFragment>::@class::A::@method::baz
 ''');
   }
@@ -3697,7 +3695,6 @@ library
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional x
@@ -3715,7 +3712,6 @@ library
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
       methods
         abstract f
-          reference: <testLibrary>::@class::D::@method::f
           firstFragment: <testLibraryFragment>::@class::D::@method::f
           formalParameters
             requiredPositional x
@@ -3812,7 +3808,6 @@ library
           superConstructor: package:test/a.dart::<fragment>::@class::D::@constructor::new#element
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional x
@@ -3925,7 +3920,6 @@ library
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional x
@@ -3940,7 +3934,6 @@ library
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
       methods
         abstract f
-          reference: <testLibrary>::@class::D::@method::f
           firstFragment: <testLibraryFragment>::@class::D::@method::f
           formalParameters
             requiredPositional x
@@ -4390,7 +4383,6 @@ library
           superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType p
@@ -4987,7 +4979,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
     abstract class B
       reference: <testLibrary>::@class::B
@@ -4997,7 +4988,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         abstract m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
     abstract class C
       reference: <testLibrary>::@class::C
@@ -5176,7 +5166,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         call
-          reference: <testLibrary>::@class::A::@method::call
           firstFragment: <testLibraryFragment>::@class::A::@method::call
     class B
       reference: <testLibrary>::@class::B
@@ -8007,7 +7996,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional p

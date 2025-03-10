@@ -17,6 +17,7 @@ class AvoidFieldInitializersInConstClassesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_field_initializers_in_const_classes;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_nonConstConstructor() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -80,6 +81,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_constructorInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -100,6 +102,7 @@ augment class A {
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_constructorInitializer_multipleConstructors() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

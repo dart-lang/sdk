@@ -18,6 +18,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
@@ -598,6 +599,10 @@ class CollectReportPage extends DiagnosticPage {
       'Completion',
     );
     collectPerformance(
+      server.recentPerformance.getFixes.items.toList(),
+      'GetFixes',
+    );
+    collectPerformance(
       server.recentPerformance.requests.items.toList(),
       'Requests',
     );
@@ -797,6 +802,7 @@ class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
         'completion',
         'Code Completion',
         description: 'Latency statistics for code completion.',
+        indentInNav: true,
       );
 
   path.Context get pathContext => server.resourceProvider.pathContext;
@@ -1311,7 +1317,6 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     if (server != null) {
       pages.add(PluginsPage(this, server));
     }
-    pages.add(CompletionPage(this));
     if (server is LegacyAnalysisServer) {
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
@@ -1319,7 +1324,7 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
       pages.add(LspCapabilitiesPage(this, server));
       pages.add(LspRegistrationsPage(this, server));
     }
-    pages.add(TimingPage(this));
+
     pages.add(ByteStoreTimingPage(this));
     pages.add(AnalysisDriverTimingsPage(this));
     pages.add(AnalysisPerformanceLogPage(this));
@@ -1343,6 +1348,12 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     pages.add(AstPage(this));
     pages.add(ElementModelPage(this));
     pages.add(ContentsPage(this));
+
+    // Add timing pages
+    pages.add(TimingPage(this));
+    // (Nested)
+    pages.add(CompletionPage(this));
+    pages.add(GetFixesPage(this));
   }
 
   @override
@@ -1529,6 +1540,95 @@ class FeedbackPage extends DiagnosticPage {
     ], (line) => buf.writeln(line));
 
     p('Thanks!');
+  }
+}
+
+class GetFixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
+  GetFixesPage(DiagnosticsSite site)
+    : super(
+        site,
+        'getFixes',
+        'Get Fixes',
+        description: 'Latency statistics for getting fixes.',
+        indentInNav: true,
+      );
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  List<GetFixesPerformance> get performanceItems =>
+      server.recentPerformance.getFixes.items.toList();
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    var requests = performanceItems;
+
+    if (requests.isEmpty) {
+      blankslate('No fix requests recorded.');
+      return;
+    }
+
+    var fastCount =
+        requests.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p(
+      '${requests.length} results; ${printPercentage(fastCount / requests.length)} within 100ms.',
+    );
+
+    drawChart(requests);
+
+    // Emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+      '<tr><th>Time</th><th align = "left" title="Time in correction producer `compute()` calls">Producer.compute()</th><th align = "left">Source</th><th>Snippet</th></tr>',
+    );
+
+    for (var request in requests) {
+      var shortName = pathContext.basename(request.path);
+      var (producerTime, producerDetails) = _producerDetails(request);
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${request.id}&kind=getFixes">'
+        '${_formatTiming(request)}'
+        '</a></td>'
+        '<td><abbr title="$producerDetails">${printMilliseconds(producerTime)}</abbr></td>'
+        '<td>${escape(shortName)}</td>'
+        '<td><code>${escape(request.snippet)}</code></td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
+  }
+
+  String _formatTiming(GetFixesPerformance request) {
+    var buffer = StringBuffer();
+    buffer.write(printMilliseconds(request.elapsedInMilliseconds));
+
+    var latency = request.requestLatency;
+    if (latency != null) {
+      buffer
+        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
+        ..write(printMilliseconds(latency))
+        ..write(')</small>');
+    }
+
+    return buffer.toString();
+  }
+
+  (int, String) _producerDetails(GetFixesPerformance request) {
+    var details = StringBuffer();
+
+    var totalProducerTime = 0;
+    var producerTimings = request.producerTimings;
+
+    for (var timing
+        in producerTimings.sortedBy((t) => t.elapsedTime).reversed) {
+      var producerTime = timing.elapsedTime;
+      totalProducerTime += producerTime;
+      details.write(timing.className);
+      details.write(': ');
+      details.writeln(printMilliseconds(producerTime));
+    }
+
+    return (totalProducerTime, details.toString());
   }
 }
 
@@ -1918,6 +2018,8 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     List<RequestPerformance>? itemsSlow;
     if (kind == 'completion') {
       items = server.recentPerformance.completion.items.toList();
+    } else if (kind == 'getFixes') {
+      items = server.recentPerformance.getFixes.items.toList();
     } else {
       items = server.recentPerformance.requests.items.toList();
       itemsSlow = server.recentPerformance.slowRequests.items.toList();

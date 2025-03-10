@@ -15,8 +15,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
-import '../kernel/body_builder_context.dart';
-import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
@@ -161,25 +159,6 @@ mixin SourceDeclarationBuilderMixin
     });
   }
 
-  BodyBuilderContext createBodyBuilderContext();
-
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(libraryBuilder,
-            createBodyBuilderContext(), classHierarchy, typeParameterScope);
-      }
-    }
-
-    Iterator<SourceMemberBuilder> iterator = nameSpace.filteredIterator(
-        parent: this, includeDuplicates: false, includeAugmentations: true);
-    while (iterator.moveNext()) {
-      iterator.current
-          .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
-    }
-  }
-
   void _buildMember(SourceMemberBuilder memberBuilder, Member member,
       Member? tearOff, BuiltMemberKind memberKind,
       {required bool addMembersToLibrary}) {
@@ -228,9 +207,6 @@ mixin SourceDeclarationBuilderMixin
       BuiltMemberKind memberKind,
       Reference memberReference,
       Reference? tearOffReference);
-
-  /// The scope in which the [typeParameters] are declared.
-  LookupScope get typeParameterScope;
 
   @override
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,

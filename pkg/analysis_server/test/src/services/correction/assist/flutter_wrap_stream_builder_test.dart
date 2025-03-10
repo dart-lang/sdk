@@ -31,7 +31,7 @@ class FlutterWrapStreamBuilderTest extends AssistProcessorTest {
 import 'package:flutter/widgets.dart';
 
 void f(Stream<int> s) {
-  /*caret*/StreamBuilder(
+  ^StreamBuilder(
     stream: s,
     builder: (context, snapshot) => Text(''),
   );
@@ -45,7 +45,7 @@ void f(Stream<int> s) {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  /*caret*/Text('a');
+  ^Text('a');
 }
 ''');
     await assertHasAssist('''
@@ -71,7 +71,7 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return const /*caret*/Text('hi');
+    return const ^Text('hi');
   }
 }
 ''');
@@ -102,7 +102,7 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return const /*caret*/Text('hi');
+    return const ^Text('hi');
   }
 }
 ''');

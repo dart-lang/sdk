@@ -46,6 +46,12 @@ class Subclass extends self2::Class {
   constructor privateInjected() → self2::Subclass
     ;
 }
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
+class Class3 extends core::Object /*hasConstConstructor*/  {
+  const constructor /* from org-dartlang-testcase:///patch_lib.dart */ _() → self2::Class3
+    : super core::Object::•()
+    ;
+}
 static method test() → dynamic
   ;
 
@@ -57,4 +63,5 @@ Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:15:4 -> InstanceC
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:17:8 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:28:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
-Extra constant evaluation: evaluated: 7, effectively constant: 6
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:36:1 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 8, effectively constant: 7

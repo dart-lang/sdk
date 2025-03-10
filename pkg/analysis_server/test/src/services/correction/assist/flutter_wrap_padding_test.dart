@@ -31,7 +31,7 @@ class FlutterWrapPaddingTest extends AssistProcessorTest {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  /*caret*/Container();
+  ^Container();
 }
 ''');
     await assertHasAssist('''
@@ -53,7 +53,7 @@ void f() {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  /*caret*/Container();
+  ^Container();
 }
 ''');
 
@@ -89,7 +89,7 @@ import 'package:flutter/widgets.dart';
 
 void f() {
   const Center(
-    child: /*caret*/Text('x'),
+    child: ^Text('x'),
   );
 }
 ''');

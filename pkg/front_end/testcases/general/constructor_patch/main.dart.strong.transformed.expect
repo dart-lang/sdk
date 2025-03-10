@@ -10,6 +10,10 @@ library;
 //   new Class._privateInjected(); // Error
 //             ^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/general/constructor_patch/main.dart:10:7: Error: Couldn't find constructor 'Class3'.
+//   new Class3(); // Error
+//       ^^^^^^
+//
 import self as self;
 import "dart:test" as test;
 
@@ -22,6 +26,9 @@ static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/constructor_patch/main.dart:9:13: Error: Couldn't find constructor 'Class._privateInjected'.
   new Class._privateInjected(); // Error
             ^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/constructor_patch/main.dart:10:7: Error: Couldn't find constructor 'Class3'.
+  new Class3(); // Error
+      ^^^^^^";
 }
 static method main() → dynamic {
   new test::Class::generative();
@@ -77,19 +84,31 @@ class Subclass extends test::Class {
     : super test::Class::_privateInjected()
     ;
 }
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C3
+class Class3 extends core::Object /*hasConstConstructor*/  {
+  const constructor /* from org-dartlang-testcase:///patch_lib.dart */ _() → test::Class3
+    : super core::Object::•()
+    ;
+}
 static method test() → dynamic {
   new test::Class::_private();
   new test::Class::_privateInjected();
+  #C4;
 }
 
 constants  {
   #C1 = true
   #C2 = test::Class {defaultValue:#C1}
   #C3 = _in::_Patch {}
+  #C4 = test::Class3 {}
 }
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///main.dart:
 - Class.constGenerative (from org-dartlang-testcase:///patch_lib.dart:16:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+
+org-dartlang-testcase:///origin_lib.dart:
+- Class3._ (from org-dartlang-testcase:///patch_lib.dart:38:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

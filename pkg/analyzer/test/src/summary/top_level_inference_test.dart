@@ -2444,7 +2444,6 @@ library
               type: int
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
   topLevelVariables
     hasInitializer vSetField
@@ -5400,7 +5399,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
     class B
       reference: <testLibrary>::@class::B
@@ -5412,7 +5410,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         foo
-          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
   topLevelVariables
     hasInitializer x
@@ -6555,13 +6552,11 @@ library
               type: int
       methods
         static staticClassMethod
-          reference: <testLibrary>::@class::A::@method::staticClassMethod
           firstFragment: <testLibraryFragment>::@class::A::@method::staticClassMethod
           formalParameters
             requiredPositional p
               type: int
         instanceClassMethod
-          reference: <testLibrary>::@class::A::@method::instanceClassMethod
           firstFragment: <testLibraryFragment>::@class::A::@method::instanceClassMethod
           formalParameters
             requiredPositional p
@@ -9016,7 +9011,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional p
@@ -17295,7 +17289,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -17310,7 +17303,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -17452,7 +17444,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -17465,7 +17456,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -17482,7 +17472,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -17622,7 +17611,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract foo
-          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           formalParameters
             requiredPositional x
@@ -17635,7 +17623,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         abstract foo
-          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           formalParameters
             requiredPositional x
@@ -17651,7 +17638,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         abstract foo
-          reference: <testLibrary>::@class::C::@method::foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
           formalParameters
             requiredPositional hasImplicitType x
@@ -17774,7 +17760,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
     class B
       reference: <testLibrary>::@class::B
@@ -17784,7 +17769,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
     class C
       reference: <testLibrary>::@class::C
@@ -17798,7 +17782,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -17953,7 +17936,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -17968,7 +17950,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -17985,7 +17966,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -18148,7 +18128,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -18163,7 +18142,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -18180,7 +18158,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -18290,7 +18267,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -18305,7 +18281,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -18416,7 +18391,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -18431,7 +18405,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -18537,7 +18510,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -18552,7 +18524,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -18656,7 +18627,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           formalParameters
             requiredPositional a
@@ -18671,7 +18641,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -18818,7 +18787,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -18968,7 +18936,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -18993,7 +18960,6 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -19133,7 +19099,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19148,7 +19113,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -19163,7 +19127,6 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -19302,7 +19265,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19317,7 +19279,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -19332,7 +19293,6 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -19472,7 +19432,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19488,7 +19447,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -19503,7 +19461,6 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -19632,7 +19589,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19649,7 +19605,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -19755,7 +19710,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19770,7 +19724,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -19886,7 +19839,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19904,7 +19856,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -20019,7 +19970,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20036,7 +19986,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -20188,7 +20137,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20213,7 +20161,6 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -20329,7 +20276,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20344,7 +20290,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -20447,7 +20392,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20462,7 +20406,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -20611,7 +20554,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20637,7 +20579,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -20739,7 +20680,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A1::@constructor::new
       methods
         _foo
-          reference: <testLibrary>::@class::A1::@method::_foo
           firstFragment: <testLibraryFragment>::@class::A1::@method::_foo
     class A2
       reference: <testLibrary>::@class::A2
@@ -20751,7 +20691,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A1::@constructor::new#element
       methods
         _foo
-          reference: <testLibrary>::@class::A2::@method::_foo
           firstFragment: <testLibraryFragment>::@class::A2::@method::_foo
 ''');
   }
@@ -20852,7 +20791,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20868,7 +20806,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -21030,7 +20967,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -21045,7 +20981,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -21062,7 +20997,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a
@@ -21201,7 +21135,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -21214,7 +21147,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
-          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -21231,7 +21163,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional hasImplicitType a

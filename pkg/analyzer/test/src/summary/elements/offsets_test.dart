@@ -3040,14 +3040,11 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         raw
-          reference: <testLibrary>::@class::C::@method::raw
           firstFragment: <testLibraryFragment>::@class::C::@method::raw
         hasDocComment
-          reference: <testLibrary>::@class::C::@method::hasDocComment
           firstFragment: <testLibraryFragment>::@class::C::@method::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
         hasAnnotation
-          reference: <testLibrary>::@class::C::@method::hasAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::hasAnnotation
           metadata
             Annotation
@@ -3063,7 +3060,6 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         annotationThenComment
-          reference: <testLibrary>::@class::C::@method::annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@method::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -3080,7 +3076,6 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentThenAnnotation
-          reference: <testLibrary>::@class::C::@method::commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -3097,7 +3092,6 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentAroundAnnotation
-          reference: <testLibrary>::@class::C::@method::commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -4872,7 +4866,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           typeParameters
             T

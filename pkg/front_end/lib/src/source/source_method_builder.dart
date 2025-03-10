@@ -15,7 +15,6 @@ import '../builder/metadata_builder.dart';
 import '../builder/method_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
-import '../kernel/augmentation_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
@@ -23,7 +22,6 @@ import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
-import 'source_function_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
@@ -54,30 +52,18 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   /// The declarations that introduces this method. Subsequent methods of the
   /// same name must be augmentations.
-  // TODO(johnniwinther): Add [_augmentations] field.
   final MethodFragment _introductory;
+  final List<MethodFragment> _augmentations;
 
-  Modifiers _modifiers;
+  final Modifiers _modifiers;
 
   final Reference _reference;
   final Reference? _tearOffReference;
 
   final MemberName _memberName;
 
-  // TODO(johnniwinther): Implement augmentation using fragments.
-
-  /// The builder for the original declaration.
-  SourceMethodBuilder? _origin;
-
-  /// If this builder is a patch or an augmentation, this is the builder for
-  /// the immediately augmented procedure.
-  SourceMethodBuilder? _augmentedBuilder;
-
-  Procedure? _augmentedMethod;
-
-  int _augmentationIndex = 0;
-
-  List<SourceMethodBuilder>? _augmentations;
+  late final Procedure _invokeTarget;
+  late final Procedure? _readTarget;
 
   SourceMethodBuilder(
       {required this.fileUri,
@@ -86,17 +72,20 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
       required this.libraryBuilder,
       required this.declarationBuilder,
       required this.isStatic,
+      required Modifiers modifiers,
       required NameScheme nameScheme,
-      required MethodFragment fragment,
+      required MethodFragment introductory,
+      required List<MethodFragment> augmentations,
       required Reference? reference,
       required Reference? tearOffReference})
       : _nameScheme = nameScheme,
-        _introductory = fragment,
-        _modifiers = fragment.modifiers,
-        isOperator = fragment.isOperator,
+        _introductory = introductory,
+        _modifiers = modifiers,
+        isOperator = introductory.isOperator,
         _reference = reference ?? new Reference(),
         _tearOffReference = tearOffReference,
-        _memberName = nameScheme.getDeclaredName(name);
+        _memberName = nameScheme.getDeclaredName(name),
+        _augmentations = augmentations;
 
   @override
   Builder get parent => declarationBuilder ?? libraryBuilder;
@@ -106,6 +95,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isAugmentation => _modifiers.isAugment;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExternal => _modifiers.isExternal;
 
   @override
@@ -145,145 +135,38 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   List<MetadataBuilder>? get metadata => _introductory.metadata;
 
   @override
-  void addAugmentation(Builder augmentation) {
-    _addAugmentation(augmentation);
-  }
-
-  void _addAugmentation(Builder augmentation) {
-    if (augmentation is SourceMethodBuilder) {
-      if (checkAugmentation(
-          augmentationLibraryBuilder: augmentation.libraryBuilder,
-          origin: this,
-          augmentation: augmentation)) {
-        augmentation._origin = this;
-
-        SourceMethodBuilder augmentedBuilder =
-            _augmentations == null ? this : _augmentations!.last;
-        augmentation._augmentedBuilder = augmentedBuilder;
-        augmentation._augmentationIndex =
-            augmentedBuilder._augmentationIndex + 1;
-        (_augmentations ??= []).add(augmentation);
-      }
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      reportAugmentationMismatch(
-          originLibraryBuilder: libraryBuilder,
-          origin: this,
-          augmentation: augmentation);
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void applyAugmentation(Builder augmentation) {
-    _addAugmentation(augmentation);
-  }
-
-  @override
-  SourceMethodBuilder get origin => _origin ?? this;
-
-  bool get isAugmented {
-    if (isAugmenting) {
-      return origin._augmentations!.last != this;
-    } else {
-      return _augmentations != null;
-    }
-  }
-
-  // Coverage-ignore(suite): Not run.
-  List<SourceMethodBuilder>? get augmentationsForTesting => _augmentations;
-
-  Map<SourceMethodBuilder, AugmentSuperTarget?> _augmentedMethods = {};
-
-  // Coverage-ignore(suite): Not run.
-  AugmentSuperTarget? _createAugmentSuperTarget(
-      SourceMethodBuilder? targetBuilder) {
-    if (targetBuilder == null) return null;
-
-    Procedure declaredMethod = targetBuilder._introductory.invokeTarget;
-    if (declaredMethod.isAbstract || declaredMethod.isExternal) {
-      return targetBuilder._augmentedBuilder != null
-          ? _getAugmentSuperTarget(targetBuilder._augmentedBuilder!)
-          : null;
-    }
-
-    Procedure augmentedMethod = targetBuilder._augmentedMethod = new Procedure(
-        augmentedName(declaredMethod.name.text, libraryBuilder.library,
-            targetBuilder._augmentationIndex),
-        declaredMethod.kind,
-        declaredMethod.function,
-        fileUri: declaredMethod.fileUri)
-      ..flags = declaredMethod.flags
-      ..isStatic = declaredMethod.isStatic
-      ..parent = declaredMethod.parent
-      ..isInternalImplementation = true;
-
-    return new AugmentSuperTarget(
-        declaration: targetBuilder,
-        readTarget: augmentedMethod,
-        invokeTarget: augmentedMethod,
-        writeTarget: null);
-  }
-
-  // Coverage-ignore(suite): Not run.
-  AugmentSuperTarget? _getAugmentSuperTarget(SourceMethodBuilder augmentation) {
-    return _augmentedMethods[augmentation] ??=
-        _createAugmentSuperTarget(augmentation._augmentedBuilder);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  AugmentSuperTarget? get augmentSuperTarget =>
-      origin._getAugmentSuperTarget(this);
-
-  @override
   int buildBodyNodes(BuildNodesCallback f) {
-    List<SourceMethodBuilder>? augmentations = _augmentations;
-    if (augmentations != null) {
-      void addAugmentedMethod(SourceMethodBuilder builder) {
-        Procedure? augmentedMethod = builder._augmentedMethod;
-        if (augmentedMethod != null) {
-          // Coverage-ignore-block(suite): Not run.
-          augmentedMethod
-            ..fileOffset = builder._introductory.invokeTarget.fileOffset
-            ..fileEndOffset = builder._introductory.invokeTarget.fileEndOffset
-            ..fileStartOffset =
-                builder._introductory.invokeTarget.fileStartOffset
-            ..signatureType = builder._introductory.invokeTarget.signatureType
-            ..flags = builder._introductory.invokeTarget.flags;
-          f(member: augmentedMethod, kind: BuiltMemberKind.Method);
-        }
-      }
-
-      addAugmentedMethod(this);
-      for (SourceMethodBuilder augmentation in augmentations) {
-        addAugmentedMethod(augmentation);
-      }
-      finishProcedureAugmentation(_introductory.invokeTarget,
-          augmentations.last._introductory.invokeTarget);
-
-      return augmentations.length;
-    }
+    // TODO(johnniwinther): Generate the needed augmented methods.
     return 0;
   }
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
-    _introductory.buildOutlineNode(libraryBuilder, _nameScheme, f,
+    List<MethodFragment> augmentedFragments = [
+      _introductory,
+      ..._augmentations
+    ];
+    // TODO(johnniwinther): Support augmenting a concrete method with an
+    //  abstract method.
+    MethodFragment lastFragment = augmentedFragments.removeLast();
+    lastFragment.buildOutlineNode(libraryBuilder, _nameScheme, f,
         reference: _reference,
         tearOffReference: _tearOffReference,
         classTypeParameters: classBuilder?.cls.typeParameters);
-    List<SourceMethodBuilder>? augmentations = _augmentations;
-    if (augmentations != null) {
-      for (SourceMethodBuilder augmentation in augmentations) {
-        augmentation.buildOutlineNodes((
-            {required Member member,
-            Member? tearOff,
-            required BuiltMemberKind kind}) {
-          // Don't add augmentations.
-        });
-      }
+
+    for (MethodFragment augmented in augmentedFragments) {
+      augmented.buildOutlineNode(libraryBuilder, _nameScheme, (
+              {required Member member,
+              Member? tearOff,
+              required BuiltMemberKind kind}) {
+        // Don't add augmented methods.
+      },
+          reference: new Reference(),
+          tearOffReference: new Reference(),
+          classTypeParameters: classBuilder?.cls.typeParameters);
     }
+    _invokeTarget = lastFragment.invokeTarget;
+    _readTarget = lastFragment.readTarget;
   }
 
   bool hasBuiltOutlineExpressions = false;
@@ -292,16 +175,17 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      _introductory.buildOutlineExpressions(classHierarchy, libraryBuilder,
-          declarationBuilder, invokeTarget as Annotatable,
+      _introductory.buildOutlineExpressions(
+          classHierarchy, libraryBuilder, declarationBuilder, _invokeTarget,
           isClassInstanceMember: isClassInstanceMember,
-          createFileUriExpression: isAugmented);
-      List<SourceMethodBuilder>? augmentations = _augmentations;
-      if (augmentations != null) {
-        for (SourceMethodBuilder augmentation in augmentations) {
-          augmentation.buildOutlineExpressions(
-              classHierarchy, delayedDefaultValueCloners);
-        }
+          createFileUriExpression:
+              _invokeTarget.fileUri != _introductory.fileUri);
+      for (MethodFragment augmentation in _augmentations) {
+        augmentation.buildOutlineExpressions(
+            classHierarchy, libraryBuilder, declarationBuilder, _invokeTarget,
+            isClassInstanceMember: isClassInstanceMember,
+            createFileUriExpression:
+                _invokeTarget.fileUri != augmentation.fileUri);
       }
       hasBuiltOutlineExpressions = true;
     }
@@ -310,13 +194,12 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   @override
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
-    _introductory.checkTypes(library, typeEnvironment,
-        isExternal: isExternal, isAbstract: isAbstract);
-    List<SourceMethodBuilder>? augmentations = _augmentations;
-    if (augmentations != null) {
-      for (SourceMethodBuilder augmentation in augmentations) {
-        augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-      }
+    // TODO(johnniwinther): Updated checks for default values to handle
+    // default values declared on the introductory method and omitted on the
+    // augmenting method.
+    _introductory.checkTypes(library, typeEnvironment);
+    for (MethodFragment augmentation in _augmentations) {
+      augmentation.checkTypes(library, typeEnvironment);
     }
   }
 
@@ -325,11 +208,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     if (!isClassInstanceMember) return;
     _introductory.checkVariance(sourceClassBuilder, typeEnvironment);
-    List<SourceMethodBuilder>? augmentations = _augmentations;
-    if (augmentations != null) {
-      for (SourceMethodBuilder augmentation in augmentations) {
-        augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
-      }
+    for (MethodFragment augmentation in _augmentations) {
+      augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
     }
   }
 
@@ -356,26 +236,18 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Name get memberName => _memberName.name;
 
   @override
-  Member? get readTarget => isAugmenting
-      ?
-      // Coverage-ignore(suite): Not run.
-      _origin!.readTarget
-      : _introductory.readTarget;
+  Member? get readTarget => _readTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference? get readTargetReference => isAugmenting
-      ? _origin!.readTargetReference
-      : (_tearOffReference ?? _reference);
+  Reference? get readTargetReference => _tearOffReference ?? _reference;
 
   @override
-  Member get invokeTarget =>
-      isAugmenting ? _origin!.invokeTarget : _introductory.invokeTarget;
+  Member get invokeTarget => _invokeTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference =>
-      isAugmenting ? _origin!.invokeTargetReference : _reference;
+  Reference get invokeTargetReference => _reference;
 
   @override
   Member? get writeTarget => null;
@@ -388,14 +260,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
     int count = _introductory.computeDefaultTypes(context);
-    if (declarationBuilder == null) {
-      List<SourceMethodBuilder>? augmentations = _augmentations;
-      if (augmentations != null) {
-        for (SourceMethodBuilder augmentation in augmentations) {
-          count += augmentation.computeDefaultTypes(context,
-              inErrorRecovery: inErrorRecovery);
-        }
-      }
+    for (MethodFragment augmentation in _augmentations) {
+      count += augmentation.computeDefaultTypes(context);
     }
     return count;
   }

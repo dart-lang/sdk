@@ -245,10 +245,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       List<TypeParameterFragment>? typeParameters) {}
 
   @override
-  void endNamedMixinApplication(String name) {
+  LookupScope endNamedMixinApplication(String name) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.declarationTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
+    return typeParameterScope.lookupScope;
   }
 
   @override
@@ -991,12 +992,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int nameOffset,
       required int endOffset}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
-    endNamedMixinApplication(name);
+    LookupScope typeParameterScope = endNamedMixinApplication(name);
 
     assert(
         _mixinApplications != null, "Late registration of mixin application.");
 
-    _nominalParameterNameSpaces.pop().addTypeParameters(
+    NominalParameterNameSpace typeParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+    typeParameterNameSpace.addTypeParameters(
         _problemReporting, typeParameters?.builders,
         ownerName: name, allowNameConflict: false);
 
@@ -1009,6 +1012,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         modifiers: modifiers,
         metadata: metadata,
         typeParameters: typeParameters,
+        typeParameterScope: typeParameterScope,
         supertype: supertype,
         mixins: mixins,
         interfaces: interfaces,

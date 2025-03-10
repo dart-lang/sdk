@@ -68,17 +68,10 @@ class Class extends core::Object {
   @#C8
   set /* from org-dartlang-testcase:///patch_lib.dart */ instanceSetter(core::int value) → void {}
   @#C8
-  method /* from org-dartlang-testcase:///patch_lib.dart */ instanceMethod(core::int value) → void {}
-  @#C8
-  operator /* from org-dartlang-testcase:///patch_lib.dart */ +(test::Class a) → test::Class
-    return this;
-  @#C8
   static get /* from org-dartlang-testcase:///patch_lib.dart */ staticGetter() → core::int
     return 42;
   @#C8
   static set /* from org-dartlang-testcase:///patch_lib.dart */ staticSetter(core::int value) → void {}
-  @#C8
-  static method /* from org-dartlang-testcase:///patch_lib.dart */ staticMethod(core::int value) → void {}
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ _injectedFactory(core::int value) → test::Class
     return new test::Class::•(value);
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ _injectedRedirectingFactory(core::int value) → test::Class /* redirection-target: test::Class::• */
@@ -86,10 +79,17 @@ class Class extends core::Object {
   get /* from org-dartlang-testcase:///patch_lib.dart */ _injectedInstanceGetter() → core::int
     return 42;
   set /* from org-dartlang-testcase:///patch_lib.dart */ _injectedInstanceSetter(core::int value) → void {}
+  @#C8
+  method /* from org-dartlang-testcase:///patch_lib.dart */ instanceMethod(core::int value) → void {}
   method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedInstanceMethod(core::int value) → void {}
+  @#C8
+  operator /* from org-dartlang-testcase:///patch_lib.dart */ +(test::Class a) → test::Class
+    return this;
   static get /* from org-dartlang-testcase:///patch_lib.dart */ _injectedStaticGetter() → core::int
     return 42;
   static set /* from org-dartlang-testcase:///patch_lib.dart */ _injectedStaticSetter(core::int value) → void {}
+  @#C8
+  static method /* from org-dartlang-testcase:///patch_lib.dart */ staticMethod(core::int value) → void {}
   static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedStaticMethod(core::int value) → void {}
 }
 class _InjectedClass extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
@@ -140,29 +140,20 @@ static get /* from org-dartlang-testcase:///patch_lib.dart */ topLevelGetter() �
 @#C8
 static set /* from org-dartlang-testcase:///patch_lib.dart */ topLevelSetter(core::int value) → void {}
 @#C8
-static method /* from org-dartlang-testcase:///patch_lib.dart */ topLevelMethod(core::int value) → void {}
-@#C8
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#extensionInstanceGetter(lowered final test::Class #this) → core::int
   return 42;
 @#C8
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|set#extensionInstanceSetter(lowered final test::Class #this, core::int value) → void {}
 @#C8
-static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|extensionInstanceMethod(lowered final test::Class #this, core::int value) → void {}
-static extension-member method Extension|get#extensionInstanceMethod(lowered final test::Class #this) → (core::int) → void
-  return (core::int value) → void => test::Extension|extensionInstanceMethod(#this, value);
-@#C8
-static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|-(lowered final test::Class #this, test::Class a) → test::Class
-  return #this;
-@#C8
 static extension-member get /* from org-dartlang-testcase:///patch_lib.dart */ Extension|extensionStaticGetter() → core::int
   return 42;
 @#C8
 static extension-member set /* from org-dartlang-testcase:///patch_lib.dart */ Extension|extensionStaticSetter(core::int value) → void {}
-@#C8
-static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|extensionStaticMethod(core::int value) → void {}
 static get /* from org-dartlang-testcase:///patch_lib.dart */ _injectedTopLevelGetter() → core::int
   return 42;
 static set /* from org-dartlang-testcase:///patch_lib.dart */ _injectedTopLevelSetter(core::int value) → void {}
+@#C8
+static method /* from org-dartlang-testcase:///patch_lib.dart */ topLevelMethod(core::int value) → void {}
 static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedTopLevelMethod(core::int value) → void {
   test::_injectedTopLevelSetter = test::_injectedTopLevelGetter;
   test::_injectedTopLevelMethod(42);
@@ -206,12 +197,21 @@ static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedTopLev
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#_injectedExtensionInstanceGetter(lowered final test::Class #this) → core::int
   return 42;
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|set#_injectedExtensionInstanceSetter(lowered final test::Class #this, core::int value) → void {}
+@#C8
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|extensionInstanceMethod(lowered final test::Class #this, core::int value) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#extensionInstanceMethod(lowered final test::Class #this) → (core::int) → void
+  return (core::int value) → void => test::Extension|extensionInstanceMethod(#this, value);
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionInstanceMethod(lowered final test::Class #this, core::int value) → void {}
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#_injectedExtensionInstanceMethod(lowered final test::Class #this) → (core::int) → void
   return (core::int value) → void => test::Extension|_injectedExtensionInstanceMethod(#this, value);
+@#C8
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|-(lowered final test::Class #this, test::Class a) → test::Class
+  return #this;
 static extension-member get /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionStaticGetter() → core::int
   return 42;
 static extension-member set /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionStaticSetter(core::int value) → void {}
+@#C8
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|extensionStaticMethod(core::int value) → void {}
 static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|_injectedExtensionStaticMethod(core::int value) → void {}
 
 constants  {

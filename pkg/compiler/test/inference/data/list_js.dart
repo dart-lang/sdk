@@ -7,7 +7,7 @@
 /// ignore: IMPORT_INTERNAL_LIBRARY
 import 'dart:_foreign_helper' show JS;
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   test1();
   test2();
@@ -15,50 +15,50 @@ main() {
   test4();
 }
 
-/*member: test1:[null]*/
+/*member: test1:[null|powerset=1]*/
 test1() {
   var list = [42];
   JS('', '#', list); // '#' is by default a no-op.
   witness1(list);
 }
 
-/*member: witness1:[null]*/
+/*member: witness1:[null|powerset=1]*/
 witness1(
-  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x,
+  /*Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: 1, powerset: 0)*/ x,
 ) {}
 
-/*member: test2:[null]*/
+/*member: test2:[null|powerset=1]*/
 test2() {
   var list = [42];
   JS('effects:all;depends:all', '#', list);
   witness2(list);
 }
 
-/*member: witness2:[null]*/
+/*member: witness2:[null|powerset=1]*/
 witness2(
-  /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x,
+  /*Container([exact=JSExtendableArray|powerset=0], element: [null|subclass=Object|powerset=1], length: null, powerset: 0)*/ x,
 ) {}
 
-/*member: test3:[null]*/
+/*member: test3:[null|powerset=1]*/
 test3() {
   var list = [42];
   JS('', '#.slice(0)', list);
   witness3(list);
 }
 
-/*member: witness3:[null]*/
+/*member: witness3:[null|powerset=1]*/
 witness3(
-  /*Container([exact=JSExtendableArray], element: [null|subclass=Object], length: null)*/ x,
+  /*Container([exact=JSExtendableArray|powerset=0], element: [null|subclass=Object|powerset=1], length: null, powerset: 0)*/ x,
 ) {}
 
-/*member: test4:[null]*/
+/*member: test4:[null|powerset=1]*/
 test4() {
   var list = [42];
   JS('effects:none;depends:all', '#.slice(0)', list);
   witness4(list);
 }
 
-/*member: witness4:[null]*/
+/*member: witness4:[null|powerset=1]*/
 witness4(
-  /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ x,
+  /*Container([exact=JSExtendableArray|powerset=0], element: [exact=JSUInt31|powerset=0], length: 1, powerset: 0)*/ x,
 ) {}

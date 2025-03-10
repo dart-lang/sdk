@@ -1043,8 +1043,6 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               enclosingElement3: <testLibraryFragment>::@class::A
           augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
       classes

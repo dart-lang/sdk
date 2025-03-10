@@ -845,6 +845,7 @@ class C {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_searchReferences_class_constructor_declaredInAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

@@ -8,7 +8,9 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -153,6 +155,11 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   /// Adds individual edits to [change].
   Future<void> fillChange();
+
+  CodeStyleOptions getCodeStyleOptions(File file) =>
+      sessionHelper.session.analysisContext
+          .getAnalysisOptionsForFile(file)
+          .codeStyleOptions;
 
   static String _getOldName(Element2 element) {
     if (element is ConstructorElement2) {

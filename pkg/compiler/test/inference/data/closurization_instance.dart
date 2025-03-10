@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   closurizedCallToString();
 }
@@ -11,19 +11,19 @@ main() {
 // Implicit/explicit .call on instance method tear-off.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: Class.:[exact=Class]*/
+/*member: Class.:[exact=Class|powerset=0]*/
 class Class {
-  /*member: Class.method:[exact=JSUInt31]*/
+  /*member: Class.method:[exact=JSUInt31|powerset=0]*/
   method() => 42;
 }
 
-/*member: closurizedCallToString:[exact=JSString]*/
+/*member: closurizedCallToString:[exact=JSString|powerset=0]*/
 closurizedCallToString() {
   var c = Class();
-  var local = c. /*[exact=Class]*/ method;
-  local. /*invoke: [subclass=Closure]*/ toString();
+  var local = c. /*[exact=Class|powerset=0]*/ method;
+  local. /*invoke: [subclass=Closure|powerset=0]*/ toString();
   local();
-  local. /*invoke: [subclass=Closure]*/ toString();
+  local. /*invoke: [subclass=Closure|powerset=0]*/ toString();
   local.call();
-  return local. /*invoke: [subclass=Closure]*/ toString();
+  return local. /*invoke: [subclass=Closure|powerset=0]*/ toString();
 }

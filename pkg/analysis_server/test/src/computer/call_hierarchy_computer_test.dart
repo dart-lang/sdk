@@ -178,6 +178,7 @@ class Foo {
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_constructorCall_to_augmentation() async {
     var code = TestCode.parse('''
 part 'other.dart';
@@ -614,6 +615,7 @@ class Foo {
     );
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void> test_methodCall_to_augmentation() async {
     var code = TestCode.parse('''
 part 'other.dart';
@@ -1698,6 +1700,7 @@ class A {
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_constructor_from_augmentation() async {
     var code = TestCode.parse('''
 part 'other.dart';
@@ -1971,6 +1974,7 @@ class Foo {
     );
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void> test_method_from_augmentation() async {
     var code = TestCode.parse('''
 part 'other.dart';

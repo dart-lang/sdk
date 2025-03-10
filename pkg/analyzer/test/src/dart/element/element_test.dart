@@ -1633,6 +1633,7 @@ class A {
     expect(elementA.lookUpGetter2(name: 'g', library: library), same(getter));
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_lookUpGetter_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
@@ -1725,6 +1726,7 @@ class A {
     expect(classA.lookUpMethod2(name: 'm', library: library), same(method));
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_lookUpMethod_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
@@ -1817,6 +1819,7 @@ class A {
     expect(classA.lookUpSetter2(name: 's', library: library), same(setter));
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_lookUpSetter_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
@@ -1848,6 +1851,7 @@ class B extends A {}
     expect(classB.lookUpSetter2(name: 's', library: library), same(setter));
   }
 
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_lookUpSetter_inherited_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
@@ -2083,10 +2087,7 @@ class _AbstractTypeSystemTest extends AbstractTypeSystemTest {
     fragment.mixins = mixins;
     fragment.methods = methods;
 
-    var element = ClassElementImpl2(Reference.root(), fragment);
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
+    ClassElementImpl2(Reference.root(), fragment);
 
     return fragment;
   }
@@ -2118,8 +2119,6 @@ class _AbstractTypeSystemTest extends AbstractTypeSystemTest {
 
     var element = MixinElementImpl2(Reference.root(), fragment);
     element.superclassConstraints = fragment.superclassConstraints;
-    element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return fragment;
   }

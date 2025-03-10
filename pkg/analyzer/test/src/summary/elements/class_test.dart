@@ -7543,7 +7543,6 @@ library
           redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::new#element
       methods
         abstract B_
-          reference: <testLibrary>::@class::B::@method::B_
           firstFragment: <testLibraryFragment>::@class::B::@method::B_
     class C
       reference: <testLibrary>::@class::C
@@ -10912,15 +10911,6 @@ library
               id: getter_1
               variable: field_1
           augmented
-            fields
-              <testLibraryFragment>::@class::C::@field::foo::@def::0
-              <testLibraryFragment>::@class::C::@field::foo::@def::1
-            constructors
-              <testLibraryFragment>::@class::C::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::C::@getter::foo::@def::0
-              <testLibraryFragment>::@class::C::@getter::foo::@def::1
-              <testLibraryFragment>::@class::C::@setter::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -11057,15 +11047,6 @@ library
               id: setter_1
               variable: field_1
           augmented
-            fields
-              <testLibraryFragment>::@class::C::@field::foo::@def::0
-              <testLibraryFragment>::@class::C::@field::foo::@def::1
-            constructors
-              <testLibraryFragment>::@class::C::@constructor::new
-            accessors
-              <testLibraryFragment>::@class::C::@getter::foo
-              <testLibraryFragment>::@class::C::@setter::foo::@def::0
-              <testLibraryFragment>::@class::C::@setter::foo::@def::1
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -13663,7 +13644,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
-          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -13815,7 +13795,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
-          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -13968,7 +13947,6 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         noSuchMethod
-          reference: <testLibrary>::@class::D::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::D::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14083,7 +14061,6 @@ library
         Object
       methods
         noSuchMethod
-          reference: <testLibrary>::@mixin::M::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@mixin::M::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14256,7 +14233,6 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         noSuchMethod
-          reference: <testLibrary>::@enum::E::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@enum::E::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14364,7 +14340,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
-          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14467,7 +14442,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
-          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14556,7 +14530,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         abstract A
-          reference: <testLibrary>::@class::B::@method::A
           firstFragment: <testLibraryFragment>::@class::B::@method::A
           formalParameters
             requiredPositional final hasImplicitType value
@@ -14572,7 +14545,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
-          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14701,7 +14673,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
-          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14805,7 +14776,6 @@ library
         A
       methods
         noSuchMethod
-          reference: <testLibrary>::@mixin::M::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@mixin::M::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -17037,7 +17007,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
     class B
       reference: <testLibrary>::@class::B
@@ -17746,7 +17715,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         get
-          reference: <testLibrary>::@class::A::@method::get
           firstFragment: <testLibraryFragment>::@class::A::@method::get
 ''');
   }
@@ -18707,7 +18675,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         abstract f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -18772,7 +18739,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -18837,7 +18803,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -18900,7 +18865,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           documentationComment: /**\n   * Docs\n   */
 ''');
@@ -18956,7 +18920,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         external f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -19075,7 +19038,6 @@ library
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional hasImplicitType value
@@ -19088,7 +19050,6 @@ library
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
       methods
         abstract f
-          reference: <testLibrary>::@class::D::@method::f
           firstFragment: <testLibraryFragment>::@class::D::@method::f
           formalParameters
             requiredPositional value
@@ -19182,7 +19143,6 @@ library
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
     abstract class D
       reference: <testLibrary>::@class::D
@@ -19192,7 +19152,6 @@ library
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
       methods
         abstract f
-          reference: <testLibrary>::@class::D::@method::f
           firstFragment: <testLibraryFragment>::@class::D::@method::f
 ''');
   }
@@ -19253,7 +19212,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
-          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -19311,8 +19269,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
-        <null-name>
-          reference: <testLibrary>::@class::A::@method::0
+        
           firstFragment: <testLibraryFragment>::@class::A::@method::0
 ''');
   }
@@ -19398,7 +19355,6 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         A
-          reference: <testLibrary>::@class::B::@method::A
           firstFragment: <testLibraryFragment>::@class::B::@method::A
 ''');
   }
@@ -19457,7 +19413,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         external m
-          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -19522,7 +19477,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional hasImplicitType x
@@ -19582,7 +19536,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -19643,7 +19596,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -19714,7 +19666,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           typeParameters
             T
@@ -19816,7 +19767,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           typeParameters
             V
@@ -19900,7 +19850,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           typeParameters
             T
@@ -19971,10 +19920,8 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
         g
-          reference: <testLibrary>::@class::C::@method::g
           firstFragment: <testLibraryFragment>::@class::C::@method::g
 ''');
   }
@@ -20573,7 +20520,6 @@ library
       firstFragment: <testLibraryFragment>::@class::S
       supertype: Object
       mixins
-        M<int>
         M<int>
       constructors
         synthetic new
@@ -22073,7 +22019,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         +
-          reference: <testLibrary>::@class::C::@method::+
           firstFragment: <testLibraryFragment>::@class::C::@method::+
           formalParameters
             requiredPositional other
@@ -22141,7 +22086,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         ==
-          reference: <testLibrary>::@class::C::@method::==
           firstFragment: <testLibraryFragment>::@class::C::@method::==
           formalParameters
             requiredPositional other
@@ -22206,7 +22150,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         external +
-          reference: <testLibrary>::@class::C::@method::+
           firstFragment: <testLibraryFragment>::@class::C::@method::+
           formalParameters
             requiredPositional other
@@ -22274,7 +22217,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         >=
-          reference: <testLibrary>::@class::C::@method::>=
           firstFragment: <testLibraryFragment>::@class::C::@method::>=
           formalParameters
             requiredPositional other
@@ -22339,7 +22281,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         []
-          reference: <testLibrary>::@class::C::@method::[]
           firstFragment: <testLibraryFragment>::@class::C::@method::[]
           formalParameters
             requiredPositional i
@@ -22411,7 +22352,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         []=
-          reference: <testLibrary>::@class::C::@method::[]=
           firstFragment: <testLibraryFragment>::@class::C::@method::[]=
           formalParameters
             requiredPositional i
@@ -22481,7 +22421,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         <=
-          reference: <testLibrary>::@class::C::@method::<=
           firstFragment: <testLibraryFragment>::@class::C::@method::<=
           formalParameters
             requiredPositional other
@@ -22549,7 +22488,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         -
-          reference: <testLibrary>::@class::A::@method::-
           firstFragment: <testLibraryFragment>::@class::A::@method::-
           formalParameters
             requiredPositional other
@@ -22610,8 +22548,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
-        -
-          reference: <testLibrary>::@class::A::@method::unary-
+        unary-
           firstFragment: <testLibraryFragment>::@class::A::@method::unary-
 ''');
   }
@@ -24783,7 +24720,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         set
-          reference: <testLibrary>::@class::A::@method::set
           firstFragment: <testLibraryFragment>::@class::A::@method::set
           formalParameters
             requiredPositional _
@@ -27747,7 +27683,6 @@ library
       firstFragment: <testLibraryFragment>::@class::C1
       supertype: A
       mixins
-        M1
         M1
       constructors
         synthetic new
@@ -31060,7 +30995,6 @@ library
               type: int
       methods
         f
-          reference: <testLibrary>::@class::E::@method::f
           firstFragment: <testLibraryFragment>::@class::E::@method::f
 ''');
   }
@@ -31635,7 +31569,6 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
-          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
   topLevelVariables
     c

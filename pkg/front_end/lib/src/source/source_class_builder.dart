@@ -27,7 +27,6 @@ import '../base/problems.dart' show unexpected, unhandled, unimplemented;
 import '../base/scope.dart';
 import '../builder/augmentation_iterator.dart';
 import '../builder/builder.dart';
-import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
@@ -90,7 +89,6 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
-    with ClassDeclarationBuilderMixin
     implements
         Comparable<SourceClassBuilder>,
         ClassDeclarationBuilder,
@@ -108,7 +106,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final Modifiers _modifiers;
 
-  final Class actualCls;
+  @override
+  final Class cls;
 
   final DeclarationNameSpaceBuilder nameSpaceBuilder;
 
@@ -123,9 +122,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   TypeBuilder? _supertypeBuilder;
 
   List<TypeBuilder>? _interfaceBuilders;
-
-  @override
-  final List<ConstructorReferenceBuilder> constructorReferences;
 
   TypeBuilder? _mixedInTypeBuilder;
 
@@ -146,11 +142,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     _isConflictingAugmentationMember = value;
   }
 
-  List<SourceClassBuilder>? _augmentations;
-
-  MergedClassMemberScope? _mergedScope;
-
   final ClassDeclaration _introductory;
+  List<ClassDeclaration> _augmentations;
 
   SourceClassBuilder(
       {required Modifiers modifiers,
@@ -159,36 +152,50 @@ class SourceClassBuilder extends ClassBuilderImpl
       required this.typeParameterScope,
       required this.nameSpaceBuilder,
       required this.libraryBuilder,
-      required this.constructorReferences,
       required this.fileUri,
       required this.nameOffset,
       this.indexedClass,
       TypeBuilder? mixedInTypeBuilder,
-      required ClassDeclaration classDeclaration})
+      required ClassDeclaration introductory,
+      List<ClassDeclaration> augmentations = const []})
       : _modifiers = modifiers,
-        _introductory = classDeclaration,
+        _introductory = introductory,
+        _augmentations = augmentations,
         _mixedInTypeBuilder = mixedInTypeBuilder,
-        actualCls = initializeClass(
+        cls = initializeClass(
             typeParameters,
             name,
             fileUri,
-            classDeclaration.startOffset,
-            classDeclaration.nameOffset,
-            classDeclaration.endOffset,
+            introductory.startOffset,
+            introductory.nameOffset,
+            introductory.endOffset,
             indexedClass,
             isAugmentation: modifiers.isAugment) {
-    actualCls.hasConstConstructor = declaresConstConstructor;
+    cls.hasConstConstructor = declaresConstConstructor;
   }
 
-  // TODO(johnniwinther): Remove this when augmentations are handled through
-  //  fragments.
   @override
-  List<SourceClassBuilder>? get augmentations => _augmentations;
-
-  // TODO(johnniwinther): Remove this when augmentations are handled through
-  //  fragments.
-  @override
-  LookupScope get bodyScope => _introductory.bodyScope;
+  int resolveConstructors(SourceLibraryBuilder libraryBuilder) {
+    int count = _introductory.resolveConstructorReferences(libraryBuilder);
+    for (ClassDeclaration augmentation in _augmentations) {
+      count += augmentation.resolveConstructorReferences(libraryBuilder);
+    }
+    if (count > 0) {
+      Iterator<MemberBuilder> iterator = nameSpace.filteredConstructorIterator(
+          parent: null, includeDuplicates: true, includeAugmentations: false);
+      while (iterator.moveNext()) {
+        MemberBuilder declaration = iterator.current;
+        if (declaration.declarationBuilder?.origin != origin) {
+          unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
+              fileOffset, fileUri);
+        }
+        if (declaration is SourceFactoryBuilder) {
+          declaration.resolveRedirectingFactory();
+        }
+      }
+    }
+    return count;
+  }
 
   @override
   int get fileOffset => nameOffset;
@@ -244,12 +251,6 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
-    List<SourceClassBuilder>? augmentations = _augmentations;
-    if (augmentations != null) {
-      for (SourceClassBuilder augmentation in augmentations) {
-        nameSpaceBuilder.includeBuilders(augmentation.nameSpaceBuilder);
-      }
-    }
     _nameSpace = nameSpaceBuilder.buildNameSpace(
         loader: libraryBuilder.loader,
         problemReporting: libraryBuilder,
@@ -259,24 +260,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         indexedContainer: indexedClass,
         containerType: ContainerType.Class,
         containerName: new ClassName(name));
-    if (augmentations != null) {
-      for (SourceClassBuilder augmentation in augmentations) {
-        augmentation.buildScopes(coreLibrary);
-        _applyAugmentation(augmentation);
-      }
-    }
   }
-
-  MergedClassMemberScope get mergedScope => _mergedScope ??= isAugmenting
-      ?
-      // Coverage-ignore(suite): Not run.
-      origin.mergedScope
-      : new MergedClassMemberScope(this);
-
-  // Coverage-ignore(suite): Not run.
-  List<SourceClassBuilder>? get augmentationsForTesting => _augmentations;
-
-  SourceClassBuilder? actualOrigin;
 
   bool _hasComputedSupertypes = false;
 
@@ -382,10 +366,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  SourceClassBuilder get origin => actualOrigin ?? this;
-
-  @override
-  Class get cls => origin.actualCls;
+  SourceClassBuilder get origin => this;
 
   @override
   SourceLibraryBuilder get parent => libraryBuilder;
@@ -436,16 +417,16 @@ class SourceClassBuilder extends ClassBuilderImpl
     Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder,
         isMixinDeclaration ? TypeUse.mixinOnType : TypeUse.classExtendsType);
     if (!isMixinDeclaration &&
-        actualCls.supertype != null &&
+        cls.supertype != null &&
         // Coverage-ignore(suite): Not run.
-        actualCls.superclass!.isMixinDeclaration) {
+        cls.superclass!.isMixinDeclaration) {
       // Coverage-ignore-block(suite): Not run.
       // Declared mixins have interfaces that can be implemented, but they
       // cannot be extended.  However, a mixin declaration with a single
       // superclass constraint is encoded with the constraint as the supertype,
       // and that is allowed to be a mixin's interface.
       libraryBuilder.addProblem(
-          templateSupertypeIsIllegal.withArguments(actualCls.superclass!.name),
+          templateSupertypeIsIllegal.withArguments(cls.superclass!.name),
           fileOffset,
           noLength,
           fileUri);
@@ -454,7 +435,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (supertype == null && _supertypeBuilder is! NamedTypeBuilder) {
       _supertypeBuilder = null;
     }
-    actualCls.supertype = supertype;
+    cls.supertype = supertype;
 
     if (_mixedInTypeBuilder != null) {
       _mixedInTypeBuilder = _checkSupertype(_mixedInTypeBuilder!);
@@ -463,13 +444,13 @@ class SourceClassBuilder extends ClassBuilderImpl
         _mixedInTypeBuilder?.computeUnaliasedDeclaration(isUsedAsClass: false);
     if (LibraryBuilder.isFunction(mixedInDeclaration, coreLibrary)) {
       _mixedInTypeBuilder = null;
-      actualCls.isAnonymousMixin = false;
+      cls.isAnonymousMixin = false;
     }
     Supertype? mixedInType =
         _mixedInTypeBuilder?.buildMixedInType(libraryBuilder);
 
-    actualCls.isMixinDeclaration = isMixinDeclaration;
-    actualCls.mixedInType = mixedInType;
+    cls.isMixinDeclaration = isMixinDeclaration;
+    cls.mixedInType = mixedInType;
 
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
@@ -495,7 +476,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             .buildSupertype(libraryBuilder, TypeUse.classImplementsType);
         if (supertype != null) {
           // TODO(ahe): Report an error if supertype is null.
-          actualCls.implementedTypes.add(supertype);
+          cls.implementedTypes.add(supertype);
         }
       }
     }
@@ -540,17 +521,20 @@ class SourceClassBuilder extends ClassBuilderImpl
           classHierarchy, delayedDefaultValueCloners);
     }
 
+    BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     _introductory.buildOutlineExpressions(
-        annotatable: isAugmenting ? origin.cls : cls,
-        bodyBuilderContext: createBodyBuilderContext(),
+        annotatable: cls,
+        bodyBuilderContext: bodyBuilderContext,
         libraryBuilder: libraryBuilder,
+        classHierarchy: classHierarchy,
         createFileUriExpression: isAugmenting);
-
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(libraryBuilder,
-            createBodyBuilderContext(), classHierarchy, typeParameterScope);
-      }
+    for (ClassDeclaration augmentation in _augmentations) {
+      augmentation.buildOutlineExpressions(
+          annotatable: cls,
+          bodyBuilderContext: bodyBuilderContext,
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          createFileUriExpression: true);
     }
 
     nameSpace
@@ -561,14 +545,6 @@ class SourceClassBuilder extends ClassBuilderImpl
         .filteredIterator(
             parent: this, includeDuplicates: false, includeAugmentations: true)
         .forEach(build);
-
-    List<SourceClassBuilder>? augmentations = _augmentations;
-    if (augmentations != null) {
-      for (SourceClassBuilder augmentation in augmentations) {
-        augmentation.buildOutlineExpressions(
-            classHierarchy, delayedDefaultValueCloners);
-      }
-    }
   }
 
   @override
@@ -735,55 +711,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     return substitutionMap;
-  }
-
-  @override
-  void addAugmentation(Builder augmentation) {
-    _addAugmentation(augmentation);
-  }
-
-  SourceClassBuilder? _addAugmentation(Builder augmentation) {
-    if (augmentation is SourceClassBuilder) {
-      augmentation.actualOrigin = this;
-      (_augmentations ??= []).add(augmentation);
-      return augmentation;
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          augmentation.fileOffset, noLength, augmentation.fileUri, context: [
-        messagePatchDeclarationOrigin.withLocation(
-            fileUri, fileOffset, noLength)
-      ]);
-      return null;
-    }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void applyAugmentation(Builder augmentation) {
-    SourceClassBuilder? classBuilder = _addAugmentation(augmentation);
-    if (classBuilder != null) {
-      _applyAugmentation(classBuilder);
-    }
-  }
-
-  void _applyAugmentation(SourceClassBuilder augmentation) {
-    mergedScope.addAugmentationScope(augmentation);
-
-    int originLength = typeParameters?.length ?? 0;
-    int augmentationLength = augmentation.typeParameters?.length ?? 0;
-    if (originLength != augmentationLength) {
-      // Coverage-ignore-block(suite): Not run.
-      augmentation.addProblem(messagePatchClassTypeParametersMismatch,
-          augmentation.fileOffset, noLength, context: [
-        messagePatchClassOrigin.withLocation(fileUri, fileOffset, noLength)
-      ]);
-    } else if (typeParameters != null) {
-      int count = 0;
-      for (NominalParameterBuilder t in augmentation.typeParameters!) {
-        typeParameters![count++].applyAugmentation(t);
-      }
-    }
   }
 
   void checkSupertypes(
@@ -1402,10 +1329,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // Coverage-ignore-block(suite): Not run.
         if (member is Field && member.isStatic ||
             member is Procedure && member.isStatic) {
-          member.name = new Name(
-              '${member.name}'
-              '#${memberBuilder.libraryBuilder.augmentationIndex}',
-              member.name.library);
+          member.name = new Name('${member.name}', member.name.library);
         } else {
           return;
         }
@@ -2170,8 +2094,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   /// Returns an iterator the origin class and all augmentations in application
   /// order.
   Iterator<SourceClassBuilder> get declarationIterator =>
-      new AugmentationIterator<SourceClassBuilder>(
-          origin, origin._augmentations);
+      new AugmentationIterator<SourceClassBuilder>(origin, null);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -2220,7 +2143,7 @@ class _SourceClassBuilderAugmentationAccess
   @override
   Iterable<SourceClassBuilder>? getAugmentations(
           SourceClassBuilder classDeclaration) =>
-      classDeclaration._augmentations;
+      null;
 }
 
 TypeBuilder? _applyMixins(
@@ -2404,12 +2327,11 @@ TypeBuilder? _applyMixins(
         typeParameterScope: typeParameterScope,
         nameSpaceBuilder: nameSpaceBuilder,
         libraryBuilder: enclosingLibraryBuilder,
-        constructorReferences: [],
         fileUri: fileUri,
         nameOffset: nameOffset,
         indexedClass: indexedClass,
         mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
-        classDeclaration: classDeclaration);
+        introductory: classDeclaration);
     // TODO(ahe, kmillikin): Should always be true?
     // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
     // handle that :(

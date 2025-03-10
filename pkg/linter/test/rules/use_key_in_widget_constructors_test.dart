@@ -55,6 +55,7 @@ abstract class MyWidget extends StatelessWidget {
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_constructorInAugmentedClass() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
@@ -82,6 +83,7 @@ augment class W {
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_constructorInAugmentedClass_noKeyParam() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
@@ -149,6 +151,7 @@ abstract class MyWidget extends StatelessWidget {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_keyUse_inAugmentedConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

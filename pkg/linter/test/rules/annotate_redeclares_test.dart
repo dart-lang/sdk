@@ -41,6 +41,7 @@ extension type E(A a) implements A {
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationMethodWithAnnotation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

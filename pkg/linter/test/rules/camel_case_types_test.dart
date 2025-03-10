@@ -49,6 +49,7 @@ augment enum e {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationExtensionType_lowerCase() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

@@ -6,7 +6,7 @@
 /// file 'assert_ea.dart' contains similar tests for when assertions are
 /// _enabled_.
 
-/*member: main:[null]*/
+/*member: main:[null|powerset=1]*/
 main() {
   simpleAssert();
   failingAssert();
@@ -22,7 +22,7 @@ main() {
 // Simple assert statement known to be valid.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: simpleAssert:[null]*/
+/*member: simpleAssert:[null|powerset=1]*/
 simpleAssert() {
   assert(true);
 }
@@ -31,7 +31,7 @@ simpleAssert() {
 // Simple assert statement known to be invalid.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: failingAssert:[exact=JSUInt31]*/
+/*member: failingAssert:[exact=JSUInt31|powerset=0]*/
 failingAssert() {
   assert(false);
   return 0;
@@ -41,7 +41,7 @@ failingAssert() {
 // Simple assert statement with message known to be valid.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: simpleAssertWithMessage:[null]*/
+/*member: simpleAssertWithMessage:[null|powerset=1]*/
 simpleAssertWithMessage() {
   assert(true, 'foo');
 }
@@ -50,14 +50,16 @@ simpleAssertWithMessage() {
 // Assert statement that promotes a local.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _promoteLocalAssert:Union([exact=JSString], [exact=JSUInt31])*/
-_promoteLocalAssert(/*Union([exact=JSString], [exact=JSUInt31])*/ o) {
+/*member: _promoteLocalAssert:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+_promoteLocalAssert(
+  /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/ o,
+) {
   var local = o;
   assert(local is int);
   return local;
 }
 
-/*member: promoteLocalAssert:[null]*/
+/*member: promoteLocalAssert:[null|powerset=1]*/
 promoteLocalAssert() {
   _promoteLocalAssert(0);
   _promoteLocalAssert('');
@@ -67,13 +69,15 @@ promoteLocalAssert() {
 // Assert statement that promotes a parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _promoteParameterAssert:Union([exact=JSString], [exact=JSUInt31])*/
-_promoteParameterAssert(/*Union([exact=JSString], [exact=JSUInt31])*/ o) {
+/*member: _promoteParameterAssert:Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/
+_promoteParameterAssert(
+  /*Union([exact=JSString|powerset=0], [exact=JSUInt31|powerset=0], powerset: 0)*/ o,
+) {
   assert(o is int);
   return o;
 }
 
-/*member: promoteParameterAssert:[null]*/
+/*member: promoteParameterAssert:[null|powerset=1]*/
 promoteParameterAssert() {
   _promoteParameterAssert(0);
   _promoteParameterAssert('');
@@ -83,7 +87,7 @@ promoteParameterAssert() {
 // Assert statement with an unreachable throw.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: unreachableThrow:[exact=JSUInt31]*/
+/*member: unreachableThrow:[exact=JSUInt31|powerset=0]*/
 unreachableThrow() {
   assert(true, throw "unreachable");
   return 0;
@@ -93,14 +97,14 @@ unreachableThrow() {
 // Assert with a side effect in the message.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _messageWithSideEffect:[null]*/
-_messageWithSideEffect(/*[exact=JSBool]*/ b) {
+/*member: _messageWithSideEffect:[null|powerset=1]*/
+_messageWithSideEffect(/*[exact=JSBool|powerset=0]*/ b) {
   var a;
   assert(b, a = 42);
   return a;
 }
 
-/*member: messageWithSideEffect:[null]*/
+/*member: messageWithSideEffect:[null|powerset=1]*/
 messageWithSideEffect() {
   _messageWithSideEffect(true);
   _messageWithSideEffect(false);
@@ -110,8 +114,8 @@ messageWithSideEffect() {
 // Assert with a caught side effect in the message.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: _messageWithCaughtSideEffect:[null]*/
-_messageWithCaughtSideEffect(/*[exact=JSBool]*/ b) {
+/*member: _messageWithCaughtSideEffect:[null|powerset=1]*/
+_messageWithCaughtSideEffect(/*[exact=JSBool|powerset=0]*/ b) {
   var a;
   try {
     assert(b, a = 42);
@@ -119,7 +123,7 @@ _messageWithCaughtSideEffect(/*[exact=JSBool]*/ b) {
   return a;
 }
 
-/*member: messageWithCaughtSideEffect:[null]*/
+/*member: messageWithCaughtSideEffect:[null|powerset=1]*/
 messageWithCaughtSideEffect() {
   _messageWithCaughtSideEffect(true);
   _messageWithCaughtSideEffect(false);

@@ -138,10 +138,7 @@ mixin ElementsTypesMixin {
     fragment.mixins = mixins;
     fragment.methods = methods;
 
-    var element = ClassElementImpl2(Reference.root(), fragment);
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
+    ClassElementImpl2(Reference.root(), fragment);
 
     return fragment;
   }
@@ -170,10 +167,6 @@ mixin ElementsTypesMixin {
     fragment.methods = methods.map((e) => e.firstFragment).toList();
 
     var element = ClassElementImpl2(Reference.root(), fragment);
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
-
     return element;
   }
 
@@ -256,12 +249,9 @@ mixin ElementsTypesMixin {
     field.type = representationType;
     fragment.fields = [field];
 
-    var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
-    element
-      ..representation = field
-      ..typeErasure = representationType
-      ..interfaces = fragment.interfaces
-      ..fields = fragment.fields;
+    fragment.typeErasure = representationType;
+
+    ExtensionTypeElementImpl2(Reference.root(), fragment);
 
     return fragment;
   }
@@ -282,14 +272,9 @@ mixin ElementsTypesMixin {
     field.type = representationType;
     fragment.fields = [field];
 
-    var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
-    element
-      ..representation = field
-      ..typeErasure = representationType
-      ..interfaces = fragment.interfaces
-      ..fields = fragment.fields;
+    fragment.typeErasure = representationType;
 
-    return element;
+    return ExtensionTypeElementImpl2(Reference.root(), fragment);
   }
 
   FunctionTypeImpl functionType({
@@ -505,8 +490,6 @@ mixin ElementsTypesMixin {
 
     var element = MixinElementImpl2(Reference.root(), fragment);
     element.superclassConstraints = fragment.superclassConstraints;
-    element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return fragment;
   }
@@ -528,8 +511,6 @@ mixin ElementsTypesMixin {
 
     var element = MixinElementImpl2(Reference.root(), fragment);
     element.superclassConstraints = fragment.superclassConstraints;
-    element.interfaces = fragment.interfaces;
-    element.methods = fragment.methods;
 
     return element;
   }
@@ -774,16 +755,6 @@ extension ClassElementImpl2Extension on ClassElementImpl2 {
 
       expect(augmentation.typeParameters, isEmpty,
           reason: 'Not supported in tests');
-
-      interfaces = [
-        ...interfaces,
-        ...augmentation.interfaces,
-      ];
-
-      mixins = [
-        ...mixins,
-        ...augmentation.mixins,
-      ];
     }
   }
 }
@@ -799,22 +770,7 @@ extension ClassElementImplExtension on ClassElementImpl {
 
       expect(augmentation.typeParameters, isEmpty,
           reason: 'Not supported in tests');
-
-      augmentedInternal.interfaces = [
-        ...augmentedInternal.interfaces,
-        ...augmentation.interfaces,
-      ];
-
-      augmentedInternal.mixins = [
-        ...augmentedInternal.mixins,
-        ...augmentation.mixins,
-      ];
     }
-  }
-
-  void updateElement() {
-    element.interfaces = interfaces;
-    element.mixins = mixins;
   }
 }
 
@@ -833,11 +789,6 @@ extension MixinElementImpl2Extension on MixinElementImpl2 {
       superclassConstraints = [
         ...superclassConstraints,
         ...augmentation.superclassConstraints,
-      ];
-
-      interfaces = [
-        ...interfaces,
-        ...augmentation.interfaces,
       ];
     }
   }
@@ -858,11 +809,6 @@ extension MixinElementImplExtension on MixinElementImpl {
       augmentedInternal.superclassConstraints = [
         ...augmentedInternal.superclassConstraints,
         ...augmentation.superclassConstraints,
-      ];
-
-      augmentedInternal.interfaces = [
-        ...augmentedInternal.interfaces,
-        ...augmentation.interfaces,
       ];
     }
   }

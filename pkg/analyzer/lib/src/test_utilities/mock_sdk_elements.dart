@@ -942,15 +942,7 @@ class _MockSdkElementsBuilder {
     return _asyncLibrary;
   }
 
-  void _buildClassElement(ClassElementImpl fragment) {
-    var element = fragment.element;
-    element.mixins = fragment.mixins;
-    element.interfaces = fragment.interfaces;
-    element.fields = fragment.fields;
-    element.constructors = fragment.constructors;
-    element.accessors = fragment.accessors;
-    element.methods = fragment.methods;
-  }
+  void _buildClassElement(ClassElementImpl fragment) {}
 
   LibraryElementImpl _buildCore() {
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;
@@ -1015,13 +1007,13 @@ class _MockSdkElementsBuilder {
     return ElementFactory.fieldElement(name, isStatic, isFinal, isConst, type);
   }
 
-  FunctionElementImpl _function(
+  TopLevelFunctionFragmentImpl _function(
     String name,
     DartType returnType, {
     List<TypeParameterElementImpl> typeFormals = const [],
     List<FormalParameterElement> parameters = const [],
   }) {
-    var fragment = FunctionElementImpl(name, 0)
+    var fragment = TopLevelFunctionFragmentImpl(name, 0)
       ..parameters = parameters
           .map((p) => p.firstFragment as ParameterElementImpl)
           .toList()
@@ -1087,7 +1079,6 @@ class _MockSdkElementsBuilder {
           .toList()
       ..returnType = returnType
       ..typeParameters = typeFormals;
-    MethodElementImpl2(Reference.root(), name, fragment);
     return fragment;
   }
 
@@ -1141,7 +1132,7 @@ class _MockSdkElementsBuilder {
       typeElement,
     ];
 
-    _coreUnit.functions = <FunctionElementImpl>[
+    _coreUnit.functions = <TopLevelFunctionFragmentImpl>[
       _function('identical', boolType, parameters: [
         _requiredParameter('a', objectType),
         _requiredParameter('b', objectType),
@@ -1242,9 +1233,8 @@ class _MockSdkElementsBuilder {
   ) {
     library.classes = fragment.classes.map((f) => f.element).toList();
 
-    library.topLevelFunctions = fragment.functions.map((f) {
-      return f.element as TopLevelFunctionElementImpl;
-    }).toList();
+    library.topLevelFunctions =
+        fragment.functions.map((f) => f.element).toList();
 
     library.topLevelVariables =
         fragment.topLevelVariables.map((f) => f.element).toList();

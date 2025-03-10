@@ -21,12 +21,14 @@ main() {
       """, testBackendWorld: true);
     JClosedWorld world = env.jClosedWorld;
     final commonMasks = world.abstractValueDomain as CommonMasks;
-    FlatTypeMask mask1 = FlatTypeMask.exact(env.getClass('A'), world);
-    FlatTypeMask mask2 = FlatTypeMask.exact(env.getClass('B'), world);
+    FlatTypeMask mask1 = FlatTypeMask.exact(env.getClass('A'), commonMasks);
+    FlatTypeMask mask2 = FlatTypeMask.exact(env.getClass('B'), commonMasks);
     final union1 =
-        mask1.nonNullable().union(mask2, commonMasks) as UnionTypeMask;
+        mask1.nonNullable(commonMasks).union(mask2, commonMasks)
+            as UnionTypeMask;
     final union2 =
-        mask2.nonNullable().union(mask1, commonMasks) as UnionTypeMask;
+        mask2.nonNullable(commonMasks).union(mask1, commonMasks)
+            as UnionTypeMask;
     Expect.equals(union1, union2);
   }
 

@@ -61,7 +61,7 @@ class TranslatorOptions {
   bool requireJsStringBuiltin = false;
   List<int> watchPoints = [];
 
-  void serialize(BinaryDataSink sink) {
+  void serialize(DataSerializer sink) {
     sink.writeBool(enableAsserts);
     sink.writeBool(importSharedMemory);
     sink.writeBool(inlining);
@@ -85,7 +85,7 @@ class TranslatorOptions {
         sharedMemoryMaxPages == null ? 0 : (sharedMemoryMaxPages! + 1));
   }
 
-  static TranslatorOptions deserialize(BinaryDataSource source) {
+  static TranslatorOptions deserialize(DataDeserializer source) {
     final TranslatorOptions options = TranslatorOptions();
     options.enableAsserts = source.readBool();
     options.importSharedMemory = source.readBool();
@@ -410,7 +410,7 @@ class Translator with KernelNodes {
   Translator(this.component, this.coreTypes, this.index, this.recordClasses,
       this._moduleOutputData, this.options,
       {bool enableDynamicModules = false,
-      DynamicModuleMetadata? dynamicModuleMetadata})
+      required MainModuleMetadata mainModuleMetadata})
       : libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
@@ -425,7 +425,7 @@ class Translator with KernelNodes {
     types = Types(this);
     exceptionTag = ExceptionTag(this);
     if (enableDynamicModules) {
-      dynamicModuleInfo = DynamicModuleInfo(this, dynamicModuleMetadata);
+      dynamicModuleInfo = DynamicModuleInfo(this, mainModuleMetadata);
     }
   }
 

@@ -1938,6 +1938,7 @@ class LinterLintCode extends LintCode {
     LintNames.use_null_aware_elements,
     "Use the null-aware marker '?' rather than a null check via an 'if'.",
     correctionMessage: "Try using '?'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode use_raw_strings = LinterLintCode(

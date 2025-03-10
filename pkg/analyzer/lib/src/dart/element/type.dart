@@ -961,23 +961,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @Deprecated('Use lookUpConstructor2() instead')
   @override
   ConstructorElementMixin? lookUpConstructor(
-      String? constructorName, LibraryElement library) {
-    var augmented = element.element;
-
-    // prepare base ConstructorElement
-    ConstructorElementMixin? constructorElement;
-    if (constructorName == null) {
-      constructorElement = augmented.unnamedConstructor;
-    } else {
-      constructorElement = augmented.getNamedConstructor(constructorName);
-    }
-    // not found or not accessible
-    if (constructorElement == null ||
-        !constructorElement.isAccessibleIn(library)) {
-      return null;
-    }
-    // return member
-    return ConstructorMember.from(constructorElement, this);
+      String? constructorName, covariant LibraryElementImpl library) {
+    return lookUpConstructor2(constructorName ?? 'new', library)?.asElement;
   }
 
   @override
