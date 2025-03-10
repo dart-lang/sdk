@@ -474,7 +474,8 @@ class InheritanceManager3 {
     }
 
     element.methods2.map((e) => e.asElement).forEach(addMember);
-    element.accessors.forEach(addMember);
+    element.getters2.map((e) => e.asElement).forEach(addMember);
+    element.setters2.map((e) => e.asElement).forEach(addMember);
   }
 
   void _addMixinMembers({
@@ -1198,25 +1199,20 @@ class InheritanceManager3 {
     var declared = <Name, ExecutableElementOrMember>{};
     var libraryUri = fragment.librarySource.uri;
 
-    var methods = element.methods2;
-    for (var i = 0; i < methods.length; i++) {
-      var method = methods[i];
-      if (!method.isStatic) {
-        var name = Name.forElement(method);
-        if (name != null) {
-          declared[name] = method.asElement;
-        }
+    void addMember(ExecutableElementOrMember member) {
+      if (!member.isStatic) {
+        var name = Name(libraryUri, member.name);
+        declared[name] = member;
       }
     }
 
-    var accessors = element.accessors;
-    for (var i = 0; i < accessors.length; i++) {
-      var accessor = accessors[i];
-      if (!accessor.isStatic) {
-        var name = Name(libraryUri, accessor.name);
-        declared[name] = accessor;
-      }
-    }
+    element.methods2.map((e) => e.asElement).forEach(addMember);
+    element.getters2
+        .map((e) => e.asElement as PropertyAccessorElementImpl)
+        .forEach(addMember);
+    element.setters2
+        .map((e) => e.asElement as PropertyAccessorElementImpl)
+        .forEach(addMember);
 
     return declared;
   }

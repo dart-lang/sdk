@@ -3007,14 +3007,9 @@ package:analyzer/dart/element/element.dart:
     firstFragment (getter: ExtensionTypeElement)
   AugmentedInstanceElement (class extends Object):
     new (constructor: AugmentedInstanceElement Function())
-    accessors (getter: List<PropertyAccessorElement>)
-    fields (getter: List<FieldElement>)
     firstFragment (getter: InstanceElement)
     metadata (getter: List<ElementAnnotation>)
     thisType (getter: DartType)
-    getField (method: FieldElement? Function(String))
-    getGetter (method: PropertyAccessorElement? Function(String))
-    getSetter (method: PropertyAccessorElement? Function(String))
   AugmentedInterfaceElement (class extends Object implements AugmentedInstanceElement):
     new (constructor: AugmentedInterfaceElement Function())
     firstFragment (getter: InterfaceElement)

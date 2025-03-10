@@ -696,7 +696,7 @@ class ClassElementImpl2 extends InterfaceElementImpl2
 
     // With 2+ static const fields with the type of this class.
     var numberOfElements = 0;
-    for (var field in fields) {
+    for (var field in fields2) {
       if (field.isStatic && field.isConst && field.type == thisType) {
         numberOfElements++;
       }
@@ -3724,12 +3724,13 @@ class EnumElementImpl2 extends InterfaceElementImpl2
 
   @override
   List<FieldElementOrMember> get constants {
-    return fields.where((field) => field.isEnumConstant).toList();
+    return constants2.map((e) => e.asElement).toList();
   }
 
   @override
-  List<FieldElement2OrMember> get constants2 =>
-      constants.map((e) => e.asElement2).toList();
+  List<FieldElementImpl2> get constants2 {
+    return fields2.where((field) => field.isEnumConstant).toList();
+  }
 
   @override
   List<EnumElementImpl> get fragments {
@@ -4108,7 +4109,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   PropertyAccessorElementOrMember? getGetter(String getterName) {
-    for (var accessor in element.accessors) {
+    for (var accessor in accessors) {
       if (accessor.isGetter && accessor.name == getterName) {
         return accessor;
       }
@@ -4128,10 +4129,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   PropertyAccessorElement? getSetter(String setterName) {
-    return InterfaceElementImpl.getSetterFromAccessors(
-      setterName,
-      element.accessors,
-    );
+    return InterfaceElementImpl.getSetterFromAccessors(setterName, accessors);
   }
 }
 
@@ -5839,12 +5837,6 @@ abstract class InstanceElementImpl2 extends ElementImpl2
         InstanceElement2,
         TypeParameterizedElement2 {
   @override
-  List<FieldElementOrMember> fields = [];
-
-  @override
-  List<PropertyAccessorElementOrMember> accessors = [];
-
-  @override
   InstanceElement2 get baseElement => this;
 
   @override
@@ -5867,20 +5859,22 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   LibraryElement2 get enclosingElement2 => firstFragment.library;
 
   @override
-  List<FieldElement2> get fields2 {
+  List<FieldElementImpl2> get fields2 {
     _readMembers();
-    return fields.map((e) => e.asElement2 as FieldElement2?).nonNulls.toList();
+    return firstFragment.fields
+        .map((e) => e.asElement2 as FieldElementImpl2)
+        .toList();
   }
 
   @override
   InstanceElementImpl get firstFragment;
 
   @override
-  List<GetterElement2OrMember> get getters2 {
+  List<GetterElementImpl> get getters2 {
     _readMembers();
-    return accessors
+    return firstFragment.accessors
         .where((e) => e.isGetter)
-        .map((e) => e.asElement2 as GetterElement2OrMember)
+        .map((e) => e.asElement2 as GetterElementImpl)
         .nonNulls
         .toList();
   }
@@ -5928,11 +5922,11 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   AnalysisSession? get session => firstFragment.session;
 
   @override
-  List<SetterElement> get setters2 {
+  List<SetterElementImpl> get setters2 {
     _readMembers();
-    return accessors
+    return firstFragment.accessors
         .where((e) => e.isSetter)
-        .map((e) => e.asElement2 as SetterElement?)
+        .map((e) => e.asElement2 as SetterElementImpl?)
         .nonNulls
         .toList();
   }
@@ -5948,32 +5942,8 @@ abstract class InstanceElementImpl2 extends ElementImpl2
           multiline: multiline, preferTypeAlias: preferTypeAlias);
 
   @override
-  FieldElementOrMember? getField(String name) {
-    var length = fields.length;
-    for (var i = 0; i < length; i++) {
-      var field = fields[i];
-      if (field.name == name) {
-        return field;
-      }
-    }
-    return null;
-  }
-
-  @override
-  FieldElement2? getField2(String name) {
+  FieldElementImpl2? getField2(String name) {
     return fields2.firstWhereOrNull((e) => e.name3 == name);
-  }
-
-  @override
-  PropertyAccessorElement? getGetter(String name) {
-    var length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      var accessor = accessors[i];
-      if (accessor.isGetter && accessor.name == name) {
-        return accessor;
-      }
-    }
-    return null;
   }
 
   @override
@@ -5984,15 +5954,6 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   @override
   MethodElement2OrMember? getMethod2(String name) {
     return methods2.firstWhereOrNull((e) => e.lookupName == name);
-  }
-
-  @override
-  PropertyAccessorElement? getSetter(String name) {
-    if (!name.endsWith('=')) {
-      name += '=';
-    }
-    return accessors.firstWhereOrNull(
-        (accessor) => accessor.isSetter && accessor.name == name);
   }
 
   @override

@@ -10911,13 +10911,6 @@ library
               id: getter_1
               variable: field_1
           augmented
-            fields
-              <testLibraryFragment>::@class::C::@field::foo::@def::0
-              <testLibraryFragment>::@class::C::@field::foo::@def::1
-            accessors
-              <testLibraryFragment>::@class::C::@getter::foo::@def::0
-              <testLibraryFragment>::@class::C::@getter::foo::@def::1
-              <testLibraryFragment>::@class::C::@setter::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -11054,13 +11047,6 @@ library
               id: setter_1
               variable: field_1
           augmented
-            fields
-              <testLibraryFragment>::@class::C::@field::foo::@def::0
-              <testLibraryFragment>::@class::C::@field::foo::@def::1
-            accessors
-              <testLibraryFragment>::@class::C::@getter::foo
-              <testLibraryFragment>::@class::C::@setter::foo::@def::0
-              <testLibraryFragment>::@class::C::@setter::foo::@def::1
 ----------------------------------------
 library
   reference: <testLibrary>

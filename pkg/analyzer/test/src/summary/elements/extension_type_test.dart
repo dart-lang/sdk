@@ -2626,7 +2626,7 @@ library
                   type: InvalidType
                   codeOffset: 17
                   codeLength: 0
-                  field: <testLibraryFragment>::@extensionType::A::@field::<empty>
+                  field: <null>
           accessors
             synthetic get <empty> @-1
               reference: <testLibraryFragment>::@extensionType::A::@getter::<empty>

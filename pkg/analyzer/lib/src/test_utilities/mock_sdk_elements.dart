@@ -942,11 +942,7 @@ class _MockSdkElementsBuilder {
     return _asyncLibrary;
   }
 
-  void _buildClassElement(ClassElementImpl fragment) {
-    var element = fragment.element;
-    element.fields = fragment.fields;
-    element.accessors = fragment.accessors;
-  }
+  void _buildClassElement(ClassElementImpl fragment) {}
 
   LibraryElementImpl _buildCore() {
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;

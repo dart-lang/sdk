@@ -157,11 +157,6 @@ class BundleWriter {
       _resolutionSink.writeType(fragment.supertype);
       _resolutionSink._writeTypeList(fragment.mixins);
       _resolutionSink._writeTypeList(fragment.interfaces);
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
-      }
 
       if (!fragment.isMixinApplication) {
         var membersOffset = _sink.offset;
@@ -247,11 +242,6 @@ class BundleWriter {
       _resolutionSink.writeType(fragment.supertype);
       _resolutionSink._writeTypeList(fragment.mixins);
       _resolutionSink._writeTypeList(fragment.interfaces);
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
-      }
 
       _writeList(
         fragment.fields.where((e) {
@@ -310,8 +300,6 @@ class BundleWriter {
       if (fragment.augmentationTarget == null) {
         var element = fragment.element;
         _resolutionSink.writeType(element.extendedType);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
       }
 
       _writeList(
@@ -338,11 +326,6 @@ class BundleWriter {
 
     _writeTypeParameters(fragment.typeParameters, () {
       _resolutionSink._writeTypeList(fragment.interfaces);
-      if (fragment.augmentationTarget == null) {
-        var element = fragment.element;
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
-      }
       _resolutionSink.writeType(fragment.typeErasure);
 
       _writeList(
@@ -512,8 +495,6 @@ class BundleWriter {
       if (fragment.augmentationTarget == null) {
         var element = fragment.element;
         _resolutionSink._writeTypeList(element.superclassConstraints);
-        _resolutionSink._writeElementList(element.fields);
-        _resolutionSink._writeElementList(element.accessors);
       }
 
       _writeList(

@@ -140,12 +140,6 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
 
-    if (element.augmentationTarget == null) {
-      var augmented = element.augmentedInternal;
-      augmented.fields = reader.readElementList();
-      augmented.accessors = reader.readElementList();
-    }
-
     applyConstantOffsets?.perform();
   }
 
@@ -377,11 +371,6 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
-    if (element.augmentationTarget == null) {
-      var augmented = element.augmentedInternal;
-      augmented.fields = reader.readElementList();
-      augmented.accessors = reader.readElementList();
-    }
     applyConstantOffsets?.perform();
   }
 }
@@ -411,8 +400,6 @@ class ExtensionElementLinkedData
     if (element.augmentationTarget == null) {
       var extendedType = reader.readRequiredType();
       var augmented = element.augmentedInternal;
-      augmented.fields = reader.readElementList();
-      augmented.accessors = reader.readElementList();
       augmented.extendedType = extendedType;
     }
 
@@ -443,11 +430,6 @@ class ExtensionTypeElementLinkedData
     );
     _readTypeParameters(reader, element.typeParameters);
     element.interfaces = reader._readInterfaceTypeList();
-    if (element.augmentationTarget == null) {
-      var augmented = element.augmentedInternal;
-      augmented.fields = reader.readElementList();
-      augmented.accessors = reader.readElementList();
-    }
     element.typeErasure = reader.readRequiredType();
     applyConstantOffsets?.perform();
   }
@@ -1961,8 +1943,6 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     if (element.augmentationTarget == null) {
       var augmented = element.augmentedInternal;
       augmented.superclassConstraints = reader._readInterfaceTypeList();
-      augmented.fields = reader.readElementList();
-      augmented.accessors = reader.readElementList();
     }
 
     applyConstantOffsets?.perform();

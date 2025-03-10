@@ -305,7 +305,7 @@ class LibraryBuilder {
       for (var constructor in interfaceFragment.constructors) {
         for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterElementImpl) {
-            parameter.field = element.getField(parameter.name);
+            parameter.field = element.getField2(parameter.name)?.asElement;
           }
         }
       }

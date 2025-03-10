@@ -251,8 +251,7 @@ mixin ElementsTypesMixin {
 
     fragment.typeErasure = representationType;
 
-    var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
-    element.fields = fragment.fields;
+    ExtensionTypeElementImpl2(Reference.root(), fragment);
 
     return fragment;
   }
@@ -275,10 +274,7 @@ mixin ElementsTypesMixin {
 
     fragment.typeErasure = representationType;
 
-    var element = ExtensionTypeElementImpl2(Reference.root(), fragment);
-    element.fields = fragment.fields;
-
-    return element;
+    return ExtensionTypeElementImpl2(Reference.root(), fragment);
   }
 
   FunctionTypeImpl functionType({

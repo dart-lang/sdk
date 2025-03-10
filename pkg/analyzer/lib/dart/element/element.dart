@@ -99,18 +99,6 @@ abstract class AugmentedExtensionTypeElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedInstanceElement {
-  /// The accessors (getters and setters) declared in this element.
-  ///
-  /// [PropertyAccessorElement]s replace corresponding elements,
-  /// other [PropertyAccessorElement]s are appended.
-  List<PropertyAccessorElement> get accessors;
-
-  /// The fields declared in this element.
-  ///
-  /// `FieldAugmentationElement`s replace corresponding elements, other
-  /// [FieldElement]s are appended.
-  List<FieldElement> get fields;
-
   /// The declaration (not augmentation) that owns this result.
   InstanceElement get firstFragment;
 
@@ -122,15 +110,6 @@ abstract class AugmentedInstanceElement {
 
   /// The type of `this` expression.
   DartType get thisType;
-
-  /// Returns the field from [fields] that has the given [name].
-  FieldElement? getField(String name);
-
-  /// Returns the getter from [accessors] that has the given [name].
-  PropertyAccessorElement? getGetter(String name);
-
-  /// Returns the setter from [accessors] that has the given [name].
-  PropertyAccessorElement? getSetter(String name);
 }
 
 /// The result of applying augmentations to a [InterfaceElement].

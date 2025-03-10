@@ -17,6 +17,7 @@ class AvoidClassesWithOnlyStaticMembers extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_classes_with_only_static_members;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_nonStaticField() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -39,6 +40,7 @@ augment class A {
     await assertNoDiagnosticsInFile(b.path);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_staticField() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

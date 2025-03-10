@@ -460,6 +460,12 @@ extension FieldElementExtension on FieldElement {
   }
 }
 
+extension FieldElementImpl2Extension on FieldElementImpl2 {
+  FieldElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
 extension FieldElementOrMemberExtension on FieldElementOrMember {
   FieldElement2OrMember get asElement2 {
     return switch (this) {
