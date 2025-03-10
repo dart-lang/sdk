@@ -55,6 +55,8 @@ void main() {
       print('red');
     case .green:
       print('green');
+    case Future<Color>():
+      print('Future in switch');
   }
 
   var colorList = <FutureOr<Color>>[.blue, .green, .red];
@@ -100,7 +102,7 @@ void main() {
   var nullableIntegerMixinList = <FutureOr<IntegerExt?>>[.one, .two, .one];
 
   var integerMixinContextPositional = IntegerMixinFutureOrContext(.mixinOne, .mixinTwo);
-  var integerMixinContextNamed = IntegerMixinFutureOrContext.named(integer: .mixinOne, nullableInteger: .mixinTwotwo);
+  var integerMixinContextNamed = IntegerMixinFutureOrContext.named(integer: .mixinOne, nullableInteger: .mixinTwo);
   var integerMixinContextOptional = IntegerMixinFutureOrContext.optional(.mixinOne, .mixinTwo);
 }
 
