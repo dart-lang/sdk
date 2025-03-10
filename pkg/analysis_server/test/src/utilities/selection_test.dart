@@ -556,6 +556,7 @@ enum E { a }
 int a, b, c, d;
 ''');
     var selection = await _computeSelection('''
+// ignore: multiple_combinators
 export 'a.dart' show a [!hide b show c!] hide d;
 ''');
     _assertSelection(selection, r'''
@@ -790,6 +791,7 @@ nodesInRange
 int a, b, c, d;
 ''');
     var selection = await _computeSelection('''
+// ignore: multiple_combinators
 import 'a.dart' show a [!hide b show c!] hide d;
 ''');
     _assertSelection(selection, r'''

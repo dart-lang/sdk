@@ -157,6 +157,9 @@ class EnclosingExecutableContext {
 /// and warnings not covered by the parser and resolver.
 class ErrorVerifier extends RecursiveAstVisitor<void>
     with ErrorDetectionHelpers {
+  /// The factory used to create diagnostic messages.
+  static final _diagnosticFactory = DiagnosticFactory();
+
   /// The error reporter by which errors will be reported.
   @override
   final ErrorReporter errorReporter;
@@ -732,6 +735,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForAmbiguousExport(node, libraryExport, exportedLibrary);
       _checkForExportInternalLibrary(node, libraryExport);
     }
+    _reportForMultipleCombinators(node);
     super.visitExportDirective(node);
   }
 
@@ -1078,6 +1082,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkForDeferredImportOfExtensions(node, importElement);
       }
     }
+
+    _reportForMultipleCombinators(node);
     super.visitImportDirective(node);
   }
 
@@ -5203,7 +5209,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _hiddenElements!.contains(element)) {
       _hiddenElements!.contains(element);
       errorReporter.reportError(
-        DiagnosticFactory().referencedBeforeDeclaration(
+        _diagnosticFactory.referencedBeforeDeclaration(
           errorReporter.source,
           nameToken: nameToken,
           element2: element,
@@ -5689,8 +5695,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (errorCode == StaticWarningCode.INVALID_NULL_AWARE_OPERATOR) {
         var previousOperator = previousShortCircuitingOperator(target);
         if (previousOperator != null) {
-          errorReporter.reportError(DiagnosticFactory()
-              .invalidNullAwareAfterShortCircuit(
+          errorReporter.reportError(
+              _diagnosticFactory.invalidNullAwareAfterShortCircuit(
                   errorReporter.source,
                   operator.offset,
                   endToken.end - operator.offset,
@@ -6479,6 +6485,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return parameter.parameter.name;
     }
     return null;
+  }
+
+  void _reportForMultipleCombinators(NamespaceDirective node) {
+    var combinators = node.combinators;
+    if (combinators.length > 1) {
+      var offset = combinators.beginToken!.offset;
+      var length = combinators.endToken!.end - offset;
+      errorReporter.atOffset(
+        offset: offset,
+        length: length,
+        errorCode: WarningCode.MULTIPLE_COMBINATORS,
+      );
+    }
   }
 
   void _withEnclosingExecutable(

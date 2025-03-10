@@ -180,6 +180,7 @@ f(x) {
 
   Future<void> test_undefinedHiddenName_only_first() async {
     await resolveTestCode('''
+// ignore: multiple_combinators
 import 'dart:math' hide aaa hide cos, sin;
 
 void f() {
@@ -187,6 +188,7 @@ void f() {
 }
 ''');
     await assertHasFix('''
+// ignore: multiple_combinators
 import 'dart:math' hide cos, sin;
 
 void f() {
@@ -197,6 +199,7 @@ void f() {
 
   Future<void> test_undefinedHiddenName_only_last() async {
     await resolveTestCode('''
+// ignore: multiple_combinators
 import 'dart:math' hide cos, sin hide aaa;
 
 void f() {
@@ -204,6 +207,7 @@ void f() {
 }
 ''');
     await assertHasFix('''
+// ignore: multiple_combinators
 import 'dart:math' hide cos, sin;
 
 void f() {
@@ -214,6 +218,7 @@ void f() {
 
   Future<void> test_undefinedHiddenName_only_middle() async {
     await resolveTestCode('''
+// ignore: multiple_combinators
 import 'dart:math' hide cos hide aaa hide sin;
 
 void f() {
@@ -221,6 +226,7 @@ void f() {
 }
 ''');
     await assertHasFix('''
+// ignore: multiple_combinators
 import 'dart:math' hide cos hide sin;
 
 void f() {
