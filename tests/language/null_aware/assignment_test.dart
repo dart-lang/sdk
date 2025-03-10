@@ -196,13 +196,13 @@ main() {
   {
     B bname = new C(1);
     bname?.v += 2;
-//       ^^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-//         ^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
-// [cfe] The getter 'v' isn't defined for the class 'B'.
-// [cfe] The setter 'v' isn't defined for the class 'B'.
+    //   ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+    //     ^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+    // [cfe] The getter 'v' isn't defined for the class 'B'.
+    // [cfe] The setter 'v' isn't defined for the class 'B'.
   }
   {
     D d = new D(new E());
@@ -265,21 +265,21 @@ main() {
   // '?.' cannot be used to assign to toplevel properties in libraries imported
   // via prefix.
   h?.topLevelVar = null;
-//^
-// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
-// [cfe] A prefix can't be used with null-aware operators.
-//               ^
-// [cfe] Can't assign to this.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+  // [cfe] A prefix can't be used with null-aware operators.
+  //             ^
+  // [cfe] Can't assign to this.
   h?.topLevelVar += null;
-//^
-// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
-// [cfe] A prefix can't be used with null-aware operators.
-//               ^
-// [cfe] Can't assign to this.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+  // [cfe] A prefix can't be used with null-aware operators.
+  //             ^
+  // [cfe] Can't assign to this.
   h?.topLevelVar ??= null;
-//^
-// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
-// [cfe] A prefix can't be used with null-aware operators.
-//               ^
-// [cfe] Can't assign to this.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+  // [cfe] A prefix can't be used with null-aware operators.
+  //             ^
+  // [cfe] Can't assign to this.
 }

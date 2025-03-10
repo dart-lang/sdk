@@ -202,6 +202,9 @@ library_for_all_configs("libdart_vm") {
     # uses different assembler syntax.
     sources += [ "thread_interrupter_android_arm.S" ]
   }
+  if (!is_win) {
+    sources += [ "simulator_arm64_trampolines.S" ]
+  }
   include_dirs = [ ".." ]
 }
 
@@ -259,7 +262,6 @@ template("gen_vm_platform") {
     args += [
       "-Ddart.vm.product=$is_product_flag",
       "-Ddart.isVM=true",
-      "--nnbd-strong",
     ]
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]

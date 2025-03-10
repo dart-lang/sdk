@@ -179,7 +179,8 @@ extension on ReloadReport {
     final notices = this.json?['notices'] as List?;
     if (notices != null) {
       for (final notice in notices) {
-        if (notice['type'] == 'ReasonForCancelling') {
+        if (notice['type'] == 'ReasonForCancelling' ||
+            notice['type'] == 'ReasonForCancellingReload') {
           return notice['message'] as String?;
         }
       }

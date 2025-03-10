@@ -15,6 +15,7 @@
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -22,6 +23,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 
+@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')
 const List<ErrorCode> errorCodeValues = [
   AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
   AnalysisOptionsErrorCode.PARSE_ERROR,
@@ -208,6 +210,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
   CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
   CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+  CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
   CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
   CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
   CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
@@ -735,7 +738,6 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE,
   ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER,
   ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
-  ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
   ParserErrorCode.EXTENSION_TYPE_EXTENDS,
   ParserErrorCode.EXTENSION_TYPE_WITH,
   ParserErrorCode.EXTERNAL_CLASS,
@@ -997,7 +999,9 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
   WarningCode.DOC_DIRECTIVE_UNKNOWN,
   WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
+  WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS,
   WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
+  WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX,
   WarningCode.DUPLICATE_EXPORT,
   WarningCode.DUPLICATE_HIDDEN_NAME,
   WarningCode.DUPLICATE_IGNORE,

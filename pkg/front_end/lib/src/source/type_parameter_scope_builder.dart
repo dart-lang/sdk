@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 
@@ -12,16 +13,17 @@ import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/constructor/declaration.dart';
 import '../fragment/fragment.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
-import 'source_builder_factory.dart';
 import 'source_class_builder.dart';
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
@@ -30,6 +32,7 @@ import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
+import 'source_member_builder.dart';
 import 'source_method_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
@@ -202,7 +205,6 @@ class _PropertyPreBuilder extends _PreBuilder {
             }
           } else {
             if (fragmentName.isAugment) {
-              // Coverage-ignore-block(suite): Not run.
               // Example:
               //
               //    int get foo => 42;
@@ -758,7 +760,6 @@ class _ConstructorPreBuilder extends _PreBuilder {
   bool absorbFragment(
       ProblemReporting problemReporting, _FragmentName fragmentName) {
     if (fragmentName.isAugment) {
-      // Coverage-ignore-block(suite): Not run.
       if (fragmentName.kind == fragment.kind) {
         // Example:
         //
@@ -858,7 +859,6 @@ class _ConstructorPreBuilder extends _PreBuilder {
       void Function(Fragment, {bool conflictingSetter}) createBuilder) {
     createBuilder(fragment.fragment);
     for (_FragmentName fragmentName in augmentations) {
-      // Coverage-ignore-block(suite): Not run.
       createBuilder(fragmentName.fragment);
     }
   }
@@ -1227,7 +1227,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             fragment: fragment,
             reference: reference);
         builders.add(new _AddBuilder(fragment.name, typedefBuilder,
-            fragment.fileUri, fragment.nameOffset));
+            fragment.fileUri, fragment.nameOffset,
+            inPatch: fragment.enclosingCompilationUnit.isPatch));
         if (reference != null) {
           loader.buildersCreatedWithReferences[reference] = typedefBuilder;
         }
@@ -1235,53 +1236,22 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
         SourceClassBuilder classBuilder = new SourceClassBuilder(
-            metadata: fragment.metadata,
             modifiers: fragment.modifiers,
             name: fragment.name,
-            typeParameters: fragment.typeParameters,
-            supertypeBuilder: BuilderFactoryImpl.applyMixins(
-                unboundNominalParameters: unboundNominalParameters,
-                compilationUnitScope: fragment.compilationUnitScope,
-                problemReporting: problemReporting,
-                objectTypeBuilder: loader.target.objectType,
-                enclosingLibraryBuilder: enclosingLibraryBuilder,
-                fileUri: fragment.fileUri,
-                indexedLibrary: indexedLibrary,
-                supertype: fragment.supertype,
-                mixins: fragment.mixins,
-                mixinApplications: mixinApplications,
-                startOffset: fragment.startOffset,
-                nameOffset: fragment.nameOffset,
-                endOffset: fragment.endOffset,
-                subclassName: fragment.name,
-                isMixinDeclaration: false,
-                typeParameters: fragment.typeParameters,
-                modifiers: Modifiers.empty,
-                addBuilder: (String name, Builder declaration, int charOffset,
-                    {Reference? getterReference}) {
-                  if (getterReference != null) {
-                    loader.buildersCreatedWithReferences[getterReference] =
-                        declaration;
-                  }
-                  builders.add(new _AddBuilder(
-                      name, declaration, fragment.fileUri, charOffset));
-                }),
-            interfaceBuilders: fragment.interfaces,
-            onTypes: null,
+            typeParameters: fragment.typeParameters?.builders,
             typeParameterScope: fragment.typeParameterScope,
             nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
             libraryBuilder: enclosingLibraryBuilder,
             constructorReferences: fragment.constructorReferences,
             fileUri: fragment.fileUri,
-            startOffset: fragment.startOffset,
             nameOffset: fragment.nameOffset,
-            endOffset: fragment.endOffset,
             indexedClass: indexedClass,
-            isMixinDeclaration: false);
+            classDeclaration: new RegularClassDeclaration(fragment));
         fragment.builder = classBuilder;
         fragment.bodyScope.declarationBuilder = classBuilder;
-        builders.add(new _AddBuilder(fragment.name, classBuilder,
-            fragment.fileUri, fragment.fileOffset));
+        builders.add(new _AddBuilder(
+            fragment.name, classBuilder, fragment.fileUri, fragment.fileOffset,
+            inPatch: fragment.enclosingCompilationUnit.isPatch));
         if (indexedClass != null) {
           loader.buildersCreatedWithReferences[indexedClass.reference] =
               classBuilder;
@@ -1289,127 +1259,77 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case MixinFragment():
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
+        List<NominalParameterBuilder>? typeParameters =
+            fragment.typeParameters?.map((p) => p.builder).toList();
         SourceClassBuilder mixinBuilder = new SourceClassBuilder(
-            metadata: fragment.metadata,
             modifiers: fragment.modifiers,
             name: fragment.name,
-            typeParameters: fragment.typeParameters,
-            supertypeBuilder: BuilderFactoryImpl.applyMixins(
-                unboundNominalParameters: unboundNominalParameters,
-                compilationUnitScope: fragment.compilationUnitScope,
-                problemReporting: problemReporting,
-                objectTypeBuilder: loader.target.objectType,
-                enclosingLibraryBuilder: enclosingLibraryBuilder,
-                fileUri: fragment.fileUri,
-                indexedLibrary: indexedLibrary,
-                supertype: fragment.supertype,
-                mixins: fragment.mixins,
-                mixinApplications: mixinApplications,
-                startOffset: fragment.startOffset,
-                nameOffset: fragment.nameOffset,
-                endOffset: fragment.endOffset,
-                subclassName: fragment.name,
-                isMixinDeclaration: true,
-                typeParameters: fragment.typeParameters,
-                modifiers: Modifiers.empty,
-                addBuilder: (String name, Builder declaration, int charOffset,
-                    {Reference? getterReference}) {
-                  if (getterReference != null) {
-                    loader.buildersCreatedWithReferences[getterReference] =
-                        declaration;
-                  }
-                  builders.add(new _AddBuilder(
-                      name, declaration, fragment.fileUri, charOffset));
-                }),
-            interfaceBuilders: fragment.interfaces,
-            // TODO(johnniwinther): Add the `on` clause types of a mixin
-            //  declaration here.
-            onTypes: null,
+            typeParameters: typeParameters,
             typeParameterScope: fragment.typeParameterScope,
             nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
             libraryBuilder: enclosingLibraryBuilder,
             constructorReferences: fragment.constructorReferences,
             fileUri: fragment.fileUri,
-            startOffset: fragment.startOffset,
             nameOffset: fragment.nameOffset,
-            endOffset: fragment.endOffset,
             indexedClass: indexedClass,
-            isMixinDeclaration: true);
+            classDeclaration: new MixinDeclaration(fragment));
         fragment.builder = mixinBuilder;
         fragment.bodyScope.declarationBuilder = mixinBuilder;
-        builders.add(new _AddBuilder(fragment.name, mixinBuilder,
-            fragment.fileUri, fragment.fileOffset));
+        builders.add(new _AddBuilder(
+            fragment.name, mixinBuilder, fragment.fileUri, fragment.fileOffset,
+            inPatch: fragment.enclosingCompilationUnit.isPatch));
         if (indexedClass != null) {
           loader.buildersCreatedWithReferences[indexedClass.reference] =
               mixinBuilder;
         }
       case NamedMixinApplicationFragment():
-        BuilderFactoryImpl.applyMixins(
-            unboundNominalParameters: unboundNominalParameters,
-            compilationUnitScope: fragment.compilationUnitScope,
-            problemReporting: problemReporting,
-            objectTypeBuilder: loader.target.objectType,
-            enclosingLibraryBuilder: enclosingLibraryBuilder,
-            fileUri: fragment.fileUri,
-            indexedLibrary: indexedLibrary,
-            supertype: fragment.supertype,
-            mixins: fragment.mixins,
-            mixinApplications: mixinApplications,
-            startOffset: fragment.startOffset,
-            nameOffset: fragment.nameOffset,
-            endOffset: fragment.endOffset,
-            subclassName: fragment.name,
-            isMixinDeclaration: false,
-            metadata: fragment.metadata,
-            name: fragment.name,
-            typeParameters: fragment.typeParameters,
-            modifiers: fragment.modifiers,
-            interfaces: fragment.interfaces,
-            addBuilder: (String name, Builder declaration, int charOffset,
-                {Reference? getterReference}) {
-              if (getterReference != null) {
-                loader.buildersCreatedWithReferences[getterReference] =
-                    declaration;
-              }
-              builders.add(new _AddBuilder(
-                  name, declaration, fragment.fileUri, charOffset));
-            });
+        List<TypeBuilder> mixins = fragment.mixins.toList();
+        TypeBuilder mixin = mixins.removeLast();
+        ClassDeclaration classDeclaration =
+            new NamedMixinApplication(fragment, mixins);
 
+        String name = fragment.name;
+
+        IndexedClass? referencesFromIndexedClass;
+        if (indexedLibrary != null) {
+          referencesFromIndexedClass = indexedLibrary.lookupIndexedClass(name);
+        }
+
+        LookupScope typeParameterScope = TypeParameterScope.fromList(
+            fragment.enclosingScope, fragment.typeParameters?.builders);
+        DeclarationNameSpaceBuilder nameSpaceBuilder =
+            new DeclarationNameSpaceBuilder.empty();
+        SourceClassBuilder classBuilder = new SourceClassBuilder(
+            modifiers: fragment.modifiers | Modifiers.NamedMixinApplication,
+            name: name,
+            typeParameters: fragment.typeParameters?.builders,
+            typeParameterScope: typeParameterScope,
+            nameSpaceBuilder: nameSpaceBuilder,
+            libraryBuilder: enclosingLibraryBuilder,
+            constructorReferences: [],
+            fileUri: fragment.fileUri,
+            nameOffset: fragment.nameOffset,
+            indexedClass: referencesFromIndexedClass,
+            mixedInTypeBuilder: mixin,
+            classDeclaration: classDeclaration);
+        mixinApplications[classBuilder] = mixin;
+        fragment.builder = classBuilder;
+        builders.add(new _AddBuilder(
+            fragment.name, classBuilder, fragment.fileUri, fragment.nameOffset,
+            inPatch: fragment.enclosingCompilationUnit.isPatch));
+        if (referencesFromIndexedClass != null) {
+          loader.buildersCreatedWithReferences[
+              referencesFromIndexedClass.reference] = classBuilder;
+        }
       case EnumFragment():
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
+        List<NominalParameterBuilder>? typeParameters =
+            fragment.typeParameters?.map((p) => p.builder).toList();
         SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
-            metadata: fragment.metadata,
             name: fragment.name,
-            typeParameters: fragment.typeParameters,
+            typeParameters: typeParameters,
             underscoreEnumTypeBuilder: loader.target.underscoreEnumType,
-            supertypeBuilder: BuilderFactoryImpl.applyMixins(
-                unboundNominalParameters: unboundNominalParameters,
-                compilationUnitScope: fragment.compilationUnitScope,
-                problemReporting: problemReporting,
-                objectTypeBuilder: loader.target.objectType,
-                enclosingLibraryBuilder: enclosingLibraryBuilder,
-                fileUri: fragment.fileUri,
-                indexedLibrary: indexedLibrary,
-                supertype: loader.target.underscoreEnumType,
-                mixins: fragment.mixins,
-                mixinApplications: mixinApplications,
-                startOffset: fragment.startOffset,
-                nameOffset: fragment.nameOffset,
-                endOffset: fragment.endOffset,
-                subclassName: fragment.name,
-                isMixinDeclaration: false,
-                typeParameters: fragment.typeParameters,
-                modifiers: Modifiers.empty,
-                addBuilder: (String name, Builder declaration, int charOffset,
-                    {Reference? getterReference}) {
-                  if (getterReference != null) {
-                    loader.buildersCreatedWithReferences[getterReference] =
-                        declaration;
-                  }
-                  builders.add(new _AddBuilder(
-                      name, declaration, fragment.fileUri, charOffset));
-                }),
             interfaceBuilders: fragment.interfaces,
             enumElements: fragment.enumElements,
             libraryBuilder: enclosingLibraryBuilder,
@@ -1420,11 +1340,14 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             endOffset: fragment.endOffset,
             indexedClass: indexedClass,
             typeParameterScope: fragment.typeParameterScope,
-            nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder());
+            nameSpaceBuilder: fragment.toDeclarationNameSpaceBuilder(),
+            classDeclaration: new EnumDeclaration(
+                fragment, loader.target.underscoreEnumType));
         fragment.builder = enumBuilder;
         fragment.bodyScope.declarationBuilder = enumBuilder;
         builders.add(new _AddBuilder(
-            fragment.name, enumBuilder, fragment.fileUri, fragment.fileOffset));
+            fragment.name, enumBuilder, fragment.fileUri, fragment.fileOffset,
+            inPatch: fragment.enclosingCompilationUnit.isPatch));
         if (indexedClass != null) {
           loader.buildersCreatedWithReferences[indexedClass.reference] =
               enumBuilder;
@@ -1443,7 +1366,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             fragment: fragment,
             reference: reference);
         builders.add(new _AddBuilder(fragment.name, extensionBuilder,
-            fragment.fileUri, fragment.fileOffset));
+            fragment.fileUri, fragment.fileOffset,
+            inPatch: fragment.enclosingCompilationUnit.isPatch));
         if (reference != null) {
           loader.buildersCreatedWithReferences[reference] = extensionBuilder;
         }
@@ -1472,7 +1396,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             fragment.name,
             extensionTypeDeclarationBuilder,
             fragment.fileUri,
-            fragment.fileOffset));
+            fragment.fileOffset,
+            inPatch: fragment.enclosingCompilationUnit.isPatch));
       case FieldFragment():
         String name = fragment.name;
 
@@ -1516,7 +1441,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 references: references);
         fragment.builder = propertyBuilder;
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
-            fragment.fileUri, fragment.nameOffset));
+            fragment.fileUri, fragment.nameOffset,
+            inPatch: fragment.enclosingDeclaration?.isPatch ??
+                fragment.enclosingCompilationUnit.isPatch));
         references.registerReference(loader, propertyBuilder);
       case GetterFragment():
         String name = fragment.name;
@@ -1538,6 +1465,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         indexedContainer ??= indexedLibrary;
 
         bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
+            // Coverage-ignore(suite): Not run.
             fragment.modifiers.isAugment;
 
         GetterReference references = new GetterReference(
@@ -1557,7 +1485,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         fragment.setBuilder(problemReporting, propertyBuilder,
             propertyEncodingStrategy, unboundNominalParameters);
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
-            fragment.fileUri, fragment.nameOffset));
+            fragment.fileUri, fragment.nameOffset,
+            inPatch: fragment.enclosingDeclaration?.isPatch ??
+                fragment.enclosingCompilationUnit.isPatch));
         references.registerReference(loader, propertyBuilder);
       case SetterFragment():
         String name = fragment.name;
@@ -1579,6 +1509,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         indexedContainer ??= indexedLibrary;
 
         bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
+            // Coverage-ignore(suite): Not run.
             fragment.modifiers.isAugment;
 
         SetterReference references = new SetterReference(
@@ -1598,7 +1529,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         fragment.setBuilder(problemReporting, propertyBuilder,
             propertyEncodingStrategy, unboundNominalParameters);
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
-            fragment.fileUri, fragment.nameOffset));
+            fragment.fileUri, fragment.nameOffset,
+            inPatch: fragment.enclosingDeclaration?.isPatch ??
+                fragment.enclosingCompilationUnit.isPatch));
         references.registerReference(loader, propertyBuilder);
         if (conflictingSetter) {
           propertyBuilder.isConflictingSetter = true;
@@ -1632,6 +1565,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         indexedContainer ??= indexedLibrary;
 
         bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
+            // Coverage-ignore(suite): Not run.
             fragment.modifiers.isAugment;
         if (indexedContainer != null && !isAugmentation) {
           Name nameToLookup =
@@ -1659,20 +1593,47 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             tearOffReference: tearOffReference);
         fragment.setBuilder(problemReporting, methodBuilder, encodingStrategy,
             unboundNominalParameters);
-        builders.add(new _AddBuilder(fragment.name, methodBuilder,
-            fragment.fileUri, fragment.nameOffset));
+        builders.add(new _AddBuilder(
+            fragment.name, methodBuilder, fragment.fileUri, fragment.nameOffset,
+            inPatch: fragment.enclosingDeclaration?.isPatch ??
+                fragment.enclosingCompilationUnit.isPatch));
         if (procedureReference != null) {
           loader.buildersCreatedWithReferences[procedureReference] =
               methodBuilder;
         }
       case ConstructorFragment():
-        List<NominalParameterBuilder>? typeParameters = fragment.typeParameters;
+        String name = fragment.name;
+        NameScheme nameScheme = new NameScheme(
+            isInstanceMember: false,
+            containerName: containerName,
+            containerType: containerType,
+            libraryName: indexedLibrary != null
+                ? new LibraryName(indexedLibrary.library.reference)
+                : enclosingLibraryBuilder.libraryName);
+
+        Reference? constructorReference;
+        Reference? tearOffReference;
+
+        if (indexedContainer != null) {
+          constructorReference = indexedContainer!.lookupConstructorReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+          tearOffReference = indexedContainer!.lookupGetterReference(
+              nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+        }
+
+        SourceConstructorBuilderImpl constructorBuilder;
         switch (declarationBuilder!) {
-          case ExtensionBuilder():
           case ExtensionTypeDeclarationBuilder():
+            List<NominalParameterBuilder>? typeParameters = fragment
+                .typeParameters
+                // Coverage-ignore(suite): Not run.
+                ?.builders;
             NominalParameterCopy? nominalVariableCopy =
                 NominalParameterCopy.copyTypeParameters(
-                    unboundNominalParameters, declarationBuilder.typeParameters,
+                    unboundNominalParameters: unboundNominalParameters,
+                    oldParameterBuilders: declarationBuilder.typeParameters,
+                    oldParameterFragments:
+                        fragment.enclosingDeclaration.typeParameters,
                     kind: TypeParameterKind.extensionSynthesized,
                     instanceTypeParameterAccess:
                         InstanceTypeParameterAccessState.Allowed);
@@ -1685,78 +1646,117 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 typeParameters = nominalVariableCopy.newParameterBuilders;
               }
             }
+            fragment.typeParameterNameSpace.addTypeParameters(
+                problemReporting, typeParameters,
+                ownerName: fragment.name, allowNameConflict: true);
+            ConstructorDeclaration constructorDeclaration =
+                new ExtensionTypeConstructorDeclaration(fragment,
+                    typeParameters: typeParameters);
+            constructorBuilder = new SourceConstructorBuilderImpl(
+                modifiers: fragment.modifiers,
+                name: name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder:
+                    declarationBuilder as SourceExtensionTypeDeclarationBuilder,
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.fullNameOffset,
+                constructorReference: constructorReference,
+                tearOffReference: tearOffReference,
+                nameScheme: nameScheme,
+                nativeMethodName: fragment.nativeMethodName,
+                beginInitializers: fragment.beginInitializers,
+                constructorDeclaration: constructorDeclaration);
           case ClassBuilder():
-        }
-        fragment.typeParameterNameSpace.addTypeParameters(
-            problemReporting, typeParameters,
-            ownerName: fragment.name, allowNameConflict: true);
-
-        String name = fragment.name;
-        NameScheme nameScheme = new NameScheme(
-            isInstanceMember: false,
-            containerName: containerName,
-            containerType: containerType,
-            libraryName: indexedLibrary != null
-                ? new LibraryName(indexedLibrary.library.reference)
-                : enclosingLibraryBuilder.libraryName);
-
-        Reference? constructorReference;
-        Reference? tearOffReference;
-
-        if (indexedContainer != null) {
-          constructorReference = indexedContainer!.lookupConstructorReference(
-              nameScheme.getConstructorMemberName(name, isTearOff: false).name);
-          tearOffReference = indexedContainer!.lookupGetterReference(
-              nameScheme.getConstructorMemberName(name, isTearOff: true).name);
-        }
-
-        AbstractSourceConstructorBuilder constructorBuilder;
-        if (declarationBuilder is SourceExtensionTypeDeclarationBuilder) {
-          constructorBuilder = new SourceExtensionTypeConstructorBuilder(
-              metadata: fragment.metadata,
-              modifiers: fragment.modifiers,
-              returnType: fragment.returnType,
-              name: name,
-              typeParameters: typeParameters,
-              formals: fragment.formals,
-              libraryBuilder: enclosingLibraryBuilder,
-              declarationBuilder: declarationBuilder,
-              fileUri: fragment.fileUri,
-              startOffset: fragment.startOffset,
-              fileOffset: fragment.fullNameOffset,
-              formalsOffset: fragment.formalsOffset,
-              endOffset: fragment.endOffset,
-              constructorReference: constructorReference,
-              tearOffReference: tearOffReference,
-              nameScheme: nameScheme,
-              nativeMethodName: fragment.nativeMethodName,
-              forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
-              beginInitializers: fragment.beginInitializers);
-        } else {
-          constructorBuilder = new DeclaredSourceConstructorBuilder(
-              metadata: fragment.metadata,
-              modifiers: fragment.modifiers,
-              returnType: fragment.returnType,
-              name: fragment.name,
-              typeParameters: typeParameters,
-              formals: fragment.formals,
-              libraryBuilder: enclosingLibraryBuilder,
-              declarationBuilder: declarationBuilder,
-              fileUri: fragment.fileUri,
-              startOffset: fragment.startOffset,
-              fileOffset: fragment.fullNameOffset,
-              formalsOffset: fragment.formalsOffset,
-              endOffset: fragment.endOffset,
-              constructorReference: constructorReference,
-              tearOffReference: tearOffReference,
-              nameScheme: nameScheme,
-              nativeMethodName: fragment.nativeMethodName,
-              forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
-              beginInitializers: fragment.beginInitializers);
+            List<FormalParameterBuilder>? syntheticFormals;
+            if (declarationBuilder.isEnum) {
+              syntheticFormals = [
+                new FormalParameterBuilder(
+                    FormalParameterKind.requiredPositional,
+                    Modifiers.empty,
+                    loader.target.intType,
+                    "#index",
+                    fragment.fullNameOffset,
+                    fileUri: fragment.fileUri,
+                    hasImmediatelyDeclaredInitializer: false),
+                new FormalParameterBuilder(
+                    FormalParameterKind.requiredPositional,
+                    Modifiers.empty,
+                    loader.target.stringType,
+                    "#name",
+                    fragment.fullNameOffset,
+                    fileUri: fragment.fileUri,
+                    hasImmediatelyDeclaredInitializer: false),
+              ];
+            }
+            List<NominalParameterBuilder>? typeParameters =
+                fragment.typeParameters?.builders;
+            fragment.typeParameterNameSpace.addTypeParameters(
+                problemReporting, typeParameters,
+                ownerName: fragment.name, allowNameConflict: true);
+            ConstructorDeclaration constructorDeclaration =
+                new RegularConstructorDeclaration(fragment,
+                    typeParameters: typeParameters,
+                    syntheticFormals: syntheticFormals);
+            constructorBuilder = new SourceConstructorBuilderImpl(
+                modifiers: fragment.modifiers,
+                name: fragment.name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder: declarationBuilder,
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.fullNameOffset,
+                constructorReference: constructorReference,
+                tearOffReference: tearOffReference,
+                nameScheme: nameScheme,
+                nativeMethodName: fragment.nativeMethodName,
+                beginInitializers: fragment.beginInitializers,
+                constructorDeclaration: constructorDeclaration);
+          case ExtensionBuilder():
+            List<NominalParameterBuilder>? typeParameters = fragment
+                .typeParameters
+                // Coverage-ignore(suite): Not run.
+                ?.builders;
+            NominalParameterCopy? nominalVariableCopy =
+                NominalParameterCopy.copyTypeParameters(
+                    unboundNominalParameters: unboundNominalParameters,
+                    oldParameterBuilders: declarationBuilder.typeParameters,
+                    oldParameterFragments:
+                        fragment.enclosingDeclaration.typeParameters,
+                    kind: TypeParameterKind.extensionSynthesized,
+                    instanceTypeParameterAccess:
+                        InstanceTypeParameterAccessState.Allowed);
+            if (nominalVariableCopy != null) {
+              if (typeParameters != null) {
+                // Coverage-ignore-block(suite): Not run.
+                typeParameters = nominalVariableCopy.newParameterBuilders
+                  ..addAll(typeParameters);
+              } else {
+                typeParameters = nominalVariableCopy.newParameterBuilders;
+              }
+            }
+            fragment.typeParameterNameSpace.addTypeParameters(
+                problemReporting, typeParameters,
+                ownerName: fragment.name, allowNameConflict: true);
+            ConstructorDeclaration constructorDeclaration =
+                new RegularConstructorDeclaration(fragment,
+                    typeParameters: typeParameters, syntheticFormals: null);
+            constructorBuilder = new SourceConstructorBuilderImpl(
+                modifiers: fragment.modifiers,
+                name: fragment.name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder: declarationBuilder,
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.fullNameOffset,
+                constructorReference: constructorReference,
+                tearOffReference: tearOffReference,
+                nameScheme: nameScheme,
+                nativeMethodName: fragment.nativeMethodName,
+                beginInitializers: fragment.beginInitializers,
+                constructorDeclaration: constructorDeclaration);
         }
         fragment.builder = constructorBuilder;
         builders.add(new _AddBuilder(fragment.name, constructorBuilder,
-            fragment.fileUri, fragment.fullNameOffset));
+            fragment.fileUri, fragment.fullNameOffset,
+            inPatch: fragment.enclosingDeclaration.isPatch));
 
         // TODO(johnniwinther): There is no way to pass the tear off reference
         //  here.
@@ -1767,19 +1767,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case PrimaryConstructorFragment():
         String name = fragment.name;
 
-        NominalParameterCopy? nominalVariableCopy =
-            NominalParameterCopy.copyTypeParameters(
-                unboundNominalParameters, declarationBuilder!.typeParameters,
-                kind: TypeParameterKind.extensionSynthesized,
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Allowed);
-
-        List<NominalParameterBuilder>? typeParameters =
-            nominalVariableCopy?.newParameterBuilders;
-        fragment.typeParameterNameSpace.addTypeParameters(
-            problemReporting, typeParameters,
-            ownerName: fragment.name, allowNameConflict: true);
-
         NameScheme nameScheme = new NameScheme(
             isInstanceMember: false,
             containerName: containerName,
@@ -1798,54 +1785,65 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               nameScheme.getConstructorMemberName(name, isTearOff: true).name);
         }
 
-        AbstractSourceConstructorBuilder constructorBuilder;
-        if (declarationBuilder is SourceExtensionTypeDeclarationBuilder) {
-          constructorBuilder = new SourceExtensionTypeConstructorBuilder(
-              metadata: null,
-              modifiers: fragment.modifiers,
-              returnType: fragment.returnType,
-              name: name,
-              typeParameters: typeParameters,
-              formals: fragment.formals,
-              libraryBuilder: enclosingLibraryBuilder,
-              declarationBuilder: declarationBuilder,
-              fileUri: fragment.fileUri,
-              startOffset: fragment.startOffset,
-              fileOffset: fragment.fileOffset,
-              formalsOffset: fragment.formalsOffset,
-              // TODO(johnniwinther): Provide `endOffset`.
-              endOffset: fragment.formalsOffset,
-              constructorReference: constructorReference,
-              tearOffReference: tearOffReference,
-              nameScheme: nameScheme,
-              forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
-              beginInitializers: fragment.beginInitializers);
-        } else {
-          // Coverage-ignore-block(suite): Not run.
-          constructorBuilder = new DeclaredSourceConstructorBuilder(
-              metadata: null,
-              modifiers: fragment.modifiers,
-              returnType: fragment.returnType,
-              name: fragment.name,
-              typeParameters: typeParameters,
-              formals: fragment.formals,
-              libraryBuilder: enclosingLibraryBuilder,
-              declarationBuilder: declarationBuilder,
-              fileUri: fragment.fileUri,
-              startOffset: fragment.startOffset,
-              fileOffset: fragment.fileOffset,
-              formalsOffset: fragment.formalsOffset,
-              // TODO(johnniwinther): Provide `endOffset`.
-              endOffset: fragment.formalsOffset,
-              constructorReference: constructorReference,
-              tearOffReference: tearOffReference,
-              nameScheme: nameScheme,
-              forAbstractClassOrEnumOrMixin: fragment.forAbstractClassOrMixin,
-              beginInitializers: fragment.beginInitializers);
+        SourceConstructorBuilderImpl constructorBuilder;
+        switch (declarationBuilder!) {
+          case ExtensionTypeDeclarationBuilder():
+            NominalParameterCopy? nominalVariableCopy =
+                NominalParameterCopy.copyTypeParameters(
+                    unboundNominalParameters: unboundNominalParameters,
+                    oldParameterBuilders: declarationBuilder.typeParameters,
+                    oldParameterFragments:
+                        fragment.enclosingDeclaration.typeParameters,
+                    kind: TypeParameterKind.extensionSynthesized,
+                    instanceTypeParameterAccess:
+                        InstanceTypeParameterAccessState.Allowed);
+
+            List<NominalParameterBuilder>? typeParameters =
+                nominalVariableCopy?.newParameterBuilders;
+            fragment.typeParameterNameSpace.addTypeParameters(
+                problemReporting, typeParameters,
+                ownerName: fragment.name, allowNameConflict: true);
+            ConstructorDeclaration constructorDeclaration =
+                new ExtensionTypePrimaryConstructorDeclaration(fragment,
+                    typeParameters: typeParameters);
+            constructorBuilder = new SourceConstructorBuilderImpl(
+                modifiers: fragment.modifiers,
+                name: name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder:
+                    declarationBuilder as SourceExtensionTypeDeclarationBuilder,
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.fileOffset,
+                constructorReference: constructorReference,
+                tearOffReference: tearOffReference,
+                nameScheme: nameScheme,
+                beginInitializers: fragment.beginInitializers,
+                constructorDeclaration: constructorDeclaration);
+          // Coverage-ignore(suite): Not run.
+          case ClassBuilder():
+            ConstructorDeclaration constructorDeclaration =
+                new PrimaryConstructorDeclaration(fragment);
+            constructorBuilder = new SourceConstructorBuilderImpl(
+                modifiers: fragment.modifiers,
+                name: fragment.name,
+                libraryBuilder: enclosingLibraryBuilder,
+                declarationBuilder: declarationBuilder,
+                fileUri: fragment.fileUri,
+                fileOffset: fragment.fileOffset,
+                constructorReference: constructorReference,
+                tearOffReference: tearOffReference,
+                nameScheme: nameScheme,
+                beginInitializers: fragment.beginInitializers,
+                constructorDeclaration: constructorDeclaration);
+          // Coverage-ignore(suite): Not run.
+          case ExtensionBuilder():
+            throw new UnsupportedError(
+                'Unexpected extension primary constructor $fragment');
         }
         fragment.builder = constructorBuilder;
         builders.add(new _AddBuilder(fragment.name, constructorBuilder,
-            fragment.fileUri, fragment.fileOffset));
+            fragment.fileUri, fragment.fileOffset,
+            inPatch: fragment.enclosingDeclaration.isPatch));
 
         // TODO(johnniwinther): There is no way to pass the tear off reference
         //  here.
@@ -1857,7 +1855,10 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         String name = fragment.name;
         NominalParameterCopy? nominalParameterCopy =
             NominalParameterCopy.copyTypeParameters(
-                unboundNominalParameters, declarationBuilder!.typeParameters,
+                unboundNominalParameters: unboundNominalParameters,
+                oldParameterBuilders: declarationBuilder!.typeParameters,
+                oldParameterFragments:
+                    fragment.enclosingDeclaration.typeParameters,
                 kind: TypeParameterKind.function,
                 instanceTypeParameterAccess:
                     InstanceTypeParameterAccessState.Allowed);
@@ -1932,7 +1933,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
         fragment.builder = factoryBuilder;
         builders.add(new _AddBuilder(fragment.name, factoryBuilder,
-            fragment.fileUri, fragment.fullNameOffset));
+            fragment.fileUri, fragment.fullNameOffset,
+            inPatch: fragment.enclosingDeclaration.isPatch));
         // TODO(johnniwinther): There is no way to pass the tear off reference
         //  here.
         if (procedureReference != null) {
@@ -1965,7 +1967,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 references: references);
         fragment.builder = propertyBuilder;
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
-            fragment.fileUri, fragment.nameOffset));
+            fragment.fileUri, fragment.nameOffset,
+            inPatch: fragment.enclosingDeclaration.isPatch));
     }
   }
 
@@ -1995,6 +1998,12 @@ class LibraryNameSpaceBuilder {
     _fragments.addAll(other._fragments);
   }
 
+  bool _allowInjectedPublicMember(
+      SourceLibraryBuilder enclosingLibraryBuilder, Builder newBuilder) {
+    return enclosingLibraryBuilder.importUri.isScheme("dart") &&
+        enclosingLibraryBuilder.importUri.path.startsWith("_");
+  }
+
   NameSpace toNameSpace({
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required IndexedLibrary? indexedLibrary,
@@ -2011,8 +2020,11 @@ class LibraryNameSpaceBuilder {
     NameSpace nameSpace = new NameSpaceImpl(
         getables: getables, setables: setables, extensions: extensions);
 
-    void _addBuilder(
-        String name, Builder declaration, Uri fileUri, int charOffset) {
+    void _addBuilder(_AddBuilder addBuilder) {
+      String name = addBuilder.name;
+      Builder declaration = addBuilder.declaration;
+      Uri fileUri = addBuilder.fileUri;
+      int charOffset = addBuilder.charOffset;
       if (declaration is SourceExtensionBuilder &&
           declaration.isUnnamedExtension) {
         extensions.add(declaration);
@@ -2043,6 +2055,49 @@ class LibraryNameSpaceBuilder {
 
       if (existing == declaration) return;
 
+      if (declaration.isAugment) {
+        if (existing != null) {
+          existing.addAugmentation(declaration);
+          return;
+        } else {
+          if (addBuilder.inPatch) {
+            Message message;
+            if (declaration is SourceMemberBuilder) {
+              message = addBuilder.inPatch
+                  ? templateUnmatchedPatchLibraryMember.withArguments(name)
+                  :
+                  // Coverage-ignore(suite): Not run.
+                  templateUnmatchedAugmentationLibraryMember
+                      .withArguments(name);
+            } else if (declaration is SourceClassBuilder) {
+              message = addBuilder.inPatch
+                  ? templateUnmatchedPatchClass.withArguments(name)
+                  :
+                  // Coverage-ignore(suite): Not run.
+                  templateUnmatchedAugmentationClass.withArguments(name);
+            } else {
+              message = addBuilder.inPatch
+                  ? templateUnmatchedPatchDeclaration.withArguments(name)
+                  :
+                  // Coverage-ignore(suite): Not run.
+                  templateUnmatchedAugmentationDeclaration.withArguments(name);
+            }
+            problemReporting.addProblem(message, charOffset, noLength, fileUri);
+          }
+        }
+      }
+
+      if (addBuilder.inPatch &&
+          !name.startsWith('_') &&
+          !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
+        problemReporting.addProblem(
+            templatePatchInjectionFailed.withArguments(
+                name, enclosingLibraryBuilder.importUri),
+            charOffset,
+            noLength,
+            fileUri);
+      }
+
       if (declaration.next != null &&
           // Coverage-ignore(suite): Not run.
           declaration.next != existing) {
@@ -2063,6 +2118,7 @@ class LibraryNameSpaceBuilder {
         // output.
         extensions.add(declaration as SourceExtensionBuilder);
       } else if (declaration.isAugment) {
+        // Coverage-ignore-block(suite): Not run.
         if (existing != null) {
           if (declaration.isSetter) {
             (setterAugmentations[name] ??= []).add(declaration);
@@ -2093,8 +2149,7 @@ class LibraryNameSpaceBuilder {
           indexedLibrary: indexedLibrary,
           containerType: ContainerType.Library);
       for (_AddBuilder addBuilder in addBuilders) {
-        _addBuilder(addBuilder.name, addBuilder.declaration, addBuilder.fileUri,
-            addBuilder.charOffset);
+        _addBuilder(addBuilder);
       }
     }
     return nameSpace;
@@ -2162,18 +2217,35 @@ enum DeclarationFragmentKind {
   extensionTypeDeclaration,
 }
 
-abstract class DeclarationFragment {
+abstract class DeclarationFragmentImpl implements DeclarationFragment {
   final Uri fileUri;
+
+  /// The scope in which the declaration is declared.
+  ///
+  /// This is the scope of the enclosing compilation unit and it's used for
+  /// resolving metadata on the declaration.
+  final LookupScope enclosingScope;
+
   final LookupScope typeParameterScope;
-  final DeclarationBuilderScope bodyScope = new DeclarationBuilderScope();
+  final DeclarationBuilderScope bodyScope;
   final List<Fragment> _fragments = [];
 
-  final List<NominalParameterBuilder>? typeParameters;
+  @override
+  final List<TypeParameterFragment>? typeParameters;
 
   final NominalParameterNameSpace _nominalParameterNameSpace;
 
-  DeclarationFragment(this.fileUri, this.typeParameters,
-      this.typeParameterScope, this._nominalParameterNameSpace);
+  final LibraryFragment enclosingCompilationUnit;
+
+  DeclarationFragmentImpl({
+    required this.fileUri,
+    required this.typeParameters,
+    required this.enclosingScope,
+    required this.typeParameterScope,
+    required NominalParameterNameSpace nominalParameterNameSpace,
+    required this.enclosingCompilationUnit,
+  })  : _nominalParameterNameSpace = nominalParameterNameSpace,
+        bodyScope = new DeclarationBuilderScope(typeParameterScope);
 
   String get name;
 
@@ -2209,8 +2281,10 @@ class _AddBuilder {
   final Builder declaration;
   final Uri fileUri;
   final int charOffset;
+  final bool inPatch;
 
-  _AddBuilder(this.name, this.declaration, this.fileUri, this.charOffset);
+  _AddBuilder(this.name, this.declaration, this.fileUri, this.charOffset,
+      {required this.inPatch});
 }
 
 class DeclarationNameSpaceBuilder {
@@ -2226,57 +2300,22 @@ class DeclarationNameSpaceBuilder {
   DeclarationNameSpaceBuilder._(
       this._name, this._nominalParameterNameSpace, this._fragments);
 
-  void _addBuilder(
-      ProblemReporting problemReporting,
-      Map<String, Builder> getables,
-      Map<String, MemberBuilder> setables,
-      Map<String, MemberBuilder> constructors,
-      _AddBuilder addBuilder) {
-    String name = addBuilder.name;
-    Builder declaration = addBuilder.declaration;
-    Uri fileUri = addBuilder.fileUri;
-    int charOffset = addBuilder.charOffset;
+  void includeBuilders(DeclarationNameSpaceBuilder other) {
+    _fragments.addAll(other._fragments);
+    other._fragments.clear();
+  }
 
-    bool isConstructor = declaration is FunctionBuilder &&
-        (declaration.isConstructor || declaration.isFactory);
-    if (!isConstructor && name == _name) {
-      problemReporting.addProblem(
-          messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
+  bool _allowInjectedPublicMember(
+      SourceLibraryBuilder enclosingLibraryBuilder, Builder newBuilder) {
+    if (enclosingLibraryBuilder.importUri.isScheme("dart") &&
+        enclosingLibraryBuilder.importUri.path.startsWith("_")) {
+      return true;
     }
-    Map<String, Builder> members = isConstructor
-        ? constructors
-        : (declaration.isSetter ? setables : getables);
-
-    Builder? existing = members[name];
-
-    if (existing == declaration) return;
-
-    if (declaration.next != null &&
-        // Coverage-ignore(suite): Not run.
-        declaration.next != existing) {
-      unexpected(
-          "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
-          "${existing?.fileUri}@${existing?.fileOffset}",
-          declaration.fileOffset,
-          declaration.fileUri);
+    if (newBuilder.isStatic) {
+      return _name.startsWith('_');
     }
-    declaration.next = existing;
-    if (isDuplicatedDeclaration(existing, declaration)) {
-      // Error reporting in [_computeBuildersFromFragments].
-      // TODO(johnniwinther): Avoid the use of [isDuplicatedDeclaration].
-    } else if (declaration.isAugment) {
-      // Coverage-ignore-block(suite): Not run.
-      if (existing != null) {
-        if (declaration.isSetter) {
-          // TODO(johnniwinther): Collection augment setables.
-        } else {
-          // TODO(johnniwinther): Collection augment getables.
-        }
-      } else {
-        // TODO(cstefantsova): Report an error.
-      }
-    }
-    members[name] = declaration;
+    // TODO(johnniwinther): Restrict the use of injected public class members.
+    return true;
   }
 
   void checkTypeParameterConflict(ProblemReporting _problemReporting,
@@ -2318,6 +2357,87 @@ class DeclarationNameSpaceBuilder {
       (fragmentsByName[fragment.name] ??= []).add(fragment);
     }
 
+    void _addBuilder(_AddBuilder addBuilder) {
+      String name = addBuilder.name;
+      Builder declaration = addBuilder.declaration;
+      Uri fileUri = addBuilder.fileUri;
+      int charOffset = addBuilder.charOffset;
+
+      bool isConstructor = declaration is FunctionBuilder &&
+          (declaration.isConstructor || declaration.isFactory);
+      if (!isConstructor && name == _name) {
+        problemReporting.addProblem(
+            messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
+      }
+      Map<String, Builder> members = isConstructor
+          ? constructors
+          : (declaration.isSetter ? setables : getables);
+
+      Builder? existing = members[name];
+
+      if (existing == declaration) return;
+
+      if (declaration.isAugment) {
+        if (existing != null) {
+          existing.addAugmentation(declaration);
+          return;
+        } else {
+          Message message;
+          if (declaration is SourceMemberBuilder) {
+            message = addBuilder.inPatch
+                ? templateUnmatchedPatchClassMember.withArguments(name)
+                :
+                // Coverage-ignore(suite): Not run.
+                templateUnmatchedAugmentationClassMember.withArguments(name);
+          } else {
+            // Coverage-ignore-block(suite): Not run.
+            message = addBuilder.inPatch
+                ? templateUnmatchedPatchDeclaration.withArguments(name)
+                : templateUnmatchedAugmentationDeclaration.withArguments(name);
+          }
+          problemReporting.addProblem(message, charOffset, noLength, fileUri);
+        }
+      }
+
+      if (addBuilder.inPatch &&
+          !name.startsWith('_') &&
+          !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
+        problemReporting.addProblem(
+            templatePatchInjectionFailed.withArguments(
+                name, enclosingLibraryBuilder.importUri),
+            charOffset,
+            noLength,
+            fileUri);
+      }
+
+      if (declaration.next != null &&
+          // Coverage-ignore(suite): Not run.
+          declaration.next != existing) {
+        unexpected(
+            "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
+            "${existing?.fileUri}@${existing?.fileOffset}",
+            declaration.fileOffset,
+            declaration.fileUri);
+      }
+      declaration.next = existing;
+      if (isDuplicatedDeclaration(existing, declaration)) {
+        // Error reporting in [_computeBuildersFromFragments].
+        // TODO(johnniwinther): Avoid the use of [isDuplicatedDeclaration].
+      } else if (declaration.isAugment) {
+        // Coverage-ignore-block(suite): Not run.
+        if (existing != null) {
+          if (declaration.isSetter) {
+            // TODO(johnniwinther): Collection augment setables.
+          } else {
+            // TODO(johnniwinther): Collection augment getables.
+          }
+        } else {
+          // TODO(cstefantsova): Report an error.
+        }
+      }
+      members[name] = declaration;
+    }
+
     for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
       List<_AddBuilder> addBuilders = [];
       _computeBuildersFromFragments(entry.key, entry.value,
@@ -2334,8 +2454,7 @@ class DeclarationNameSpaceBuilder {
           containerType: containerType,
           containerName: containerName);
       for (_AddBuilder addBuilder in addBuilders) {
-        _addBuilder(
-            problemReporting, getables, setables, constructors, addBuilder);
+        _addBuilder(addBuilder);
       }
     }
 
@@ -2415,39 +2534,6 @@ class TypeScope {
 
   @override
   String toString() => 'TypeScope($kind,$_unresolvedNamedTypes)';
-}
-
-class DeclarationBuilderScope implements LookupScope {
-  DeclarationBuilder? _declarationBuilder;
-
-  DeclarationBuilderScope();
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _declarationBuilder?.scope.forEachExtension(f);
-  }
-
-  void set declarationBuilder(DeclarationBuilder value) {
-    assert(_declarationBuilder == null,
-        "declarationBuilder has already been set.");
-    _declarationBuilder = value;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ScopeKind get kind =>
-      _declarationBuilder?.scope.kind ?? ScopeKind.declaration;
-
-  @override
-  Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    return _declarationBuilder?.scope.lookupGetable(name, charOffset, fileUri);
-  }
-
-  @override
-  Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    return _declarationBuilder?.scope.lookupSetable(name, charOffset, fileUri);
-  }
 }
 
 bool isDuplicatedDeclaration(Builder? existing, Builder other) {

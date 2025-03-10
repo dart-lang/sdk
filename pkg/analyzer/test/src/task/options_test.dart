@@ -10,8 +10,8 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -70,12 +70,16 @@ class ErrorCodeValuesTest {
 }
 
 @reflectiveTest
-class OptionsFileValidatorTest {
+class OptionsFileValidatorTest with LintRegistrationMixin {
   final OptionsFileValidator validator = OptionsFileValidator(
     TestSource(),
     sourceIsOptionsForContextRoot: true,
   );
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
+
+  void tearDown() {
+    unregisterLintRules();
+  }
 
   test_analyzer_cannotIgnore_badValue() {
     validate('''
@@ -94,7 +98,7 @@ analyzer:
   }
 
   test_analyzer_cannotIgnore_lintRule() {
-    Registry.ruleRegistry.registerLintRule(TestRule());
+    registerLintRule(TestRule());
     validate('''
 analyzer:
   cannot-ignore:
@@ -243,7 +247,7 @@ analyzer:
   }
 
   test_analyzer_lint_codes_recognized() {
-    Registry.ruleRegistry.registerLintRule(TestRule());
+    registerLintRule(TestRule());
     validate('''
 analyzer:
   errors:
@@ -399,7 +403,7 @@ formatter:
   }
 
   test_linter_supported_rules() {
-    Registry.ruleRegistry.registerLintRule(TestRule());
+    registerLintRule(TestRule());
     validate('''
 linter:
   rules:

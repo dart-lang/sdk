@@ -32,7 +32,7 @@ void checkSample(
 }
 
 void main() {
-  final executable = Platform.executable;
+  final executable = File(Platform.executable).absolute.path;
   final out = executable.substring(0, executable.lastIndexOf('dart') - 1);
 
   checkSample('$out/run_main_kernel', ['$out/gen/hello_kernel.dart.snapshot']);
@@ -44,6 +44,10 @@ void main() {
   checkSample('$out/run_timer_async_kernel', [
     '$out/gen/timer_kernel.dart.snapshot',
   ]);
+  // FFI samples aren't built on some platforms.
+  checkSample('$out/run_futures_kernel', [
+    '$out/gen/futures_kernel.dart.snapshot',
+  ], skipIfNotBuilt: true);
 
   // AOT Samples aren't built on some platforms.
   checkSample('$out/run_main_aot', [
@@ -58,5 +62,8 @@ void main() {
   ], skipIfNotBuilt: true);
   checkSample('$out/run_timer_async_aot', [
     '$out/timer_aot.snapshot',
+  ], skipIfNotBuilt: true);
+  checkSample('$out/run_futures_aot', [
+    '$out/futures_aot.snapshot',
   ], skipIfNotBuilt: true);
 }

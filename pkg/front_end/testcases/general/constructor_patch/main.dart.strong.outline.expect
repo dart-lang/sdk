@@ -18,12 +18,6 @@ import "dart:_internal";
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::bool defaultValue /* from org-dartlang-testcase:///patch_lib.dart */;
-  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _privateInjected() → self2::Class
-    ;
-  constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirect() → self2::Class
-    ;
-  constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirectInjected() → self2::Class
-    ;
   @_in::patch
   external constructor generative({core::bool defaultValue = true}) → self2::Class;
   @_in::patch
@@ -32,11 +26,17 @@ class Class extends core::Object /*hasConstConstructor*/  {
     ;
   @_in::patch
   external constructor _private() → self2::Class;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _privateInjected() → self2::Class
+    ;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirect() → self2::Class
+    ;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirectInjected() → self2::Class
+    ;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class2 extends core::Object {
-  final field core::int injectedField /* from org-dartlang-testcase:///patch_lib.dart */;
   field core::int field;
+  final field core::int injectedField /* from org-dartlang-testcase:///patch_lib.dart */;
   @_in::patch
   external constructor •(core::int field) → self2::Class2;
 }

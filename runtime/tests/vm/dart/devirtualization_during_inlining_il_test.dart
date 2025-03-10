@@ -12,6 +12,11 @@ import 'dart:collection';
 
 import 'package:vm/testing/il_matchers.dart';
 
+@pragma('vm:never-inline')
+void myprint(Object? obj) {
+  print(obj);
+}
+
 class TestIterable extends IterableBase<int> {
   @pragma('vm:prefer-inline')
   TestIterator get iterator => TestIterator(this);
@@ -41,16 +46,14 @@ class TestIterator implements Iterator<int> {
     return true;
   }
 
-  List<int> toList() => [
-        for (; moveNext();) current,
-      ];
+  List<int> toList() => [for (; moveNext();) current];
 }
 
 @pragma('vm:never-inline')
 @pragma('vm:testing:print-flow-graph')
 void test(TestIterable obj) {
   for (var el in obj) {
-    print(el);
+    myprint(el);
   }
 }
 
@@ -66,26 +69,25 @@ void matchIL$test(FlowGraph graph) {
         match.block('Join', [
           'index' << match.Phi(match.any, 'inc'),
           match.CheckStackOverflow(),
-          match.Branch(match.RelationalOp('index', match.any, kind: '>='),
-              ifTrue: 'LoopExit', ifFalse: 'LoopBody'),
+          match.Branch(
+            match.RelationalOp('index', match.any, kind: '>='),
+            ifTrue: 'LoopExit',
+            ifFalse: 'LoopBody',
+          ),
         ]),
-    'LoopExit' <<
-        match.block('Target', [
-          match.DartReturn(),
-        ]),
+    'LoopExit' << match.block('Target', [match.DartReturn()]),
     'LoopBody' <<
         match.block('Target', [
           'inc' << match.BinaryInt64Op('index', match.any),
           'boxed_index' << match.BoxInt64('index'),
-          'interpolate' << match.StaticCall('boxed_index'),
-          match.StaticCall('interpolate'),
+          match.StaticCall('boxed_index'),
           match.Goto('LoopHeader'),
         ]),
   ]);
 }
 
 void main() {
-  print(TestIterator([0, 1, 2, 3, 4]).toList());
-  print(TestIterator(const [0, 1, 2, 3, 4]).toList());
+  myprint(TestIterator([0, 1, 2, 3, 4]).toList());
+  myprint(TestIterator(const [0, 1, 2, 3, 4]).toList());
   test(TestIterable());
 }

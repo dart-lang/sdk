@@ -927,6 +927,21 @@ class Forest {
     return new IfCaseStatement(expression, patternGuard, then, otherwise)
       ..fileOffset = fileOffset;
   }
+
+  DotShorthand createDotShorthandContext(
+      int fileOffset, Expression innerExpression) {
+    return new DotShorthand(innerExpression)..fileOffset = fileOffset;
+  }
+
+  DotShorthandInvocation createDotShorthandInvocation(
+      int fileOffset, Name name, Arguments arguments) {
+    return new DotShorthandInvocation(name, arguments)..fileOffset = fileOffset;
+  }
+
+  DotShorthandPropertyGet createDotShorthandPropertyGet(
+      int fileOffset, Name name) {
+    return new DotShorthandPropertyGet(name)..fileOffset = fileOffset;
+  }
 }
 
 class _VariablesDeclaration extends AuxiliaryStatement {

@@ -50,6 +50,7 @@ import 'add_super_parameter_test.dart' as add_super_parameter;
 import 'add_switch_case_break_test.dart' as add_switch_case_break;
 import 'add_trailing_comma_test.dart' as add_trailing_comma;
 import 'add_type_annotation_test.dart' as add_type_annotation;
+import 'ambiguous_import_fix_test.dart' as ambiguous_import_fix;
 import 'analysis_options/test_all.dart' as analysis_options;
 import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
 import 'change_argument_name_test.dart' as change_argument_name;
@@ -67,6 +68,8 @@ import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
+import 'convert_null_check_to_null_aware_element_or_entry_test.dart'
+    as convert_null_check_to_null_aware_element_or_entry;
 import 'convert_quotes_test.dart' as convert_quotes;
 import 'convert_related_to_cascade_test.dart' as convert_related_to_cascade;
 import 'convert_to_block_function_body_test.dart'
@@ -285,6 +288,8 @@ import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
 import 'replace_with_is_nan_test.dart' as replace_with_is_nan;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_named_constant_test.dart' as replace_with_named_constant;
+import 'replace_with_not_null_aware_element_or_entry_test.dart'
+    as replace_with_not_null_aware_element_or_entry;
 import 'replace_with_not_null_aware_test.dart' as replace_with_not_null_aware;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_part_of_uri_test.dart' as replace_with_part_of_uri;
@@ -368,6 +373,7 @@ void main() {
     convert_into_block_body.main();
     convert_into_expression_body.main();
     convert_into_is_not.main();
+    convert_null_check_to_null_aware_element_or_entry.main();
     convert_quotes.main();
     convert_related_to_cascade.main();
     convert_to_block_function_body.main();
@@ -427,6 +433,7 @@ void main() {
     fix_processor_map.main();
     format_file.main();
     ignore_error.main();
+    ambiguous_import_fix.main();
     import_library_hide.main();
     import_library_prefix.main();
     import_library_project.main();
@@ -556,6 +563,7 @@ void main() {
     replace_with_is_not_empty.main();
     replace_with_named_constant.main();
     replace_with_not_null_aware.main();
+    replace_with_not_null_aware_element_or_entry.main();
     replace_with_null_aware.main();
     replace_with_part_of_uri.main();
     replace_with_tear_off.main();

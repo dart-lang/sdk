@@ -13,6 +13,7 @@ import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class DefaultValueResolver {
   final Linker _linker;
@@ -34,7 +35,7 @@ class DefaultValueResolver {
     }
   }
 
-  void _constructor(_ClassContext context, ConstructorElement element) {
+  void _constructor(_ClassContext context, ConstructorElementImpl element) {
     if (element.isSynthetic) return;
     _executable(context, element);
   }
@@ -48,7 +49,7 @@ class DefaultValueResolver {
     }
   }
 
-  void _executable(_Context context, ExecutableElement element) {
+  void _executable(_Context context, ExecutableElementImpl element) {
     _ExecutableContext(
       enclosingContext: context,
       executableElement: element,
@@ -56,11 +57,11 @@ class DefaultValueResolver {
     ).forEach(element.parameters, _parameter);
   }
 
-  void _extension(_UnitContext context, ExtensionElement element) {
+  void _extension(_UnitContext context, ExtensionElementImpl element) {
     context.forEach(element.methods, _executable);
   }
 
-  void _interface(_UnitContext context, InterfaceElement element) {
+  void _interface(_UnitContext context, InterfaceElementImpl element) {
     _ClassContext(context, element)
       ..forEach(element.constructors, _constructor)
       ..forEach(element.methods, _executable);
@@ -81,8 +82,8 @@ class DefaultValueResolver {
       context.unitElement,
       context.scope,
       analysisOptions,
-      enclosingClassElement: context.classElement,
-      enclosingExecutableElement: context.executableElement,
+      enclosingClassElement: context.classElement?.asElement2,
+      enclosingExecutableElement: context.executableElement.asElement2,
     );
     astResolver.resolveExpression(() => node.defaultValue!,
         contextType: contextType);
@@ -98,7 +99,7 @@ class _ClassContext extends _Context {
   final _UnitContext unitContext;
 
   @override
-  final InterfaceElement classElement;
+  final InterfaceElementImpl classElement;
 
   _ClassContext(this.unitContext, this.classElement);
 
@@ -109,14 +110,14 @@ class _ClassContext extends _Context {
 }
 
 abstract class _Context {
-  InterfaceElement? get classElement => null;
+  InterfaceElementImpl? get classElement => null;
 
   CompilationUnitElementImpl get unitElement;
 }
 
 class _ExecutableContext extends _Context {
   final _Context enclosingContext;
-  final ExecutableElement executableElement;
+  final ExecutableElementImpl executableElement;
   final Scope scope;
 
   _ExecutableContext({
@@ -126,7 +127,7 @@ class _ExecutableContext extends _Context {
   });
 
   @override
-  InterfaceElement? get classElement {
+  InterfaceElementImpl? get classElement {
     return enclosingContext.classElement;
   }
 

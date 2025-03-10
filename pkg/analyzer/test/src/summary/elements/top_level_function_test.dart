@@ -12,8 +12,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelFunctionElementTest_keepLinking);
     defineReflectiveTests(TopLevelFunctionElementTest_fromBytes);
-    defineReflectiveTests(TopLevelFunctionElementTest_augmentation_keepLinking);
-    defineReflectiveTests(TopLevelFunctionElementTest_augmentation_fromBytes);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(TopLevelFunctionElementTest_augmentation_keepLinking);
+    // defineReflectiveTests(TopLevelFunctionElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -459,6 +460,10 @@ library
             default this.a @17
               reference: <testLibraryFragment>::@function::f::@parameter::a
               element: <testLibraryFragment>::@function::f::@parameter::a#element
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 42 @20
+                  staticType: int
   functions
     f
       reference: <testLibrary>::@function::f
@@ -467,6 +472,9 @@ library
         optionalNamed final a
           firstFragment: <testLibraryFragment>::@function::f::@parameter::a
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::f::@parameter::a
+            expression: expression_0
       returnType: void
 ''');
   }
@@ -1773,7 +1781,7 @@ library
           reference: <testLibraryFragment>::@setter::main
           element: <testLibraryFragment>::@setter::main#element
           formalParameters
-            <null-name>
+            _main
               element: <testLibraryFragment>::@setter::main::@parameter::_main#element
   topLevelVariables
     main
@@ -2189,7 +2197,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@function::foo
   exportNamespace
-    foo: <testLibraryFragment>::@function::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -2217,7 +2225,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@function::foo
   exportNamespace
-    foo: <testLibraryFragment>::@function::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
 ''');
   }
 
@@ -2261,7 +2269,7 @@ library
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@function::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@function::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -2288,7 +2296,7 @@ library
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@function::foo
   exportNamespace
-    foo: <testLibrary>::@fragment::package:test/a.dart::@function::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
 ''');
   }
 
@@ -2542,7 +2550,7 @@ library
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
-            <null-name>
+            _foo
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -2788,7 +2796,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@getter::foo
   exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -2827,7 +2835,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@getter::foo
   exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
 ''');
   }
 
@@ -3063,7 +3071,7 @@ library
     declared <testLibraryFragment>::@getter::foo
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
     foo=: <testLibraryFragment>::@setter::foo
 ----------------------------------------
 library
@@ -3088,7 +3096,7 @@ library
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
-            <null-name>
+            _foo
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -3119,7 +3127,7 @@ library
     declared <testLibraryFragment>::@getter::foo
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
+    foo: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
     foo=: <testLibraryFragment>::@setter::foo
 ''');
   }
@@ -3456,7 +3464,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo=: <testLibraryFragment>::@setter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -3504,7 +3512,7 @@ library
   exportedReferences
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
-    foo=: <testLibraryFragment>::@setter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
 ''');
   }
 
@@ -3578,7 +3586,7 @@ library
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
     foo: <testLibraryFragment>::@getter::foo
-    foo=: <testLibraryFragment>::@setter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -3601,7 +3609,7 @@ library
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
-            <null-name>
+            _foo
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
@@ -3637,7 +3645,7 @@ library
     declared <testLibraryFragment>::@setter::foo
   exportNamespace
     foo: <testLibraryFragment>::@getter::foo
-    foo=: <testLibraryFragment>::@setter::foo
+    foo=: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
 ''');
   }
 }

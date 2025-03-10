@@ -18,13 +18,13 @@ void main() {
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
 
   ++b;
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-// [cfe] A value of type 'Object' can't be assigned to a variable of type 'B'.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'Object' can't be assigned to a variable of type 'B'.
 
   b++;
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-// ^
-// [cfe] A value of type 'Object' can't be assigned to a variable of type 'B'.
+  // [error column 3, length 3]
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [error column 4]
+  // [cfe] A value of type 'Object' can't be assigned to a variable of type 'B'.
 }

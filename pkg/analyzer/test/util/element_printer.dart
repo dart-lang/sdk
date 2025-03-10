@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
@@ -224,6 +225,11 @@ class ElementPrinter {
     writeElement(element);
   }
 
+  void writeNamedElement2(String name, Element2? element) {
+    _sink.writeWithIndent('$name: ');
+    writeElement2(element);
+  }
+
   void writeNamedType(String name, DartType? type) {
     _sink.writeWithIndent('$name: ');
     writeType(type);
@@ -242,7 +248,7 @@ class ElementPrinter {
       if (type is InterfaceType) {
         if (_configuration.withInterfaceTypeElements) {
           _sink.withIndent(() {
-            writeNamedElement('element', type.element);
+            writeNamedElement('element', type.element3.asElement);
             writelnNamedElement2('element', type.element3);
           });
         }
@@ -251,7 +257,7 @@ class ElementPrinter {
       var alias = type.alias;
       if (alias != null) {
         _sink.withIndent(() {
-          writeNamedElement('alias', alias.element);
+          writeNamedElement('alias', alias.element2.asElement);
           _sink.withIndent(() {
             writeTypeList('typeArguments', alias.typeArguments);
           });
@@ -363,9 +369,9 @@ class ElementPrinter {
     return '${source.uri}';
   }
 
-  String _substitutionMapStr(Map<TypeParameterElement, DartType> map) {
+  String _substitutionMapStr(Map<TypeParameterElement2, DartType> map) {
     var entriesStr = map.entries.map((entry) {
-      return '${entry.key.name}: ${_typeStr(entry.value)}';
+      return '${entry.key.name3}: ${_typeStr(entry.value)}';
     }).join(', ');
     return '{$entriesStr}';
   }

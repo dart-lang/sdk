@@ -13,6 +13,11 @@
 
 namespace dart {
 
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+extern "C" void SimulatorFfiCallbackTrampoline();
+extern "C" void SimulatorFfiCallbackTrampolineEnd();
+#endif
+
 FfiCallbackMetadata::FfiCallbackMetadata() {}
 
 void FfiCallbackMetadata::EnsureStubPageLocked() {
@@ -23,13 +28,20 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
 
   ASSERT_LESS_OR_EQUAL(VirtualMemory::PageSize(), kPageSize);
 
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+  const uword code_start =
+      reinterpret_cast<uword>(SimulatorFfiCallbackTrampoline);
+  const uword code_end =
+      reinterpret_cast<uword>(SimulatorFfiCallbackTrampolineEnd);
+  const uword page_start = code_start & ~(VirtualMemory::PageSize() - 1);
+#else
   const Code& trampoline_code = StubCode::FfiCallbackTrampoline();
   const uword code_start = trampoline_code.EntryPoint();
   const uword code_end = code_start + trampoline_code.Size();
   const uword page_start = code_start & ~(VirtualMemory::PageSize() - 1);
-
   ASSERT_LESS_OR_EQUAL((code_start - page_start) + trampoline_code.Size(),
                        RXMappingSize());
+#endif
 
   // Stub page uses a tight (unaligned) bound for the end of the code area.
   // Otherwise we can read past the end of the code area when doing DuplicateRX.
@@ -38,16 +50,17 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
 
   offset_of_first_trampoline_in_page_ = code_start - page_start;
 
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA) ||                                         \
+    (defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64))
   // On Fuchsia we can't currently duplicate pages, so use the first page of
   // trampolines. Store the stub page's metadata in a separately allocated RW
   // page.
   // TODO(https://dartbug.com/52579): Remove.
-  fuchsia_metadata_page_ = VirtualMemory::AllocateAligned(
+  original_metadata_page_ = VirtualMemory::AllocateAligned(
       MappingSize(), MappingAlignment(), /*is_executable=*/false,
       /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
   Metadata* metadata = reinterpret_cast<Metadata*>(
-      fuchsia_metadata_page_->start() + MetadataOffset());
+      original_metadata_page_->start() + MetadataOffset());
   for (intptr_t i = 0; i < NumCallbackTrampolinesPerPage(); ++i) {
     AddToFreeListLocked(&metadata[i]);
   }
@@ -61,9 +74,10 @@ FfiCallbackMetadata::~FfiCallbackMetadata() {
     delete trampoline_pages_[i];
   }
 
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA) ||                                         \
+    (defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64))
   // TODO(https://dartbug.com/52579): Remove.
-  delete fuchsia_metadata_page_;
+  delete original_metadata_page_;
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 }
 
@@ -92,7 +106,8 @@ void FfiCallbackMetadata::FillRuntimeFunction(VirtualMemory* page,
 }
 
 VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA) ||                                         \
+    (defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64))
   // TODO(https://dartbug.com/52579): Remove.
   UNREACHABLE();
   return nullptr;
@@ -330,7 +345,10 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::TrampolineOfMetadata(
   const uword start = MappingStart(reinterpret_cast<uword>(metadata));
   Metadata* metadatas = reinterpret_cast<Metadata*>(start + MetadataOffset());
   const uword index = metadata - metadatas;
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+  return reinterpret_cast<uword>(SimulatorFfiCallbackTrampoline) +
+         index * kNativeCallbackTrampolineSize;
+#elif defined(DART_TARGET_OS_FUCHSIA)
   return StubCode::FfiCallbackTrampoline().EntryPoint() +
          index * kNativeCallbackTrampolineSize;
 #else
@@ -341,7 +359,8 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::TrampolineOfMetadata(
 
 FfiCallbackMetadata::Metadata* FfiCallbackMetadata::MetadataOfTrampoline(
     Trampoline trampoline) const {
-#if defined(DART_TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA) ||                                         \
+    (defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64))
   // On Fuchsia the metadata page is separate to the trampoline page.
   // TODO(https://dartbug.com/52579): Remove.
   const uword page_start =
@@ -352,7 +371,7 @@ FfiCallbackMetadata::Metadata* FfiCallbackMetadata::MetadataOfTrampoline(
       kNativeCallbackTrampolineSize;
   ASSERT(index < NumCallbackTrampolinesPerPage());
   Metadata* metadata_table = reinterpret_cast<Metadata*>(
-      fuchsia_metadata_page_->start() + MetadataOffset());
+      original_metadata_page_->start() + MetadataOffset());
   return metadata_table + index;
 #else
   const uword start = MappingStart(trampoline);

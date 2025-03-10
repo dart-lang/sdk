@@ -532,21 +532,13 @@ abstract interface class HttpHeaders {
   ///
   /// The current case of the a header name is that of the name used by
   /// the last [set] or [add] call for that header.
-  void add(
-    String name,
-    Object value, {
-    @Since("2.8") bool preserveHeaderCase = false,
-  });
+  void add(String name, Object value, {bool preserveHeaderCase = false});
 
   /// Sets the header [name] to [value].
   ///
   /// Removes all existing values for the header named [name] and
   /// then [add]s [value] to it.
-  void set(
-    String name,
-    Object value, {
-    @Since("2.8") bool preserveHeaderCase = false,
-  });
+  void set(String name, Object value, {bool preserveHeaderCase = false});
 
   /// Removes a specific value for a header name.
   ///
@@ -1897,7 +1889,6 @@ abstract interface class HttpClientRequest implements IOSink {
   ///   // If abort() called before response is available, onError will fire.
   /// });
   /// ```
-  @Since("2.10")
   void abort([Object? exception, StackTrace? stackTrace]);
 }
 
@@ -1946,7 +1937,6 @@ abstract interface class HttpClientResponse implements Stream<List<int>> {
   /// This specifies whether the response bytes were compressed when they were
   /// received across the wire and whether callers will receive compressed
   /// or uncompressed bytes when they listed to this response's byte stream.
-  @Since("2.4")
   HttpClientResponseCompressionState get compressionState;
 
   /// Gets the persistent connection state returned by the server.
@@ -2023,7 +2013,6 @@ abstract interface class HttpClientResponse implements Stream<List<int>> {
 ///  * Does the caller need to manually decompress the response's byte stream?
 ///
 /// This enum is accessed via the [HttpClientResponse.compressionState] value.
-@Since("2.4")
 enum HttpClientResponseCompressionState {
   /// The body of the HTTP response was received and remains in an uncompressed
   /// state.

@@ -114,14 +114,6 @@ class Interface extends core::Object {
   method mixedInStaticImplementedInstanceMethod() → void {}
   static method mixedInInstanceImplementedStaticMethod() → void {}
 }
-abstract class _Class&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_Class&Super&Mixin
-    : super self::Super::•()
-    ;
-  method mixedInInstanceDeclaredStaticMethod() → void {}
-  method mixedInInstanceImplementedStaticMethod() → void {}
-  method extendedStaticMixedInInstanceMethod() → void {}
-}
 abstract class Class extends self::_Class&Super&Mixin implements self::Interface {
   synthetic constructor •() → self::Class
     : super self::_Class&Super&Mixin::•()
@@ -148,5 +140,13 @@ abstract class Class extends self::_Class&Super&Mixin implements self::Interface
     return 0;
   static get implementedInstanceSetterDeclaredStaticGetter() → core::int
     return 0;
+}
+abstract class _Class&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_Class&Super&Mixin
+    : super self::Super::•()
+    ;
+  method mixedInInstanceDeclaredStaticMethod() → void {}
+  method mixedInInstanceImplementedStaticMethod() → void {}
+  method extendedStaticMixedInInstanceMethod() → void {}
 }
 static method main() → dynamic {}

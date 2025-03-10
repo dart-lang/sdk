@@ -722,6 +722,8 @@ class Architecture extends NamedEnum {
   // ignore: constant_identifier_names
   static const simarm_x64 = Architecture._('simarm_x64');
   static const simarm64 = Architecture._('simarm64');
+  // ignore: constant_identifier_names
+  static const simarm64_arm64 = Architecture._('simarm64_arm64');
   static const simarm64c = Architecture._('simarm64c');
   static const riscv32 = Architecture._('riscv32');
   static const riscv64 = Architecture._('riscv64');
@@ -743,6 +745,7 @@ class Architecture extends NamedEnum {
     simarm,
     simarm_x64,
     simarm64,
+    simarm64_arm64,
     simarm64c,
     riscv32,
     riscv64,
@@ -757,7 +760,7 @@ class Architecture extends NamedEnum {
     throw ArgumentError('Unknown architecture "$name".');
   }
 
-  const Architecture._(String name) : super(name);
+  const Architecture._(super.name);
 
   bool get isSimulator => _simulators.contains(this);
   static final _simulators = <Architecture>{
@@ -845,7 +848,7 @@ class Compiler extends NamedEnum {
     throw ArgumentError('Unknown compiler "$name".');
   }
 
-  const Compiler._(String name) : super(name);
+  const Compiler._(super.name);
 
   /// Gets the runtimes this compiler can target.
   List<Runtime> get supportedRuntimes {
@@ -965,7 +968,7 @@ class Mode extends NamedEnum {
     throw ArgumentError('Unknown mode "$name".');
   }
 
-  const Mode._(String name) : super(name);
+  const Mode._(super.name);
 
   bool get isDebug => this == debug;
 }
@@ -991,7 +994,7 @@ class Sanitizer extends NamedEnum {
     throw ArgumentError('Unknown sanitizer "$name".');
   }
 
-  const Sanitizer._(String name) : super(name);
+  const Sanitizer._(super.name);
 }
 
 class Runtime extends NamedEnum {
@@ -1038,7 +1041,7 @@ class Runtime extends NamedEnum {
     throw ArgumentError('Unknown runtime "$name".');
   }
 
-  const Runtime._(String name) : super(name);
+  const Runtime._(super.name);
 
   bool get isBrowser => const [
         ie9,
@@ -1128,7 +1131,7 @@ class System extends NamedEnum {
     throw ArgumentError('Unknown operating system "$name".');
   }
 
-  const System._(String name) : super(name);
+  const System._(super.name);
 
   /// The root directory name for build outputs on this system.
   String get outputDirectory {
@@ -1175,7 +1178,7 @@ class NnbdMode extends NamedEnum {
     throw ArgumentError('Unknown NNBD mode "$name".');
   }
 
-  const NnbdMode._(String name) : super(name);
+  const NnbdMode._(super.name);
 }
 
 /// Base class for an enum-like class whose values are identified by name.

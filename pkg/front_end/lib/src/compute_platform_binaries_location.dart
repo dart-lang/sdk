@@ -8,7 +8,6 @@ import 'package:kernel/ast.dart' show Source;
 import 'package:kernel/target/targets.dart';
 
 import 'base/compiler_context.dart' show CompilerContext;
-import 'base/nnbd_mode.dart' show NnbdMode;
 import 'base/processed_options.dart' show ProcessedOptions;
 
 /// Returns the name of the default platform dill file name for the [target]
@@ -16,42 +15,18 @@ import 'base/processed_options.dart' show ProcessedOptions;
 ///
 /// If the target doesn't have a default platform dill file for the nnbd mode,
 /// [onError] is called.
-String? computePlatformDillName(
-    Target target, NnbdMode nnbdMode, void Function() onError) {
+String? computePlatformDillName(Target target, void Function() onError) {
   switch (target.name) {
     case 'dartdevc':
-      switch (nnbdMode) {
-        case NnbdMode.Strong:
-          // DDC is always compiled against the outline so we use it here by
-          // default.
-          return 'ddc_outline.dill';
-        // Coverage-ignore(suite): Not run.
-        //TODO(johnniwinther): Support using the full dill.
-        //return 'ddc_platform.dill';
-        case NnbdMode.Weak:
-          // DDC is always compiled against the outline so we use it here by
-          // default.
-          return 'ddc_outline_unsound.dill';
-        //TODO(johnniwinther): Support using the full dill.
-        //return 'ddc_platform_unsound.dill';
-      }
+      // DDC is always compiled against the outline so we use it here by
+      // default.
+      return 'ddc_outline.dill';
+    //TODO(johnniwinther): Support using the full dill.
+    //return 'ddc_platform.dill';
     case 'dart2js':
-      switch (nnbdMode) {
-        case NnbdMode.Strong:
-          return 'dart2js_platform.dill';
-        // Coverage-ignore(suite): Not run.
-        case NnbdMode.Weak:
-          return 'dart2js_platform_unsound.dill';
-      }
+      return 'dart2js_platform.dill';
     case 'dart2js_server':
-      switch (nnbdMode) {
-        // Coverage-ignore(suite): Not run.
-        case NnbdMode.Strong:
-          return 'dart2js_server_platform.dill';
-        // Coverage-ignore(suite): Not run.
-        case NnbdMode.Weak:
-          return 'dart2js_server_platform_unsound.dill';
-      }
+      return 'dart2js_server_platform.dill';
     case 'vm':
       // TODO(johnniwinther): Stop generating 'vm_platform.dill' and rename
       // 'vm_platform_strong.dill' to 'vm_platform.dill'.
@@ -59,27 +34,10 @@ String? computePlatformDillName(
     case 'none':
       return "vm_platform_strong.dill";
     case 'wasm':
-      switch (nnbdMode) {
-        case NnbdMode.Strong:
-          return 'dart2wasm_outline.dill';
-        // Coverage-ignore(suite): Not run.
-        //TODO(johnniwinther): Support using the full dill.
-        //return 'dart2wasm_platform.dill';
-        case NnbdMode.Weak:
-          break;
-      }
-      break;
+      return 'dart2wasm_outline.dill';
     // Coverage-ignore(suite): Not run.
     case 'wasm_js_compatibility':
-      switch (nnbdMode) {
-        case NnbdMode.Strong:
-          return 'dart2wasm_js_compatibility_outline.dill';
-        //TODO(johnniwinther): Support using the full dill.
-        //return 'dart2wasm_js_compatibility_platform.dill';
-        case NnbdMode.Weak:
-          break;
-      }
-      break;
+      return 'dart2wasm_js_compatibility_outline.dill';
     default:
       break;
   }

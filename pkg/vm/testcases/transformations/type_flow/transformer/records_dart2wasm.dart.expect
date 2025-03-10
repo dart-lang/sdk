@@ -24,7 +24,7 @@ static method main() → dynamic {
   core::print(self::recordFieldAccess1((10, "hi")));
   core::print(self::recordFieldAccess2(({a: 20, b: "bye"})));
   core::print(self::recordDynamicFieldAccess([@vm.direct-call.metadata=dart._list::WasmListBase.[]??] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=dart._list::GrowableList?<dart.core::Object>] self::list{dynamic}.[](1)));
-  core::print([@vm.direct-call.metadata=dart.core::Record_2.toString] [@vm.inferred-type.metadata=! (skip check) (receiver not int)](1, 2).{core::Object::toString}(){() → core::String});
+  core::print([@vm.direct-call.metadata=dart.core::Record_2.toString] [@vm.inferred-type.metadata=library dart:_string::JSStringImpl (skip check) (receiver not int)](1, 2).{core::Object::toString}(){() → core::String});
 }
 constants  {
   #C1 = 42

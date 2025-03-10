@@ -318,29 +318,41 @@ final class BoxedDouble implements double {
   static const int CACHE_SIZE_LOG2 = 3;
   static const int CACHE_LENGTH = 1 << (CACHE_SIZE_LOG2 + 1);
   static const int CACHE_MASK = CACHE_LENGTH - 1;
-  // Each key (double) followed by its toString result.
-  static final List _cache = new List.filled(CACHE_LENGTH, null);
+  // Each cached double value, represented as it's 64-bits.
+  @pragma("wasm:initialize-at-startup")
+  static final WasmArray<int> _cacheKeys = WasmArray<int>.filled(
+    CACHE_LENGTH,
+    doubleToIntBits(1.0),
+  );
+  // The toString() of the double value with same index in [_cacheKeys].
+  @pragma("wasm:initialize-at-startup")
+  static final WasmArray<String> _cacheValues = WasmArray<String>.filled(
+    CACHE_LENGTH,
+    '1.0',
+  );
   static int _cacheEvictIndex = 0;
 
   String toString() {
-    // TODO(koda): Consider starting at most recently inserted.
-    for (int i = 0; i < CACHE_LENGTH; i += 2) {
-      // Need 'identical' to handle negative zero, etc.
-      if (identical(_cache[i], this)) {
-        return _cache[i + 1];
+    final int bits = doubleToIntBits(value);
+
+    if (bits == doubleToIntBits(0.0)) return '0.0';
+    if (bits == doubleToIntBits(-0.0)) return '-0.0';
+    if (bits == doubleToIntBits(1.0)) return '1.0';
+    if (bits == doubleToIntBits(-1.0)) return '-1.0';
+
+    for (int i = 0; i < CACHE_LENGTH; i++) {
+      // Special cases such as -0.0/0.0 and NaN are never inserted into the
+      // cache.
+      if (bits == _cacheKeys[i]) {
+        return _cacheValues[i];
       }
     }
-    // TODO(koda): Consider optimizing all small integral values.
     if (isNaN) return "NaN";
-    if (this == double.infinity) return "Infinity";
-    if (this == -double.infinity) return "-Infinity";
-    if (this == 0) {
-      if (isNegative) {
-        return "-0.0";
-      } else {
-        return "0.0";
-      }
+    if (isInfinite) {
+      if (isNegative) return "-Infinity";
+      return "Infinity";
     }
+
     String result = jsStringToDartString(
       JSStringImpl(
         JS<WasmExternRef?>(
@@ -353,9 +365,9 @@ final class BoxedDouble implements double {
       result = '$result.0';
     }
     // Replace the least recently inserted entry.
-    _cache[_cacheEvictIndex] = this;
-    _cache[_cacheEvictIndex + 1] = result;
-    _cacheEvictIndex = (_cacheEvictIndex + 2) & CACHE_MASK;
+    _cacheKeys[_cacheEvictIndex] = bits;
+    _cacheValues[_cacheEvictIndex] = result;
+    _cacheEvictIndex = (_cacheEvictIndex + 1) & CACHE_MASK;
     return result;
   }
 

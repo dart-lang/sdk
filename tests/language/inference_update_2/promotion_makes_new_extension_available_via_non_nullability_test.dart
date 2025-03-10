@@ -41,8 +41,9 @@ class C {
       _a
           .method(contextType(0)..expectStaticType<Exactly<int>>())
           .expectStaticType<Exactly<int>>();
-      _a(contextType(0)..expectStaticType<Exactly<int>>())
-          .expectStaticType<Exactly<int>>();
+      _a(
+        contextType(0)..expectStaticType<Exactly<int>>(),
+      ).expectStaticType<Exactly<int>>();
       _a[contextType(0)..expectStaticType<Exactly<int>>()]
           .expectStaticType<Exactly<int>>();
       _a[contextType(0)..expectStaticType<Exactly<int>>()] = contextType(0)
@@ -59,28 +60,25 @@ class D extends C {
   void testSuperAccess() {
     if (super._a != null) {
       super._a.field.expectStaticType<Exactly<int Function(int)>>();
-      super
-          ._a
+      super._a
           .field(contextType(0)..expectStaticType<Exactly<int>>())
           .expectStaticType<Exactly<int>>();
       super._a.getter.expectStaticType<Exactly<int Function(int)>>();
-      super
-          ._a
+      super._a
           .getter(contextType(0)..expectStaticType<Exactly<int>>())
           .expectStaticType<Exactly<int>>();
       super._a.method.expectStaticType<Exactly<int Function(int)>>();
-      super
-          ._a
+      super._a
           .method(contextType(0)..expectStaticType<Exactly<int>>())
           .expectStaticType<Exactly<int>>();
       super
           ._a(contextType(0)..expectStaticType<Exactly<int>>())
           .expectStaticType<Exactly<int>>();
-      super
-          ._a[contextType(0)..expectStaticType<Exactly<int>>()]
+      super._a[contextType(0)..expectStaticType<Exactly<int>>()]
           .expectStaticType<Exactly<int>>();
-      super._a[contextType(0)..expectStaticType<Exactly<int>>()] =
-          contextType(0)..expectStaticType<Exactly<int>>();
+      super._a[contextType(0)
+        ..expectStaticType<Exactly<int>>()] = contextType(0)
+        ..expectStaticType<Exactly<int>>();
       (super._a + (contextType(0)..expectStaticType<Exactly<int>>()))
           .expectStaticType<Exactly<int>>();
     }
@@ -118,25 +116,21 @@ void testGeneralPropertyAccess(C c) {
   // we need to test the general case of property accesses as well.
   if ((c)._a != null) {
     (c)._a.field.expectStaticType<Exactly<int Function(int)>>();
-    (c)
-        ._a
+    (c)._a
         .field(contextType(0)..expectStaticType<Exactly<int>>())
         .expectStaticType<Exactly<int>>();
     (c)._a.getter.expectStaticType<Exactly<int Function(int)>>();
-    (c)
-        ._a
+    (c)._a
         .getter(contextType(0)..expectStaticType<Exactly<int>>())
         .expectStaticType<Exactly<int>>();
     (c)._a.method.expectStaticType<Exactly<int Function(int)>>();
-    (c)
-        ._a
+    (c)._a
         .method(contextType(0)..expectStaticType<Exactly<int>>())
         .expectStaticType<Exactly<int>>();
     (c)
         ._a(contextType(0)..expectStaticType<Exactly<int>>())
         .expectStaticType<Exactly<int>>();
-    (c)
-        ._a[contextType(0)..expectStaticType<Exactly<int>>()]
+    (c)._a[contextType(0)..expectStaticType<Exactly<int>>()]
         .expectStaticType<Exactly<int>>();
     (c)._a[contextType(0)..expectStaticType<Exactly<int>>()] = contextType(0)
       ..expectStaticType<Exactly<int>>();

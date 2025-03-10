@@ -47,6 +47,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/fragment.dart';
 import '../kernel/utils.dart';
 import 'builder_factory.dart';
 import 'offset_map.dart';
@@ -717,6 +718,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     if (augmentToken != null) {
+      // Coverage-ignore-block(suite): Not run.
       if (reportIfNotEnabled(libraryFeatures.macros, augmentToken.charOffset,
           augmentToken.length)) {
         augmentToken = null;
@@ -1008,8 +1010,8 @@ class OutlineBuilder extends StackListenerImpl {
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
     pushDeclarationContext(DeclarationContext.Class);
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
     push(typeParameters ?? NullValues.NominalParameters);
     if (macroToken != null) {
       if (reportIfNotEnabled(
@@ -1070,8 +1072,8 @@ class OutlineBuilder extends StackListenerImpl {
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
     pushDeclarationContext(DeclarationContext.Mixin);
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
     if (baseToken != null) {
       if (reportIfNotEnabled(libraryFeatures.classModifiers,
           baseToken.charOffset, baseToken.length)) {
@@ -1138,8 +1140,8 @@ class OutlineBuilder extends StackListenerImpl {
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
     pushDeclarationContext(DeclarationContext.NamedMixinApplication);
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
     push(typeParameters ?? NullValues.NominalParameters);
     _builderFactory.beginNamedMixinApplication(
         name.lexeme, name.charOffset, typeParameters);
@@ -1272,7 +1274,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.ParserRecovery,
       ]),
       /* modifiers */ ValueKinds.Modifiers,
-      /* type parameters */ ValueKinds.NominalVariableListOrNull,
+      /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
       /* metadata */ ValueKinds.MetadataListOrNull,
     ]));
@@ -1285,8 +1287,8 @@ class OutlineBuilder extends StackListenerImpl {
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
     Object? name = pop();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     inAbstractOrSealedClass = false;
@@ -1367,7 +1369,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.TypeBuilderListOrNull,
         ValueKinds.ParserRecovery,
       ]),
-      /* type parameters */ ValueKinds.NominalVariableListOrNull,
+      /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
       /* modifiers */ ValueKinds.Modifiers,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
       /* metadata */ ValueKinds.MetadataListOrNull,
@@ -1377,8 +1379,8 @@ class OutlineBuilder extends StackListenerImpl {
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
     List<TypeBuilder>? supertypeConstraints =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
-    List<NominalParameterBuilder>? typeParameters =
-        pop(NullValues.NominalParameters) as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop(NullValues.NominalParameters) as List<TypeParameterFragment>?;
     Modifiers modifiers = pop() as Modifiers;
     Object? name = pop();
     List<MetadataBuilder>? metadata =
@@ -1446,13 +1448,15 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginExtensionDeclaration(
       Token? augmentToken, Token extensionKeyword, Token? nameToken) {
-    assert(checkState(extensionKeyword,
-        [ValueKinds.NominalVariableListOrNull, ValueKinds.MetadataListOrNull]));
+    assert(checkState(extensionKeyword, [
+      ValueKinds.TypeParameterFragmentListOrNull,
+      ValueKinds.MetadataListOrNull
+    ]));
     debugEvent("beginExtensionDeclaration");
     popDeclarationContext(DeclarationContext.ExtensionOrExtensionType);
     pushDeclarationContext(DeclarationContext.Extension);
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
     push(nameToken != null
         ? new SimpleIdentifier(nameToken)
@@ -1467,7 +1471,7 @@ class OutlineBuilder extends StackListenerImpl {
       Token? onKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
-      ValueKinds.NominalVariableListOrNull,
+      ValueKinds.TypeParameterFragmentListOrNull,
       ValueKinds.IdentifierOrNull,
       ValueKinds.MetadataListOrNull
     ]));
@@ -1479,8 +1483,8 @@ class OutlineBuilder extends StackListenerImpl {
       onType = new FixedTypeBuilderImpl(
           const InvalidType(), uri, parserRecovery.charOffset);
     }
-    List<NominalParameterBuilder>? typeParameters =
-        pop(NullValues.NominalParameters) as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop(NullValues.NominalParameters) as List<TypeParameterFragment>?;
     Identifier? name = pop(NullValues.Identifier) as Identifier?;
     int nameOrExtensionOffset = name?.nameOffset ?? extensionKeyword.charOffset;
     List<MetadataBuilder>? metadata =
@@ -1505,13 +1509,15 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginExtensionTypeDeclaration(
       Token? augmentToken, Token extensionKeyword, Token nameToken) {
-    assert(checkState(extensionKeyword,
-        [ValueKinds.NominalVariableListOrNull, ValueKinds.MetadataListOrNull]));
+    assert(checkState(extensionKeyword, [
+      ValueKinds.TypeParameterFragmentListOrNull,
+      ValueKinds.MetadataListOrNull
+    ]));
     debugEvent("beginExtensionTypeDeclaration");
     popDeclarationContext(DeclarationContext.ExtensionOrExtensionType);
     pushDeclarationContext(DeclarationContext.ExtensionType);
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
     String name = nameToken.lexeme;
     int nameOffset = nameToken.charOffset;
     push(new SimpleIdentifier(nameToken));
@@ -1525,7 +1531,7 @@ class OutlineBuilder extends StackListenerImpl {
       Token extensionKeyword, Token typeKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
       ValueKinds.TypeBuilderListOrNull,
-      ValueKinds.NominalVariableListOrNull,
+      ValueKinds.TypeParameterFragmentListOrNull,
       ValueKinds.Identifier,
       ValueKinds.MetadataListOrNull,
     ]));
@@ -1534,8 +1540,8 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<TypeBuilder>? interfaces =
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
-    List<NominalParameterBuilder>? typeParameters =
-        pop(NullValues.NominalParameters) as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop(NullValues.NominalParameters) as List<TypeParameterFragment>?;
     Identifier identifier = pop() as Identifier;
     List<MetadataBuilder>? metadata =
         pop(NullValues.Metadata) as List<MetadataBuilder>?;
@@ -1699,7 +1705,7 @@ class OutlineBuilder extends StackListenerImpl {
       ValueKinds.AsyncMarker,
       ValueKinds.FormalListOrNull,
       /* formalsOffset */ ValueKinds.Integer,
-      ValueKinds.NominalVariableListOrNull,
+      ValueKinds.TypeParameterFragmentListOrNull,
       ValueKinds.IdentifierOrParserRecovery,
       ValueKinds.TypeBuilderOrNull,
       ValueKinds.Modifiers,
@@ -1711,8 +1717,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
     Object? identifier = pop();
     TypeBuilder? returnType = pop() as TypeBuilder?;
     bool isAbstract = kind == MethodBody.Abstract;
@@ -2018,7 +2024,7 @@ class OutlineBuilder extends StackListenerImpl {
       ValueKinds.AsyncModifier,
       ValueKinds.FormalListOrNull,
       ValueKinds.Integer, // formals offset
-      ValueKinds.NominalVariableListOrNull,
+      ValueKinds.TypeParameterFragmentListOrNull,
       ValueKinds.IdentifierOrParserRecovery,
       ValueKinds.TypeBuilderOrNull,
       ValueKinds.Modifiers,
@@ -2030,8 +2036,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<FormalParameterBuilder>? formals =
         pop() as List<FormalParameterBuilder>?;
     int formalsOffset = popCharOffset();
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
     Object? identifier = pop();
     TypeBuilder? returnType = pop() as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
@@ -2107,9 +2113,9 @@ class OutlineBuilder extends StackListenerImpl {
         }
       }
       if (typeParameters != null) {
-        NominalParameterBuilder typeParameterBuilder = typeParameters.first;
+        TypeParameterFragment typeParameterBuilder = typeParameters.first;
         addProblem(messageOperatorWithTypeParameters,
-            typeParameterBuilder.fileOffset, typeParameterBuilder.name.length);
+            typeParameterBuilder.nameOffset, typeParameterBuilder.name.length);
       }
     } else {
       name = identifier.name;
@@ -2289,7 +2295,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.TypeBuilder,
       ]),
       /* modifiers */ ValueKinds.Modifiers,
-      /* type parameters */ ValueKinds.NominalVariableListOrNull,
+      /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
       /* metadata */ ValueKinds.MetadataListOrNull,
     ]));
@@ -2300,8 +2306,8 @@ class OutlineBuilder extends StackListenerImpl {
     Object? mixinApplication = pop();
     Object? supertype = pop();
     Modifiers modifiers = pop() as Modifiers;
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
     Object? name = pop();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
@@ -2760,7 +2766,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.TypeBuilderListOrNull,
         ValueKinds.ParserRecovery,
       ]),
-      /* type parameters */ ValueKinds.NominalVariableListOrNull,
+      /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
     ]));
     debugEvent("EnumHeader");
@@ -2769,8 +2775,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeBuilder>? interfaces =
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
     Object? mixins = pop(NullValues.TypeBuilderList);
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
 
     Object? identifier = peek();
     if (identifier is Identifier) {
@@ -2815,7 +2821,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.TypeBuilderListOrNull,
         ValueKinds.ParserRecovery,
       ]),
-      /* type parameters */ ValueKinds.NominalVariableListOrNull,
+      /* type parameters */ ValueKinds.TypeParameterFragmentListOrNull,
       /* name */ ValueKinds.IdentifierOrParserRecovery,
       /* metadata */ ValueKinds.MetadataListOrNull,
     ]));
@@ -2850,8 +2856,8 @@ class OutlineBuilder extends StackListenerImpl {
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     List<TypeBuilder>? mixins =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
-    List<NominalParameterBuilder>? typeParameters =
-        pop() as List<NominalParameterBuilder>?;
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
     Object? identifier = pop();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
@@ -3046,7 +3052,8 @@ class OutlineBuilder extends StackListenerImpl {
             ? [
                 /* formals */ ValueKinds.FormalListOrNull,
                 /* formals offset */ ValueKinds.Integer,
-                /* type parameters */ ValueKinds.NominalVariableListOrNull,
+                /* type parameters */ ValueKinds
+                    .TypeParameterFragmentListOrNull,
                 /* name */ ValueKinds.IdentifierOrParserRecovery,
                 /* return type */ ValueKinds.TypeBuilderOrNull,
                 /* metadata */ ValueKinds.MetadataListOrNull,
@@ -3056,12 +3063,13 @@ class OutlineBuilder extends StackListenerImpl {
                   ValueKinds.TypeBuilderOrNull,
                   ValueKinds.ParserRecovery,
                 ]),
-                /* type parameters */ ValueKinds.NominalVariableListOrNull,
+                /* type parameters */ ValueKinds
+                    .TypeParameterFragmentListOrNull,
                 /* name */ ValueKinds.IdentifierOrParserRecovery,
                 /* metadata */ ValueKinds.MetadataListOrNull,
               ]));
 
-    List<NominalParameterBuilder>? typeParameters;
+    List<TypeParameterFragment>? typeParameters;
     Object? name;
     Identifier identifier;
     TypeBuilder aliasedType;
@@ -3070,7 +3078,7 @@ class OutlineBuilder extends StackListenerImpl {
           pop(NullValues.FormalParameters) as List<FormalParameterBuilder>?;
       pop(); // formals offset
       typeParameters =
-          pop(NullValues.NominalParameters) as List<NominalParameterBuilder>?;
+          pop(NullValues.NominalParameters) as List<TypeParameterFragment>?;
       name = pop();
       TypeBuilder? returnType = pop(NullValues.TypeBuilder) as TypeBuilder?;
       // Create a nested declaration that is ended below by
@@ -3096,7 +3104,7 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       Object? type = pop(NullValues.TypeBuilder);
       typeParameters =
-          pop(NullValues.NominalParameters) as List<NominalParameterBuilder>?;
+          pop(NullValues.NominalParameters) as List<TypeParameterFragment>?;
       name = pop();
       if (name is ParserRecovery) {
         // Coverage-ignore-block(suite): Not run.
@@ -3412,8 +3420,8 @@ class OutlineBuilder extends StackListenerImpl {
               .popNonNullable(stack, count, dummyStructuralVariableBuilder) ??
           NullValues.StructuralParameters);
     } else {
-      push(const FixedNullableList<NominalParameterBuilder>()
-              .popNonNullable(stack, count, dummyNominalVariableBuilder) ??
+      push(const FixedNullableList<TypeParameterFragment>()
+              .popNonNullable(stack, count, dummyTypeParameterFragment) ??
           NullValues.NominalParameters);
     }
   }
@@ -3423,18 +3431,35 @@ class OutlineBuilder extends StackListenerImpl {
       Token token, int index, Token? extendsOrSuper, Token? variance) {
     debugEvent("endTypeVariable");
     TypeBuilder? bound = nullIfParserRecovery(pop()) as TypeBuilder?;
-    // Peek to leave type parameters on top of stack.
-    List<TypeParameterBuilder>? typeParameters =
-        peek() as List<TypeParameterBuilder>?;
-    if (typeParameters != null) {
-      typeParameters[index].bound = bound;
-      if (variance != null) {
-        if (!libraryFeatures.variance.isEnabled) {
+    if (inFunctionType) {
+      // Peek to leave type parameters on top of stack.
+      List<StructuralParameterBuilder>? typeParameters =
+          peek() as List<StructuralParameterBuilder>?;
+      if (typeParameters != null) {
+        typeParameters[index].bound = bound;
+        if (variance != null) {
           // Coverage-ignore-block(suite): Not run.
-          reportVarianceModifierNotEnabled(variance);
+          if (!libraryFeatures.variance.isEnabled) {
+            reportVarianceModifierNotEnabled(variance);
+          }
+          typeParameters[index].variance =
+              new Variance.fromKeywordString(variance.lexeme);
         }
-        typeParameters[index].variance =
-            new Variance.fromKeywordString(variance.lexeme);
+      }
+    } else {
+      // Peek to leave type parameters on top of stack.
+      List<TypeParameterFragment>? typeParameters =
+          peek() as List<TypeParameterFragment>?;
+      if (typeParameters != null) {
+        typeParameters[index].builder.bound = bound;
+        if (variance != null) {
+          if (!libraryFeatures.variance.isEnabled) {
+            // Coverage-ignore-block(suite): Not run.
+            reportVarianceModifierNotEnabled(variance);
+          }
+          typeParameters[index].builder.variance =
+              new Variance.fromKeywordString(variance.lexeme);
+        }
       }
     }
   }
@@ -3568,7 +3593,7 @@ class OutlineBuilder extends StackListenerImpl {
       ValueKinds.AsyncMarker,
       ValueKinds.FormalListOrNull,
       /* formals offset */ ValueKinds.Integer,
-      ValueKinds.NominalVariableListOrNull,
+      ValueKinds.TypeParameterFragmentListOrNull,
       ValueKinds.IdentifierOrParserRecovery,
       ValueKinds.Modifiers,
       ValueKinds.MetadataListOrNull,

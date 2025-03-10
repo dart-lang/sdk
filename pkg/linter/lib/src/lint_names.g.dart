@@ -585,6 +585,8 @@ abstract final class LintNames {
 
   static const String use_named_constants = 'use_named_constants';
 
+  static const String use_null_aware_elements = 'use_null_aware_elements';
+
   static const String use_raw_strings = 'use_raw_strings';
 
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';

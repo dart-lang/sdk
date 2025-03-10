@@ -24,7 +24,6 @@ import 'modular_suite.dart' as modular show createContext;
 import 'outline_suite.dart' as outline show createContext;
 import 'strong_suite.dart' as strong show createContext;
 import 'textual_outline_suite.dart' as textual_outline show createContext;
-import 'weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
 import 'incremental_suite.dart' as incremental show createContext;
@@ -453,13 +452,6 @@ const List<Suite> suites = [
     "../testing.json",
     path: "modular_suite.dart",
     shardCount: 4,
-  ),
-  const Suite(
-    "weak",
-    weak.createContext,
-    "../testing.json",
-    path: "weak_suite.dart",
-    shardCount: 10,
   ),
   const Suite(
     "textual_outline",

@@ -1441,6 +1441,29 @@ Object? _installSpecializedAsCheck(Object? object) {
       isNullable(testRti)) {
     asFn = RAW_DART_FUNCTION_REF(_generalNullableAsCheckImplementation);
   }
+  if (!JS_GET_FLAG('LEGACY')) {
+    if (_Utils.isIdentical(testRti, TYPE_REF<int>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asInt);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<int?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asIntQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<String>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asString);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<String?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asStringQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<bool>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asBool);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<bool?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asBoolQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<num>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asNum);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<num?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asNumQ);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<double>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asDouble);
+    } else if (_Utils.isIdentical(testRti, TYPE_REF<double?>())) {
+      asFn = RAW_DART_FUNCTION_REF(_asDoubleQ);
+    }
+  }
 
   Rti._setAsCheckFunction(testRti, asFn);
   return Rti._asCheck(testRti, object);

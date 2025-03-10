@@ -367,21 +367,21 @@ class BodyBuilder extends StackListenerImpl
             uri: uri,
             typeInferrer: typeInferrer);
 
-  BodyBuilder.forOutlineExpression(SourceLibraryBuilder library,
+  BodyBuilder.forOutlineExpression(SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext, LookupScope scope, Uri fileUri,
       {LocalScope? formalParameterScope})
       : this(
-            libraryBuilder: library,
+            libraryBuilder: libraryBuilder,
             context: bodyBuilderContext,
             enclosingScope: new EnclosingLocalScope(scope),
             formalParameterScope: formalParameterScope,
-            hierarchy: library.loader.hierarchy,
-            coreTypes: library.loader.coreTypes,
+            hierarchy: libraryBuilder.loader.hierarchy,
+            coreTypes: libraryBuilder.loader.coreTypes,
             thisVariable: null,
             uri: fileUri,
-            typeInferrer: library.loader.typeInferenceEngine
-                .createLocalTypeInferrer(
-                    fileUri, bodyBuilderContext.thisType, library, null));
+            typeInferrer: libraryBuilder.loader.typeInferenceEngine
+                .createLocalTypeInferrer(fileUri, bodyBuilderContext.thisType,
+                    libraryBuilder, scope, null));
 
   LocalScope get _localScope => _localScopes.current;
 
@@ -1340,7 +1340,7 @@ class BodyBuilder extends StackListenerImpl
         ])
           ..fileOffset = body.fileOffset;
       }
-      _context.setBody(body);
+      _context.registerFunctionBody(body);
     }
 
     performBacklogComputations();
@@ -1697,7 +1697,8 @@ class BodyBuilder extends StackListenerImpl
       {bool doFinishConstructor = true}) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
     if (!token.isEof) {
       token = parser.parseInitializers(token);
       checkEmpty(token.charOffset);
@@ -1717,7 +1718,8 @@ class BodyBuilder extends StackListenerImpl
   Expression parseFieldInitializer(Token token) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
     Token endToken =
         parser.parseExpression(parser.syntheticPreviousToken(token));
     assert(checkState(token, [
@@ -1735,7 +1737,8 @@ class BodyBuilder extends StackListenerImpl
   Expression parseAnnotation(Token token) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
     Token endToken = parser.parseMetadata(parser.syntheticPreviousToken(token));
     assert(checkState(token, [ValueKinds.Expression]));
     Expression annotation = pop() as Expression;
@@ -1746,7 +1749,8 @@ class BodyBuilder extends StackListenerImpl
   ArgumentsImpl parseArguments(Token token) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled);
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled);
     token = parser.parseArgumentsRest(token);
     ArgumentsImpl arguments = pop() as ArgumentsImpl;
     checkEmpty(token.charOffset);
@@ -2114,7 +2118,7 @@ class BodyBuilder extends StackListenerImpl
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
-      function.body = new EmptyStatement()..parent = function;
+      _context.registerNoBodyConstructor();
     } else if (body != null && _context.isMixinClass && !_context.isFactory) {
       // Report an error if a mixin class has a non-factory constructor with a
       // body.
@@ -3191,6 +3195,7 @@ class BodyBuilder extends StackListenerImpl
     bool isQualified = prefixToken != null;
     Builder? declaration = scope.lookupGetable(name, nameOffset, uri);
     if (declaration == null && prefix == null && _context.isAugmentationClass) {
+      // Coverage-ignore-block(suite): Not run.
       // The scope of an augmented method includes the origin class.
       declaration = _context.lookupStaticOriginMember(name, nameOffset, uri);
     }
@@ -5460,8 +5465,7 @@ class BodyBuilder extends StackListenerImpl
           offsetForToken(nameToken),
           fileUri: uri,
           hasImmediatelyDeclaredInitializer: initializerStart != null,
-          isWildcard: libraryFeatures.wildcardVariables.isEnabled &&
-              parameterName == '_');
+          isWildcard: isWildcard);
     }
     VariableDeclaration variable = parameter.build(libraryBuilder);
     Expression? initializer = name?.initializer;
@@ -6421,7 +6425,7 @@ class BodyBuilder extends StackListenerImpl
         typeName = type.fullNameForErrors;
       }
       push(buildUnresolvedError(
-          debugName(typeName!, name), nameToken.charOffset,
+          debugName(typeName!, name), nameLastToken.charOffset,
           arguments: arguments, kind: UnresolvedKind.Constructor));
     }
     constantContext = savedConstantContext;
@@ -7145,8 +7149,6 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleNullAwareElement(Token nullAwareElement) {
     debugEvent("NullAwareElement");
-    // TODO(cstefantsova): Replace the following no-op with the node for
-    // handling null-aware elements.
     if (!libraryFeatures.nullAwareElements.isEnabled) {
       addProblem(
           templateExperimentNotEnabledOffByDefault
@@ -7227,6 +7229,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void handleAugmentSuperExpression(
       Token augmentToken, Token superToken, IdentifierContext context) {
     debugEvent("AugmentSuperExpression");
@@ -9972,6 +9975,57 @@ class BodyBuilder extends StackListenerImpl
     Pattern pattern = toPattern(pop());
     push(
         forest.createPatternAssignment(equals.charOffset, pattern, expression));
+  }
+
+  @override
+  void handleDotShorthandContext(Token token) {
+    debugEvent("DotShorthandContext");
+    if (!libraryFeatures.dotShorthands.isEnabled) {
+      // Coverage-ignore-block(suite): Not run.
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.dotShorthands.name),
+          token.offset,
+          token.length);
+      return;
+    }
+
+    // TODO(kallentu): Possibly could be ProblemBuilder? Testing needed.
+    assert(checkState(token, [ValueKinds.Expression]));
+    Expression value = pop() as Expression;
+    push(forest.createDotShorthandContext(token.charOffset, value));
+  }
+
+  @override
+  void handleDotShorthandHead(Token token) {
+    debugEvent("DotShorthandHead");
+    if (!libraryFeatures.dotShorthands.isEnabled) {
+      // Coverage-ignore-block(suite): Not run.
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.dotShorthands.name),
+          token.offset,
+          token.length);
+
+      // Recovery, avoid crashing with an extra selector.
+      pop();
+      push(new ParserErrorGenerator(this, token, cfe.messageSyntheticToken));
+      return;
+    }
+
+    assert(checkState(token, [ValueKinds.Selector]));
+    Selector selector = pop() as Selector;
+    if (libraryFeatures.dotShorthands.isEnabled) {
+      if (selector is InvocationSelector) {
+        // e.g. `.parse(2)`
+        push(forest.createDotShorthandInvocation(
+            offsetForToken(token), selector.name, selector.arguments));
+      } else if (selector is PropertySelector) {
+        // e.g. `.zero`
+        push(forest.createDotShorthandPropertyGet(
+            offsetForToken(token), selector.name));
+      }
+    }
   }
 }
 

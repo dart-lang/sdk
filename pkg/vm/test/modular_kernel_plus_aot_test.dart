@@ -15,13 +15,15 @@ import 'package:vm/modular/target/vm.dart';
 import 'package:vm/kernel_front_end.dart';
 
 main() async {
-  Uri sdkSummary =
-      sdkRootFile(Platform.executable).resolve('vm_platform_strong.dill');
+  Uri sdkSummary = sdkRootFile(
+    Platform.executable,
+  ).resolve('vm_platform_strong.dill');
   if (!await File.fromUri(sdkSummary).exists()) {
     // If we run from the <build-dir>/dart-sdk/bin folder, we need to navigate two
     // levels up.
-    sdkSummary = sdkRootFile(Platform.executable)
-        .resolve('../../vm_platform_strong.dill');
+    sdkSummary = sdkRootFile(
+      Platform.executable,
+    ).resolve('../../vm_platform_strong.dill');
   }
 
   // Tests are run in the root directory of the sdk checkout.
@@ -35,74 +37,106 @@ main() async {
     final mixinDillFilename = uri.resolve('mixin.dart.dill');
     File.fromUri(mixinFilename).writeAsStringSync(mixinFile);
 
-    await compileToKernel(vmTarget, librariesFile, sdkSummary, packagesFile,
-        mixinDillFilename, <Uri>[mixinFilename], <Uri>[]);
+    await compileToKernel(
+      vmTarget,
+      librariesFile,
+      sdkSummary,
+      packagesFile,
+      mixinDillFilename,
+      <Uri>[mixinFilename],
+      <Uri>[],
+    );
 
     final mainFilename = uri.resolve('main.dart');
     final mainDillFilename = uri.resolve('main.dart.dill');
     File.fromUri(mainFilename).writeAsStringSync(mainFile);
 
-    await compileToKernel(vmTarget, librariesFile, sdkSummary, packagesFile,
-        mainDillFilename, <Uri>[mainFilename], <Uri>[mixinDillFilename]);
+    await compileToKernel(
+      vmTarget,
+      librariesFile,
+      sdkSummary,
+      packagesFile,
+      mainDillFilename,
+      <Uri>[mainFilename],
+      <Uri>[mixinDillFilename],
+    );
 
     final bytes = concat(
-        await File.fromUri(sdkSummary).readAsBytes(),
-        concat(await File.fromUri(mixinDillFilename).readAsBytes(),
-            await File.fromUri(mainDillFilename).readAsBytes()));
+      await File.fromUri(sdkSummary).readAsBytes(),
+      concat(
+        await File.fromUri(mixinDillFilename).readAsBytes(),
+        await File.fromUri(mainDillFilename).readAsBytes(),
+      ),
+    );
     final component = loadComponentFromBytes(bytes);
 
     // Verify before running global transformations.
     verifyComponent(
-        vmTarget, VerificationStage.afterModularTransformations, component);
+      vmTarget,
+      VerificationStage.afterModularTransformations,
+      component,
+    );
 
     await runGlobalTransformations(
-        vmTarget,
-        component,
-        ErrorDetector(),
-        KernelCompilationArguments(
-            useGlobalTypeFlowAnalysis: true,
-            enableAsserts: false,
-            useProtobufTreeShakerV2: false));
+      vmTarget,
+      component,
+      ErrorDetector(),
+      KernelCompilationArguments(
+        useGlobalTypeFlowAnalysis: true,
+        enableAsserts: false,
+        useProtobufTreeShakerV2: false,
+      ),
+    );
 
     // Verify after running global transformations.
     verifyComponent(
-        vmTarget, VerificationStage.afterGlobalTransformations, component);
+      vmTarget,
+      VerificationStage.afterGlobalTransformations,
+      component,
+    );
 
     // Verify that we can reserialize the component to ensure that all
     // references are contained within the component.
     writeComponentToBytes(
-        loadComponentFromBytes(writeComponentToBytes(component)));
+      loadComponentFromBytes(writeComponentToBytes(component)),
+    );
   });
 }
 
 Future compileToKernel(
-    Target target,
-    Uri librariesFile,
-    Uri sdkSummary,
-    Uri packagesFile,
-    Uri outputFile,
-    List<Uri> sources,
-    List<Uri> additionalDills) async {
+  Target target,
+  Uri librariesFile,
+  Uri sdkSummary,
+  Uri packagesFile,
+  Uri outputFile,
+  List<Uri> sources,
+  List<Uri> additionalDills,
+) async {
   final state = fe.initializeCompiler(
-      null,
-      sdkSummary,
-      librariesFile,
-      packagesFile,
-      additionalDills,
-      target,
-      StandardFileSystem.instance,
-      const <String>[],
-      const <String, String>{},
-      nnbdMode: fe.NnbdMode.Strong);
+    null,
+    sdkSummary,
+    librariesFile,
+    packagesFile,
+    additionalDills,
+    target,
+    StandardFileSystem.instance,
+    const <String>[],
+    const <String, String>{},
+  );
 
   void onDiagnostic(fe.DiagnosticMessage message) {
     message.plainTextFormatted.forEach(print);
   }
 
-  final Component? component =
-      await fe.compileComponent(state, sources, onDiagnostic);
-  final Uint8List kernel = fe.serializeComponent(component!,
-      filter: (library) => sources.contains(library.importUri));
+  final Component? component = await fe.compileComponent(
+    state,
+    sources,
+    onDiagnostic,
+  );
+  final Uint8List kernel = fe.serializeComponent(
+    component!,
+    filter: (library) => sources.contains(library.importUri),
+  );
   await File(outputFile.toFilePath()).writeAsBytes(kernel);
 }
 

@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, WarningCode;
 import 'package:analyzer/src/generated/inference_log.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -134,7 +135,7 @@ class GenericInferrer {
 
   /// Performs upwards inference, producing a final set of inferred types that
   /// does not  contain references to the "unknown type".
-  List<DartType> chooseFinalTypes() => tryChooseFinalTypes(failAtError: false)!;
+  List<TypeImpl> chooseFinalTypes() => tryChooseFinalTypes(failAtError: false)!;
 
   /// Performs partial (either downwards or horizontal) inference, producing a
   /// set of inferred types that may contain references to the "unknown type".
@@ -244,10 +245,10 @@ class GenericInferrer {
   /// Same as [chooseFinalTypes], but if [failAtError] is `true` (the default)
   /// and inference fails, returns `null` rather than trying to perform error
   /// recovery.
-  List<DartType>? tryChooseFinalTypes({bool failAtError = true}) {
+  List<TypeImpl>? tryChooseFinalTypes({bool failAtError = true}) {
     var inferredTypes = _chooseTypes(preliminary: false);
     // Check the inferred types against all of the constraints.
-    var knownTypes = <TypeParameterElement, TypeImpl>{};
+    var knownTypes = <TypeParameterElement2, TypeImpl>{};
     var hasErrorReported = false;
     for (int i = 0; i < _typeFormals.length; i++) {
       TypeParameterElementImpl2 parameter = _typeFormals[i];
@@ -331,7 +332,7 @@ class GenericInferrer {
       }
 
       if (UnknownInferredType.isKnown(inferred)) {
-        knownTypes[parameter.firstFragment] = inferred;
+        knownTypes[parameter] = inferred;
       } else if (_strictInference) {
         // [typeParam] could not be inferred. A result will still be returned
         // by [infer], with [typeParam] filled in as its bounds. This is
@@ -347,10 +348,8 @@ class GenericInferrer {
 
     // Use instantiate to bounds to finish things off.
     var hasError = List<bool>.filled(_typeFormals.length, false);
-    var result = _typeSystem.instantiateTypeFormalsToBounds(
-        _typeFormals.map((e) => e.firstFragment).toList(),
-        hasError: hasError,
-        knownTypes: knownTypes);
+    var result = _typeSystem.instantiateTypeFormalsToBounds2(_typeFormals,
+        hasError: hasError, knownTypes: knownTypes);
 
     // Report any errors from instantiateToBounds.
     for (int i = 0; i < hasError.length; i++) {
@@ -401,7 +400,7 @@ class GenericInferrer {
   void _checkArgumentsNotMatchingBounds({
     required SyntacticEntity? errorEntity,
     required ErrorReporter? errorReporter,
-    required List<DartType> typeArguments,
+    required List<TypeImpl> typeArguments,
   }) {
     for (int i = 0; i < _typeFormals.length; i++) {
       var parameter = _typeFormals[i];
@@ -555,7 +554,7 @@ class GenericInferrer {
     return inferredTypes;
   }
 
-  void _demoteTypes(List<DartType> types) {
+  void _demoteTypes(List<TypeImpl> types) {
     for (var i = 0; i < types.length; i++) {
       types[i] = _typeSystem.demoteType(types[i]);
     }
@@ -705,7 +704,10 @@ class GenericInferrer {
       return;
     }
     if (errorEntity is ConstructorName &&
-        !(errorEntity.type.type as InterfaceType).element.hasOptionalTypeArgs) {
+        !(errorEntity.type.type as InterfaceType)
+            .element3
+            .metadata2
+            .hasOptionalTypeArgs) {
       String constructorName = errorEntity.name == null
           ? errorEntity.type.qualifiedName
           : '${errorEntity.type}.${errorEntity.name}';
@@ -717,7 +719,7 @@ class GenericInferrer {
     } else if (errorEntity is Annotation) {
       if (genericMetadataIsEnabled) {
         // Only report an error if generic metadata is valid syntax.
-        var element = errorEntity.name.staticElement;
+        var element = errorEntity.name.element?.asElement;
         if (element != null && !element.hasOptionalTypeArgs) {
           String constructorName = errorEntity.constructorName == null
               ? errorEntity.name.name
@@ -730,18 +732,19 @@ class GenericInferrer {
         }
       }
     } else if (errorEntity is SimpleIdentifier) {
-      var element = errorEntity.staticElement;
+      var element = errorEntity.element?.asElement;
       if (element != null) {
         if (element is VariableElement) {
           // For variable elements, we check their type and possible alias type.
           var type = element.type;
-          var typeElement = type is InterfaceType ? type.element : null;
-          if (typeElement != null && typeElement.hasOptionalTypeArgs) {
+          var typeElement = type is InterfaceType ? type.element3 : null;
+          if (typeElement != null &&
+              typeElement.metadata2.hasOptionalTypeArgs) {
             return;
           }
-          var typeAliasElement = type.alias?.element;
+          var typeAliasElement = type.alias?.element2;
           if (typeAliasElement != null &&
-              typeAliasElement.hasOptionalTypeArgs) {
+              typeAliasElement.metadata2.hasOptionalTypeArgs) {
             return;
           }
         }

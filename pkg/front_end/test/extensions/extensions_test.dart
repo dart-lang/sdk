@@ -97,7 +97,6 @@ class Tags {
   static const String builderTypeParameters = 'builder-type-params';
   static const String builderSupertype = 'builder-supertype';
   static const String builderInterfaces = 'builder-interfaces';
-  static const String builderOnTypes = 'builder-onTypes';
   static const String builderOnType = 'builder-onType';
   static const String builderRequiredParameters = 'builder-params';
   static const String builderPositionalParameters = 'builder-pos-params';
@@ -135,7 +134,8 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     Features features = new Features();
     SourceLibraryBuilder libraryBuilder =
         lookupLibraryBuilder(compilerResult, library) as SourceLibraryBuilder;
-    libraryBuilder.forEachExtensionInScope((ExtensionBuilder extension) {
+    libraryBuilder.compilationUnit.compilationUnitScope
+        .forEachExtension((ExtensionBuilder extension) {
       LibraryBuilder library = extension.libraryBuilder;
       if (library.importUri.isScheme('dart')) {
         // Don't include dart: extensions.
@@ -174,11 +174,6 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     if (clsBuilder.interfaceBuilders != null) {
       for (TypeBuilder superinterface in clsBuilder.interfaceBuilders!) {
         features.addElement(Tags.builderInterfaces, superinterface.typeName);
-      }
-    }
-    if (clsBuilder.onTypes != null) {
-      for (TypeBuilder onType in clsBuilder.onTypes!) {
-        features.addElement(Tags.builderOnTypes, typeBuilderToText(onType));
       }
     }
 
@@ -264,7 +259,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     } else if (memberBuilder is SourceMethodBuilder) {
       if (memberBuilder.formalsForTesting != null) {
         for (FormalParameterBuilder parameter
-        in memberBuilder.formalsForTesting!) {
+            in memberBuilder.formalsForTesting!) {
           if (parameter.isRequiredPositional) {
             features.addElement(Tags.builderRequiredParameters, parameter.name);
           } else if (parameter.isPositional) {
@@ -281,7 +276,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       }
       if (memberBuilder.typeParametersForTesting != null) {
         for (NominalParameterBuilder typeVariable
-        in memberBuilder.typeParametersForTesting!) {
+            in memberBuilder.typeParametersForTesting!) {
           features.addElement(Tags.builderTypeParameters,
               typeVariableBuilderToText(typeVariable));
         }

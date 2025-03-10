@@ -70,7 +70,7 @@ void outOfTestExpect(
 }
 
 String _defaultFailFormatter(
-  actual,
+  dynamic actual,
   Matcher matcher,
   String? reason,
   Map<Object?, Object?> matchState,
@@ -952,7 +952,7 @@ abstract class _RecursiveMatcher extends Matcher {
   /// the mismatch.  [describeSubstructure] is used to describe which
   /// substructure did not match.
   void checkSubstructure(
-    item,
+    Object? item,
     Matcher matcher,
     List<MismatchDescriber> mismatches,
     Description Function(Description) describeSubstructure,
@@ -981,7 +981,7 @@ abstract class _RecursiveMatcher extends Matcher {
 
   @override
   Description describeMismatch(
-    item,
+    Object? item,
     Description mismatchDescription,
     Map<Object?, Object?> matchState,
     bool verbose,
@@ -1026,7 +1026,7 @@ abstract class _RecursiveMatcher extends Matcher {
 
   /// Populate [mismatches] with descriptions of all the ways in which [item]
   /// does not match.
-  void populateMismatches(item, List<MismatchDescriber> mismatches);
+  void populateMismatches(Object? item, List<MismatchDescriber> mismatches);
 
   /// Create a [MismatchDescriber] describing a mismatch with a simple string.
   MismatchDescriber simpleDescription(String description) => (

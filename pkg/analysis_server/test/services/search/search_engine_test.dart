@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -30,7 +29,6 @@ void main() {
 class PubPackageResolutionTest extends AbstractContextTest {
   late ResolvedUnitResult result;
   late FindNode findNode;
-  late FindElement findElement;
   late FindElement2 findElement2;
 
   void addTestFile(String content) {
@@ -42,7 +40,6 @@ class PubPackageResolutionTest extends AbstractContextTest {
     result = await getResolvedUnit(file);
 
     findNode = FindNode(result.content, result.unit);
-    findElement = FindElement(result.unit);
     findElement2 = FindElement2(result.unit);
   }
 
@@ -329,8 +326,8 @@ int test;
           predicate(
             (SearchMatch m) =>
                 m.kind == MatchKind.DECLARATION &&
-                m.element2.name3 == name &&
-                m.element2.firstFragment.nameOffset2 == nameOffset,
+                m.element.name3 == name &&
+                m.element.firstFragment.nameOffset2 == nameOffset,
           ),
         ),
       );
@@ -364,7 +361,7 @@ bar(p) {
       contains(
         predicate(
           (SearchMatch m) =>
-              m.element2.name3 == 'foo' || m.kind == MatchKind.READ,
+              m.element.name3 == 'foo' || m.kind == MatchKind.READ,
         ),
       ),
     );
@@ -373,7 +370,7 @@ bar(p) {
       contains(
         predicate(
           (SearchMatch m) =>
-              m.element2.name3 == 'bar' || m.kind == MatchKind.WRITE,
+              m.element.name3 == 'bar' || m.kind == MatchKind.WRITE,
         ),
       ),
     );
@@ -397,11 +394,11 @@ T b;
     expect(matches, hasLength(2));
     expect(
       matches,
-      contains(predicate((SearchMatch m) => m.element2.name3 == 'a')),
+      contains(predicate((SearchMatch m) => m.element.name3 == 'a')),
     );
     expect(
       matches,
-      contains(predicate((SearchMatch m) => m.element2.name3 == 'b')),
+      contains(predicate((SearchMatch m) => m.element.name3 == 'b')),
     );
   }
 
@@ -432,7 +429,7 @@ int t;
     void assertHasOne(String path, String name) {
       expect(
         matches.where((m) {
-          var element = m.element2;
+          var element = m.element;
           return element.name3 == name &&
               element.library2?.firstFragment.source.fullName == path;
         }),
@@ -460,7 +457,7 @@ enum E {
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.INVOCATION &&
-              identical(m.element2, findElement2.field('v')) &&
+              identical(m.element, findElement2.field('v')) &&
               m.sourceRange.offset == code.indexOf('.named(); // 1') &&
               m.sourceRange.length == '.named'.length;
         }),
@@ -486,19 +483,19 @@ enum E {
         predicate((SearchMatch m) {
           return m.kind ==
                   MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS &&
-              identical(m.element2, findElement2.field('v1')) &&
+              identical(m.element, findElement2.field('v1')) &&
               m.sourceRange.offset == code.indexOf(', // 1') &&
               m.sourceRange.length == 0;
         }),
         predicate((SearchMatch m) {
           return m.kind == MatchKind.INVOCATION &&
-              identical(m.element2, findElement2.field('v2')) &&
+              identical(m.element, findElement2.field('v2')) &&
               m.sourceRange.offset == code.indexOf('(), // 2') &&
               m.sourceRange.length == 0;
         }),
         predicate((SearchMatch m) {
           return m.kind == MatchKind.INVOCATION &&
-              identical(m.element2, findElement2.field('v3')) &&
+              identical(m.element, findElement2.field('v3')) &&
               m.sourceRange.offset == code.indexOf('.new(), // 3') &&
               m.sourceRange.length == '.new'.length;
         }),
@@ -521,7 +518,7 @@ void f(A a) {}
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.REFERENCE &&
-              identical(m.element2, findElement2.parameter('a')) &&
+              identical(m.element, findElement2.parameter('a')) &&
               m.sourceRange.offset == code.indexOf('A a) {}') &&
               m.sourceRange.length == 'A'.length;
         }),
@@ -549,7 +546,7 @@ class B extends A {
         predicate((SearchMatch m) {
           return m.kind == MatchKind.REFERENCE &&
               identical(
-                m.element2,
+                m.element,
                 findElement2.unnamedConstructor('B').superFormalParameter('a'),
               ) &&
               m.sourceRange.offset == code.indexOf('a}); // ref') &&
@@ -579,7 +576,7 @@ int f(int _) => _;
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.READ &&
-              identical(m.element2, findElement2.topFunction('f')) &&
+              identical(m.element, findElement2.topFunction('f')) &&
               m.sourceRange.offset == code.indexOf('_;') &&
               m.sourceRange.length == '_'.length;
         }),
@@ -618,7 +615,7 @@ void g() {
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.REFERENCE &&
-              identical(m.element2, findElement2.topFunction('g')) &&
+              identical(m.element, findElement2.topFunction('g')) &&
               m.sourceRange.offset == code.indexOf('test: 0') &&
               m.sourceRange.length == 'test'.length;
         }),
@@ -643,7 +640,7 @@ class A {
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.READ &&
-              identical(m.element2, findElement2.method('a')) &&
+              identical(m.element, findElement2.method('a')) &&
               m.sourceRange.offset == code.indexOf('_;') &&
               m.sourceRange.length == '_'.length;
         }),
@@ -666,7 +663,7 @@ int f() => _;
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.READ &&
-              identical(m.element2, findElement2.topFunction('f')) &&
+              identical(m.element, findElement2.topFunction('f')) &&
               m.sourceRange.offset == code.indexOf('_;') &&
               m.sourceRange.length == '_'.length;
         }),
@@ -688,13 +685,13 @@ get b => 42;
     await _ensureContainedFilesKnown();
 
     var matches = await searchEngine.searchTopLevelDeclarations('.*');
-    matches.removeWhere((match) => match.libraryElement2.isInSdk);
+    matches.removeWhere((match) => match.libraryElement.isInSdk);
     expect(matches, hasLength(4));
 
     void assertHasOneElement(String name) {
       var nameMatches = matches.where(
         (SearchMatch m) =>
-            m.kind == MatchKind.DECLARATION && m.element2.name3 == name,
+            m.kind == MatchKind.DECLARATION && m.element.name3 == name,
       );
       expect(nameMatches, hasLength(1));
     }
@@ -722,7 +719,7 @@ class B extends A {}
     await _ensureContainedFilesKnown();
 
     var matches = await searchEngine.searchTopLevelDeclarations('.*');
-    matches.removeWhere((match) => match.libraryElement2.isInSdk);
+    matches.removeWhere((match) => match.libraryElement.isInSdk);
 
     // We get exactly two items: `A` and `B`.
     // Specifically, we get exactly one `A`.
@@ -731,7 +728,7 @@ class B extends A {}
     void assertHasOneElement(String name) {
       var nameMatches = matches.where(
         (SearchMatch m) =>
-            m.kind == MatchKind.DECLARATION && m.element2.name3 == name,
+            m.kind == MatchKind.DECLARATION && m.element.name3 == name,
       );
       expect(nameMatches, hasLength(1));
     }
@@ -790,7 +787,7 @@ void f(A<int> a, A<double> b) {}
 
     Matcher hasOne(Element2 element, String search) {
       return predicate((SearchMatch match) {
-        return match.element2 == element &&
+        return match.element == element &&
             match.sourceRange.offset == findNode.offset(search);
       });
     }

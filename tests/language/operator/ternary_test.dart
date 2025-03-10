@@ -24,9 +24,13 @@ class TernaryTest {
 
   static testMain() {
     Expect.equals(
-        -4, (TernaryTest.true_cond() ? TernaryTest.foo() : TernaryTest.moo()));
+      -4,
+      (TernaryTest.true_cond() ? TernaryTest.foo() : TernaryTest.moo()),
+    );
     Expect.equals(
-        5, (TernaryTest.false_cond() ? TernaryTest.foo() : TernaryTest.moo()));
+      5,
+      (TernaryTest.false_cond() ? TernaryTest.foo() : TernaryTest.moo()),
+    );
   }
 }
 

@@ -8,5 +8,4 @@ import "../library10.dart" as lib10;
 
 // Top level variables cannot shadow library prefixes, they should collide.
 
-
 main() {}

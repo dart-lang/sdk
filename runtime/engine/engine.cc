@@ -4,7 +4,6 @@
 
 #include "engine/engine.h"
 #include <memory>
-#include <utility>
 #include "bin/dartutils.h"
 #include "include/dart_api.h"
 #include "include/dart_embedder_api.h"
@@ -15,6 +14,8 @@
 
 namespace dart {
 namespace engine {
+
+constexpr char kRunPendingImmediateCallback[] = "_runPendingImmediateCallback";
 
 using platform::MutexLocker;
 
@@ -195,8 +196,8 @@ Dart_Isolate Engine::StartIsolate(DartEngine_SnapshotData snapshot,
   Dart_Handle core_libs_result =
       bin::DartUtils::PrepareForScriptLoading(false, false);
   if (Dart_IsError(core_libs_result)) {
-    Dart_ShutdownIsolate();
     *error = Utils::StrDup(Dart_GetError(core_libs_result));
+    Dart_ShutdownIsolate();
     return nullptr;
   }
 
@@ -210,11 +211,26 @@ Dart_Isolate Engine::StartIsolate(DartEngine_SnapshotData snapshot,
         snapshot.kernel_buffer, snapshot.kernel_buffer_size);
 
     if (Dart_IsError(library)) {
-      Dart_ShutdownIsolate();
       *error = Utils::StrDup(Dart_GetError(library));
+      Dart_ShutdownIsolate();
       return nullptr;
     }
   }
+
+  Dart_Handle isolate_library = Dart_LookupLibrary(
+      Dart_NewStringFromCString(bin::DartUtils::kIsolateLibURL));
+  if (Dart_IsError(isolate_library)) {
+    *error = Utils::StrDup(Dart_GetError(isolate_library));
+    Dart_ShutdownIsolate();
+    return nullptr;
+  }
+
+  std::shared_ptr<Engine::IsolateData> isolate_data = DataForIsolate(isolate);
+  isolate_data->isolate_library = Dart_NewPersistentHandle(isolate_library);
+  isolate_data->drain_microtasks_function_name = Dart_NewPersistentHandle(
+      Dart_NewStringFromCString(kRunPendingImmediateCallback));
+  isolate_data->scheduler.context = nullptr;
+  isolate_data->scheduler.schedule_callback = nullptr;
 
   Dart_ExitScope();
   Dart_ExitIsolate();
@@ -232,9 +248,12 @@ void Engine::Shutdown() {
 
   is_running_ = false;
   for (auto isolate : isolates_) {
+    std::shared_ptr<Engine::IsolateData> isolate_data = DataForIsolate(isolate);
     LockIsolate(isolate);
     Dart_EnterIsolate(isolate);
     Dart_SetMessageNotifyCallback(nullptr);
+    Dart_DeletePersistentHandle(isolate_data->isolate_library);
+    Dart_DeletePersistentHandle(isolate_data->drain_microtasks_function_name);
     Dart_ShutdownIsolate();
     UnlockIsolate(isolate);
   }
@@ -277,17 +296,30 @@ void Engine::HandleMessage(Dart_Isolate isolate) {
   UnlockIsolate(isolate);
 }
 
-Mutex& Engine::MutexForIsolate(Dart_Isolate isolate) {
+Dart_Handle Engine::DrainMicrotasksQueue() {
+  std::shared_ptr<Engine::IsolateData> isolate_data =
+      DataForIsolate(Dart_CurrentIsolate());
+  return Dart_Invoke(isolate_data->isolate_library,
+                     isolate_data->drain_microtasks_function_name, 0, nullptr);
+}
+
+std::shared_ptr<Engine::IsolateData> Engine::DataForIsolate(
+    Dart_Isolate isolate) {
   MutexLocker ml(&engine_state_);
-  return mutexes_[isolate];
+  auto it = isolate_data_.find(isolate);
+  if (it == isolate_data_.end()) {
+    it = isolate_data_.emplace(isolate, std::make_shared<Engine::IsolateData>())
+             .first;
+  }
+  return it->second;
 }
 
 void Engine::LockIsolate(Dart_Isolate isolate) {
-  MutexForIsolate(isolate).Lock();
+  DataForIsolate(isolate)->mutex.Lock();
 }
 
 void Engine::UnlockIsolate(Dart_Isolate isolate) {
-  MutexForIsolate(isolate).Unlock();
+  DataForIsolate(isolate)->mutex.Unlock();
 }
 
 void Engine::NotifyMessage(Dart_Isolate isolate) {
@@ -313,11 +345,7 @@ void Engine::NotifyMessage(Dart_Isolate isolate) {
     return;
   }
 
-  DartEngine_MessageScheduler scheduler;
-  {
-    MutexLocker ml(&engine_state_);
-    scheduler = schedulers_[isolate];
-  }
+  DartEngine_MessageScheduler scheduler = DataForIsolate(isolate)->scheduler;
 
   if (scheduler.schedule_callback == nullptr) {
     scheduler = default_scheduler_;
@@ -341,8 +369,7 @@ void Engine::SetDefaultMessageScheduler(DartEngine_MessageScheduler scheduler) {
 
 void Engine::SetMessageScheduler(DartEngine_MessageScheduler scheduler,
                                  Dart_Isolate isolate) {
-  MutexLocker ml(&engine_state_);
-  schedulers_[isolate] = scheduler;
+  DataForIsolate(isolate)->scheduler = scheduler;
 }
 
 }  // namespace engine

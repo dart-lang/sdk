@@ -1,6 +1,3 @@
-// TODO(multitest): This was automatically migrated from a multitest and may
-// contain strange or dead code.
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -68,27 +65,21 @@ class NamedParametersTest {
     Expect.equals(20, F10(20));
     Expect.equals(20, np.f21(20));
 
-
     Expect.equals(1020, F21(10));
     Expect.equals(1020, np.f32(10));
     Expect.equals(1025, F21(10, 25));
     Expect.equals(1025, np.f32(10, 25));
-
 
     Expect.equals(102030, F31(10));
     Expect.equals(102030, np.f42(10));
     Expect.equals(102530, F31(10, 25));
     Expect.equals(102530, np.f42(10, 25));
 
-
     Expect.equals(102535, F31(10, 25, 35));
     Expect.equals(102535, np.f42(10, 25, 35));
 
-
     Expect.equals(10200040, F41(10));
     Expect.equals(10200040, np.f52(10));
-
-
   }
 }
 
@@ -103,10 +94,10 @@ class C implements I {
   }
 }
 
-hello(msg, to, {from}) => '${from} sent ${msg} to ${to}';
-message() => hello("gladiolas", "possums", from: "Edna");
+String hello(msg, to, {from}) => '${from} sent ${msg} to ${to}';
+String message() => hello("gladiolas", "possums", from: "Edna");
 
-main() {
+void main() {
   NamedParametersTest.testMain();
   var i = new I();
   Expect.equals(100, i.mul(10));

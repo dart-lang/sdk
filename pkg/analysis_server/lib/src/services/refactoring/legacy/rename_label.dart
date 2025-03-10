@@ -14,10 +14,10 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
     super.workspace,
     super.sessionHelper,
     LabelElement2 super.element,
-  ) : super.c2();
+  ) : super();
 
   @override
-  LabelElement2 get element2 => super.element2 as LabelElement2;
+  LabelElement2 get element => super.element as LabelElement2;
 
   @override
   String get refactoringName => 'Rename Label';
@@ -38,6 +38,6 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<void> fillChange() {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    return processor.renameElement2(element2);
+    return processor.renameElement(element);
   }
 }

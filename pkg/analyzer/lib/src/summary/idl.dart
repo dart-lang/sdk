@@ -187,6 +187,25 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   @Id(5)
   List<int> get elementUnits;
 
+  /// Support for indexing `part` and `part of` directives.
+  ///
+  /// This is the index into [unitLibraryUris] and [unitUnitUris].
+  /// This is the library fragment referenced by the directive.
+  @Id(21)
+  List<int> get libFragmentRefTargets;
+
+  /// Support for indexing `part` and `part of` directives.
+  ///
+  /// The offset of the URI in the directive.
+  @Id(23)
+  List<int> get libFragmentRefUriLengths;
+
+  /// Support for indexing `part` and `part of` directives.
+  ///
+  /// The offset of the URI in the directive.
+  @Id(22)
+  List<int> get libFragmentRefUriOffsets;
+
   /// Identifier of the null string in [strings].
   @Id(1)
   int get nullStringId;

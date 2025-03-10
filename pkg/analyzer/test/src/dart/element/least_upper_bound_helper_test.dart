@@ -6,10 +6,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/type_system_base.dart';
 
 main() {
@@ -22,17 +22,17 @@ main() {
 @reflectiveTest
 class PathToObjectTest extends AbstractTypeSystemTest {
   void test_class_mixins1() {
-    var M1 = mixin_(name: 'M1');
+    var M1 = mixin_2(name: 'M1');
     expect(_toElement(M1), 2);
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     expect(_toElement(A), 2);
 
     // class _X&A&M1 extends A implements M1 {}
     //    length: 2
     // class X extends _X&A&M1 {}
     //    length: 3
-    var X = class_(
+    var X = class_2(
       name: 'X',
       superType: interfaceTypeNone(A),
       mixins: [
@@ -44,12 +44,12 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   void test_class_mixins2() {
-    var M1 = mixin_(name: 'M1');
-    var M2 = mixin_(name: 'M2');
+    var M1 = mixin_2(name: 'M1');
+    var M2 = mixin_2(name: 'M2');
     expect(_toElement(M1), 2);
     expect(_toElement(M2), 2);
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     expect(_toElement(A), 2);
 
     // class _X&A&M1 extends A implements M1 {}
@@ -58,7 +58,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    length: 3
     // class X extends _X&A&M1&M2 {}
     //    length: 4
-    var X = class_(
+    var X = class_2(
       name: 'X',
       superType: interfaceTypeNone(A),
       mixins: [
@@ -71,23 +71,23 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   void test_class_mixins_longerViaSecondMixin() {
-    var I1 = class_(name: 'I1');
-    var I2 = class_(name: 'I2', superType: interfaceTypeNone(I1));
-    var I3 = class_(name: 'I3', superType: interfaceTypeNone(I2));
+    var I1 = class_2(name: 'I1');
+    var I2 = class_2(name: 'I2', superType: interfaceTypeNone(I1));
+    var I3 = class_2(name: 'I3', superType: interfaceTypeNone(I2));
 
     expect(_toElement(I1), 2);
     expect(_toElement(I2), 3);
     expect(_toElement(I3), 4);
 
-    var M1 = mixin_(name: 'M1');
-    var M2 = mixin_(
+    var M1 = mixin_2(name: 'M1');
+    var M2 = mixin_2(
       name: 'M2',
       interfaces: [interfaceTypeNone(I3)],
     );
     expect(_toElement(M1), 2);
     expect(_toElement(M2), 5);
 
-    var A = class_(name: 'A');
+    var A = class_2(name: 'A');
     expect(_toElement(A), 2);
 
     // class _X&A&M1 extends A implements M1 {}
@@ -96,7 +96,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    length: 5 = max(1 + _X&A&M1, 1 + M2)
     // class X extends _X&A&M1&M2 {}
     //    length: 6
-    var X = class_(
+    var X = class_2(
       name: 'X',
       superType: interfaceTypeNone(A),
       mixins: [
@@ -122,11 +122,11 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    \ /
     //     E
     //
-    ClassElementImpl classA = class_(name: "A");
-    ClassElementImpl classB = class_(name: "B");
-    ClassElementImpl classC = class_(name: "C");
-    ClassElementImpl classD = class_(name: "D");
-    ClassElementImpl classE = class_(name: "E");
+    var classA = class_2(name: "A");
+    var classB = class_2(name: "B");
+    var classC = class_2(name: "C");
+    var classD = class_2(name: "D");
+    var classE = class_2(name: "E");
     classB.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
     classC.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
     classD.interfaces = <InterfaceType>[interfaceTypeNone(classC)];
@@ -134,10 +134,6 @@ class PathToObjectTest extends AbstractTypeSystemTest {
       interfaceTypeNone(classB),
       interfaceTypeNone(classD)
     ];
-    classB.updateElement();
-    classC.updateElement();
-    classD.updateElement();
-    classE.updateElement();
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE implements typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -159,14 +155,12 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    \ /
     //     E
     //
-    var classA = class_(name: "A");
-    var classB = class_(name: "B", superType: interfaceTypeNone(classA));
-    var classC = class_(name: "C", superType: interfaceTypeNone(classA));
-    var classD = class_(name: "D", superType: interfaceTypeNone(classC));
-    ClassElementImpl classE =
-        class_(name: "E", superType: interfaceTypeNone(classB));
+    var classA = class_2(name: "A");
+    var classB = class_2(name: "B", superType: interfaceTypeNone(classA));
+    var classC = class_2(name: "C", superType: interfaceTypeNone(classA));
+    var classD = class_2(name: "D", superType: interfaceTypeNone(classC));
+    var classE = class_2(name: "E", superType: interfaceTypeNone(classB));
     classE.interfaces = <InterfaceType>[interfaceTypeNone(classD)];
-    classE.updateElement();
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE extends typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -184,10 +178,9 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   void test_class_recursion() {
-    ClassElementImpl classA = class_(name: "A");
-    ClassElementImpl classB =
-        class_(name: "B", superType: interfaceTypeNone(classA));
-    classA.supertype = interfaceTypeNone(classB);
+    var classA = class_2(name: "A");
+    var classB = class_2(name: "B", superType: interfaceTypeNone(classA));
+    classA.firstFragment.supertype = interfaceTypeNone(classB);
     expect(_toElement(classA), 2);
   }
 
@@ -203,13 +196,11 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //     |
     //     C
     //
-    ClassElementImpl classA = class_(name: "A");
-    ClassElementImpl classB = class_(name: "B");
-    ClassElementImpl classC = class_(name: "C");
+    var classA = class_2(name: "A");
+    var classB = class_2(name: "B");
+    var classC = class_2(name: "C");
     classB.interfaces = [interfaceTypeNone(classA)];
     classC.interfaces = [interfaceTypeNone(classB)];
-    classB.updateElement();
-    classC.updateElement();
     expect(_toElement(classA), 2);
     expect(_toElement(classB), 3);
     expect(_toElement(classC), 4);
@@ -227,19 +218,19 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //     |
     //     C
     //
-    var classA = class_(name: "A");
-    var classB = class_(name: "B", superType: interfaceTypeNone(classA));
-    var classC = class_(name: "C", superType: interfaceTypeNone(classB));
+    var classA = class_2(name: "A");
+    var classB = class_2(name: "B", superType: interfaceTypeNone(classA));
+    var classC = class_2(name: "C", superType: interfaceTypeNone(classB));
     expect(_toElement(classA), 2);
     expect(_toElement(classB), 3);
     expect(_toElement(classC), 4);
   }
 
   void test_mixin_constraints_interfaces_allSame() {
-    var A = class_(name: 'A');
-    var B = class_(name: 'B');
-    var I = class_(name: 'I');
-    var J = class_(name: 'J');
+    var A = class_2(name: 'A');
+    var B = class_2(name: 'B');
+    var I = class_2(name: 'I');
+    var J = class_2(name: 'J');
     expect(_toElement(A), 2);
     expect(_toElement(B), 2);
     expect(_toElement(I), 2);
@@ -247,7 +238,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
 
     // The interface of M is:
     // class _M&A&A implements A, B, I, J {}
-    var M = mixin_(
+    var M = mixin_2(
       name: 'M',
       constraints: [
         interfaceTypeNone(A),
@@ -262,14 +253,14 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_longerConstraint_1() {
-    var A1 = class_(name: 'A1');
-    var A = class_(
+    var A1 = class_2(name: 'A1');
+    var A = class_2(
       name: 'A',
       superType: interfaceTypeNone(A1),
     );
-    var B = class_(name: 'B');
-    var I = class_(name: 'I');
-    var J = class_(name: 'J');
+    var B = class_2(name: 'B');
+    var I = class_2(name: 'I');
+    var J = class_2(name: 'J');
     expect(_toElement(A), 3);
     expect(_toElement(B), 2);
     expect(_toElement(I), 2);
@@ -277,7 +268,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
 
     // The interface of M is:
     // class _M&A&A implements A, B, I, J {}
-    var M = mixin_(
+    var M = mixin_2(
       name: 'M',
       constraints: [
         interfaceTypeNone(A),
@@ -292,16 +283,16 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_longerConstraint_2() {
-    var A = class_(name: 'A');
-    var B1 = class_(name: 'B1');
-    var B = class_(
+    var A = class_2(name: 'A');
+    var B1 = class_2(name: 'B1');
+    var B = class_2(
       name: 'B',
       interfaces: [
         interfaceTypeNone(B1),
       ],
     );
-    var I = class_(name: 'I');
-    var J = class_(name: 'J');
+    var I = class_2(name: 'I');
+    var J = class_2(name: 'J');
     expect(_toElement(A), 2);
     expect(_toElement(B), 3);
     expect(_toElement(I), 2);
@@ -309,7 +300,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
 
     // The interface of M is:
     // class _M&A&A implements A, B, I, J {}
-    var M = mixin_(
+    var M = mixin_2(
       name: 'M',
       constraints: [
         interfaceTypeNone(A),
@@ -324,16 +315,16 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_longerInterface_1() {
-    var A = class_(name: 'A');
-    var B = class_(name: 'B');
-    var I1 = class_(name: 'I1');
-    var I = class_(
+    var A = class_2(name: 'A');
+    var B = class_2(name: 'B');
+    var I1 = class_2(name: 'I1');
+    var I = class_2(
       name: 'I',
       interfaces: [
         interfaceTypeNone(I1),
       ],
     );
-    var J = class_(name: 'J');
+    var J = class_2(name: 'J');
     expect(_toElement(A), 2);
     expect(_toElement(B), 2);
     expect(_toElement(I), 3);
@@ -341,7 +332,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
 
     // The interface of M is:
     // class _M&A&A implements A, B, I, J {}
-    var M = mixin_(
+    var M = mixin_2(
       name: 'M',
       constraints: [
         interfaceTypeNone(A),
@@ -355,7 +346,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     expect(_toElement(M), 4);
   }
 
-  int _toElement(InterfaceElementImpl element) {
+  int _toElement(InterfaceElementImpl2 element) {
     var type = interfaceTypeNone(element);
     return _toType(type);
   }
@@ -379,18 +370,18 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  D
     //
 
-    var classA = class_(name: 'A');
+    var classA = class_2(name: 'A');
     var instA = interfaceTypeNone(classA);
 
     var BT = typeParameter('T');
-    var classB = class_(
+    var classB = class_2(
       name: 'B',
       typeParameters: [BT],
       interfaces: [instA],
     );
 
     var CT = typeParameter('T');
-    var classC = class_(
+    var classC = class_2(
       name: 'C',
       typeParameters: [CT],
       interfaces: [
@@ -400,7 +391,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
       ],
     );
 
-    var classD = class_(name: 'D');
+    var classD = class_2(name: 'D');
 
     // A
     expect(
@@ -447,17 +438,18 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  D
     //
 
-    var classA = class_(name: 'A');
+    var classA = class_2(name: 'A');
     var instA = interfaceTypeNone(classA);
 
-    var classB = class_(
+    var classB = class_2(
       name: 'B',
       typeParameters: [typeParameter('T')],
       superType: instA,
     );
 
-    var typeParametersC = ElementFactory.typeParameters(['T']);
-    var classC = class_(
+    var typeParametersC =
+        ElementFactory.typeParameters(['T']).map((e) => e.asElement2).toList();
+    var classC = class_2(
       name: 'B',
       typeParameters: typeParametersC,
       superType: interfaceTypeNone(classB, typeArguments: [
@@ -465,7 +457,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
       ]),
     );
 
-    var classD = class_(name: 'D');
+    var classD = class_2(name: 'D');
 
     // A
     expect(
@@ -502,19 +494,19 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_constraints() {
-    var classA = class_(name: 'A');
+    var classA = class_2(name: 'A');
     var instA = interfaceTypeNone(classA);
 
-    var classB = class_(
+    var classB = class_2(
       name: 'B',
       interfaces: [instA],
     );
     var instB = interfaceTypeNone(classB);
 
-    var classC = class_(name: 'C');
+    var classC = class_2(name: 'C');
     var instC = interfaceTypeNone(classC);
 
-    var mixinM = mixin_(
+    var mixinM = mixin_2(
       name: 'M',
       constraints: [
         instB,
@@ -530,7 +522,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_constraints_object() {
-    var mixinM = mixin_(name: 'M');
+    var mixinM = mixin_2(name: 'M');
     var instM = interfaceTypeNone(mixinM);
 
     expect(
@@ -540,19 +532,19 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_interfaces() {
-    var classA = class_(name: 'A');
+    var classA = class_2(name: 'A');
     var instA = interfaceTypeNone(classA);
 
-    var classB = class_(
+    var classB = class_2(
       name: 'B',
       interfaces: [instA],
     );
     var instB = interfaceTypeNone(classB);
 
-    var classC = class_(name: 'C');
+    var classC = class_2(name: 'C');
     var instC = interfaceTypeNone(classC);
 
-    var mixinM = mixin_(
+    var mixinM = mixin_2(
       name: 'M',
       interfaces: [
         instB,
@@ -568,28 +560,28 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_multipleInterfacePaths() {
-    var classA = class_(name: 'A');
+    var classA = class_2(name: 'A');
     var instA = interfaceTypeNone(classA);
 
-    var classB = class_(
+    var classB = class_2(
       name: 'B',
       interfaces: [instA],
     );
     var instB = interfaceTypeNone(classB);
 
-    var classC = class_(
+    var classC = class_2(
       name: 'C',
       interfaces: [instA],
     );
     var instC = interfaceTypeNone(classC);
 
-    var classD = class_(
+    var classD = class_2(
       name: 'D',
       interfaces: [instC],
     );
     var instD = interfaceTypeNone(classD);
 
-    var classE = class_(
+    var classE = class_2(
       name: 'E',
       interfaces: [
         instB,
@@ -612,28 +604,28 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_multipleSuperclassPaths() {
-    var classA = class_(name: 'A');
+    var classA = class_2(name: 'A');
     var instA = interfaceTypeNone(classA);
 
-    var classB = class_(
+    var classB = class_2(
       name: 'B',
       superType: instA,
     );
     var instB = interfaceTypeNone(classB);
 
-    var classC = class_(
+    var classC = class_2(
       name: 'C',
       superType: instA,
     );
     var instC = interfaceTypeNone(classC);
 
-    var classD = class_(
+    var classD = class_2(
       name: 'D',
       superType: instC,
     );
     var instD = interfaceTypeNone(classD);
 
-    var classE = class_(
+    var classE = class_2(
       name: 'E',
       superType: instB,
       interfaces: [
@@ -656,16 +648,16 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_recursion() {
-    var classA = class_(name: 'A');
+    var classA = class_2(name: 'A');
     var instA = interfaceTypeNone(classA);
 
-    var classB = class_(
+    var classB = class_2(
       name: 'B',
       superType: instA,
     );
     var instB = interfaceTypeNone(classB);
 
-    classA.supertype = instB;
+    classA.firstFragment.supertype = instB;
 
     expect(
       _superInterfaces(instB),
@@ -679,16 +671,16 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_singleInterfacePath() {
-    var classA = class_(name: 'A');
+    var classA = class_2(name: 'A');
     var instA = interfaceTypeNone(classA);
 
-    var classB = class_(
+    var classB = class_2(
       name: 'B',
       interfaces: [instA],
     );
     var instB = interfaceTypeNone(classB);
 
-    var classC = class_(
+    var classC = class_2(
       name: 'C',
       interfaces: [instB],
     );
@@ -721,16 +713,16 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  |
     //  C
     //
-    var classA = class_(name: 'A');
+    var classA = class_2(name: 'A');
     var instA = interfaceTypeNone(classA);
 
-    var classB = class_(
+    var classB = class_2(
       name: 'B',
       superType: instA,
     );
     var instB = interfaceTypeNone(classB);
 
-    var classC = class_(
+    var classC = class_2(
       name: 'C',
       superType: instB,
     );

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 // Introduce an aliased type.
 
 class A {
@@ -31,7 +30,7 @@ abstract class C {
   List<T> v11 = [];
   final T? v12;
 
-  C(): v12 = null;
+  C() : v12 = null;
   C.name1(this.v10, this.v12);
   factory C.name2(T arg1, T arg2) = C1.name1;
 

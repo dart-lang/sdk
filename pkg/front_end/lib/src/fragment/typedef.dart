@@ -10,10 +10,13 @@ class TypedefFragment implements Fragment {
   @override
   final String name;
 
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<TypeParameterFragment>? typeParameters;
   final TypeBuilder type;
   final Uri fileUri;
   final int nameOffset;
+  final LookupScope typeParameterScope;
+  final LookupScope enclosingScope;
+  final LibraryFragment enclosingCompilationUnit;
 
   SourceTypeAliasBuilder? _builder;
 
@@ -23,7 +26,10 @@ class TypedefFragment implements Fragment {
       required this.typeParameters,
       required this.type,
       required this.fileUri,
-      required this.nameOffset});
+      required this.nameOffset,
+      required this.typeParameterScope,
+      required this.enclosingScope,
+      required this.enclosingCompilationUnit});
 
   @override
   // Coverage-ignore(suite): Not run.

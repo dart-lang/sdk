@@ -104,8 +104,9 @@ main() {
     local1 = null as Object?;
     if (local1 is Iterable<int>?) {
       // We avoid having a compile-time error because `local1` can be demoted.
-      contextIterable((local1 ??= iterableDouble)
-        ..expectStaticType<Exactly<Iterable<num>>>());
+      contextIterable(
+        (local1 ??= iterableDouble)..expectStaticType<Exactly<Iterable<num>>>(),
+      );
     }
 
     // This example has:
@@ -123,7 +124,8 @@ main() {
     var callableClassInt = CallableClass<int>();
     local2 = null as Function?;
     context<Function>(
-        (local2 ??= callableClassInt)..expectStaticType<Exactly<Function>>());
+      (local2 ??= callableClassInt)..expectStaticType<Exactly<Function>>(),
+    );
 
     // Verify that the RHS is not coerced to the promoted type.
     // This example has:
@@ -140,7 +142,8 @@ main() {
     if (local1 is Function?) {
       // We avoid having a compile-time error because `local1` can be demoted.
       context<Object>(
-          (local1 ??= callableClassInt)..expectStaticType<Exactly<Object>>());
+        (local1 ??= callableClassInt)..expectStaticType<Exactly<Object>>(),
+      );
     }
   }
 
@@ -164,7 +167,8 @@ main() {
     if (local1 is C1<int>?) {
       // We avoid having a compile-time error because `local1` can be demoted.
       contextB1(
-          (local1 ??= c2Double)..expectStaticType<Exactly<B1<Object?>>>());
+        (local1 ??= c2Double)..expectStaticType<Exactly<B1<Object?>>>(),
+      );
     }
 
     // This example has:
@@ -183,7 +187,8 @@ main() {
     if (local1 is C1<int>?) {
       // We avoid having a compile-time error because `local1` can be demoted.
       contextB1<Object>(
-          (local1 ??= c2Double)..expectStaticType<Exactly<B1<Object>>>());
+        (local1 ??= c2Double)..expectStaticType<Exactly<B1<Object>>>(),
+      );
     }
 
     // This example has:
@@ -203,7 +208,8 @@ main() {
     if (local1 is Iterable<int>?) {
       // We avoid having a compile-time error because `local1` can be demoted.
       context<Iterable<num>>(
-          (local1 ??= listNum)..expectStaticType<Exactly<Iterable<num>>>());
+        (local1 ??= listNum)..expectStaticType<Exactly<Iterable<num>>>(),
+      );
     }
 
     // This example has:
@@ -224,8 +230,10 @@ main() {
     local2 = null as Function?;
     if (local2 is C1<int> Function()?) {
       // We avoid having a compile-time error because `local2` can be demoted.
-      context<B1<int> Function()>((local2 ??= callableClassC2Int)
-        ..expectStaticType<Exactly<B1<int> Function()>>());
+      context<B1<int> Function()>(
+        (local2 ??= callableClassC2Int)
+          ..expectStaticType<Exactly<B1<int> Function()>>(),
+      );
     }
   }
 
@@ -318,8 +326,9 @@ main() {
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `local2` and `o` can be
       // demoted.
-      o = (local2 ??= callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()>>();
+      o =
+          (local2 ??= callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()>>();
     }
 
     local2 = null as Function?;
@@ -341,8 +350,9 @@ main() {
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `local2` and `o` can be
       // demoted.
-      o = (local2 ??= callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()>>();
+      o =
+          (local2 ??= callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()>>();
     }
 
     local2 = null as Function?;
@@ -364,8 +374,9 @@ main() {
       // Therefore the type of `e` is T = A Function().
       // We avoid having a compile-time error because `local2` and `o` can be
       // demoted.
-      o = (local2 ??= callableClassC2Int)
-        ..expectStaticType<Exactly<A Function()>>();
+      o =
+          (local2 ??= callableClassC2Int)
+            ..expectStaticType<Exactly<A Function()>>();
     }
   }
 }

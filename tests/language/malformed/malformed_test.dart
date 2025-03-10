@@ -114,53 +114,38 @@ void main() {
 
   try {
     throw 'foo';
-  }
-    on Unresolved
-    // ^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
-    // [cfe] 'Unresolved' isn't a type.
-    catch (e) {
-  }
+  } on Unresolved catch (e) {}
+  //   ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
+  // [cfe] 'Unresolved' isn't a type.
 
   try {
     throw 'foo';
-  }
-    on Unresolved<int>
-    // ^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
-    // [cfe] 'Unresolved' isn't a type.
-    catch (e) {
-  }
+  } on Unresolved<int> catch (e) {}
+  //   ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
+  // [cfe] 'Unresolved' isn't a type.
 
   try {
     throw 'foo';
-  }
-    on prefix.Unresolved
-    // ^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
-    //        ^
-    // [cfe] 'Unresolved' isn't a type.
-    catch (e) {
-  }
+  } on prefix.Unresolved catch (e) {}
+  //   ^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
+  //          ^
+  // [cfe] 'Unresolved' isn't a type.
 
   try {
     throw 'foo';
-  }
-    on prefix.Unresolved<int>
-    // ^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
-    //        ^
-    // [cfe] 'Unresolved' isn't a type.
-    catch (e) {
-  }
+  } on prefix.Unresolved<int> catch (e) {}
+  //   ^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
+  //          ^
+  // [cfe] 'Unresolved' isn't a type.
 
   try {
     throw 'foo';
-  }
-    on undeclared_prefix.Unresolved<int>
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
-    // [cfe] 'undeclared_prefix.Unresolved' can't be used as a type because 'undeclared_prefix' isn't defined.
-    catch (e) {
-  }
+  } on undeclared_prefix.Unresolved<int> catch (e) {}
+  //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
+  // [cfe] 'undeclared_prefix.Unresolved' can't be used as a type because 'undeclared_prefix' isn't defined.
 }

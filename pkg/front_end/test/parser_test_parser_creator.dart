@@ -66,10 +66,12 @@ class TestParser extends Parser {
   final bool trace;
   bool _inhibitPrinting = false;
 
-  TestParser(Listener listener, this.trace, {required bool allowPatterns})
+  TestParser(Listener listener, this.trace,
+      {required bool allowPatterns, required bool enableEnhancedParts})
       : super(listener,
             useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-            allowPatterns: allowPatterns);
+            allowPatterns: allowPatterns,
+            enableFeatureEnhancedParts: enableEnhancedParts);
 
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");

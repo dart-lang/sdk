@@ -17,13 +17,13 @@ class C extends M {}
 class D implements A, B {}
 
 method(M m) => switch (m) {
-//             ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-//                     ^
-// [cfe] The type 'M' is not exhaustively matched by the switch cases since it doesn't match 'C()'.
-      A() as B => 0,
-      B() => 1,
-    };
+  //           ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+  //                   ^
+  // [cfe] The type 'M' is not exhaustively matched by the switch cases since it doesn't match 'C()'.
+  A() as B => 0,
+  B() => 1,
+};
 
 main() {
   Expect.throws(() => method(A()));

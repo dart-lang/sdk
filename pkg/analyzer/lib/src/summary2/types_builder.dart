@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -24,7 +22,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
-  if (type.element is! ClassElement) {
+  if (type.element3 is! ClassElement2) {
     return false;
   }
   return _isInterfaceTypeInterface(type);
@@ -32,10 +30,10 @@ bool _isInterfaceTypeClass(InterfaceType type) {
 
 /// Return `true` if [type] can be used as an interface or a mixin.
 bool _isInterfaceTypeInterface(InterfaceType type) {
-  if (type.element is EnumElement) {
+  if (type.element3 is EnumElement2) {
     return false;
   }
-  if (type.element is ExtensionTypeElement) {
+  if (type.element3 is ExtensionTypeElement2) {
     return false;
   }
   if (type.isDartCoreFunction || type.isDartCoreNull) {
@@ -98,8 +96,8 @@ class TypesBuilder {
   }
 
   FunctionTypeImpl _buildFunctionType(
-    TypeParameterList? typeParameterList,
-    TypeAnnotation? returnTypeNode,
+    TypeParameterListImpl? typeParameterList,
+    TypeAnnotationImpl? returnTypeNode,
     FormalParameterList parameterList,
     NullabilitySuffix nullabilitySuffix,
   ) {
@@ -115,13 +113,13 @@ class TypesBuilder {
     );
   }
 
-  void _classDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement as ClassElementImpl;
+  void _classDeclaration( ClassDeclarationImpl node) {
+    var element = node.declaredFragment!;
 
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
       var type = extendsClause.superclass.type;
-      if (type is InterfaceType && _isInterfaceTypeClass(type)) {
+      if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
         element.supertype = type;
       }
     } else if (element.isDartCoreObject) {
@@ -135,11 +133,11 @@ class TypesBuilder {
     _updatedAugmented(element, withClause: node.withClause);
   }
 
-  void _classTypeAlias(ClassTypeAlias node) {
-    var element = node.declaredElement as ClassElementImpl;
+  void _classTypeAlias( ClassTypeAliasImpl node) {
+    var element = node.declaredFragment!;
 
     var superType = node.superclass.type;
-    if (superType is InterfaceType && _isInterfaceTypeClass(superType)) {
+    if (superType is InterfaceTypeImpl && _isInterfaceTypeClass(superType)) {
       element.supertype = superType;
     }
 
@@ -157,19 +155,19 @@ class TypesBuilder {
   }
 
   void _declaration(AstNode node) {
-    if (node is ClassDeclaration) {
+    if (node is ClassDeclarationImpl) {
       _classDeclaration(node);
-    } else if (node is ClassTypeAlias) {
+    } else if (node is ClassTypeAliasImpl) {
       _classTypeAlias(node);
-    } else if (node is EnumDeclaration) {
+    } else if (node is EnumDeclarationImpl) {
       _enumDeclaration(node);
-    } else if (node is ExtensionDeclaration) {
+    } else if (node is ExtensionDeclarationImpl) {
       _extensionDeclaration(node);
     } else if (node is ExtensionTypeDeclarationImpl) {
       _extensionTypeDeclaration(node);
     } else if (node is FieldFormalParameterImpl) {
       _fieldFormalParameter(node);
-    } else if (node is FunctionDeclaration) {
+    } else if (node is FunctionDeclarationImpl) {
       var returnType = node.returnType?.type;
       if (returnType == null) {
         if (node.isSetter) {
@@ -178,17 +176,17 @@ class TypesBuilder {
           returnType = _dynamicType;
         }
       }
-      var element = node.declaredElement as ExecutableElementImpl;
-      element.returnType = returnType;
-    } else if (node is FunctionTypeAlias) {
+      var fragment = node.declaredFragment!;
+      fragment.returnType = returnType;
+    } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
-    } else if (node is FunctionTypedFormalParameter) {
+    } else if (node is FunctionTypedFormalParameterImpl) {
       _functionTypedFormalParameter(node);
     } else if (node is GenericFunctionTypeImpl) {
       _genericFunctionType(node);
-    } else if (node is GenericTypeAlias) {
+    } else if (node is GenericTypeAliasImpl) {
       _genericTypeAlias(node);
-    } else if (node is MethodDeclaration) {
+    } else if (node is MethodDeclarationImpl) {
       var returnType = node.returnType?.type;
       if (returnType == null) {
         if (node.isSetter) {
@@ -199,13 +197,13 @@ class TypesBuilder {
           returnType = _dynamicType;
         }
       }
-      var element = node.declaredElement as ExecutableElementImpl;
-      element.returnType = returnType;
-    } else if (node is MixinDeclaration) {
+      var fragment = node.declaredFragment!;
+      fragment.returnType = returnType;
+    } else if (node is MixinDeclarationImpl) {
       _mixinDeclaration(node);
     } else if (node is SimpleFormalParameterImpl) {
-      var element = node.declaredElement as ParameterElementImpl;
-      element.type = node.type?.type ?? _dynamicType;
+      var fragment = node.declaredFragment!;
+      fragment.type = node.type?.type ?? _dynamicType;
     } else if (node is SuperFormalParameterImpl) {
       _superFormalParameter(node);
     } else if (node is TypeParameterImpl) {
@@ -214,7 +212,7 @@ class TypesBuilder {
       var type = node.type?.type;
       if (type != null) {
         for (var variable in node.variables) {
-          (variable.declaredElement as VariableElementImpl).type = type;
+          variable.declaredFragment!.type = type;
         }
       }
     } else {
@@ -222,46 +220,46 @@ class TypesBuilder {
     }
   }
 
-  void _enumDeclaration(EnumDeclaration node) {
-    var element = node.declaredElement as EnumElementImpl;
+  void _enumDeclaration(EnumDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
 
-    element.interfaces = _toInterfaceTypeList(
+    fragment.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
 
-    _updatedAugmented(element, withClause: node.withClause);
+    _updatedAugmented(fragment, withClause: node.withClause);
   }
 
-  void _extensionDeclaration(ExtensionDeclaration node) {
-    var element = node.declaredElement as ExtensionElementImpl;
-    if (element.augmentationTarget == null) {
+  void _extensionDeclaration(ExtensionDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
+    if (fragment.augmentationTarget == null) {
       if (node.onClause case var onClause?) {
         var extendedType = onClause.extendedType.typeOrThrow;
-        element.augmented.extendedType = extendedType;
+        fragment.element.extendedType = extendedType;
       }
     } else {
-      _updatedAugmented(element);
+      _updatedAugmented(fragment);
     }
   }
 
   void _extensionTypeDeclaration(ExtensionTypeDeclarationImpl node) {
-    var element = node.declaredElement as ExtensionTypeElementImpl;
+    var fragment = node.declaredFragment!;
 
-    var typeSystem = element.library.typeSystem;
+    var typeSystem = fragment.library.typeSystem;
     var interfaces = node.implementsClause?.interfaces
         .map((e) => e.type)
         .whereType<InterfaceType>()
         .where(typeSystem.isValidExtensionTypeSuperinterface)
         .toFixedList();
     if (interfaces != null) {
-      element.interfaces = interfaces;
+      fragment.interfaces = interfaces;
     }
 
-    _updatedAugmented(element);
+    _updatedAugmented(fragment);
   }
 
   void _fieldFormalParameter(FieldFormalParameterImpl node) {
-    var element = node.declaredElement as FieldFormalParameterElementImpl;
+    var fragment = node.declaredFragment!;
     var parameterList = node.parameters;
     if (parameterList != null) {
       var type = _buildFunctionType(
@@ -270,68 +268,68 @@ class TypesBuilder {
         parameterList,
         _nullability(node, node.question != null),
       );
-      element.type = type;
+      fragment.type = type;
     } else {
-      element.type = node.type?.type ?? _dynamicType;
+      fragment.type = node.type?.type ?? _dynamicType;
     }
   }
 
-  List<ParameterElement> _formalParameters(FormalParameterList node) {
+  List<ParameterElementMixin> _formalParameters(FormalParameterList node) {
     return node.parameters.asImpl.map((parameter) {
-      return parameter.declaredElement!;
+      return parameter.declaredFragment!;
     }).toFixedList();
   }
 
-  void _functionTypeAlias(FunctionTypeAlias node) {
-    var element = node.declaredElement as TypeAliasElementImpl;
-    var function = element.aliasedElement as GenericFunctionTypeElementImpl;
+  void _functionTypeAlias(FunctionTypeAliasImpl node) {
+    var fragment = node.declaredFragment!;
+    var function = fragment.aliasedElement as GenericFunctionTypeElementImpl;
     function.returnType = node.returnType?.type ?? _dynamicType;
-    element.aliasedType = function.type;
+    fragment.aliasedType = function.type;
   }
 
-  void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void _functionTypedFormalParameter(FunctionTypedFormalParameterImpl node) {
     var type = _buildFunctionType(
       node.typeParameters,
       node.returnType,
       node.parameters,
       _nullability(node, node.question != null),
     );
-    var element = node.declaredElement as ParameterElementImpl;
-    element.type = type;
+    var fragment = node.declaredFragment!;
+    fragment.type = type;
   }
 
   void _genericFunctionType(GenericFunctionTypeImpl node) {
-    var element = node.declaredElement!;
-    element.returnType = node.returnType?.type ?? _dynamicType;
+    var fragment = node.declaredFragment!;
+    fragment.returnType = node.returnType?.type ?? _dynamicType;
   }
 
-  void _genericTypeAlias(GenericTypeAlias node) {
-    var element = node.declaredElement as TypeAliasElementImpl;
-    var featureSet = element.library.featureSet;
+  void _genericTypeAlias(GenericTypeAliasImpl node) {
+    var fragment = node.declaredFragment!;
+    var featureSet = fragment.library.featureSet;
 
     var typeNode = node.type;
     if (featureSet.isEnabled(Feature.nonfunction_type_aliases)) {
-      element.aliasedType = typeNode.typeOrThrow;
+      fragment.aliasedType = typeNode.typeOrThrow;
     } else if (typeNode is GenericFunctionType) {
-      element.aliasedType = typeNode.typeOrThrow;
+      fragment.aliasedType = typeNode.typeOrThrow;
     } else {
-      element.aliasedType = _errorFunctionType();
+      fragment.aliasedType = _errorFunctionType();
     }
   }
 
-  void _mixinDeclaration(MixinDeclaration node) {
-    var element = node.declaredElement as MixinElementImpl;
+  void _mixinDeclaration(MixinDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
 
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
     );
-    element.superclassConstraints = constraints;
+    fragment.superclassConstraints = constraints;
 
-    element.interfaces = _toInterfaceTypeList(
+    fragment.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
 
-    _updatedAugmented(element);
+    _updatedAugmented(fragment);
   }
 
   NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
@@ -343,7 +341,7 @@ class TypesBuilder {
   }
 
   void _superFormalParameter(SuperFormalParameterImpl node) {
-    var element = node.declaredElement as SuperFormalParameterElementImpl;
+    var fragment = node.declaredFragment!;
     var parameterList = node.parameters;
     if (parameterList != null) {
       var type = _buildFunctionType(
@@ -352,25 +350,23 @@ class TypesBuilder {
         parameterList,
         _nullability(node, node.question != null),
       );
-      element.type = type;
+      fragment.type = type;
     } else {
-      element.type = node.type?.type ?? _dynamicType;
+      fragment.type = node.type?.type ?? _dynamicType;
     }
   }
 
   void _typeParameter(TypeParameterImpl node) {
-    var element = node.declaredElement!;
-    element.bound = node.bound?.type;
+    var fragment = node.declaredFragment!;
+    fragment.bound = node.bound?.type;
   }
 
-  List<TypeParameterElement> _typeParameters(TypeParameterList? node) {
+  List<TypeParameterElementImpl> _typeParameters(TypeParameterListImpl? node) {
     if (node == null) {
-      return const <TypeParameterElement>[];
+      return const <TypeParameterElementImpl>[];
     }
 
-    return node.typeParameters
-        .map<TypeParameterElement>((p) => p.declaredElement!)
-        .toFixedList();
+    return node.typeParameters.map((p) => p.declaredFragment!).toFixedList();
   }
 
   void _updatedAugmented(
@@ -387,24 +383,23 @@ class TypesBuilder {
     // Here we merge declaration and augmentations.
     // If there are no augmentations, nothing to do.
     var element = fragment.element;
-    if (element is! InstanceElementImpl2) {
-      return;
-    }
 
     var firstFragment = element.firstFragment;
-    var firstTypeParameters = firstFragment.typeParameters;
+    var firstTypeParameters =
+        firstFragment.typeParameters.map((tp) => tp.asElement2).toList();
 
-    var fragmentTypeParameters = fragment.typeParameters;
+    var fragmentTypeParameters =
+        fragment.typeParameters.map((tp) => tp.asElement2).toList();
     if (fragmentTypeParameters.length != firstTypeParameters.length) {
       return;
     }
 
-    var toFirst = Substitution.fromPairs(
+    var toFirst = Substitution.fromPairs2(
       fragmentTypeParameters,
       firstTypeParameters.instantiateNone(),
     );
 
-    var fromFirst = Substitution.fromPairs(
+    var fromFirst = Substitution.fromPairs2(
       firstTypeParameters,
       fragmentTypeParameters.instantiateNone(),
     );
@@ -498,11 +493,11 @@ class _MixinInference {
   }
 
   InterfaceTypeImpl? _findInterfaceTypeForElement(
-    InterfaceElement element,
+    InterfaceElement2 element,
     List<InterfaceTypeImpl> interfaceTypes,
   ) {
     for (var interfaceType in interfaceTypes) {
-      if (interfaceType.element == element) return interfaceType;
+      if (interfaceType.element3 == element) return interfaceType;
     }
     return null;
   }
@@ -514,7 +509,7 @@ class _MixinInference {
     var result = <InterfaceTypeImpl>[];
     for (var constraint in constraints) {
       var interfaceType = _findInterfaceTypeForElement(
-        constraint.element,
+        constraint.element3,
         interfaceTypes,
       );
 
@@ -540,7 +535,7 @@ class _MixinInference {
 
     List<TypeParameterElementImpl2>? typeParameters;
     List<InterfaceTypeImpl>? supertypeConstraints;
-    InterfaceTypeImpl Function(List<DartType> typeArguments)? instantiate;
+    InterfaceTypeImpl Function(List<TypeImpl> typeArguments)? instantiate;
     var mixinElement = mixinNode.element2;
     if (mixinElement is InterfaceElementImpl2) {
       typeParameters = mixinElement.typeParameters2;
@@ -548,7 +543,7 @@ class _MixinInference {
         supertypeConstraints = typeSystem
             .gatherMixinSupertypeConstraintsForInference(mixinElement);
         instantiate = (typeArguments) {
-          return mixinElement.instantiate(
+          return mixinElement.instantiateImpl(
             typeArguments: typeArguments,
             nullabilitySuffix: mixinType.nullabilitySuffix,
           );
@@ -693,7 +688,7 @@ class _MixinsInference {
       }
     } finally {
       element.mixinInferenceCallback = null;
-      switch (element.augmented) {
+      switch (element.element) {
         case InterfaceElementImpl2 augmented:
           augmented.mixins.addAll(declarationMixins);
       }

@@ -1694,6 +1694,29 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void> test_afterLeftBrace_beforeRightBrace_withLocalVar() async {
+    await computeSuggestions('''
+class AA {
+  AA();
+
+  void m(){
+    var AA = 3;
+    ^
+  }
+}
+''');
+
+    printerConfiguration.filter = (suggestion) {
+      return suggestion.completion.startsWith('AA');
+    };
+
+    assertResponse(r'''
+suggestions
+  AA
+    kind: localVariable
+''');
+  }
 }
 
 mixin WhileStatementTestCases on AbstractCompletionDriverTest {

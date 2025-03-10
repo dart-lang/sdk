@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -60,7 +59,7 @@ class ClassHierarchyTest extends AbstractTypeSystemTest
 }
 
 mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
-  late ClassElementImpl A;
+  late ClassElementImpl2 A;
 
   void _assertErrors(List<ClassHierarchyError> errors, List<String> expected) {
     expect(
@@ -86,27 +85,27 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
   }
 
   void _checkA({
-    required List<DartType> typeArguments,
+    required List<TypeImpl> typeArguments,
     required List<String> interfaces,
     List<String> errors = const [],
   }) {
     var specifiedInterfaces = typeArguments
         .map((e) => interfaceTypeNone(A, typeArguments: [e]))
         .toList();
-    var X = class_(name: 'X', interfaces: specifiedInterfaces);
+    var X = class_2(name: 'X', interfaces: specifiedInterfaces);
 
     var classHierarchy = ClassHierarchy();
 
-    var actualInterfaces = classHierarchy.implementedInterfaces(X.asElement2);
+    var actualInterfaces = classHierarchy.implementedInterfaces(X);
     _assertInterfaces(actualInterfaces, interfaces);
 
-    var actualErrors = classHierarchy.errors(X.asElement2);
+    var actualErrors = classHierarchy.errors(X);
     _assertErrors(actualErrors, errors);
   }
 
   void _createSharedElements() {
     var T = typeParameter('T');
-    A = class_(name: 'A', typeParameters: [T]);
+    A = class_2(name: 'A', typeParameters: [T]);
   }
 
   String _interfaceString(InterfaceType interface) {

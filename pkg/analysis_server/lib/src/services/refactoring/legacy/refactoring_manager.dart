@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:async';
 
 import 'package:analysis_server/src/collections.dart';
@@ -18,7 +16,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 int test_resetCount = 0;
 
@@ -222,7 +219,7 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node).asElement2;
+        var element = server.getElementOfNode(node);
         if (element is GetterElement) {
           refactoring = ConvertGetterToMethodRefactoring(
             refactoringWorkspace,
@@ -235,7 +232,7 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node).asElement2;
+        var element = server.getElementOfNode(node);
         if (element is ExecutableElement2) {
           refactoring = ConvertMethodToGetterRefactoring(
             refactoringWorkspace,
@@ -315,12 +312,12 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node);
+        var element = server.getElementOfNode(node, useMockForImport: true);
         if (node is RepresentationDeclaration) {
           var extensionType = node.parent;
           if (extensionType is ExtensionTypeDeclaration &&
               extensionType.name.end == offset) {
-            element = extensionType.declaredElement;
+            element = extensionType.declaredFragment?.element;
           }
         }
         if (node != null && element != null) {
@@ -333,7 +330,7 @@ class RefactoringManager {
             refactoring = RenameRefactoring.create(
               refactoringWorkspace,
               resolvedUnit,
-              renameElement.element,
+              renameElement.element2,
             );
             feedback = RenameFeedback(
               renameElement.offset,

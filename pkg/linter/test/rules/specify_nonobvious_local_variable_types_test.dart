@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SpecifyNonObviousLocalVariableTypesTest);
   });
@@ -231,6 +231,14 @@ f() {
 ''');
   }
 
+  test_literal_double_negated() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var d = -1.5;
+}
+''');
+  }
+
   // The type is not obvious.
   test_literal_doubleTypedInt() async {
     await assertNoDiagnostics(r'''
@@ -244,6 +252,14 @@ f() {
     await assertNoDiagnostics(r'''
 f() {
   int i = 1;
+}
+''');
+  }
+
+  test_literal_int_negated() async {
+    await assertNoDiagnostics(r'''
+f() {
+  var i = -1;
 }
 ''');
   }

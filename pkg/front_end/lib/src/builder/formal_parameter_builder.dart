@@ -225,7 +225,7 @@ class FormalParameterBuilder extends BuilderImpl
 
   void finalizeInitializingFormal(
       DeclarationBuilder declarationBuilder,
-      ConstructorDeclaration constructorDeclaration,
+      ConstructorDeclarationBuilder constructorDeclaration,
       ClassHierarchyBase hierarchy) {
     String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
     Builder? fieldBuilder = declarationBuilder.lookupLocalMember(fieldName);
@@ -263,12 +263,9 @@ class FormalParameterBuilder extends BuilderImpl
   /// formal parameter on a const constructor or instance method.
   void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      {required bool buildDefaultValue}) {
+      {required LookupScope scope, required bool buildDefaultValue}) {
     if (buildDefaultValue) {
       if (initializerToken != null) {
-        LookupScope scope =
-            declarationBuilder?.scope ?? // Coverage-ignore(suite): Not run.
-                libraryBuilder.scope;
         BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
             libraryBuilder, declarationBuilder, this);
         BodyBuilder bodyBuilder = libraryBuilder.loader

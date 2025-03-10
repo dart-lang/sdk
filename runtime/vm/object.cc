@@ -3989,6 +3989,7 @@ FunctionPtr Class::CreateInvocationDispatcher(
     const String& target_name,
     const Array& args_desc,
     UntaggedFunction::Kind kind) const {
+  ASSERT(target_name.ptr() != Symbols::DynamicImplicitCall().ptr());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
@@ -4123,6 +4124,9 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
   extractor.set_is_visible(false);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  extractor.SetIsDynamicallyOverridden(IsDynamicallyOverridden());
+#endif
 
   signature ^= ClassFinalizer::FinalizeType(signature);
   extractor.SetSignature(signature);
@@ -4329,10 +4333,20 @@ bool Function::IsDynamicInvocationForwarderName(StringPtr name) {
 }
 
 StringPtr Function::DemangleDynamicInvocationForwarderName(const String& name) {
+  if (name.ptr() == Symbols::DynamicImplicitCall().ptr()) {
+    return Symbols::call().ptr();
+  }
   const intptr_t kDynamicPrefixLength = 4;  // "dyn:"
   ASSERT(Symbols::DynamicPrefix().Length() == kDynamicPrefixLength);
   return Symbols::New(Thread::Current(), name, kDynamicPrefixLength,
                       name.Length() - kDynamicPrefixLength);
+}
+
+const String& Function::DropImplicitCallPrefix(const String& name) {
+  if (name.ptr() == Symbols::DynamicImplicitCall().ptr()) {
+    return Symbols::DynamicCall();
+  }
+  return name;
 }
 
 StringPtr Function::CreateDynamicInvocationForwarderName(const String& name) {
@@ -4395,6 +4409,7 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
 FunctionPtr Function::GetDynamicInvocationForwarder(
     const String& mangled_name) const {
   ASSERT(IsDynamicInvocationForwarderName(mangled_name));
+  ASSERT(mangled_name.ptr() != Symbols::DynamicImplicitCall().ptr());
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const Class& owner = Class::Handle(zone, Owner());
@@ -5267,6 +5282,7 @@ ObjectPtr Instance::EvaluateCompiledExpression(
 #if defined(DEBUG)
   for (intptr_t i = 0; i < arguments.Length(); ++i) {
     ASSERT(arguments.At(i) != Object::optimized_out().ptr());
+    ASSERT(arguments.At(i) != Object::sentinel().ptr());
   }
 #endif  // defined(DEBUG)
 
@@ -8771,6 +8787,13 @@ bool Function::FfiCSignatureReturnsStruct() const {
   return true;
 }
 
+bool Function::FfiCSignatureReturnsHandle() const {
+  ASSERT(IsFfiCallbackTrampoline());
+  const auto& c_signature = FunctionType::Handle(FfiCSignature());
+  const auto& type = AbstractType::Handle(c_signature.result_type());
+  return type.type_class_id() == kFfiHandleCid;
+}
+
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiCallbackTrampoline());
 
@@ -8805,13 +8828,9 @@ bool Function::FfiIsLeaf() const {
     UNREACHABLE();
   }
   const auto& pragma_value_class = Class::Handle(zone, pragma_value.clazz());
-  const auto& pragma_value_fields =
-      Array::Handle(zone, pragma_value_class.fields());
-  ASSERT(pragma_value_fields.Length() >= 1);
   const auto& is_leaf_field = Field::Handle(
-      zone,
-      Field::RawCast(pragma_value_fields.At(pragma_value_fields.Length() - 1)));
-  ASSERT(is_leaf_field.name() == Symbols::isLeaf().ptr());
+      zone, pragma_value_class.LookupFieldAllowPrivate(Symbols::isLeaf()));
+  ASSERT(!is_leaf_field.IsNull());
   return Bool::Handle(zone, Bool::RawCast(pragma_value.GetField(is_leaf_field)))
       .value();
 }
@@ -10804,12 +10823,6 @@ bool Function::IsClosureCallDispatcher() const {
   if (!IsInvokeFieldDispatcher()) return false;
   if (!Class::IsClosureClass(Owner())) return false;
   return name() == Symbols::call().ptr();
-}
-
-bool Function::IsClosureCallGetter() const {
-  if (!IsGetterFunction()) return false;
-  if (!Class::IsClosureClass(Owner())) return false;
-  return name() == Symbols::GetCall().ptr();
 }
 
 FunctionPtr Function::ImplicitClosureFunction() const {
@@ -23604,10 +23617,18 @@ void TypeParameter::PrintName(NameVisibility name_visibility,
 
 uword TypeParameter::ComputeHash() const {
   ASSERT(IsFinalized());
-  uint32_t result = parameterized_class_id();
-  result = CombineHashes(result, base());
+  uint32_t result = base();
   result = CombineHashes(result, index());
   result = CombineHashes(result, static_cast<uint32_t>(nullability()));
+  if (IsFunctionTypeParameter()) {
+    const FunctionType& func =
+        FunctionType::Handle(parameterized_function_type());
+    result = CombineHashes(result, func.packed_parameter_counts());
+    result = CombineHashes(result, func.packed_type_parameter_counts());
+  } else {
+    ASSERT(IsClassTypeParameter());
+    result = CombineHashes(result, parameterized_class_id());
+  }
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
   return result;

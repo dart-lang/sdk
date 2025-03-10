@@ -17,9 +17,7 @@ class A {
   var list;
   var node;
 
-  A(node)
-      : node = node,
-        list = node.outgoing;
+  A(node) : node = node, list = node.outgoing;
 
   next() {
     // dart2js used to update [offset] twice: once in the optimized

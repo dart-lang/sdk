@@ -28,6 +28,10 @@ abstract class CodeStyleOptions {
   /// The preferred quote based on the enabled lints, otherwise a single quote.
   String get preferredQuoteForStrings;
 
+  /// Whether combinators should be ordered alphabetically. Difined by
+  /// `combinators_ordering`.
+  bool get sortCombinators;
+
   /// Whether constructors should be sorted first, before other class members.
   bool get sortConstructorsFirst;
 

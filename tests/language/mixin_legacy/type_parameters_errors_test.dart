@@ -16,6 +16,7 @@ class B<U, V> extends S with M<U, V> {}
 //                           ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Expected 1 type arguments.
+
 class C<A, B> extends S<A, int> with M {}
 //                    ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS

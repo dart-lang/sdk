@@ -33,7 +33,13 @@ class PubApi {
 
   final InstrumentationService instrumentationService;
   final http.Client httpClient;
-  final String _pubHostedUrl;
+
+  /// The Base URL for hosted Pub packages, excluding the trailing slash.
+  ///
+  /// Returns 'https://pub.dev' if no hosted URL is set or the value
+  /// is invalid.
+  final String pubHostedUrl;
+
   final _headers = {
     'Accept': 'application/vnd.pub.v2+json',
     'Accept-Encoding': 'gzip',
@@ -48,14 +54,14 @@ class PubApi {
     String? envPubHostedUrl,
   ) : httpClient =
           httpClient != null ? _NoCloseHttpClient(httpClient) : http.Client(),
-      _pubHostedUrl = _validPubHostedUrl(envPubHostedUrl);
+      pubHostedUrl = _validPubHostedUrl(envPubHostedUrl);
 
   /// Fetches a list of package names from the Pub API.
   ///
   /// Failed requests will be retried a number of times. If no successful response
   /// is received, will return null.
   Future<List<PubApiPackage>?> allPackages() async {
-    var json = await _getJson('$_pubHostedUrl$packageNameListPath');
+    var json = await _getJson('$pubHostedUrl$packageNameListPath');
     if (json == null) {
       return null;
     }
@@ -75,7 +81,7 @@ class PubApi {
   /// Failed requests will be retried a number of times. If no successful response
   /// is received, will return null.
   Future<PubApiPackageDetails?> packageInfo(String packageName) async {
-    var json = await _getJson('$_pubHostedUrl$packageInfoPath/$packageName');
+    var json = await _getJson('$pubHostedUrl$packageInfoPath/$packageName');
     if (json == null) {
       return null;
     }
@@ -141,13 +147,13 @@ class PubApi {
   }
 
   /// Returns a valid Pub base URL from [envPubHostedUrl] if valid, otherwise using
-  /// the default 'https://pub.dartlang.org'.
+  /// the default 'https://pub.dev'.
   static String _validPubHostedUrl(String? envPubHostedUrl) {
     var validUrl =
         envPubHostedUrl != null &&
                 (Uri.tryParse(envPubHostedUrl)?.isAbsolute ?? false)
             ? envPubHostedUrl
-            : 'https://pub.dartlang.org';
+            : 'https://pub.dev';
 
     // Discard any trailing slashes, as all API paths start with them.
     return validUrl.endsWith('/')

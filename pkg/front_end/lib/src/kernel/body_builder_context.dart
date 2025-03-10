@@ -123,6 +123,7 @@ abstract class BodyBuilderContext {
   /// Returns `true` if the enclosing entity is an extension.
   bool get isExtensionDeclaration => _declarationContext.isExtensionDeclaration;
 
+  // Coverage-ignore(suite): Not run.
   /// Looks up the static member by the given [name] in the origin of the
   /// enclosing declaration.
   Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
@@ -368,8 +369,13 @@ abstract class BodyBuilderContext {
   }
 
   /// Registers [body] as the result of the body building.
-  void setBody(Statement body) {
-    throw new UnsupportedError("${runtimeType}.setBody");
+  void registerFunctionBody(Statement body) {
+    throw new UnsupportedError("${runtimeType}.registerFunctionBody");
+  }
+
+  /// Registers that the constructor has no body.
+  void registerNoBodyConstructor() {
+    throw new UnsupportedError("${runtimeType}.registerNoBodyConstructor");
   }
 
   /// Returns the type of `this` in the body being built.
@@ -538,6 +544,7 @@ class _SourceClassBodyBuilderDeclarationContext
   bool get isAugmentationClass => _sourceClassBuilder.isAugmenting;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
     // The scope of an augmented method includes the origin class.
     return _sourceClassBuilder.origin
@@ -793,8 +800,8 @@ mixin _FunctionBodyBuilderContextMixin<T extends SourceFunctionBuilder>
   }
 }
 
-mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
-    implements BodyBuilderContext {
+mixin _ConstructorBodyBuilderContextMixin<
+    T extends ConstructorDeclarationBuilder> implements BodyBuilderContext {
   T get _member;
 
   TreeNode get _initializerParent;
@@ -853,11 +860,11 @@ mixin _ConstructorBodyBuilderContextMixin<T extends ConstructorDeclaration>
 
 class ConstructorBodyBuilderContext extends BodyBuilderContext
     with
-        _FunctionBodyBuilderContextMixin<DeclaredSourceConstructorBuilder>,
-        _ConstructorBodyBuilderContextMixin<DeclaredSourceConstructorBuilder>,
-        _MemberBodyBuilderContext<DeclaredSourceConstructorBuilder> {
+        _FunctionBodyBuilderContextMixin<SourceConstructorBuilderImpl>,
+        _ConstructorBodyBuilderContextMixin<SourceConstructorBuilderImpl>,
+        _MemberBodyBuilderContext<SourceConstructorBuilderImpl> {
   @override
-  final DeclaredSourceConstructorBuilder _member;
+  final SourceConstructorBuilderImpl _member;
 
   @override
   final Member _builtMember;
@@ -872,8 +879,13 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
   }
 
   @override
-  void setBody(Statement body) {
-    _member.body = body;
+  void registerFunctionBody(Statement body) {
+    _member.registerFunctionBody(body);
+  }
+
+  @override
+  void registerNoBodyConstructor() {
+    _member.registerNoBodyConstructor();
   }
 
   @override
@@ -883,42 +895,9 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
 
   @override
   bool needsImplicitSuperInitializer(CoreTypes coreTypes) {
-    return !_declarationContext.isObjectClass(coreTypes) &&
+    return _member.isClassMember &&
+        !_declarationContext.isObjectClass(coreTypes) &&
         !isExternalConstructor;
-  }
-
-  @override
-  TreeNode get _initializerParent => _member.invokeTarget;
-}
-
-class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
-    with
-        _FunctionBodyBuilderContextMixin<SourceExtensionTypeConstructorBuilder>,
-        _ConstructorBodyBuilderContextMixin<
-            SourceExtensionTypeConstructorBuilder>,
-        _MemberBodyBuilderContext<SourceExtensionTypeConstructorBuilder> {
-  @override
-  final SourceExtensionTypeConstructorBuilder _member;
-  @override
-  final Member _builtMember;
-
-  ExtensionTypeConstructorBodyBuilderContext(this._member, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
-            isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
-
-  @override
-  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
-    return _member.computeFormalParameterInitializerScope(parent);
-  }
-
-  @override
-  void setBody(Statement body) {
-    _member.body = body;
-  }
-
-  @override
-  bool isConstructorCyclic(String name) {
-    return _declarationContext.isConstructorCyclic(_member.name, name);
   }
 
   @override
@@ -948,9 +927,12 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
   final Procedure _procedure;
 
   ExpressionCompilerProcedureBodyBuildContext(
-      DietListener listener, this._procedure,
+      DietListener listener,
+      this._procedure,
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder? declarationBuilder,
       {required bool isDeclarationInstanceMember})
-      : super(listener.libraryBuilder, listener.currentDeclaration,
+      : super(libraryBuilder, declarationBuilder,
             isDeclarationInstanceMember: isDeclarationInstanceMember);
 
   @override

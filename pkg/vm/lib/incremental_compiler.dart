@@ -39,28 +39,37 @@ class IncrementalCompiler {
   IncrementalKernelGenerator get generator => _generator;
   IncrementalCompilerResult? get lastKnownGoodResult => _lastKnownGood;
 
-  IncrementalCompiler(this._compilerOptions, this._latestAcceptedEntryPoints,
-      {this.initializeFromDillUri, bool incrementalSerialization = true})
-      : forExpressionCompilationOnly = false,
-        _latestUsedEntryPoints = _latestAcceptedEntryPoints {
+  IncrementalCompiler(
+    this._compilerOptions,
+    this._latestAcceptedEntryPoints, {
+    this.initializeFromDillUri,
+    bool incrementalSerialization = true,
+  }) : forExpressionCompilationOnly = false,
+       _latestUsedEntryPoints = _latestAcceptedEntryPoints {
     if (incrementalSerialization) {
       incrementalSerializer = new IncrementalSerializer();
     }
     _generator = new IncrementalKernelGenerator(
-        _compilerOptions,
-        _latestAcceptedEntryPoints,
-        initializeFromDillUri,
-        false,
-        incrementalSerializer);
+      _compilerOptions,
+      _latestAcceptedEntryPoints,
+      initializeFromDillUri,
+      false,
+      incrementalSerializer,
+    );
     _pendingDeltas = <IncrementalCompilerResult>[];
   }
 
-  IncrementalCompiler.forExpressionCompilationOnly(Component component,
-      this._compilerOptions, this._latestAcceptedEntryPoints)
-      : forExpressionCompilationOnly = true,
-        _latestUsedEntryPoints = _latestAcceptedEntryPoints {
+  IncrementalCompiler.forExpressionCompilationOnly(
+    Component component,
+    this._compilerOptions,
+    this._latestAcceptedEntryPoints,
+  ) : forExpressionCompilationOnly = true,
+      _latestUsedEntryPoints = _latestAcceptedEntryPoints {
     _generator = new IncrementalKernelGenerator.forExpressionCompilationOnly(
-        _compilerOptions, _latestAcceptedEntryPoints, component);
+      _compilerOptions,
+      _latestAcceptedEntryPoints,
+      component,
+    );
     _pendingDeltas = <IncrementalCompilerResult>[];
   }
 
@@ -75,7 +84,9 @@ class IncrementalCompiler {
       task.start("IncrementalCompiler.compile");
       _latestUsedEntryPoints = entryPoints ?? _latestAcceptedEntryPoints;
       IncrementalCompilerResult compilerResult = await _generator.computeDelta(
-          entryPoints: _latestUsedEntryPoints, fullComponent: fullComponent);
+        entryPoints: _latestUsedEntryPoints,
+        fullComponent: fullComponent,
+      );
       initialized = true;
       fullComponent = false;
       _pendingDeltas.add(compilerResult);
@@ -86,20 +97,19 @@ class IncrementalCompiler {
   }
 
   IncrementalCompilerResult _combinePendingDeltas(bool includePlatform) {
+    assert(_pendingDeltas.isNotEmpty);
     Procedure? mainMethod;
     NonNullableByDefaultCompiledMode compilationMode =
         NonNullableByDefaultCompiledMode.Invalid;
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
-    ClassHierarchy? classHierarchy;
-    CoreTypes? coreTypes;
+    ClassHierarchy classHierarchy = _pendingDeltas.last.classHierarchy;
+    CoreTypes coreTypes = _pendingDeltas.last.coreTypes;
     for (IncrementalCompilerResult deltaResult in _pendingDeltas) {
       Component delta = deltaResult.component;
       if (delta.mainMethod != null) {
         mainMethod = delta.mainMethod;
       }
-      classHierarchy ??= deltaResult.classHierarchy;
-      coreTypes ??= deltaResult.coreTypes;
       compilationMode = delta.mode;
       uriToSource.addAll(delta.uriToSource);
       for (Library library in delta.libraries) {
@@ -112,15 +122,18 @@ class IncrementalCompiler {
 
     // TODO(vegorov) this needs to merge metadata repositories from deltas.
     final result = new IncrementalCompilerResult(
-        new Component(
-            libraries: combined.values.toList(), uriToSource: uriToSource)
-          ..setMainMethodAndMode(mainMethod?.reference, true, compilationMode),
-        classHierarchy: classHierarchy,
-        coreTypes: coreTypes);
+      new Component(
+        libraries: combined.values.toList(),
+        uriToSource: uriToSource,
+      )..setMainMethodAndMode(mainMethod?.reference, true, compilationMode),
+      classHierarchy: classHierarchy,
+      coreTypes: coreTypes,
+    );
     if (_pendingDeltas.length == 1) {
       // With only one delta to "merge" we can copy over the metadata.
-      result.component.metadata
-          .addAll(_pendingDeltas.single.component.metadata);
+      result.component.metadata.addAll(
+        _pendingDeltas.single.component.metadata,
+      );
     }
     return result;
   }
@@ -130,9 +143,12 @@ class IncrementalCompiler {
   /// results.
   accept() {
     if (forExpressionCompilationOnly) {
-      throw new StateError("Incremental compiler created for expression "
-          "compilation only; cannot accept");
+      throw new StateError(
+        "Incremental compiler created for expression "
+        "compilation only; cannot accept",
+      );
     }
+    if (_pendingDeltas.isEmpty) return;
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = <Uri, Source>{};
 
@@ -153,14 +169,19 @@ class IncrementalCompiler {
     }
     uriToSource.addAll(candidate.uriToSource);
 
-    _lastKnownGood = lastKnownGood = new IncrementalCompilerResult(
-        new Component(
-          libraries: combined.values.toList(),
-          uriToSource: uriToSource,
-        )..setMainMethodAndMode(
-            candidate.mainMethod?.reference, true, candidate.mode),
-        classHierarchy: result.classHierarchy,
-        coreTypes: result.coreTypes);
+    _lastKnownGood =
+        lastKnownGood = new IncrementalCompilerResult(
+          new Component(
+            libraries: combined.values.toList(),
+            uriToSource: uriToSource,
+          )..setMainMethodAndMode(
+            candidate.mainMethod?.reference,
+            true,
+            candidate.mode,
+          ),
+          classHierarchy: result.classHierarchy,
+          coreTypes: result.coreTypes,
+        );
     for (final repo in candidate.metadata.values) {
       lastKnownGood.component.addMetadataRepository(repo);
     }
@@ -174,8 +195,10 @@ class IncrementalCompiler {
   /// be processed without changes picked up by rejected [compile] call.
   reject() async {
     if (forExpressionCompilationOnly) {
-      throw new StateError("Incremental compiler created for expression "
-          "compilation only; cannot reject");
+      throw new StateError(
+        "Incremental compiler created for expression "
+        "compilation only; cannot reject",
+      );
     }
     _pendingDeltas.clear();
     // Need to reset and warm up compiler so that expression evaluation requests
@@ -192,11 +215,12 @@ class IncrementalCompiler {
     _lastKnownGood?.component.relink();
 
     _generator = new IncrementalKernelGenerator.fromComponent(
-        _compilerOptions,
-        _latestAcceptedEntryPoints,
-        _lastKnownGood?.component,
-        false,
-        incrementalSerializer);
+      _compilerOptions,
+      _latestAcceptedEntryPoints,
+      _lastKnownGood?.component,
+      false,
+      incrementalSerializer,
+    );
     await _generator.computeDelta(entryPoints: _latestAcceptedEntryPoints);
   }
 
@@ -212,22 +236,27 @@ class IncrementalCompiler {
   }
 
   Future<Procedure?> compileExpression(
-      String expression,
-      List<String> definitions,
-      List<String> definitionTypes,
-      List<String> typeDefinitions,
-      List<String> typeBounds,
-      List<String> typeDefaults,
-      String libraryUri,
-      String? klass,
-      String? method,
-      int offset,
-      String? scriptUri,
-      bool isStatic) {
-    ClassHierarchy? classHierarchy =
+    String expression,
+    List<String> definitions,
+    List<String> definitionTypes,
+    List<String> typeDefinitions,
+    List<String> typeBounds,
+    List<String> typeDefaults,
+    String libraryUri,
+    String? klass,
+    String? method,
+    int offset,
+    String? scriptUri,
+    bool isStatic,
+  ) {
+    assert(_lastKnownGood != null || _pendingDeltas.isNotEmpty);
+    ClassHierarchy classHierarchy =
         (_lastKnownGood ?? _combinePendingDeltas(false)).classHierarchy;
     Map<String, DartType>? completeDefinitions = createDefinitionsWithTypes(
-        classHierarchy?.knownLibraries, definitionTypes, definitions);
+      classHierarchy.knownLibraries,
+      definitionTypes,
+      definitions,
+    );
     if (completeDefinitions == null) {
       completeDefinitions = {};
       // No class hierarchy or wasn't provided correct types.
@@ -241,10 +270,11 @@ class IncrementalCompiler {
     }
 
     List<TypeParameter>? typeParameters = createTypeParametersWithBounds(
-        classHierarchy?.knownLibraries,
-        typeBounds,
-        typeDefaults,
-        typeDefinitions);
+      classHierarchy.knownLibraries,
+      typeBounds,
+      typeDefaults,
+      typeDefinitions,
+    );
     if (typeParameters == null) {
       // No class hierarchy or wasn't provided correct types.
       // Revert to old behaviour of setting everything to dynamic.

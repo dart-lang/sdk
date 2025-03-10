@@ -51,7 +51,7 @@ class InterpreterSetjmpBuffer {
   void Longjmp() {
     // "This" is now the last setjmp buffer.
     interpreter_->set_last_setjmp_buffer(this);
-    longjmp(buffer_, 1);
+    DART_LONGJMP(buffer_, 1);
   }
 
   explicit InterpreterSetjmpBuffer(Interpreter* interpreter) {
@@ -532,7 +532,7 @@ static DART_NOINLINE bool InvokeRuntime(Thread* thread,
                                         RuntimeFunction drt,
                                         const NativeArguments& args) {
   InterpreterSetjmpBuffer buffer(interpreter);
-  if (!setjmp(buffer.buffer_)) {
+  if (!DART_SETJMP(buffer.buffer_)) {
     thread->set_vm_tag(reinterpret_cast<uword>(drt));
     drt(args);
     thread->set_vm_tag(VMTag::kDartInterpretedTagId);
@@ -581,7 +581,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   Exit(thread, *FP, call_top + 1, *pc);
   {
     InterpreterSetjmpBuffer buffer(this);
-    if (!setjmp(buffer.buffer_)) {
+    if (!DART_SETJMP(buffer.buffer_)) {
 #if defined(USING_SIMULATOR)
       // We need to beware that bouncing between the interpreter and the
       // simulator may exhaust the C stack before exhausting either the

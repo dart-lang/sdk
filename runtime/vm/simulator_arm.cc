@@ -55,7 +55,7 @@ class SimulatorSetjmpBuffer {
   void Longjmp() {
     // "This" is now the last setjmp buffer.
     simulator_->set_last_setjmp_buffer(this);
-    longjmp(buffer_, 1);
+    DART_LONGJMP(buffer_, 1);
   }
 
   explicit SimulatorSetjmpBuffer(Simulator* sim) {
@@ -1414,14 +1414,17 @@ void Simulator::SupervisorCall(Instr* instr) {
   int svc = instr->SvcField();
   switch (svc) {
     case Instr::kSimulatorRedirectCode: {
+      ASSERT(Utils::IsAligned(get_register(SPREG),
+                              OS::ActivationFrameAlignment()));
+
       SimulatorSetjmpBuffer buffer(this);
 
-      if (!setjmp(buffer.buffer_)) {
+      if (!DART_SETJMP(buffer.buffer_)) {
         int32_t saved_lr = get_register(LR);
         Redirection* redirection = Redirection::FromSvcInstruction(instr);
         uword external = redirection->external_function();
         if (IsTracingExecution()) {
-          THR_Print("Call to host function at 0x%" Pd "\n", external);
+          THR_Print("Call to host function at 0x%" Px "\n", external);
         }
         if (redirection->call_kind() == kRuntimeCall) {
           NativeArguments arguments;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +23,7 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
   /// futureValueType(Future<`S`>) = `S`, for all `S`.
   test_future() {
-    void check(DartType S, String expected) {
+    void check(TypeImpl S, String expected) {
       _check(futureNone(S), expected);
     }
 
@@ -42,7 +42,7 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
 
   /// futureValueType(FutureOr<`S`>) = `S`, for all `S`.
   test_futureOr() {
-    void check(DartType S, String expected) {
+    void check(TypeImpl S, String expected) {
       _check(futureOrNone(S), expected);
     }
 
@@ -87,7 +87,7 @@ class FutureValueTypeTest extends AbstractTypeSystemTest {
     _check(voidNone, 'void');
   }
 
-  void _check(DartType T, String expected) {
+  void _check(TypeImpl T, String expected) {
     var result = typeSystem.futureValueType(T);
     expect(
       result.getDisplayString(),

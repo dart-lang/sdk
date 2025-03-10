@@ -8,8 +8,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_prototype/macros.dart' as macros
-    show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/binary/ast_from_binary.dart' as kernel
     show BinaryBuilder;
@@ -127,6 +125,16 @@ Future<CompilerResult> _compile(List<String> args,
     print(_usageMessage(argParser));
     return CompilerResult(64);
   }
+  if (argResults.wasParsed('sound-null-safety')) {
+    var soundNullSafety = argResults['sound-null-safety'] as bool;
+    print('Dart 3 only supports sound null safety, '
+        'see https://dart.dev/null-safety.\n'
+        'The `--sound-null-safety` flag is ignored '
+        'and will be removed in a future version.');
+    if (!soundNullSafety) {
+      return CompilerResult(64);
+    }
+  }
 
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);
@@ -201,15 +209,6 @@ Future<CompilerResult> _compile(List<String> args,
   var compileSdk = argResults['compile-sdk'] == true;
   if (sdkSummaryPath == null) {
     if (!compileSdk) {
-      if (!options.soundNullSafety) {
-        // Technically if you can produce an SDK outline .dill and pass it
-        // this error can be avoided and the compile will still work for now.
-        // If you are reading this comment be warned, this loophole will be
-        // removed without warning in the future.
-        print('Dart 3 only supports sound null safety, '
-            'see https://dart.dev/null-safety.\n');
-        return CompilerResult(64);
-      }
       sdkSummaryPath = defaultSdkSummaryPath;
       librarySpecPath ??= defaultLibrarySpecPath;
     }
@@ -288,14 +287,11 @@ Future<CompilerResult> _compile(List<String> args,
         packageFile != null ? sourcePathToUri(packageFile) : null,
         sourcePathToUri(librarySpecPath),
         additionalDills,
-        DevCompilerTarget(TargetFlags(
-            trackWidgetCreation: trackWidgetCreation,
-            soundNullSafety: options.soundNullSafety)),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
-        environmentDefines: declaredVariables,
-        nnbdMode:
-            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
+        environmentDefines: declaredVariables);
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     // If digests weren't given and if not in worker mode, create fake data and
@@ -329,16 +325,12 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(librarySpecPath),
         additionalDills,
         inputDigests,
-        DevCompilerTarget(TargetFlags(
-            trackWidgetCreation: trackWidgetCreation,
-            soundNullSafety: options.soundNullSafety)),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
-        trackNeededDillLibraries: recordUsedInputs,
-        nnbdMode:
-            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak,
-        precompiledMacros: options.precompiledMacros);
+        trackNeededDillLibraries: recordUsedInputs);
     var incrementalCompiler = compilerState.incrementalCompiler!;
     var cachedSdkInput = compileSdk
         ? null
@@ -352,7 +344,7 @@ Future<CompilerResult> _compile(List<String> args,
         incrementalCompilerResult.component,
         cachedSdkInput?.component,
         doneAdditionalDills,
-        incrementalCompilerResult.classHierarchy!,
+        incrementalCompilerResult.classHierarchy,
         incrementalCompilerResult.neededDillLibraries);
   }
   compilerState.options.onDiagnostic = null; // See http://dartbug.com/36983.
@@ -376,7 +368,8 @@ Future<CompilerResult> _compile(List<String> args,
           lastAcceptedComponent, compiledLibraries);
       if (rejectionReasons.isNotEmpty) {
         throw StateError(
-            'Hot reload rejected due to:\n${rejectionReasons.join('\n')}');
+            'Hot reload rejected due to:\n${rejectionReasons.join('\n')}\n'
+            'Use hot restart instead.');
       }
     }
     var sink = File(reloadDeltaKernel).openWrite();
@@ -1040,11 +1033,6 @@ Map<String, Object?> placeSourceMap(Map<String, Object?> sourceMap,
             .joinAll(p.split(p.relative(multiRootPath, from: sourceMapDir)));
         return multiRootPath;
       }
-      return sourcePath;
-    }
-
-    if (macros.isMacroLibraryUri(uri)) {
-      // TODO: https://github.com/dart-lang/sdk/issues/53913
       return sourcePath;
     }
 

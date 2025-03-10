@@ -9,11 +9,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/workspace/workspace.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
+    show ExpressionExtension;
+import 'package:analyzer/src/workspace/workspace.dart' // ignore: implementation_imports
+    show WorkspacePackage;
 import 'package:path/path.dart' as path;
 
 import 'analyzer.dart';
@@ -171,13 +172,13 @@ bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
       cuPath == linkHookFile;
 }
 
+/// Returns `true` if the given [id] is a Dart keyword.
+bool isKeyWord(String id) => Keyword.keywords.containsKey(id);
+
 /// Returns `true` if the keyword associated with the given [token] matches
 /// [keyword].
 bool isKeyword(Token token, Keyword keyword) =>
     token is KeywordToken && token.keyword == keyword;
-
-/// Returns `true` if the given [id] is a Dart keyword.
-bool isKeyWord(String id) => Keyword.keywords.containsKey(id);
 
 /// Returns `true` if the given [ClassMember] is a method.
 bool isMethod(ClassMember m) => m is MethodDeclaration;
@@ -412,7 +413,7 @@ bool _hasFieldOrMethod(ClassMember element, String name) =>
 /// If `true` is returned, children of [element] will be visited.
 typedef ElementProcessor = bool Function(Element2 element);
 
-/// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
+/// A [GeneralizingElementVisitor2] adapter for [ElementProcessor].
 class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   final ElementProcessor processor;
 

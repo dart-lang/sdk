@@ -7,8 +7,6 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../base/loader.dart';
 import '../base/name_space.dart';
-import '../base/problems.dart' show unimplemented;
-import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
@@ -52,11 +50,7 @@ class DillClassBuilder extends ClassBuilderImpl
   @override
   final Class cls;
 
-  late final LookupScope _scope;
-
   final DeclarationNameSpace _nameSpace;
-
-  late final ConstructorScope _constructorScope;
 
   List<NominalParameterBuilder>? _typeParameters;
 
@@ -65,13 +59,7 @@ class DillClassBuilder extends ClassBuilderImpl
   List<TypeBuilder>? _interfaceBuilders;
 
   DillClassBuilder(this.cls, this.parent)
-      : _nameSpace = new DeclarationNameSpaceImpl() {
-    _scope = new NameSpaceLookupScope(
-        _nameSpace, ScopeKind.declaration, "class ${cls.name}",
-        parent: parent.scope);
-    _constructorScope =
-        new DeclarationNameSpaceConstructorScope(cls.name, _nameSpace);
-  }
+      : _nameSpace = new DeclarationNameSpaceImpl();
 
   @override
   int get fileOffset => cls.fileOffset;
@@ -83,14 +71,7 @@ class DillClassBuilder extends ClassBuilderImpl
   Uri get fileUri => cls.fileUri;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  LookupScope get scope => _scope;
-
-  @override
   DeclarationNameSpace get nameSpace => _nameSpace;
-
-  @override
-  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   bool get isEnum => cls.isEnum;
@@ -147,10 +128,6 @@ class DillClassBuilder extends ClassBuilderImpl
     }
     return supertype;
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<TypeBuilder>? get onTypes => null;
 
   void addField(Field field) {
     DillFieldBuilder builder =
@@ -237,12 +214,6 @@ class DillClassBuilder extends ClassBuilderImpl
   @override
   TypeBuilder? get mixedInTypeBuilder {
     return computeTypeBuilder(libraryBuilder, cls.mixedInType);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set mixedInTypeBuilder(TypeBuilder? mixin) {
-    unimplemented("mixedInType=", -1, null);
   }
 
   @override

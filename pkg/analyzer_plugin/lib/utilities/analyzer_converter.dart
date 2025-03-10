@@ -238,7 +238,7 @@ class AnalyzerConverter {
       return null;
     }
 
-    parameters.sort(_preferRequiredParams2);
+    parameters.sort(_preferRequiredParams);
 
     var sb = StringBuffer();
     var closeOptionalString = '';
@@ -370,7 +370,7 @@ class AnalyzerConverter {
   }
 
   /// Sort required named parameters before optional ones.
-  int _preferRequiredParams2(
+  int _preferRequiredParams(
     analyzer.FormalParameterElement e1,
     analyzer.FormalParameterElement e2,
   ) {

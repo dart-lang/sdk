@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 /// @docImport 'package:analyzer/src/generated/resolver.dart';
 library;
 
@@ -16,7 +14,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -85,8 +82,6 @@ class FlowAnalysisHelper {
   /// The result for post-resolution stages of analysis, for testing only.
   final FlowAnalysisDataForTesting? dataForTesting;
 
-  final bool isNonNullableByDefault;
-
   /// Indicates whether initializers of implicitly typed variables should be
   /// accounted for by SSA analysis.  (In an ideal world, they always would be,
   /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
@@ -107,7 +102,6 @@ class FlowAnalysisHelper {
       : this._(
           typeSystemOperations,
           retainDataForTesting ? FlowAnalysisDataForTesting() : null,
-          isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
           respectImplicitlyTypedVarInitializers:
               featureSet.isEnabled(Feature.constructor_tearoffs),
           fieldPromotionEnabled:
@@ -119,7 +113,6 @@ class FlowAnalysisHelper {
   FlowAnalysisHelper._(
     this.typeOperations,
     this.dataForTesting, {
-    required this.isNonNullableByDefault,
     required this.respectImplicitlyTypedVarInitializers,
     required this.fieldPromotionEnabled,
     required this.inferenceUpdate4Enabled,
@@ -180,22 +173,15 @@ class FlowAnalysisHelper {
       dataForTesting!.assignedVariables[node] = assignedVariables
           as AssignedVariablesForTesting<AstNodeImpl, PromotableElementImpl2>;
     }
-    flow = isNonNullableByDefault
-        ? FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
-            PromotableElementImpl2, SharedTypeView>(
-            typeOperations,
-            assignedVariables!,
-            respectImplicitlyTypedVarInitializers:
-                respectImplicitlyTypedVarInitializers,
-            fieldPromotionEnabled: fieldPromotionEnabled,
-            inferenceUpdate4Enabled: inferenceUpdate4Enabled,
-          )
-        : FlowAnalysis<
-            AstNodeImpl,
-            StatementImpl,
-            ExpressionImpl,
-            PromotableElementImpl2,
-            SharedTypeView>.legacy(typeOperations, assignedVariables!);
+    flow = FlowAnalysis<AstNodeImpl, StatementImpl, ExpressionImpl,
+        PromotableElementImpl2, SharedTypeView>(
+      typeOperations,
+      assignedVariables!,
+      respectImplicitlyTypedVarInitializers:
+          respectImplicitlyTypedVarInitializers,
+      fieldPromotionEnabled: fieldPromotionEnabled,
+      inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+    );
   }
 
   /// This method is called whenever the [ResolverVisitor] leaves the body or
@@ -213,7 +199,7 @@ class FlowAnalysisHelper {
   }
 
   void breakStatement(BreakStatement node) {
-    var target = getLabelTarget(node, node.label?.staticElement, isBreak: true);
+    var target = getLabelTarget(node, node.label?.element, isBreak: true);
     flow!.handleBreak(target);
   }
 
@@ -229,8 +215,7 @@ class FlowAnalysisHelper {
   }
 
   void continueStatement(ContinueStatement node) {
-    var target =
-        getLabelTarget(node, node.label?.staticElement, isBreak: false);
+    var target = getLabelTarget(node, node.label?.element, isBreak: false);
     flow!.handleContinue(target);
   }
 
@@ -380,7 +365,7 @@ class FlowAnalysisHelper {
   /// not specify a label), so the default enclosing target is returned.
   ///
   /// [isBreak] is `true` for `break`, and `false` for `continue`.
-  static StatementImpl? getLabelTarget(AstNode? node, Element? element,
+  static StatementImpl? getLabelTarget(AstNode? node, Element2? element,
       {required bool isBreak}) {
     for (; node != null; node = node.parent) {
       if (element == null) {
@@ -423,9 +408,9 @@ class FlowAnalysisHelper {
     return null;
   }
 
-  static bool _hasLabel(List<Label> labels, Element element) {
+  static bool _hasLabel(List<Label> labels, Element2 element) {
     for (var nodeLabel in labels) {
-      if (identical(nodeLabel.label.staticElement, element)) {
+      if (identical(nodeLabel.label.element, element)) {
         return true;
       }
     }
@@ -604,7 +589,7 @@ class TypeSystemOperations
 
   @override
   bool isExtensionTypeInternal(TypeImpl type) {
-    return type is InterfaceType && type.element is ExtensionTypeElement;
+    return type is InterfaceType && type.element3 is ExtensionTypeElement2;
   }
 
   @override
@@ -617,7 +602,7 @@ class TypeSystemOperations
     return type is InterfaceType &&
         !type.isDartCoreNull &&
         !type.isDartAsyncFutureOr &&
-        type.element is! ExtensionTypeElement;
+        type.element3 is! ExtensionTypeElement2;
   }
 
   @override
@@ -643,9 +628,9 @@ class TypeSystemOperations
 
   @override
   bool isPropertyPromotable(Object property) {
-    if (property is! PropertyAccessorElement) return false;
-    var field = property.variable2;
-    if (field is! FieldElement) return false;
+    if (property is! PropertyAccessorElement2) return false;
+    var field = property.variable3;
+    if (field is! FieldElement2) return false;
     return field.isPromotable;
   }
 
@@ -788,7 +773,7 @@ class TypeSystemOperations
   TypeImpl? matchTypeParameterBoundInternal(TypeImpl type) {
     if (type is TypeParameterTypeImpl &&
         type.nullabilitySuffix == NullabilitySuffix.none) {
-      return type.promotedBound ?? type.element.bound;
+      return type.promotedBound ?? type.element3.bound;
     } else {
       return null;
     }
@@ -848,13 +833,13 @@ class TypeSystemOperations
 
   @override
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
-      covariant ExecutableElement property) {
+      covariant ExecutableElement2 property) {
     if (property.isPublic) return PropertyNonPromotabilityReason.isNotPrivate;
-    if (property is! PropertyAccessorElement) {
+    if (property is! PropertyAccessorElement2) {
       return PropertyNonPromotabilityReason.isNotField;
     }
-    var field = property.variable2;
-    if (field is! FieldElement) {
+    var field = property.variable3;
+    if (field is! FieldElement2) {
       return PropertyNonPromotabilityReason.isNotField;
     }
     if (field.isSynthetic && !property.isSynthetic) {
@@ -1007,7 +992,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     covariant PatternVariableDeclarationImpl node,
   ) {
     for (var variable in node.elements) {
-      assignedVariables.declare(variable.element);
+      assignedVariables.declare(variable);
     }
     super.visitPatternVariableDeclaration(node);
   }

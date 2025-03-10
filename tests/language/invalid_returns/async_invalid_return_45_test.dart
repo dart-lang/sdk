@@ -14,14 +14,14 @@ Future<Future<String>> v = Future.value(Future<String>.value(''));
 FutureOr<String> test1() async {
   return v;
   //     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   // [cfe] A value of type 'Future<Future<String>>' can't be returned from an async function with return type 'FutureOr<String>'.
 }
 
 FutureOr<String> Function() test2 = () async {
   return v;
   //     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE_FROM_CLOSURE
   // [cfe] A value of type 'Future<Future<String>>' can't be returned from an async function with return type 'Future<String>'.
 };
 

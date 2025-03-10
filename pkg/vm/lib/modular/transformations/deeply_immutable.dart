@@ -20,10 +20,7 @@ void validateLibraries(
   CoreTypes coreTypes,
   DiagnosticReporter diagnosticReporter,
 ) {
-  final validator = DeeplyImmutableValidator(
-    coreTypes,
-    diagnosticReporter,
-  );
+  final validator = DeeplyImmutableValidator(coreTypes, diagnosticReporter);
   for (final library in libraries) {
     validator.visitLibrary(library);
   }
@@ -38,11 +35,9 @@ class DeeplyImmutableValidator {
   final Class pragmaClass;
   final Field pragmaName;
 
-  DeeplyImmutableValidator(
-    this.coreTypes,
-    this.diagnosticReporter,
-  )   : pragmaClass = coreTypes.pragmaClass,
-        pragmaName = coreTypes.pragmaName;
+  DeeplyImmutableValidator(this.coreTypes, this.diagnosticReporter)
+    : pragmaClass = coreTypes.pragmaClass,
+      pragmaName = coreTypes.pragmaName;
 
   void visitLibrary(Library library) {
     for (final cls in library.classes) {

@@ -4,8 +4,6 @@
 
 // Class methods and getters and setters can still be named `_`.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 class A<_> {

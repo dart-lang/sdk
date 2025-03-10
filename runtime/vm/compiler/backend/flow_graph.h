@@ -803,8 +803,7 @@ class FlowGraph : public ZoneAllocated {
 
 class LivenessAnalysis : public ValueObject {
  public:
-  LivenessAnalysis(intptr_t variable_count,
-                   const GrowableArray<BlockEntryInstr*>& postorder);
+  LivenessAnalysis(const FlowGraph* flow_graph, const intptr_t variable_count);
 
   void Analyze();
 
@@ -835,18 +834,20 @@ class LivenessAnalysis : public ValueObject {
 
  protected:
   // Compute initial values for live-out, kill and live-in sets.
+  //
+  // It's also responsible for populating [does_block_have_throw] set.
   virtual void ComputeInitialSets() = 0;
 
   // Update live-out set for the given block: live-out should contain
   // all values that are live-in for block's successors.
   // Returns true if live-out set was changed.
-  virtual bool UpdateLiveOut(const BlockEntryInstr& instr);
+  bool UpdateLiveOut(const BlockEntryInstr& instr);
 
   // Update live-in set for the given block: live-in should contain
   // all values that are live-out from the block and are not defined
   // by this block.
   // Returns true if live-in set was changed.
-  virtual bool UpdateLiveIn(const BlockEntryInstr& instr);
+  bool UpdateLiveIn(const BlockEntryInstr& instr);
 
   // Perform fix-point iteration updating live-out and live-in sets
   // for blocks until they stop changing.
@@ -855,6 +856,8 @@ class LivenessAnalysis : public ValueObject {
   Zone* zone() const { return zone_; }
 
   Zone* zone_;
+
+  const FlowGraph* flow_graph_;
 
   const intptr_t variable_count_;
 
@@ -873,6 +876,10 @@ class LivenessAnalysis : public ValueObject {
   // Live-in sets for each block.  They contain indices of variables
   // that are used by this block or its successors.
   GrowableArray<BitVector*> live_in_;
+
+  // Given block's postoroder index indicates whether block has any
+  // instructions that throw.
+  BitVector does_block_have_throw;
 };
 
 class DefinitionWorklist : public ValueObject {

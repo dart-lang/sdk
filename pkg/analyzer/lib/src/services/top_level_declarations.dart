@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
@@ -24,52 +21,10 @@ class TopLevelDeclarations {
 
   /// Return the first public library that exports (but does not necessary
   /// declare) [element].
-  Future<LibraryElement?> publiclyExporting(Element element,
-      {Map<Element, LibraryElement?>? resultCache}) async {
-    if (resultCache?.containsKey(element) ?? false) {
-      return resultCache![element];
-    }
-
-    var declarationFilePath = element.source?.fullName;
-    if (declarationFilePath == null) {
-      return null;
-    }
-
-    var analysisDriver = _analysisContext.driver;
-    var fsState = analysisDriver.fsState;
-    await analysisDriver.discoverAvailableFiles();
-
-    var declarationFile = fsState.getFileForPath(declarationFilePath);
-    var declarationPackage = declarationFile.uriProperties.packageName;
-
-    for (var file in fsState.knownFiles.toList()) {
-      var uri = file.uriProperties;
-      // Only search the package that contains the declaration and its public
-      // libraries.
-      if (uri.packageName != declarationPackage || uri.isSrc) {
-        continue;
-      }
-
-      var elementResult = await analysisDriver.getLibraryByUri(file.uriStr);
-      if (elementResult is! LibraryElementResult) {
-        continue;
-      }
-
-      if (_findElement(elementResult.element, element.displayName)
-              ?.nonSynthetic ==
-          element.nonSynthetic) {
-        resultCache?[element] = elementResult.element;
-        return elementResult.element;
-      }
-    }
-
-    return null;
-  }
-
-  /// Return the first public library that exports (but does not necessary
-  /// declare) [element].
-  Future<LibraryElement2?> publiclyExporting2(Element2 element,
-      {Map<Element2, LibraryElement2?>? resultCache}) async {
+  Future<LibraryElement2?> publiclyExporting(
+    Element2 element, {
+    Map<Element2, LibraryElement2?>? resultCache,
+  }) async {
     if (resultCache?.containsKey(element) ?? false) {
       return resultCache![element];
     }
@@ -100,7 +55,7 @@ class TopLevelDeclarations {
       }
 
       var elementLibrary = elementResult.element2;
-      if (_findElement2(elementLibrary, element.displayName)?.nonSynthetic2 ==
+      if (_findElement(elementLibrary, element.displayName)?.nonSynthetic2 ==
           element.nonSynthetic2) {
         resultCache?[element] = elementLibrary;
         return elementLibrary;
@@ -135,15 +90,15 @@ class TopLevelDeclarations {
         continue;
       }
 
-      addElement2(result, elementResult.element2, baseName);
+      addElement(result, elementResult.element2, baseName);
     }
 
     return result;
   }
 
   static void addElement(
-    Map<LibraryElement, Element> result,
-    LibraryElement libraryElement,
+    Map<LibraryElement2, Element2> result,
+    LibraryElement2 libraryElement,
     String baseName,
   ) {
     var element = _findElement(libraryElement, baseName);
@@ -152,32 +107,12 @@ class TopLevelDeclarations {
     }
   }
 
-  static void addElement2(
-    Map<LibraryElement2, Element2> result,
+  static Element2? _findElement(
     LibraryElement2 libraryElement,
     String baseName,
   ) {
-    var element = _findElement2(libraryElement, baseName);
-    if (element != null) {
-      result[libraryElement] = element;
-    }
-  }
-
-  static Element? _findElement(LibraryElement libraryElement, String name) {
-    var element = libraryElement.exportNamespace.get(name) ??
-        libraryElement.exportNamespace.get('$name=');
-    if (element is PropertyAccessorElement) {
-      var variable = element.variable2;
-      if (variable != null) {
-        return variable;
-      }
-    }
-    return element;
-  }
-
-  static Element2? _findElement2(LibraryElement2 libraryElement, String name) {
-    var element = libraryElement.exportNamespace.get2(name) ??
-        libraryElement.exportNamespace.get2('$name=');
+    var element = libraryElement.exportNamespace.get2(baseName) ??
+        libraryElement.exportNamespace.get2('$baseName=');
     if (element is PropertyAccessorElement2) {
       var variable = element.variable3;
       if (variable != null) {

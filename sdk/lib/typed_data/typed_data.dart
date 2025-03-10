@@ -15,7 +15,6 @@ library dart.typed_data;
 
 import "dart:_internal" show Since, UnmodifiableListBase;
 
-@Since("2.10")
 export "dart:_internal" show BytesBuilder;
 
 /// A sequence of bytes underlying a typed data object.
@@ -504,7 +503,6 @@ abstract final class ByteData implements TypedData {
   /// is the same as the [List.length] of a typed data list.
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
-  @Since("2.8")
   factory ByteData.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -813,7 +811,6 @@ abstract final class Int8List implements _TypedIntList {
   /// is the same as the [List.length] of a typed data list.
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
-  @Since("2.8")
   factory Int8List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -938,7 +935,6 @@ abstract final class Uint8List implements _TypedIntList {
   /// is the same as the [List.length] of a typed data list.
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
-  @Since("2.8")
   factory Uint8List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1207,7 +1203,6 @@ abstract final class Int16List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of two.
-  @Since("2.8")
   factory Int16List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1347,7 +1342,6 @@ abstract final class Uint16List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of two.
-  @Since("2.8")
   factory Uint16List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1486,7 +1480,6 @@ abstract final class Int32List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of four.
-  @Since("2.8")
   factory Int32List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1626,7 +1619,6 @@ abstract final class Uint32List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of four.
-  @Since("2.8")
   factory Uint32List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1765,7 +1757,6 @@ abstract final class Int64List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of eight.
-  @Since("2.8")
   factory Int64List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -1905,7 +1896,6 @@ abstract final class Uint64List implements _TypedIntList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of eight.
-  @Since("2.8")
   factory Uint64List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2045,7 +2035,6 @@ abstract final class Float32List implements _TypedFloatList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of four.
-  @Since("2.8")
   factory Float32List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2178,7 +2167,6 @@ abstract final class Float64List implements _TypedFloatList {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of eight.
-  @Since("2.8")
   factory Float64List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2311,7 +2299,6 @@ abstract final class Float32x4List
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of sixteen.
-  @Since("2.8")
   factory Float32x4List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2452,7 +2439,6 @@ abstract final class Int32x4List implements TypedDataList<Int32x4>, TypedData {
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of sixteen.
-  @Since("2.8")
   factory Int32x4List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
@@ -2603,7 +2589,6 @@ abstract final class Float64x2List
   ///
   /// The start and end indices of the range of bytes being viewed must be
   /// multiples of sixteen.
-  @Since("2.8")
   factory Float64x2List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(

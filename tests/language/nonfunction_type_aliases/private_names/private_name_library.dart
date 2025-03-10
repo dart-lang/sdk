@@ -49,7 +49,8 @@ typedef PublicGenericClassOfInt = _PrivateGenericClass<int>;
 
 // Helper methods to do virtual calls on instances of _PrivateClass in this
 // library context.
-int callPrivateInstanceMethod(_PrivateClass other) => other._privateInstanceMethod();
+int callPrivateInstanceMethod(_PrivateClass other) =>
+    other._privateInstanceMethod();
 int callInstanceMethod(_PrivateClass other) => other.instanceMethod();
 int readInstanceField(_PrivateClass other) => other.x;
 
@@ -74,7 +75,7 @@ mixin _PrivateSuperMixin on PublicClass {
 
 // Call the private SuperMixinMethod
 int callPrivateSuperMixinMethod(_PrivateSuperMixin other) =>
-other._privateMixinMethod();
+    other._privateMixinMethod();
 
 // Export the private super-mixin.
 typedef PublicSuperMixin = _PrivateSuperMixin;

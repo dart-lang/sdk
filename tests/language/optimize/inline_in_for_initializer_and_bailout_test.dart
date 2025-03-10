@@ -19,6 +19,6 @@ main() {
   // Make [main] recursive to force a bailout version.
   if (false) main();
   int i = 0;
-  for (i = inlineMe(); i < 42; i++);
+  for (i = inlineMe(); i < 42; i++) ;
   Expect.equals(42, i);
 }

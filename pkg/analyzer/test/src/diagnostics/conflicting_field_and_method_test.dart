@@ -41,6 +41,7 @@ class B extends A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inSuper_getter_withAugmentation_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -67,6 +68,7 @@ augment class B {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inSuper_getter_withAugmentation_inDeclaration() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -136,6 +138,7 @@ enum E with M {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_inMixin_getter_withAugmentation_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -162,6 +165,7 @@ augment enum E {;
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_inMixin_getter_withAugmentation_inDeclaration() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -228,6 +232,7 @@ extension type B(int it) implements A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_inSuper_getter_withAugmentation_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -254,6 +259,7 @@ augment mixin B {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_inSuper_getter_withAugmentation_inDeclaration() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

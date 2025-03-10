@@ -11,15 +11,12 @@ import 'package:vm_service_protos/vm_service_protos.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-int fib(n) {
-  if (n < 0) return 0;
-  if (n == 0) return 1;
-  return fib(n - 1) + fib(n - 2);
-}
-
 void testeeDo() {
   print('Testee doing something.');
-  fib(44);
+  final stopwatch = Stopwatch();
+  stopwatch.start();
+  while (stopwatch.elapsedMilliseconds < 5000) {}
+  stopwatch.stop();
   print('Testee did something.');
 }
 

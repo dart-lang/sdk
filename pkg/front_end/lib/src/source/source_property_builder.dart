@@ -11,7 +11,6 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
-import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -131,6 +130,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAugmentation => _modifiers.isAugment;
 
   @override
@@ -164,18 +164,21 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
           writeTarget as Annotatable
       ];
 
+  // Coverage-ignore(suite): Not run.
   // TODO(johnniwinther): Remove this. This is only needed for detecting patches
   // and macro annotations and we should use the fragment directly once
   // augmentations are fragments.
   List<MetadataBuilder>? get metadata =>
       _introductoryGetable?.metadata ??
-      _introductorySetable
-          // Coverage-ignore(suite): Not run.
-          ?.metadata ??
+      _introductorySetable?.metadata ??
       _introductoryField?.metadata;
 
   @override
-  void applyAugmentation(Builder augmentation) {
+  void addAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
+  }
+
+  void _addAugmentation(Builder augmentation) {
     if (augmentation is SourcePropertyBuilder) {
       if (checkAugmentation(
           augmentationLibraryBuilder: augmentation.libraryBuilder,
@@ -183,8 +186,11 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
           augmentation: augmentation)) {
         augmentation._origin = this;
         if (augmentation.isSetter) {
-          SourcePropertyBuilder augmentedBuilder =
-              _setterAugmentations == null ? this : _setterAugmentations!.last;
+          SourcePropertyBuilder augmentedBuilder = _setterAugmentations == null
+              ? this
+              :
+              // Coverage-ignore(suite): Not run.
+              _setterAugmentations!.last;
           augmentation._augmentedBuilder = augmentedBuilder;
           augmentation._augmentationIndex =
               augmentedBuilder._augmentationIndex + 1;
@@ -208,6 +214,12 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
           origin: this,
           augmentation: augmentation);
     }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void applyAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
   }
 
   @override
@@ -235,6 +247,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   Map<SourcePropertyBuilder, AugmentSuperTarget?> _augmentedProcedures = {};
 
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? _createAugmentSuperTarget(
       SourcePropertyBuilder? targetBuilder) {
     if (targetBuilder == null) return null;
@@ -244,7 +257,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       if (declaredSetter == null) return null;
 
       if (declaredSetter.isAbstract || declaredSetter.isExternal) {
-        // Coverage-ignore-block(suite): Not run.
         return targetBuilder._augmentedBuilder != null
             ? _getAugmentSuperTarget(targetBuilder._augmentedBuilder!)
             : null;
@@ -273,7 +285,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       if (declaredGetter == null) return null;
 
       if (declaredGetter.isAbstract || declaredGetter.isExternal) {
-        // Coverage-ignore-block(suite): Not run.
         return targetBuilder._augmentedBuilder != null
             ? _getAugmentSuperTarget(targetBuilder._augmentedBuilder!)
             : null;
@@ -299,6 +310,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? _getAugmentSuperTarget(
       SourcePropertyBuilder augmentation) {
     return _augmentedProcedures[augmentation] ??=
@@ -306,6 +318,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget =>
       origin._getAugmentSuperTarget(this);
 
@@ -316,6 +329,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       void addAugmentedProcedure(SourcePropertyBuilder builder) {
         Procedure? augmentedGetter = builder._augmentedGetter;
         if (augmentedGetter != null) {
+          // Coverage-ignore-block(suite): Not run.
           augmentedGetter
             ..fileOffset = builder._introductoryGetable!.readTarget.fileOffset
             ..fileEndOffset =
@@ -343,6 +357,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       void addAugmentedProcedure(SourcePropertyBuilder builder) {
         Procedure? augmentedSetter = builder._augmentedSetter;
         if (augmentedSetter != null) {
+          // Coverage-ignore-block(suite): Not run.
           augmentedSetter
             ..fileOffset = builder._introductorySetable!.writeTarget.fileOffset
             ..fileEndOffset =
@@ -379,6 +394,28 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     _introductorySetable?.buildOutlineNode(
         libraryBuilder, _nameScheme, f, _references as SetterReference,
         classTypeParameters: classBuilder?.cls.typeParameters);
+    List<SourcePropertyBuilder>? getterAugmentations = _getterAugmentations;
+    if (getterAugmentations != null) {
+      for (SourcePropertyBuilder augmentation in getterAugmentations) {
+        augmentation.buildOutlineNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          // Don't add augmentations.
+        });
+      }
+    }
+    List<SourcePropertyBuilder>? setterAugmentations = _setterAugmentations;
+    if (setterAugmentations != null) {
+      for (SourcePropertyBuilder augmentation in setterAugmentations) {
+        augmentation.buildOutlineNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          // Don't add augmentations.
+        });
+      }
+    }
   }
 
   bool hasBuiltOutlineExpressions = false;
@@ -387,13 +424,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      LookupScope parentScope =
-          declarationBuilder?.scope ?? libraryBuilder.scope;
       _introductoryField?.buildOutlineExpressions(
           classHierarchy,
           libraryBuilder,
           declarationBuilder,
-          parentScope,
           [
             readTarget as Annotatable,
             if (writeTarget != null && readTarget != writeTarget)
@@ -401,22 +435,28 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
           ],
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
-      _introductoryGetable?.buildOutlineExpressions(
-          classHierarchy,
-          libraryBuilder,
-          declarationBuilder,
-          parentScope,
-          readTarget as Annotatable,
+      _introductoryGetable?.buildOutlineExpressions(classHierarchy,
+          libraryBuilder, declarationBuilder, readTarget as Annotatable,
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
-      _introductorySetable?.buildOutlineExpressions(
-          classHierarchy,
-          libraryBuilder,
-          declarationBuilder,
-          parentScope,
-          writeTarget as Annotatable,
+      _introductorySetable?.buildOutlineExpressions(classHierarchy,
+          libraryBuilder, declarationBuilder, writeTarget as Annotatable,
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
+      List<SourcePropertyBuilder>? getterAugmentations = _getterAugmentations;
+      if (getterAugmentations != null) {
+        for (SourcePropertyBuilder augmentation in getterAugmentations) {
+          augmentation.buildOutlineExpressions(
+              classHierarchy, delayedDefaultValueCloners);
+        }
+      }
+      List<SourcePropertyBuilder>? setterAugmentations = _setterAugmentations;
+      if (setterAugmentations != null) {
+        for (SourcePropertyBuilder augmentation in setterAugmentations) {
+          augmentation.buildOutlineExpressions(
+              classHierarchy, delayedDefaultValueCloners);
+        }
+      }
       hasBuiltOutlineExpressions = true;
     }
   }
@@ -547,6 +587,20 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     }
     if (_introductorySetable != null) {
       count += _introductorySetable!.computeDefaultTypes(context);
+    }
+    List<SourcePropertyBuilder>? getterAugmentations = _getterAugmentations;
+    if (getterAugmentations != null) {
+      for (SourcePropertyBuilder augmentation in getterAugmentations) {
+        count += augmentation.computeDefaultTypes(context,
+            inErrorRecovery: inErrorRecovery);
+      }
+    }
+    List<SourcePropertyBuilder>? setterAugmentations = _setterAugmentations;
+    if (setterAugmentations != null) {
+      for (SourcePropertyBuilder augmentation in setterAugmentations) {
+        count += augmentation.computeDefaultTypes(context,
+            inErrorRecovery: inErrorRecovery);
+      }
     }
     return count;
   }

@@ -9,7 +9,8 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AugmentationModifierMissingTest);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(AugmentationModifierMissingTest);
   });
 }
 

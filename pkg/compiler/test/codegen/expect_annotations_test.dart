@@ -58,7 +58,7 @@ runTest() async {
       results.globalLocalsMap,
       function,
       (Local parameter) {
-        AbstractValue type = results.resultOfParameter(parameter);
+        AbstractValue type = results.resultOfParameter(parameter, function);
         Expect.equals(
           expectedParameterType,
           simplify(type, commonMasks),

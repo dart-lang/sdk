@@ -2392,4 +2392,12 @@ class Listener implements UnescapeErrorListener {
   void handlePatternAssignment(Token equals) {
     logEvent("PatternAssignment");
   }
+
+  void handleDotShorthandContext(Token token) {
+    logEvent("DotShorthandContext");
+  }
+
+  void handleDotShorthandHead(Token token) {
+    logEvent('DotShorthandHead');
+  }
 }

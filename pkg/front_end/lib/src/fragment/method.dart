@@ -32,6 +32,11 @@ class MethodFragment implements Fragment, FunctionFragment {
   /// The declared type parameters on this method.
   final List<NominalParameterBuilder>? declaredTypeParameters;
 
+  /// The scope in which the method is declared.
+  ///
+  /// This is the scope used for resolving the [metadata].
+  final LookupScope enclosingScope;
+
   /// The scope that introduces type parameters on this method.
   ///
   /// This is based on [typeParameterNameSpace] and initially this contains only
@@ -47,28 +52,35 @@ class MethodFragment implements Fragment, FunctionFragment {
   final AsyncMarker asyncModifier;
   final String? nativeMethodName;
 
+  final DeclarationFragment? enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
   SourceMethodBuilder? _builder;
 
   late final _MethodEncoding _encoding;
 
-  MethodFragment(
-      {required this.name,
-      required this.fileUri,
-      required this.startOffset,
-      required this.nameOffset,
-      required this.formalsOffset,
-      required this.endOffset,
-      required this.isTopLevel,
-      required this.metadata,
-      required this.modifiers,
-      required this.returnType,
-      required this.declaredTypeParameters,
-      required this.typeParameterNameSpace,
-      required this.typeParameterScope,
-      required this.declaredFormals,
-      required this.isOperator,
-      required this.asyncModifier,
-      required this.nativeMethodName});
+  MethodFragment({
+    required this.name,
+    required this.fileUri,
+    required this.startOffset,
+    required this.nameOffset,
+    required this.formalsOffset,
+    required this.endOffset,
+    required this.isTopLevel,
+    required this.metadata,
+    required this.modifiers,
+    required this.returnType,
+    required this.declaredTypeParameters,
+    required this.typeParameterNameSpace,
+    required this.enclosingScope,
+    required this.typeParameterScope,
+    required this.declaredFormals,
+    required this.isOperator,
+    required this.asyncModifier,
+    required this.nativeMethodName,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  });
 
   @override
   SourceMethodBuilder get builder {
@@ -112,17 +124,11 @@ class MethodFragment implements Fragment, FunctionFragment {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _encoding.buildOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        declarationBuilder,
-        parentScope,
-        createBodyBuilderContext(),
-        annotatable,
+    _encoding.buildOutlineExpressions(classHierarchy, libraryBuilder,
+        declarationBuilder, createBodyBuilderContext(), annotatable,
         isClassInstanceMember: isClassInstanceMember,
         createFileUriExpression: createFileUriExpression);
   }
@@ -283,8 +289,13 @@ class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
-        declarationBuilder, unboundNominalParameters,
-        fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+        declarationBuilder: declarationBuilder,
+        extensionTypeParameterFragments:
+            fragment.enclosingDeclaration!.typeParameters,
+        unboundNominalParameters: unboundNominalParameters,
+        onTypeBuilder: declarationBuilder.onType,
+        fileUri: fragment.fileUri,
+        fileOffset: fragment.nameOffset);
     return fragment.isOperator
         ? new _ExtensionInstanceOperatorEncoding(fragment,
             signature.clonedDeclarationTypeParameters, signature.thisFormal)
@@ -317,8 +328,12 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
         new SynthesizedExtensionTypeSignature(
-            declarationBuilder, unboundNominalParameters,
-            fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+            extensionTypeDeclarationBuilder: declarationBuilder,
+            extensionTypeTypeParameters:
+                fragment.enclosingDeclaration!.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            fileUri: fragment.fileUri,
+            fileOffset: fragment.nameOffset);
     return fragment.isOperator
         ? new _ExtensionTypeInstanceOperatorEncoding(fragment,
             signature.clonedDeclarationTypeParameters, signature.thisFormal)
@@ -357,7 +372,6 @@ sealed class _MethodEncoding implements InferredTypeListener {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
@@ -453,13 +467,16 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
+    _buildMetadataForOutlineExpressions(
+        libraryBuilder,
+        _fragment.enclosingScope,
+        bodyBuilderContext,
+        annotatable,
+        _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
     _buildTypeParametersForOutlineExpressions(
@@ -470,6 +487,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
         _fragment.declaredTypeParameters);
     _buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
   }
 
@@ -947,13 +965,16 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
+    _buildMetadataForOutlineExpressions(
+        libraryBuilder,
+        _fragment.enclosingScope,
+        bodyBuilderContext,
+        annotatable,
+        _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
 
@@ -965,6 +986,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
         _fragment.declaredTypeParameters);
     _buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
 
     _buildTypeParametersForOutlineExpressions(
@@ -975,6 +997,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
         _clonedDeclarationTypeParameters);
     _buildFormalForOutlineExpressions(
         libraryBuilder, declarationBuilder, _thisFormal,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
   }
 
@@ -1276,7 +1299,7 @@ class _MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   TypeBuilder get returnType => _fragment.returnType;
 
   @override
-  void setBody(Statement body) {
+  void registerFunctionBody(Statement body) {
     function.body = body..parent = function;
   }
 
@@ -1300,6 +1323,7 @@ class _MethodFragmentBodyBuilderContext extends BodyBuilderContext {
       _fragment._encoding.getTearOffParameter(index);
 
   @override
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget {
     if (_fragment.builder.isAugmentation) {
       return _fragment.builder.augmentSuperTarget;

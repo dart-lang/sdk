@@ -5,8 +5,8 @@
 main() {
   for (final i in [1, 2, 3]) {
     i = 4;
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
-// [cfe] Can't assign to the final variable 'i'.
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Can't assign to the final variable 'i'.
   }
 }

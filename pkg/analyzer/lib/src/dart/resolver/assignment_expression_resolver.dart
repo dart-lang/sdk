@@ -40,7 +40,7 @@ class AssignmentExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(AssignmentExpressionImpl node, {required DartType contextType}) {
+  void resolve(AssignmentExpressionImpl node, {required TypeImpl contextType}) {
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
@@ -116,9 +116,9 @@ class AssignmentExpressionResolver {
   }
 
   void _checkForInvalidAssignment(
-    DartType writeType,
+    TypeImpl writeType,
     Expression right,
-    DartType rightType, {
+    TypeImpl rightType, {
     required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (writeType is! VoidType && _checkForUseOfVoidResult(right)) {
@@ -131,10 +131,10 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    if (writeType is RecordType &&
+    if (writeType is RecordTypeImpl &&
         writeType.positionalFields.length == 1 &&
         rightType is! RecordType &&
-        right is ParenthesizedExpression) {
+        right is ParenthesizedExpressionImpl) {
       var field = writeType.positionalFields.first;
       if (_typeSystem.isAssignableTo(field.type, rightType,
           strictCasts: strictCasts)) {
@@ -197,13 +197,7 @@ class AssignmentExpressionResolver {
           var parameters = method.formalParameters;
           if (parameters.isNotEmpty) {
             return _typeSystem.refineNumericInvocationContext2(
-                leftType,
-                method,
-                leftType,
-                // TODO(paulberry): eliminate this cast by changing the type of
-                // `MethodElementOrMember.parameters` to
-                // `List<ParameterElementMixin>`.
-                parameters[0].type as TypeImpl);
+                leftType, method, leftType, parameters[0].type);
           }
         }
         return UnknownInferredType.instance;
@@ -252,7 +246,7 @@ class AssignmentExpressionResolver {
       propertyErrorEntity: operator,
       nameErrorEntity: operator,
     );
-    node.element = result.getter2 as MethodElement2?;
+    node.element = result.getter2 as MethodElement2OrMember?;
     if (result.needsGetterError) {
       _errorReporter.atToken(
         operator,
@@ -265,8 +259,8 @@ class AssignmentExpressionResolver {
   void _resolveTypes(AssignmentExpressionImpl node,
       {required Map<SharedTypeView, NonPromotionReason> Function()?
           whyNotPromoted,
-      required DartType contextType}) {
-    DartType assignedType;
+      required TypeImpl contextType}) {
+    TypeImpl assignedType;
 
     var rightHandSide = node.rightHandSide;
     var operator = node.operator.type;
@@ -284,7 +278,7 @@ class AssignmentExpressionResolver {
         assignedType = DynamicTypeImpl.instance;
       } else if (operatorElement != null) {
         var rightType = rightHandSide.typeOrThrow;
-        assignedType = _typeSystem.refineBinaryExpressionType2(
+        assignedType = _typeSystem.refineBinaryExpressionType(
           leftType,
           operator,
           rightType,
@@ -307,11 +301,7 @@ class AssignmentExpressionResolver {
       var t2 = assignedType;
       //   - Let `T` be `UP(NonNull(T1), T2)`.
       var nonNullT1 = _typeSystem.promoteToNonNull(t1);
-      var t = _typeSystem.leastUpperBound(
-          nonNullT1,
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `assignedType`.
-          t2 as TypeImpl);
+      var t = _typeSystem.leastUpperBound(nonNullT1, t2);
       //   - Let `S` be the greatest closure of `K`.
       var s = _typeSystem.greatestClosureOfSchema(contextType);
       // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.

@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::Object o = #C1;
+}
+
+constants  {
+  #C1 = static-tearoff core::Object::hash
+}

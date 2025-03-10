@@ -6,11 +6,6 @@
 # make sure to regenerate supporting classes by running:
 #
 #     dart run pkg/linter/tool/generate_lints.dart
-#
-# If you updated or added a `documentation` property,
-# make sure to regenerate the documentation by running:
-#
-#     dart run pkg/analyzer/tool/diagnostics/generate.dart
 
 # There is a fixed set of categories:
 #
@@ -1254,7 +1249,7 @@ LintCode:
 
       **This rule is experimental.** It is being evaluated, and it may be changed
       or removed. Feedback on its behavior is welcome! The main issue is here:
-      https://github.com/dart-lang/linter/issues/4622
+      https://github.com/dart-lang/sdk/issues/59232.
   avoid_implementing_value_types:
     problemMessage: "Classes that override '==' should not be implemented."
     correctionMessage: "Try removing the class from the 'implements' clause."
@@ -2903,7 +2898,7 @@ LintCode:
       **Known limitations**
 
       This rule does not track all patterns of StreamSubscription instantiations and
-      cancellations. See [linter#317](https://github.com/dart-lang/linter/issues/317)
+      cancellations. See [linter#317](https://github.com/dart-lang/sdk/issues/57387)
       for more information.
   cascade_invocations:
     problemMessage: "Unnecessary duplication of receiver."
@@ -3066,7 +3061,7 @@ LintCode:
       **Known limitations**
 
       This rule does not track all patterns of Sink instantiations and
-      closures. See [linter#1381](https://github.com/dart-lang/linter/issues/1381)
+      closures. See [sdk#57882](https://github.com/dart-lang/sdk/issues/57882)
       for more information.
   collection_methods_unrelated_type:
     problemMessage: "The argument type '{0}' isn't related to '{1}'."
@@ -3248,7 +3243,7 @@ LintCode:
       comment references, which is occasionally distinct from Dartdoc's notion of
       comment references. The lint rule may report comment references which Dartdoc
       can resolve, even though the analyzer cannot. See
-      [linter#1142](https://github.com/dart-lang/linter/issues/1142) for more
+      [sdk#57783](https://github.com/dart-lang/sdk/issues/57783) for more
       information.
   conditional_uri_does_not_exist:
     problemMessage: "The target of the conditional URI '{0}' doesn't exist."
@@ -7173,7 +7168,7 @@ LintCode:
 
       **This rule is experimental.** It is being evaluated, and it may be changed
       or removed. Feedback on its behavior is welcome! The main issue is here:
-      https://github.com/dart-lang/linter/issues/3480.
+      https://github.com/dart-lang/sdk/issues/58773.
   omit_obvious_property_types:
     problemMessage: "The type annotation isn't needed because it is obvious."
     correctionMessage: "Try removing the type annotation."
@@ -7224,7 +7219,7 @@ LintCode:
 
       **This rule is experimental.** It is being evaluated, and it may be changed
       or removed. Feedback on its behavior is welcome! The main issue is here:
-      https://github.com/dart-lang/linter/issues/5101.
+      https://github.com/dart-lang/sdk/issues/59550.
   one_member_abstracts:
     problemMessage: "Unnecessary use of an abstract class."
     correctionMessage: "Try making '{0}' a top-level function and removing the class."
@@ -10793,7 +10788,7 @@ LintCode:
 
       **This rule is experimental.** It is being evaluated, and it may be changed
       or removed. Feedback on its behavior is welcome! The main issue is here:
-      https://github.com/dart-lang/linter/issues/3480.
+      https://github.com/dart-lang/sdk/issues/58773.
   specify_nonobvious_property_types:
     problemMessage: "A type annotation is needed because it isn't obvious."
     correctionMessage: "Try adding a type annotation."
@@ -10863,7 +10858,7 @@ LintCode:
 
       **This rule is experimental.** It is being evaluated, and it may be changed
       or removed. Feedback on its behavior is welcome! The main issue is here:
-      https://github.com/dart-lang/linter/issues/5101.
+      https://github.com/dart-lang/sdk/issues/59550.
   strict_top_level_inference_add_type:
     sharedName: strict_top_level_inference
     problemMessage: "Missing type annotation."
@@ -10871,6 +10866,7 @@ LintCode:
     state:
       stable: "3.7"
     categories: [style]
+    hasPublishedDocs: false
     deprecatedDetails: |-
       Do type annotate top-level and class-like member declarations, where types
       are not inferred from super-interfaces or initializers.
@@ -10913,7 +10909,6 @@ LintCode:
       }
       int _sq(int v) => v * v;
       ```
-    hasPublishedDocs: false
   strict_top_level_inference_replace_keyword:
     sharedName: strict_top_level_inference
     problemMessage: "Missing type annotation."
@@ -11630,7 +11625,7 @@ LintCode:
       /// The type [List<int>]
       /// `<assignment> -> <variable> = <expression>`
       /// \<assignment\> -> \<variable\> = \<expression\>`
-      /// <http://foo.bar.baz>
+      /// <https://example.com/example>
       ```
   unnecessary_async:
     problemMessage: "Don't make a function 'async' if it doesn't use 'await'."
@@ -11792,7 +11787,7 @@ LintCode:
       ```
 
       NOTE: This lint only reports unnecessary breaks in libraries with a
-      [language version](https://dart.dev/guides/language/evolution#language-versioning)
+      [language version](https://dart.dev/resources/language/evolution#language-versioning)
       of 3.0 or greater. Explicit breaks are still required in Dart 2.19 and below.
   unnecessary_const:
     problemMessage: "Unnecessary 'const' keyword."
@@ -12061,16 +12056,17 @@ LintCode:
     state:
       experimental: "3.8"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when an ignore is specified to ignore a diagnostic that isn't produced.
+      The analyzer produces this diagnostic when an ignore is specified to
+      ignore a diagnostic that isn't produced.
 
       #### Example
 
-      The following code produces this diagnostic because the `unused_local_variable`
-      diagnostic isn't reported at the ignored location:
+      The following code produces this diagnostic because the
+      `unused_local_variable` diagnostic isn't reported at the ignored location:
 
       ```dart
       // ignore: [!unused_local_variable!]
@@ -14223,6 +14219,48 @@ LintCode:
       **GOOD:**
       ```dart
       Duration.zero;
+      ```
+  use_null_aware_elements:
+    problemMessage: "Use the null-aware marker '?' rather than a null check via an 'if'."
+    correctionMessage: "Try using '?'."
+    state:
+      stable: "3.8"
+    categories: [brevity, style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a null check is used instead
+      of a null-aware marker inside of a collection literal.
+
+      #### Example
+
+      The following code produces this diagnostic because a null check is used
+      to decide whether `x` should be inserted into the list, while the
+      null-aware marker '?' would be less brittle and less verbose.
+
+      ```dart
+      f(int? x) => [[!if!] (x != null) x];
+      ```
+
+      #### Common fixes
+
+      Replace the null-check with the null-aware marker '?':
+
+      ```dart
+      f(int? x) => [?x];
+      ```
+    deprecatedDetails: |-
+      Where possible, use null-aware elements in collection literals.
+
+      **BAD:**
+      ```dart
+      f(String? key) => {if (key != null) key: "value"};
+      ```
+
+      **GOOD:**
+      ```dart
+      f(String? key) => {?key: "value"};
       ```
   use_raw_strings:
     problemMessage: "Use a raw string to avoid using escapes."

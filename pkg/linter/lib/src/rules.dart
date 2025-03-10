@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: implementation_imports
-import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/registry.dart' // ignore: implementation_imports
+    show Registry;
 
 import 'rules/always_declare_return_types.dart';
 import 'rules/always_put_control_body_on_new_line.dart';
@@ -11,6 +11,7 @@ import 'rules/always_put_required_named_parameters_first.dart';
 import 'rules/always_require_non_null_named_parameters.dart';
 import 'rules/always_specify_types.dart';
 import 'rules/always_use_package_imports.dart';
+import 'rules/analyzer_public_api.dart';
 import 'rules/analyzer_use_new_elements.dart';
 import 'rules/annotate_overrides.dart';
 import 'rules/annotate_redeclares.dart';
@@ -241,6 +242,7 @@ import 'rules/use_is_even_rather_than_modulo.dart';
 import 'rules/use_key_in_widget_constructors.dart';
 import 'rules/use_late_for_private_fields_and_variables.dart';
 import 'rules/use_named_constants.dart';
+import 'rules/use_null_aware_elements.dart';
 import 'rules/use_raw_strings.dart';
 import 'rules/use_rethrow_when_possible.dart';
 import 'rules/use_setters_to_change_properties.dart';
@@ -261,6 +263,7 @@ void registerLintRules() {
     ..registerLintRule(AlwaysRequireNonNullNamedParameters())
     ..registerLintRule(AlwaysSpecifyTypes())
     ..registerLintRule(AlwaysUsePackageImports())
+    ..registerLintRule(AnalyzerPublicApi())
     ..registerLintRule(AnalyzerUseNewElements())
     ..registerLintRule(AnnotateOverrides())
     ..registerLintRule(AnnotateRedeclares())
@@ -491,6 +494,7 @@ void registerLintRules() {
     ..registerLintRule(UseKeyInWidgetConstructors())
     ..registerLintRule(UseLateForPrivateFieldsAndVariables())
     ..registerLintRule(UseNamedConstants())
+    ..registerLintRule(UseNullAwareElements())
     ..registerLintRule(UseRawStrings())
     ..registerLintRule(UseRethrowWhenPossible())
     ..registerLintRule(UseSettersToChangeProperties())

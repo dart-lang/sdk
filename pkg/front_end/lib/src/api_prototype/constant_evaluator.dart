@@ -9,7 +9,6 @@ export '../kernel/constant_evaluator.dart'
         ConstantEvaluator,
         ConstantsTransformer,
         ErrorReporter,
-        EvaluationMode,
         EvaluationEnvironment,
         SimpleErrorReporter,
         transformLibraries;

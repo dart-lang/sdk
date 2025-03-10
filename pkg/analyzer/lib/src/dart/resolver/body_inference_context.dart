@@ -17,7 +17,7 @@ class BodyInferenceContext {
 
   /// The imposed return type, from the typing context.
   /// Might be `null` if an empty typing context.
-  final DartType? imposedType;
+  final TypeImpl? imposedType;
 
   /// The context type, computed from [imposedType].
   /// Might be `null` if an empty typing context.
@@ -96,7 +96,7 @@ class BodyInferenceContext {
     }
   }
 
-  DartType computeInferredReturnType({
+  TypeImpl computeInferredReturnType({
     required bool endOfBlockIsReachable,
   }) {
     var actualReturnedType = _computeActualReturnedType(
@@ -123,7 +123,7 @@ class BodyInferenceContext {
   }
 
   /// Let `T` be the **actual returned type** of a function literal.
-  DartType _clampToContextType(DartType T) {
+  TypeImpl _clampToContextType(TypeImpl T) {
     // Let `R` be the greatest closure of the typing context `K`.
     var R = contextType;
     if (R == null) {
@@ -171,14 +171,9 @@ class BodyInferenceContext {
         .fold(initialType, _typeSystem.leastUpperBound);
   }
 
-  static TypeImpl? _argumentOf(DartType type, InterfaceElement2 element) {
+  static TypeImpl? _argumentOf(TypeImpl type, InterfaceElement2 element) {
     var elementType = type.asInstanceOf2(element);
-    if (elementType != null) {
-      // TODO(paulberry): eliminate this cast by changing the type of the
-      // parameter `element` to `InterfaceElement2`.
-      return elementType.typeArguments[0] as TypeImpl?;
-    }
-    return null;
+    return elementType?.typeArguments[0];
   }
 
   static TypeImpl? _contextTypeForImposed(

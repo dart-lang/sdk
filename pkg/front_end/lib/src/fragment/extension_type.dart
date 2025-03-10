@@ -4,7 +4,8 @@
 
 part of 'fragment.dart';
 
-class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
+class ExtensionTypeFragment extends DeclarationFragmentImpl
+    implements Fragment {
   @override
   final String name;
 
@@ -22,17 +23,20 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
   SourceExtensionTypeDeclarationBuilder? _builder;
 
   ExtensionTypeFragment(
-      this.name,
-      super.fileUri,
-      this.nameOffset,
-      super.typeParameters,
-      super.typeParameterScope,
-      super._nominalParameterNameSpace);
+      {required this.name,
+      required super.fileUri,
+      required this.nameOffset,
+      required super.typeParameters,
+      required super.enclosingScope,
+      required super.typeParameterScope,
+      required super.nominalParameterNameSpace,
+      required super.enclosingCompilationUnit});
 
   @override
   int get fileOffset => nameOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   SourceExtensionTypeDeclarationBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
@@ -42,6 +46,12 @@ class ExtensionTypeFragment extends DeclarationFragment implements Fragment {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
+
+  @override
+  bool get isPatch =>
+      enclosingCompilationUnit.isPatch &&
+      // Coverage-ignore(suite): Not run.
+      modifiers.isAugment;
 
   @override
   void addPrimaryConstructorField(FieldFragment fragment) {

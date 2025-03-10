@@ -16,12 +16,12 @@ class TypeAliasSelfReferenceFinder {
           if (node is FunctionTypeAliasImpl) {
             var finder = _Finder(linker, node);
             finder.functionTypeAlias(node);
-            var fragment = node.declaredFragment as TypeAliasElementImpl;
+            var fragment = node.declaredFragment!;
             fragment.hasSelfReference = finder.hasSelfReference;
           } else if (node is GenericTypeAliasImpl) {
             var finder = _Finder(linker, node);
             finder.genericTypeAlias(node);
-            var fragment = node.declaredFragment as TypeAliasElementImpl;
+            var fragment = node.declaredFragment!;
             fragment.hasSelfReference = finder.hasSelfReference;
           }
         }
@@ -92,7 +92,7 @@ class _Finder {
         return;
       }
 
-      var typeNode = linker.getLinkingNode2(element);
+      var typeNode = linker.getLinkingNode2(element.firstFragment);
       if (typeNode != null) {
         if (typeNode == self) {
           hasSelfReference = true;

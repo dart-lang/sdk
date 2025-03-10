@@ -98,6 +98,7 @@ final ArgParser summaryArgsParser = new ArgParser()
       help: 'Enable a language experiment when invoking the CFE.')
   ..addMultiOption('define', abbr: 'D')
   ..addFlag('verbose', defaultsTo: false)
+  // TODO(jensj): Remove this.
   ..addFlag('sound-null-safety', defaultsTo: true)
   ..addFlag('null-environment', defaultsTo: false, negatable: false)
   ..addOption('verbosity',
@@ -170,9 +171,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       (parsedArgs['source'] as List<String>).map(toUri).toList();
   bool excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
 
-  fe.NnbdMode nnbdMode = parsedArgs['sound-null-safety'] as bool
-      ? fe.NnbdMode.Strong
-      : fe.NnbdMode.Weak;
   bool summaryOnly = parsedArgs['summary-only'] as bool;
   bool summary = parsedArgs['summary'] as bool;
   if (summaryOnly && !summary) {
@@ -184,9 +182,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   // compatible while we migrate existing clients of this tool.
   String targetName =
       (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
-  TargetFlags targetFlags = new TargetFlags(
-      trackWidgetCreation: trackWidgetCreation,
-      soundNullSafety: nnbdMode == fe.NnbdMode.Strong);
+  TargetFlags targetFlags =
+      new TargetFlags(trackWidgetCreation: trackWidgetCreation);
   Target target;
   switch (targetName) {
     case 'vm':
@@ -305,8 +302,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         fileSystem,
         parsedArgs['enable-experiment'] as List<String>,
         nullableEnvironmentDefines,
-        verbose: verbose,
-        nnbdMode: nnbdMode);
+        verbose: verbose);
     UriTranslator uriTranslator = await helper.processedOpts.getUriTranslator();
     _FakeFileSystem fakeFileSystem =
         fileSystem = new _FakeFileSystem(fileSystem);
@@ -356,7 +352,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         nullableEnvironmentDefines!,
         trackNeededDillLibraries: recordUsedInputs,
         verbose: verbose,
-        nnbdMode: nnbdMode,
         requirePrebuiltMacros: parsedArgs['require-prebuilt-macros'],
         precompiledMacros: parsedArgs['precompiled-macro'],
         macroSerializationMode: macroSerializationMode);
@@ -372,8 +367,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         fileSystem,
         parsedArgs['enable-experiment'] as List<String>,
         nullableEnvironmentDefines,
-        verbose: verbose,
-        nnbdMode: nnbdMode);
+        verbose: verbose);
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {

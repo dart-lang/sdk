@@ -16,13 +16,13 @@ class NoUnnamedConstructor extends core::Object {
 }
 abstract class MixMeIn extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _Foo&NoUnnamedConstructor&MixMeIn = self::NoUnnamedConstructor with self::MixMeIn /*isAnonymousMixin*/  {
-  synthetic constructor _() → self::_Foo&NoUnnamedConstructor&MixMeIn
-    : super self::NoUnnamedConstructor::_()
-    ;
-}
 class Foo extends self::_Foo&NoUnnamedConstructor&MixMeIn {
   synthetic constructor •() → self::Foo
     : invalid-initializer
+    ;
+}
+abstract class _Foo&NoUnnamedConstructor&MixMeIn = self::NoUnnamedConstructor with self::MixMeIn /*isAnonymousMixin*/  {
+  synthetic constructor _() → self::_Foo&NoUnnamedConstructor&MixMeIn
+    : super self::NoUnnamedConstructor::_()
     ;
 }

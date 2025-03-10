@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'functions.dart';
+import '../builder/module.dart';
+import '../serialize/serialize.dart';
+import 'ir.dart';
 
 /// A local variable defined in a function.
 class Local {

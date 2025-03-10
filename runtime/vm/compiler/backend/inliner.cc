@@ -1278,7 +1278,7 @@ class CallSiteInliner : public ValueObject {
 
       // Install bailout jump.
       LongJumpScope jump;
-      if (setjmp(*jump.Set()) == 0) {
+      if (DART_SETJMP(*jump.Set()) == 0) {
         // Load IC data for the callee.
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new (Z) ZoneGrowableArray<const ICData*>();

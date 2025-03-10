@@ -11,8 +11,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionElementTest_keepLinking);
     defineReflectiveTests(ExtensionElementTest_fromBytes);
-    defineReflectiveTests(ExtensionElementTest_augmentation_keepLinking);
-    defineReflectiveTests(ExtensionElementTest_augmentation_fromBytes);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(ExtensionElementTest_augmentation_keepLinking);
+    // defineReflectiveTests(ExtensionElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -101,6 +102,10 @@ library
             hasInitializer x @36
               reference: <testLibraryFragment>::@extension::E::@field::x
               element: <testLibraryFragment>::@extension::E::@field::x#element
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 0 @40
+                  staticType: int
               getter2: <testLibraryFragment>::@extension::E::@getter::x
           getters
             synthetic get x
@@ -114,6 +119,9 @@ library
         static const hasInitializer x
           firstFragment: <testLibraryFragment>::@extension::E::@field::x
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@extension::E::@field::x
+            expression: expression_0
           getter: <testLibraryFragment>::@extension::E::@getter::x#element
       getters
         synthetic static get x
@@ -323,6 +331,10 @@ library
             hasInitializer foo @65
               reference: <testLibraryFragment>::@extension::E::@field::foo
               element: <testLibraryFragment>::@extension::E::@field::foo#element
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 1 @71
+                  staticType: int
               getter2: <testLibraryFragment>::@extension::E::@getter::foo
           getters
             synthetic get foo
@@ -346,6 +358,10 @@ library
         hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
+          initializer: expression_1
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
           getter2: <testLibraryFragment>::@getter::foo
       getters
         synthetic get foo
@@ -371,6 +387,9 @@ library
         static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@extension::E::@field::foo
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@extension::E::@field::foo
+            expression: expression_0
           getter: <testLibraryFragment>::@extension::E::@getter::foo#element
       getters
         synthetic static get foo
@@ -394,6 +413,9 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::foo
+        expression: expression_1
       getter: <testLibraryFragment>::@getter::foo#element
   getters
     synthetic static get foo
@@ -488,6 +510,10 @@ library
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            NullLiteral
+              literal: null @10
+              staticType: Null
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -509,6 +535,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -1018,7 +1047,7 @@ library
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -1194,7 +1223,7 @@ library
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -1388,7 +1417,7 @@ library
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -1583,7 +1612,7 @@ library
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
@@ -1750,7 +1779,7 @@ library
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -2037,7 +2066,7 @@ library
               reference: <testLibraryFragment>::@extension::A::@setter::foo1
               element: <testLibraryFragment>::@extension::A::@setter::foo1#element
               formalParameters
-                <null-name>
+                _foo1
                   element: <testLibraryFragment>::@extension::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -2063,7 +2092,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
               formalParameters
-                <null-name>
+                _foo2
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2::@parameter::_foo2#element
   extensions
     extension A
@@ -2498,7 +2527,7 @@ library
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -2674,7 +2703,7 @@ library
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -3999,7 +4028,7 @@ library
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extension::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart

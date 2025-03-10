@@ -10,7 +10,7 @@ class C<T, U> {}
 
 main() {
   C<int> f() => throw "uncalled";
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
-// [cfe] Expected 2 type arguments.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+  // [cfe] Expected 2 type arguments.
 }

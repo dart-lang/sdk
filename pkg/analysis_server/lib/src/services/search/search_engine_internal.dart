@@ -35,7 +35,8 @@ class SearchEngineImpl implements SearchEngine {
             _searchDirectSubtypes(type, searchEngineCache, performance),
       );
       for (var directResult in directResults) {
-        var directSubtype = directResult.enclosingElement2 as InterfaceElement2;
+        var directSubtype =
+            directResult.enclosingFragment.element as InterfaceElement2;
         if (allSubtypes.add(directSubtype)) {
           await addSubtypes(directSubtype);
         }
@@ -124,7 +125,7 @@ class SearchEngineImpl implements SearchEngine {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
     for (var driver in drivers) {
-      var elements = await driver.search.classMembers2(name, searchedFiles);
+      var elements = await driver.search.classMembers(name, searchedFiles);
       allDeclarations.addAll(elements.map(SearchMatchImpl.forElement));
     }
     return allDeclarations;
@@ -161,7 +162,7 @@ class SearchEngineImpl implements SearchEngine {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
     for (var driver in drivers) {
-      var results = await driver.search.references2(element, searchedFiles);
+      var results = await driver.search.references(element, searchedFiles);
       allResults.addAll(results);
     }
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
@@ -194,7 +195,7 @@ class SearchEngineImpl implements SearchEngine {
     var regExp = RegExp(pattern);
     var drivers = _drivers.toList();
     for (var driver in drivers) {
-      var elements = await driver.search.topLevelElements2(regExp);
+      var elements = await driver.search.topLevelElements(regExp);
       allElements.addAll(elements);
     }
     return allElements.map(SearchMatchImpl.forElement).toList();
@@ -264,10 +265,10 @@ class SearchMatchImpl implements SearchMatch {
   final Source unitSource;
 
   @override
-  final LibraryElement2 libraryElement2;
+  final LibraryElement2 libraryElement;
 
   @override
-  final Element2 element2;
+  final Element2 element;
 
   @override
   final bool isResolved;
@@ -285,8 +286,8 @@ class SearchMatchImpl implements SearchMatch {
     this.file,
     this.librarySource,
     this.unitSource,
-    this.libraryElement2,
-    this.element2,
+    this.libraryElement,
+    this.element,
     this.isResolved,
     this.isQualified,
     this.kind,
@@ -336,7 +337,7 @@ class SearchMatchImpl implements SearchMatch {
       libraryFragment.element.firstFragment.source,
       libraryFragment.source,
       libraryFragment.element,
-      result.enclosingElement2,
+      result.enclosingFragment.element,
       result.isResolved,
       result.isQualified,
       toMatchKind(result.kind),

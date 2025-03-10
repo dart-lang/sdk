@@ -2817,7 +2817,13 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
   // read flags.
   const uint8_t flags = ReadFlags();
-  const bool is_invariant = (flags & kInstanceInvocationFlagInvariant) != 0;
+  bool is_invariant = false;
+  bool is_implicit_call = false;
+  if (is_dynamic) {
+    is_implicit_call = (flags & kDynamicInvocationFlagImplicitCall) != 0;
+  } else {
+    is_invariant = (flags & kInstanceInvocationFlagInvariant) != 0;
+  }
 
   const TokenPosition position = ReadPosition();  // read position.
   if (p != nullptr) *p = position;
@@ -2936,13 +2942,16 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
   //     at the entry because the parameter is marked covariant, neither of
   //     those cases require a dynamic invocation forwarder.
   const Function* direct_call_target = &direct_call.target_;
-  if (H.IsRoot(itarget_name) &&
-      (name.ptr() != Symbols::EqualOperator().ptr())) {
+  if (is_dynamic && (name.ptr() != Symbols::EqualOperator().ptr())) {
     mangled_name = &String::ZoneHandle(
         Z, Function::CreateDynamicInvocationForwarderName(name));
     if (!direct_call_target->IsNull()) {
       direct_call_target = &Function::ZoneHandle(
           direct_call_target->GetDynamicInvocationForwarder(*mangled_name));
+    }
+    if (is_implicit_call) {
+      ASSERT(mangled_name->ptr() == Symbols::DynamicCall().ptr());
+      mangled_name = &Symbols::DynamicImplicitCall();
     }
   }
 

@@ -16,18 +16,32 @@ final initializeApi = ffiTestFunctions.lookupFunction<
   int Function(Pointer<Void>)
 >("InitDartApiDL");
 final enterBarrier = ffiTestFunctions
-    .lookupFunction<Void Function(IntPtr), void Function(int)>(
+    .lookupFunction<Void Function(IntPtr, Bool), void Function(int, bool)>(
       "WaitUntilNThreadsEnterBarrier",
     );
 
 main() async {
-  const threadBarrierCount = 30;
-
   initializeApi(NativeApi.initializeApiDLData);
 
+  const threadBarrierCount = 30;
+
+  // The threads may explicitly decrease the mutator count by using
+  //   * Dart_ExitIsolate()
+  //   * block and
+  //   * Dart_EnterIsolate()
+  await testNativeBarrier(threadBarrierCount, true);
+
+  // The threads may not explicitly exit the isolate but the VM may implicitly
+  // (when entering an isolate for execution) kick other threads out of the
+  // mutator count (by making them implicitly go to slow path when trying to
+  // leave a safepoint).
+  await testNativeBarrier(threadBarrierCount, false);
+}
+
+Future testNativeBarrier(int count, bool exitAndReenterIsolate) async {
   final all = <Future>[];
-  for (int i = 0; i < threadBarrierCount; ++i) {
-    all.add(Isolate.run(() => enterBarrier(threadBarrierCount)));
+  for (int i = 0; i < count; ++i) {
+    all.add(Isolate.run(() => enterBarrier(count, true)));
   }
   await Future.wait(all);
 }

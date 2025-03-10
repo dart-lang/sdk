@@ -17,9 +17,8 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_FINAL_FIELD;
@@ -52,6 +51,15 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
     var getterElement = getter.declaredFragment?.element;
     if (getterElement is! GetterElement) {
       return;
+    }
+
+    // The getter must not be in an extension or extension type unless it is
+    // static.
+    if (!getterElement.isStatic) {
+      switch (getterElement.enclosingElement2) {
+        case ExtensionElement2() || ExtensionTypeElement2():
+          return;
+      }
     }
 
     var variable = getterElement.variable3;

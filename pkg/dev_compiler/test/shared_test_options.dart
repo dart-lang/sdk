@@ -58,7 +58,6 @@ class SetupCompilerOptions {
       ..sdkSummary = buildRoot.resolve('ddc_outline.dill')
       ..environmentDefines =
           addGeneratedVariables({}, enableAsserts: enableAsserts)
-      ..nnbdMode = fe.NnbdMode.Strong
       ..explicitExperimentalFlags = fe.parseExperimentalFlags(
           fe.parseExperimentalArguments(enableExperiments),
           onError: (e) => throw e);

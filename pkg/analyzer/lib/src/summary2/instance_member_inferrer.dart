@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/util/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// An object used to infer the type of instance fields and the return types of
@@ -51,8 +52,10 @@ class InstanceMemberInferrer {
   /// Given a method, return the parameter in the method that corresponds to the
   /// given [parameter]. If the parameter is positional, then it appears at the
   /// given [index] in its enclosing element's list of parameters.
-  ParameterElement? _getCorrespondingParameter(ParameterElement parameter,
-      int index, List<ParameterElement> methodParameters) {
+  ParameterElementMixin? _getCorrespondingParameter(
+      ParameterElementMixin parameter,
+      int index,
+      List<ParameterElementMixin> methodParameters) {
     //
     // Find the corresponding parameter.
     //
@@ -61,10 +64,8 @@ class InstanceMemberInferrer {
       // If we're looking for a named parameter, only a named parameter with
       // the same name will be matched.
       //
-      return methodParameters.lastWhereOrNull(
-          (ParameterElement methodParameter) =>
-              methodParameter.isNamed &&
-              methodParameter.name == parameter.name);
+      return methodParameters.lastWhereOrNull((methodParameter) =>
+          methodParameter.isNamed && methodParameter.name == parameter.name);
     }
     //
     // If we're looking for a positional parameter we ignore the difference
@@ -114,7 +115,7 @@ class InstanceMemberInferrer {
     );
     if (overriddenGetters != null) {
       overriddenGetters = overriddenGetters.where((e) {
-        return e is PropertyAccessorElement && e.isGetter;
+        return e is PropertyAccessorElementOrMember && e.isGetter;
       }).toList();
     } else {
       overriddenGetters = const [];
@@ -150,9 +151,7 @@ class InstanceMemberInferrer {
       if (combinedSetter != null) {
         var parameters = combinedSetter.parameters;
         if (parameters.isNotEmpty) {
-          // TODO(paulberry): eliminate this cast by changing the return type of
-          // `InheritanceManager3.combineSignatures`.
-          return parameters[0].type as TypeImpl;
+          return parameters[0].type;
         }
       }
       return DynamicTypeImpl.instance;
@@ -294,19 +293,19 @@ class InstanceMemberInferrer {
   }
 
   /// Infer type information for all of the instance members in the given
-  /// [classElement].
-  void _inferClass(InterfaceElementImpl classElement) {
-    if (classElement.isAugmentation) {
+  /// [classFragment].
+  void _inferClass(InterfaceElementImpl classFragment) {
+    if (classFragment.isAugmentation) {
       return;
     }
 
-    if (classElement.hasBeenInferred) {
+    if (classFragment.hasBeenInferred) {
       return;
     }
 
-    _setInducedModifier(classElement);
+    _setInducedModifier(classFragment);
 
-    if (!elementsBeingInferred.add(classElement)) {
+    if (!elementsBeingInferred.add(classFragment)) {
       // We have found a circularity in the class hierarchy. For now we just
       // stop trying to infer any type information for any classes that
       // inherit from any class in the cycle. We could potentially limit the
@@ -320,22 +319,22 @@ class InstanceMemberInferrer {
       // Ensure that all of instance members in the supertypes have had types
       // inferred for them.
       //
-      var augmented = classElement.augmented;
-      _inferType(classElement.supertype);
-      augmented.mixins.forEach(_inferType);
-      augmented.interfaces.forEach(_inferType);
+      var element = classFragment.element;
+      _inferType(classFragment.supertype);
+      element.mixins.forEach(_inferType);
+      element.interfaces.forEach(_inferType);
       //
       // Then infer the types for the members.
       //
       // TODO(scheglov): get other members from the container
-      currentInterfaceElement = classElement;
-      for (var container in classElement.withAugmentations) {
-        for (var field in classElement.fields) {
+      currentInterfaceElement = classFragment;
+      for (var container in classFragment.withAugmentations) {
+        for (var field in classFragment.fields) {
           _inferAccessorOrField(
             field: field,
           );
         }
-        for (var accessor in classElement.accessors) {
+        for (var accessor in classFragment.accessors) {
           _inferAccessorOrField(
             accessor: accessor,
           );
@@ -351,9 +350,9 @@ class InstanceMemberInferrer {
           _inferConstructor(constructor);
         }
       }
-      classElement.hasBeenInferred = true;
+      classFragment.hasBeenInferred = true;
     } finally {
-      elementsBeingInferred.remove(classElement);
+      elementsBeingInferred.remove(classFragment);
     }
   }
 
@@ -375,16 +374,12 @@ class InstanceMemberInferrer {
         if (parameter is FieldFormalParameterElementImpl) {
           var field = parameter.field;
           if (field != null) {
-            // TODO(paulberry): eliminate this cast by changing the type of
-            // `FieldFormalParameterElementImpl.field`.
-            parameter.type = field.type as TypeImpl;
+            parameter.type = field.type;
           }
         } else if (parameter is SuperFormalParameterElementImpl) {
           var superParameter = parameter.superConstructorParameter;
           if (superParameter != null) {
-            // TODO(paulberry): eliminate this cast by changing the type of
-            // `SuperFormalParameterElementImpl.superConstructorParameter`.
-            parameter.type = superParameter.type as TypeImpl;
+            parameter.type = superParameter.type;
           } else {
             parameter.type = DynamicTypeImpl.instance;
           }
@@ -416,7 +411,7 @@ class InstanceMemberInferrer {
       return;
     }
 
-    FunctionType? combinedSignatureType;
+    FunctionTypeImpl? combinedSignatureType;
     var hasImplicitType = element.hasImplicitReturnType ||
         element.parameters.any((e) => e.hasImplicitType);
     if (hasImplicitType) {
@@ -531,7 +526,7 @@ class InstanceMemberInferrer {
 
   /// If a parameter is covariant, any parameters that override it are too.
   void _inferParameterCovariance(ParameterElementImpl parameter, int index,
-      Iterable<ExecutableElement> overridden) {
+      Iterable<ExecutableElementOrMember> overridden) {
     parameter.inheritsCovariant = overridden.any((f) {
       var param = _getCorrespondingParameter(parameter, index, f.parameters);
       return param != null && param.isCovariant;
@@ -542,7 +537,7 @@ class InstanceMemberInferrer {
   /// [combinedSignatureType], which might be `null` if there is no valid
   /// combined signature for signatures from direct superinterfaces.
   void _inferParameterType(ParameterElementImpl parameter, int index,
-      FunctionType? combinedSignatureType) {
+      FunctionTypeImpl? combinedSignatureType) {
     if (combinedSignatureType != null) {
       var matchingParameter = _getCorrespondingParameter(
         parameter,
@@ -550,9 +545,7 @@ class InstanceMemberInferrer {
         combinedSignatureType.parameters,
       );
       if (matchingParameter != null) {
-        // TODO(paulberry): eliminate this cast by changing the return type of
-        // `_getCorrespondingParameter`.
-        parameter.type = matchingParameter.type as TypeImpl;
+        parameter.type = matchingParameter.type;
       } else {
         parameter.type = DynamicTypeImpl.instance;
       }
@@ -563,9 +556,9 @@ class InstanceMemberInferrer {
 
   /// Infer type information for all of the instance members in the given
   /// interface [type].
-  void _inferType(InterfaceType? type) {
+  void _inferType(InterfaceTypeImpl? type) {
     if (type != null) {
-      var element = type.element as InterfaceElementImpl;
+      var element = type.element;
       _inferClass(element);
     }
   }
@@ -707,21 +700,25 @@ class InstanceMemberInferrer {
   /// we must express its parameter and return types in terms of its own
   /// parameters. For example, given `m<T>(t)` overriding `m<S>(S s)` we
   /// should infer this as `m<T>(T t)`.
-  FunctionType? _toOverriddenFunctionType(
-      ExecutableElement element, ExecutableElement overriddenElement) {
-    var elementTypeParameters = element.typeParameters;
+  FunctionTypeImpl? _toOverriddenFunctionType(ExecutableElementOrMember element,
+      ExecutableElementOrMember overriddenElement) {
+    var elementTypeParameters = element.asElement2.typeParameters2;
     var overriddenTypeParameters = overriddenElement.typeParameters;
 
     if (elementTypeParameters.length != overriddenTypeParameters.length) {
       return null;
     }
 
-    var overriddenType = overriddenElement.type as FunctionTypeImpl;
+    var overriddenType = overriddenElement.type;
     if (elementTypeParameters.isEmpty) {
       return overriddenType;
     }
 
-    return replaceTypeParameters(overriddenType, elementTypeParameters);
+    return replaceTypeParameters(
+      overriddenType,
+      // TODO(scheglov): remove this cast
+      elementTypeParameters.cast(),
+    );
   }
 
   static bool _isCovariantSetter(ExecutableElement element) {

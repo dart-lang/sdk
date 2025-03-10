@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StrictTopLevelInferenceTest);
   });
@@ -15,6 +15,9 @@ main() {
 
 @reflectiveTest
 class StrictTopLevelInferenceTest extends LintRuleTest {
+  @override
+  bool get addTestReflectiveLoaderPackageDep => true;
+
   @override
   List<ErrorCode> get ignoredErrorCodes => [
     WarningCode.UNUSED_ELEMENT,
@@ -683,6 +686,42 @@ void f() {
 ''');
   }
 
+  test_reflectiveTest_nonTest() async {
+    await assertDiagnostics(
+      r'''
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+@reflectiveTest
+class ReflectiveTest {
+  foo() {}
+}
+''',
+      [lint(111, 3)],
+    );
+  }
+
+  test_reflectiveTest_soloTest() async {
+    await assertNoDiagnostics(r'''
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+@reflectiveTest
+class ReflectiveTest {
+  solo_test_foo() {}
+}
+''');
+  }
+
+  test_reflectiveTest_test() async {
+    await assertNoDiagnostics(r'''
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+@reflectiveTest
+class ReflectiveTest {
+  test_foo() {}
+}
+''');
+  }
+
   test_staticField_final() async {
     await assertNoDiagnostics(r'''
 class C {
@@ -1012,6 +1051,65 @@ var f;
           correctionContains: "Try replacing 'var' with a type annotation",
         ),
       ],
+    );
+  }
+
+  test_wildcardVariable_constructorParameter() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C(_) {}
+}
+''');
+  }
+
+  test_wildcardVariable_constructorParameter_preWildcards() async {
+    await assertDiagnostics(
+      r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+class C {
+  C(_) {}
+}
+''',
+      [lint(57, 1)],
+    );
+  }
+
+  test_wildcardVariable_function() async {
+    await assertNoDiagnostics(r'''
+void m(_) {}
+''');
+  }
+
+  test_wildcardVariable_function_preWildcards() async {
+    await assertDiagnostics(
+      r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+void m(_) {}
+''',
+      [lint(50, 1)],
+    );
+  }
+
+  test_wildcardVariable_method() async {
+    await assertNoDiagnostics(r'''
+class C {
+  void m(_) {}
+}
+''');
+  }
+
+  test_wildcardVariable_method_preWilcards() async {
+    await assertDiagnostics(
+      r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+class C {
+  void m(_) {}
+}
+''',
+      [lint(62, 1)],
     );
   }
 }

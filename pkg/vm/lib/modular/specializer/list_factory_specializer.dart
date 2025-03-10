@@ -34,28 +34,61 @@ class ListFactorySpecializer extends BaseSpecializer {
   final Procedure _fixedListGenerateFactory;
 
   ListFactorySpecializer(CoreTypes coreTypes)
-      : _listEmptyFactory =
-            coreTypes.index.getProcedure('dart:core', 'List', 'empty'),
-        _listFilledFactory =
-            coreTypes.index.getProcedure('dart:core', 'List', 'filled'),
-        _listGenerateFactory =
-            coreTypes.index.getProcedure('dart:core', 'List', 'generate'),
-        _growableListFactory =
-            coreTypes.index.getProcedure('dart:core', '_GrowableList', ''),
-        _growableListEmptyFactory =
-            coreTypes.index.getProcedure('dart:core', '_GrowableList', 'empty'),
-        _growableListFilledFactory = coreTypes.index
-            .getProcedure('dart:core', '_GrowableList', 'filled'),
-        _growableListGenerateFactory = coreTypes.index
-            .getProcedure('dart:core', '_GrowableList', 'generate'),
-        _fixedListFactory =
-            coreTypes.index.getProcedure('dart:core', '_List', ''),
-        _fixedListEmptyFactory =
-            coreTypes.index.getProcedure('dart:core', '_List', 'empty'),
-        _fixedListFilledFactory =
-            coreTypes.index.getProcedure('dart:core', '_List', 'filled'),
-        _fixedListGenerateFactory =
-            coreTypes.index.getProcedure('dart:core', '_List', 'generate') {
+    : _listEmptyFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        'List',
+        'empty',
+      ),
+      _listFilledFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        'List',
+        'filled',
+      ),
+      _listGenerateFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        'List',
+        'generate',
+      ),
+      _growableListFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        '_GrowableList',
+        '',
+      ),
+      _growableListEmptyFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        '_GrowableList',
+        'empty',
+      ),
+      _growableListFilledFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        '_GrowableList',
+        'filled',
+      ),
+      _growableListGenerateFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        '_GrowableList',
+        'generate',
+      ),
+      _fixedListFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        '_List',
+        '',
+      ),
+      _fixedListEmptyFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        '_List',
+        'empty',
+      ),
+      _fixedListFilledFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        '_List',
+        'filled',
+      ),
+      _fixedListGenerateFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        '_List',
+        'generate',
+      ) {
     assert(_listEmptyFactory.isFactory);
     assert(_listFilledFactory.isFactory);
     assert(_listGenerateFactory.isFactory);
@@ -77,19 +110,24 @@ class ListFactorySpecializer extends BaseSpecializer {
   TreeNode transformListEmptyFactory(StaticInvocation node) {
     final args = node.arguments;
     assert(args.positional.isEmpty);
-    final bool? growable =
-        _getConstantOptionalArgument(args, 'growable', false);
+    final bool? growable = _getConstantOptionalArgument(
+      args,
+      'growable',
+      false,
+    );
     if (growable == null) {
       return node;
     }
     if (growable) {
       return StaticInvocation(
-          _growableListEmptyFactory, Arguments([], types: args.types))
-        ..fileOffset = node.fileOffset;
+        _growableListEmptyFactory,
+        Arguments([], types: args.types),
+      )..fileOffset = node.fileOffset;
     } else {
       return StaticInvocation(
-          _fixedListEmptyFactory, Arguments([], types: args.types))
-        ..fileOffset = node.fileOffset;
+        _fixedListEmptyFactory,
+        Arguments([], types: args.types),
+      )..fileOffset = node.fileOffset;
     }
   }
 
@@ -99,30 +137,37 @@ class ListFactorySpecializer extends BaseSpecializer {
     final length = args.positional[0];
     final fill = args.positional[1];
     final fillingWithNull = _isNullConstant(fill);
-    final bool? growable =
-        _getConstantOptionalArgument(args, 'growable', false);
+    final bool? growable = _getConstantOptionalArgument(
+      args,
+      'growable',
+      false,
+    );
     if (growable == null) {
       return node;
     }
     if (growable) {
       if (fillingWithNull) {
         return StaticInvocation(
-            _growableListFactory, Arguments([length], types: args.types))
-          ..fileOffset = node.fileOffset;
+          _growableListFactory,
+          Arguments([length], types: args.types),
+        )..fileOffset = node.fileOffset;
       } else {
-        return StaticInvocation(_growableListFilledFactory,
-            Arguments([length, fill], types: args.types))
-          ..fileOffset = node.fileOffset;
+        return StaticInvocation(
+          _growableListFilledFactory,
+          Arguments([length, fill], types: args.types),
+        )..fileOffset = node.fileOffset;
       }
     } else {
       if (fillingWithNull) {
         return StaticInvocation(
-            _fixedListFactory, Arguments([length], types: args.types))
-          ..fileOffset = node.fileOffset;
+          _fixedListFactory,
+          Arguments([length], types: args.types),
+        )..fileOffset = node.fileOffset;
       } else {
-        return StaticInvocation(_fixedListFilledFactory,
-            Arguments([length, fill], types: args.types))
-          ..fileOffset = node.fileOffset;
+        return StaticInvocation(
+          _fixedListFilledFactory,
+          Arguments([length, fill], types: args.types),
+        )..fileOffset = node.fileOffset;
       }
     }
   }
@@ -137,13 +182,15 @@ class ListFactorySpecializer extends BaseSpecializer {
       return node;
     }
     if (growable) {
-      return StaticInvocation(_growableListGenerateFactory,
-          Arguments([length, generator], types: args.types))
-        ..fileOffset = node.fileOffset;
+      return StaticInvocation(
+        _growableListGenerateFactory,
+        Arguments([length, generator], types: args.types),
+      )..fileOffset = node.fileOffset;
     } else {
-      return StaticInvocation(_fixedListGenerateFactory,
-          Arguments([length, generator], types: args.types))
-        ..fileOffset = node.fileOffset;
+      return StaticInvocation(
+        _fixedListGenerateFactory,
+        Arguments([length, generator], types: args.types),
+      )..fileOffset = node.fileOffset;
     }
   }
 
@@ -151,7 +198,10 @@ class ListFactorySpecializer extends BaseSpecializer {
   /// or null if it is not a constant. Returns [defaultValue] if optional
   /// argument is not passed. Argument is asserted to have the given [name].
   bool? _getConstantOptionalArgument(
-      Arguments args, String name, bool defaultValue) {
+    Arguments args,
+    String name,
+    bool defaultValue,
+  ) {
     if (args.named.isEmpty) {
       return defaultValue;
     }

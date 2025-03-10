@@ -97,6 +97,10 @@ mixin NotificationHandler {
       case SERVER_NOTIFICATION_LOG:
         onServerLog(ServerLogParams.fromJson(decoder, 'params', params));
         break;
+      case SERVER_NOTIFICATION_PLUGIN_ERROR:
+        onServerPluginError(
+            ServerPluginErrorParams.fromJson(decoder, 'params', params));
+        break;
       case SERVER_NOTIFICATION_STATUS:
         onServerStatus(ServerStatusParams.fromJson(decoder, 'params', params));
         break;
@@ -263,6 +267,14 @@ mixin NotificationHandler {
 
   /// The stream of entries describing events happened in the server.
   void onServerLog(ServerLogParams params) {}
+
+  /// Reports that an unexpected error has occurred while
+  /// setting up an analyzer plugin, or during a plugin's
+  /// execution.
+  ///
+  /// It is not possible to subscribe to or unsubscribe from this
+  /// notification.
+  void onServerPluginError(ServerPluginErrorParams params) {}
 
   /// Reports the current status of the server. Parameters are
   /// omitted if there has been no change in the status

@@ -29,6 +29,7 @@ class B extends A {}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_extends_inAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

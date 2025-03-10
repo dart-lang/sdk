@@ -822,7 +822,6 @@ const nullCheck = const _NullCheck();
     fileSystem: _fileSystem,
     explicitExperimentalFlags: const {},
     environmentDefines: addGeneratedVariables({}, enableAsserts: true),
-    nnbdMode: fe.NnbdMode.Strong,
   );
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   var result =

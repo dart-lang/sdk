@@ -1402,6 +1402,7 @@ grouping
 groups
 grow
 growable
+growing
 guaranteed
 guaranteeing
 guarantees
@@ -2842,6 +2843,7 @@ shorted
 shorten
 shortened
 shorter
+shorthand
 shorthands
 shorting
 shorts

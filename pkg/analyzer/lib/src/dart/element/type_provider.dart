@@ -7,7 +7,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -176,7 +175,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get boolType {
-    return _boolType ??= boolElement2.instantiate(
+    return _boolType ??= boolElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -193,7 +192,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get deprecatedType {
-    return _deprecatedType ??= deprecatedElement2.instantiate(
+    return _deprecatedType ??= deprecatedElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -211,7 +210,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get doubleType {
-    return _doubleType ??= doubleElement2.instantiate(
+    return _doubleType ??= doubleElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -243,7 +242,7 @@ class TypeProviderImpl extends TypeProviderBase {
       _hasEnumType = true;
       var element = enumElement2;
       if (element != null) {
-        _enumType = element.instantiate(
+        _enumType = element.instantiateImpl(
           typeArguments: const [],
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -258,7 +257,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get functionType {
-    return _functionType ??= functionElement2.instantiate(
+    return _functionType ??= functionElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -266,7 +265,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get futureDynamicType {
-    return _futureDynamicType ??= futureElement2.instantiate(
+    return _futureDynamicType ??= futureElement2.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -284,7 +283,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get futureNullType {
-    return _futureNullType ??= futureElement2.instantiate(
+    return _futureNullType ??= futureElement2.instantiateImpl(
       typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -302,7 +301,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get futureOrNullType {
-    return _futureOrNullType ??= futureOrElement2.instantiate(
+    return _futureOrNullType ??= futureOrElement2.instantiateImpl(
       typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -320,7 +319,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get intType {
-    return _intType ??= intElement2.instantiate(
+    return _intType ??= intElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -331,7 +330,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get iterableDynamicType {
-    return _iterableDynamicType ??= iterableElement2.instantiate(
+    return _iterableDynamicType ??= iterableElement2.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -349,7 +348,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get iterableObjectType {
-    return _iterableObjectType ??= iterableElement2.instantiate(
+    return _iterableObjectType ??= iterableElement2.instantiateImpl(
       typeArguments: fixedTypeList(objectType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -377,7 +376,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get mapObjectObjectType {
-    return _mapObjectObjectType ??= mapElement2.instantiate(
+    return _mapObjectObjectType ??= mapElement2.instantiateImpl(
       typeArguments: fixedTypeList(objectType, objectType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -398,7 +397,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get nullType {
-    return _nullType ??= nullElement2.instantiate(
+    return _nullType ??= nullElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -416,7 +415,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get numType {
-    return _numType ??= numElement2.instantiate(
+    return _numType ??= numElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -437,7 +436,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get objectQuestionType {
-    return _objectQuestionType ??= objectElement.instantiate(
+    return _objectQuestionType ??= objectElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -445,7 +444,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get objectType {
-    return _objectType ??= objectElement.instantiate(
+    return _objectType ??= objectElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -463,7 +462,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get recordType {
-    return _recordType ??= recordElement.instantiate(
+    return _recordType ??= recordElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -485,7 +484,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get stackTraceType {
-    return _stackTraceType ??= stackTraceElement2.instantiate(
+    return _stackTraceType ??= stackTraceElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -493,7 +492,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get streamDynamicType {
-    return _streamDynamicType ??= streamElement2.instantiate(
+    return _streamDynamicType ??= streamElement2.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -521,7 +520,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get stringType {
-    return _stringType ??= stringElement2.instantiate(
+    return _stringType ??= stringElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -539,7 +538,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get symbolType {
-    return _symbolType ??= symbolElement2.instantiate(
+    return _symbolType ??= symbolElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -551,7 +550,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get typeType {
-    return _typeType ??= typeElement2.instantiate(
+    return _typeType ??= typeElement2.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -561,16 +560,16 @@ class TypeProviderImpl extends TypeProviderBase {
   VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
   @override
-  InterfaceTypeImpl futureOrType(DartType valueType) {
-    return futureOrElement.instantiate(
+  InterfaceTypeImpl futureOrType(covariant TypeImpl valueType) {
+    return futureOrElement.instantiateImpl(
       typeArguments: fixedTypeList(valueType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  InterfaceTypeImpl futureType(DartType valueType) {
-    return futureElement.instantiate(
+  InterfaceTypeImpl futureType(covariant TypeImpl valueType) {
+    return futureElement.instantiateImpl(
       typeArguments: fixedTypeList(valueType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -593,40 +592,43 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
-  InterfaceTypeImpl iterableType(DartType elementType) {
-    return iterableElement.instantiate(
+  InterfaceTypeImpl iterableType(covariant TypeImpl elementType) {
+    return iterableElement.instantiateImpl(
       typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  InterfaceTypeImpl listType(DartType elementType) {
-    return listElement.instantiate(
+  InterfaceTypeImpl listType(covariant TypeImpl elementType) {
+    return listElement.instantiateImpl(
       typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  InterfaceTypeImpl mapType(DartType keyType, DartType valueType) {
-    return mapElement.instantiate(
+  InterfaceTypeImpl mapType(
+    covariant TypeImpl keyType,
+    covariant TypeImpl valueType,
+  ) {
+    return mapElement.instantiateImpl(
       typeArguments: fixedTypeList(keyType, valueType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  InterfaceTypeImpl setType(DartType elementType) {
-    return setElement.instantiate(
+  InterfaceTypeImpl setType(covariant TypeImpl elementType) {
+    return setElement.instantiateImpl(
       typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   @override
-  InterfaceTypeImpl streamType(DartType elementType) {
-    return streamElement.instantiate(
+  InterfaceTypeImpl streamType(covariant TypeImpl elementType) {
+    return streamElement.instantiateImpl(
       typeArguments: fixedTypeList(elementType),
       nullabilitySuffix: NullabilitySuffix.none,
     );

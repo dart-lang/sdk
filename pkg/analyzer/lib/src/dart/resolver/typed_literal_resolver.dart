@@ -109,7 +109,7 @@ class TypedLiteralResolver {
   }
 
   void resolveSetOrMapLiteral(SetOrMapLiteral node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     (node as SetOrMapLiteralImpl).becomeUnresolved();
     var typeArguments = node.typeArguments?.arguments;
 
@@ -126,7 +126,7 @@ class TypedLiteralResolver {
             literalResolution.contextType ?? UnknownInferredType.instance);
         if (literalResolution.contextType != null) {
           var typeArguments = inferrer.choosePreliminaryTypes();
-          literalType = _typeProvider.setElement.instantiate(
+          literalType = _typeProvider.setElement2.instantiateImpl(
               typeArguments: typeArguments,
               nullabilitySuffix: NullabilitySuffix.none);
         }
@@ -141,7 +141,7 @@ class TypedLiteralResolver {
             literalResolution.contextType ?? UnknownInferredType.instance);
         if (literalResolution.contextType != null) {
           var typeArguments = inferrer.choosePreliminaryTypes();
-          literalType = _typeProvider.mapElement.instantiate(
+          literalType = _typeProvider.mapElement2.instantiateImpl(
               typeArguments: typeArguments,
               nullabilitySuffix: NullabilitySuffix.none);
         }
@@ -229,7 +229,7 @@ class TypedLiteralResolver {
 
   /// Compute the context type for the given set or map [literal].
   _LiteralResolution _computeSetOrMapResolution(SetOrMapLiteral literal,
-      {required DartType? contextType}) {
+      {required TypeImpl? contextType}) {
     _LiteralResolution typeArgumentsResolution =
         _fromTypeArguments(literal.typeArguments?.arguments);
     _LiteralResolution contextResolution = _fromContextType(contextType);
@@ -286,7 +286,7 @@ class TypedLiteralResolver {
   ///
   /// If [contextType] implements `Map`, but not `Iterable`, then *e* is a map
   /// literal.
-  _LiteralResolution _fromContextType(DartType? contextType) {
+  _LiteralResolution _fromContextType(TypeImpl? contextType) {
     if (contextType != null) {
       var unwrappedContextType = _typeSystem.futureOrBase(contextType);
       // TODO(brianwilkerson): Find out what the "greatest closure" is and use that
@@ -454,8 +454,8 @@ class TypedLiteralResolver {
   InterfaceType? _inferListTypeUpwards(
       GenericInferrer inferrer, ListLiteralImpl node,
       {required DartType contextType}) {
-    var element = _typeProvider.listElement;
-    var typeParameters = element.typeParameters;
+    var element = _typeProvider.listElement2;
+    var typeParameters = element.typeParameters2;
     var genericElementType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -485,7 +485,7 @@ class TypedLiteralResolver {
         argumentTypes: elementTypes,
         nodeForTesting: node);
     var typeArguments = inferrer.chooseFinalTypes();
-    return element.instantiate(
+    return element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -550,11 +550,11 @@ class TypedLiteralResolver {
     // a different subtype relationship to `Iterable<Object>` and
     // `Map<Object, Object>` is if the context type is `_`.
     if (contextType != null) {
-      var contextIterableType = contextType.asInstanceOf(
-        _typeProvider.iterableElement,
+      var contextIterableType = contextType.asInstanceOf2(
+        _typeProvider.iterableElement2,
       );
-      var contextMapType = contextType.asInstanceOf(
-        _typeProvider.mapElement,
+      var contextMapType = contextType.asInstanceOf2(
+        _typeProvider.mapElement2,
       );
       var contextIsIterable = contextIterableType != null;
       var contextIsMap = contextMapType != null;
@@ -636,11 +636,11 @@ class TypedLiteralResolver {
 
     // If we have explicit arguments, use them.
     if (typeArguments != null) {
-      DartType elementType = _dynamicType;
+      TypeImpl? elementType = _dynamicType;
       if (typeArguments.length == 1) {
         elementType = typeArguments[0].typeOrThrow;
       }
-      return _typeProvider.listElement.instantiate(
+      return _typeProvider.listElement2.instantiateImpl(
         typeArguments: fixedTypeList(elementType),
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -679,7 +679,7 @@ class TypedLiteralResolver {
         node.becomeSet();
         var elementType = typeArguments[0].typeOrThrow;
         node.recordStaticType(
-            _typeProvider.setElement.instantiate(
+            _typeProvider.setElement2.instantiateImpl(
               typeArguments: fixedTypeList(elementType),
               nullabilitySuffix: NullabilitySuffix.none,
             ),
@@ -691,7 +691,7 @@ class TypedLiteralResolver {
         var keyType = typeArguments[0].typeOrThrow;
         var valueType = typeArguments[1].typeOrThrow;
         node.recordStaticType(
-            _typeProvider.mapElement.instantiate(
+            _typeProvider.mapElement2.instantiateImpl(
               typeArguments: fixedTypeList(keyType, valueType),
               nullabilitySuffix: NullabilitySuffix.none,
             ),
@@ -742,8 +742,8 @@ class TypedLiteralResolver {
         inProgress: inferrer != null);
     TypeImpl dynamicType = _typeProvider.dynamicType;
 
-    var element = _typeProvider.mapElement;
-    var typeParameters = element.typeParameters;
+    var element = _typeProvider.mapElement2;
+    var typeParameters = element.typeParameters2;
     var genericKeyType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -776,7 +776,7 @@ class TypedLiteralResolver {
     );
     var typeArguments = inferrer.chooseFinalTypes();
     inferenceLogWriter?.assertGenericInferenceState(inProgress: false);
-    return element.instantiate(
+    return element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -792,8 +792,8 @@ class TypedLiteralResolver {
         inProgress: inferrer != null);
     var dynamicType = _typeProvider.dynamicType;
 
-    var element = _typeProvider.setElement;
-    var typeParameters = element.typeParameters;
+    var element = _typeProvider.setElement2;
+    var typeParameters = element.typeParameters2;
     var genericElementType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -819,7 +819,7 @@ class TypedLiteralResolver {
         nodeForTesting: node);
     var typeArguments = inferrer.chooseFinalTypes();
     inferenceLogWriter?.assertGenericInferenceState(inProgress: false);
-    return element.instantiate(
+    return element.instantiateImpl(
         typeArguments: typeArguments,
         nullabilitySuffix: NullabilitySuffix.none);
   }

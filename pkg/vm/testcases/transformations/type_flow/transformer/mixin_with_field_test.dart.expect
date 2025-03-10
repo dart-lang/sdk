@@ -4,6 +4,11 @@ import "dart:core" as core;
 
 abstract class M extends core::Object /*isMixinDeclaration*/  {
 }
+class C extends self::_C&Object&M {
+  synthetic constructor •() → self::C
+    : super self::_C&Object&M::•()
+    ;
+}
 abstract class _C&Object&M extends core::Object implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
 
   [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)]
@@ -14,11 +19,6 @@ abstract class _C&Object&M extends core::Object implements self::M /*isAnonymous
   [@vm.closure-id=1]
   synthetic constructor •() → self::_C&Object&M
     : self::_C&Object&M::x = [@vm.direct-call.metadata=closure 1 in #lib::_C&Object&M.] [@vm.inferred-type.metadata=dart.core::_Smi (value: 7) (receiver not int)]([@vm.closure-id=1]() → core::int => 7)(){() → core::int}, super core::Object::•()
-    ;
-}
-class C extends self::_C&Object&M {
-  synthetic constructor •() → self::C
-    : super self::_C&Object&M::•()
     ;
 }
 

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-enum E {a, b}
+enum E { a, b }
+
 const r0 = (E.a, false);
 const r1 = (E.b, false);
 const r2 = (E.a, true);
@@ -27,10 +28,10 @@ void exhaustiveSwitch((E, bool) r) {
 
 void nonExhaustiveSwitch1((E, bool) r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.b, false)'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.b, false)'.
     case r0:
       print('(a, false)');
       break;
@@ -45,10 +46,10 @@ void nonExhaustiveSwitch1((E, bool) r) {
 
 void nonExhaustiveSwitch2((E, bool) r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.a, false)'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type '(E, bool)' is not exhaustively matched by the switch cases since it doesn't match '(E.a, false)'.
     case r1:
       print('(b, false)');
       break;
@@ -94,10 +95,10 @@ void exhaustiveNullableSwitch((E, bool)? r) {
 
 void nonExhaustiveNullableSwitch1((E, bool)? r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type '(E, bool)?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type '(E, bool)?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
     case r0:
       print('(a, false)');
       break;
@@ -115,10 +116,10 @@ void nonExhaustiveNullableSwitch1((E, bool)? r) {
 
 void nonExhaustiveNullableSwitch2((E, bool)? r) {
   switch (r) /* Error */ {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type '(E, bool)?' is not exhaustively matched by the switch cases since it doesn't match '(E.b, false)'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type '(E, bool)?' is not exhaustively matched by the switch cases since it doesn't match '(E.b, false)'.
     case r0:
       print('(a, false)');
       break;
@@ -149,8 +150,8 @@ void unreachableCase1((E, bool) r) {
       print('(b, true)');
       break;
     case r0: // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('(a, false) #2');
       break;
   }
@@ -195,8 +196,8 @@ void unreachableCase3((E, bool)? r) {
       print('null1');
       break;
     case null: // Unreachable
-//  ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+      // [error column 5, length 4]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
       print('null2');
       break;
   }
@@ -217,8 +218,8 @@ void unreachableDefault((E, bool) r) {
       print('(b, true)');
       break;
     default: // Unreachable
-//  ^^^^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
+      // [error column 5, length 7]
+      // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_DEFAULT
       print('default');
       break;
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 /// Defines the elements and fragments that are part of the element model.
 ///
 /// The element model describes the semantic (as opposed to syntactic) structure
@@ -25,7 +23,7 @@
 ///
 /// Some elements, such as a [LocalVariableElement2] are declared by a single
 /// declaration, but most elements can be declared by multiple declarations. A
-/// fragment represents a single declararation when the corresponding element
+/// fragment represents a single declaration when the corresponding element
 /// can have multiple declarations. There is no fragment for an element that can
 /// only have one declaration.
 ///
@@ -66,6 +64,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -83,6 +82,7 @@ export 'package:analyzer/dart/element/element.dart'
         HideElementCombinator,
         NamespaceCombinator,
         ShowElementCombinator;
+export 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 
 /// An element or fragment that can have either annotations (metadata), a
 /// documentation comment, or both associated with it.
@@ -264,6 +264,11 @@ abstract class ConstantInitializer {
   /// have the default value.
   Expression get expression;
 
+  /// The [VariableFragment] that has [expression].
+  ///
+  /// The offsets are inside the [LibraryFragment] that contains [fragment].
+  VariableFragment get fragment;
+
   /// Returns the result of evaluating [expression], computes it if necessary.
   ///
   /// Returns `null` if the value could not be computed because of errors.
@@ -338,6 +343,18 @@ abstract class ConstructorFragment implements ExecutableFragment {
 
   @override
   ConstructorFragment? get nextFragment;
+
+  /// The offset of the constructor name.
+  ///
+  /// For a named constructor (e.g., `ClassName.foo()``), this is the offset to
+  /// the part of the constructor name that follows the `.`. For an unnamed
+  /// constructor (e.g., `ClassName();`), this is the offset of the class name
+  /// that appears in the constructor declaration.
+  ///
+  /// For an implicit constructor, this is the offset of the class name in the
+  /// class declaration.
+  @override
+  int get offset;
 
   /// The offset of the `.` before the name.
   ///
@@ -458,7 +475,7 @@ abstract class Element2 {
   /// Library that contains this element.
   ///
   /// This will be the element itself if it's a library element. This will be
-  /// `null` if this element is a [MultiplyDefinedElement] that isn't contained
+  /// `null` if this element is a [MultiplyDefinedElement2] that isn't contained
   /// in a single library.
   LibraryElement2? get library2;
 
@@ -758,6 +775,13 @@ abstract class ExtensionFragment implements InstanceFragment {
   @override
   ExtensionFragment? get nextFragment;
 
+  /// The offset of the extension name.
+  ///
+  /// If the extension has no name, this is the offset of the `extension`
+  /// keyword.
+  @override
+  int get offset;
+
   @override
   ExtensionFragment? get previousFragment;
 }
@@ -880,6 +904,14 @@ abstract class FieldFragment implements PropertyInducingFragment {
   @override
   FieldFragment? get nextFragment;
 
+  /// The offset of the field name.
+  ///
+  /// If the field declaration is implicit, this is the offset of the name of
+  /// the containing element (e.g., for the `values` field of an enum, this is
+  /// the offset of the enum name).
+  @override
+  int get offset;
+
   @override
   FieldFragment? get previousFragment;
 }
@@ -998,6 +1030,14 @@ abstract class FormalParameterFragment
   @override
   FormalParameterFragment? get nextFragment;
 
+  /// The offset of the parameter name.
+  ///
+  /// If the parameter is implicit (because it's the parameter of an implicit
+  /// setter that's induced by a field or top level variable declaration), this
+  /// is the offset of the field or top level variable name.
+  @override
+  int get offset;
+
   @override
   FormalParameterFragment? get previousFragment;
 }
@@ -1078,6 +1118,18 @@ abstract class Fragment {
   /// Returns `null` if this is the last fragment in the chain.
   Fragment? get nextFragment;
 
+  /// A canonical offset to the fragment within the source file.
+  ///
+  /// If the fragment has a name, this is equal to [nameOffset2]. Otherwise it
+  /// is the offset of some character within the fragment; see subclasses for
+  /// more information.
+  ///
+  /// If the fragment is of a kind that would normally have a name, but there is
+  /// no name due to error recovery, then the exact offset is unspecified, but
+  /// is guaranteed to be within the span of the tokens that constitute the
+  /// fragment's declaration.
+  int get offset;
+
   /// The previous fragment in the augmentation chain.
   ///
   /// Returns `null` if this is the first fragment in the chain.
@@ -1143,10 +1195,14 @@ abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
   GenericFunctionTypeElement2 get element;
 
   @override
-  LibraryFragment? get enclosingFragment;
-
-  @override
   GenericFunctionTypeFragment? get nextFragment;
+
+  /// The offset of the generic function type.
+  ///
+  /// Generic function types are not named, so the offset is the offset of the
+  /// first token in the generic function type.
+  @override
+  int get offset;
 
   @override
   GenericFunctionTypeFragment? get previousFragment;
@@ -1177,26 +1233,22 @@ abstract class GetterElement implements PropertyAccessorElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class GetterFragment implements PropertyAccessorFragment {
-  /// The setter that corresponds to (has the same name as) this getter, or
-  /// `null` if there is no corresponding setter.
-  SetterFragment? get correspondingSetter2;
+  @override
+  GetterElement get element;
 
-  // TODO(brianwilkerson): This should override `nextFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // GetterFragment? get nextFragment;
+  @override
+  GetterFragment? get nextFragment;
 
-  // TODO(brianwilkerson): This should override `previousFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // GetterFragment? get previousFragment;
+  /// The offset of the getter name.
+  ///
+  /// If the getter is implicit (because it's induced by a field or top level
+  /// variable declaration), this is the offset of the field or top level
+  /// variable name.
+  @override
+  int get offset;
 
-  // TODO(brianwilkerson): This should override `element` to be more specific,
-  //  but can't because the Impl class supports both getters and setters.
-  // @override
-  // GetterElement get element;
+  @override
+  GetterFragment? get previousFragment;
 }
 
 /// The interface that is implemented by elements that can have `@Since()`
@@ -1348,7 +1400,7 @@ abstract class InterfaceElement2 implements InstanceElement2 {
 
   /// The constructors defined for this element.
   ///
-  /// The list is empty for [MixinElement].
+  /// The list is empty for [MixinElement2].
   List<ConstructorElement2> get constructors2;
 
   @override
@@ -1356,6 +1408,51 @@ abstract class InterfaceElement2 implements InstanceElement2 {
 
   @override
   List<InterfaceFragment> get fragments;
+
+  /// Returns a map of all concrete members that this type inherits from
+  /// superclasses and mixins, keyed by the member's [Name].
+  ///
+  /// Members declared in this type have no effect on the map. This means that:
+  /// - If this type contains a member named `foo`, but none of its superclasses
+  ///   or mixins contains a member named `foo`, then there will be no entry for
+  ///   `foo` in the map.
+  /// - If this type contains a member named `foo`, and one of its superclasses
+  ///   or mixins contains a member named `foo`, then there will be an entry for
+  ///   `foo` in this map, pointing to the declaration inherited from the
+  ///   superclass or mixin.
+  ///
+  /// This method is potentially expensive, since it needs to consider all
+  /// possible inherited names. If you only need to look up a certain specific
+  /// name (or names), use [getInheritedConcreteMember] instead.
+  Map<Name, ExecutableElement2> get inheritedConcreteMembers;
+
+  /// Returns a map of all members that this type inherits from supertypes via
+  /// `extends`, `with`, `implements`, or `on` clauses, keyed by the member's
+  /// [Name].
+  ///
+  /// Members declared in this type have no effect on the map. This means that:
+  /// - If this type contains a member named `foo`, but none of its supertypes
+  ///   contains a member named `foo`, then there will be no entry for `foo` in
+  ///   the map.
+  /// - If this type contains a member named `foo`, and one of its supertypes
+  ///   contains a member named `foo`, then there will be an entry for `foo` in
+  ///   this map, pointing to the declaration inherited from the supertype.
+  ///
+  /// This method is potentially expensive, since it needs to consider all
+  /// possible inherited names. If you only need to look up a certain specific
+  /// name (or names), use [getInheritedMember] instead.
+  Map<Name, ExecutableElement2> get inheritedMembers;
+
+  /// Returns a map of all members in the type's interface, keyed by the
+  /// member's [Name].
+  ///
+  /// Note that some names are not declared directly on [thisType], but are
+  /// inherited from supertypes.
+  ///
+  /// This method is potentially expensive, since it needs to consider all
+  /// possible interface names. If you only need to look up a certain specific
+  /// name (or names), use [getInterfaceMember] instead.
+  Map<Name, ExecutableElement2> get interfaceMembers;
 
   /// The interfaces that are implemented by this class.
   ///
@@ -1369,9 +1466,9 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// The mixins that are applied to the class being extended in order to
   /// derive the superclass of this class.
   ///
-  /// [ClassElement] and [EnumElement] can have mixins.
+  /// [ClassElement2] and [EnumElement2] can have mixins.
   ///
-  /// [MixinElement] cannot have mixins, so an empty list is returned.
+  /// [MixinElement2] cannot have mixins, so an empty list is returned.
   ///
   /// <b>Note:</b> Because the element model represents the state of the code,
   /// it is possible for it to be semantically invalid. In particular, it is not
@@ -1382,13 +1479,13 @@ abstract class InterfaceElement2 implements InstanceElement2 {
 
   /// The superclass of this element.
   ///
-  /// For [ClassElement] returns `null` only if this class is `Object`. If the
+  /// For [ClassElement2] returns `null` only if this class is `Object`. If the
   /// superclass is not explicitly specified, or the superclass cannot be
   /// resolved, then the implicit superclass `Object` is returned.
   ///
-  /// For [EnumElement] returns `Enum` from `dart:core`.
+  /// For [EnumElement2] returns `Enum` from `dart:core`.
   ///
-  /// For [MixinElement] always returns `null`.
+  /// For [MixinElement2] always returns `null`.
   ///
   /// <b>Note:</b> Because the element model represents the state of the code,
   /// it is possible for it to be semantically invalid. In particular, it is not
@@ -1406,8 +1503,62 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// constructor will be returned.
   ConstructorElement2? get unnamedConstructor2;
 
+  /// Returns the most specific member with the given [name] that this type
+  /// inherits from a superclass or mixin.
+  ///
+  /// Returns `null` if no member is inherited.
+  ///
+  /// This method is semantically equivalent to calling
+  /// [inheritedConcreteMembers] and then using the `[]` operator, but it
+  /// potentially has better performance, since it does not need to consider all
+  /// possible inherited names.
+  ExecutableElement2? getInheritedConcreteMember(Name name);
+
+  /// Returns the most specific member with the given [name] that this type
+  /// inherits from a supertype via an `extends`, `with`, `implements`, or `on`
+  /// clause.
+  ///
+  /// Returns `null` if no member is inherited because the member is not
+  /// declared at all, or because there is no the most specific signature.
+  ///
+  /// This method is semantically equivalent to calling [inheritedMembers] and
+  /// then using the `[]` operator, but it potentially has better performance,
+  /// since it does not need to consider all possible inherited names.
+  ExecutableElement2? getInheritedMember(Name name);
+
+  /// Returns the most specific member with the given [name] in this type's
+  /// interface.
+  ///
+  /// Returns `null` if there is no member with the given [name] in this type's
+  /// interface, either because the member is not declared at all, or because of
+  /// a conflict between inherited members.
+  ///
+  /// This method is semantically equivalent to calling [interfaceMembers] and
+  /// then using the `[]` operator, but it potentially has better performance,
+  /// since it does not need to consider all possible interface names.
+  ExecutableElement2? getInterfaceMember(Name name);
+
   /// Returns the constructor from [constructors2] that has the given [name].
   ConstructorElement2? getNamedConstructor2(String name);
+
+  /// Returns all members of mixins, superclasses, and interfaces that a member
+  /// with the given [name], defined in this element, would override; or `null`
+  /// if no members would be overridden.
+  ///
+  /// Transitive overrides are not included unless there is a direct path to
+  /// them. For example, if classes `A`, `B`, and `C` are defined as follows:
+  ///
+  ///     class A { void m() {} }
+  ///     class B extends A { void m() {} }
+  ///     class C extends B { void m() {} }
+  ///
+  /// Then a [getOverridden] query for name `m` on class `C` would return just a
+  /// single result: the element for `B.m`.
+  ///
+  /// However, if the example were changed so that `class C` both `extends B`
+  /// *and* `implements A`, then a list containing both `A.m` and `B.m` would be
+  /// returned.
+  List<ExecutableElement2>? getOverridden(Name name);
 
   /// Create the [InterfaceType] for this element with the given
   /// [typeArguments] and [nullabilitySuffix].
@@ -1526,6 +1677,10 @@ abstract class JoinPatternVariableFragment implements PatternVariableFragment {
 
   @override
   JoinPatternVariableFragment? get nextFragment;
+
+  /// The offset of the first variable in the join.
+  @override
+  int get offset;
 
   @override
   JoinPatternVariableFragment? get previousFragment;
@@ -1754,7 +1909,7 @@ abstract class LibraryExport implements ElementDirective {
   /// The combinators are in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
-  /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  /// The [LibraryElement2], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement2? get exportedLibrary2;
 
   /// The offset of the `export` keyword.
@@ -1811,6 +1966,11 @@ abstract class LibraryFragment implements Fragment, Annotatable {
   @override
   LibraryFragment? get nextFragment;
 
+  /// If this is the first fragment in the library and the library has `library`
+  /// declaration that specifies a name, the offset of the name; otherwise zero.
+  @override
+  int get offset;
+
   /// The `part` directives within this fragment.
   List<PartInclude> get partIncludes;
 
@@ -1850,7 +2010,7 @@ abstract class LibraryImport implements ElementDirective {
   /// The combinators are in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
-  /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  /// The [LibraryElement2], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement2? get importedLibrary2;
 
   /// The offset of the `import` keyword.
@@ -1873,7 +2033,7 @@ abstract class LibraryImport implements ElementDirective {
 }
 
 /// An element that can be (but is not required to be) defined within a method
-/// or function (an [ExecutableElement]).
+/// or function (an [ExecutableFragment]).
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalElement2 implements Element2 {}
@@ -1921,6 +2081,13 @@ abstract class LocalFunctionFragment
   //  top-level functions.
   // @override
   // LocalFunctionFragment? get previousFragment;
+
+  /// The offset of the local function name.
+  ///
+  /// If the local function has no name (because it's a function expression),
+  /// this is the offset of the `(` that begins the function expression.
+  @override
+  int get offset;
 }
 
 /// A local variable.
@@ -2202,6 +2369,10 @@ abstract class MultiplyDefinedFragment implements Fragment {
   @override
   Null get nextFragment;
 
+  /// Always returns zero.
+  @override
+  int get offset;
+
   @override
   Null get previousFragment;
 }
@@ -2377,14 +2548,14 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 /// explicitly defined getters and setters. The following rules apply:
 ///
 /// * Every explicit variable is represented by a non-synthetic
-///   [PropertyInducingElement].
-/// * Every explicit variable induces a getter and possibly a setter, both of
-///   which are represented by synthetic [PropertyAccessorElement]s.
-/// * Every explicit getter or setter is represented by a non-synthetic
-///   [PropertyAccessorElement].
+///   [PropertyInducingElement2].
+/// * Every explicit variable induces a synthetic [GetterElement],
+///   possibly a synthetic [SetterElement.
+/// * Every explicit getter by a non-synthetic [GetterElement].
+/// * Every explicit setter by a non-synthetic [SetterElement].
 /// * Every explicit getter or setter (or pair thereof if they have the same
 ///   name) induces a variable that is represented by a synthetic
-///   [PropertyInducingElement].
+///   [PropertyInducingElement2].
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement2
@@ -2498,26 +2669,22 @@ abstract class SetterElement implements PropertyAccessorElement2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class SetterFragment implements PropertyAccessorFragment {
-  /// The getter that corresponds to (has the same name as) this setter, or
-  /// `null` if there is no corresponding getter.
-  GetterFragment? get correspondingGetter2;
+  @override
+  SetterElement get element;
 
-  // TODO(brianwilkerson): This should override `element` to be more specific,
-  //  but can't because the Impl class supports both getters and setters.
-  // @override
-  // SetterElement get element;
+  @override
+  SetterFragment? get nextFragment;
 
-  // TODO(brianwilkerson): This should override `nextFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // SetterFragment? get nextFragment;
+  /// The offset of the setter name.
+  ///
+  /// If the setter is implicit (because it's induced by a field or top level
+  /// variable declaration), this is the offset of the field or top level
+  /// variable name.
+  @override
+  int get offset;
 
-  // TODO(brianwilkerson): This should override `previousFragment` to be more
-  //  specific, but can't because the Impl class supports both getters and
-  //  setters.
-  // @override
-  // SetterFragment? get previousFragment;
+  @override
+  SetterFragment? get previousFragment;
 }
 
 /// A super formal parameter.
@@ -2648,7 +2815,7 @@ abstract class TypeAliasElement2
         TypeDefiningElement2,
         HasSinceSdkVersion {
   /// If the aliased type has structure, return the corresponding element.
-  /// For example, it could be [GenericFunctionTypeElement].
+  /// For example, it could be [GenericFunctionTypeElement2].
   ///
   /// If there is no structure, return `null`.
   Element2? get aliasedElement2;
@@ -2726,6 +2893,13 @@ abstract class TypeDefiningFragment implements Fragment, Annotatable {
 
   @override
   TypeDefiningFragment? get nextFragment;
+
+  /// The offset of the type name.
+  ///
+  /// If the type in the language specification and not in any source file
+  /// (e.g., `dynamic`), this value is zero.
+  @override
+  int get offset;
 
   @override
   TypeDefiningFragment? get previousFragment;
@@ -2885,15 +3059,15 @@ abstract class VariableElement2 implements Element2 {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class VariableFragment implements Fragment {
-  /// The constant initializer for this constant variable fragment, or the
-  /// default value for this formal parameter fragment.
+  @override
+  VariableElement2 get element;
+
+  /// The initializer for this constant variable fragment, or the default value
+  /// for this formal parameter fragment.
   ///
   /// Is `null` if this variable fragment is not a constant, or does not have
   /// the initializer or the default value specified.
-  ConstantInitializer? get constantInitializer2;
-
-  @override
-  VariableElement2 get element;
+  Expression? get initializer;
 
   @override
   VariableFragment? get nextFragment;

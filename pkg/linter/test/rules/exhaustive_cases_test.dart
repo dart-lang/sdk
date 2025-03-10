@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExhaustiveCasesTestLanguage219);
     defineReflectiveTests(ExhaustiveCasesTest);
@@ -27,7 +27,7 @@ void ae(ActualEnum e) {
   @override
   String get lintRule => LintNames.exhaustive_cases;
 
-  test_enumLike() async {
+  Future<void> test_enumLike() async {
     await assertDiagnostics(
       r'''
 class E {
@@ -51,7 +51,7 @@ void e(E e) {
     );
   }
 
-  test_enumLike_default_ok() async {
+  Future<void> test_enumLike_default_ok() async {
     await assertNoDiagnostics(r'''
 class E {
   final int i;
@@ -73,7 +73,7 @@ void okDefault(E e) {
 ''');
   }
 
-  test_enumLike_deprecatedFields() async {
+  Future<void> test_enumLike_deprecatedFields() async {
     await assertDiagnostics(
       r'''
 class DeprecatedFields {
@@ -121,7 +121,7 @@ void dep(DeprecatedFields e) {
     );
   }
 
-  test_enumLike_ok() async {
+  Future<void> test_enumLike_ok() async {
     await assertNoDiagnostics(r'''
 class E {
   final int i;
@@ -145,7 +145,7 @@ void ok(E e) {
 ''');
   }
 
-  test_enumLike_parenthesized_ok() async {
+  Future<void> test_enumLike_parenthesized_ok() async {
     await assertNoDiagnostics(r'''
 class E {
   final int i;
@@ -169,7 +169,7 @@ void okParenthesized(E e) {
 ''');
   }
 
-  test_enumLike_prefixed() async {
+  Future<void> test_enumLike_prefixed() async {
     newFile('$testPackageLibPath/e.dart', '''
 class E {
   final int i;
@@ -199,7 +199,7 @@ void e(prefixed.E e) {
     );
   }
 
-  test_notEnumLike_ok() async {
+  Future<void> test_notEnumLike_ok() async {
     await assertNoDiagnostics(r'''
 class TooFew {
   const TooFew._();
@@ -227,7 +227,7 @@ void p(PublicCons e) {
 ''');
   }
 
-  test_notEnumLike_subclassed_ok() async {
+  Future<void> test_notEnumLike_subclassed_ok() async {
     await assertNoDiagnostics(r'''
 class Subclassed {
   const Subclassed._();

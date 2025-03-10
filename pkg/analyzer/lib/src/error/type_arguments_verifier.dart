@@ -6,13 +6,15 @@ import "dart:math" as math;
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
@@ -33,12 +35,12 @@ class TypeArgumentsVerifier {
   TypeSystemImpl get _typeSystem =>
       _libraryElement.typeSystem as TypeSystemImpl;
 
-  void checkConstructorReference(ConstructorReference node) {
+  void checkConstructorReference(ConstructorReferenceImpl node) {
     var classElement = node.constructorName.type.element2;
-    List<TypeParameterElement2> typeParameters;
-    if (classElement is TypeAliasElement2) {
+    List<TypeParameterElementImpl2> typeParameters;
+    if (classElement is TypeAliasElementImpl2) {
       typeParameters = classElement.typeParameters2;
-    } else if (classElement is InterfaceElement2) {
+    } else if (classElement is InterfaceElementImpl2) {
       typeParameters = classElement.typeParameters2;
     } else {
       return;
@@ -98,7 +100,7 @@ class TypeArgumentsVerifier {
     }
   }
 
-  void checkEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void checkEnumConstantDeclaration(EnumConstantDeclarationImpl node) {
     var constructorElement = node.constructorElement2;
     if (constructorElement == null) {
       return;
@@ -216,7 +218,7 @@ class TypeArgumentsVerifier {
     );
   }
 
-  void checkNamedType(NamedType node) {
+  void checkNamedType(NamedTypeImpl node) {
     _checkForTypeArgumentNotMatchingBounds(node);
     var parent = node.parent;
     if (parent is! ConstructorName ||
@@ -286,21 +288,21 @@ class TypeArgumentsVerifier {
 
   /// Verify that the type arguments in the given [namedType] are all within
   /// their bounds.
-  void _checkForTypeArgumentNotMatchingBounds(NamedType namedType) {
+  void _checkForTypeArgumentNotMatchingBounds(NamedTypeImpl namedType) {
     var type = namedType.type;
     if (type == null) {
       return;
     }
 
-    List<TypeParameterElement2> typeParameters;
+    List<TypeParameterElementImpl2> typeParameters;
     String? elementName;
-    List<DartType> typeArguments;
+    List<TypeImpl> typeArguments;
     var alias = type.alias;
     if (alias != null) {
       elementName = alias.element2.name3;
       typeParameters = alias.element2.typeParameters2;
       typeArguments = alias.typeArguments;
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceTypeImpl) {
       elementName = type.element3.name3;
       typeParameters = type.element3.typeParameters2;
       typeArguments = type.typeArguments;
@@ -328,7 +330,7 @@ class TypeArgumentsVerifier {
 
       var typeArgument = typeArguments[i];
 
-      if (typeArgument is FunctionType &&
+      if (typeArgument is FunctionTypeImpl &&
           typeArgument.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _errorReporter.atNode(
@@ -420,11 +422,11 @@ class TypeArgumentsVerifier {
 
     // Prepare type arguments for checking for super-bounded.
     var invertedType = _typeSystem.replaceTopAndBottom(type);
-    List<DartType> invertedTypeArguments;
+    List<TypeImpl> invertedTypeArguments;
     var invertedAlias = invertedType.alias;
     if (invertedAlias != null) {
       invertedTypeArguments = invertedAlias.typeArguments;
-    } else if (invertedType is InterfaceType) {
+    } else if (invertedType is InterfaceTypeImpl) {
       invertedTypeArguments = invertedType.typeArguments;
     } else {
       return;
@@ -498,9 +500,9 @@ class TypeArgumentsVerifier {
       //     <TFrom, TTo extends Iterable<TFrom>>
       //     <T extends Cloneable<T>>
       //
-      DartType argType = typeArgs[i];
+      var argType = typeArgs[i];
 
-      if (argType is FunctionType && argType.typeParameters.isNotEmpty) {
+      if (argType is FunctionTypeImpl && argType.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _errorReporter.atNode(
             typeArgumentList[i],

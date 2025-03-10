@@ -12,17 +12,21 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class _A&Object&Comparable = core::Object with core::Comparable<core::int> /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A&Object&Comparable
-    : super core::Object::•()
-    ;
-  abstract mixin-stub method compareTo(covariant-by-class core::int other) → core::int; -> core::Comparable::compareTo
-}
 class A extends self::_A&Object&Comparable {
   synthetic constructor •() → self::A
     ;
   method compareTo(covariant-by-class core::int x) → core::int
     ;
+}
+class B extends self::_B&Object&Error {
+  synthetic constructor •() → self::B
+    ;
+}
+abstract class _A&Object&Comparable = core::Object with core::Comparable<core::int> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A&Object&Comparable
+    : super core::Object::•()
+    ;
+  abstract mixin-stub method compareTo(covariant-by-class core::int other) → core::int; -> core::Comparable::compareTo
 }
 abstract class _B&Object&Error = core::Object with core::Error /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B&Object&Error
@@ -34,8 +38,4 @@ abstract class _B&Object&Error = core::Object with core::Error /*isAnonymousMixi
     return super.{core::Error::_stackTrace} = value;
   mixin-super-stub get stackTrace() → core::StackTrace?
     return super.{core::Error::stackTrace};
-}
-class B extends self::_B&Object&Error {
-  synthetic constructor •() → self::B
-    ;
 }

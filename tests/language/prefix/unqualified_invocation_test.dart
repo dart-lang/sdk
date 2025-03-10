@@ -20,16 +20,16 @@ class Base {
 class Derived extends Base {
   void f() {
     p();
-//  ^
-// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
-// [cfe] A prefix can't be used as an expression.
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+    // [cfe] A prefix can't be used as an expression.
   }
 }
 
 main() {
   new Derived().f();
   p();
-//^
-// [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
-// [cfe] A prefix can't be used as an expression.
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
+  // [cfe] A prefix can't be used as an expression.
 }

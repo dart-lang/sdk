@@ -28,9 +28,10 @@ class AbstractValueFactory {
 
   static AbstractValue inferredTypeForParameter(
     Local element,
+    MemberEntity? member,
     GlobalTypeInferenceResults results,
   ) {
-    return results.resultOfParameter(element);
+    return results.resultOfParameter(element, member);
   }
 
   static AbstractValue inferredResultTypeForSelector(

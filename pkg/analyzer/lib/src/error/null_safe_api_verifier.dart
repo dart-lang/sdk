@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 
@@ -24,7 +25,7 @@ class NullSafeApiVerifier {
 
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.
-  void instanceCreation(InstanceCreationExpression expression) {
+  void instanceCreation(InstanceCreationExpressionImpl expression) {
     var constructor = expression.constructorName.element;
     if (constructor == null) return;
 
@@ -39,9 +40,9 @@ class NullSafeApiVerifier {
 
   /// Reports an error if `Completer<T>.complete` is invoked with a non-nullable
   /// `T` and an argument that is effectively `null`.
-  void methodInvocation(MethodInvocation node) {
+  void methodInvocation(MethodInvocationImpl node) {
     var targetType = node.realTarget?.staticType;
-    if (targetType is! InterfaceType) return;
+    if (targetType is! InterfaceTypeImpl) return;
 
     var targetClass = targetType.element3;
 
@@ -53,8 +54,8 @@ class NullSafeApiVerifier {
     }
   }
 
-  void _checkTypes(
-      Expression node, String memberName, DartType type, ArgumentList args) {
+  void _checkTypes(ExpressionImpl node, String memberName, DartType type,
+      ArgumentListImpl args) {
     // If there's more than one argument, something else is wrong (and will
     // generate another diagnostic). Also, only check the argument type if we
     // expect a non-nullable type in the first place.

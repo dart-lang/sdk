@@ -7,12 +7,11 @@ description: >
  pipeline of different SDK tools.
 
 environment:
-  sdk: '>=2.19.0 <3.0.0'
+  sdk: ^3.5.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   args: any
-  macros: any
   package_config: any
   yaml: any
 

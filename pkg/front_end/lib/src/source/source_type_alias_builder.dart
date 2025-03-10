@@ -6,8 +6,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/problems.dart' show unhandled;
-import '../base/scope.dart';
-import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/invalid_type_builder.dart';
@@ -93,7 +91,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   List<NominalParameterBuilder>? get typeParameters =>
-      _introductory.typeParameters;
+      _introductory.typeParameters?.builders;
 
   @override
   bool get fromDill => false;
@@ -374,14 +372,14 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         createBodyBuilderContext(),
         libraryBuilder,
         fileUri,
-        libraryBuilder.scope);
+        _introductory.enclosingScope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
             libraryBuilder,
             createBodyBuilderContext(),
             classHierarchy,
-            computeTypeParameterScope(libraryBuilder.scope));
+            _introductory.typeParameterScope);
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
@@ -398,15 +396,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         inErrorRecovery: hasErrors);
     context.recursivelyReportGenericFunctionTypesAsBoundsForType(type);
     return count;
-  }
-
-  LookupScope computeTypeParameterScope(LookupScope parent) {
-    if (typeParameters == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
-    for (NominalParameterBuilder variable in typeParameters!) {
-      local[variable.name] = variable;
-    }
-    return new TypeParameterScope(parent, local);
   }
 
   Map<Procedure, Member>? _tearOffDependencies;

@@ -13,7 +13,8 @@ class Helper {
     else
       ;
     if (b) {}
-    if (b) {} else {}
+    if (b) {
+    } else {}
     return 0;
   }
 

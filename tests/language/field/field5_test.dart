@@ -7,9 +7,9 @@
 class A {
   var a;
   int a() {
-  //  ^
-  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] 'a' is already declared in this scope.
+    //^
+    // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+    // [cfe] 'a' is already declared in this scope.
     return 1;
   }
 }

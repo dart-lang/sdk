@@ -124,7 +124,7 @@ abstract final class DartAssistKind {
   static const CONVERT_INTO_GETTER = AssistKind(
     'dart.assist.convert.finalFieldToGetter',
     DartAssistKindPriority.DEFAULT,
-    'Convert to getter',
+    "Convert '{0}' to a getter",
   );
   static const CONVERT_INTO_IS_NOT = AssistKind(
     'dart.assist.convert.isNot',
@@ -301,6 +301,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
     'Wrap with Flexible',
   );
+  static const FLUTTER_WRAP_FUTURE_BUILDER = AssistKind(
+    'dart.assist.flutter.wrap.futureBuilder',
+    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    'Wrap with FutureBuilder',
+  );
   static const FLUTTER_WRAP_PADDING = AssistKind(
     'dart.assist.flutter.wrap.padding',
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
@@ -320,6 +325,11 @@ abstract final class DartAssistKind {
     'dart.assist.flutter.wrap.streamBuilder',
     DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
     'Wrap with StreamBuilder',
+  );
+  static const FLUTTER_WRAP_VALUE_LISTENABLE_BUILDER = AssistKind(
+    'dart.assist.flutter.wrap.valueListenableBuilder',
+    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    'Wrap with ValueListenableBuilder',
   );
   static const FLUTTER_SWAP_WITH_CHILD = AssistKind(
     'dart.assist.flutter.swap.withChild',

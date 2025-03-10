@@ -258,6 +258,16 @@ class NominalParameterBuilder extends TypeParameterBuilder {
   TypeParameter get parameter => origin.actualParameter;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void addAugmentation(covariant NominalParameterBuilder augmentation) {
+    assert(
+        _hasHashCode == null,
+        "Cannot apply augmentation since to $this since hashCode has already "
+        "been computed from $actualParameter @\n$_hasHashCode");
+    augmentation.actualOrigin = this;
+  }
+
+  @override
   void applyAugmentation(covariant NominalParameterBuilder augmentation) {
     assert(
         _hasHashCode == null,
@@ -721,6 +731,12 @@ class StructuralParameterBuilder extends TypeParameterBuilder {
               ? objectType
               : dynamicType.build(library, TypeUse.typeParameterDefaultType));
     }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void addAugmentation(covariant StructuralParameterBuilder augmentation) {
+    augmentation.actualOrigin = this;
   }
 
   @override

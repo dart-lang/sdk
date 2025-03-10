@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
@@ -3253,9 +3252,9 @@ class B<T2, U2> {
 
   /// Helper method for testing `FutureOr<T>`.
   ///
-  /// Validates that [code] produces [errors]. It should define a function
-  /// "test", whose body is an expression that invokes a method. Returns that
-  /// invocation.
+  /// Validates that [code] produces [expectedErrors]. It should define a
+  /// function "test", whose body is an expression that invokes a method.
+  /// Returns that invocation.
   Future<MethodInvocation> _testFutureOr(String code,
       {List<ExpectedError> expectedErrors = const []}) async {
     var fullCode = """

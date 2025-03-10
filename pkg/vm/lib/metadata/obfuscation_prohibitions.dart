@@ -29,7 +29,10 @@ class ObfuscationProhibitionsMetadataRepository
 
   @override
   void writeToBinary(
-      ObfuscationProhibitionsMetadata metadata, Node node, BinarySink sink) {
+    ObfuscationProhibitionsMetadata metadata,
+    Node node,
+    BinarySink sink,
+  ) {
     sink.writeUInt32(metadata.protectedNames.length);
     for (String name in metadata.protectedNames) {
       sink.writeStringReference(name);
@@ -38,7 +41,9 @@ class ObfuscationProhibitionsMetadataRepository
 
   @override
   ObfuscationProhibitionsMetadata readFromBinary(
-      Node node, BinarySource source) {
+    Node node,
+    BinarySource source,
+  ) {
     final metadata = ObfuscationProhibitionsMetadata();
     int length = source.readUint32();
     for (int i = 0; i < length; ++i) {

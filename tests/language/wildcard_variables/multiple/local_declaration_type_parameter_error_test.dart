@@ -5,8 +5,6 @@
 // Tests that formals named `_` in function types don't use the non-binding type
 // parameter `_`.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 void genericFunction<_ extends void Function<_>(_, _), _>() {}
 //                                              ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS

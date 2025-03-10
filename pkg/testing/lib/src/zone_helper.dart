@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Helper functions for running code in a Zone.
-library testing.zone_helper;
+library;
 
 import 'dart:async'
     show Completer, Future, PrintHandler, ZoneSpecification, runZonedGuarded;

@@ -2,9 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 /// This class is used to gather and print performance information.
-class PerformanceLog {
-  final StringSink? sink;
+class PerformanceLog<S extends StringSink?> {
+  // TODO(dantup): We only ever use `writeln` from the StringSink so this
+  //  could be simplified if we just accepted a `void Function(String)` instead
+  //  because it would remove the need for the StreamStrinkSink?
+  final S sink;
+
   int _level = 0;
 
   PerformanceLog(this.sink);
@@ -57,9 +63,9 @@ class PerformanceLog {
 
   /// Write a new line into the log.
   void writeln(String msg) {
-    if (sink != null) {
+    if (sink case var sink?) {
       String indent = '\t' * _level;
-      sink!.writeln('$indent$msg');
+      sink.writeln('$indent$msg');
     }
   }
 }

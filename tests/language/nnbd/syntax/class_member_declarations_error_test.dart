@@ -5,14 +5,12 @@
 
 class A {
   static late x1;
-  //     ^^^^
-  // [analyzer] unspecified
-  //          ^
+  //          ^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   static late x5 = 0;
-  //     ^^^^
-  // [analyzer] unspecified
-  //          ^
+  //          ^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 
   static final late x9;
@@ -36,14 +34,12 @@ class A {
   // [cfe] The value 'null' can't be assigned to a variable of type 'A' because 'A' is not nullable.
 
   covariant late x15;
-  //        ^^^^
-  // [analyzer] unspecified
-  //             ^
+  //             ^^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   covariant late x16 = '';
-  //        ^^^^
-  // [analyzer] unspecified
-  //             ^
+  //             ^^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 
   late covariant var x17;
@@ -81,9 +77,8 @@ class A {
   covariant double late x23;
   //               ^^^^
   // [analyzer] COMPILE_TIME_ERROR.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD
-  // [cfe] Expected ';' after this.
-  //               ^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Expected ';' after this.
   // [cfe] Field 'late' should be initialized because its type 'double' doesn't allow null.
   //                    ^^^
   // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -91,23 +86,21 @@ class A {
   covariant String late x24 = '';
   //               ^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] 'late' is already declared in this scope.
-  //               ^^^^
   // [analyzer] COMPILE_TIME_ERROR.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD
-  // [cfe] Expected ';' after this.
-  //               ^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] 'late' is already declared in this scope.
+  // [cfe] Expected ';' after this.
   //                    ^^^
   // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 
   late x25;
-  //   ^^^^
-  // [analyzer] unspecified
+  //   ^^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   late x29 = 0;
-  //   ^^^^
-  // [analyzer] unspecified
+  //   ^^^
+  // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 
   final late x33;
@@ -117,12 +110,10 @@ class A {
   int late x34;
   //  ^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] 'late' is already declared in this scope.
-  //  ^^^^
   // [analyzer] COMPILE_TIME_ERROR.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD
-  // [cfe] Expected ';' after this.
-  //  ^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] 'late' is already declared in this scope.
+  // [cfe] Expected ';' after this.
   //       ^^^
   // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
@@ -141,12 +132,10 @@ class A {
   int late x38 = 0;
   //  ^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] 'late' is already declared in this scope.
-  //  ^^^^
   // [analyzer] COMPILE_TIME_ERROR.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD
-  // [cfe] Expected ';' after this.
-  //  ^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] 'late' is already declared in this scope.
+  // [cfe] Expected ';' after this.
   //       ^^^
   // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.

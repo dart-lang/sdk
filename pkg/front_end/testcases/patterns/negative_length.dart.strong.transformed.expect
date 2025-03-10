@@ -8,6 +8,22 @@ import "dart:math" as math;
 
 import "dart:collection";
 
+class NegativeLengthList<E extends core::Object? = dynamic> extends self::_NegativeLengthList&Object&ListMixin<self::NegativeLengthList::E%> {
+  final field core::List<self::NegativeLengthList::E%> _list;
+  constructor •(core::List<self::NegativeLengthList::E%> _list) → self::NegativeLengthList<self::NegativeLengthList::E%>
+    : self::NegativeLengthList::_list = _list, super self::_NegativeLengthList&Object&ListMixin::•()
+    ;
+  get length() → core::int
+    return this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::length}{core::int}.{core::num::<=}(0){(core::num) → core::bool} ?{core::int} 1.{core::int::unary-}(){() → core::int} : this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::length}{core::int};
+  set length(core::int value) → void {
+    this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::length} = value;
+  }
+  operator [](core::int index) → self::NegativeLengthList::E%
+    return this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::[]}(index){(core::int) → self::NegativeLengthList::E%};
+  operator []=(core::int index, covariant-by-class self::NegativeLengthList::E% value) → void {
+    this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::[]=}(index, value){(core::int, self::NegativeLengthList::E%) → void};
+  }
+}
 abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dynamic> extends core::Object implements col::ListBase<self::_NegativeLengthList&Object&ListMixin::E%> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_NegativeLengthList&Object&ListMixin<self::_NegativeLengthList&Object&ListMixin::E%>
     : super core::Object::•()
@@ -508,22 +524,6 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → core::String
     return col::ListBase::listToString(this);
 }
-class NegativeLengthList<E extends core::Object? = dynamic> extends self::_NegativeLengthList&Object&ListMixin<self::NegativeLengthList::E%> {
-  final field core::List<self::NegativeLengthList::E%> _list;
-  constructor •(core::List<self::NegativeLengthList::E%> _list) → self::NegativeLengthList<self::NegativeLengthList::E%>
-    : self::NegativeLengthList::_list = _list, super self::_NegativeLengthList&Object&ListMixin::•()
-    ;
-  get length() → core::int
-    return this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::length}{core::int}.{core::num::<=}(0){(core::num) → core::bool} ?{core::int} 1.{core::int::unary-}(){() → core::int} : this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::length}{core::int};
-  set length(core::int value) → void {
-    this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::length} = value;
-  }
-  operator [](core::int index) → self::NegativeLengthList::E%
-    return this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::[]}(index){(core::int) → self::NegativeLengthList::E%};
-  operator []=(core::int index, covariant-by-class self::NegativeLengthList::E% value) → void {
-    this.{self::NegativeLengthList::_list}{core::List<self::NegativeLengthList::E%>}.{core::List::[]=}(index, value){(core::int, self::NegativeLengthList::E%) → void};
-  }
-}
 static method switchList(core::List<core::int> list) → core::int
   return block {
     core::int #t10;
@@ -578,9 +578,9 @@ constants  {
 }
 
 Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///negative_length.dart:12:41 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:454:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///negative_length.dart:12:41 -> IntConstant(-1)
 Extra constant evaluation: evaluated: 1121, effectively constant: 5

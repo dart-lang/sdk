@@ -14,33 +14,45 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
   final OmittedTypeBuilder returnType;
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<TypeParameterFragment>? typeParameters;
   final NominalParameterNameSpace typeParameterNameSpace;
+
+  /// The scope in which the constructor is declared.
+  ///
+  /// This is the scope used for resolving the [metadata].
+  final LookupScope enclosingScope;
+
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final String? nativeMethodName;
   final bool forAbstractClassOrMixin;
   Token? _beginInitializers;
 
-  AbstractSourceConstructorBuilder? _builder;
+  final DeclarationFragment enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
 
-  ConstructorFragment(
-      {required this.constructorName,
-      required this.fileUri,
-      required this.startOffset,
-      required this.formalsOffset,
-      required this.endOffset,
-      required this.modifiers,
-      required this.metadata,
-      required this.returnType,
-      required this.typeParameters,
-      required this.typeParameterNameSpace,
-      required this.typeParameterScope,
-      required this.formals,
-      required this.nativeMethodName,
-      required this.forAbstractClassOrMixin,
-      required Token? beginInitializers})
-      : _beginInitializers = beginInitializers;
+  SourceConstructorBuilderImpl? _builder;
+
+  ConstructorFragment({
+    required this.constructorName,
+    required this.fileUri,
+    required this.startOffset,
+    required this.formalsOffset,
+    required this.endOffset,
+    required this.modifiers,
+    required this.metadata,
+    required this.returnType,
+    required this.typeParameters,
+    required this.typeParameterNameSpace,
+    required this.enclosingScope,
+    required this.typeParameterScope,
+    required this.formals,
+    required this.nativeMethodName,
+    required this.forAbstractClassOrMixin,
+    required Token? beginInitializers,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  }) : _beginInitializers = beginInitializers;
 
   @override
   String get name => constructorName.name;
@@ -55,12 +67,12 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  AbstractSourceConstructorBuilder get builder {
+  SourceConstructorBuilderImpl get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
   }
 
-  void set builder(AbstractSourceConstructorBuilder value) {
+  void set builder(SourceConstructorBuilderImpl value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }
@@ -91,8 +103,7 @@ class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
       //  constructor body. An error is reported by the parser but we skip
       //  the body here to avoid overwriting the already lowering const
       //  constructor.
-      !(_fragment.builder is SourceExtensionTypeConstructorBuilder &&
-          _fragment.modifiers.isConst);
+      !(_fragment.builder.isExtensionTypeMember && _fragment.modifiers.isConst);
 
   @override
   LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {

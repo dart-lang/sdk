@@ -19,6 +19,7 @@ class FinalInitializedByMultipleInitializersTest
   static const _errorCode =
       CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation2_bothInitialize() async {
     newFile(testFile.path, r'''
 part 'a.dart';
@@ -58,6 +59,7 @@ augment class A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_augmentationInitializes() async {
     newFile(testFile.path, r'''
 part 'a.dart';
@@ -83,6 +85,7 @@ augment class A {
     assertNoErrorsInResult();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_bothInitialize() async {
     newFile(testFile.path, r'''
 part 'a.dart';
@@ -110,6 +113,7 @@ augment class A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_declarationInitializes() async {
     newFile(testFile.path, r'''
 part 'a.dart';

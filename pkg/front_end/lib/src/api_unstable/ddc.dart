@@ -13,7 +13,6 @@ import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 import '../api_prototype/file_system.dart' show FileSystem;
 import '../api_prototype/kernel_generator.dart' show CompilerResult;
 import '../api_prototype/standard_file_system.dart' show StandardFileSystem;
-import '../base/nnbd_mode.dart' show NnbdMode;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../kernel_generator_impl.dart' show generateKernel;
 import 'compiler_state.dart' show InitializedCompilerState;
@@ -39,7 +38,6 @@ export '../base/compiler_context.dart' show CompilerContext;
 export '../base/hybrid_file_system.dart' show HybridFileSystem;
 export '../base/incremental_compiler.dart' show IncrementalCompiler;
 export '../base/incremental_serializer.dart' show IncrementalSerializer;
-export '../base/nnbd_mode.dart' show NnbdMode;
 export '../base/processed_options.dart' show ProcessedOptions;
 export '../base/ticker.dart' show Ticker;
 export '../compute_platform_binaries_location.dart'
@@ -103,8 +101,7 @@ InitializedCompilerState initializeCompiler(
     Target target,
     {FileSystem? fileSystem,
     Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
-    Map<String, String>? environmentDefines,
-    required NnbdMode nnbdMode}) {
+    Map<String, String>? environmentDefines}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
@@ -112,7 +109,6 @@ InitializedCompilerState initializeCompiler(
       oldState.options.sdkSummary == sdkSummary &&
       oldState.options.packagesFileUri == packagesFile &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      oldState.options.nnbdMode == nnbdMode &&
       equalLists(oldState.options.additionalDills, additionalDills) &&
       equalMaps(oldState.options.explicitExperimentalFlags,
           explicitExperimentalFlags) &&
@@ -130,8 +126,7 @@ InitializedCompilerState initializeCompiler(
     ..librariesSpecificationUri = librariesSpecificationUri
     ..target = target
     ..fileSystem = fileSystem ?? StandardFileSystem.instance
-    ..environmentDefines = environmentDefines
-    ..nnbdMode = nnbdMode;
+    ..environmentDefines = environmentDefines;
   if (explicitExperimentalFlags != null) {
     options.explicitExperimentalFlags = explicitExperimentalFlags;
   }
@@ -160,10 +155,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     {FileSystem? fileSystem,
     required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     required Map<String, String> environmentDefines,
-    bool trackNeededDillLibraries = false,
-    bool requirePrebuiltMacros = false,
-    List<String> precompiledMacros = const [],
-    required NnbdMode nnbdMode}) {
+    bool trackNeededDillLibraries = false}) {
   return modular.initializeIncrementalCompiler(
       oldState,
       tags,
@@ -181,8 +173,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       environmentDefines: environmentDefines,
       outlineOnly: false,
       omitPlatform: false,
-      trackNeededDillLibraries: trackNeededDillLibraries,
-      nnbdMode: nnbdMode);
+      trackNeededDillLibraries: trackNeededDillLibraries);
 }
 
 Future<DdcResult?> compile(InitializedCompilerState compilerState,

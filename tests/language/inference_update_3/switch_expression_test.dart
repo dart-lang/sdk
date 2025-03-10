@@ -40,7 +40,7 @@ test(int i) {
     context<String>(switch (i) {
       0 => (contextType('')..expectStaticType<Exactly<String>>()),
       1 => (contextType('')..expectStaticType<Exactly<String>>()),
-      _ => (contextType('')..expectStaticType<Exactly<String>>())
+      _ => (contextType('')..expectStaticType<Exactly<String>>()),
     });
 
     // - Where the context is established using local variable promotion.
@@ -50,7 +50,7 @@ test(int i) {
       o = switch (i) {
         0 => (contextType('')..expectStaticType<Exactly<String>>()),
         1 => (contextType('')..expectStaticType<Exactly<String>>()),
-        _ => (contextType('')..expectStaticType<Exactly<String>>())
+        _ => (contextType('')..expectStaticType<Exactly<String>>()),
       };
     }
   }
@@ -72,7 +72,11 @@ test(int i) {
     // Therefore the type of `e` is T = num.
     var d = 2.0;
     context<Object>(
-        (switch (i) { 0 => i, _ => d })..expectStaticType<Exactly<num>>());
+      (switch (i) {
+        0 => i,
+        _ => d,
+      })..expectStaticType<Exactly<num>>(),
+    );
 
     // This example has:
     // - K = Iterable<_>
@@ -86,8 +90,12 @@ test(int i) {
     // Therefore the type of `e` is T = Iterable<num>.
     var iterableInt = <int>[] as Iterable<int>;
     var iterableDouble = <double>[] as Iterable<double>;
-    contextIterable((switch (i) { 0 => iterableInt, _ => iterableDouble })
-      ..expectStaticType<Exactly<Iterable<num>>>());
+    contextIterable(
+      (switch (i) {
+        0 => iterableInt,
+        _ => iterableDouble,
+      })..expectStaticType<Exactly<Iterable<num>>>(),
+    );
   }
 
   // - Otherwise, if Ti <: S for all i, then the type of `e` is S.
@@ -106,8 +114,12 @@ test(int i) {
     // Therefore the type of `e` is S = B1<Object?>.
     var c1Int = C1<int>();
     var c2Double = C2<double>();
-    contextB1((switch (i) { 0 => c1Int, _ => c2Double })
-      ..expectStaticType<Exactly<B1<Object?>>>());
+    contextB1(
+      (switch (i) {
+        0 => c1Int,
+        _ => c2Double,
+      })..expectStaticType<Exactly<B1<Object?>>>(),
+    );
 
     // This example has:
     // - K = B1<Object>
@@ -121,8 +133,12 @@ test(int i) {
     // - T1 <: S
     // - T2 <: S
     // Therefore the type of `e` is S = B1<Object>.
-    contextB1<Object>((switch (i) { 0 => c1Int, _ => c2Double })
-      ..expectStaticType<Exactly<B1<Object>>>());
+    contextB1<Object>(
+      (switch (i) {
+        0 => c1Int,
+        _ => c2Double,
+      })..expectStaticType<Exactly<B1<Object>>>(),
+    );
 
     // This example has:
     // - K = Iterable<num>
@@ -138,8 +154,12 @@ test(int i) {
     // Therefore the type of `e` is S = Iterable<num>.
     var iterableInt = <int>[] as Iterable<int>;
     var listNum = <num>[];
-    context<Iterable<num>>((switch (i) { 0 => iterableInt, _ => listNum })
-      ..expectStaticType<Exactly<Iterable<num>>>());
+    context<Iterable<num>>(
+      (switch (i) {
+        0 => iterableInt,
+        _ => listNum,
+      })..expectStaticType<Exactly<Iterable<num>>>(),
+    );
   }
 
   // - Otherwise, the type of `e` is T.
@@ -162,7 +182,10 @@ test(int i) {
       // The fact that T2 <!: S precludes using S as static type.
       // Therefore the type of `e` is T = int?.
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (switch (i) { 0 => null, _ => i })..expectStaticType<Exactly<int?>>();
+      o = (switch (i) {
+        0 => null,
+        _ => i,
+      })..expectStaticType<Exactly<int?>>();
     }
     o = '' as Object?;
     if (o is String?) {
@@ -180,7 +203,10 @@ test(int i) {
       // The fact that T1 <!: S precludes using S as static type.
       // Therefore the type of `e` is T = int?.
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (switch (i) { 0 => i, _ => null })..expectStaticType<Exactly<int?>>();
+      o = (switch (i) {
+        0 => i,
+        _ => null,
+      })..expectStaticType<Exactly<int?>>();
     }
     o = '' as Object?;
     if (o is String?) {
@@ -198,7 +224,10 @@ test(int i) {
       // The fact that T1 <!: S and T2 <!: S precludes using S as static type.
       // Therefore the type of `e` is T = num.
       // We avoid having a compile-time error because `o` can be demoted.
-      o = (switch (i) { 0 => i, _ => d })..expectStaticType<Exactly<num>>();
+      o = (switch (i) {
+        0 => i,
+        _ => d,
+      })..expectStaticType<Exactly<num>>();
     }
   }
 }

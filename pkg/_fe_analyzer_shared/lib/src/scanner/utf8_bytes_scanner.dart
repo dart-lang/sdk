@@ -9,7 +9,9 @@ import 'dart:typed_data' show Uint8List;
 
 import 'dart:convert' show unicodeBomCharacterRune, utf8;
 
-import 'characters.dart' show $EOF;
+import 'characters.dart';
+
+import 'internal_utils.dart' show isIdentifierCharAllowDollarTableLookup;
 
 import 'token.dart' show LanguageVersionToken, SyntheticStringToken, TokenType;
 
@@ -131,6 +133,223 @@ class Utf8BytesScanner extends AbstractScanner {
     ++byteOffset;
     if (byteOffset > _bytesLengthMinusOne) return $EOF;
     return _bytes[byteOffset];
+  }
+
+  @pragma('vm:unsafe:no-bounds-checks')
+  @pragma("vm:prefer-inline")
+  int _advanceNoBoundsCheck() {
+    ++byteOffset;
+    return _bytes[byteOffset];
+  }
+
+  @override
+  @pragma('vm:unsafe:no-bounds-checks')
+  int current() {
+    if (byteOffset > _bytesLengthMinusOne) return $EOF;
+    return _bytes[byteOffset];
+  }
+
+  @override
+  @pragma('vm:unsafe:no-bounds-checks')
+  int passIdentifierCharAllowDollar() {
+    int localByteOffset = byteOffset;
+    while (localByteOffset + 10 < _bytesLengthMinusOne) {
+      // Here we can access bytes without checks
+      int next = _bytes[++localByteOffset];
+      if (isIdentifierCharAllowDollarTableLookup(next) &&
+          isIdentifierCharAllowDollarTableLookup(
+              next = _bytes[++localByteOffset]) &&
+          isIdentifierCharAllowDollarTableLookup(
+              next = _bytes[++localByteOffset]) &&
+          isIdentifierCharAllowDollarTableLookup(
+              next = _bytes[++localByteOffset]) &&
+          isIdentifierCharAllowDollarTableLookup(
+              next = _bytes[++localByteOffset]) &&
+          isIdentifierCharAllowDollarTableLookup(
+              next = _bytes[++localByteOffset]) &&
+          isIdentifierCharAllowDollarTableLookup(
+              next = _bytes[++localByteOffset]) &&
+          isIdentifierCharAllowDollarTableLookup(
+              next = _bytes[++localByteOffset]) &&
+          isIdentifierCharAllowDollarTableLookup(
+              next = _bytes[++localByteOffset]) &&
+          isIdentifierCharAllowDollarTableLookup(
+              next = _bytes[++localByteOffset])) {
+        continue;
+      }
+      // If we got here the latest value into next returned false.
+      byteOffset = localByteOffset;
+      return next;
+    }
+
+    // Less than 10 bytes left in stream.
+    while (true) {
+      int next = advance();
+      if (next == $EOF || !isIdentifierCharAllowDollarTableLookup(next)) {
+        return next;
+      }
+    }
+  }
+
+  @pragma("vm:prefer-inline")
+  bool _isEolChar(int next) {
+    const List<bool> table = [
+      // format hack.
+      false, false, false, false, false, false, false, false,
+      false, false, true, false, false, true, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      false, false, false, false, false, false, false, false,
+      // format hack.
+    ];
+    return table[next];
+  }
+
+  @override
+  bool scanUntilLineEnd() {
+    // The localByteOffset optimization from [passIdentifierCharAllowDollar]
+    // makes things slower here. (it does reduce the instructions executed, but
+    // seemingly increases the L1 instruction cache misses by ~15% making the
+    // whole thing slower).
+    int nonAsciiCount = 0;
+    while (byteOffset + 10 < _bytesLengthMinusOne) {
+      // Here we can access bytes without checks
+      // 1.
+      int next = _advanceNoBoundsCheck();
+      nonAsciiCount |= next;
+      if (_isEolChar(next)) return nonAsciiCount & 128 == 0;
+
+      // 2.
+      next = _advanceNoBoundsCheck();
+      nonAsciiCount |= next;
+      if (_isEolChar(next)) return nonAsciiCount & 128 == 0;
+
+      // 3.
+      next = _advanceNoBoundsCheck();
+      nonAsciiCount |= next;
+      if (_isEolChar(next)) return nonAsciiCount & 128 == 0;
+
+      // 4.
+      next = _advanceNoBoundsCheck();
+      nonAsciiCount |= next;
+      if (_isEolChar(next)) return nonAsciiCount & 128 == 0;
+
+      // 5.
+      next = _advanceNoBoundsCheck();
+      nonAsciiCount |= next;
+      if (_isEolChar(next)) return nonAsciiCount & 128 == 0;
+
+      // 6.
+      next = _advanceNoBoundsCheck();
+      nonAsciiCount |= next;
+      if (_isEolChar(next)) return nonAsciiCount & 128 == 0;
+
+      // 7.
+      next = _advanceNoBoundsCheck();
+      nonAsciiCount |= next;
+      if (_isEolChar(next)) return nonAsciiCount & 128 == 0;
+
+      // 8.
+      next = _advanceNoBoundsCheck();
+      nonAsciiCount |= next;
+      if (_isEolChar(next)) return nonAsciiCount & 128 == 0;
+
+      // 9.
+      next = _advanceNoBoundsCheck();
+      nonAsciiCount |= next;
+      if (_isEolChar(next)) return nonAsciiCount & 128 == 0;
+
+      // 10.
+      next = _advanceNoBoundsCheck();
+      nonAsciiCount |= next;
+      if (_isEolChar(next)) return nonAsciiCount & 128 == 0;
+    }
+    // Less than 10 bytes left.
+    int next = advance();
+    while (true) {
+      nonAsciiCount |= next;
+      if ($LF == next || $CR == next || $EOF == next) {
+        return nonAsciiCount & 128 == 0;
+      }
+      next = advance();
+    }
+  }
+
+  @override
+  @pragma("vm:prefer-inline")
+  int skipSpaces() {
+    // Not having a loop possibly saves us (at least) a
+    // CheckStackOverflow (2 instructions).
+    if (byteOffset + 10 < _bytesLengthMinusOne) {
+      // Here we can access bytes without checks
+      int next = _advanceNoBoundsCheck();
+      if (next == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE) {
+      } else {
+        // If we got here the latest value into next returned false.
+        return next;
+      }
+    }
+
+    while (byteOffset + 10 < _bytesLengthMinusOne) {
+      // Here we can access bytes without checks
+      int next = _advanceNoBoundsCheck();
+      if (next == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE &&
+          (next = _advanceNoBoundsCheck()) == $SPACE) {
+        continue;
+      }
+      // If we got here the latest value into next returned false.
+      return next;
+    }
+    // Less than 10 bytes left.
+    int next = advance();
+    while (next == $SPACE) {
+      next = advance();
+    }
+    return next;
   }
 
   @override

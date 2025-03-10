@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-import 'package:kernel/ast.dart' show Class, Library, Version;
+import 'package:kernel/ast.dart' show Annotatable, Library, Version;
 import 'package:kernel/reference_from_index.dart';
 
 import '../api_prototype/experimental_flags.dart';
@@ -25,6 +25,8 @@ import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/uri_offset.dart';
+import '../fragment/fragment.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/load_library_builder.dart';
 import '../source/offset_map.dart';
 import '../source/outline_builder.dart';
@@ -96,7 +98,8 @@ sealed class CompilationUnit {
 
 abstract class DillCompilationUnit implements CompilationUnit {}
 
-abstract class SourceCompilationUnit implements CompilationUnit {
+abstract class SourceCompilationUnit
+    implements CompilationUnit, LibraryFragment {
   OutlineBuilder createOutlineBuilder();
 
   /// Creates a [SourceLibraryBuilder] for with this [SourceCompilationUnit] as
@@ -144,6 +147,12 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   @override
   SourceLibraryBuilder get libraryBuilder;
 
+  /// The parent compilation unit.
+  ///
+  /// This is the compilation unit that included this compilation unit as a
+  /// part or `null` if this is the root compilation unit of a library.
+  SourceCompilationUnit? get parentCompilationUnit;
+
   LibraryFeatures get libraryFeatures;
 
   /// Returns `true` if the compilation unit is part of a `dart:` library.
@@ -161,7 +170,18 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   List<MetadataBuilder>? get metadata;
 
-  LookupScope get scope;
+  /// The scope of this compilation unit.
+  ///
+  /// This is the enclosing scope for all declarations within the compilation
+  /// unit.
+  LookupScope get compilationUnitScope;
+
+  /// The prefix scope of this compilation unit.
+  ///
+  /// This contains all imports with prefixes declared in this compilation unit.
+  LookupScope get prefixScope;
+
+  NameSpace get prefixNameSpace;
 
   bool get mayImplementRestrictedTypes;
 
@@ -170,11 +190,43 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   void addDependencies(Library library, Set<SourceCompilationUnit> seen);
 
-  void includeParts(SourceLibraryBuilder libraryBuilder,
+  /// Runs through all part directives in this compilation unit and adds the
+  /// compilation unit for the parts to the [libraryBuilder] by adding them
+  /// to [includedParts]
+  ///
+  /// [usedParts] is used to ensure that a compilation unit is only included in
+  /// one library. If the compilation unit is part of two libraries, it is only
+  /// included in the first and reported as an error on the second.
+  ///
+  /// This should only be called on the main compilation unit for
+  /// [libraryBuilder]. Inclusion of nested parts is from within this method,
+  /// using [becomePart] for each individual subpart.
+  void includeParts(
       List<SourceCompilationUnit> includedParts, Set<Uri> usedParts);
 
-  void validatePart(SourceLibraryBuilder library,
-      LibraryNameSpaceBuilder libraryNameSpaceBuilder, Set<Uri>? usedParts);
+  /// Includes this compilation unit as a part of [libraryBuilder] with
+  /// [parentCompilationUnit] as the parent compilation unit.
+  ///
+  /// The parent compilation unit is used to define the compilation unit
+  /// scope of this compilation unit.
+  ///
+  /// All fragment in this compilation unit will be added to
+  /// [libraryNameSpaceBuilder].
+  ///
+  /// If parts with parts is supported (through the enhanced parts feature),
+  /// the compilation units of the part directives in this compilation unit
+  /// will be added [libraryBuilder] recursively.
+  void becomePart(
+      SourceLibraryBuilder libraryBuilder,
+      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+      SourceCompilationUnit parentCompilationUnit,
+      List<SourceCompilationUnit> includedParts,
+      Set<Uri> usedParts,
+      {required bool allowPartInParts});
+
+  void buildOutlineExpressions(
+      Annotatable annotatable, BodyBuilderContext bodyBuilderContext,
+      {required bool createFileUriExpression});
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
@@ -182,6 +234,10 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// Return the primary message.
   Message reportFeatureNotEnabled(
       LibraryFeature feature, Uri fileUri, int charOffset, int length);
+
+  /// Registers that [augmentation] is a part of the library for which this is
+  /// the main compilation unit.
+  void registerAugmentation(CompilationUnit augmentation);
 
   /// Reports [message] on all compilation units that access this compilation
   /// unit.
@@ -262,8 +318,6 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 }
 
 abstract class LibraryBuilder implements Builder, ProblemReporting {
-  LookupScope get scope;
-
   NameSpace get libraryNameSpace;
 
   NameSpace get exportNameSpace;
@@ -364,29 +418,22 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri);
 
-  /// Returns `true` if [cls] is the 'Function' class defined in [coreLibrary].
-  static bool isFunction(Class cls, LibraryBuilder coreLibrary) {
-    return cls.name == 'Function' && _isCoreClass(cls, coreLibrary);
+  /// Returns `true` if [typeDeclarationBuilder] is the 'Function' class defined
+  /// in [coreLibrary].
+  static bool isFunction(TypeDeclarationBuilder? typeDeclarationBuilder,
+      LibraryBuilder coreLibrary) {
+    return typeDeclarationBuilder is ClassBuilder &&
+        typeDeclarationBuilder.name == 'Function' &&
+        typeDeclarationBuilder.libraryBuilder == coreLibrary;
   }
 
-  /// Returns `true` if [cls] is the 'Record' class defined in [coreLibrary].
-  static bool isRecord(Class cls, LibraryBuilder coreLibrary) {
-    return cls.name == 'Record' && _isCoreClass(cls, coreLibrary);
-  }
-
-  static bool _isCoreClass(Class cls, LibraryBuilder coreLibrary) {
-    // We use `superclass.parent` here instead of
-    // `superclass.enclosingLibrary` to handle platform compilation. If
-    // we are currently compiling the platform, the enclosing library of
-    // the core class has not yet been set, so the accessing
-    // `enclosingLibrary` would result in a cast error. We assume that the
-    // SDK does not contain this error, which we otherwise not find. If we
-    // are _not_ compiling the platform, the `superclass.parent` has been
-    // set, if it is a class from `dart:core`.
-    if (cls.parent == coreLibrary.library) {
-      return true;
-    }
-    return false;
+  /// Returns `true` if [typeDeclarationBuilder] is the 'Record' class defined
+  /// in [coreLibrary].
+  static bool isRecord(TypeDeclarationBuilder? typeDeclarationBuilder,
+      LibraryBuilder coreLibrary) {
+    return typeDeclarationBuilder is ClassBuilder &&
+        typeDeclarationBuilder.name == 'Record' &&
+        typeDeclarationBuilder.libraryBuilder == coreLibrary;
   }
 }
 

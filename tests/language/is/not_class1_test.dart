@@ -8,12 +8,10 @@ class A {}
 main() {
   var a = A();
   if (a is "A") return 0;
-  // [error line 10, column 12, length 0]
-  // [cfe] Expected ')' before this.
   //       ^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Expected a type, but got '"A"'.
-  //       ^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TYPE_NAME
+  // [cfe] Expected ')' before this.
+  // [cfe] Expected a type, but got '"A"'.
   // [cfe] This couldn't be parsed.
 }

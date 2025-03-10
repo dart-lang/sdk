@@ -40,8 +40,9 @@ class C {
       _a
           .method(contextType(0)..expectStaticType<Exactly<num>>())
           .expectStaticType<Exactly<int>>();
-      _a(contextType(0)..expectStaticType<Exactly<num>>())
-          .expectStaticType<Exactly<int>>();
+      _a(
+        contextType(0)..expectStaticType<Exactly<num>>(),
+      ).expectStaticType<Exactly<int>>();
       _a[contextType(0)..expectStaticType<Exactly<num>>()]
           .expectStaticType<Exactly<int>>();
       _a[contextType(0)..expectStaticType<Exactly<num>>()] = contextType(0)
@@ -58,23 +59,21 @@ class D extends C {
   void testSuperAccess() {
     if (super._a is B) {
       super._a.getter.expectStaticType<Exactly<int Function(num)>>();
-      super
-          ._a
+      super._a
           .getter(contextType(0)..expectStaticType<Exactly<num>>())
           .expectStaticType<Exactly<int>>();
       super._a.method.expectStaticType<Exactly<int Function(num)>>();
-      super
-          ._a
+      super._a
           .method(contextType(0)..expectStaticType<Exactly<num>>())
           .expectStaticType<Exactly<int>>();
       super
           ._a(contextType(0)..expectStaticType<Exactly<num>>())
           .expectStaticType<Exactly<int>>();
-      super
-          ._a[contextType(0)..expectStaticType<Exactly<num>>()]
+      super._a[contextType(0)..expectStaticType<Exactly<num>>()]
           .expectStaticType<Exactly<int>>();
-      super._a[contextType(0)..expectStaticType<Exactly<num>>()] =
-          contextType(0)..expectStaticType<Exactly<num>>();
+      super._a[contextType(0)
+        ..expectStaticType<Exactly<num>>()] = contextType(0)
+        ..expectStaticType<Exactly<num>>();
       (super._a + (contextType(0)..expectStaticType<Exactly<num>>()))
           .expectStaticType<Exactly<int>>();
     }
@@ -108,20 +107,17 @@ void testGeneralPropertyAccess(C c) {
   // we need to test the general case of property accesses as well.
   if ((c)._a is B) {
     (c)._a.getter.expectStaticType<Exactly<int Function(num)>>();
-    (c)
-        ._a
+    (c)._a
         .getter(contextType(0)..expectStaticType<Exactly<num>>())
         .expectStaticType<Exactly<int>>();
     (c)._a.method.expectStaticType<Exactly<int Function(num)>>();
-    (c)
-        ._a
+    (c)._a
         .method(contextType(0)..expectStaticType<Exactly<num>>())
         .expectStaticType<Exactly<int>>();
     (c)
         ._a(contextType(0)..expectStaticType<Exactly<num>>())
         .expectStaticType<Exactly<int>>();
-    (c)
-        ._a[contextType(0)..expectStaticType<Exactly<num>>()]
+    (c)._a[contextType(0)..expectStaticType<Exactly<num>>()]
         .expectStaticType<Exactly<int>>();
     (c)._a[contextType(0)..expectStaticType<Exactly<num>>()] = contextType(0)
       ..expectStaticType<Exactly<num>>();

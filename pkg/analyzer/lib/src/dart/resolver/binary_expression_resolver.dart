@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -24,7 +22,6 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Helper for resolving [BinaryExpression]s.
 class BinaryExpressionResolver {
@@ -283,23 +280,18 @@ class BinaryExpressionResolver {
 
   void _resolveRightOperand(
     BinaryExpressionImpl node,
-    DartType contextType,
+    TypeImpl contextType,
   ) {
     var left = node.leftOperand;
 
     var invokeType = node.staticInvokeType;
     TypeImpl rightContextType;
-    if (invokeType != null && invokeType.parameters.isNotEmpty) {
+    if (invokeType != null && invokeType.formalParameters.isNotEmpty) {
       // If this is a user-defined operator, set the right operand context
       // using the operator method's parameter type.
-      var rightParam = invokeType.parameters[0];
-      rightContextType = _typeSystem.refineNumericInvocationContext(
-          left.staticType,
-          node.staticElement,
-          contextType,
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `FunctionTypeImpl.parameters` to `List<ParameterElementMixin>`.
-          rightParam.type as TypeImpl);
+      var rightParam = invokeType.formalParameters[0];
+      rightContextType = _typeSystem.refineNumericInvocationContext2(
+          left.staticType, node.element, contextType, rightParam.type);
     } else {
       rightContextType = UnknownInferredType.instance;
     }
@@ -325,7 +317,7 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUserDefinable(BinaryExpressionImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var left = node.leftOperand;
 
     if (left is AugmentedExpressionImpl) {
@@ -362,7 +354,7 @@ class BinaryExpressionResolver {
   void _resolveUserDefinableAugmented(
     BinaryExpressionImpl node, {
     required AugmentedExpressionImpl left,
-    required DartType contextType,
+    required TypeImpl contextType,
   }) {
     var methodName = node.operator.lexeme;
 
@@ -373,13 +365,12 @@ class BinaryExpressionResolver {
     left.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
 
     switch (augmentationTarget) {
-      case MethodElement operatorElement:
-        left.element = operatorElement;
+      case MethodElementImpl fragment:
+        left.fragment = fragment;
         left.setPseudoExpressionStaticType(
             _resolver.thisType ?? InvalidTypeImpl.instance);
-        if (operatorElement.name == methodName) {
-          node.staticElement = operatorElement;
-          node.staticInvokeType = operatorElement.type;
+        if (fragment.name2 == methodName) {
+          node.staticInvokeType = fragment.element.type;
         } else {
           _errorReporter.atToken(
             left.augmentedKeyword,
@@ -389,10 +380,11 @@ class BinaryExpressionResolver {
             ],
           );
         }
-      case PropertyAccessorElement accessor:
-        left.element = accessor;
-        if (accessor.isGetter) {
-          left.setPseudoExpressionStaticType(accessor.returnType);
+      case PropertyAccessorFragment fragment:
+        left.fragment = fragment;
+        var element = fragment.element;
+        if (element is GetterElement) {
+          left.setPseudoExpressionStaticType(element.returnType);
           _resolveUserDefinableElement(node, methodName);
         } else {
           _errorReporter.atToken(
@@ -400,9 +392,9 @@ class BinaryExpressionResolver {
             CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER,
           );
         }
-      case PropertyInducingElement property:
-        left.element = property;
-        left.setPseudoExpressionStaticType(property.type);
+      case PropertyInducingFragment fragment:
+        left.fragment = fragment;
+        left.setPseudoExpressionStaticType(fragment.element.type);
         _resolveUserDefinableElement(node, methodName);
     }
 
@@ -417,18 +409,18 @@ class BinaryExpressionResolver {
     ExpressionImpl leftOperand = node.leftOperand;
 
     if (leftOperand is ExtensionOverrideImpl) {
-      var extension = leftOperand.element;
-      var member = extension.getMethod(methodName);
+      var extension = leftOperand.element2;
+      var member = extension.getMethod2(methodName);
       if (member == null) {
         // Extension overrides can only be used with named extensions so it is
         // safe to assume `extension.name` is non-`null`.
         _errorReporter.atToken(
           node.operator,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          arguments: [methodName, extension.name!],
+          arguments: [methodName, extension.name3!],
         );
       }
-      node.staticElement = member;
+      node.element = member;
       node.staticInvokeType = member?.type;
       return;
     }
@@ -455,7 +447,7 @@ class BinaryExpressionResolver {
       nameErrorEntity: node,
     );
 
-    node.staticElement = result.getter2?.asElement as MethodElement?;
+    node.element = result.getter2 as MethodElement2?;
     node.staticInvokeType = result.getter2?.type;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
@@ -477,7 +469,7 @@ class BinaryExpressionResolver {
   void _resolveUserDefinableType(BinaryExpressionImpl node) {
     var leftOperand = node.leftOperand;
 
-    DartType leftType;
+    TypeImpl leftType;
     if (leftOperand is AugmentedExpressionImpl) {
       leftType = leftOperand.typeOrThrow;
     } else if (leftOperand is ExtensionOverrideImpl) {
@@ -506,7 +498,7 @@ class BinaryExpressionResolver {
         node.operator.type,
         node.rightOperand.typeOrThrow,
         staticType,
-        node.staticElement,
+        node.element,
       );
     }
     node.recordStaticType(staticType, resolver: _resolver);

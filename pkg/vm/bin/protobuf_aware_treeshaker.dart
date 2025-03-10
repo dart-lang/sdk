@@ -35,38 +35,60 @@ import 'package:kernel/target/targets.dart' show TargetFlags, getTarget;
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector, KernelCompilationArguments;
 import 'package:vm/modular/target/install.dart' show installAdditionalTargets;
-import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
+import 'package:vm/transformations/type_flow/transformer.dart'
+    as globalTypeFlow
     show transformComponent;
 
 ArgResults parseArgs(List<String> args) {
-  ArgParser argParser = ArgParser()
-    ..addOption('platform',
-        valueHelp: "path/to/vm_platform.dill",
-        help: 'A platform.dill file to append to the input. If not given, no '
-            'platform.dill will be appended.')
-    ..addOption('target',
-        allowed: ['dart_runner', 'flutter', 'flutter-runner', 'vm'],
-        defaultsTo: 'vm',
-        help: 'Target platform.')
-    ..addFlag('aot',
-        help: 'If set, produces kernel file for AOT compilation (enables '
-            'global transformations). Otherwise, writes regular dill.',
-        defaultsTo: false)
-    ..addFlag('write-txt',
-        help: 'Also write the result in kernel-text format as <out.dill>.txt',
-        defaultsTo: false)
-    ..addFlag('remove-core-libs',
-        help: 'If set, the output dill file will not include `dart:` libraries',
-        defaultsTo: false)
-    ..addMultiOption('define',
-        abbr: 'D',
-        help: 'Perform constant evaluation with this environment define set.',
-        valueHelp: 'variable=value')
-    ..addFlag('remove-source',
-        help: 'Removes source code from the emitted dill', defaultsTo: false)
-    ..addFlag('verbose',
-        help: 'Write to stdout about what classes and fields where removed')
-    ..addFlag('help', help: 'Prints this help', negatable: false);
+  ArgParser argParser =
+      ArgParser()
+        ..addOption(
+          'platform',
+          valueHelp: "path/to/vm_platform.dill",
+          help:
+              'A platform.dill file to append to the input. If not given, no '
+              'platform.dill will be appended.',
+        )
+        ..addOption(
+          'target',
+          allowed: ['dart_runner', 'flutter', 'flutter-runner', 'vm'],
+          defaultsTo: 'vm',
+          help: 'Target platform.',
+        )
+        ..addFlag(
+          'aot',
+          help:
+              'If set, produces kernel file for AOT compilation (enables '
+              'global transformations). Otherwise, writes regular dill.',
+          defaultsTo: false,
+        )
+        ..addFlag(
+          'write-txt',
+          help: 'Also write the result in kernel-text format as <out.dill>.txt',
+          defaultsTo: false,
+        )
+        ..addFlag(
+          'remove-core-libs',
+          help:
+              'If set, the output dill file will not include `dart:` libraries',
+          defaultsTo: false,
+        )
+        ..addMultiOption(
+          'define',
+          abbr: 'D',
+          help: 'Perform constant evaluation with this environment define set.',
+          valueHelp: 'variable=value',
+        )
+        ..addFlag(
+          'remove-source',
+          help: 'Removes source code from the emitted dill',
+          defaultsTo: false,
+        )
+        ..addFlag(
+          'verbose',
+          help: 'Write to stdout about what classes and fields where removed',
+        )
+        ..addFlag('help', help: 'Prints this help', negatable: false);
 
   ArgResults? argResults;
   try {
@@ -78,7 +100,8 @@ ArgResults parseArgs(List<String> args) {
   if (argResults == null || argResults['help'] || argResults.rest.length != 2) {
     String script = 'protobuf_aware_treeshaker.dart';
     print(
-        'A tool for removing protobuf messages types that are never referred by a program');
+      'A tool for removing protobuf messages types that are never referred by a program',
+    );
     print('Usage: $script [args] <input.dill> <output.dill>');
 
     print(argParser.usage);
@@ -118,16 +141,23 @@ Future main(List<String> args) async {
   if (argResults['aot']) {
     final nopErrorDetector = ErrorDetector();
     runGlobalTransformations(
-        target,
-        component,
-        nopErrorDetector,
-        KernelCompilationArguments(
-            useGlobalTypeFlowAnalysis: true,
-            enableAsserts: false,
-            useProtobufTreeShakerV2: true));
+      target,
+      component,
+      nopErrorDetector,
+      KernelCompilationArguments(
+        useGlobalTypeFlowAnalysis: true,
+        enableAsserts: false,
+        useProtobufTreeShakerV2: true,
+      ),
+    );
   } else {
-    globalTypeFlow.transformComponent(target, CoreTypes(component), component,
-        treeShakeProtobufs: true, treeShakeSignatures: false);
+    globalTypeFlow.transformComponent(
+      target,
+      CoreTypes(component),
+      component,
+      treeShakeProtobufs: true,
+      treeShakeSignatures: false,
+    );
   }
 
   if (argResults['aot']) {
@@ -139,9 +169,12 @@ Future main(List<String> args) async {
   } else {
     // Clean out the AOT-only TFA annotations and write regular dill.
     component.metadata.clear();
-    await writeComponent(component, output,
-        removeCoreLibs: argResults['remove-core-libs'],
-        removeSource: argResults['remove-source']);
+    await writeComponent(
+      component,
+      output,
+      removeCoreLibs: argResults['remove-core-libs'],
+      removeSource: argResults['remove-source'],
+    );
   }
   if (argResults['write-txt']) {
     writeComponentToText(component, path: output + '.txt');
@@ -155,8 +188,12 @@ Uint8List concatenate(Uint8List a, Uint8List b) {
   return bytes;
 }
 
-Future writeComponent(Component component, String filename,
-    {required bool removeCoreLibs, required bool removeSource}) async {
+Future writeComponent(
+  Component component,
+  String filename, {
+  required bool removeCoreLibs,
+  required bool removeSource,
+}) async {
   if (removeSource) {
     component.uriToSource.clear();
   }
@@ -168,11 +205,15 @@ Future writeComponent(Component component, String filename,
   }
 
   final sink = File(filename).openWrite();
-  final printer = BinaryPrinter(sink, libraryFilter: (lib) {
-    if (removeCoreLibs && isCoreLibrary(lib)) return false;
-    if (isLibEmpty(lib)) return false;
-    return true;
-  }, includeSources: !removeSource);
+  final printer = BinaryPrinter(
+    sink,
+    libraryFilter: (lib) {
+      if (removeCoreLibs && isCoreLibrary(lib)) return false;
+      if (isLibEmpty(lib)) return false;
+      return true;
+    },
+    includeSources: !removeSource,
+  );
 
   printer.writeComponentFile(component);
   await sink.close();

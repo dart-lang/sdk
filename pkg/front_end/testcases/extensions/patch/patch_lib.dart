@@ -13,7 +13,17 @@ extension IntExtension on int {
   int method2() => 43;
 }
 
+@patch
+extension GenericExtension<T> on T {
+  @patch
+  int method3() => 42;
+
+  int method4() => 43;
+}
+
 _method2() {
   0.method1();
   0.method2();
+  0.method3();
+  0.method4();
 }

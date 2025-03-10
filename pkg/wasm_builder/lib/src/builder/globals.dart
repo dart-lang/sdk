@@ -6,8 +6,6 @@ import '../ir/ir.dart' as ir;
 import 'builder.dart';
 import 'util.dart';
 
-part 'global.dart';
-
 class GlobalsBuilder with Builder<ir.Globals> {
   final ModuleBuilder _module;
   final _importedGlobals = <ir.ImportedGlobal>[];

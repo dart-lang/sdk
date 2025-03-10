@@ -4,10 +4,13 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/ignore_comments/ignore_info.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer/src/ignore_comments/ignore_info.dart' // ignore: implementation_imports
+    show
+        CommentTokenExtension,
+        CompilationUnitExtension,
+        IgnoredDiagnosticComment;
+import 'package:analyzer/src/utilities/extensions/string.dart' // ignore: implementation_imports
+    show IntExtension;
 
 import '../analyzer.dart';
 
@@ -25,19 +28,21 @@ class DocumentIgnores extends LintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final LinterContext context;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var content = node.declaredFragment?.source.contents.data;
+    assert(context.currentUnit?.unit == node);
+    var content = context.currentUnit?.content;
     for (var comment in node.ignoreComments) {
       var ignoredElements = comment.ignoredElements;
       if (ignoredElements.isEmpty) {

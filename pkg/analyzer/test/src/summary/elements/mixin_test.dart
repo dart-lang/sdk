@@ -12,8 +12,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinElementTest_keepLinking);
     defineReflectiveTests(MixinElementTest_fromBytes);
-    defineReflectiveTests(MixinElementTest_augmentation_fromBytes);
-    defineReflectiveTests(MixinElementTest_augmentation_keepLinking);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(MixinElementTest_augmentation_fromBytes);
+    // defineReflectiveTests(MixinElementTest_augmentation_keepLinking);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -203,7 +204,7 @@ library
               reference: <testLibraryFragment>::@mixin::M::@setter::f
               element: <testLibraryFragment>::@mixin::M::@setter::f#element
               formalParameters
-                <null-name>
+                _f
                   element: <testLibraryFragment>::@mixin::M::@setter::f::@parameter::_f#element
             set s @126
               reference: <testLibraryFragment>::@mixin::M::@setter::s
@@ -3437,7 +3438,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -3618,7 +3619,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -3817,7 +3818,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -4017,7 +4018,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
@@ -4189,7 +4190,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -4486,7 +4487,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               formalParameters
-                <null-name>
+                _foo1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -4512,7 +4513,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
               formalParameters
-                <null-name>
+                _foo2
                   element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2::@parameter::_foo2#element
   mixins
     mixin A
@@ -4693,7 +4694,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@setter::foo1
               element: <testLibraryFragment>::@mixin::A::@setter::foo1#element
               formalParameters
-                <null-name>
+                _foo1
                   element: <testLibraryFragment>::@mixin::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -4722,7 +4723,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2#element
               formalParameters
-                <null-name>
+                _foo2
                   element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setter::foo2::@parameter::_foo2#element
   mixins
     mixin A
@@ -5174,7 +5175,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -5355,7 +5356,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -7046,7 +7047,7 @@ library
               reference: <testLibraryFragment>::@mixin::A::@setter::foo
               element: <testLibraryFragment>::@mixin::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart

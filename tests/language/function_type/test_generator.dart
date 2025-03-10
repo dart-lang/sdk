@@ -183,8 +183,12 @@ void _describeList(StringBuffer buffer, List<Printable>? list) {
   }
 }
 
-void _writeTypes(StringBuffer buffer, List<TypeLike>? list,
-    [String prefix = "", String postfix = ""]) {
+void _writeTypes(
+  StringBuffer buffer,
+  List<TypeLike>? list, [
+  String prefix = "",
+  String postfix = "",
+]) {
   if (list == null || list.isEmpty) return;
   buffer.write(prefix);
   for (int i = 0; i < list.length; i++) {
@@ -200,8 +204,12 @@ void _writeTypes(StringBuffer buffer, List<TypeLike>? list,
 /// output are formal parameter types of a function type (where default values
 /// and names of positional parameters are omitted).
 void _writeParameters(
-    StringBuffer buffer, List<Parameter>? list, bool inFunction,
-    [String prefix = "", String postfix = ""]) {
+  StringBuffer buffer,
+  List<Parameter>? list,
+  bool inFunction, [
+  String prefix = "",
+  String postfix = "",
+]) {
   if (list == null || list.isEmpty) return;
   buffer.write(prefix);
   for (int i = 0; i < list.length; i++) {
@@ -245,8 +253,13 @@ class FunctionType implements TypeLike {
   final List<Parameter>? optional;
   final List<Parameter>? named;
 
-  FunctionType(this.returnType, this.generic, this.required,
-      [this.optional, this.named]);
+  FunctionType(
+    this.returnType,
+    this.generic,
+    this.required, [
+    this.optional,
+    this.named,
+  ]);
 
   @override
   writeIdentifier(buffer) {
@@ -335,14 +348,22 @@ class FunctionType implements TypeLike {
 
   bool get returnsT {
     return (returnType?.returnsT ?? false) ||
-        [generic, required, optional, named]
-            .any((l) => l?.any((p) => p.takesT) ?? false);
+        [
+          generic,
+          required,
+          optional,
+          named,
+        ].any((l) => l?.any((p) => p.takesT) ?? false);
   }
 
   bool get takesT {
     return (returnType?.takesT ?? false) ||
-        [generic, required, optional, named]
-            .any((l) => l?.any((p) => p.returnsT) ?? false);
+        [
+          generic,
+          required,
+          optional,
+          named,
+        ].any((l) => l?.any((p) => p.returnsT) ?? false);
   }
 
   bool get reifiedTypeUsesT {
@@ -418,46 +439,54 @@ List<FunctionType> buildFunctionTypes() {
     // new NominalType("List", "", [new NominalType("Function")]),
   ];
 
-  List<TypeLike?> basicsPlusNull = [
-    basicTypes,
-    <TypeLike?>[null]
-  ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNull =
+      [
+        basicTypes,
+        <TypeLike?>[null],
+      ].expand((x) => x).toList();
 
-  List<TypeLike?> basicsPlusNullPlusVoid = [
-    basicsPlusNull,
-    [NominalType("void")],
-  ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNullPlusVoid =
+      [
+        basicsPlusNull,
+        [NominalType("void")],
+      ].expand((x) => x).toList();
 
-  List<TypeLike?> basicsPlusNullPlusB = [
-    basicsPlusNull,
-    [
-      NominalType("B"),
-      NominalType("List", "", [NominalType("B")])
-    ]
-  ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNullPlusB =
+      [
+        basicsPlusNull,
+        [
+          NominalType("B"),
+          NominalType("List", "", [NominalType("B")]),
+        ],
+      ].expand((x) => x).toList();
 
-  List<TypeLike?> basicsPlusNullPlusBPlusVoid = [
-    basicsPlusNullPlusB,
-    [NominalType("void")],
-  ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNullPlusBPlusVoid =
+      [
+        basicsPlusNullPlusB,
+        [NominalType("void")],
+      ].expand((x) => x).toList();
 
-  List<TypeLike?> basicsPlusNullPlusA = [
-    basicsPlusNull,
-    [
-      NominalType("A"),
-      NominalType("List", "", [NominalType("A")])
-    ]
-  ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNullPlusA =
+      [
+        basicsPlusNull,
+        [
+          NominalType("A"),
+          NominalType("List", "", [NominalType("A")]),
+        ],
+      ].expand((x) => x).toList();
 
-  List<TypeLike?> basicsPlusNullPlusAPlusVoid = [
-    basicsPlusNullPlusA,
-    [NominalType("void")],
-  ].expand((x) => x).toList();
+  List<TypeLike?> basicsPlusNullPlusAPlusVoid =
+      [
+        basicsPlusNullPlusA,
+        [NominalType("void")],
+      ].expand((x) => x).toList();
 
   List<FunctionType> buildFunctionTypes(
-      TypeLike? returnType, TypeLike? parameterType,
-      [List<GenericParameter>? generics,
-      bool generateMoreCombinations = false]) {
+    TypeLike? returnType,
+    TypeLike? parameterType, [
+    List<GenericParameter>? generics,
+    bool generateMoreCombinations = false,
+  ]) {
     List<FunctionType> result = [];
 
     if (parameterType == null) {
@@ -468,57 +497,85 @@ List<FunctionType> buildFunctionTypes() {
 
     // int Function(int x).
     result.add(
-        FunctionType(returnType, generics, [Parameter(parameterType, "x")]));
+      FunctionType(returnType, generics, [Parameter(parameterType, "x")]),
+    );
 
     if (!generateMoreCombinations) return result;
 
     // int Function([int x]).
-    result.add(FunctionType(
-        returnType, generics, [], [Parameter(parameterType, "x")]));
+    result.add(
+      FunctionType(returnType, generics, [], [Parameter(parameterType, "x")]),
+    );
     // int Function(int, [int x])
-    result.add(FunctionType(
+    result.add(
+      FunctionType(
         returnType,
         generics,
         [Parameter(NominalType("int"), null)],
-        [Parameter(parameterType, "x")]));
+        [Parameter(parameterType, "x")],
+      ),
+    );
     // int Function(int x, [int x])
-    result.add(FunctionType(returnType, generics,
-        [Parameter(NominalType("int"), "y")], [Parameter(parameterType, "x")]));
+    result.add(
+      FunctionType(
+        returnType,
+        generics,
+        [Parameter(NominalType("int"), "y")],
+        [Parameter(parameterType, "x")],
+      ),
+    );
     // int Function(int);
     result.add(
-        FunctionType(returnType, generics, [Parameter(parameterType, null)]));
+      FunctionType(returnType, generics, [Parameter(parameterType, null)]),
+    );
     // int Function([int]);
-    result.add(FunctionType(
-        returnType, generics, [], [Parameter(parameterType, null)]));
+    result.add(
+      FunctionType(returnType, generics, [], [Parameter(parameterType, null)]),
+    );
     // int Function(int, [int])
-    result.add(FunctionType(
+    result.add(
+      FunctionType(
         returnType,
         generics,
         [Parameter(NominalType("int"), null)],
-        [Parameter(parameterType, null)]));
+        [Parameter(parameterType, null)],
+      ),
+    );
     // int Function(int x, [int])
-    result.add(FunctionType(
+    result.add(
+      FunctionType(
         returnType,
         generics,
         [Parameter(NominalType("int"), "x")],
-        [Parameter(parameterType, null)]));
+        [Parameter(parameterType, null)],
+      ),
+    );
     // int Function({int x}).
-    result.add(FunctionType(
-        returnType, generics, [], null, [Parameter(parameterType, "x")]));
+    result.add(
+      FunctionType(returnType, generics, [], null, [
+        Parameter(parameterType, "x"),
+      ]),
+    );
     // int Function(int, {int x})
-    result.add(FunctionType(
+    result.add(
+      FunctionType(
         returnType,
         generics,
         [Parameter(NominalType("int"), null)],
         null,
-        [Parameter(parameterType, "x")]));
+        [Parameter(parameterType, "x")],
+      ),
+    );
     // int Function(int x, {int x})
-    result.add(FunctionType(
+    result.add(
+      FunctionType(
         returnType,
         generics,
         [Parameter(NominalType("int"), "y")],
         null,
-        [Parameter(parameterType, "x")]));
+        [Parameter(parameterType, "x")],
+      ),
+    );
     return result;
   }
 
@@ -528,8 +585,14 @@ List<FunctionType> buildFunctionTypes() {
   for (TypeLike? returnType in basicsPlusNullPlusVoid) {
     for (TypeLike? parameterType in basicsPlusNull) {
       bool generateMoreCombinations = true;
-      functionTypes.addAll(buildFunctionTypes(
-          returnType, parameterType, null, generateMoreCombinations));
+      functionTypes.addAll(
+        buildFunctionTypes(
+          returnType,
+          parameterType,
+          null,
+          generateMoreCombinations,
+        ),
+      );
     }
   }
 
@@ -547,8 +610,9 @@ List<FunctionType> buildFunctionTypes() {
   for (TypeLike? returnType in basicsPlusNullPlusAPlusVoid) {
     for (TypeLike? parameterType in basicsPlusNullPlusA) {
       for (GenericParameter a in as) {
-        functionTypes
-            .addAll(buildFunctionTypes(returnType, parameterType, [a]));
+        functionTypes.addAll(
+          buildFunctionTypes(returnType, parameterType, [a]),
+        );
       }
     }
   }
@@ -794,8 +858,11 @@ void generateTests() {
     String typeCode = createTypeCode(type);
     String staticFunCode = createStaticFunCode(type, typeCounter);
     String methodFunCode = createMethodFunCode(type, typeCounter);
-    String testMethodCode =
-        createTestMethodFunCode(type, typeCode, typeCounter);
+    String testMethodCode = createTestMethodFunCode(
+      type,
+      typeCode,
+      typeCounter,
+    );
 
     unit.typedefs.writeln("typedef $typeName<T> = $typeCode;");
     unit.globals.writeln(staticFunCode);

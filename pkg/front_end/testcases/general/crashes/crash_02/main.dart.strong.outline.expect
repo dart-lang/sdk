@@ -16,16 +16,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class _A&D&E extends core::Object implements self::D /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_A&D&E
-    ;
-}
 abstract class A extends self::_A&D&E /*isMixinDeclaration*/  {
-}
-abstract class _B&C&A = self::C with self::A /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_B&C&A
-    : super self::C::•()
-    ;
 }
 class B extends self::_B&C&A {
   synthetic constructor •() → self::B
@@ -37,6 +28,15 @@ class C extends core::Object {
 }
 class D extends core::Object {
   synthetic constructor •() → self::D
+    ;
+}
+abstract class _A&D&E extends core::Object implements self::D /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A&D&E
+    ;
+}
+abstract class _B&C&A = self::C with self::A /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_B&C&A
+    : super self::C::•()
     ;
 }
 static method main() → dynamic

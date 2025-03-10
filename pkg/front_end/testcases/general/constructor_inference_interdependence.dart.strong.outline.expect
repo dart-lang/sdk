@@ -16,14 +16,14 @@ abstract sealed class B<X extends core::Object? = dynamic> extends core::Object 
 }
 abstract class M extends core::Object /*isMixinDeclaration*/  {
 }
-abstract sealed class _A&B&M<X extends core::Object? = dynamic> = self::B<self::_A&B&M::X%> with self::M /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •({required () →? self::C? foo}) → self::_A&B&M<self::_A&B&M::X%>
-    : super self::B::•(foo: foo)
-    ;
-}
 final class A<X extends core::Object? = dynamic> extends self::_A&B&M<self::A::X%> /*hasConstConstructor*/  {
   const constructor •({has-declared-initializer () →? self::C? foo = null}) → self::A<self::A::X%>
     : super self::_A&B&M::•(foo: foo)
+    ;
+}
+abstract sealed class _A&B&M<X extends core::Object? = dynamic> = self::B<self::_A&B&M::X%> with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •({required () →? self::C? foo}) → self::_A&B&M<self::_A&B&M::X%>
+    : super self::B::•(foo: foo)
     ;
 }
 static method main() → dynamic

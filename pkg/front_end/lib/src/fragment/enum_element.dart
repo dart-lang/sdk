@@ -20,6 +20,11 @@ class EnumElementFragment
   final Uri fileUri;
 
   final ConstructorReferenceBuilder? constructorReferenceBuilder;
+
+  final LookupScope enclosingScope;
+  final DeclarationFragment enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
   Token? _argumentsBeginToken;
 
   SourcePropertyBuilder? _builder;
@@ -42,14 +47,17 @@ class EnumElementFragment
   @override
   final TypeBuilder type = new InferableTypeBuilder();
 
-  EnumElementFragment(
-      {required this.metadata,
-      required this.name,
-      required this.nameOffset,
-      required this.fileUri,
-      required this.constructorReferenceBuilder,
-      required Token? argumentsBeginToken})
-      : _argumentsBeginToken = argumentsBeginToken;
+  EnumElementFragment({
+    required this.metadata,
+    required this.name,
+    required this.nameOffset,
+    required this.fileUri,
+    required this.constructorReferenceBuilder,
+    required Token? argumentsBeginToken,
+    required this.enclosingScope,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  }) : _argumentsBeginToken = argumentsBeginToken;
 
   @override
   SourcePropertyBuilder get builder {
@@ -120,13 +128,12 @@ class EnumElementFragment
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       List<Annotatable> annotatables,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
-      _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
+      _buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
           bodyBuilderContext, annotatable, metadata,
           fileUri: fileUri, createFileUriExpression: createFileUriExpression);
     }
@@ -204,7 +211,7 @@ class EnumElementFragment
           .createBodyBuilderForOutlineExpression(
               libraryBuilder,
               sourceEnumBuilder.createBodyBuilderContext(),
-              sourceEnumBuilder.scope,
+              enclosingScope,
               fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
 

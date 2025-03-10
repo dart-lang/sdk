@@ -33,7 +33,8 @@ class C4 {
 extension type SomeExtensionType(int foo) {}
 
 class Run<T> {
-  void execute(final List<T> list) { // Should be unchecked.
+  void execute(final List<T> list) {
+    // Should be unchecked.
   }
 }
 
@@ -44,7 +45,9 @@ void testTypeCheckRemoval() {
 }
 
 class C5<T> {}
+
 class C6 {}
+
 extension type C5Ext(C5<C6> rep) {}
 
 main() {

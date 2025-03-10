@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/ast.dart'
     show AstNode, ConstructorDeclaration;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -18,7 +16,6 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
@@ -102,6 +99,7 @@ class ErrorReporter {
 
   /// Report an error with the given [errorCode] and [arguments].
   /// The [element] is used to compute the location of the error.
+  @Deprecated('Use atElement2() instead')
   void atElement(
     Element element,
     ErrorCode errorCode, {
@@ -124,15 +122,17 @@ class ErrorReporter {
   /// The [element] is used to compute the location of the error.
   @experimental
   void atElement2(
-    Element2 element,
+    Element2 element2,
     ErrorCode errorCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    atElement(
-      element.asElement!,
-      errorCode,
+    var nonSynthetic = element2.nonSynthetic2;
+    atOffset(
+      errorCode: errorCode,
+      offset: nonSynthetic.firstFragment.nameOffset2 ?? -1,
+      length: nonSynthetic.name3?.length ?? 0,
       arguments: arguments,
       contextMessages: contextMessages,
       data: data,
@@ -195,7 +195,6 @@ class ErrorReporter {
       var invalid = arguments
           .whereNotType<String>()
           .whereNotType<DartType>()
-          .whereNotType<Element>()
           .whereNotType<Element2>()
           .whereNotType<int>()
           .whereNotType<Uri>();
@@ -276,15 +275,12 @@ class ErrorReporter {
     var typeGroups = <String, List<_ToConvert>>{};
     for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
-      if (argument is Element2 && argument is! Element) {
-        argument = argument.asElement;
-      }
       if (argument is TypeImpl) {
         var displayName = argument.getDisplayString(preferTypeAlias: true);
         var types = typeGroups.putIfAbsent(displayName, () => []);
         types.add(_TypeToConvert(i, argument, displayName));
-      } else if (argument is Element) {
-        var displayName = argument.getDisplayString();
+      } else if (argument is Element2) {
+        var displayName = argument.displayString2();
         var types = typeGroups.putIfAbsent(displayName, () => []);
         types.add(_ElementToConvert(i, argument, displayName));
       }
@@ -302,11 +298,11 @@ class ErrorReporter {
 
       const unnamedExtension = '<unnamed extension>';
       const unnamed = '<unnamed>';
-      var nameToElementMap = <String, Set<Element>>{};
+      var nameToElementMap = <String, Set<Element2>>{};
       for (var typeToConvert in typeGroup) {
         for (var element in typeToConvert.allElements) {
-          var name = element.name;
-          name ??= element is ExtensionElement ? unnamedExtension : unnamed;
+          var name = element.name3;
+          name ??= element is ExtensionElement2 ? unnamedExtension : unnamed;
 
           var elements = nameToElementMap.putIfAbsent(name, () => {});
           elements.add(element);
@@ -318,9 +314,10 @@ class ErrorReporter {
         // context messages, remove the extra text added to the buffer.
         StringBuffer? buffer;
         for (var element in typeToConvert.allElements) {
-          var name = element.name;
-          name ??= element is ExtensionElement ? unnamedExtension : unnamed;
-          var sourcePath = element.source!.fullName;
+          var name = element.name3;
+          name ??= element is ExtensionElement2 ? unnamedExtension : unnamed;
+          var sourcePath =
+              element.firstFragment.libraryFragment!.source.fullName;
           if (nameToElementMap[name]!.length > 1) {
             if (buffer == null) {
               buffer = StringBuffer();
@@ -331,10 +328,10 @@ class ErrorReporter {
             buffer.write('$name is defined in $sourcePath');
           }
           messages.add(DiagnosticMessageImpl(
-            filePath: element.source!.fullName,
-            length: element.nameLength,
+            filePath: sourcePath,
+            length: element.name3?.length ?? 0,
             message: '$name is defined in $sourcePath',
-            offset: element.nameOffset,
+            offset: element.firstFragment.nameOffset2 ?? -1,
             url: null,
           ));
         }
@@ -376,7 +373,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
 }
 
 /// Used by [ErrorReporter._convertTypeNames] to keep track of an error argument
-/// that is an [Element], that is being converted to a display string.
+/// that is an [Element2], that is being converted to a display string.
 class _ElementToConvert implements _ToConvert {
   @override
   final int index;
@@ -385,9 +382,9 @@ class _ElementToConvert implements _ToConvert {
   final String displayName;
 
   @override
-  final Iterable<Element> allElements;
+  final Iterable<Element2> allElements;
 
-  _ElementToConvert(this.index, Element element, this.displayName)
+  _ElementToConvert(this.index, Element2 element, this.displayName)
       : allElements = [element];
 }
 
@@ -402,9 +399,9 @@ class _NullErrorListener implements AnalysisErrorListener {
 /// Used by [ErrorReporter._convertTypeNames] to keep track of an argument that
 /// is being converted to a display string.
 abstract class _ToConvert {
-  /// A list of all elements involved in the [DartType] or [Element]'s display
+  /// A list of all elements involved in the [DartType] or [Element2]'s display
   /// string.
-  Iterable<Element> get allElements;
+  Iterable<Element2> get allElements;
 
   /// The argument's display string, to replace the argument in the argument
   /// list.
@@ -426,13 +423,13 @@ class _TypeToConvert implements _ToConvert {
   final String displayName;
 
   @override
-  late final Iterable<Element> allElements = () {
-    var elements = <Element>{};
+  late final Iterable<Element2> allElements = () {
+    var elements = <Element2>{};
 
     void addElementsFrom(DartType type) {
       if (type is FunctionType) {
         addElementsFrom(type.returnType);
-        for (var parameter in type.parameters) {
+        for (var parameter in type.formalParameters) {
           addElementsFrom(parameter.type);
         }
       } else if (type is RecordType) {
@@ -440,7 +437,7 @@ class _TypeToConvert implements _ToConvert {
           addElementsFrom(parameter.type);
         }
       } else if (type is InterfaceType) {
-        if (elements.add(type.element)) {
+        if (elements.add(type.element3)) {
           for (var typeArgument in type.typeArguments) {
             addElementsFrom(typeArgument);
           }
@@ -450,7 +447,7 @@ class _TypeToConvert implements _ToConvert {
 
     addElementsFrom(_type);
     return elements.where((element) {
-      var name = element.name;
+      var name = element.name3;
       return name != null && name.isNotEmpty;
     });
   }();

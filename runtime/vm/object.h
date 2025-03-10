@@ -3024,6 +3024,7 @@ class Function : public Object {
 
   bool FfiCSignatureContainsHandles() const;
   bool FfiCSignatureReturnsStruct() const;
+  bool FfiCSignatureReturnsHandle() const;
 
   // Can only be called on FFI trampolines.
   int32_t FfiCallbackId() const;
@@ -3342,10 +3343,6 @@ class Function : public Object {
   // Returns true if this function is _Closure.call, which implements the
   // Function interface for closures.
   bool IsClosureCallDispatcher() const;
-
-  // Returns true if this function is _Closure.get:call, which returns the
-  // closure object for invocation.
-  bool IsClosureCallGetter() const;
 
   bool IsDynamicInvocationForwarder() const {
     return kind() == UntaggedFunction::kDynamicInvocationForwarder;
@@ -4063,6 +4060,7 @@ class Function : public Object {
   static bool IsDynamicInvocationForwarderName(StringPtr name);
 
   static StringPtr DemangleDynamicInvocationForwarderName(const String& name);
+  static const String& DropImplicitCallPrefix(const String& name);
 
   static StringPtr CreateDynamicInvocationForwarderName(const String& name);
 

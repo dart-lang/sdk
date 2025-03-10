@@ -286,8 +286,8 @@ test() {
         case _:
           return;
         case int _:
-//      ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+          // [error column 9, length 4]
+          // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
           reachability0 = null;
       }
       reachability1 = null;
@@ -326,8 +326,8 @@ test() {
         case _:
           return;
         case int _:
-//      ^^^^
-// [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
+          // [error column 9, length 4]
+          // [analyzer] STATIC_WARNING.UNREACHABLE_SWITCH_CASE
           reachability0 = null;
           break;
       }

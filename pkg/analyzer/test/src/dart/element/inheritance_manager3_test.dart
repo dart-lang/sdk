@@ -155,6 +155,17 @@ A.foo: int Function()
 ''');
   }
 
+  test_getInheritedConcreteMap_ignoresDeclarationInClass() async {
+    await resolveTestCode(r'''
+class A {}
+
+class B extends A {
+  void f() {}
+}
+''');
+    _assertInheritedConcreteMap2('B', '');
+  }
+
   test_getInheritedConcreteMap_implicitExtends() async {
     await resolveTestCode('''
 class A {}
@@ -243,6 +254,21 @@ class C extends Object with A, B {}
     _assertInheritedConcreteMap2('C', r'''
 A.foo: void Function()
 B.bar: void Function()
+''');
+  }
+
+  test_getInheritedConcreteMap_providesInheritedMemberEvenIfShadowedInClass() async {
+    await resolveTestCode(r'''
+class A {
+  void f() {}
+}
+
+class B extends A {
+  void f() {}
+}
+''');
+    _assertInheritedConcreteMap2('B', '''
+A.f: void Function()
 ''');
   }
 
@@ -344,6 +370,17 @@ A.foo=: void Function(int)
 ''');
   }
 
+  test_getInheritedMap_ignoresDeclarationInClass() async {
+    await resolveTestCode(r'''
+class A {}
+
+class B extends A {
+  void f() {}
+}
+''');
+    _assertInheritedMap2('B', '');
+  }
+
   test_getInheritedMap_implicitExtendsObject() async {
     await resolveTestCode('''
 class A {}
@@ -406,6 +443,21 @@ class X extends A implements I {
 ''');
     _assertInheritedMap('X', r'''
 A.foo: void Function()
+''');
+  }
+
+  test_getInheritedMap_providesInheritedMemberEvenIfShadowedInClass() async {
+    await resolveTestCode(r'''
+class A {
+  void f() {}
+}
+
+class B extends A {
+  void f() {}
+}
+''');
+    _assertInheritedMap2('B', '''
+A.f: void Function()
 ''');
   }
 
@@ -1414,6 +1466,41 @@ class B extends A {
       expected: 'A.foo: void Function()',
     );
   }
+
+  test_getOverridden_doesNotShadowIfDirectlyOverriddenByAnotherPath() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+class B extends A {
+  void m() {}
+}
+class C extends B implements A {
+  void m() {}
+}
+''');
+    _assertGetOverridden4(className: 'C', name: 'm', expected: '''
+A.m: void Function()
+B.m: void Function()
+''');
+  }
+
+  test_getOverridden_shadowsTransitiveOverrides() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+}
+class B extends A {
+  void m() {}
+}
+class C extends B {
+  void m() {}
+}
+''');
+    _assertGetOverridden4(className: 'C', name: 'm', expected: '''
+B.m: void Function()
+''');
+  }
 }
 
 @reflectiveTest
@@ -2316,8 +2403,8 @@ abstract class B<E> {
   }
 
   test_getMember_fromGenericSuper_method_bound() async {
-    void checkTextendsFooT(TypeParameterElement t) {
-      var otherT = (t.bound as InterfaceType).typeArguments.single.element;
+    void checkTextendsFooT(TypeParameterElement2 t) {
+      var otherT = (t.bound as InterfaceType).typeArguments.single.element3;
       expect(otherT, same(t));
     }
 
@@ -2329,22 +2416,22 @@ abstract class A<XA> {
 }
 abstract class B<XB> extends A<XB> {}
 ''');
-    var XB = findElement.typeParameter('XB');
+    var XB = findElement2.typeParameter('XB');
     var typeXB = XB.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-    var B = findElement.classOrMixin('B');
+    var B = findElement2.classOrMixin('B');
     var typeB = B.instantiate(
         typeArguments: [typeXB], nullabilitySuffix: NullabilitySuffix.none);
-    var foo = manager.getMember(typeB, Name(null, 'foo'))!;
-    var foo2 = manager.getMember2(B, Name(null, 'foo'))!;
-    checkTextendsFooT(foo.type.typeFormals.single);
-    checkTextendsFooT(foo2.type.typeFormals.single);
-    checkTextendsFooT(foo2.typeParameters.single);
-    checkTextendsFooT(foo.typeParameters.single);
+    var foo = manager.getMember3(typeB, Name(null, 'foo'))!;
+    var foo2 = manager.getMember4(B, Name(null, 'foo'))!;
+    checkTextendsFooT(foo.type.typeParameters.single);
+    checkTextendsFooT(foo2.type.typeParameters.single);
+    checkTextendsFooT(foo2.typeParameters2.single);
+    checkTextendsFooT(foo.typeParameters2.single);
   }
 
   test_getMember_fromGenericSuper_method_bound2() async {
-    void checkTextendsFooT(TypeParameterElement t) {
-      var otherT = (t.bound as InterfaceType).typeArguments.single.element;
+    void checkTextendsFooT(TypeParameterElement2 t) {
+      var otherT = (t.bound as InterfaceType).typeArguments.single.element3;
       expect(otherT, same(t));
     }
 
@@ -2358,17 +2445,17 @@ abstract class B<X> extends A<X> {}
 typedef C<V> = B<List<V>>;
 abstract class D<XD> extends C<XD> {}
 ''');
-    var XD = findElement.typeParameter('XD');
+    var XD = findElement2.typeParameter('XD');
     var typeXD = XD.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-    var D = findElement.classOrMixin('D');
+    var D = findElement2.classOrMixin('D');
     var typeD = D.instantiate(
         typeArguments: [typeXD], nullabilitySuffix: NullabilitySuffix.none);
-    var foo = manager.getMember(typeD, Name(null, 'foo'))!;
-    var foo2 = manager.getMember2(D, Name(null, 'foo'))!;
-    checkTextendsFooT(foo.type.typeFormals.single);
-    checkTextendsFooT(foo2.type.typeFormals.single);
-    checkTextendsFooT(foo2.typeParameters.single);
-    checkTextendsFooT(foo.typeParameters.single);
+    var foo = manager.getMember3(typeD, Name(null, 'foo'))!;
+    var foo2 = manager.getMember4(D, Name(null, 'foo'))!;
+    checkTextendsFooT(foo.type.typeParameters.single);
+    checkTextendsFooT(foo2.type.typeParameters.single);
+    checkTextendsFooT(foo2.typeParameters2.single);
+    checkTextendsFooT(foo.typeParameters2.single);
   }
 
   test_getMember_fromGenericSuper_method_returnType() async {
@@ -4273,6 +4360,18 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     }
   }
 
+  void _assertExecutable2List(
+      List<ExecutableElement2>? elements, String? expected) {
+    var elementsString = elements == null
+        ? null
+        : [
+            for (var element in elements)
+              '${element.enclosingElement2?.name3}.${element.name3}: '
+                  '${typeString(element.type)}\n'
+          ].sorted().join();
+    expect(elementsString, expected);
+  }
+
   void _assertGetInherited({
     required String className,
     required String name,
@@ -4369,6 +4468,19 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       expected: expected,
       concrete: true,
     );
+  }
+
+  void _assertGetOverridden4({
+    required String className,
+    required String name,
+    String? expected,
+  }) {
+    var members = manager.getOverridden4(
+      (findElement.classOrMixin(className) as InterfaceFragment).element,
+      Name(null, name),
+    );
+
+    _assertExecutable2List(members, expected);
   }
 
   void _assertInheritedConcreteMap(String className, String expected) {

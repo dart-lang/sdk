@@ -19,8 +19,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/lint/constants.dart';
 
 /// Information about the values for a parameter/argument.
-typedef _Values =
-    ({bool isDefault, DartObject? parameterValue, DartObject? argumentValue});
+typedef _Values = ({DartObject? parameterValue, DartObject? argumentValue});
 
 class EditableArgumentsHandler
     extends SharedMessageHandler<TextDocumentPositionParams, EditableArguments?>
@@ -118,6 +117,7 @@ class EditableArgumentsHandler
     var editableArguments = [
       for (var parameter in parameters)
         _toEditableArgument(
+          result,
           parameter,
           parameterArguments[parameter],
           positionalIndex: positionalParameterIndexes[parameter],
@@ -143,22 +143,13 @@ class EditableArgumentsHandler
     var parameterValue = parameter.computeConstantValue();
     var argumentValue = argumentExpression?.computeConstantValue().value;
 
-    var isDefault =
-        argumentValue == null ||
-        ((parameterValue?.hasKnownValue ?? false) &&
-            (argumentValue.hasKnownValue) &&
-            parameterValue == argumentValue);
-
-    return (
-      isDefault: isDefault,
-      parameterValue: parameterValue,
-      argumentValue: argumentValue,
-    );
+    return (parameterValue: parameterValue, argumentValue: argumentValue);
   }
 
   /// Converts a [parameter]/[argument] pair into an [EditableArgument] if it
   /// is an argument that can be edited.
   EditableArgument? _toEditableArgument(
+    ResolvedUnitResult result,
     FormalParameterElement parameter,
     Expression? argument, {
     int? positionalIndex,
@@ -167,7 +158,6 @@ class EditableArgumentsHandler
   }) {
     var valueExpression =
         argument is NamedExpression ? argument.expression : argument;
-    var hasArgument = valueExpression != null;
 
     // Lazily compute the values if we will use this parameter/argument.
     late var values = _getValues(parameter, valueExpression);
@@ -216,11 +206,6 @@ class EditableArgumentsHandler
       return null;
     }
 
-    // If no argument is present, we always populate "value" with the default.
-    if (!hasArgument) {
-      value = defaultValue;
-    }
-
     var isEditable = notEditableReason == null;
 
     // Compute a displayValue.
@@ -240,18 +225,21 @@ class EditableArgumentsHandler
       displayValue = null;
     }
 
+    var documentation = getDocumentation(result, parameter);
+
     return EditableArgument(
       name: parameter.displayName,
+      documentation: documentation,
       type: type,
       value: value,
       displayValue: displayValue,
       options: options,
-      isDefault: values.isDefault,
       defaultValue: defaultValue,
       hasArgument: valueExpression != null,
       isRequired: parameter.isRequired,
       isNullable:
           parameter.type.nullabilitySuffix == NullabilitySuffix.question,
+      isDeprecated: parameter.metadata2.hasDeprecated,
       isEditable: notEditableReason == null,
       notEditableReason: notEditableReason,
     );

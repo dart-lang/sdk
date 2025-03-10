@@ -3,8 +3,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# TODO(ahe): This should be replaced by a Dart script that works on Windows,
-# Linux, and Mac.
+# There is a cfe.dart script in the same directory as this script. Prefer
+# to use that since it is a Dart script and can be run in any environment.
 
 set -e
 

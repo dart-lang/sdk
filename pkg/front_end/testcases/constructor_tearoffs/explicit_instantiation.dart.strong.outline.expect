@@ -21,6 +21,12 @@ abstract class M extends self::C /*isMixinDeclaration*/  {
   method mmethod() → void
     ;
 }
+class D extends self::_D&C&M {
+  synthetic constructor •() → self::D
+    ;
+  method method() → void
+    ;
+}
 abstract class _D&C&M = self::C with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_D&C&M
     : super self::C::•()
@@ -29,12 +35,6 @@ abstract class _D&C&M = self::C with self::M /*isAnonymousMixin*/  {
     return super.{self::M::minst}<self::_D&C&M::minst::T%>(value);
   mixin-super-stub method mmethod() → void
     return super.{self::M::mmethod}();
-}
-class D extends self::_D&C&M {
-  synthetic constructor •() → self::D
-    ;
-  method method() → void
-    ;
 }
 extension Ext on self::C {
   static method estat = self::Ext|estat;

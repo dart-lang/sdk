@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -31,9 +29,10 @@ class PrefixedIdentifierResolver {
   }) {
     _resolver.analyzeExpression(node.prefix, _resolver.operations.unknownType);
     _resolver.popRewrite();
+    _resolver.checkUnreachableNode(node.identifier);
 
-    var prefixElement = node.prefix.staticElement;
-    if (prefixElement is! PrefixElement) {
+    var prefixElement = node.prefix.element;
+    if (prefixElement is! PrefixElement2) {
       var prefixType = node.prefix.staticType;
       // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefixType != null) {
@@ -58,12 +57,12 @@ class PrefixedIdentifierResolver {
       hasWrite: false,
     );
 
-    var element = result.readElement;
+    var element = result.readElement2;
 
     var identifier = node.identifier;
-    identifier.staticElement = element;
+    identifier.element = element;
 
-    if (element is ExtensionElement) {
+    if (element is ExtensionElement2) {
       _setExtensionIdentifierType(node);
       return null;
     }
@@ -75,11 +74,11 @@ class PrefixedIdentifierResolver {
     }
 
     DartType type = InvalidTypeImpl.instance;
-    if (result.readElementRequested == null &&
-        result.readElementRecovery != null) {
+    if (result.readElementRequested2 == null &&
+        result.readElementRecovery2 != null) {
       // Since the element came from error recovery logic, its type isn't
       // trustworthy; leave it as `dynamic`.
-    } else if (element is InterfaceElement) {
+    } else if (element is InterfaceElement2) {
       if (_isExpressionIdentifier(node)) {
         var type = _typeProvider.typeType;
         node.recordStaticType(type, resolver: _resolver);
@@ -88,12 +87,12 @@ class PrefixedIdentifierResolver {
         inferenceLogWriter?.recordExpressionWithNoType(node);
       }
       return null;
-    } else if (element is DynamicElementImpl) {
+    } else if (element is DynamicElementImpl2) {
       var type = _typeProvider.typeType;
       node.recordStaticType(type, resolver: _resolver);
       identifier.setPseudoExpressionStaticType(type);
       return null;
-    } else if (element is TypeAliasElement) {
+    } else if (element is TypeAliasElement2) {
       if (node.parent is NamedType) {
         // no type
       } else {
@@ -102,13 +101,13 @@ class PrefixedIdentifierResolver {
         identifier.setPseudoExpressionStaticType(type);
       }
       return null;
-    } else if (element is MethodElement) {
+    } else if (element is MethodElement2) {
       type = element.type;
-    } else if (element is PropertyAccessorElement) {
+    } else if (element is PropertyAccessorElement2) {
       type = result.getType!;
-    } else if (element is ExecutableElement) {
+    } else if (element is ExecutableElement2) {
       type = element.type;
-    } else if (element is VariableElement) {
+    } else if (element is VariableElement2) {
       type = element.type;
     } else if (result.functionTypeCallType != null) {
       type = result.functionTypeCallType!;

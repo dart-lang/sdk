@@ -1187,6 +1187,20 @@ class ClassMembersNode {
     }
     return result;
   }
+
+  ClassMember? getStaticMember(Name name, bool isSetter) {
+    ClassMember? result = isSetter
+        ?
+        // Coverage-ignore(suite): Not run.
+        classSetterMap[name]
+        : classMemberMap[name];
+    if (result == null) {
+      return null;
+    } else if (result.isStatic) {
+      return result;
+    }
+    return null;
+  }
 }
 
 // Coverage-ignore(suite): Not run.

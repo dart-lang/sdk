@@ -6,8 +6,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Prefix must be a valid identifier.
-import "../library1.dart"
-
-    ;
+import "../library1.dart";
 
 main() {}

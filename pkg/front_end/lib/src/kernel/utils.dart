@@ -21,10 +21,12 @@ import '../base/modifiers.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
+import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/fragment.dart';
 import '../source/builder_factory.dart';
 import 'body_builder.dart';
 
@@ -67,6 +69,17 @@ void printQualifiedNameOn(Member? member, StringSink sink) {
       sink.write("::");
     }
     sink.write(member.name.text);
+  }
+}
+
+void bindCoreType(LibraryBuilder coreLibrary, NamedTypeBuilder typeBuilder,
+    {bool isNullClass = false}) {
+  TypeDeclarationBuilder typeDeclarationBuilder =
+      coreLibrary.lookupLocalMember(typeBuilder.typeName.name, required: true)
+          as TypeDeclarationBuilder;
+  typeBuilder.bind(coreLibrary, typeDeclarationBuilder);
+  if (isNullClass) {
+    (typeDeclarationBuilder as ClassBuilder).isNullClass = true;
   }
 }
 
@@ -260,6 +273,16 @@ final NominalParameterBuilder dummyNominalVariableBuilder =
     new NominalParameterBuilder(
         NominalParameterBuilder.noNameSentinel, -1, null,
         kind: TypeParameterKind.function);
+final TypeParameterFragment dummyTypeParameterFragment =
+    new TypeParameterFragment(
+        metadata: null,
+        name: '',
+        bound: null,
+        nameOffset: -1,
+        fileUri: dummyUri,
+        kind: TypeParameterKind.function,
+        isWildcard: false,
+        variableName: '');
 final StructuralParameterBuilder dummyStructuralVariableBuilder =
     new StructuralParameterBuilder(
         StructuralParameterBuilder.noNameSentinel, -1, null);

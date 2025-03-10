@@ -126,7 +126,7 @@ extension AstNodeExtension on AstNode? {
     return null;
   }
 
-  /// Whether the given [node] is the Flutter class `Widget`, or its subtype.
+  /// Whether this [AstNode] is the Flutter class `Widget`, or its subtype.
   bool get isWidgetExpression {
     return switch (this) {
       null => false,

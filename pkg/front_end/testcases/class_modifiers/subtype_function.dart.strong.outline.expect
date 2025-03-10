@@ -30,11 +30,11 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     ;
 }
-abstract class _C&Object&Function extends core::Object {
-  synthetic constructor •() → self::_C&Object&Function
-    ;
-}
 class C extends self::_C&Object&Function {
   synthetic constructor •() → self::C
+    ;
+}
+abstract class _C&Object&Function extends core::Object {
+  synthetic constructor •() → self::_C&Object&Function
     ;
 }

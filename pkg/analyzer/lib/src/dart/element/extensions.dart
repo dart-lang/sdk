@@ -12,15 +12,43 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
   bool get isExtensionType {
-    return element is ExtensionTypeElement;
+    return element3 is ExtensionTypeElement2;
   }
 }
 
 extension Element2Extension on Element2 {
+  /// Return `true` if this element, the enclosing class (if there is one), or
+  /// the enclosing library, has been annotated with the `@doNotStore`
+  /// annotation.
+  bool get hasOrInheritsDoNotStore {
+    if (this case Annotatable annotatable) {
+      if (annotatable.metadata2.hasDoNotStore) {
+        return true;
+      }
+    }
+
+    var ancestor = enclosingElement2;
+    if (ancestor is InterfaceElement2) {
+      if (ancestor.metadata2.hasDoNotStore) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement2;
+    } else if (ancestor is ExtensionElement2) {
+      if (ancestor.metadata2.hasDoNotStore) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement2;
+    }
+
+    return ancestor is LibraryElement2 && ancestor.metadata2.hasDoNotStore;
+  }
+
   /// Return `true` if this element is an instance member of a class or mixin.
   ///
   /// Only [MethodElement2]s, [GetterElement]s, and  [SetterElement]s are
@@ -52,7 +80,7 @@ extension Element2Extension on Element2 {
             (this is FormalParameterElement &&
                 this is! FieldFormalParameterElement2 &&
                 this is! SuperFormalParameterElement2)) &&
-        library2.hasWildcardVariablesFeatureEnabled2;
+        library2.hasWildcardVariablesFeatureEnabled;
   }
 }
 
@@ -63,17 +91,16 @@ extension ElementAnnotationExtensions on ElementAnnotation {
 
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
-    var element = this.element;
-    InterfaceElement? interfaceElement;
-    if (element is PropertyAccessorElement) {
-      if (element.isGetter) {
-        var type = element.returnType;
-        if (type is InterfaceType) {
-          interfaceElement = type.element;
-        }
+    var element = element2;
+    InterfaceElement2? interfaceElement;
+
+    if (element is GetterElement) {
+      var type = element.returnType;
+      if (type is InterfaceType) {
+        interfaceElement = type.element3;
       }
-    } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement3.augmented.firstFragment;
+    } else if (element is ConstructorElement2) {
+      interfaceElement = element.enclosingElement2;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -106,14 +133,6 @@ extension ElementAnnotationExtensions on ElementAnnotation {
 }
 
 extension ElementExtension on Element {
-  /// If this element is an augmentation, returns the declaration.
-  Element get augmentedDeclaration {
-    if (this case InstanceElement self) {
-      return self.augmented.firstFragment;
-    }
-    return this;
-  }
-
   /// Return `true` if this element, the enclosing class (if there is one), or
   /// the enclosing library, has been annotated with the `@doNotStore`
   /// annotation.
@@ -166,7 +185,21 @@ extension ElementExtension on Element {
             (this is ParameterElement &&
                 this is! FieldFormalParameterElement &&
                 this is! SuperFormalParameterElement)) &&
-        library.hasWildcardVariablesFeatureEnabled;
+        library.asElement2.hasWildcardVariablesFeatureEnabled;
+  }
+}
+
+extension ElementImplExtension on ElementImpl {
+  /// Return true if this element is a wildcard variable.
+  bool get isWildcardVariable {
+    return name == '_' &&
+        (this is LocalVariableElement ||
+            this is PrefixElement ||
+            this is TypeParameterElement ||
+            (this is ParameterElement &&
+                this is! FieldFormalParameterElement &&
+                this is! SuperFormalParameterElement)) &&
+        library.asElement2.hasWildcardVariablesFeatureEnabled;
   }
 }
 
@@ -175,9 +208,7 @@ extension ExecutableElement2OrMemberQuestionExtension
   TypeImpl? get firstParameterType {
     var self = this;
     if (self is MethodElement2OrMember) {
-      // TODO(paulberry): eliminate this cast by changing this extension to
-      // apply to `ExecutableElementOrMember?`.
-      return self.formalParameters.firstOrNull?.type as TypeImpl?;
+      return self.formalParameters.firstOrNull?.type;
     }
     return null;
   }
@@ -196,9 +227,7 @@ extension ExecutableElementOrMemberQuestionExtension
   TypeImpl? get firstParameterType {
     var self = this;
     if (self is MethodElementOrMember) {
-      // TODO(paulberry): eliminate this cast by changing this extension to
-      // apply to `ExecutableElementOrMember?`.
-      return self.parameters.firstOrNull?.type as TypeImpl?;
+      return self.parameters.firstOrNull?.type;
     }
     return null;
   }
@@ -229,15 +258,8 @@ extension InterfaceTypeExtension on InterfaceType {
   }
 }
 
-extension LibraryExtension on LibraryElement? {
-  bool get hasWildcardVariablesFeatureEnabled {
-    var self = this;
-    return self?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
-  }
-}
-
 extension LibraryExtension2 on LibraryElement2? {
-  bool get hasWildcardVariablesFeatureEnabled2 =>
+  bool get hasWildcardVariablesFeatureEnabled =>
       this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 }
 
@@ -249,7 +271,7 @@ extension ParameterElementExtension on ParameterElement {
     bool? isCovariant,
   }) {
     return ParameterElementImpl.synthetic(
-      name,
+      name.nullIfEmpty,
       type ?? this.type,
       // ignore: deprecated_member_use_from_same_package
       kind ?? parameterKind,

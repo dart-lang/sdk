@@ -40,6 +40,7 @@ class CreateFunction extends ResolvedCorrectionProducer {
     if (target != null) {
       return;
     }
+
     // prepare environment
     int insertOffset;
     String sourcePrefix;
@@ -54,19 +55,22 @@ class CreateFunction extends ResolvedCorrectionProducer {
       builder.addInsertion(insertOffset, (builder) {
         builder.write(sourcePrefix);
         // append return type
-        {
-          var type = inferUndefinedExpressionType(invocation);
-          if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
-            builder.write(' ');
-          }
+        var type = inferUndefinedExpressionType(invocation);
+        if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
+          builder.write(' ');
         }
+
         // append name
         builder.addLinkedEdit('NAME', (builder) {
           builder.write(_functionName);
         });
         builder.write('(');
         builder.writeParametersMatchingArguments(invocation.argumentList);
-        builder.write(') {$eol}');
+        builder.write(')');
+        if (type?.isDartAsyncFuture == true) {
+          builder.write(' async');
+        }
+        builder.write(' {$eol}');
       });
       builder.addLinkedPosition(range.node(node), 'NAME');
     });

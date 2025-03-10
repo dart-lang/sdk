@@ -219,10 +219,10 @@ class SourceLoaderTest extends SourceLoader {
       : super(fileSystem, includeComments, target);
 
   @override
-  DietListener createDietListener(
-      SourceLibraryBuilder library, OffsetMap offsetMap) {
-    return new DietListenerTest(library, hierarchy, coreTypes,
-        typeInferenceEngine, offsetMap, bodyBuilderCreator);
+  DietListener createDietListener(SourceLibraryBuilder library,
+      LookupScope compilationUnitScope, OffsetMap offsetMap) {
+    return new DietListenerTest(library, compilationUnitScope, hierarchy,
+        coreTypes, typeInferenceEngine, offsetMap, bodyBuilderCreator);
   }
 
   @override
@@ -252,8 +252,14 @@ class SourceLoaderTest extends SourceLoader {
 class DietListenerTest extends DietListener {
   final BodyBuilderCreator bodyBuilderCreator;
 
-  DietListenerTest(super.library, super.hierarchy, super.coreTypes,
-      super.typeInferenceEngine, super.offsetMap, this.bodyBuilderCreator);
+  DietListenerTest(
+      super.library,
+      super.compilationUnitScope,
+      super.hierarchy,
+      super.coreTypes,
+      super.typeInferenceEngine,
+      super.offsetMap,
+      this.bodyBuilderCreator);
 
   @override
   BodyBuilder createListenerInternal(

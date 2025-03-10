@@ -92,7 +92,7 @@ class SimplyBoundedDependencyWalker
   SimplyBoundedNode getNode(Element2 element) {
     var graphNode = nodeMap[element];
     if (graphNode == null) {
-      var node = linker.getLinkingNode2(element);
+      var node = linker.getLinkingNode2(element.firstFragment);
       if (node is ClassDeclaration) {
         var parameters = node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(

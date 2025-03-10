@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -54,6 +53,7 @@ abstract class AnalysisSession {
 
   /// Return information about the results of parsing units of the library file
   /// with the given library [element].
+  @Deprecated('Use getParsedLibraryByElement2() instead')
   SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element);
 
   /// Return information about the results of parsing units of the library file
@@ -74,6 +74,7 @@ abstract class AnalysisSession {
   /// resolving all of the files in the library with the library [element].
   ///
   /// Throw [ArgumentError] if the [element] was not produced by this session.
+  @Deprecated('Use getResolvedLibraryByElement2() instead')
   Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
       LibraryElement element);
 

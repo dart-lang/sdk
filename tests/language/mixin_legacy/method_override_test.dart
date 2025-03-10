@@ -27,6 +27,7 @@ abstract class C1 = CII with CIS;
 // [cfe] The mixin application class 'C1' introduces an erroneous override of 'id'.
 //                           ^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class C2 extends CII with CIS {}
 //             ^
 // [cfe] Applying the mixin 'CIS' to 'CII' introduces an erroneous override of 'id'.
@@ -39,6 +40,7 @@ abstract class C3 = CII with CSI;
 // [cfe] The mixin application class 'C3' introduces an erroneous override of 'id'.
 //                           ^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class C4 extends CII with CSI {}
 //             ^
 // [cfe] Applying the mixin 'CSI' to 'CII' introduces an erroneous override of 'id'.
@@ -55,6 +57,7 @@ abstract class C7 = CII with CTT<String>;
 // [cfe] The mixin application class 'C7' introduces an erroneous override of 'id'.
 //                           ^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class C8 extends CII with CTT<String> {}
 //             ^
 // [cfe] Applying the mixin 'CTT' to 'CII' introduces an erroneous override of 'id'.
@@ -89,6 +92,7 @@ abstract class N3 = NIIx with NIIy;
 // [cfe] The mixin application class 'N3' introduces an erroneous override of 'id'.
 //                            ^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class N4 extends NIIx with NIIy {}
 //             ^
 // [cfe] Applying the mixin 'NIIy' to 'NIIx' introduces an erroneous override of 'id'.
@@ -101,6 +105,7 @@ abstract class N5 = NIIx with NII;
 // [cfe] The mixin application class 'N5' introduces an erroneous override of 'id'.
 //                            ^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class N6 extends NIIx with NII {}
 //             ^
 // [cfe] Applying the mixin 'NII' to 'NIIx' introduces an erroneous override of 'id'.
@@ -129,26 +134,31 @@ abstract class N9 = NIIx with NBABxy<String, int>;
 // [cfe] The mixin application class 'N9' introduces an erroneous override of 'id'.
 //                            ^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class N10 extends NIIx with NBABxy<String, int> {}
 //             ^
 // [cfe] Applying the mixin 'NBABxy' to 'NIIx' introduces an erroneous override of 'id'.
 //                                   ^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class N11 = NIIx with NTTy<int>;
 //             ^
 // [cfe] The mixin application class 'N11' introduces an erroneous override of 'id'.
 //                             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class N12 extends NIIx with NTTy<int> {}
 //             ^
 // [cfe] Applying the mixin 'NTTy' to 'NIIx' introduces an erroneous override of 'id'.
 //                                   ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class N13 = NIIx with NTTx<int>;
 //             ^
 // [cfe] The mixin application class 'N13' introduces an erroneous override of 'id'.
 //                             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class N14 extends NIIx with NTTx<int> {}
 //             ^
 // [cfe] Applying the mixin 'NTTx' to 'NIIx' introduces an erroneous override of 'id'.
@@ -188,6 +198,7 @@ abstract class O5 = OII with PII;
 // [cfe] The mixin application class 'O5' introduces an erroneous override of 'id'.
 //                           ^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class O6 extends OII with PII {}
 //             ^
 // [cfe] Applying the mixin 'PII' to 'OII' introduces an erroneous override of 'id'.
@@ -216,11 +227,13 @@ abstract class O9 = OII with OBAB<String, int>;
 // [cfe] The mixin application class 'O9' introduces an erroneous override of 'id'.
 //                           ^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class O10 extends OII with OBAB<String, int> {}
 //             ^
 // [cfe] Applying the mixin 'OBAB' to 'OII' introduces an erroneous override of 'id'.
 //                                  ^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class O11 = OII with OTTy<int>;
 
 abstract class O12 extends OII with OTTy<int> {}
@@ -230,6 +243,7 @@ abstract class O13 = OII with PTT<int>;
 // [cfe] The mixin application class 'O13' introduces an erroneous override of 'id'.
 //                            ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+
 abstract class O14 extends OII with PTT<int> {}
 //             ^
 // [cfe] Applying the mixin 'PTT' to 'OII' introduces an erroneous override of 'id'.
@@ -277,7 +291,6 @@ class G5 = GTTnum with CII;
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
 // [cfe] The mixin application class 'G5' introduces an erroneous override of 'id'.
-//    ^
 // [cfe] The non-abstract class 'G5' is missing implementations for these members:
 //                     ^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE

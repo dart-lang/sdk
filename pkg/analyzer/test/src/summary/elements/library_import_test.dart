@@ -570,7 +570,7 @@ library
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
-            <null-name>
+            _f
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     f
@@ -725,7 +725,7 @@ library
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
-            <null-name>
+            _f
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     f
@@ -811,7 +811,7 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   topLevelVariables
     c
@@ -858,7 +858,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:math as <null-name>
+        dart:math as <null-name> (offset=21)
       prefixes
         <testLibraryFragment>::@prefix2::1
           fragments: @null
@@ -1034,13 +1034,13 @@ library
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
-            <null-name>
+            _f
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
         synthetic set s
           reference: <testLibraryFragment>::@setter::s
           element: <testLibraryFragment>::@setter::s#element
           formalParameters
-            <null-name>
+            _s
               element: <testLibraryFragment>::@setter::s::@parameter::_s#element
   topLevelVariables
     f
@@ -1175,13 +1175,13 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
         synthetic set d
           reference: <testLibraryFragment>::@setter::d
           element: <testLibraryFragment>::@setter::d#element
           formalParameters
-            <null-name>
+            _d
               element: <testLibraryFragment>::@setter::d::@parameter::_d#element
   topLevelVariables
     c
@@ -1535,6 +1535,10 @@ library
         hasInitializer a @29
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @33
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -1545,6 +1549,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -1638,6 +1645,10 @@ library
         hasInitializer a @42
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @46
+              staticType: int
           getter2: <testLibraryFragment>::@getter::a
       getters
         synthetic get a
@@ -1648,6 +1659,9 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::a
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::a#element
   getters
     synthetic static get a
@@ -1721,7 +1735,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v

@@ -42,6 +42,24 @@ class Response<T extends core::Object? = dynamic> extends core::Object {
     : self::Response::data = data, super core::Object::•()
     ;
 }
+class Class1 extends self::_Class1&Object&TestMixin {
+  synthetic constructor •() → self::Class1
+    : super self::_Class1&Object&TestMixin::•()
+    ;
+  method _test() → dynamic {
+    final self::Response<core::String> response = new self::Response::•<core::String>("test");
+    this.{self::_Class1&Object&TestMixin::test}(asy::Future::value<self::Response<core::String>>(response)){(asy::Future<self::Response<core::String>>) → asy::Future<core::String>};
+  }
+}
+class Class2 extends self::_Class2&Object&TestMixin {
+  synthetic constructor •() → self::Class2
+    : super self::_Class2&Object&TestMixin::•()
+    ;
+  method _test() → dynamic {
+    final self::PagingResponse<core::String> response = new self::PagingResponse::•<core::String>(new self::PagingResponseData::•<core::String>(core::_GrowableList::_literal1<core::String>("test")));
+    this.{self::_Class2&Object&TestMixin::test}(asy::Future::value<self::PagingResponse<core::String>>(response)){(asy::Future<self::PagingResponse<core::String>>) → asy::Future<core::String>};
+  }
+}
 abstract class _Class1&Object&TestMixin extends core::Object implements self::TestMixin<self::Response<core::String>, core::String> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class1&Object&TestMixin
     : super core::Object::•()
@@ -66,15 +84,6 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
     return result;
   }
 }
-class Class1 extends self::_Class1&Object&TestMixin {
-  synthetic constructor •() → self::Class1
-    : super self::_Class1&Object&TestMixin::•()
-    ;
-  method _test() → dynamic {
-    final self::Response<core::String> response = new self::Response::•<core::String>("test");
-    this.{self::_Class1&Object&TestMixin::test}(asy::Future::value<self::Response<core::String>>(response)){(asy::Future<self::Response<core::String>>) → asy::Future<core::String>};
-  }
-}
 abstract class _Class2&Object&TestMixin extends core::Object implements self::TestMixin<self::PagingResponse<core::String>, core::String> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class2&Object&TestMixin
     : super core::Object::•()
@@ -97,15 +106,6 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
           throw core::Exception::•("Invalid response type");
         }
     return result;
-  }
-}
-class Class2 extends self::_Class2&Object&TestMixin {
-  synthetic constructor •() → self::Class2
-    : super self::_Class2&Object&TestMixin::•()
-    ;
-  method _test() → dynamic {
-    final self::PagingResponse<core::String> response = new self::PagingResponse::•<core::String>(new self::PagingResponseData::•<core::String>(core::_GrowableList::_literal1<core::String>("test")));
-    this.{self::_Class2&Object&TestMixin::test}(asy::Future::value<self::PagingResponse<core::String>>(response)){(asy::Future<self::PagingResponse<core::String>>) → asy::Future<core::String>};
   }
 }
 static method main() → dynamic {}

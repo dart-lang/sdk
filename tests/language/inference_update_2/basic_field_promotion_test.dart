@@ -16,9 +16,7 @@ abstract class C {
   int? get _privateConcreteGetter => 0;
   int? get publicConcreteGetter => 0;
 
-  C(int? i)
-      : _privateFinalField = i,
-        publicFinalField = i;
+  C(int? i) : _privateFinalField = i, publicFinalField = i;
 
   testPrivateFinalFieldThisAccess() {
     if (_privateFinalField != null) {

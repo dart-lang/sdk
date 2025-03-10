@@ -54,6 +54,7 @@ class Interpreter;
 class Isolate;
 class IsolateGroup;
 class Library;
+class LocalHandle;
 class Object;
 class OSThread;
 class JSONObject;
@@ -320,7 +321,7 @@ struct TsanUtils {
   // implementation.
   // -> See https://dartbug.com/47472#issuecomment-948235479 for details.
 #if defined(USING_THREAD_SANITIZER)
-  void* setjmp_function = reinterpret_cast<void*>(&setjmp);
+  void* setjmp_function = reinterpret_cast<void*>(&DART_SETJMP);
 #else
   // MSVC (on Windows) is not happy with getting address of purely intrinsic.
   void* setjmp_function = nullptr;
@@ -720,10 +721,10 @@ class Thread : public ThreadState {
   // TLAB and end() is the chosen sampling boundary for the thread.
   //
   // When the heap sampling profiler is disabled, true_end() == end().
-  uword top() const { return top_; }
+  uword top() const { return top_.load(std::memory_order_relaxed); }
   uword end() const { return end_; }
   uword true_end() const { return true_end_; }
-  void set_top(uword top) { top_ = top; }
+  void set_top(uword top) { top_.store(top, std::memory_order_relaxed); }
   void set_end(uword end) { end_ = end; }
   void set_true_end(uword true_end) { true_end_ = true_end; }
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
@@ -874,6 +875,7 @@ class Thread : public ThreadState {
 
   ObjectPtr active_exception() const { return active_exception_; }
   void set_active_exception(const Object& value);
+  void set_active_exception(LocalHandle* value);
   static intptr_t active_exception_offset() {
     return OFFSET_OF(Thread, active_exception_);
   }
@@ -969,11 +971,11 @@ class Thread : public ThreadState {
   static bool IsSafepointLevelRequested(uword state, SafepointLevel level) {
     switch (level) {
       case SafepointLevel::kGC:
-        return (state & SafepointRequestedField::mask_in_place()) != 0;
+        return SafepointRequestedField::decode(state);
       case SafepointLevel::kGCAndDeopt:
-        return (state & DeoptSafepointRequestedField::mask_in_place()) != 0;
+        return DeoptSafepointRequestedField::decode(state);
       case SafepointLevel::kGCAndDeoptAndReload:
-        return (state & ReloadSafepointRequestedField::mask_in_place()) != 0;
+        return ReloadSafepointRequestedField::decode(state);
       default:
         UNREACHABLE();
     }
@@ -1071,13 +1073,48 @@ class Thread : public ThreadState {
            (execution_state() == kThreadInGenerated);
   }
 
-  static uword full_safepoint_state_unacquired() {
-    return (0 << AtSafepointField::shift()) |
-           (0 << AtDeoptSafepointField::shift());
+  static uword native_safepoint_state_unacquired() {
+    return AtSafepointField::encode(false) |
+           AtDeoptSafepointField::encode(false) |
+           ActiveMutatorStealableField::encode(false);
   }
-  static uword full_safepoint_state_acquired() {
-    return (1 << AtSafepointField::shift()) |
-           (1 << AtDeoptSafepointField::shift());
+  static uword native_safepoint_state_acquired() {
+    return AtSafepointField::encode(true) |
+           AtDeoptSafepointField::encode(true) |
+           ActiveMutatorStealableField::encode(true);
+  }
+
+  bool TryStealActiveMutator() {
+    uword old_state = safepoint_state_.load();
+    if (!ActiveMutatorStealableField::decode(old_state)) return false;
+    ASSERT(!ActiveMutatorStolenField::decode(old_state));
+    ASSERT(AtSafepointField::decode(old_state));
+    ASSERT(AtDeoptSafepointField::decode(old_state));
+    uword new_state = old_state;
+    new_state = ActiveMutatorStealableField::update(false, new_state);
+    new_state = ActiveMutatorStolenField::update(true, new_state);
+    return safepoint_state_.compare_exchange_strong(old_state, new_state,
+                                                    std::memory_order_relaxed);
+  }
+
+  bool TryEnterSafepointToNative() {
+    uword old_state = 0;
+    uword new_state = AtSafepointBits(current_safepoint_level()) |
+                      ActiveMutatorStealableField::encode(true);
+    return safepoint_state_.compare_exchange_strong(old_state, new_state,
+                                                    std::memory_order_release);
+  }
+
+  void EnterSafepointToNative() {
+    ASSERT(no_safepoint_scope_depth() == 0);
+    // First try a fast update of the thread state to indicate it is at a
+    // safepoint.
+    if (!TryEnterSafepointToNative()) {
+      // Fast update failed which means we could potentially be in the middle
+      // of a safepoint operation.
+      EnterSafepointUsingLock();
+      safepoint_state_.fetch_or(ActiveMutatorStealableField::encode(true));
+    }
   }
 
   bool TryEnterSafepoint() {
@@ -1115,11 +1152,36 @@ class Thread : public ThreadState {
     }
   }
 
+  bool TryExitSafepointFromNative() {
+    uword old_state = AtSafepointBits(current_safepoint_level()) |
+                      ActiveMutatorStealableField::encode(true);
+    uword new_state = 0;
+    return safepoint_state_.compare_exchange_strong(old_state, new_state,
+                                                    std::memory_order_acquire);
+  }
+
+  void ExitSafepointFromNative() {
+    if (!TryExitSafepointFromNative()) {
+      ExitSafepointUsingLock();
+      uword old = safepoint_state_.fetch_and(
+          ~(ActiveMutatorStealableField::encode(true) |
+            ActiveMutatorStolenField::encode(true)));
+      if (ActiveMutatorStolenField::decode(old)) {
+        set_execution_state(Thread::kThreadInVM);
+        HandleStolen();
+      }
+    }
+  }
+  void HandleStolen();
+
   void CheckForSafepoint() {
     // If we are in a runtime call that doesn't support lazy deopt, we will only
     // respond to gc safepointing requests.
     ASSERT(no_safepoint_scope_depth() == 0);
     if (IsSafepointRequested()) {
+      bool stolen = ActiveMutatorStolenField::decode(safepoint_state_.load());
+      ASSERT(!stolen);
+
       BlockForSafepoint();
     }
   }
@@ -1207,7 +1269,7 @@ class Thread : public ThreadState {
 #if defined(DART_COMPRESSED_POINTERS)
   uword heap_base_ = 0;
 #endif
-  uword top_ = 0;
+  std::atomic<uword> top_ = 0;
   uword end_ = 0;
   const uword* dispatch_table_array_ = nullptr;
   ObjectPtr* field_table_values_ = nullptr;
@@ -1382,8 +1444,12 @@ class Thread : public ThreadState {
       BitField<uword, bool, DeoptSafepointRequestedField::kNextBit>;
   using ReloadSafepointRequestedField =
       BitField<uword, bool, AtReloadSafepointField::kNextBit>;
-  using BlockedForSafepointField =
+  using ActiveMutatorStealableField =
       BitField<uword, bool, ReloadSafepointRequestedField::kNextBit>;
+  using ActiveMutatorStolenField =
+      BitField<uword, bool, ActiveMutatorStealableField::kNextBit>;
+  using BlockedForSafepointField =
+      BitField<uword, bool, ActiveMutatorStolenField::kNextBit>;
   using BypassSafepointsField =
       BitField<uword, bool, BlockedForSafepointField::kNextBit>;
   using UnwindErrorInProgressField =
@@ -1392,14 +1458,14 @@ class Thread : public ThreadState {
   static uword AtSafepointBits(SafepointLevel level) {
     switch (level) {
       case SafepointLevel::kGC:
-        return AtSafepointField::mask_in_place();
+        return AtSafepointField::encode(true);
       case SafepointLevel::kGCAndDeopt:
-        return AtSafepointField::mask_in_place() |
-               AtDeoptSafepointField::mask_in_place();
+        return AtSafepointField::encode(true) |
+               AtDeoptSafepointField::encode(true);
       case SafepointLevel::kGCAndDeoptAndReload:
-        return AtSafepointField::mask_in_place() |
-               AtDeoptSafepointField::mask_in_place() |
-               AtReloadSafepointField::mask_in_place();
+        return AtSafepointField::encode(true) |
+               AtDeoptSafepointField::encode(true) |
+               AtReloadSafepointField::encode(true);
       default:
         UNREACHABLE();
     }

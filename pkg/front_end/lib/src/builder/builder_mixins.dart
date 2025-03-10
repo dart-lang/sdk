@@ -28,15 +28,20 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
         name.startsWith("_")) {
       return null;
     }
-    Builder? declaration = normalizeLookup(
-        getable: nameSpace.lookupLocalMember(name, setter: false),
-        setable: nameSpace.lookupLocalMember(name, setter: true),
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: this.name,
-        isSetter: isSetter,
-        forStaticAccess: true);
+    Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
+    Builder? setable = nameSpace.lookupLocalMember(name, setter: true);
+    Builder? declaration;
+    if (getable != null || setable != null) {
+      declaration = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: this.name,
+          isSetter: isSetter,
+          forStaticAccess: true);
+    }
     // TODO(johnniwinther): Handle augmented extensions/extension type
     //  declarations.
     return declaration;

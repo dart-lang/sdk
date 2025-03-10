@@ -13,6 +13,7 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 
@@ -187,10 +188,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
       // This for-loop style is copied from analyzer's `hasX` getters on
       // [Element].
       for (var i = 0; i < metadata.annotations.length; i++) {
-        var annotation = metadata.annotations[i].element2;
-        if (annotation is GetterElement &&
-            annotation.name3 == 'reflectiveTest' &&
-            annotation.library2.name3 == 'test_reflective_loader') {
+        if (metadata.annotations[i].isReflectiveTest) {
           // The class is instantiated through the use of mirrors in
           // 'test_reflective_loader'.
           var unnamedConstructor = element.constructors2.firstWhereOrNull(

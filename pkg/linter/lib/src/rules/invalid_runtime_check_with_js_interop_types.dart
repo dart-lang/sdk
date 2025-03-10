@@ -85,10 +85,9 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
   // what we want here.
   if (element.metadata2.hasJS) return true;
   return _sdkWebLibraries.any((uri) => element.isFromLibrary(uri)) ||
-          // While a type test with types from this library is very rare, we should
-          // still ignore it for consistency.
-          element
-          .isFromLibrary(_dartJsUri);
+      // While a type test with types from this library is very rare, we should
+      // still ignore it for consistency.
+      element.isFromLibrary(_dartJsUri);
 }
 
 /// If [type] is a type declared using `@staticInterop` through
@@ -145,7 +144,7 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
   }
 
   @override
-  DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
+  TypeImpl? visitInterfaceType(covariant InterfaceTypeImpl type) {
     if (_keepUserInteropTypes
         ? _isJsInteropType(type, _InteropTypeKind.any)
         : _isJsInteropType(type, _InteropTypeKind.dartJsInteropType)) {
@@ -153,14 +152,17 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
       // order to just compare the interfaces themselves, we use `thisType`.
       return type.element3.thisType;
     } else {
-      return _jsTypeForStaticInterop(type) ?? super.visitInterfaceType(type);
+      // TODO(scheglov): remove this cast
+      var jsType = _jsTypeForStaticInterop(type) as TypeImpl?;
+      return jsType ?? super.visitInterfaceType(type);
     }
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType type) {
+  TypeImpl? visitTypeParameterType(TypeParameterType type) {
     // Visiting the bound may result in a cycle e.g. `class C<T extends C<T>>`.
-    if (!_visitedTypes.add(type)) return type;
+    // TODO(scheglov): remove this cast
+    if (!_visitedTypes.add(type)) return type as TypeParameterTypeImpl;
     // If the bound is a JS interop type, replace it with its `dart:js_interop`
     // equivalent.
     var newBound = type.bound.accept(this);
@@ -296,15 +298,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     required bool check,
   }) {
     LintCode? lintCode;
-    (DartType, DartType) eraseTypes(DartType left, DartType right) {
-      // Note: type casts are needed here because `EraseNonJSInteropTypes`
-      // extends the analyzer's private class `ExtensionTypeErasure`, which uses
-      // `TypeImpl` rather than `DartType`.
-      DartType erasedLeft = typeSystem.promoteToNonNull(
-        eraseNonJsInteropTypes.perform(left as TypeImpl),
+    (TypeImpl, TypeImpl) eraseTypes(TypeImpl left, TypeImpl right) {
+      var erasedLeft = typeSystem.promoteToNonNull(
+        eraseNonJsInteropTypes.perform(left),
       );
-      DartType erasedRight = typeSystem.promoteToNonNull(
-        eraseNonJsInteropTypes.perform(right as TypeImpl),
+      var erasedRight = typeSystem.promoteToNonNull(
+        eraseNonJsInteropTypes.perform(right),
       );
       var leftIsInteropType = _isJsInteropType(
         erasedLeft,
@@ -404,7 +403,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return lintCode;
     }
     // Called here for the side effects of `eraseTypes`.
-    typeSystem.canBeSubtypeOf(leftType, rightType, eraseTypes: eraseTypes);
+    typeSystem.canBeSubtypeOf(
+      leftType as TypeImpl,
+      rightType as TypeImpl,
+      eraseTypes: eraseTypes,
+    );
     return lintCode;
   }
 

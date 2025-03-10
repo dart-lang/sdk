@@ -69,19 +69,51 @@ void testExtremes() {
   );
   dt = DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS);
   Expect.throws(
-    () => DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 1),
+    () => DateTime(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond + 1,
+    ),
   );
   dt = DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS, isUtc: true);
   Expect.throws(
-    () => DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 1),
+    () => DateTime.utc(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond + 1,
+    ),
   );
   dt = DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS);
   Expect.throws(
-    () => DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, -1),
+    () => DateTime(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond - 1,
+    ),
   );
   dt = DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS, isUtc: true);
   Expect.throws(
-    () => DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, -1),
+    () => DateTime.utc(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond - 1,
+    ),
   );
 
   /// The nearest value to [base] in the direction [delta]. For native `int`s,
@@ -96,11 +128,27 @@ void testExtremes() {
   }
 
   dt = DateTime.fromMicrosecondsSinceEpoch(_MAX_MILLISECONDS * 1000);
-  dt = DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
+  dt = DateTime(
+    dt.year,
+    dt.month,
+    dt.day,
+    dt.hour,
+    dt.minute,
+    dt.second,
+    dt.millisecond,
+  );
   Expect.equals(_MAX_MILLISECONDS * 1000, dt.microsecondsSinceEpoch);
   print(-_MAX_MILLISECONDS * 1000);
   dt = DateTime.fromMicrosecondsSinceEpoch(-_MAX_MILLISECONDS * 1000);
-  dt = DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
+  dt = DateTime(
+    dt.year,
+    dt.month,
+    dt.day,
+    dt.hour,
+    dt.minute,
+    dt.second,
+    dt.millisecond,
+  );
   Expect.equals(-_MAX_MILLISECONDS * 1000, dt.microsecondsSinceEpoch);
   Expect.throws(
     () => DateTime.fromMicrosecondsSinceEpoch(
@@ -138,28 +186,64 @@ void testExtremes() {
 
   dt = DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS);
   Expect.throws(
-    () => DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0, 1),
+    () => DateTime(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond,
+      dt.microsecond + 1,
+    ),
   );
   Expect.throws(() => dt.copyWith(microsecond: 1));
   Expect.isTrue(dt.copyWith(microsecond: -1).toString().endsWith('.999999'));
 
   dt = DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS, isUtc: true);
   Expect.throws(
-    () => DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0, 1),
+    () => DateTime.utc(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond,
+      dt.microsecond + 1,
+    ),
   );
   Expect.throws(() => dt.copyWith(microsecond: 1));
   Expect.isTrue(dt.copyWith(microsecond: -1).toString().endsWith('.999999Z'));
 
   dt = DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS);
   Expect.throws(
-    () => DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0, -1),
+    () => DateTime(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond,
+      dt.microsecond - 1,
+    ),
   );
   Expect.throws(() => dt.copyWith(microsecond: -1));
   Expect.isTrue(dt.copyWith(microsecond: 1).toString().endsWith('.000001'));
 
   dt = DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS, isUtc: true);
   Expect.throws(
-    () => DateTime.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, 0, 0, -1),
+    () => DateTime.utc(
+      dt.year,
+      dt.month,
+      dt.day,
+      dt.hour,
+      dt.minute,
+      dt.second,
+      dt.millisecond,
+      dt.microsecond - 1,
+    ),
   );
   Expect.throws(() => dt.copyWith(microsecond: -1));
   Expect.isTrue(dt.copyWith(microsecond: 1).toString().endsWith('.000001Z'));

@@ -32,6 +32,7 @@ namespace dart {
   V(GetCStackPointer)                                                          \
   V(JumpToFrame)                                                               \
   V(RunExceptionHandler)                                                       \
+  V(RunExceptionHandlerUnbox)                                                  \
   V(DeoptForRewind)                                                            \
   V(WriteBarrier)                                                              \
   V(WriteBarrierWrappers)                                                      \

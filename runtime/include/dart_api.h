@@ -1707,8 +1707,6 @@ DART_EXPORT DART_API_WARN_UNUSED_RESULT bool Dart_RunLoopAsync(
     Dart_Port on_exit_port,
     char** error);
 
-/* TODO(turnidge): Should this be removed from the public api? */
-
 /**
  * Gets the main port id for the current isolate.
  */
@@ -1779,6 +1777,24 @@ DART_EXPORT Dart_Handle Dart_SendPortGetId(Dart_Handle port,
  */
 DART_EXPORT Dart_Handle Dart_SendPortGetIdEx(Dart_Handle port,
                                              Dart_PortEx* portex_id);
+
+/**
+ * Sets the owner thread of the current isolate to be the current thread.
+ *
+ * Requires there to be a current isolate, and that the isolate is unowned.
+ */
+DART_EXPORT void Dart_SetCurrentThreadOwnsIsolate(void);
+
+/**
+ * Returns whether the current thread owns the isolate that owns the given port.
+ *
+ * The port can be the isolate's main port, or any other port owned by the
+ * isolate.
+ *
+ * \param port_id The port to be checked.
+ */
+DART_EXPORT bool Dart_GetCurrentThreadOwnsIsolate(Dart_Port port);
+
 /*
  * ======
  * Scopes

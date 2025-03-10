@@ -298,7 +298,7 @@ class FileResolver {
       if (element is LocalVariableElement ||
           (element is ParameterElement && !element.isNamed)) {
         await collectReferences2(element.source!.fullName, performance!);
-      } else if (element is LibraryImportElement) {
+      } else if (element is LibraryImportElementImpl) {
         return await _searchReferences_Import(element);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
@@ -704,7 +704,7 @@ class FileResolver {
       var libraryUnit = resolvedUnits.first;
       var result = ResolvedLibraryResultImpl(
         session: contextObjects!.analysisSession,
-        element: libraryUnit.libraryElement,
+        element2: libraryUnit.libraryElement2,
         units: resolvedUnits,
       );
 
@@ -793,6 +793,7 @@ class FileResolver {
       libraryContext = LibraryContext(
         declaredVariables: contextObjects!.declaredVariables,
         byteStore: byteStore,
+        eventsController: null,
         infoDeclarationStore: const NoOpInfoDeclarationStore(),
         analysisOptionsMap: AnalysisOptionsMap.forSharedOptions(
             contextObjects!.analysisOptions),
@@ -803,6 +804,9 @@ class FileResolver {
         externalSummaries: SummaryDataStore(),
         packagesFile: null,
         testData: testData?.libraryContext,
+        linkedBundleProvider: LinkedBundleProvider(
+          byteStore: byteStore,
+        ),
       );
 
       contextObjects!.analysisSession.elementFactory =
@@ -888,10 +892,10 @@ class FileResolver {
   }
 
   Future<List<CiderSearchMatch>> _searchReferences_Import(
-      LibraryImportElement element) async {
+      LibraryImportElementImpl element) async {
     var results = <CiderSearchMatch>[];
-    LibraryElement libraryElement = element.library;
-    for (CompilationUnitElement unitElement in libraryElement.units) {
+    var libraryElement = element.library;
+    for (var unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await resolve(path: unitPath);
       var visitor = ImportElementReferencesVisitor(element, unitElement);

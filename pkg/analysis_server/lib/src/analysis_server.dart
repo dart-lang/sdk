@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:io';
@@ -47,7 +45,6 @@ import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manage
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
-import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
@@ -56,7 +53,6 @@ import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -107,7 +103,7 @@ typedef UserPromptSender =
     );
 
 /// Implementations of [AnalysisServer] implement a server that listens
-/// on a [CommunicationChannel] for analysis messages and process them.
+/// on an [AbstractNotificationManager] for analysis messages and process them.
 abstract class AnalysisServer {
   /// A flag indicating whether plugins are supported in this build.
   static final bool supportsPlugins = true;
@@ -206,6 +202,9 @@ abstract class AnalysisServer {
   final ServerRecentPerformance recentPerformance = ServerRecentPerformance();
 
   final RequestStatisticsHelper? requestStatistics;
+
+  final PerformanceLog<TeeStringSink> analysisPerformanceLogger =
+      PerformanceLog<TeeStringSink>(TeeStringSink());
 
   /// Manages prompts telling the user about "dart fix".
   late final DartFixPromptManager _dartFixPrompt;
@@ -341,21 +340,21 @@ abstract class AnalysisServer {
     }
 
     var logName = options.newAnalysisDriverLog;
-    StringSink sink = NullStringSink();
     if (logName != null) {
       if (logName == 'stdout') {
-        sink = io.stdout;
+        analysisPerformanceLogger.sink.addSink(io.stdout);
       } else if (logName.startsWith('file:')) {
         var path = logName.substring('file:'.length);
-        sink = FileStringSink(path);
+        analysisPerformanceLogger.sink.addSink(FileStringSink(path));
       }
     }
 
     var requestStatistics = this.requestStatistics;
     if (requestStatistics != null) {
-      sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
+      analysisPerformanceLogger.sink.addSink(
+        requestStatistics.perfLoggerStringSink,
+      );
     }
-    var analysisPerformanceLogger = PerformanceLog(sink);
 
     byteStore = createByteStore(resourceProvider);
     fileContentCache = FileContentCache(resourceProvider);
@@ -418,7 +417,7 @@ abstract class AnalysisServer {
   ///
   /// Request handlers should be careful to use the correct clients capabilities
   /// if they are available to non-editor clients (such as over DTD). The
-  /// capabilities of the caller are available in [MessageInfo] and should
+  /// capabilities of the caller are available in [lsp.MessageInfo] and should
   /// usually be used when computing the results for requests, but if those
   /// requests additionally trigger requests to the editor, those requests to
   /// the editor should consider these capabilities.
@@ -437,7 +436,7 @@ abstract class AnalysisServer {
   /// A [Future] that completes when the LSP server moves into the initialized
   /// state and can handle normal LSP requests.
   ///
-  /// Completes with the [InitializedStateMessageHandler] that is active.
+  /// Completes with the [lsp.InitializedStateMessageHandler] that is active.
   ///
   /// When the server leaves the initialized state, [lspUninitialized] will
   /// complete.
@@ -493,8 +492,8 @@ abstract class AnalysisServer {
 
   void afterContextsDestroyed() {}
 
-  /// Broadcast a request built from the given [params] to all of the plugins
-  /// that are currently associated with the context root from the given
+  /// Broadcast a request built from the given [requestParams] to all of the
+  /// plugins that are currently associated with the context root from the given
   /// [driver]. Return a list containing futures that will complete when each of
   /// the plugins have sent a response, or an empty list if no [driver] is
   /// provided.
@@ -646,10 +645,10 @@ abstract class AnalysisServer {
   /// Gets the current version number of a document (if known).
   int? getDocumentVersion(String path);
 
-  /// Return a [Future] that completes with the [Element] at the given
+  /// Return a [Future] that completes with the [Element2] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
-  Future<Element?> getElementAtOffset(String file, int offset) async {
+  Future<Element2?> getElementAtOffset(String file, int offset) async {
     if (!priorityFiles.contains(file)) {
       var driver = getAnalysisDriver(file);
       if (driver == null) {
@@ -661,9 +660,12 @@ abstract class AnalysisServer {
         return null;
       }
 
-      var element = findElementByNameOffset(unitElementResult.element, offset);
-      if (element != null) {
-        return element;
+      var fragment = findFragmentByNameOffset(
+        unitElementResult.fragment,
+        offset,
+      );
+      if (fragment != null) {
+        return fragment.element;
       }
     }
 
@@ -671,15 +673,15 @@ abstract class AnalysisServer {
     return getElementOfNode(node);
   }
 
-  /// Return a [Future] that completes with the [Element2] at the given
-  /// [offset] of the given [file], or with `null` if there is no node at the
-  /// [offset] or the node does not have an element.
-  Future<Element2?> getElementAtOffset2(String file, int offset) async =>
-      (await getElementAtOffset(file, offset)).asElement2;
-
-  /// Return the [Element] of the given [node], or `null` if [node] is `null` or
-  /// does not have an element.
-  Element? getElementOfNode(AstNode? node) {
+  /// Returns the element associated with the [node].
+  ///
+  /// If [useMockForImport] is `true` then a [MockLibraryImportElement] will be
+  /// returned when an import directive or a prefix element is associated with
+  /// the [node]. The rename-prefix refactoring should be updated to not require
+  /// this work-around.
+  ///
+  /// Returns `null` if [node] is `null` or doesn't have an element.
+  Element2? getElementOfNode(AstNode? node, {bool useMockForImport = false}) {
     if (node == null) {
       return null;
     }
@@ -693,40 +695,18 @@ abstract class AnalysisServer {
       return null;
     }
 
-    Element? element;
-    switch (node) {
-      case ExportDirective():
-        element = node.element;
-      case ImportDirective():
-        element = node.element;
-      case PartOfDirective():
-        element = node.element;
-      default:
-        element = ElementLocator.locate2(node).asElement;
+    Element2? element;
+    if (useMockForImport && node is ImportDirective) {
+      element = MockLibraryImportElement(node.libraryImport!);
+    } else {
+      element = ElementLocator.locate2(node);
     }
-
-    if (node is SimpleIdentifier && element is PrefixElement) {
-      element = getImportElement(node);
+    if (useMockForImport &&
+        node is SimpleIdentifier &&
+        element is PrefixElement2) {
+      element = MockLibraryImportElement(getImportElement(node)!);
     }
     return element;
-  }
-
-  /// Return the [Element] of the given [node], or `null` if [node] is `null` or
-  /// does not have an element.
-  Element2? getElementOfNode2(AstNode? node) {
-    if (node == null) {
-      return null;
-    }
-    if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is LibraryIdentifier) {
-      node = node.parent;
-    }
-    if (node is StringLiteral && node.parent is UriBasedDirective) {
-      return null;
-    }
-    return ElementLocator.locate2(node);
   }
 
   /// Return a [LineInfo] for the file with the given [path].

@@ -5,9 +5,6 @@
 // Test that the JS types that are intercepted by `@Native` typed_data classes
 // are interoperable using static interop.
 
-@JS()
-library typed_data_test;
-
 import 'dart:js_interop';
 
 @JS()

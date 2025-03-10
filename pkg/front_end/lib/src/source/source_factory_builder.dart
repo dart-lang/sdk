@@ -101,6 +101,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
             tearOffReference: tearOffReference);
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _introductory.metadata;
 
   @override
@@ -274,7 +275,11 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       throw new UnsupportedError('${runtimeType}.localSetters');
 
   @override
-  void applyAugmentation(Builder augmentation) {
+  void addAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
+  }
+
+  void _addAugmentation(Builder augmentation) {
     if (augmentation is SourceFactoryBuilder) {
       if (checkAugmentation(
           augmentationLibraryBuilder: augmentation.libraryBuilder,
@@ -293,17 +298,39 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void applyAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
+  }
+
+  @override
   int buildBodyNodes(BuildNodesCallback f) {
-    if (!isAugmenting) return 0;
-    _finishAugmentation();
-    return 1;
+    int count = 0;
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        count += augmentation.buildBodyNodes(f);
+      }
+    }
+    if (isAugmenting) {
+      _finishAugmentation();
+    }
+    return count;
   }
 
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
-    return _encoding.computeDefaultTypes(context,
+    int count = _encoding.computeDefaultTypes(context,
         inErrorRecovery: inErrorRecovery);
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        count += augmentation.computeDefaultTypes(context,
+            inErrorRecovery: inErrorRecovery);
+      }
+    }
+    return count;
   }
 
   @override
@@ -377,6 +404,17 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
     _encoding.buildOutlineNodes(f);
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        augmentation.buildOutlineNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          // Don't add augmentations.
+        });
+      }
+    }
   }
 
   bool _hasBuiltOutlineExpressions = false;
@@ -397,6 +435,14 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
     if (isConst && isAugmenting) {
       _finishAugmentation();
+    }
+
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        augmentation.buildOutlineExpressions(
+            classHierarchy, delayedDefaultValueCloners);
+      }
     }
   }
 
@@ -421,6 +467,13 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   void resolveRedirectingFactory() {
     _encoding.resolveRedirectingFactory();
+
+    List<SourceFactoryBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceFactoryBuilder augmentation in augmentations) {
+        augmentation.resolveRedirectingFactory();
+      }
+    }
   }
 
   void _setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
@@ -515,7 +568,7 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void setBody(Statement body) {
+  void registerFunctionBody(Statement body) {
     _member.setBody(body);
   }
 
@@ -681,17 +734,6 @@ class _FactoryEncoding implements InferredTypeListener {
                 : BuiltMemberKind.Factory));
   }
 
-  // TODO(johnniwinther): Remove this.
-  LookupScope _computeTypeParameterScope(LookupScope parent) {
-    if (typeParameters == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
-    for (NominalParameterBuilder variable in typeParameters!) {
-      if (variable.isWildcard) continue;
-      local[variable.name] = variable;
-    }
-    return new TypeParameterScope(parent, local);
-  }
-
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     _fragment.formals?.infer(classHierarchy);
@@ -700,7 +742,6 @@ class _FactoryEncoding implements InferredTypeListener {
       delayedDefaultValueCloners.add(_delayedDefaultValueCloner!);
     }
 
-    LookupScope parentScope = _fragment.builder.declarationBuilder.scope;
     for (Annotatable annotatable in _fragment.builder.annotatables) {
       MetadataBuilder.buildAnnotations(
           annotatable,
@@ -708,7 +749,7 @@ class _FactoryEncoding implements InferredTypeListener {
           _fragment.builder.createBodyBuilderContext(),
           _fragment.builder.libraryBuilder,
           _fragment.fileUri,
-          parentScope,
+          _fragment.enclosingScope,
           createFileUriExpression: _fragment.builder.isAugmented);
     }
     if (typeParameters != null) {
@@ -717,7 +758,7 @@ class _FactoryEncoding implements InferredTypeListener {
             _fragment.builder.libraryBuilder,
             _fragment.builder.createBodyBuilderContext(),
             classHierarchy,
-            _computeTypeParameterScope(parentScope));
+            _fragment.typeParameterScope);
       }
     }
 
@@ -729,6 +770,7 @@ class _FactoryEncoding implements InferredTypeListener {
       for (FormalParameterBuilder formal in _fragment.formals!) {
         formal.buildOutlineExpressions(_fragment.builder.libraryBuilder,
             _fragment.builder.declarationBuilder,
+            scope: _fragment.typeParameterScope,
             buildDefaultValue: FormalParameterBuilder
                 .needsDefaultValuesBuiltAsOutlineExpressions(
                     _fragment.builder));
@@ -754,12 +796,13 @@ class _FactoryEncoding implements InferredTypeListener {
               _fragment.fileUri,
               _fragment.builder.declarationBuilder.thisType,
               _fragment.builder.libraryBuilder,
+              _fragment.typeParameterScope,
               null);
       InferenceHelper helper = _fragment.builder.libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
               _fragment.builder.libraryBuilder,
               _fragment.builder.createBodyBuilderContext(),
-              _fragment.builder.declarationBuilder.scope,
+              _fragment.enclosingScope,
               _fragment.fileUri);
       Builder? targetBuilder = _fragment.redirectionTarget!.target;
 

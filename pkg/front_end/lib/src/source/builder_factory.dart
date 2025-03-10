@@ -70,58 +70,58 @@ abstract class BuilderFactory {
 
   /// Registers that this builder is preparing for a class declaration with the
   /// given [name] and [typeParameters] located at [nameOffset].
-  void beginClassDeclaration(String name, int nameOffset,
-      List<NominalParameterBuilder>? typeParameters);
+  void beginClassDeclaration(
+      String name, int nameOffset, List<TypeParameterFragment>? typeParameters);
 
   void beginClassBody();
 
   void endClassDeclaration(String name);
 
   void endClassDeclarationForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters);
+      List<TypeParameterFragment>? typeParameters);
 
   /// Registers that this builder is preparing for a mixin declaration with the
   /// given [name] and [typeParameters] located at [nameOffset].
-  void beginMixinDeclaration(String name, int nameOffset,
-      List<NominalParameterBuilder>? typeParameters);
+  void beginMixinDeclaration(
+      String name, int nameOffset, List<TypeParameterFragment>? typeParameters);
 
   void beginMixinBody();
 
   void endMixinDeclaration(String name);
 
   void endMixinDeclarationForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters);
+      List<TypeParameterFragment>? typeParameters);
 
   /// Registers that this builder is preparing for a named mixin application
   /// with the given [name] and [typeParameters] located [charOffset].
-  void beginNamedMixinApplication(String name, int charOffset,
-      List<NominalParameterBuilder>? typeParameters);
+  void beginNamedMixinApplication(
+      String name, int charOffset, List<TypeParameterFragment>? typeParameters);
 
   void endNamedMixinApplication(String name);
 
   void endNamedMixinApplicationForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters);
+      List<TypeParameterFragment>? typeParameters);
 
   void beginEnumDeclarationHeader(String name);
 
   /// Registers that this builder is preparing for an enum declaration with
   /// the given [name] and [typeParameters] located at [nameOffset].
-  void beginEnumDeclaration(String name, int nameOffset,
-      List<NominalParameterBuilder>? typeParameters);
+  void beginEnumDeclaration(
+      String name, int nameOffset, List<TypeParameterFragment>? typeParameters);
 
   void beginEnumBody();
 
   void endEnumDeclaration(String name);
 
   void endEnumDeclarationForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters);
+      List<TypeParameterFragment>? typeParameters);
 
   void beginExtensionOrExtensionTypeHeader();
 
   /// Registers that this builder is preparing for an extension declaration with
   /// the given [name] and [typeParameters] located [charOffset].
   void beginExtensionDeclaration(String? name, int charOffset,
-      List<NominalParameterBuilder>? typeParameters);
+      List<TypeParameterFragment>? typeParameters);
 
   void beginExtensionBody();
 
@@ -129,8 +129,8 @@ abstract class BuilderFactory {
 
   /// Registers that this builder is preparing for an extension type declaration
   /// with the given [name] and [typeParameters] located at [nameOffset].
-  void beginExtensionTypeDeclaration(String name, int nameOffset,
-      List<NominalParameterBuilder>? typeParameters);
+  void beginExtensionTypeDeclaration(
+      String name, int nameOffset, List<TypeParameterFragment>? typeParameters);
 
   void beginExtensionTypeBody();
 
@@ -147,29 +147,28 @@ abstract class BuilderFactory {
   void beginConstructor();
 
   void endConstructorForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters);
+      List<TypeParameterFragment>? typeParameters);
 
   void beginStaticMethod();
 
   void endStaticMethodForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters);
+      List<TypeParameterFragment>? typeParameters);
 
   void beginInstanceMethod();
 
   void endInstanceMethodForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters);
+      List<TypeParameterFragment>? typeParameters);
 
   void beginTopLevelMethod();
 
   void endTopLevelMethodForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters);
+      List<TypeParameterFragment>? typeParameters);
 
   void beginTypedef();
 
   void endTypedef();
 
-  void endTypedefForParserRecovery(
-      List<NominalParameterBuilder>? typeParameters);
+  void endTypedefForParserRecovery(List<TypeParameterFragment>? typeParameters);
 
   void checkStacks();
 
@@ -215,7 +214,7 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier identifier,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required TypeBuilder? supertype,
       required List<TypeBuilder>? mixins,
       required List<TypeBuilder>? interfaces,
@@ -228,7 +227,7 @@ abstract class BuilderFactory {
       {required OffsetMap offsetMap,
       required List<MetadataBuilder>? metadata,
       required Identifier identifier,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<TypeBuilder>? mixins,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
@@ -247,7 +246,7 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier? identifier,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required TypeBuilder onType,
       required int startOffset,
       required int nameOrExtensionOffset,
@@ -258,7 +257,7 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier identifier,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
       required int endOffset});
@@ -268,7 +267,7 @@ abstract class BuilderFactory {
       required List<MetadataBuilder>? metadata,
       required Modifiers modifiers,
       required Identifier identifier,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<TypeBuilder>? supertypeConstraints,
       required List<TypeBuilder>? interfaces,
       required int startOffset,
@@ -278,7 +277,7 @@ abstract class BuilderFactory {
   void addNamedMixinApplication(
       {required List<MetadataBuilder>? metadata,
       required String name,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required Modifiers modifiers,
       required TypeBuilder? supertype,
       required List<TypeBuilder> mixins,
@@ -290,7 +289,7 @@ abstract class BuilderFactory {
   void addFunctionTypeAlias(
       List<MetadataBuilder>? metadata,
       String name,
-      List<NominalParameterBuilder>? typeParameters,
+      List<TypeParameterFragment>? typeParameters,
       TypeBuilder type,
       int nameOffset);
 
@@ -301,7 +300,7 @@ abstract class BuilderFactory {
       required String name,
       required TypeBuilder? returnType,
       required List<FormalParameterBuilder>? formals,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required Token? beginInitializers,
       required int startOffset,
       required int endOffset,
@@ -324,7 +323,7 @@ abstract class BuilderFactory {
       required Modifiers modifiers,
       required Identifier identifier,
       required ConstructorName constructorName,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int formalsOffset,
@@ -364,7 +363,7 @@ abstract class BuilderFactory {
       required AsyncMarker asyncModifier});
 
   ConstructorName computeAndValidateConstructorName(
-      DeclarationFragment enclosingDeclaration, Identifier identifier,
+      DeclarationFragmentImpl enclosingDeclaration, Identifier identifier,
       {isFactory = false});
 
   void addMethod(
@@ -374,7 +373,7 @@ abstract class BuilderFactory {
       required TypeBuilder? returnType,
       required Identifier identifier,
       required String name,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int nameOffset,
@@ -394,7 +393,7 @@ abstract class BuilderFactory {
       required TypeBuilder? returnType,
       required Identifier identifier,
       required String name,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int nameOffset,
@@ -413,7 +412,7 @@ abstract class BuilderFactory {
       required TypeBuilder? returnType,
       required Identifier identifier,
       required String name,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<TypeParameterFragment>? typeParameters,
       required List<FormalParameterBuilder>? formals,
       required int startOffset,
       required int nameOffset,
@@ -471,7 +470,7 @@ abstract class BuilderFactory {
 
   InferableTypeBuilder addInferableType();
 
-  NominalParameterBuilder addNominalParameter(List<MetadataBuilder>? metadata,
+  TypeParameterFragment addNominalParameter(List<MetadataBuilder>? metadata,
       String name, TypeBuilder? bound, int charOffset, Uri fileUri,
       {required TypeParameterKind kind});
 
@@ -504,10 +503,17 @@ class NominalParameterCopy {
   /// methods and unnamed mixin applications, and for adding copies of
   /// extension type parameters to extension instance methods.
   static NominalParameterCopy? copyTypeParameters(
-      List<NominalParameterBuilder> unboundNominalParameters,
-      List<NominalParameterBuilder>? oldParameterBuilders,
-      {required TypeParameterKind kind,
+      {required List<NominalParameterBuilder> unboundNominalParameters,
+      required List<NominalParameterBuilder>? oldParameterBuilders,
+      List<TypeParameterFragment>? oldParameterFragments,
+      required TypeParameterKind kind,
       required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
+    assert(
+        oldParameterFragments == null ||
+            oldParameterBuilders?.length == oldParameterFragments.length,
+        "Invalid type parameter fragment count. "
+        "Expected ${oldParameterBuilders?.length}, "
+        "found ${oldParameterFragments.length}.");
     if (oldParameterBuilders == null || oldParameterBuilders.isEmpty) {
       return null;
     }
@@ -520,16 +526,20 @@ class NominalParameterCopy {
 
     List<NominalParameterBuilder> newVariableBuilders =
         <NominalParameterBuilder>[];
-    for (NominalParameterBuilder oldVariable in oldParameterBuilders) {
-      NominalParameterBuilder newVariable = new NominalParameterBuilder(
-          oldVariable.name, oldVariable.fileOffset, oldVariable.fileUri,
-          kind: kind,
-          variableVariance: oldVariable.parameter.isLegacyCovariant
-              ? null
-              :
-              // Coverage-ignore(suite): Not run.
-              oldVariable.variance,
-          isWildcard: oldVariable.isWildcard);
+    for (int index = 0; index < oldParameterBuilders.length; index++) {
+      NominalParameterBuilder oldVariable = oldParameterBuilders[index];
+      TypeParameterFragment? oldFragment = oldParameterFragments?[index];
+      Uri? fileUri = oldFragment?.fileUri ?? oldVariable.fileUri;
+      int fileOffset = oldFragment?.nameOffset ?? oldVariable.fileOffset;
+      NominalParameterBuilder newVariable =
+          new NominalParameterBuilder(oldVariable.name, fileOffset, fileUri,
+              kind: kind,
+              variableVariance: oldVariable.parameter.isLegacyCovariant
+                  ? null
+                  :
+                  // Coverage-ignore(suite): Not run.
+                  oldVariable.variance,
+              isWildcard: oldVariable.isWildcard);
       newVariableBuilders.add(newVariable);
       newToOldVariableMap[newVariable] = oldVariable;
       unboundNominalParameters.add(newVariable);
@@ -569,21 +579,27 @@ class SynthesizedExtensionSignature {
   SynthesizedExtensionSignature._(
       this.clonedDeclarationTypeParameters, this.thisFormal);
 
-  factory SynthesizedExtensionSignature(ExtensionBuilder declarationBuilder,
-      List<NominalParameterBuilder> unboundNominalParameters,
-      {required Uri fileUri, required int fileOffset}) {
+  factory SynthesizedExtensionSignature(
+      {required ExtensionBuilder declarationBuilder,
+      required List<TypeParameterFragment>? extensionTypeParameterFragments,
+      required TypeBuilder onTypeBuilder,
+      required List<NominalParameterBuilder> unboundNominalParameters,
+      required Uri fileUri,
+      required int fileOffset}) {
     List<NominalParameterBuilder>? clonedDeclarationTypeParameters;
 
     NominalParameterCopy? nominalVariableCopy =
         NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters, declarationBuilder.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            oldParameterBuilders: declarationBuilder.typeParameters,
+            oldParameterFragments: extensionTypeParameterFragments,
             kind: TypeParameterKind.extensionSynthesized,
             instanceTypeParameterAccess:
                 InstanceTypeParameterAccessState.Allowed);
 
     clonedDeclarationTypeParameters = nominalVariableCopy?.newParameterBuilders;
 
-    TypeBuilder thisType = declarationBuilder.onType;
+    TypeBuilder thisType = onTypeBuilder;
     if (nominalVariableCopy != null) {
       thisType = nominalVariableCopy.createInContext(thisType);
     }
@@ -612,15 +628,19 @@ class SynthesizedExtensionTypeSignature {
       this.clonedDeclarationTypeParameters, this.thisFormal);
 
   factory SynthesizedExtensionTypeSignature(
-      ExtensionTypeDeclarationBuilder declarationBuilder,
-      List<NominalParameterBuilder> unboundNominalParameters,
-      {required Uri fileUri,
+      {required ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder,
+      required List<TypeParameterFragment>? extensionTypeTypeParameters,
+      required List<NominalParameterBuilder> unboundNominalParameters,
+      required Uri fileUri,
       required int fileOffset}) {
     List<NominalParameterBuilder>? clonedDeclarationTypeParameters;
 
     NominalParameterCopy? nominalVariableCopy =
         NominalParameterCopy.copyTypeParameters(
-            unboundNominalParameters, declarationBuilder.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            oldParameterBuilders:
+                extensionTypeDeclarationBuilder.typeParameters,
+            oldParameterFragments: extensionTypeTypeParameters,
             kind: TypeParameterKind.extensionSynthesized,
             instanceTypeParameterAccess:
                 InstanceTypeParameterAccessState.Allowed);
@@ -628,10 +648,10 @@ class SynthesizedExtensionTypeSignature {
     clonedDeclarationTypeParameters = nominalVariableCopy?.newParameterBuilders;
 
     TypeBuilder thisType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        declarationBuilder, const NullabilityBuilder.omitted(),
-        arguments: declarationBuilder.typeParameters != null
+        extensionTypeDeclarationBuilder, const NullabilityBuilder.omitted(),
+        arguments: extensionTypeTypeParameters != null
             ? new List<TypeBuilder>.generate(
-                declarationBuilder.typeParameters!.length,
+                extensionTypeTypeParameters.length,
                 (int index) =>
                     new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                         clonedDeclarationTypeParameters![index],

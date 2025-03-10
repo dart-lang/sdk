@@ -54,28 +54,23 @@ void main(List<String> args) async {
         allowed: ['compile', 'run', 'all'],
         defaultsTo: 'all')
     ..addFlag('sound-null-safety',
-        help: 'Compile for sound null safety at runtime. Passed through to the '
-            'DDC binary. Defaults to false.',
-        negatable: true,
-        defaultsTo: true)
+        help: 'Ignored and will be removed in a future version. '
+            'Sound null safety is always used.',
+        negatable: false,
+        defaultsTo: true,
+        hide: true)
     ..addFlag('emit-debug-symbols',
         help: 'Pass through flag for DDC, emits debug symbols file along with '
             'the compiled module.',
         defaultsTo: false)
-    ..addFlag('null-assertions',
-        help: 'Run with assertions that values passed to non-nullable method '
-            'parameters are not null.',
-        defaultsTo: false)
     ..addFlag('native-null-assertions',
         help: 'Run with assertions on non-nullable values returned from native '
             'APIs.',
-        negatable: true)
+        defaultsTo: true)
     ..addFlag('interop-null-assertions',
         help: 'Run with assertions on non-nullable values returned from '
             'non-static JavaScript interop APIs.',
-        defaultsTo: false)
-    ..addFlag('weak-null-safety-errors',
-        help: 'Treat weak null safety warnings as errors.', defaultsTo: false)
+        defaultsTo: true)
     ..addFlag('ddc-modules',
         help: 'Emit modules in the ddc format. Currently supported in Chrome '
             '(amd modules by default) and D8 (already uses ddc modules by '
@@ -138,14 +133,9 @@ void main(List<String> args) async {
   var compile = mode == 'compile' || mode == 'all';
   var run = mode == 'run' || mode == 'all';
   var verbose = options['verbose'] as bool;
-  var soundNullSafety = options['sound-null-safety'] as bool;
   var emitDebugSymbols = options['emit-debug-symbols'] as bool;
-  var nonNullAsserts = options['null-assertions'] as bool;
-  var nativeNonNullAsserts = options.wasParsed('native-null-assertions')
-      ? options['native-null-assertions'] as bool
-      : soundNullSafety;
+  var nativeNonNullAsserts = options['native-null-assertions'] as bool;
   var jsInteropNonNullAsserts = options['interop-null-assertions'] as bool;
-  var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
   var ddcModules = options['ddc-modules'] as bool;
   var canaryFeatures = options['canary'] as bool;
   var sourceFiles = options.rest.map(p.canonicalize);
@@ -170,12 +160,9 @@ void main(List<String> args) async {
   // your path.
   var dartBinary = Platform.resolvedExecutable;
   var dartSdk = p.dirname(p.dirname(dartBinary));
-  var dartAotBinary = p.absolute(
-          dartSdk,
-          'bin',
-          Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime'
-        );
-   var execBinary = debug ? dartBinary : dartAotBinary;
+  var dartAotBinary = p.absolute(dartSdk, 'bin',
+      Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
+  var execBinary = debug ? dartBinary : dartAotBinary;
 
   // In debug mode (`-d`), we run from the `pkg/dev_compiler` sources.  We
   // determine the location via this actual script (i.e., `-d` assumes
@@ -260,12 +247,8 @@ void main(List<String> args) async {
   var sdkRoot = p.dirname(p.dirname(ddcPath));
   var buildDir = resolveBuildDir(sdkRoot, arch);
   var requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
-  var sdkOutlineDill = p.join(buildDir,
-      soundNullSafety ? 'ddc_outline.dill' : 'ddc_outline_unsound.dill');
-  var compileModeDir = [
-    canaryFeatures ? 'canary' : 'stable',
-    soundNullSafety ? '' : '_unsound',
-  ].join();
+  var sdkOutlineDill = p.join(buildDir, 'ddc_outline.dill');
+  var compileModeDir = canaryFeatures ? 'canary' : 'stable';
   var sdkJsPath =
       p.join(buildDir, 'gen', 'utils', 'ddc', compileModeDir, 'sdk', mod);
   var preamblesDir = p.join(
@@ -283,7 +266,6 @@ void main(List<String> args) async {
       '--dart-sdk-summary=$sdkOutlineDill',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
-      if (soundNullSafety) '--sound-null-safety' else '--no-sound-null-safety',
       if (options['packages'] != null) '--packages=${options['packages']}',
       if (emitDebugSymbols) '--emit-debug-symbols',
       if (canaryFeatures) '--canary',
@@ -314,17 +296,11 @@ void main(List<String> args) async {
   if (run) {
     var ddcModuleSdkOptions = canaryFeatures
         ? '''let sdkOptions = {
-  weakNullSafetyWarnings: !($weakNullSafetyErrors || $soundNullSafety),
-  weakNullSafetyErrors: $weakNullSafetyErrors,
-  nonNullAsserts: $nonNullAsserts,
   nativeNonNullAsserts: $nativeNonNullAsserts,
   jsInteropNonNullAsserts: $jsInteropNonNullAsserts,
 };'''
         : '''
 let sdk = dart_library.import("dart_sdk", "$appname");
-sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
-sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
-sdk.dart.nonNullAsserts($nonNullAsserts);
 sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
 sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 ''';
@@ -368,10 +344,6 @@ sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
         function(sdk, app) {
     'use strict';
 
-    sdk.dart.weakNullSafetyWarnings(
-        !($weakNullSafetyErrors || $soundNullSafety));
-    sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
-    sdk.dart.nonNullAsserts($nonNullAsserts);
     sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
     sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
     sdk._debugger.registerDevtoolsFormatter();
@@ -424,10 +396,6 @@ let sdk = require(\"dart_sdk\");
 sdk.dart.global.self = sdk.dart.global;
 let main = require(\"./$basename\").$libname.main;
 try {
-  sdk.dart.weakNullSafetyWarnings(
-      !($weakNullSafetyErrors || $soundNullSafety));
-  sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
-  sdk.dart.nonNullAsserts($nonNullAsserts);
   sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
   sdk.dart.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
   sdk._isolate_helper.startRootIsolate(main, []);

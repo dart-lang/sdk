@@ -27,6 +27,18 @@ abstract class B extends core::Object implements self::Interface {
 abstract class D extends core::Object implements self::Interface, self::Interface2 /*isMixinDeclaration*/  {
   abstract forwarding-stub method method(covariant-by-declaration core::num i) → core::String;
 }
+class E extends self::_E&Object&A&D {
+  synthetic constructor •() → self::E
+    : super self::_E&Object&A&D::•()
+    ;
+}
+abstract class F extends core::Object implements self::Interface /*isMixinDeclaration*/  {
+}
+class G extends self::_G&Object&A&F {
+  synthetic constructor •() → self::G
+    : super self::_G&Object&A&F::•()
+    ;
+}
 abstract class _E&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A
     : super core::Object::•()
@@ -41,13 +53,6 @@ abstract class _E&Object&A&D = self::_E&Object&A with self::D /*isAnonymousMixin
   forwarding-stub method method(covariant-by-declaration core::num i, {core::String s = #C1}) → core::String
     return super.{self::_E&Object&A::method}(i, s: s);
 }
-class E extends self::_E&Object&A&D {
-  synthetic constructor •() → self::E
-    : super self::_E&Object&A&D::•()
-    ;
-}
-abstract class F extends core::Object implements self::Interface /*isMixinDeclaration*/  {
-}
 abstract class _G&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_G&Object&A
     : super core::Object::•()
@@ -58,11 +63,6 @@ abstract class _G&Object&A = core::Object with self::A /*isAnonymousMixin,hasCon
 abstract class _G&Object&A&F = self::_G&Object&A with self::F /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_G&Object&A&F
     : super self::_G&Object&A::•()
-    ;
-}
-class G extends self::_G&Object&A&F {
-  synthetic constructor •() → self::G
-    : super self::_G&Object&A&F::•()
     ;
 }
 static method main() → dynamic {}

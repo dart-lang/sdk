@@ -434,6 +434,7 @@ IndexExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_read_ofExtension_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -1049,6 +1050,7 @@ AssignmentExpression
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_write_ofExtension_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

@@ -99,7 +99,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         parameterType = FunctionTypeImpl(
           typeFormals: const [],
           parameters: const [],
-          returnType: typeProvider.dynamicType,
+          returnType: DynamicTypeImpl.instance,
           nullabilitySuffix: NullabilitySuffix.none,
         );
       }
@@ -150,6 +150,9 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         });
         // append parameters
         builder.writeFormalParameters(functionType.formalParameters);
+        if (functionType.returnType.isDartAsyncFuture) {
+          builder.write(' async');
+        }
         // close method
         builder.write(' {$eol$prefix}');
         builder.write(sourceSuffix);

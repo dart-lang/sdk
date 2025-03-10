@@ -15,14 +15,23 @@ import "dart:_internal";
 
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class extends core::Object {
-  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _internal({core::bool value = false}) → self2::Class
-    ;
   @_in::patch
   external constructor patched() → self2::Class;
   constructor unpatched() → self2::Class
     ;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _internal({core::bool value = false}) → self2::Class
+    ;
 }
 abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
+class SubClass extends self2::_SubClass&Class&Mixin {
+  @_in::patch
+  external constructor patched() → self2::SubClass;
+  constructor unpatched() → self2::SubClass
+    ;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _internal() → self2::SubClass
+    ;
 }
 abstract class _SubClass&Class&Mixin = self2::Class with self2::Mixin /*isAnonymousMixin*/  {
   synthetic constructor patched() → self2::_SubClass&Class&Mixin
@@ -33,15 +42,6 @@ abstract class _SubClass&Class&Mixin = self2::Class with self2::Mixin /*isAnonym
     ;
   synthetic constructor _internal({core::bool value = false}) → self2::_SubClass&Class&Mixin
     : super self2::Class::_internal(value: value)
-    ;
-}
-@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
-class SubClass extends self2::_SubClass&Class&Mixin {
-  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _internal() → self2::SubClass
-    ;
-  @_in::patch
-  external constructor patched() → self2::SubClass;
-  constructor unpatched() → self2::SubClass
     ;
 }
 

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -278,7 +278,7 @@ class GreatestLowerBoundHelper {
     var fParameters = f.formalParameters;
     var gParameters = g.formalParameters;
 
-    var parameters = <FormalParameterElement>[];
+    var parameters = <FormalParameterElementMixin>[];
     var fIndex = 0;
     var gIndex = 0;
     while (fIndex < fParameters.length && gIndex < gParameters.length) {

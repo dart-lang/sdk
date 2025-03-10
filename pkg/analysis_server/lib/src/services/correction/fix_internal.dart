@@ -38,6 +38,7 @@ import 'package:analysis_server/src/services/correction/dart/add_super_parameter
 import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
 import 'package:analysis_server/src/services/correction/dart/add_trailing_comma.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/ambiguous_import_fix.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to_nearest_precise_value.dart';
@@ -51,8 +52,10 @@ import 'package:analysis_server/src/services/correction/dart/convert_flutter_chi
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_children.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_for_each_to_for_loop.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_block_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_into_getter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_null_check_to_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_related_to_cascade.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_boolean_expression.dart';
@@ -103,7 +106,6 @@ import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/extend_class_for_mixin.dart';
 import 'package:analysis_server/src/services/correction/dart/extract_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_remove_widget.dart';
-import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
@@ -226,6 +228,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_is_emp
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_named_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
@@ -250,6 +253,7 @@ import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
+import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/ffi_code.g.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -384,9 +388,18 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
     ReplaceNullCheckWithCast.new,
   ],
   LinterLintCode.null_closures: [ReplaceNullWithClosure.new],
-  LinterLintCode.omit_local_variable_types: [ReplaceWithVar.new],
-  LinterLintCode.omit_obvious_local_variable_types: [ReplaceWithVar.new],
-  LinterLintCode.omit_obvious_property_types: [ReplaceWithVar.new],
+  LinterLintCode.omit_local_variable_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
+  LinterLintCode.omit_obvious_local_variable_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
+  LinterLintCode.omit_obvious_property_types: [
+    ReplaceWithVar.new,
+    RemoveTypeAnnotation.other,
+  ],
   LinterLintCode.prefer_adjacent_string_concatenation: [RemoveOperator.new],
   LinterLintCode.prefer_collection_literals: [
     ConvertToMapLiteral.new,
@@ -533,6 +546,9 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   ],
   LinterLintCode.use_key_in_widget_constructors: [AddKeyToConstructors.new],
   LinterLintCode.use_named_constants: [ReplaceWithNamedConstant.new],
+  LinterLintCode.use_null_aware_elements: [
+    ConvertNullCheckToNullAwareElementOrEntry.new,
+  ],
   LinterLintCode.use_raw_strings: [ConvertToRawString.new],
   LinterLintCode.use_rethrow_when_possible: [UseRethrow.new],
   LinterLintCode.use_string_in_part_of_directives: [
@@ -550,6 +566,7 @@ final _builtInNonLintMultiProducers = {
   CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE: [
     AddExtensionOverride.new,
   ],
+  CompileTimeErrorCode.AMBIGUOUS_IMPORT: [AmbiguousImportFix.new],
   CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
   CompileTimeErrorCode.CAST_TO_NON_TYPE: [
     DataDriven.new,
@@ -755,8 +772,14 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT: [
     RemoveMethodDeclaration.new,
   ],
+  CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD: [
+    ConvertIntoGetter.new,
+  ],
   CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT: [
     RemoveMethodDeclaration.new,
+  ],
+  CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD: [
+    ConvertIntoGetter.new,
   ],
   CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
     ReplaceWithExtensionName.new,
@@ -1015,14 +1038,18 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     AddNullCheck.new,
     ExtractLocalVariable.new,
     ReplaceWithNullAware.single,
+    CreateExtensionMethod.new,
   ],
   CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
     AddNullCheck.new,
+    CreateExtensionOperator.new,
   ],
   CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
     AddNullCheck.new,
     ExtractLocalVariable.new,
     ReplaceWithNullAware.single,
+    CreateExtensionGetter.new,
+    CreateExtensionSetter.new,
   ],
   CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
     AddNullCheck.new,
@@ -1063,6 +1090,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD: [
     ChangeTo.method,
+    CreateExtensionMethod.new,
     CreateMethod.method,
   ],
   CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER: [
@@ -1108,6 +1136,7 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     ConvertFlutterChild.new,
     ConvertFlutterChildren.new,
   ],
+  CompileTimeErrorCode.UNDEFINED_OPERATOR: [CreateExtensionOperator.new],
   CompileTimeErrorCode.UNDEFINED_SETTER: [
     ChangeTo.getterOrSetter,
     CreateExtensionSetter.new,
@@ -1241,6 +1270,15 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     RemoveUnexpectedUnderscores.new,
   ],
   StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [RemoveDeadIfNull.new],
+  StaticWarningCode.INVALID_NULL_AWARE_ELEMENT: [
+    ReplaceWithNotNullAwareElementOrEntry.entry,
+  ],
+  StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY: [
+    ReplaceWithNotNullAwareElementOrEntry.mapKey,
+  ],
+  StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE: [
+    ReplaceWithNotNullAwareElementOrEntry.mapValue,
+  ],
   StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [ReplaceWithNotNullAware.new],
   StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
     ReplaceWithNotNullAware.new,

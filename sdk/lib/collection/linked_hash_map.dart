@@ -269,7 +269,6 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// final map = LinkedHashMap.fromEntries(numbers.map((i) => MapEntry(i, i * i)));
   /// print(map); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
-  @Since("2.1")
   factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       LinkedHashMap<K, V>()..addEntries(entries);
 }

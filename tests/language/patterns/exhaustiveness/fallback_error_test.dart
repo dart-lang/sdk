@@ -15,14 +15,14 @@
 // in most cases no longer cause errors.
 
 sealed class A {}
+
 class B extends A {}
+
 class C extends A {}
+
 class D extends A {}
 
-enum E {
-  e1,
-  e2
-}
+enum E { e1, e2 }
 
 void ignore(Object? value) {}
 
@@ -40,9 +40,9 @@ void typedWildcard(A a) {
       break;
   }
   ignore(switch (a) {
-      B _ => 0,
-      C _ => 1,
-      D _ => 2
+    B _ => 0,
+    C _ => 1,
+    D _ => 2,
   });
 }
 
@@ -60,9 +60,9 @@ void typedVariable(A a) {
       break;
   }
   ignore(switch (a) {
-      B x => 0,
-      C x => 1,
-      D x => 2
+    B x => 0,
+    C x => 1,
+    D x => 2,
   });
 }
 
@@ -80,9 +80,9 @@ void typedObjectPattern(A a) {
       break;
   }
   ignore(switch (a) {
-      B() => 0,
-      C() => 1,
-      D() => 2
+    B() => 0,
+    C() => 1,
+    D() => 2,
   });
 }
 
@@ -96,7 +96,7 @@ void logicalOrPattern(E e) {
       break;
   }
   ignore(switch (e) {
-      E.e1 || E.e2 => 0
+    E.e1 || E.e2 => 0,
   });
 }
 
@@ -118,12 +118,12 @@ void logicalAndPattern(E e) {
       break;
   }
   ignore(switch (e) {
-      E.e1 && E() => 0,
-      E.e2 && E() => 1
+    E.e1 && E() => 0,
+    E.e2 && E() => 1,
   });
   ignore(switch (e) {
-      E() && E.e1 => 0,
-      E() && E.e2 => 1
+    E() && E.e1 => 0,
+    E() && E.e2 => 1,
   });
 }
 
@@ -139,8 +139,8 @@ void castPattern(E? e) {
       break;
   }
   ignore(switch (e) {
-      E.e1 as E => 0,
-      E.e2 => 1
+    E.e1 as E => 0,
+    E.e2 => 1,
   });
 }
 
@@ -158,9 +158,9 @@ void nullCheckPattern(E? e) {
       break;
   }
   ignore(switch (e) {
-      E.e1? => 0,
-      E.e2 => 1,
-      null => 2
+    E.e1? => 0,
+    E.e2 => 1,
+    null => 2,
   });
 }
 
@@ -176,10 +176,10 @@ void nullAssertPattern(E? e) {
       break;
   }
   ignore(switch (e) {
-      E.e1! => 0,
-      //  ^
-      // [analyzer] STATIC_WARNING.UNNECESSARY_NULL_ASSERT_PATTERN
-      E.e2 => 1
+    E.e1! => 0,
+    //  ^
+    // [analyzer] STATIC_WARNING.UNNECESSARY_NULL_ASSERT_PATTERN
+    E.e2 => 1,
   });
 }
 
@@ -199,10 +199,10 @@ void recordPattern((E, E) r) {
       break;
   }
   ignore(switch (r) {
-      (E.e1, E.e1) => 0,
-      (E.e1, E.e2) => 1,
-      (E.e2, E.e1) => 2,
-      (E.e2, E.e2) => 3
+    (E.e1, E.e1) => 0,
+    (E.e1, E.e2) => 1,
+    (E.e2, E.e1) => 2,
+    (E.e2, E.e2) => 3,
   });
 }
 
@@ -212,7 +212,7 @@ void listPattern(List<int> l) {
   //
   // The real exhaustiveness handles this.
   ignore(switch (l) {
-      [...] => 0
+    [...] => 0,
   });
 }
 
@@ -222,7 +222,7 @@ void mapPattern(Map<String, int> m) {
   //
   // The real exhaustiveness handles this.
   ignore(switch (m) {
-      Map() => 0
+    Map() => 0,
   });
 }
 
@@ -238,8 +238,8 @@ void exhaustiveBoolean(bool b) {
       break;
   }
   ignore(switch (b) {
-      true => 0,
-      false => 1
+    true => 0,
+    false => 1,
   });
 }
 
@@ -250,22 +250,22 @@ void relationalPattern(E e) {
   // TODO(johnniwinther): Should the real exhaustiveness handle this? The
   // call is on the expression which we do not control.
   switch (e) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
     case == E.e1:
       break;
     case == E.e2:
       break;
   }
   ignore(switch (e) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-  //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
-      == E.e1 => 0,
-      == E.e2 => 1
+    //   ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+    //           ^
+    // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
+    == E.e1 => 0,
+    == E.e2 => 1,
   });
 }
 
@@ -275,22 +275,22 @@ void withGuard(E e) {
   //
   // The real exhaustiveness handles this.
   switch (e) {
-//^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
-//        ^
-// [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
+    // [error column 3, length 6]
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_STATEMENT
+    //    ^
+    // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
     case E.e1 when true:
       break;
     case E.e2:
       break;
   }
   ignore(switch (e) {
-  //     ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-  //             ^
-  // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
-      E.e1 when true => 0,
-      E.e2 => 1
+    //   ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+    //           ^
+    // [cfe] The type 'E' is not exhaustively matched by the switch cases since it doesn't match 'E.e1'.
+    E.e1 when true => 0,
+    E.e2 => 1,
   });
 }
 

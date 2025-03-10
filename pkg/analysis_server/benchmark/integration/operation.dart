@@ -82,7 +82,7 @@ class ResponseOperation extends Operation {
     return converter.processExpectedResponse(id, completer);
   }
 
-  bool _equal(expectedResult, actualResult) {
+  bool _equal(Object? expectedResult, Object? actualResult) {
     if (expectedResult is Map && actualResult is Map) {
       if (expectedResult.length == actualResult.length) {
         return expectedResult.keys.every((key) {
@@ -105,7 +105,7 @@ class ResponseOperation extends Operation {
   }
 
   /// Compare the expected and actual server response result.
-  void _processResult(actualResult) {
+  void _processResult(Object? actualResult) {
     var expectedResult = responseJson['result'];
     if (!_equal(expectedResult, actualResult)) {
       var expectedError = responseJson['error'];

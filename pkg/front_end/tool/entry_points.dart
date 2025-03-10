@@ -301,9 +301,6 @@ class BatchCompiler {
     incrementalCompilerOptions.rawOptionsForTesting.onDiagnostic =
         _onDiagnostic;
 
-    // This is a weird one, but apparently this is how it's done.
-    incrementalCompilerOptions.reportNullSafetyCompilationModeInfo();
-
     assert(options.omitPlatform,
         "Platform must be omitted for the batch compiler.");
     assert(!options.hasAdditionalDills,

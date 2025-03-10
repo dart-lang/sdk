@@ -24,12 +24,7 @@ import 'package:kernel/target/targets.dart'
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
-    show
-        CompilerOptions,
-        InvocationMode,
-        HooksForTesting,
-        Verbosity,
-        DiagnosticMessage;
+    show CompilerOptions, HooksForTesting, Verbosity, DiagnosticMessage;
 import '../api_prototype/experimental_flags.dart' as flags;
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -43,7 +38,6 @@ import '../codes/cfe_codes.dart'
         PlainAndColorizedString,
         messageCantInferPackagesFromManyInputs,
         messageCantInferPackagesFromPackageUri,
-        messageCompilingWithoutSoundNullSafety,
         messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
         messageMissingInput,
         noLength,
@@ -62,7 +56,6 @@ import '../codes/cfe_codes.dart'
 import 'command_line_reporting.dart' as command_line_reporting;
 import 'compiler_context.dart';
 import 'messages.dart' show getLocation;
-import 'nnbd_mode.dart';
 import 'problems.dart' show DebugAbort, unimplemented;
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
@@ -204,8 +197,6 @@ class ProcessedOptions {
 
   // Coverage-ignore(suite): Not run.
   bool get emitDeps => _raw.emitDeps;
-
-  NnbdMode get nnbdMode => _raw.nnbdMode;
 
   // Coverage-ignore(suite): Not run.
   bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
@@ -356,22 +347,6 @@ class ProcessedOptions {
     reportNoSourceLine(message.withoutLocation(), severity);
   }
 
-  /// If `CompilerOptions.invocationModes` contains `InvocationMode.compile`, an
-  /// info message about the null safety compilation mode is emitted.
-  void reportNullSafetyCompilationModeInfo() {
-    if (_raw.invocationModes.contains(InvocationMode.compile)) {
-      // Coverage-ignore-block(suite): Not run.
-      switch (nnbdMode) {
-        case NnbdMode.Weak:
-          reportWithoutLocation(messageCompilingWithoutSoundNullSafety,
-              messageCompilingWithoutSoundNullSafety.severity);
-          break;
-        case NnbdMode.Strong:
-          break;
-      }
-    }
-  }
-
   /// Returns `true` if the options have been validated.
   bool get haveBeenValidated => _validated;
 
@@ -479,8 +454,7 @@ class ProcessedOptions {
   Target? _target;
   Target get target => _target ??= _raw.target ??
       // Coverage-ignore(suite): Not run.
-      new NoneTarget(
-          new TargetFlags(soundNullSafety: nnbdMode == NnbdMode.Strong));
+      new NoneTarget(new TargetFlags(soundNullSafety: true));
 
   /// Returns the global state of the experimental features.
   flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;
@@ -510,8 +484,7 @@ class ProcessedOptions {
           'safety mode and does not support null safety:\n'
           '${component.libraries.join('\n')}');
     }
-    if (nnbdMode == NnbdMode.Strong &&
-        component.mode != NonNullableByDefaultCompiledMode.Strong) {
+    if (component.mode != NonNullableByDefaultCompiledMode.Strong) {
       throw new FormatException(
           'Provided .dill file for the following libraries does not '
           'support sound null safety:\n'

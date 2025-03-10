@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';

@@ -131,41 +131,43 @@ void main() {
   covar1Var == true;
   //           ^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'bool' can't be assigned to the parameter type 'Covar1?'.
   covar1Var == <int>{};
   //           ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  //                ^
+  // [cfe] The argument type 'Set<int>' can't be assigned to the parameter type 'Covar1?'.
   covar1Var == numVar;
   //           ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'num' can't be assigned to the parameter type 'Covar1?'.
   covar1Var == aVar;
   //           ^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'A' can't be assigned to the parameter type 'Covar1?'.
   covar1Var == covar1Var;
   covar1Var == aNullableVar;
   //           ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'A?' can't be assigned to the parameter type 'Covar1?'.
   covar1Var == covar1NullableVar;
   covar1Var == futureOrNullableIntVar;
   //           ^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'FutureOr<int?>' can't be assigned to the parameter type 'Covar1?'.
   covar1Var == futureOrCovar1Var;
   //           ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'FutureOr<Covar1>' can't be assigned to the parameter type 'Covar1?'.
   covar1Var == const AbstractCovar2();
   //           ^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  //                 ^
+  // [cfe] The argument type 'AbstractCovar2' can't be assigned to the parameter type 'Covar1?'.
   covar1Var == voidListVar;
   //           ^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'List<void>' can't be assigned to the parameter type 'Covar1?'.
   covar1Var == voidVar;
   //           ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
@@ -192,41 +194,43 @@ void main() {
   covar1NullableVar == true;
   //                   ^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'bool' can't be assigned to the parameter type 'Covar1?'.
   covar1NullableVar == <int>{};
   //                   ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  //                        ^
+  // [cfe] The argument type 'Set<int>' can't be assigned to the parameter type 'Covar1?'.
   covar1NullableVar == numVar;
   //                   ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'num' can't be assigned to the parameter type 'Covar1?'.
   covar1NullableVar == aVar;
   //                   ^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'A' can't be assigned to the parameter type 'Covar1?'.
   covar1NullableVar == covar1Var;
   covar1NullableVar == aNullableVar;
   //                   ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'A?' can't be assigned to the parameter type 'Covar1?'.
   covar1NullableVar == covar1NullableVar;
   covar1NullableVar == futureOrNullableIntVar;
   //                   ^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'FutureOr<int?>' can't be assigned to the parameter type 'Covar1?'.
   covar1NullableVar == futureOrCovar1Var;
   //                   ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'FutureOr<Covar1>' can't be assigned to the parameter type 'Covar1?'.
   covar1NullableVar == const AbstractCovar2();
   //                   ^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  //                         ^
+  // [cfe] The argument type 'AbstractCovar2' can't be assigned to the parameter type 'Covar1?'.
   covar1NullableVar == voidListVar;
   //                   ^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'List<void>' can't be assigned to the parameter type 'Covar1?'.
   covar1NullableVar == voidVar;
   //                   ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
@@ -270,44 +274,45 @@ void main() {
   const AbstractCovar2() == true;
   //                        ^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'bool' can't be assigned to the parameter type 'AbstractCovar2?'.
   const AbstractCovar2() == <int>{};
   //                        ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  //                             ^
+  // [cfe] The argument type 'Set<int>' can't be assigned to the parameter type 'AbstractCovar2?'.
   const AbstractCovar2() == numVar;
   //                        ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'num' can't be assigned to the parameter type 'AbstractCovar2?'.
   const AbstractCovar2() == aVar;
   //                        ^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'A' can't be assigned to the parameter type 'AbstractCovar2?'.
   const AbstractCovar2() == covar1Var;
   //                        ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'Covar1' can't be assigned to the parameter type 'AbstractCovar2?'.
   const AbstractCovar2() == aNullableVar;
   //                        ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'A?' can't be assigned to the parameter type 'AbstractCovar2?'.
   const AbstractCovar2() == covar1NullableVar;
   //                        ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'Covar1?' can't be assigned to the parameter type 'AbstractCovar2?'.
   const AbstractCovar2() == futureOrNullableIntVar;
   //                        ^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'FutureOr<int?>' can't be assigned to the parameter type 'AbstractCovar2?'.
   const AbstractCovar2() == futureOrCovar1Var;
   //                        ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'FutureOr<Covar1>' can't be assigned to the parameter type 'AbstractCovar2?'.
   const AbstractCovar2() == const AbstractCovar2();
   const AbstractCovar2() == voidListVar;
   //                        ^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] unspecified
+  // [cfe] The argument type 'List<void>' can't be assigned to the parameter type 'AbstractCovar2?'.
   const AbstractCovar2() == voidVar;
   //                        ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
@@ -331,98 +336,103 @@ void main() {
   // [cfe] This expression has type 'void' and can't be used.
 
   voidVar == null;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == true;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == <int>{};
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == numVar;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == aVar;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == covar1Var;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == aNullableVar;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == covar1NullableVar;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == futureOrNullableIntVar;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == futureOrCovar1Var;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == voidListVar;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] unspecified
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
   voidVar == voidVar;
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
-//           ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-// [cfe] This expression has type 'void' and can't be used.
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  //         ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
 
   void fun<X extends Covar1, Y extends Covar1?, Z extends FutureOr<Covar1>>(
-      X covar1Var, Y covar1NullableVar, Z futureOrCovar1Var) {
+    X covar1Var,
+    Y covar1NullableVar,
+    Z futureOrCovar1Var,
+  ) {
     covar1Var == null;
     covar1Var == true;
     //           ^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'bool' can't be assigned to the parameter type 'Covar1?'.
     covar1Var == <int>{};
     //           ^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    //                ^
+    // [cfe] The argument type 'Set<int>' can't be assigned to the parameter type 'Covar1?'.
     covar1Var == numVar;
     //           ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'num' can't be assigned to the parameter type 'Covar1?'.
     covar1Var == aVar;
     //           ^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'A' can't be assigned to the parameter type 'Covar1?'.
     covar1Var == covar1Var;
     covar1Var == aNullableVar;
     //           ^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'A?' can't be assigned to the parameter type 'Covar1?'.
     covar1Var == covar1NullableVar;
     covar1Var == futureOrNullableIntVar;
     //           ^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'FutureOr<int?>' can't be assigned to the parameter type 'Covar1?'.
     covar1Var == futureOrCovar1Var;
     //           ^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'Z' can't be assigned to the parameter type 'Covar1?'.
     covar1Var == const AbstractCovar2();
     //           ^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    //                 ^
+    // [cfe] The argument type 'AbstractCovar2' can't be assigned to the parameter type 'Covar1?'.
     covar1Var == voidListVar;
     //           ^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'List<void>' can't be assigned to the parameter type 'Covar1?'.
     covar1Var == voidVar;
     //           ^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
@@ -432,41 +442,43 @@ void main() {
     covar1NullableVar == true;
     //                   ^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'bool' can't be assigned to the parameter type 'Covar1?'.
     covar1NullableVar == <int>{};
     //                   ^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    //                        ^
+    // [cfe] The argument type 'Set<int>' can't be assigned to the parameter type 'Covar1?'.
     covar1NullableVar == numVar;
     //                   ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'num' can't be assigned to the parameter type 'Covar1?'.
     covar1NullableVar == aVar;
     //                   ^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'A' can't be assigned to the parameter type 'Covar1?'.
     covar1NullableVar == covar1Var;
     covar1NullableVar == aNullableVar;
     //                   ^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'A?' can't be assigned to the parameter type 'Covar1?'.
     covar1NullableVar == covar1NullableVar;
     covar1NullableVar == futureOrNullableIntVar;
     //                   ^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'FutureOr<int?>' can't be assigned to the parameter type 'Covar1?'.
     covar1NullableVar == futureOrCovar1Var;
     //                   ^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'Z' can't be assigned to the parameter type 'Covar1?'.
     covar1NullableVar == const AbstractCovar2();
     //                   ^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    //                         ^
+    // [cfe] The argument type 'AbstractCovar2' can't be assigned to the parameter type 'Covar1?'.
     covar1NullableVar == voidListVar;
     //                   ^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] unspecified
+    // [cfe] The argument type 'List<void>' can't be assigned to the parameter type 'Covar1?'.
     covar1NullableVar == voidVar;
     //                   ^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT

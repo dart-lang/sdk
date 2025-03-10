@@ -1641,6 +1641,7 @@ class LinterLintCode extends LintCode {
     "The diagnostic '{0}' isn't produced at this location so it doesn't need "
     "to be ignored.",
     correctionMessage: "Try removing the ignore comment.",
+    hasPublishedDocs: true,
     uniqueName: 'unnecessary_ignore',
   );
 
@@ -1931,6 +1932,12 @@ class LinterLintCode extends LintCode {
     "object.",
     correctionMessage: "Try using '{0}'.",
     hasPublishedDocs: true,
+  );
+
+  static const LintCode use_null_aware_elements = LinterLintCode(
+    LintNames.use_null_aware_elements,
+    "Use the null-aware marker '?' rather than a null check via an 'if'.",
+    correctionMessage: "Try using '?'.",
   );
 
   static const LintCode use_raw_strings = LinterLintCode(

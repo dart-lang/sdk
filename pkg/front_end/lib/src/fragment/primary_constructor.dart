@@ -17,22 +17,26 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final List<FormalParameterBuilder>? formals;
   final bool forAbstractClassOrMixin;
   Token? _beginInitializers;
+  final DeclarationFragment enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
 
-  AbstractSourceConstructorBuilder? _builder;
+  SourceConstructorBuilderImpl? _builder;
 
-  PrimaryConstructorFragment(
-      {required this.constructorName,
-      required this.fileUri,
-      required this.startOffset,
-      required this.formalsOffset,
-      required this.modifiers,
-      required this.returnType,
-      required this.typeParameterNameSpace,
-      required this.typeParameterScope,
-      required this.formals,
-      required this.forAbstractClassOrMixin,
-      required Token? beginInitializers})
-      : _beginInitializers = beginInitializers;
+  PrimaryConstructorFragment({
+    required this.constructorName,
+    required this.fileUri,
+    required this.startOffset,
+    required this.formalsOffset,
+    required this.modifiers,
+    required this.returnType,
+    required this.typeParameterNameSpace,
+    required this.typeParameterScope,
+    required this.formals,
+    required this.forAbstractClassOrMixin,
+    required Token? beginInitializers,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  }) : _beginInitializers = beginInitializers;
 
   @override
   String get name => constructorName.name;
@@ -47,12 +51,12 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  AbstractSourceConstructorBuilder get builder {
+  SourceConstructorBuilderImpl get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
   }
 
-  void set builder(AbstractSourceConstructorBuilder value) {
+  void set builder(SourceConstructorBuilderImpl value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }

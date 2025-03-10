@@ -33,8 +33,10 @@ class C {
 }
 
 class D extends C {
-  D(super._nullablePrivateFunction,
-      super._privateFunctionWithNullableReturnType);
+  D(
+    super._nullablePrivateFunction,
+    super._privateFunctionWithNullableReturnType,
+  );
 
   void testNullablePrivateFunctionSuperAccess() {
     if (super._nullablePrivateFunction != null) {

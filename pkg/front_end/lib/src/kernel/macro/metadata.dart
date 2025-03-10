@@ -193,10 +193,7 @@ final class ClassScope extends shared.BaseClassScope {
   @override
   shared.Proto lookup(String name,
       [List<shared.TypeAnnotation>? typeArguments]) {
-    int fileOffset = -1;
-    Uri fileUri = dummyUri;
-    MemberBuilder? constructor =
-        builder.constructorScope.lookup(name, fileOffset, fileUri);
+    MemberBuilder? constructor = builder.nameSpace.lookupConstructor(name);
     if (constructor != null) {
       return createConstructorProto(
           typeArguments, new ConstructorReference(constructor));
@@ -265,10 +262,7 @@ final class ExtensionTypeScope extends shared.BaseExtensionTypeScope {
   @override
   shared.Proto lookup(String name,
       [List<shared.TypeAnnotation>? typeArguments]) {
-    int fileOffset = -1;
-    Uri fileUri = dummyUri;
-    MemberBuilder? constructor =
-        builder.constructorScope.lookup(name, fileOffset, fileUri);
+    MemberBuilder? constructor = builder.nameSpace.lookupConstructor(name);
     if (constructor != null) {
       return createConstructorProto(
           typeArguments, new ConstructorReference(constructor));
@@ -290,12 +284,10 @@ final class TypedefScope extends shared.BaseTypedefScope {
   @override
   shared.Proto lookup(String name,
       [List<shared.TypeAnnotation>? typeArguments]) {
-    int fileOffset = -1;
-    Uri fileUri = dummyUri;
     TypeDeclarationBuilder? typeDeclaration = builder.unaliasDeclaration(null);
     if (typeDeclaration is ClassBuilder) {
       MemberBuilder? constructor =
-          typeDeclaration.constructorScope.lookup(name, fileOffset, fileUri);
+          typeDeclaration.nameSpace.lookupConstructor(name);
       if (constructor != null) {
         return createConstructorProto(
             typeArguments, new ConstructorReference(constructor));

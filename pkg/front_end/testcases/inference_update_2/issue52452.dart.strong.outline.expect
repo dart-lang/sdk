@@ -15,11 +15,6 @@ class A extends core::Object {
 }
 abstract class M3 extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _D&A&M3 = self::A with self::M3 /*isAnonymousMixin*/  {
-  synthetic constructor •(core::int? i) → self::_D&A&M3
-    : super self::A::•(i)
-    ;
-}
 abstract class D extends self::_D&A&M3 {
   final field core::int? _f4;
   constructor •(core::int? i) → self::D
@@ -32,6 +27,18 @@ abstract class M1 extends core::Object /*isMixinDeclaration*/  {
 }
 class B extends core::Object {
   constructor •(core::int? i) → self::B
+    ;
+}
+class E extends self::_E&B&M1 implements self::D {
+  constructor •(core::int? i) → self::E
+    ;
+  @core::override
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+}
+abstract class _D&A&M3 = self::A with self::M3 /*isAnonymousMixin*/  {
+  synthetic constructor •(core::int? i) → self::_D&A&M3
+    : super self::A::•(i)
     ;
 }
 abstract class _E&B&M1 = self::B with self::M1 /*isAnonymousMixin*/  {
@@ -48,13 +55,6 @@ abstract class _E&B&M1 = self::B with self::M1 /*isAnonymousMixin*/  {
     return super.{self::M1::_f3} = value;
   mixin-super-stub get _f4() → core::int?
     return super.{self::M1::_f4};
-}
-class E extends self::_E&B&M1 implements self::D {
-  constructor •(core::int? i) → self::E
-    ;
-  @core::override
-  method noSuchMethod(core::Invocation invocation) → dynamic
-    ;
 }
 static method acceptsInt(core::int x) → void
   ;

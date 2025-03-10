@@ -12,7 +12,7 @@ Future<Object>? v = null;
 void test() {
   return v;
   //     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
   // [cfe] Can't return a value from a void function.
 }
 

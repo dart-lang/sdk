@@ -22,7 +22,9 @@ void promoteViaIsCheck(Object x, Object? y) {
 }
 
 void promoteViaIsCheck_typeVarExtendsNever<T extends Never>(
-    Object x, Object? y) {
+  Object x,
+  Object? y,
+) {
   if (x is! int) {
     if (y is T) {
       // Unreachable

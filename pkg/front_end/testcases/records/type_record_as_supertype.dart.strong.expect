@@ -134,6 +134,26 @@ abstract class B4 extends core::Object implements self::G<core::Record> {
     : super core::Object::•()
     ;
 }
+abstract class C1 extends self::_C1&Object&Record {
+  synthetic constructor •() → self::C1
+    : super self::_C1&Object&Record::•()
+    ;
+}
+abstract class C2 extends self::_C2&Object&RR {
+  synthetic constructor •() → self::C2
+    : super self::_C2&Object&RR::•()
+    ;
+}
+abstract class C3 extends self::_C3&Object&G {
+  synthetic constructor •() → self::C3
+    : super self::_C3&Object&G::•()
+    ;
+}
+abstract class C4 extends self::_C4&Object&G {
+  synthetic constructor •() → self::C4
+    : super self::_C4&Object&G::•()
+    ;
+}
 abstract final class _C1&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C1&Object&Record
     : super core::Object::•()
@@ -142,11 +162,6 @@ abstract final class _C1&Object&Record = core::Object with core::Record /*isAnon
   abstract mixin-stub get hashCode() → core::int; -> core::Record::hashCode
   abstract mixin-stub operator ==(core::Object other) → core::bool; -> core::Record::==
   abstract mixin-stub method toString() → core::String; -> core::Record::toString
-}
-abstract class C1 extends self::_C1&Object&Record {
-  synthetic constructor •() → self::C1
-    : super self::_C1&Object&Record::•()
-    ;
 }
 abstract final class _C2&Object&RR = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C2&Object&RR
@@ -157,29 +172,14 @@ abstract final class _C2&Object&RR = core::Object with core::Record /*isAnonymou
   abstract mixin-stub operator ==(core::Object other) → core::bool; -> core::Record::==
   abstract mixin-stub method toString() → core::String; -> core::Record::toString
 }
-abstract class C2 extends self::_C2&Object&RR {
-  synthetic constructor •() → self::C2
-    : super self::_C2&Object&RR::•()
-    ;
-}
 abstract class _C3&Object&G = core::Object with self::G<core::Record> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C3&Object&G
     : super core::Object::•()
     ;
 }
-abstract class C3 extends self::_C3&Object&G {
-  synthetic constructor •() → self::C3
-    : super self::_C3&Object&G::•()
-    ;
-}
 abstract class _C4&Object&G = core::Object with self::G<core::Record> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C4&Object&G
     : super core::Object::•()
-    ;
-}
-abstract class C4 extends self::_C4&Object&G {
-  synthetic constructor •() → self::C4
-    : super self::_C4&Object&G::•()
     ;
 }
 static method main() → dynamic {}

@@ -68,13 +68,6 @@ class SubClass2 extends core::Object implements acc::SuperClass {
   no-such-method-forwarder method accessibleMethod() → void
     return this.{self::SubClass2::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
 }
-abstract class _SubClass3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_SubClass3&Object&SuperClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
-}
 class SubClass3 extends self::_SubClass3&Object&SuperClass {
   synthetic constructor •() → self::SubClass3
     : super self::_SubClass3&Object&SuperClass::•()
@@ -128,13 +121,6 @@ abstract class AbstractSubClass2 extends core::Object implements acc::SuperClass
     ;
   method noSuchMethod(core::Invocation invocation) → dynamic
     return 42;
-}
-abstract class _AbstractSubClass3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractSubClass3&Object&SuperClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
 }
 abstract class AbstractSubClass3 extends self::_AbstractSubClass3&Object&SuperClass {
   synthetic constructor •() → self::AbstractSubClass3
@@ -196,13 +182,6 @@ class SubClassImplements2 extends core::Object implements acc::SuperClass, acc::
   no-such-method-forwarder method _inaccessibleMethod1() → void
     return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
 }
-abstract class _SubClassImplements3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_SubClassImplements3&Object&SuperClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
-}
 class SubClassImplements3 extends self::_SubClassImplements3&Object&SuperClass implements acc::NoSuchMethodClass {
   synthetic constructor •() → self::SubClassImplements3
     : super self::_SubClassImplements3&Object&SuperClass::•()
@@ -233,13 +212,6 @@ abstract class AbstractSubClassImplements2 extends core::Object implements acc::
     : super core::Object::•()
     ;
 }
-abstract class _AbstractSubClassImplements3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractSubClassImplements3&Object&SuperClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
-}
 abstract class AbstractSubClassImplements3 extends self::_AbstractSubClassImplements3&Object&SuperClass implements acc::NoSuchMethodClass {
   synthetic constructor •() → self::AbstractSubClassImplements3
     : super self::_AbstractSubClassImplements3&Object&SuperClass::•()
@@ -262,24 +234,10 @@ class SubAbstractSubClassImplements3 extends self::AbstractSubClassImplements3 {
     : super self::AbstractSubClassImplements3::•()
     ;
 }
-abstract class _SubClassWith1&SuperClass&NoSuchMethodClass extends acc::SuperClass implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_SubClassWith1&SuperClass&NoSuchMethodClass
-    : super acc::SuperClass::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
-    return 42;
-}
 class SubClassWith1 extends self::_SubClassWith1&SuperClass&NoSuchMethodClass {
   synthetic constructor •() → self::SubClassWith1
     : super self::_SubClassWith1&SuperClass&NoSuchMethodClass::•()
     ;
-}
-abstract class _SubClassWith2&Object&NoSuchMethodClass extends core::Object implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_SubClassWith2&Object&NoSuchMethodClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
-    return 42;
 }
 class SubClassWith2 extends self::_SubClassWith2&Object&NoSuchMethodClass implements acc::SuperClass {
   synthetic constructor •() → self::SubClassWith2
@@ -290,38 +248,10 @@ class SubClassWith2 extends self::_SubClassWith2&Object&NoSuchMethodClass implem
   no-such-method-forwarder method accessibleMethod() → void
     return this.{self::_SubClassWith2&Object&NoSuchMethodClass::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
 }
-abstract class _SubClassWith3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_SubClassWith3&Object&SuperClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
-}
-abstract class _SubClassWith3&Object&SuperClass&NoSuchMethodClass extends self::_SubClassWith3&Object&SuperClass implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_SubClassWith3&Object&SuperClass&NoSuchMethodClass
-    : super self::_SubClassWith3&Object&SuperClass::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
-    return 42;
-}
 class SubClassWith3 extends self::_SubClassWith3&Object&SuperClass&NoSuchMethodClass {
   synthetic constructor •() → self::SubClassWith3
     : super self::_SubClassWith3&Object&SuperClass&NoSuchMethodClass::•()
     ;
-}
-abstract class _SubClassWith4&Object&NoSuchMethodClass extends core::Object implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_SubClassWith4&Object&NoSuchMethodClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
-    return 42;
-}
-abstract class _SubClassWith4&Object&NoSuchMethodClass&SuperClass extends self::_SubClassWith4&Object&NoSuchMethodClass implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_SubClassWith4&Object&NoSuchMethodClass&SuperClass
-    : super self::_SubClassWith4&Object&NoSuchMethodClass::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
 }
 class SubClassWith4 extends self::_SubClassWith4&Object&NoSuchMethodClass&SuperClass {
   synthetic constructor •() → self::SubClassWith4
@@ -348,62 +278,20 @@ class SubSubClassWith4 extends self::SubClassWith4 {
     : super self::SubClassWith4::•()
     ;
 }
-abstract class _AbstractSubClassWith1&SuperClass&NoSuchMethodClass extends acc::SuperClass implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_AbstractSubClassWith1&SuperClass&NoSuchMethodClass
-    : super acc::SuperClass::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
-    return 42;
-}
 abstract class AbstractSubClassWith1 extends self::_AbstractSubClassWith1&SuperClass&NoSuchMethodClass {
   synthetic constructor •() → self::AbstractSubClassWith1
     : super self::_AbstractSubClassWith1&SuperClass&NoSuchMethodClass::•()
     ;
-}
-abstract class _AbstractSubClassWith2&Object&NoSuchMethodClass extends core::Object implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractSubClassWith2&Object&NoSuchMethodClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
-    return 42;
 }
 abstract class AbstractSubClassWith2 extends self::_AbstractSubClassWith2&Object&NoSuchMethodClass implements acc::SuperClass {
   synthetic constructor •() → self::AbstractSubClassWith2
     : super self::_AbstractSubClassWith2&Object&NoSuchMethodClass::•()
     ;
 }
-abstract class _AbstractSubClassWith3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractSubClassWith3&Object&SuperClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
-}
-abstract class _AbstractSubClassWith3&Object&SuperClass&NoSuchMethodClass extends self::_AbstractSubClassWith3&Object&SuperClass implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractSubClassWith3&Object&SuperClass&NoSuchMethodClass
-    : super self::_AbstractSubClassWith3&Object&SuperClass::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
-    return 42;
-}
 abstract class AbstractSubClassWith3 extends self::_AbstractSubClassWith3&Object&SuperClass&NoSuchMethodClass {
   synthetic constructor •() → self::AbstractSubClassWith3
     : super self::_AbstractSubClassWith3&Object&SuperClass&NoSuchMethodClass::•()
     ;
-}
-abstract class _AbstractSubClassWith4&Object&NoSuchMethodClass extends core::Object implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractSubClassWith4&Object&NoSuchMethodClass
-    : super core::Object::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
-    return 42;
-}
-abstract class _AbstractSubClassWith4&Object&NoSuchMethodClass&SuperClass extends self::_AbstractSubClassWith4&Object&NoSuchMethodClass implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_AbstractSubClassWith4&Object&NoSuchMethodClass&SuperClass
-    : super self::_AbstractSubClassWith4&Object&NoSuchMethodClass::•()
-    ;
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
-  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
 }
 abstract class AbstractSubClassWith4 extends self::_AbstractSubClassWith4&Object&NoSuchMethodClass&SuperClass {
   synthetic constructor •() → self::AbstractSubClassWith4
@@ -433,6 +321,118 @@ class SubAbstractSubClassWith4 extends self::AbstractSubClassWith4 {
   synthetic constructor •() → self::SubAbstractSubClassWith4
     : super self::AbstractSubClassWith4::•()
     ;
+}
+abstract class _SubClass3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClass3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
+}
+abstract class _AbstractSubClass3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClass3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
+}
+abstract class _SubClassImplements3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassImplements3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
+}
+abstract class _AbstractSubClassImplements3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassImplements3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
+}
+abstract class _SubClassWith1&SuperClass&NoSuchMethodClass extends acc::SuperClass implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_SubClassWith1&SuperClass&NoSuchMethodClass
+    : super acc::SuperClass::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
+    return 42;
+}
+abstract class _SubClassWith2&Object&NoSuchMethodClass extends core::Object implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassWith2&Object&NoSuchMethodClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
+    return 42;
+}
+abstract class _SubClassWith3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassWith3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
+}
+abstract class _SubClassWith3&Object&SuperClass&NoSuchMethodClass extends self::_SubClassWith3&Object&SuperClass implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassWith3&Object&SuperClass&NoSuchMethodClass
+    : super self::_SubClassWith3&Object&SuperClass::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
+    return 42;
+}
+abstract class _SubClassWith4&Object&NoSuchMethodClass extends core::Object implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassWith4&Object&NoSuchMethodClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
+    return 42;
+}
+abstract class _SubClassWith4&Object&NoSuchMethodClass&SuperClass extends self::_SubClassWith4&Object&NoSuchMethodClass implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SubClassWith4&Object&NoSuchMethodClass&SuperClass
+    : super self::_SubClassWith4&Object&NoSuchMethodClass::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
+}
+abstract class _AbstractSubClassWith1&SuperClass&NoSuchMethodClass extends acc::SuperClass implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_AbstractSubClassWith1&SuperClass&NoSuchMethodClass
+    : super acc::SuperClass::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
+    return 42;
+}
+abstract class _AbstractSubClassWith2&Object&NoSuchMethodClass extends core::Object implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassWith2&Object&NoSuchMethodClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
+    return 42;
+}
+abstract class _AbstractSubClassWith3&Object&SuperClass extends core::Object implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassWith3&Object&SuperClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
+}
+abstract class _AbstractSubClassWith3&Object&SuperClass&NoSuchMethodClass extends self::_AbstractSubClassWith3&Object&SuperClass implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassWith3&Object&SuperClass&NoSuchMethodClass
+    : super self::_AbstractSubClassWith3&Object&SuperClass::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
+    return 42;
+}
+abstract class _AbstractSubClassWith4&Object&NoSuchMethodClass extends core::Object implements acc::NoSuchMethodClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassWith4&Object&NoSuchMethodClass
+    : super core::Object::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ noSuchMethod(core::Invocation invocation) → dynamic
+    return 42;
+}
+abstract class _AbstractSubClassWith4&Object&NoSuchMethodClass&SuperClass extends self::_AbstractSubClassWith4&Object&NoSuchMethodClass implements acc::SuperClass /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractSubClassWith4&Object&NoSuchMethodClass&SuperClass
+    : super self::_AbstractSubClassWith4&Object&NoSuchMethodClass::•()
+    ;
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ _inaccessibleMethod1() → void {}
+  method /* from org-dartlang-testcase:///access_concrete_nsm_lib.dart */ accessibleMethod() → void {}
 }
 
 library;

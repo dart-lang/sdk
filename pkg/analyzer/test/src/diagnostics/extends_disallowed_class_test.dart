@@ -108,6 +108,7 @@ class A extends String {}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_String_inAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

@@ -448,18 +448,14 @@ static const NativeType* CompoundFromPragma(Zone* zone,
   const auto& clazz = Class::Handle(zone, struct_layout.clazz());
   ASSERT(String::Handle(zone, clazz.UserVisibleName())
              .Equals(Symbols::FfiStructLayout()));
-  const auto& struct_layout_fields = Array::Handle(zone, clazz.fields());
-  ASSERT(struct_layout_fields.Length() == 2);
-  const auto& types_field =
-      Field::Handle(zone, Field::RawCast(struct_layout_fields.At(0)));
-  ASSERT(String::Handle(zone, types_field.name())
-             .Equals(Symbols::FfiFieldTypes()));
+  const auto& types_field = Field::Handle(
+      zone, clazz.LookupFieldAllowPrivate(Symbols::FfiFieldTypes()));
+  ASSERT(!types_field.IsNull());
   const auto& field_types =
       Array::Handle(zone, Array::RawCast(struct_layout.GetField(types_field)));
-  const auto& packed_field =
-      Field::Handle(zone, Field::RawCast(struct_layout_fields.At(1)));
-  ASSERT(String::Handle(zone, packed_field.name())
-             .Equals(Symbols::FfiFieldPacking()));
+  const auto& packed_field = Field::Handle(
+      zone, clazz.LookupFieldAllowPrivate(Symbols::FfiFieldPacking()));
+  ASSERT(!packed_field.IsNull());
   const auto& packed_value = Integer::Handle(
       zone, Integer::RawCast(struct_layout.GetField(packed_field)));
   const intptr_t member_packing =
@@ -486,18 +482,15 @@ static const NativeType* CompoundFromPragma(Zone* zone,
           Class::Handle(zone, field_instance.clazz());
       ASSERT(String::Handle(zone, struct_layout_array_class.UserVisibleName())
                  .Equals(Symbols::FfiStructLayoutArray()));
-      const auto& struct_layout_array_fields =
-          Array::Handle(zone, struct_layout_array_class.fields());
-      ASSERT(struct_layout_array_fields.Length() == 3);
       const auto& element_type_field =
-          Field::Handle(zone, Field::RawCast(struct_layout_array_fields.At(0)));
-      ASSERT(String::Handle(zone, element_type_field.UserVisibleName())
-                 .Equals(Symbols::FfiElementType()));
+          Field::Handle(zone, struct_layout_array_class.LookupFieldAllowPrivate(
+                                  Symbols::FfiElementType()));
+      ASSERT(!element_type_field.IsNull());
       field_type ^= field_instance.GetField(element_type_field);
-      const auto& length_field =
-          Field::Handle(zone, Field::RawCast(struct_layout_array_fields.At(1)));
-      ASSERT(String::Handle(zone, length_field.UserVisibleName())
-                 .Equals(Symbols::Length()));
+      const auto& length_field = Field::Handle(
+          zone,
+          struct_layout_array_class.LookupFieldAllowPrivate(Symbols::Length()));
+      ASSERT(!length_field.IsNull());
       const auto& length = Smi::Handle(
           zone, Smi::RawCast(field_instance.GetField(length_field)));
       const auto element_type =
@@ -508,9 +501,9 @@ static const NativeType* CompoundFromPragma(Zone* zone,
 
 #if defined(DEBUG)
       const auto& variable_length_field =
-          Field::Handle(zone, Field::RawCast(struct_layout_array_fields.At(2)));
-      ASSERT(String::Handle(zone, variable_length_field.UserVisibleName())
-                 .Equals(Symbols::VariableLength()));
+          Field::Handle(zone, struct_layout_array_class.LookupFieldAllowPrivate(
+                                  Symbols::VariableLength()));
+      ASSERT(!variable_length_field.IsNull());
       const auto& variable_length = Bool::Handle(
           zone, Bool::RawCast(field_instance.GetField(variable_length_field)));
       ASSERT(variable_length.value() == true ||
@@ -536,12 +529,9 @@ static const NativeType* AbiSpecificFromPragma(Zone* zone,
                                                const Class& abi_specific_int,
                                                const char** error) {
   const auto& clazz = Class::Handle(zone, pragma.clazz());
-  const auto& fields = Array::Handle(zone, clazz.fields());
-  ASSERT(fields.Length() == 1);
-  const auto& native_types_field =
-      Field::Handle(zone, Field::RawCast(fields.At(0)));
-  ASSERT(String::Handle(zone, native_types_field.name())
-             .Equals(Symbols::FfiNativeTypes()));
+  const auto& native_types_field = Field::Handle(
+      zone, clazz.LookupFieldAllowPrivate(Symbols::FfiNativeTypes()));
+  ASSERT(!native_types_field.IsNull());
   const auto& native_types =
       Array::Handle(zone, Array::RawCast(pragma.GetField(native_types_field)));
 

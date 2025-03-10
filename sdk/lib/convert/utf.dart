@@ -553,6 +553,10 @@ class _Utf8Decoder {
 
   external String convertChunked(List<int> codeUnits, int start, int? maybeEnd);
 
+  /// Whether the decoder expects the continuation of unfinished multi-byte
+  /// UTF8-encoding.
+  bool get expectsContinuation => _state > afterBom;
+
   /// Flushes this decoder as if closed.
   ///
   /// This method throws if the input was partial and the decoder was

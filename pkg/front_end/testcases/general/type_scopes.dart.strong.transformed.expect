@@ -32,11 +32,6 @@ typedef C5 = dynamic;
 typedef C6 = dynamic;
 typedef C7 = dynamic;
 typedef C8 = dynamic;
-abstract class _Class&S&M<T3 extends dynamic> extends self::S<self::_Class&S&M::T3%> implements self::M<self::_Class&S&M::T3%> /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_Class&S&M<self::_Class&S&M::T3%>
-    : super self::S::•()
-    ;
-}
 class Class<T3 extends dynamic> extends self::_Class&S&M<self::Class::T3%> implements self::I<self::Class::T3%> {
   field dynamic instanceField = null;
   static field dynamic staticField = null;
@@ -60,11 +55,6 @@ class NamedMixinApplication<T9 extends dynamic> extends self::Class<self::NamedM
     : super self::Class::•(t3)
     ;
   method instanceMethod<T7 extends dynamic>(covariant-by-class self::NamedMixinApplication::T9% t6, self::NamedMixinApplication::instanceMethod::T7% t7) → void {}
-}
-abstract class _Enum&_Enum&M<T10 extends dynamic> extends core::_Enum implements self::M<self::_Enum&_Enum&M::T10%> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_Enum&_Enum&M<self::_Enum&_Enum&M::T10%>
-    : super core::_Enum::•(index, _name)
-    ;
 }
 class Enum<T10 extends dynamic> extends self::_Enum&_Enum&M<self::Enum::T10%> implements self::I<self::Enum::T10%> /*isEnum*/  {
   enum-element static const field self::Enum<core::int> a = #C3;
@@ -90,6 +80,16 @@ abstract class M<X2 extends core::Object? = dynamic> extends core::Object /*isMi
 class I<X3 extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::I<self::I::X3%>
     : super core::Object::•()
+    ;
+}
+abstract class _Class&S&M<T3 extends dynamic> extends self::S<self::_Class&S&M::T3%> implements self::M<self::_Class&S&M::T3%> /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_Class&S&M<self::_Class&S&M::T3%>
+    : super self::S::•()
+    ;
+}
+abstract class _Enum&_Enum&M<T10 extends dynamic> extends core::_Enum implements self::M<self::_Enum&_Enum&M::T10%> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_Enum&_Enum&M<self::_Enum&_Enum&M::T10%>
+    : super core::_Enum::•(index, _name)
     ;
 }
 extension Extension<T13 extends dynamic> on self::Class<T13%> {

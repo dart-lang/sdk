@@ -34,8 +34,8 @@ typedef F8<T> = Function Function({List<T> x}) Function();
 typedef F9<T> = List<Function> Function(int y, {Function x}) Function();
 typedef F10<T> = List<Function> Function(int, [List<T> x]) Function();
 typedef F11<T> = core.List<core.int> Function(Function) Function();
-typedef F12<T> = core.List<core.int> Function(int x, [core.List<core.int>])
-    Function();
+typedef F12<T> =
+    core.List<core.int> Function(int x, [core.List<core.int>]) Function();
 typedef F13<T> = List<T> Function(int, {int x}) Function();
 typedef F14<T> = List<T> Function([core.List<core.int> x]) Function();
 typedef F15<T> = Function(int y, [int x]) Function();
@@ -91,7 +91,7 @@ class U96<T> {
   late List<Function> Function(int, [List<T> x]) Function() x10;
   late core.List<core.int> Function(Function) Function() x11;
   late core.List<core.int> Function(int x, [core.List<core.int>]) Function()
-      x12;
+  x12;
   late List<T> Function(int, {int x}) Function() x13;
   late List<T> Function([core.List<core.int> x]) Function() x14;
   late Function(int y, [int x]) Function() x15;
@@ -104,7 +104,7 @@ class U96<T> {
   late void Function<A>(List<Function> x) Function() x22;
 
   U96({this.tIsBool = false, this.tIsInt = false})
-      : tIsDynamic = !tIsBool && !tIsInt;
+    : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0(int x, [core.List<core.int> x0 = const []]) => throw 'uncalled';
   core.List<core.int> m1(int x0, [List<Function> x1 = const []]) =>
@@ -440,7 +440,8 @@ class U96<T> {
 
     Expect.isTrue(m9 is F9<T>);
     Expect.isTrue(
-        m9 is List<Function> Function(int y, {Function x}) Function());
+      m9 is List<Function> Function(int y, {Function x}) Function(),
+    );
     Expect.isTrue(confuse(m9) is F9<T>);
     // In checked mode, verifies the type.
     x9 = m9;
@@ -537,9 +538,11 @@ class U96<T> {
     }
 
     Expect.isTrue(m12 is F12<T>);
-    Expect.isTrue(m12 is core.List<core.int> Function(int x,
-            [core.List<core.int>])
-        Function());
+    Expect.isTrue(
+      m12
+          is core.List<core.int> Function(int x, [core.List<core.int>])
+          Function(),
+    );
     Expect.isTrue(confuse(m12) is F12<T>);
     // In checked mode, verifies the type.
     x12 = m12;

@@ -10,10 +10,13 @@ class ListLiteralTest {
   static const HARDY = 2;
 
   static testMain() {
+    // Check that trailing comma works. Don't let the formatter remove it.
+    // dart format off
     var funny = <int>[
       LAUREL,
       HARDY,
-    ]; // Check that trailing comma works.
+    ];
+    // dart format on
     Expect.equals(2, funny.length);
 
     List<int> m = <int>[101, 102, 100 + 3];
@@ -33,11 +36,13 @@ class ListLiteralTest {
     e2 = const <num>[5.1, -55, 555, 5555][2];
     Expect.equals(555, e2);
 
-    e2 = (const [
-      5.1,
-      const <num>[-55, 555],
-      5555
-    ][1] as dynamic)[1];
+    e2 =
+        (const [
+              5.1,
+              const <num>[-55, 555],
+              5555,
+            ][1]
+            as dynamic)[1];
     Expect.equals(555, e2);
 
     Expect.equals(0, [].length);

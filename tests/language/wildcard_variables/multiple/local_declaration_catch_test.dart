@@ -4,8 +4,6 @@
 
 // Tests multiple catch clause wildcard variable declarations.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 void main() {
   try {
     throw '!';

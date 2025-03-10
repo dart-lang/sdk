@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -128,7 +128,7 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
     expect(typeSystem.flatten(type), same(type));
   }
 
-  void _check(DartType T, String expected) {
+  void _check(TypeImpl T, String expected) {
     var result = typeSystem.flatten(T);
     expect(
       result.getDisplayString(),
@@ -148,12 +148,12 @@ class FutureTypeTest extends AbstractTypeSystemTest {
   }
 
   test_implements_Future() {
-    var A = class_(name: 'A', interfaces: [
+    var A = class_2(name: 'A', interfaces: [
       futureNone(intNone),
     ]);
 
     _check(interfaceTypeNone(A), 'Future<int>');
-    _check(interfaceTypeQuestion(A), null);
+    _check(interfaceTypeQuestion2(A), null);
   }
 
   test_interfaceType() {
@@ -244,7 +244,7 @@ class FutureTypeTest extends AbstractTypeSystemTest {
     _check(UnknownInferredType.instance, null);
   }
 
-  void _check(DartType T, String? expected) {
+  void _check(TypeImpl T, String? expected) {
     var result = typeSystem.futureType(T);
     if (result == null) {
       expect(expected, isNull);

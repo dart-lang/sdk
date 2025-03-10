@@ -25,18 +25,8 @@ class Mixin1b extends self::Mixin1a {
   synthetic constructor •() → self::Mixin1b
     ;
 }
-abstract class _C1a&Base&Mixin1a = self::Base with self::Mixin1a /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_C1a&Base&Mixin1a
-    : super self::Base::•()
-    ;
-}
 class C1a extends self::_C1a&Base&Mixin1a {
   synthetic constructor •() → self::C1a
-    ;
-}
-abstract class _C1b&Base&Mixin1b = self::Base with self::Mixin1b /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_C1b&Base&Mixin1b
-    : super self::Base::•()
     ;
 }
 class C1b extends self::_C1b&Base&Mixin1b {
@@ -45,19 +35,33 @@ class C1b extends self::_C1b&Base&Mixin1b {
 }
 abstract class Mixin2a extends self::Base /*isMixinDeclaration*/  {
 }
+abstract class Mixin2b extends self::_Mixin2b&Base&Mixin2a /*isMixinDeclaration*/  {
+}
+class C2a extends self::_C2a&Base&Mixin2a {
+  synthetic constructor •() → self::C2a
+    ;
+}
+class C2b extends self::_C2b&Base&Mixin2a&Mixin2b {
+  synthetic constructor •() → self::C2b
+    ;
+}
+abstract class _C1a&Base&Mixin1a = self::Base with self::Mixin1a /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C1a&Base&Mixin1a
+    : super self::Base::•()
+    ;
+}
+abstract class _C1b&Base&Mixin1b = self::Base with self::Mixin1b /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C1b&Base&Mixin1b
+    : super self::Base::•()
+    ;
+}
 abstract class _Mixin2b&Base&Mixin2a extends core::Object implements self::Base, self::Mixin2a /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Mixin2b&Base&Mixin2a
     ;
 }
-abstract class Mixin2b extends self::_Mixin2b&Base&Mixin2a /*isMixinDeclaration*/  {
-}
 abstract class _C2a&Base&Mixin2a = self::Base with self::Mixin2a /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C2a&Base&Mixin2a
     : super self::Base::•()
-    ;
-}
-class C2a extends self::_C2a&Base&Mixin2a {
-  synthetic constructor •() → self::C2a
     ;
 }
 abstract class _C2b&Base&Mixin2a = self::Base with self::Mixin2a /*isAnonymousMixin*/  {
@@ -68,9 +72,5 @@ abstract class _C2b&Base&Mixin2a = self::Base with self::Mixin2a /*isAnonymousMi
 abstract class _C2b&Base&Mixin2a&Mixin2b = self::_C2b&Base&Mixin2a with self::Mixin2b /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C2b&Base&Mixin2a&Mixin2b
     : super self::_C2b&Base&Mixin2a::•()
-    ;
-}
-class C2b extends self::_C2b&Base&Mixin2a&Mixin2b {
-  synthetic constructor •() → self::C2b
     ;
 }

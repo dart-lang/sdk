@@ -12,9 +12,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
+import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
@@ -27,18 +27,23 @@ import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 
 LinkResult link({
   required LinkedElementFactory elementFactory,
   required OperationPerformanceImpl performance,
   required List<LibraryFileKind> inputLibraries,
+  required Map<Uri, LibraryManifest> inputLibraryManifests,
+  required String apiSignature,
 }) {
-  var linker = Linker(elementFactory);
+  var linker = Linker(
+    elementFactory: elementFactory,
+    apiSignature: apiSignature,
+  );
   linker.link(
     performance: performance,
     inputLibraries: inputLibraries,
+    inputLibraryManifests: inputLibraryManifests,
   );
 
   return LinkResult(
@@ -48,17 +53,22 @@ LinkResult link({
 
 class Linker {
   final LinkedElementFactory elementFactory;
+  final String apiSignature;
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
 
-  final Map<ElementImpl, ast.AstNode> elementNodes = Map.identity();
+  final Map<Object, ast.AstNode> elementNodes = Map.identity();
 
   late InheritanceManager3 inheritance; // TODO(scheglov): cache it
 
+  Map<Uri, LibraryManifest> newLibraryManifests = {};
   late Uint8List resolutionBytes;
 
-  Linker(this.elementFactory);
+  Linker({
+    required this.elementFactory,
+    required this.apiSignature,
+  });
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -81,15 +91,16 @@ class Linker {
     return elementNodes[element];
   }
 
-  /// If the [element] is part of a library being linked, return the node
+  /// If the [fragment] is part of a library being linked, return the node
   /// from which it was created.
-  ast.AstNode? getLinkingNode2(Element2 element) {
-    return elementNodes[element.asElement];
+  ast.AstNode? getLinkingNode2(Fragment fragment) {
+    return elementNodes[fragment];
   }
 
   void link({
     required OperationPerformanceImpl performance,
     required List<LibraryFileKind> inputLibraries,
+    required Map<Uri, LibraryManifest> inputLibraryManifests,
   }) {
     performance.run('LibraryBuilder.build', (performance) {
       for (var inputLibrary in inputLibraries) {
@@ -334,7 +345,12 @@ class Linker {
       bundleWriter.writeLibraryElement(builder.element);
     }
 
-    var writeWriterResult = bundleWriter.finish();
+    var writeWriterResult = performance.run(
+      'bundleWriteFinish',
+      (performance) {
+        return bundleWriter.finish();
+      },
+    );
     resolutionBytes = writeWriterResult.resolutionBytes;
 
     performance.getDataInt('length').add(resolutionBytes.length);

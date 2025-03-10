@@ -452,6 +452,7 @@ mixin ClientCapabilitiesHelperMixin {
     setTextDocumentDynamicRegistration('completion');
     setTextDocumentDynamicRegistration('hover');
     setTextDocumentDynamicRegistration('inlayHint');
+    setTextDocumentDynamicRegistration('inlineValue');
     setTextDocumentDynamicRegistration('signatureHelp');
     setTextDocumentDynamicRegistration('references');
     setTextDocumentDynamicRegistration('documentHighlight');

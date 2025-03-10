@@ -5,8 +5,6 @@
 // Import prefixes named `_` are non-binding, but will provide access to the
 // non-private extensions in that library.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 import 'import_lib.dart' as _;

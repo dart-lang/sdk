@@ -54,8 +54,10 @@ import 'package:analysis_server/src/services/correction/dart/flutter_swap_with_c
 import 'package:analysis_server/src/services/correction/dart/flutter_swap_with_parent.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap_builder.dart';
+import 'package:analysis_server/src/services/correction/dart/flutter_wrap_future_builder.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap_generic.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap_stream_builder.dart';
+import 'package:analysis_server/src/services/correction/dart/flutter_wrap_value_listenable_builder.dart';
 import 'package:analysis_server/src/services/correction/dart/import_add_show.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/invert_conditional_expression.dart';
@@ -141,8 +143,10 @@ class AssistProcessor {
     FlutterSwapWithChild.new,
     FlutterSwapWithParent.new,
     FlutterWrapBuilder.new,
+    FlutterWrapFutureBuilder.new,
     FlutterWrapGeneric.new,
     FlutterWrapStreamBuilder.new,
+    FlutterWrapValueListenableBuilder.new,
     ImportAddShow.new,
     InlineInvocation.new,
     InvertConditionalExpression.new,

@@ -24,13 +24,6 @@ abstract mixin class A extends core::Enum {
   get foo() → core::int
     return this.{core::Enum::index}{core::int};
 }
-abstract class _EA&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EA&_Enum&A
-    : super core::_Enum::•(index, _name)
-    ;
-  get foo() → core::int
-    return this.{core::Enum::index}{core::int};
-}
 class EA extends self::_EA&_Enum&A /*isEnum*/  {
   enum-element static const field self::EA element = #C3;
   static const field core::List<self::EA> values = #C4;
@@ -43,13 +36,6 @@ class EA extends self::_EA&_Enum&A /*isEnum*/  {
 abstract mixin class B extends core::Object implements core::Enum {
   synthetic constructor •() → self::B
     : super core::Object::•()
-    ;
-  get foo() → core::int
-    return this.{core::Enum::index}{core::int};
-}
-abstract class _EB&_Enum&B extends core::_Enum implements self::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EB&_Enum&B
-    : super core::_Enum::•(index, _name)
     ;
   get foo() → core::int
     return this.{core::Enum::index}{core::int};
@@ -67,13 +53,6 @@ abstract class M extends core::Enum /*isMixinDeclaration*/  {
   get foo() → core::int
     return this.{core::Enum::index}{core::int};
 }
-abstract class _EM&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EM&_Enum&M
-    : super core::_Enum::•(index, _name)
-    ;
-  get foo() → core::int
-    return this.{core::Enum::index}{core::int};
-}
 class EM extends self::_EM&_Enum&M /*isEnum*/  {
   enum-element static const field self::EM element = #C7;
   static const field core::List<self::EM> values = #C8;
@@ -87,13 +66,6 @@ abstract class N extends core::Object implements core::Enum /*isMixinDeclaration
   get foo() → core::int
     return this.{core::Enum::index}{core::int};
 }
-abstract class _EN&_Enum&N extends core::_Enum implements self::N /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self::_EN&_Enum&N
-    : super core::_Enum::•(index, _name)
-    ;
-  get foo() → core::int
-    return this.{core::Enum::index}{core::int};
-}
 class EN extends self::_EN&_Enum&N /*isEnum*/  {
   enum-element static const field self::EN element = #C9;
   static const field core::List<self::EN> values = #C10;
@@ -102,6 +74,34 @@ class EN extends self::_EN&_Enum&N /*isEnum*/  {
     ;
   method _enumToString() → core::String
     return "EN.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _EA&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EA&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  get foo() → core::int
+    return this.{core::Enum::index}{core::int};
+}
+abstract class _EB&_Enum&B extends core::_Enum implements self::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EB&_Enum&B
+    : super core::_Enum::•(index, _name)
+    ;
+  get foo() → core::int
+    return this.{core::Enum::index}{core::int};
+}
+abstract class _EM&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EM&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  get foo() → core::int
+    return this.{core::Enum::index}{core::int};
+}
+abstract class _EN&_Enum&N extends core::_Enum implements self::N /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_EN&_Enum&N
+    : super core::_Enum::•(index, _name)
+    ;
+  get foo() → core::int
+    return this.{core::Enum::index}{core::int};
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {

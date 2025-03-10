@@ -26,10 +26,15 @@ sealed class NativeTypeCfe {
   }) {
     if (transformer.isStructOrUnionSubtype(dartType)) {
       return ReferencedCompoundSubtypeCfe(
-          (dartType as InterfaceType).classNode);
+        (dartType as InterfaceType).classNode,
+      );
     } else {
-      return NativeTypeCfe(transformer, dartType,
-          arrayDimensions: arrayDimensions, variableLength: variableLength);
+      return NativeTypeCfe(
+        transformer,
+        dartType,
+        arrayDimensions: arrayDimensions,
+        variableLength: variableLength,
+      );
     }
   }
 
@@ -68,42 +73,47 @@ sealed class NativeTypeCfe {
         throw "Must have variable length for ArrayType.";
       }
       final elementType = transformer.arraySingleElementType(dartType);
-      final elementCfeType = NativeTypeCfe(transformer, elementType,
-          compoundCache: compoundCache, variableLength: variableLength);
+      final elementCfeType = NativeTypeCfe(
+        transformer,
+        elementType,
+        compoundCache: compoundCache,
+        variableLength: variableLength,
+      );
       if (elementCfeType is InvalidNativeTypeCfe) {
         return elementCfeType;
       }
       return ArrayNativeTypeCfe.multi(
-          elementCfeType, arrayDimensions, variableLength);
+        elementCfeType,
+        arrayDimensions,
+        variableLength,
+      );
     }
     if (transformer.isAbiSpecificIntegerSubtype(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
-      final mappingConstant =
-          transformer.getAbiSpecificIntegerMappingAnnotation(clazz);
+      final mappingConstant = transformer
+          .getAbiSpecificIntegerMappingAnnotation(clazz);
       if (alreadyInAbiSpecificType || mappingConstant == null) {
         // Unsupported mapping.
         return AbiSpecificNativeTypeCfe({}, clazz);
       }
       final mapping = Map.fromEntries(
-        mappingConstant.entries.map(
-          (e) {
-            var type = transformer.constantAbis[e.key];
-            if (type == null) {
-              throw "Type ${clazz.name} has no mapping for ABI ${e.key}";
-            }
-            return MapEntry(
-              type,
-              NativeTypeCfe(
-                transformer,
-                (e.value as InstanceConstant).classNode.getThisType(
-                      transformer.coreTypes,
-                      Nullability.nonNullable,
-                    ),
-                alreadyInAbiSpecificType: true,
+        mappingConstant.entries.map((e) {
+          var type = transformer.constantAbis[e.key];
+          if (type == null) {
+            throw "Type ${clazz.name} has no mapping for ABI ${e.key}";
+          }
+          return MapEntry(
+            type,
+            NativeTypeCfe(
+              transformer,
+              (e.value as InstanceConstant).classNode.getThisType(
+                transformer.coreTypes,
+                Nullability.nonNullable,
               ),
-            );
-          },
-        ),
+              alreadyInAbiSpecificType: true,
+            ),
+          );
+        }),
       );
       for (final value in mapping.values) {
         if (value is! PrimitiveNativeTypeCfe ||
@@ -228,24 +238,26 @@ sealed class NativeTypeCfe {
     FfiTransformer transformer,
     Procedure offsetGetter,
   ) {
-    return ReturnStatement(generateStore(
-      argument,
-      dartType: dartType,
-      fileOffset: fileOffset,
-      typedDataBase: transformer.getCompoundTypedDataBaseField(
-        ThisExpression(),
-        fileOffset,
-      ),
-      transformer: transformer,
-      offsetInBytes: transformer.add(
-        StaticGet(offsetGetter),
-        transformer.getCompoundOffsetInBytesField(
+    return ReturnStatement(
+      generateStore(
+        argument,
+        dartType: dartType,
+        fileOffset: fileOffset,
+        typedDataBase: transformer.getCompoundTypedDataBaseField(
           ThisExpression(),
           fileOffset,
         ),
+        transformer: transformer,
+        offsetInBytes: transformer.add(
+          StaticGet(offsetGetter),
+          transformer.getCompoundOffsetInBytesField(
+            ThisExpression(),
+            fileOffset,
+          ),
+        ),
+        unaligned: unalignedAccess,
       ),
-      unaligned: unalignedAccess,
-    ));
+    );
   }
 }
 
@@ -322,9 +334,9 @@ class PrimitiveNativeTypeCfe extends NativeTypeCfe {
 
   @override
   Map<Abi, int> get alignment => {
-        for (var abi in Abi.values)
-          abi: nonSizeAlignment[abi]![nativeType] ?? getSizeFor(abi)!
-      };
+    for (var abi in Abi.values)
+      abi: nonSizeAlignment[abi]![nativeType] ?? getSizeFor(abi)!,
+  };
 
   @override
   int? getAlignmentFor(Abi abi) =>
@@ -364,11 +376,11 @@ class PrimitiveNativeTypeCfe extends NativeTypeCfe {
     bool unaligned = false,
   }) {
     return StaticInvocation(
-        (unaligned && isFloat
-            ? transformer.loadUnalignedMethods
-            : transformer.loadMethods)[nativeType]!,
-        Arguments([typedDataBase, offsetInBytes]))
-      ..fileOffset = fileOffset;
+      (unaligned && isFloat
+          ? transformer.loadUnalignedMethods
+          : transformer.loadMethods)[nativeType]!,
+      Arguments([typedDataBase, offsetInBytes]),
+    )..fileOffset = fileOffset;
   }
 
   /// Sample output for [nativeType] being [NativeType.kInt8]:
@@ -416,17 +428,13 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
 
   @override
   Constant generateConstant(FfiTransformer transformer) => TypeLiteralConstant(
-        InterfaceType(
-          transformer.pointerClass,
-          Nullability.nonNullable,
-          [
-            InterfaceType(
-              transformer.pointerClass.superclass!,
-              Nullability.nonNullable,
-            )
-          ],
-        ),
-      );
+    InterfaceType(transformer.pointerClass, Nullability.nonNullable, [
+      InterfaceType(
+        transformer.pointerClass.superclass!,
+        Nullability.nonNullable,
+      ),
+    ]),
+  );
 
   /// Sample output:
   ///
@@ -445,10 +453,7 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
     return StaticInvocation(
       transformer.loadMethods[NativeType.kPointer]!,
       Arguments(
-        [
-          typedDataBase,
-          offsetInBytes,
-        ],
+        [typedDataBase, offsetInBytes],
         types: [(dartType as InterfaceType).typeArguments.single],
       ),
     )..fileOffset = fileOffset;
@@ -518,10 +523,7 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
       return transformer.runtimeBranchOnLayout(size);
     } else {
       return transformer.inlineSizeOf(
-        clazz.getThisType(
-          transformer.coreTypes,
-          Nullability.nonNullable,
-        ),
+        clazz.getThisType(transformer.coreTypes, Nullability.nonNullable),
       )!;
     }
   }
@@ -549,10 +551,7 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
 
     return ConstructorInvocation(
       constructor,
-      Arguments([
-        typedDataBase,
-        offsetInBytes,
-      ]),
+      Arguments([typedDataBase, offsetInBytes]),
     )..fileOffset = fileOffset;
   }
 
@@ -603,7 +602,7 @@ abstract class StructOrUnionNativeTypeCfe extends NativeTypeCfe
   bool get knowsLayout => true;
 
   StructOrUnionNativeTypeCfe._(this.clazz, this.members, this.layout)
-      : super._();
+    : super._();
 
   @override
   Map<Abi, int?> get size =>
@@ -634,7 +633,7 @@ class StructNativeTypeCfe extends StructOrUnionNativeTypeCfe {
     int? packing,
   }) {
     final layout = {
-      for (var abi in Abi.values) abi: _calculateLayout(members, packing, abi)
+      for (var abi in Abi.values) abi: _calculateLayout(members, packing, abi),
     };
     return StructNativeTypeCfe._(clazz, members, packing, layout);
   }
@@ -677,7 +676,7 @@ class StructNativeTypeCfe extends StructOrUnionNativeTypeCfe {
 class UnionNativeTypeCfe extends StructOrUnionNativeTypeCfe {
   factory UnionNativeTypeCfe(Class clazz, List<NativeTypeCfe> members) {
     final layout = {
-      for (var abi in Abi.values) abi: _calculateLayout(members, abi)
+      for (var abi in Abi.values) abi: _calculateLayout(members, abi),
     };
     return UnionNativeTypeCfe._(clazz, members, layout);
   }
@@ -750,16 +749,22 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
   final bool variableLength;
 
   ArrayNativeTypeCfe(this.elementType, this.length, this.variableLength)
-      : super._();
+    : super._();
 
   factory ArrayNativeTypeCfe.multi(
-      NativeTypeCfe elementType, List<int> dimensions, bool variableLength) {
+    NativeTypeCfe elementType,
+    List<int> dimensions,
+    bool variableLength,
+  ) {
     if (dimensions.length == 1) {
       return ArrayNativeTypeCfe(elementType, dimensions.single, variableLength);
     }
     return ArrayNativeTypeCfe(
       ArrayNativeTypeCfe.multi(
-          elementType, dimensions.sublist(1), variableLength),
+        elementType,
+        dimensions.sublist(1),
+        variableLength,
+      ),
       dimensions.first,
       variableLength,
     );
@@ -801,18 +806,18 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
 
   // Note that we flatten multi dimensional arrays.
   @override
-  Constant generateConstant(FfiTransformer transformer) => InstanceConstant(
-        transformer.ffiInlineArrayClass.reference,
-        [],
-        {
-          transformer.ffiInlineArrayElementTypeField.fieldReference:
-              singleElementType.generateConstant(transformer),
-          transformer.ffiInlineArrayLengthField.fieldReference:
-              IntConstant(dimensionsFlattened),
-          transformer.ffiInlineArrayVariableLengthField.fieldReference:
-              BoolConstant(variableLength),
-        },
-      );
+  Constant generateConstant(FfiTransformer transformer) =>
+      InstanceConstant(transformer.ffiInlineArrayClass.reference, [], {
+        transformer
+            .ffiInlineArrayElementTypeField
+            .fieldReference: singleElementType.generateConstant(transformer),
+        transformer.ffiInlineArrayLengthField.fieldReference: IntConstant(
+          dimensionsFlattened,
+        ),
+        transformer
+            .ffiInlineArrayVariableLengthField
+            .fieldReference: BoolConstant(variableLength),
+      });
 
   /// Sample output for `Array<Int8>`:
   ///
@@ -844,7 +849,9 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
           ConstantExpression(IntConstant(length)),
           ConstantExpression(BoolConstant(variableLength)),
           transformer.intListConstantExpression(
-              nestedDimensions, Nullability.nonNullable)
+            nestedDimensions,
+            Nullability.nonNullable,
+          ),
         ],
         types: [typeArgument],
       ),
@@ -894,14 +901,16 @@ class AbiSpecificNativeTypeCfe extends NativeTypeCfe {
 
   @override
   Map<Abi, int?> get size => abiSpecificTypes.map(
-      (abi, nativeTypeCfe) => MapEntry(abi, nativeTypeCfe.getSizeFor(abi)));
+    (abi, nativeTypeCfe) => MapEntry(abi, nativeTypeCfe.getSizeFor(abi)),
+  );
 
   @override
   int? getSizeFor(Abi abi) => abiSpecificTypes[abi]?.getSizeFor(abi);
 
   @override
-  Map<Abi, int?> get alignment => abiSpecificTypes
-      .map((abi, nativeTypeCfe) => MapEntry(abi, nativeTypeCfe.alignment[abi]));
+  Map<Abi, int?> get alignment => abiSpecificTypes.map(
+    (abi, nativeTypeCfe) => MapEntry(abi, nativeTypeCfe.alignment[abi]),
+  );
 
   @override
   int? getAlignmentFor(Abi abi) => abiSpecificTypes[abi]?.getAlignmentFor(abi);

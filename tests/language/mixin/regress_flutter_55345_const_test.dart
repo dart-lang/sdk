@@ -29,10 +29,10 @@ main() {
   print(const [
     {
       (c1 ?? c2): [
-        [c1 ?? c2]
-      ]
+        [c1 ?? c2],
+      ],
     },
-    'abc'
+    'abc',
   ]);
   // No compile time or runtime errors.
 }

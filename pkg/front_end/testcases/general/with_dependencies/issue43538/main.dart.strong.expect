@@ -26,18 +26,18 @@ abstract class A extends core::Object /*hasConstConstructor*/  {
     : con::A::d = d, con::A::s = s, super core::Object::•()
     ;
 }
-abstract class _B&A&M extends con::A implements con::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •({core::double d = #C4, core::String s = #C2}) → con::_B&A&M
-    : super con::A::•(d: d, s: s)
-    ;
-  method m1() → dynamic {}
-}
 class B extends con::_B&A&M /*hasConstConstructor*/  {
   const constructor •({core::double d = #C1}) → con::B
     : super con::_B&A&M::•(d: d)
     ;
 }
 abstract class M extends con::A /*isMixinDeclaration*/  {
+  method m1() → dynamic {}
+}
+abstract class _B&A&M extends con::A implements con::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •({core::double d = #C4, core::String s = #C2}) → con::_B&A&M
+    : super con::A::•(d: d, s: s)
+    ;
   method m1() → dynamic {}
 }
 

@@ -95,14 +95,7 @@ void testSwitchStatements(int i) {
   }
 }
 
-enum TestPlatform {
-  android,
-  fuchsia,
-  ios,
-  linux,
-  macos,
-  windows,
-}
+enum TestPlatform { android, fuchsia, ios, linux, macos, windows }
 
 @pragma("vm:platform-const")
 TestPlatform get defaultTestPlatform {

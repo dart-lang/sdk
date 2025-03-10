@@ -7,7 +7,6 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -133,7 +132,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
         staticModifier = inStaticContext;
       }
     } else {
-      var targetClassElement = getTargetInterfaceElement2(target);
+      var targetClassElement = getTargetInterfaceElement(target);
       if (targetClassElement == null) {
         return;
       }
@@ -187,19 +186,23 @@ class CreateMethod extends ResolvedCorrectionProducer {
           builder.write('static ');
         }
         // Append return type.
-        {
-          var type = inferUndefinedExpressionType(invocation);
-          if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
-            builder.write(' ');
-          }
+
+        var type = inferUndefinedExpressionType(invocation);
+        if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
+          builder.write(' ');
         }
+
         // Append name.
         builder.addLinkedEdit('NAME', (builder) {
           builder.write(_memberName);
         });
         builder.write('(');
         builder.writeParametersMatchingArguments(invocation.argumentList);
-        builder.write(') {}');
+        builder.write(')');
+        if (type?.isDartAsyncFuture == true) {
+          builder.write(' async');
+        }
+        builder.write(' {}');
       });
       if (targetFile == file) {
         builder.addLinkedPosition(range.node(node), 'NAME');

@@ -9,21 +9,37 @@ import "dart:isolate";
 
 import "callback_tests_utils.dart";
 
-typedef SimpleAdditionType = Int32 Function(Int32, Int32);
-int simpleAddition(int x, int y) {
-  print("simpleAddition($x, $y)");
+typedef Type = Int32 Function(Int32, Int32);
+int unwindError(int x, int y) {
+  print("unwindError($x, $y)");
   Isolate.current.kill(priority: Isolate.immediate);
   return x + y;
 }
 
 final testcases = [
-  CallbackTest(
-    "SimpleAddition",
-    Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0),
-  ),
+  CallbackTest("UnwindError", Pointer.fromFunction<Type>(unwindError, 42)),
 ];
 
-void main() {
+void child(_) {
   testcases.forEach((t) => t.run());
   throw "Should not be reached";
+}
+
+void main() {
+  var onExit = new RawReceivePort();
+  var onError = new RawReceivePort();
+  onExit.handler = ((msg) {
+    print("Child exited");
+    onExit.close();
+    onError.close();
+  });
+  onError.handler = ((msg) {
+    throw "Child error: $msg";
+  });
+  Isolate.spawn(
+    child,
+    null,
+    onError: onError.sendPort,
+    onExit: onExit.sendPort,
+  );
 }

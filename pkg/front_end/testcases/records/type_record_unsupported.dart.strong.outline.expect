@@ -48,15 +48,6 @@ abstract class A2 extends core::Object implements core::Record {
   synthetic constructor •() → self::A2
     ;
 }
-abstract final class _A3&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A3&Object&Record
-    : super core::Object::•()
-    ;
-  abstract mixin-stub get runtimeType() → core::Type; -> core::Record::runtimeType
-  abstract mixin-stub get hashCode() → core::int; -> core::Record::hashCode
-  abstract mixin-stub operator ==(core::Object other) → core::bool; -> core::Record::==
-  abstract mixin-stub method toString() → core::String; -> core::Record::toString
-}
 abstract class A3 extends self::_A3&Object&Record {
   synthetic constructor •() → self::A3
     ;
@@ -67,11 +58,6 @@ abstract class A4 extends typ::A<core::Record> {
 }
 abstract class A5 extends core::Object implements typ::A<core::Record> {
   synthetic constructor •() → self::A5
-    ;
-}
-abstract class _A6&Object&A = core::Object with typ::A<core::Record> /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A6&Object&A
-    : super core::Object::•()
     ;
 }
 abstract class A6 extends self::_A6&Object&A {
@@ -88,6 +74,20 @@ abstract class A8 extends typ::A<core::Record> {
 }
 abstract class A9 extends core::Record {
   synthetic constructor •() → self::A9
+    ;
+}
+abstract final class _A3&Object&Record = core::Object with core::Record /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A3&Object&Record
+    : super core::Object::•()
+    ;
+  abstract mixin-stub get runtimeType() → core::Type; -> core::Record::runtimeType
+  abstract mixin-stub get hashCode() → core::int; -> core::Record::hashCode
+  abstract mixin-stub operator ==(core::Object other) → core::bool; -> core::Record::==
+  abstract mixin-stub method toString() → core::String; -> core::Record::toString
+}
+abstract class _A6&Object&A = core::Object with typ::A<core::Record> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A6&Object&A
+    : super core::Object::•()
     ;
 }
 static method foo1() → core::Record

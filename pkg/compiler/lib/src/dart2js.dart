@@ -17,7 +17,8 @@ import 'commandline_options.dart';
 import 'common/ram_usage.dart';
 import 'compiler.dart' as default_compiler show Compiler;
 import 'io/mapped_file.dart';
-import 'options.dart' show CompilerOptions, CompilerStage, FeatureOptions;
+import 'options.dart'
+    show CompilerOptions, CompilerStage, DumpInfoFormat, FeatureOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
@@ -344,27 +345,18 @@ Future<api.CompilationResult> compile(
   }
 
   void setDumpInfo(String argument) {
-    passThrough(Flags.dumpInfo);
-    if (argument == Flags.dumpInfo || argument == "${Flags.dumpInfo}=json") {
-      return;
-    }
-    if (argument == "${Flags.dumpInfo}=binary") {
+    final hasEnumFormatMatch = DumpInfoFormat.values.any(
+      (e) => '${Flags.dumpInfo}=${e.name}' == argument,
+    );
+    if (argument == Flags.dumpInfo || hasEnumFormatMatch) {
       passThrough(argument);
       return;
     }
     _helpAndFail(
       "Unsupported dump-info format '$argument', "
-      "supported formats are: json or binary",
+      "supported formats: "
+      "${DumpInfoFormat.values.map((e) => e.name).join(', ')}",
     );
-  }
-
-  String? nullSafetyMode;
-  void setNullSafetyMode(String argument) {
-    if (nullSafetyMode != null && nullSafetyMode != argument) {
-      _helpAndFail("Cannot specify both $nullSafetyMode and $argument.");
-    }
-    nullSafetyMode = argument;
-    passThrough(argument);
   }
 
   void setInvoker(String argument) {
@@ -524,8 +516,7 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.enableProtoShaking, passThrough),
     _OneOption(Flags.benchmarkingProduction, passThrough),
     _OneOption(Flags.benchmarkingExperiment, passThrough),
-    _OneOption(Flags.soundNullSafety, setNullSafetyMode),
-    _OneOption(Flags.noSoundNullSafety, setNullSafetyMode),
+    _OneOption(Flags.soundNullSafety, passThrough),
     _OneOption(Flags.dumpUnusedLibraries, passThrough),
     _OneOption(Flags.writeResources, passThrough),
 
@@ -596,18 +587,6 @@ Future<api.CompilationResult> compile(
 
   parseCommandLine(handlers, argv);
 
-  if (nullSafetyMode == Flags.noSoundNullSafety && platformBinaries == null) {
-    // Compiling without sound null safety is no longer allowed except in the
-    // cases where an unsound platform .dill file is manually provided.
-    // The unsound .dills are no longer packaged in the SDK release so any
-    // compile initiated through `dart compile js --no-sound-null-safety`
-    // will not find a .dill in the default location and should be prevented
-    // from executing.
-    _fail(
-      'the flag --no-sound-null-safety is not supported in Dart 3.\n'
-      'See: https://dart.dev/null-safety.',
-    );
-  }
   final diagnostic = diagnosticHandler = FormattingDiagnosticHandler();
   if (verbose != null) {
     diagnostic.verbose = verbose!;
@@ -640,6 +619,14 @@ Future<api.CompilationResult> compile(
     hints.add(
       "Option '${Flags.trustTypeAnnotations}' is not available "
       "in Dart 2.0. Try using '${Flags.omitImplicitChecks}' instead.",
+    );
+  }
+
+  if (options.contains(Flags.soundNullSafety)) {
+    warning(
+      "Option '${Flags.soundNullSafety}' is deprecated. As of Dart 3, Dart "
+      "only supports sound null safety. This flag will be removed in a future "
+      "version of Dart.",
     );
   }
 

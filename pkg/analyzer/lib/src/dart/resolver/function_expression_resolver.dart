@@ -33,7 +33,7 @@ class FunctionExpressionResolver {
 
     bool wasFunctionTypeSupplied = contextType is FunctionTypeImpl;
     node.wasFunctionTypeSupplied = wasFunctionTypeSupplied;
-    DartType? imposedType;
+    TypeImpl? imposedType;
     if (wasFunctionTypeSupplied) {
       var instantiatedType = _matchTypeParameters(
         node.typeParameters,
@@ -50,9 +50,7 @@ class FunctionExpressionResolver {
 
     node.typeParameters?.accept(_resolver);
     node.parameters?.accept(_resolver);
-    // TODO(paulberry): eliminate this cast by changing the type of
-    // `imposedType`.
-    imposedType = node.body.resolve(_resolver, imposedType as TypeImpl?);
+    imposedType = node.body.resolve(_resolver, imposedType);
     if (isFunctionDeclaration) {
       // A side effect of visiting the children is that the parameters are now
       // in scope, so we can visit the documentation comment now.
@@ -73,7 +71,7 @@ class FunctionExpressionResolver {
   /// Infer types of implicitly typed formal parameters.
   void _inferFormalParameters(
     FormalParameterList? node,
-    FunctionType contextType,
+    FunctionTypeImpl contextType,
   ) {
     if (node == null) {
       return;
@@ -112,9 +110,7 @@ class FunctionExpressionResolver {
       while (nodePositional.moveNext() && contextPositional.moveNext()) {
         inferType(
           nodePositional.current as FormalParameterElementImpl,
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `contextType` to `FunctionTypeImpl`.
-          contextPositional.current.type as TypeImpl,
+          contextPositional.current.type,
         );
       }
     }
@@ -130,9 +126,7 @@ class FunctionExpressionResolver {
         }
         inferType(
           element as FormalParameterElementImpl,
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `contextType` to `FunctionTypeImpl`.
-          contextNamedTypes[element.name3]! as TypeImpl,
+          contextNamedTypes[element.name3]!,
         );
       }
     }
@@ -165,8 +159,7 @@ class FunctionExpressionResolver {
   }
 
   void _resolve2(FunctionExpressionImpl node, DartType? imposedType) {
-    var functionElement =
-        node.declaredFragment!.element as ExecutableElementImpl2;
+    var functionElement = node.declaredFragment!.element;
 
     if (_shouldUpdateReturnType(node)) {
       var firstFragment =

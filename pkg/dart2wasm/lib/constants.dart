@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart'
@@ -13,6 +11,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
+import 'dynamic_modules.dart';
 import 'param_info.dart';
 import 'translator.dart';
 import 'types.dart';
@@ -69,6 +68,7 @@ typedef ConstantCodeGenerator = void Function(w.InstructionsBuilder);
 class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
+  final Map<Constant, ConstantInfo> dynamicModuleConstantInfo = {};
   w.DataSegmentBuilder? oneByteStringSegment;
   w.DataSegmentBuilder? twoByteStringSegment;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
@@ -108,6 +108,16 @@ class Constants {
   // All constant constructs should go in the main module.
   Types get types => translator.types;
   CoreTypes get coreTypes => translator.coreTypes;
+
+  Constant makeWasmI32(int value) {
+    return InstanceConstant(translator.wasmI32Class.reference, const [],
+        {translator.wasmI32Value.fieldReference: IntConstant(value)});
+  }
+
+  // Used as an indicator for interface types that the enclosed class ID must be
+  // globalized on instantiation. Resolves to a normal _InterfaceType.
+  static final Class _relativeInterfaceTypeIndicator =
+      Class(name: '', fileUri: Uri());
 
   /// Makes a `WasmArray<_Type>` [InstanceConstant].
   InstanceConstant makeTypeArray(Iterable<DartType> types) {
@@ -155,8 +165,8 @@ class Constants {
   /// Sub-constants must have Wasm globals assigned before the global for the
   /// composite constant is assigned, since global initializers can only refer
   /// to earlier globals.
-  ConstantInfo? ensureConstant(Constant constant) {
-    return ConstantCreator(this).ensureConstant(constant);
+  ConstantInfo? ensureConstant(Constant constant, w.ModuleBuilder module) {
+    return ConstantCreator(this, module).ensureConstant(constant);
   }
 
   /// Emit code to push a constant onto the stack.
@@ -223,9 +233,22 @@ class Constants {
   }
 
   InstanceConstant _makeInterfaceTypeConstant(InterfaceType type) {
-    return _makeTypeConstant(translator.interfaceTypeClass, type.nullability, {
-      translator.interfaceTypeClassIdField.fieldReference:
-          IntConstant(translator.classIdNumbering.classIds[type.classNode]!),
+    final wrappedClassId =
+        translator.classIdNumbering.classIds[type.classNode]!;
+    final (typeClass, classId) = switch (wrappedClassId) {
+      RelativeClassId() => (
+          _relativeInterfaceTypeIndicator,
+          wrappedClassId.relativeValue
+        ),
+      AbsoluteClassId() => (
+          translator.interfaceTypeClass,
+          wrappedClassId.value
+        ),
+    };
+    // If the class ID is relative we will detect that when the constant is
+    // emitted and adjust it accordingly.
+    return _makeTypeConstant(typeClass, type.nullability, {
+      translator.interfaceTypeClassIdField.fieldReference: makeWasmI32(classId),
       translator.interfaceTypeTypeArguments.fieldReference:
           makeTypeArray(type.typeArguments),
     });
@@ -349,7 +372,8 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
 
   @override
   w.ValueType defaultConstant(Constant constant) {
-    ConstantInfo info = ConstantCreator(constants).ensureConstant(constant)!;
+    ConstantInfo info =
+        ConstantCreator(constants, b.module).ensureConstant(constant)!;
     return info.readConstant(translator, b);
   }
 
@@ -370,6 +394,10 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
 
   @override
   w.ValueType visitNullConstant(NullConstant node) {
+    if (expectedType == w.RefType.func(nullable: true)) {
+      b.ref_null((expectedType as w.RefType).heapType);
+      return expectedType;
+    }
     b.ref_null(w.HeapType.none);
     return const w.RefType.none(nullable: true);
   }
@@ -430,8 +458,12 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
 class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     with ConstantVisitorDefaultMixin<ConstantInfo?> {
   final Constants constants;
+  final w.ModuleBuilder targetModule;
 
-  ConstantCreator(this.constants);
+  ConstantCreator(this.constants, w.ModuleBuilder module)
+      : targetModule = constants.translator.isDynamicModule
+            ? module
+            : constants.translator.mainModule;
 
   Translator get translator => constants.translator;
   Types get types => translator.types;
@@ -448,11 +480,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       constant = constants._lowerTypeConstant(type);
     }
 
-    ConstantInfo? info = constants.constantInfo[constant];
+    final cache = translator.dynamicModuleSupportEnabled &&
+            !translator.isMainModule(targetModule)
+        ? constants.dynamicModuleConstantInfo
+        : constants.constantInfo;
+    ConstantInfo? info = cache[constant];
     if (info == null) {
       info = constant.accept(this);
       if (info != null) {
-        constants.constantInfo[constant] = info;
+        cache[constant] = info;
       }
     }
     return info;
@@ -462,18 +498,21 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       Constant constant, w.RefType type, ConstantCodeGenerator generator,
       {bool lazy = false}) {
     assert(!type.nullable);
-    final mainModule = translator.mainModule;
-    if (lazy) {
+    if (lazy || translator.dynamicModuleSupportEnabled) {
       // Create uninitialized global and function to initialize it.
       final global =
-          mainModule.globals.define(w.GlobalType(type.withNullability(true)));
+          targetModule.globals.define(w.GlobalType(type.withNullability(true)));
       global.initializer.ref_null(w.HeapType.none);
       global.initializer.end();
       w.FunctionType ftype =
           translator.typesBuilder.defineFunction(const [], [type]);
-      final function = mainModule.functions.define(ftype, "$constant");
+      final function = targetModule.functions.define(ftype, "$constant");
       final b2 = function.body;
       generator(b2);
+      if (translator.dynamicModuleSupportEnabled) {
+        final valueLocal = b2.addLocal(type);
+        constant.accept(ConstantCanonicalizer(translator, b2, valueLocal));
+      }
       w.Local temp = b2.addLocal(type);
       b2.local_tee(temp);
       b2.global_set(global);
@@ -486,7 +525,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       assert(!constants.currentlyCreating);
       constants.currentlyCreating = true;
       final global =
-          mainModule.globals.define(w.GlobalType(type, mutable: false));
+          targetModule.globals.define(w.GlobalType(type, mutable: false));
       generator(global.initializer);
       global.initializer.end();
       constants.currentlyCreating = false;
@@ -502,7 +541,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitBoolConstant(BoolConstant constant) {
     ClassInfo info = translator.classInfo[translator.boxedBoolClass]!;
     return createConstant(constant, info.nonNullableType, (b) {
-      b.i32_const(info.classId);
+      b.i32_const((info.classId as AbsoluteClassId).value);
       b.i32_const(constant.value ? 1 : 0);
       b.struct_new(info.struct);
     });
@@ -512,7 +551,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitIntConstant(IntConstant constant) {
     ClassInfo info = translator.classInfo[translator.boxedIntClass]!;
     return createConstant(constant, info.nonNullableType, (b) {
-      b.i32_const(info.classId);
+      b.i32_const((info.classId as AbsoluteClassId).value);
       b.i64_const(constant.value);
       b.struct_new(info.struct);
     });
@@ -522,7 +561,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitDoubleConstant(DoubleConstant constant) {
     ClassInfo info = translator.classInfo[translator.boxedDoubleClass]!;
     return createConstant(constant, info.nonNullableType, (b) {
-      b.i32_const(info.classId);
+      b.i32_const((info.classId as AbsoluteClassId).value);
       b.f64_const(constant.value);
       b.struct_new(info.struct);
     });
@@ -530,56 +569,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
   @override
   ConstantInfo? visitStringConstant(StringConstant constant) {
-    if (translator.options.jsCompatibility) {
-      ClassInfo info = translator.classInfo[translator.jsStringClass]!;
-      return createConstant(constant, info.nonNullableType, (b) {
-        b.pushObjectHeaderFields(info);
-        translator.globals.readGlobal(b,
-            translator.getInternalizedStringGlobal(b.module, constant.value));
-        b.struct_new(info.struct);
-      });
-    }
-    bool isOneByte = constant.value.codeUnits.every((c) => c <= 255);
-    ClassInfo info = translator.classInfo[isOneByte
-        ? translator.oneByteStringClass
-        : translator.twoByteStringClass]!;
-    translator.functions.recordClassAllocation(info.classId);
-    w.RefType type = info.nonNullableType;
-    bool lazy = constant.value.length > maxArrayNewFixedLength;
-    return createConstant(constant, type, lazy: lazy, (b) {
-      w.ArrayType arrayType =
-          (info.struct.fields[FieldIndex.stringArray].type as w.RefType)
-              .heapType as w.ArrayType;
-
-      b.pushObjectHeaderFields(info);
-      if (lazy) {
-        // Initialize string contents from passive data segment.
-        w.DataSegmentBuilder segment;
-        Uint8List bytes;
-        if (isOneByte) {
-          segment = constants.oneByteStringSegment ??=
-              translator.mainModule.dataSegments.define();
-          bytes = Uint8List.fromList(constant.value.codeUnits);
-        } else {
-          assert(Endian.host == Endian.little);
-          segment = constants.twoByteStringSegment ??=
-              translator.mainModule.dataSegments.define();
-          bytes = Uint16List.fromList(constant.value.codeUnits)
-              .buffer
-              .asUint8List();
-        }
-        int offset = segment.length;
-        segment.append(bytes);
-        b.i32_const(offset);
-        b.i32_const(constant.value.length);
-        b.array_new_data(arrayType, segment);
-      } else {
-        // Initialize string contents from i32 constants on the stack.
-        for (int charCode in constant.value.codeUnits) {
-          b.i32_const(charCode);
-        }
-        b.array_new_fixed(arrayType, constant.value.length);
-      }
+    ClassInfo info = translator.classInfo[translator.jsStringClass]!;
+    return createConstant(constant, info.nonNullableType, (b) {
+      b.pushObjectHeaderFields(translator, info);
+      translator.globals.readGlobal(
+          b, translator.getInternalizedStringGlobal(b.module, constant.value));
       b.struct_new(info.struct);
     });
   }
@@ -587,11 +581,20 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   @override
   ConstantInfo? visitInstanceConstant(InstanceConstant constant) {
     Class cls = constant.classNode;
+    bool isRelativeInterfaceType = false;
     if (cls == translator.wasmArrayClass) {
       return _makeWasmArrayLiteral(constant, mutable: true);
     }
     if (cls == translator.immutableWasmArrayClass) {
       return _makeWasmArrayLiteral(constant, mutable: false);
+    }
+    if (cls == translator.wasmI32Class) {
+      return null;
+    }
+
+    if (cls == Constants._relativeInterfaceTypeIndicator) {
+      cls = translator.interfaceTypeClass;
+      isRelativeInterfaceType = true;
     }
 
     ClassInfo info = translator.classInfo[cls]!;
@@ -599,12 +602,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     w.RefType type = info.nonNullableType;
 
     // Collect sub-constants for field values.
-    const int baseFieldCount = 2;
     int fieldCount = info.struct.fields.length;
     List<Constant?> subConstants = List.filled(fieldCount, null);
-    bool lazy = false;
+    // Relative class IDs will get adjusted at runtime based on the local
+    // class ID base for the enclosing module. This must be done lazily
+    // since the global is not const.
+    bool lazy = isRelativeInterfaceType;
     constant.fieldValues.forEach((reference, subConstant) {
-      int index = translator.fieldIndex[reference.asField]!;
+      final field = reference.asField;
+      int index = translator.fieldIndex[field]!;
       assert(subConstants[index] == null);
       subConstants[index] = subConstant;
       lazy |= ensureConstant(subConstant)?.isLazy ?? false;
@@ -630,11 +636,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     }
 
     return createConstant(constant, type, lazy: lazy, (b) {
-      b.pushObjectHeaderFields(info);
-      for (int i = baseFieldCount; i < fieldCount; i++) {
+      b.pushObjectHeaderFields(translator, info);
+      for (int i = FieldIndex.objectFieldBase; i < fieldCount; i++) {
         Constant subConstant = subConstants[i]!;
         constants.instantiateConstant(
             b, subConstant, info.struct.fields[i].type.unpacked);
+        if (isRelativeInterfaceType && i == FieldIndex.interfaceTypeClassId) {
+          assert(translator.isDynamicModule);
+          translator.pushModuleId(b);
+          translator.callReference(translator.globalizeClassId.reference, b);
+        }
       }
       b.struct_new(info.struct);
     });
@@ -738,7 +749,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       w.ArrayType arrayType = translator.listArrayType;
       w.ValueType elementType = arrayType.elementType.type.unpacked;
       int length = constant.entries.length;
-      b.pushObjectHeaderFields(info);
+      b.pushObjectHeaderFields(translator, info);
       constants.instantiateConstant(
           b, typeArgConstant, constants.typeInfo.nullableType);
       b.i64_const(length);
@@ -845,24 +856,25 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     Constant functionTypeConstant =
         constants._lowerTypeConstant(translator.getTearOffType(member));
     ensureConstant(functionTypeConstant);
-    ClosureImplementation closure = translator.getTearOffClosure(member);
+    ClosureImplementation closure =
+        translator.getTearOffClosure(member, targetModule);
     w.StructType struct = closure.representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
 
     // The vtable for the target will be stored on a global in the target's
     // module.
-    final isLazy = !translator
-        .isMainModule(translator.moduleForReference(constant.targetReference));
+    final isLazy =
+        translator.moduleForReference(constant.targetReference) != targetModule;
     // The dummy struct must be declared before the constant global so that the
     // constant's initializer can reference it.
     final dummyStructGlobal = translator
-        .getDummyValuesCollectorForModule(translator.mainModule)
+        .getDummyValuesCollectorForModule(targetModule)
         .dummyStructGlobal;
     return createConstant(constant, type, (b) {
       ClassInfo info = translator.closureInfo;
       translator.functions.recordClassAllocation(info.classId);
 
-      b.pushObjectHeaderFields(info);
+      b.pushObjectHeaderFields(translator, info);
       translator.globals.readGlobal(b, dummyStructGlobal); // Dummy context
       translator.globals.readGlobal(b, closure.vtable);
       constants.instantiateConstant(
@@ -888,7 +900,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         constants._lowerTypeConstant(instantiatedFunctionType);
     ensureConstant(functionTypeConstant);
     ClosureImplementation tearOffClosure =
-        translator.getTearOffClosure(tearOffProcedure);
+        translator.getTearOffClosure(tearOffProcedure, targetModule);
     int positionalCount = tearOffConstant.function.positionalParameters.length;
     List<String> names =
         tearOffConstant.function.namedParameters.map((p) => p.name!).toList();
@@ -903,7 +915,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     final tearOffConstantInfo = ensureConstant(tearOffConstant)!;
 
     w.BaseFunction makeDynamicCallEntry() {
-      final function = translator.mainModule.functions.define(
+      final function = targetModule.functions.define(
           translator.dynamicCallVtableEntryFunctionType, "dynamic call entry");
 
       final b = function.body;
@@ -1022,7 +1034,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         b.struct_new(instantiationOfTearOffRepresentation.vtableStruct);
       }
 
-      b.pushObjectHeaderFields(info);
+      b.pushObjectHeaderFields(translator, info);
 
       // Context is not used by the vtable functions, but it's needed for
       // closure equality checks to work (`_Closure._equals`).
@@ -1054,7 +1066,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     StringConstant nameConstant = StringConstant(constant.name);
     bool lazy = ensureConstant(nameConstant)?.isLazy ?? false;
     return createConstant(constant, info.nonNullableType, lazy: lazy, (b) {
-      b.pushObjectHeaderFields(info);
+      b.pushObjectHeaderFields(translator, info);
       constants.instantiateConstant(b, nameConstant, stringType);
       b.struct_new(info.struct);
     });
@@ -1076,7 +1088,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     return createConstant(constant, recordClassInfo.nonNullableType, lazy: lazy,
         (b) {
-      b.pushObjectHeaderFields(recordClassInfo);
+      b.pushObjectHeaderFields(translator, recordClassInfo);
       for (Constant argument in arguments) {
         constants.instantiateConstant(
             b, argument, translator.topInfo.nullableType);

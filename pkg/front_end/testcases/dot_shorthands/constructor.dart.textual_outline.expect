@@ -1,0 +1,7 @@
+class Color {
+  final int x;
+  Color.red() : x = 1;
+  Color(this.x);
+}
+
+void main() {}

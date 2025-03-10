@@ -70,7 +70,7 @@ class DartObjectPrinter {
     _elementPrinter.writeType(type);
 
     _sink.withIndent(() {
-      _elementPrinter.writeNamedElement('element', state.element);
+      _elementPrinter.writelnNamedElement2('element', state.element);
     });
 
     _writeTypeArguments(state.typeArguments);

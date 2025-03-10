@@ -69,7 +69,15 @@ class MemberSorter {
         // sort all other members by name
         var name1 = o1.name.toLowerCase();
         var name = o2.name.toLowerCase();
-        return name1.compareTo(name);
+        var result = name1.compareTo(name);
+        if (result == 0) {
+          result = o1.name.compareTo(o2.name);
+        }
+        if (result == 0) {
+          // don't reorder then.
+          result = o1.offset - o2.offset;
+        }
+        return result;
       }
       return priority1 - priority2;
     });

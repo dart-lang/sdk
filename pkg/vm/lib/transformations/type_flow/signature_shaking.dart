@@ -101,7 +101,9 @@ class SignatureShaker {
   }
 
   void _addUseDependenciesForProcedure(
-      _ProcedureInfo info, List<_ParameterInfo> worklist) {
+    _ProcedureInfo info,
+    List<_ParameterInfo> worklist,
+  ) {
     for (_ParameterInfo param in info.positional) {
       _addUseDependenciesForParameter(param, worklist);
     }
@@ -111,7 +113,9 @@ class SignatureShaker {
   }
 
   void _addUseDependenciesForParameter(
-      _ParameterInfo param, List<_ParameterInfo> worklist) {
+    _ParameterInfo param,
+    List<_ParameterInfo> worklist,
+  ) {
     if ((param.isUsed || !param.info.eligible) &&
         param.useDependencies != null) {
       worklist.add(param);
@@ -138,12 +142,15 @@ class _ProcedureInfo {
   }
 
   bool transformNeeded(FunctionNode function) {
-    return positional.any((param) =>
-            param.canBeEliminated ||
-            (param.isAlwaysPassed &&
-                param.index! >= function.requiredParameterCount)) ||
-        named.values
-            .any((param) => param.canBeEliminated || param.isAlwaysPassed);
+    return positional.any(
+          (param) =>
+              param.canBeEliminated ||
+              (param.isAlwaysPassed &&
+                  param.index! >= function.requiredParameterCount),
+        ) ||
+        named.values.any(
+          (param) => param.canBeEliminated || param.isAlwaysPassed,
+        );
   }
 }
 
@@ -176,7 +183,10 @@ class _ParameterInfo {
       (!isUsed || (isNeverPassed || isConstant && !isChecked) && !isWritten);
 
   void observeParameter(
-      Member member, VariableDeclaration param, SignatureShaker shaker) {
+    Member member,
+    VariableDeclaration param,
+    SignatureShaker shaker,
+  ) {
     final Type? type = shaker.typeFlowAnalysis.argumentType(member, param);
 
     // A parameter is considered constant if the TFA has inferred it to have a
@@ -233,7 +243,7 @@ class _Collect extends RecursiveVisitor {
   final Set<VariableGet> useDependencies = {};
 
   _Collect(this.shaker)
-      : coreTypes = shaker.typeFlowAnalysis.environment.coreTypes;
+    : coreTypes = shaker.typeFlowAnalysis.environment.coreTypes;
 
   void enterFunction(Member member) {
     final _ProcedureInfo? info = shaker._infoForMember(member);
@@ -371,7 +381,10 @@ class _Transform extends RecursiveVisitor {
   _Transform(this.shaker);
 
   void eliminateUsedParameter(
-      Member member, _ParameterInfo param, VariableDeclaration variable) {
+    Member member,
+    _ParameterInfo param,
+    VariableDeclaration variable,
+  ) {
     Constant value;
     if (param.isConstant) {
       Type type = shaker.typeFlowAnalysis.argumentType(member, variable)!;
@@ -382,15 +395,18 @@ class _Transform extends RecursiveVisitor {
         value = NullConstant();
       }
     } else {
-      value = (variable.initializer as ConstantExpression?)?.constant ??
+      value =
+          (variable.initializer as ConstantExpression?)?.constant ??
           NullConstant();
     }
     eliminatedParams[variable] = value;
   }
 
   void transformMemberSignature(Member member) {
-    typeContext =
-        StaticTypeContext(member, shaker.typeFlowAnalysis.environment);
+    typeContext = StaticTypeContext(
+      member,
+      shaker.typeFlowAnalysis.environment,
+    );
     eliminatedParams.clear();
     unusedParams.clear();
 
@@ -427,9 +443,9 @@ class _Transform extends RecursiveVisitor {
     }
     // 2. All named parameters that are always passed and can't be eliminated,
     //    as required positional parameters, alphabetically by name.
-    final List<VariableDeclaration> sortedNamed = function.namedParameters
-        .toList()
-      ..sort((var1, var2) => var1.name!.compareTo(var2.name!));
+    final List<VariableDeclaration> sortedNamed =
+        function.namedParameters.toList()
+          ..sort((var1, var2) => var1.name!.compareTo(var2.name!));
     for (VariableDeclaration variable in sortedNamed) {
       final _ParameterInfo param = info.named[variable.name!]!;
       if (param.isAlwaysPassed) {
@@ -451,9 +467,11 @@ class _Transform extends RecursiveVisitor {
     // 3. All positional parameters that are not always passed and can't be
     //    eliminated, as positional parameters, each one required iff it was
     //    originally required.
-    for (int i = firstNotAlwaysPassed;
-        i < function.positionalParameters.length;
-        i++) {
+    for (
+      int i = firstNotAlwaysPassed;
+      i < function.positionalParameters.length;
+      i++
+    ) {
       final _ParameterInfo param = info.positional[i];
       assert(!param.isAlwaysPassed);
       final VariableDeclaration variable = function.positionalParameters[i];
@@ -503,8 +521,9 @@ class _Transform extends RecursiveVisitor {
   void visitVariableGet(VariableGet node) {
     Constant? constantValue = eliminatedParams[node.variable];
     if (constantValue != null) {
-      node.replaceWith(ConstantExpression(
-          constantValue, constantValue.getType(typeContext)));
+      node.replaceWith(
+        ConstantExpression(constantValue, constantValue.getType(typeContext)),
+      );
     }
   }
 
@@ -514,10 +533,14 @@ class _Transform extends RecursiveVisitor {
     super.visitConstructor(node);
     if (addedInitializers.isNotEmpty) {
       // Insert hoisted constructor arguments before this/super initializer.
-      assert(node.initializers.last is RedirectingInitializer ||
-          node.initializers.last is SuperInitializer);
-      node.initializers
-          .insertAll(node.initializers.length - 1, addedInitializers.reversed);
+      assert(
+        node.initializers.last is RedirectingInitializer ||
+            node.initializers.last is SuperInitializer,
+      );
+      node.initializers.insertAll(
+        node.initializers.length - 1,
+        addedInitializers.reversed,
+      );
       addedInitializers.clear();
     }
   }
@@ -534,8 +557,11 @@ class _Transform extends RecursiveVisitor {
     super.visitField(node);
   }
 
-  static void forEachArgumentRev(Arguments args, _ProcedureInfo info,
-      void Function(Expression, _ParameterInfo) fun) {
+  static void forEachArgumentRev(
+    Arguments args,
+    _ProcedureInfo info,
+    void Function(Expression, _ParameterInfo) fun,
+  ) {
     for (int i = args.named.length - 1; i >= 0; i--) {
       final NamedExpression namedExp = args.named[i];
       fun(namedExp.value, info.named[namedExp.name]!);
@@ -546,7 +572,11 @@ class _Transform extends RecursiveVisitor {
   }
 
   void transformCall(
-      Member target, TreeNode call, Expression? receiver, Arguments args) {
+    Member target,
+    TreeNode call,
+    Expression? receiver,
+    Arguments args,
+  ) {
     final _ProcedureInfo? info = shaker._infoForMember(target);
     if (info == null || !info.eligible) return;
 
@@ -574,13 +604,16 @@ class _Transform extends RecursiveVisitor {
         final Constructor constructor = call.parent as Constructor;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
           if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
-            VariableDeclaration argVar = VariableDeclaration(null,
-                initializer: arg,
-                type: arg.getStaticType(typeContext),
-                isFinal: true,
-                isSynthesized: true);
-            addedInitializers
-                .add(LocalInitializer(argVar)..parent = constructor);
+            VariableDeclaration argVar = VariableDeclaration(
+              null,
+              initializer: arg,
+              type: arg.getStaticType(typeContext),
+              isFinal: true,
+              isSynthesized: true,
+            );
+            addedInitializers.add(
+              LocalInitializer(argVar)..parent = constructor,
+            );
             hoisted[arg] = argVar;
           }
         });
@@ -589,11 +622,13 @@ class _Transform extends RecursiveVisitor {
         Expression current = call as Expression;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
           if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
-            VariableDeclaration argVar = VariableDeclaration(null,
-                initializer: arg,
-                type: arg.getStaticType(typeContext),
-                isFinal: true,
-                isSynthesized: true);
+            VariableDeclaration argVar = VariableDeclaration(
+              null,
+              initializer: arg,
+              type: arg.getStaticType(typeContext),
+              isFinal: true,
+              isSynthesized: true,
+            );
             current = Let(argVar, current);
             hoisted[arg] = argVar;
           }
@@ -601,11 +636,13 @@ class _Transform extends RecursiveVisitor {
         if (receiver != null && mayHaveOrSeeSideEffects(receiver)) {
           assert(!isUnusedParam(receiver));
           assert(receiver.parent == call);
-          final VariableDeclaration receiverVar = VariableDeclaration(null,
-              initializer: receiver,
-              type: receiver.getStaticType(typeContext),
-              isFinal: true,
-              isSynthesized: true);
+          final VariableDeclaration receiverVar = VariableDeclaration(
+            null,
+            initializer: receiver,
+            type: receiver.getStaticType(typeContext),
+            isFinal: true,
+            isSynthesized: true,
+          );
           current = Let(receiverVar, current);
           call.replaceChild(receiver, VariableGet(receiverVar));
         }
@@ -633,8 +670,9 @@ class _Transform extends RecursiveVisitor {
     }
     // 2. All named parameters that are always passed and can't be eliminated,
     //    as required positional parameters, alphabetically by name.
-    final List<NamedExpression> sortedNamed = args.named.toList()
-      ..sort((var1, var2) => var1.name.compareTo(var2.name));
+    final List<NamedExpression> sortedNamed =
+        args.named.toList()
+          ..sort((var1, var2) => var1.name.compareTo(var2.name));
     for (NamedExpression arg in sortedNamed) {
       final _ParameterInfo param = info.named[arg.name]!;
       if (param.isAlwaysPassed && !param.canBeEliminated) {

@@ -8,13 +8,9 @@
 // Unresolved symbols should be reported as an error.
 import "../library12.dart" as lib12;
 
-class Subclass
+class Subclass {}
 
-{}
-
-class Implementer
-
-{}
+class Implementer {}
 
 main() {
   new Subclass();

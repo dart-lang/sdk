@@ -4,6 +4,11 @@
 
 part of dart._js_types;
 
+extension JSArrayImplUncheckedOperations<T extends JSAny?> on JSArrayImpl {
+  @pragma("wasm:prefer-inline")
+  void setUnchecked(int index, T value) => _setUnchecked(index, value);
+}
+
 // TODO(joshualitt): Refactor indexing here and in `js_string` to elide range
 // checks for internal functions.
 class JSArrayImpl<T extends JSAny?> implements List<T> {
@@ -154,19 +159,11 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
   @override
   String join([String separator = ""]) {
     WasmExternRef? result;
-    if (separator is JSStringImpl) {
-      result = js.JS<WasmExternRef?>(
-        '(a, s) => a.join(s)',
-        toExternRef,
-        separator.toExternRef,
-      );
-    } else {
-      result = js.JS<WasmExternRef?>(
-        '(a, s) => a.join(s)',
-        toExternRef,
-        separator.toJS.toExternRef,
-      );
-    }
+    result = js.JS<WasmExternRef?>(
+      '(a, s) => a.join(s)',
+      toExternRef,
+      separator.toExternRef,
+    );
     return JSStringImpl(result);
   }
 

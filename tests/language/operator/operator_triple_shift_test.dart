@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 import "package:expect/expect.dart";
 
 class C {
@@ -19,7 +18,7 @@ class C {
   C operator >>(arg) => C("(${++ctr}:$_text>>$arg)");
   C operator <<(arg) => C("(${++ctr}:$_text<<$arg)");
   // & binds less strongly than `>>`, `>>>` and `<<`.
-  C operator &(arg) =>  C("(${++ctr}:$_text&$arg)");
+  C operator &(arg) => C("(${++ctr}:$_text&$arg)");
 
   String toString() => "${_text}";
 }
@@ -57,8 +56,10 @@ main() {
   Expect.equals("(50:(48:46>>47)>>>49)", "${C() >> C() >>> C()}");
   Expect.equals("(55:(53:51>>>52)<<54)", "${C() >>> C() << C()}");
   Expect.equals("(60:(58:56<<57)>>>59)", "${C() << C() >>> C()}");
-  Expect.equals("(67:(65:(63:61<<62)>>>64)>>66)",
-      "${C() << C() >>> C() >> C()}");
+  Expect.equals(
+    "(67:(65:(63:61<<62)>>>64)>>66)",
+    "${C() << C() >>> C() >> C()}",
+  );
 
   /// The `>>>` Symbol works.
   var literalSymbol = #>>>;

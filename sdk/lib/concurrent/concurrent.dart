@@ -19,21 +19,7 @@ abstract interface class Mutex {
 
   external factory Mutex._();
 
-  /// Acquire exclusive ownership of this mutex.
-  ///
-  /// If this mutex is already acquired then an attempt to acquire it
-  /// blocks the current thread until the mutex is released by the
-  /// current owner.
-  ///
-  /// **Warning**: attempting to hold a mutex across asynchronous suspension
-  /// points will lead to undefined behavior and potentially crashes.
-  external void _lock();
-
-  /// Release exclusive ownership of this mutex.
-  ///
-  /// It is an error to release ownership of the mutex if it was not
-  /// previously acquired.
-  external void _unlock();
+  external Object _runLocked(Object action);
 
   /// Run the given synchronous `action` under a mutex.
   ///
@@ -64,4 +50,7 @@ abstract interface class ConditionVariable {
 
   /// Wake up at least one thread waiting on this condition variable.
   external void notify();
+
+  /// Wake up all threads waiting on this condition variable.
+  external void notifyAll();
 }

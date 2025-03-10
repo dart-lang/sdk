@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:collection';
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -38,6 +36,7 @@ class LinkedElementFactory {
   final Reference rootReference;
   final Map<Uri, LibraryReader> _libraryReaders = {};
   bool isApplyingInformativeData = false;
+  final Map<Uri, LibraryManifest> libraryManifests = {};
 
   LinkedElementFactory(
     this.analysisContext,
@@ -88,7 +87,7 @@ class LinkedElementFactory {
     Uri uri,
     List<ExportedReference> exportedReferences,
   ) {
-    var exportedNames = <String, Element>{};
+    var exportedNames = <String, Element2>{};
 
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference.reference);
@@ -101,7 +100,7 @@ class LinkedElementFactory {
           '[exportedReference: $exportedReference]',
         );
       }
-      exportedNames[element.name!] = element;
+      exportedNames[element.name!] = element.asElement2!;
     }
 
     return Namespace(exportedNames);
@@ -178,9 +177,9 @@ class LinkedElementFactory {
   }
 
   // TODO(scheglov): Why would this method return `null`?
-  Element? elementOfReference(Reference reference) {
-    if (reference.element != null) {
-      return reference.element;
+  ElementImpl? elementOfReference(Reference reference) {
+    if (reference.element case var element?) {
+      return element;
     }
     if (reference.parent == null) {
       return null;
@@ -246,6 +245,7 @@ class LinkedElementFactory {
     addToLogRing('[removeLibraries][uriSet: $uriSet][${StackTrace.current}]');
     for (var uri in uriSet) {
       _libraryReaders.remove(uri);
+      libraryManifests.remove(uri);
       var libraryReference = rootReference.removeChild('$uri');
       _disposeLibrary(libraryReference?.element);
     }
@@ -295,5 +295,5 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
   }
 
-  void _disposeLibrary(Element? libraryElement) {}
+  void _disposeLibrary(ElementImpl? libraryElement) {}
 }

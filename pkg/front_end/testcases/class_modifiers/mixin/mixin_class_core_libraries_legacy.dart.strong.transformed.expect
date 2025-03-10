@@ -13,18 +13,23 @@ import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
-abstract class _A&Object&Comparable extends core::Object implements core::Comparable<core::int> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_A&Object&Comparable
-    : super core::Object::•()
-    ;
-  abstract method /* from org-dartlang-sdk:///sdk/lib/core/comparable.dart */ compareTo(covariant-by-class core::int other) → core::int;
-}
 class A extends self::_A&Object&Comparable {
   synthetic constructor •() → self::A
     : super self::_A&Object&Comparable::•()
     ;
   method compareTo(covariant-by-class core::int x) → core::int
     return 0;
+}
+class B extends self::_B&Object&Error {
+  synthetic constructor •() → self::B
+    : super self::_B&Object&Error::•()
+    ;
+}
+abstract class _A&Object&Comparable extends core::Object implements core::Comparable<core::int> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A&Object&Comparable
+    : super core::Object::•()
+    ;
+  abstract method /* from org-dartlang-sdk:///sdk/lib/core/comparable.dart */ compareTo(covariant-by-class core::int other) → core::int;
 }
 abstract class _B&Object&Error extends core::Object implements core::Error /*isAnonymousMixin,isEliminatedMixin*/  {
   @#C3
@@ -35,11 +40,6 @@ abstract class _B&Object&Error extends core::Object implements core::Error /*isA
   @#C4
   get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */ stackTrace() → core::StackTrace?
     return this.{core::Error::_stackTrace}{core::StackTrace?};
-}
-class B extends self::_B&Object&Error {
-  synthetic constructor •() → self::B
-    : super self::_B&Object&Error::•()
-    ;
 }
 
 constants  {

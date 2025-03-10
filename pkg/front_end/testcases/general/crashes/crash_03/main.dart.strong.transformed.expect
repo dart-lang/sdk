@@ -29,10 +29,12 @@ class Offset extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class _PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin extends mai::RenderBox implements self::_PlatformViewGestureMixin /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin
-    : super mai::RenderBox::•()
+class PlatformViewRenderBox extends self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin {
+  synthetic constructor •() → self::PlatformViewRenderBox
+    : super self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin::•()
     ;
+}
+abstract class _PlatformViewGestureMixin extends mai::RenderBox /*isMixinDeclaration*/  {
   method hitTestSelf(self::Offset position) → core::bool
     return !(invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:9:7: Error: The getter '_hitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
  - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.
@@ -44,12 +46,10 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}.PlatformViewHitTestBehavior{dynamic}.transparent);
 }
-class PlatformViewRenderBox extends self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin {
-  synthetic constructor •() → self::PlatformViewRenderBox
-    : super self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin::•()
+abstract class _PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin extends mai::RenderBox implements self::_PlatformViewGestureMixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin
+    : super mai::RenderBox::•()
     ;
-}
-abstract class _PlatformViewGestureMixin extends mai::RenderBox /*isMixinDeclaration*/  {
   method hitTestSelf(self::Offset position) → core::bool
     return !(invalid-expression "pkg/front_end/testcases/general/crashes/crash_03/main.dart:9:7: Error: The getter '_hitTestBehavior' isn't defined for the class '_PlatformViewGestureMixin'.
  - '_PlatformViewGestureMixin' is from 'pkg/front_end/testcases/general/crashes/crash_03/main.dart'.

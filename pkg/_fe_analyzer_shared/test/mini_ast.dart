@@ -1573,7 +1573,6 @@ class Harness {
   late final typeAnalyzer = _MiniAstTypeAnalyzer(
       this,
       TypeAnalyzerOptions(
-          nullSafetyEnabled: !operations.legacy,
           patternsEnabled: patternsEnabled,
           inferenceUpdate3Enabled: inferenceUpdate3Enabled));
 
@@ -1586,15 +1585,13 @@ class Harness {
 
   bool _fieldPromotionEnabled = true;
 
-  bool get inferenceUpdate3Enabled =>
-      _inferenceUpdate3Enabled ?? !operations.legacy;
+  bool get inferenceUpdate3Enabled => _inferenceUpdate3Enabled ?? true;
 
-  bool get inferenceUpdate4Enabled =>
-      _inferenceUpdate4Enabled ?? !operations.legacy;
+  bool get inferenceUpdate4Enabled => _inferenceUpdate4Enabled ?? true;
 
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
-  bool get patternsEnabled => _patternsEnabled ?? !operations.legacy;
+  bool get patternsEnabled => _patternsEnabled ?? true;
 
   set thisType(String type) {
     assert(!_started);
@@ -1691,11 +1688,6 @@ class Harness {
     _respectImplicitlyTypedVarInitializers = false;
   }
 
-  void enableLegacy() {
-    assert(!_started);
-    operations.legacy = true;
-  }
-
   /// Attempts to look up a member named [memberName] in the given [type].  If
   /// a member is found, returns its [_PropertyElement] object; otherwise `null`
   /// is returned.
@@ -1762,23 +1754,17 @@ class Harness {
       {bool errorRecoveryOK = false, Set<String> expectedErrors = const {}}) {
     try {
       _started = true;
-      if (operations.legacy && patternsEnabled) {
-        fail('Patterns cannot be enabled in legacy mode');
-      }
       var visitor = PreVisitor(typeAnalyzer.errors);
       var b = Block._(statements, location: computeLocation());
       b.preVisit(visitor);
-      flow = operations.legacy
-          ? FlowAnalysis<Node, Statement, Expression, Var,
-              SharedTypeView>.legacy(operations, visitor._assignedVariables)
-          : FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView>(
-              operations,
-              visitor._assignedVariables,
-              respectImplicitlyTypedVarInitializers:
-                  _respectImplicitlyTypedVarInitializers,
-              fieldPromotionEnabled: _fieldPromotionEnabled,
-              inferenceUpdate4Enabled: inferenceUpdate4Enabled,
-            );
+      flow = FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView>(
+        operations,
+        visitor._assignedVariables,
+        respectImplicitlyTypedVarInitializers:
+            _respectImplicitlyTypedVarInitializers,
+        fieldPromotionEnabled: _fieldPromotionEnabled,
+        inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+      );
       typeAnalyzer.dispatchStatement(b);
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
@@ -2658,8 +2644,6 @@ class MiniAstOperations
   @override
   late final SharedTypeView doubleType = SharedTypeView(Type('double'));
 
-  bool? _legacy;
-
   final Map<String, bool> _exhaustiveness = Map.of(_coreExhaustiveness);
 
   final Map<String, Type> _extensionTypeErasure = {};
@@ -2687,12 +2671,6 @@ class MiniAstOperations
 
   @override
   SharedTypeView get errorType => SharedTypeView(InvalidType.instance);
-
-  bool get legacy => _legacy ?? false;
-
-  set legacy(bool value) {
-    _legacy = value;
-  }
 
   @override
   SharedTypeView get neverType => SharedTypeView(NeverType.instance);
@@ -2827,11 +2805,6 @@ class MiniAstOperations
 
   @override
   bool isAssignableTo(SharedTypeView fromType, SharedTypeView toType) {
-    if (legacy &&
-        isSubtypeOfInternal(
-            toType.unwrapTypeView<Type>(), fromType.unwrapTypeView<Type>())) {
-      return true;
-    }
     if (fromType is DynamicType) return true;
     if (fromType is InvalidType) return true;
     return isSubtypeOfInternal(
@@ -5152,14 +5125,12 @@ class _MiniAstErrors
       {required Expression scrutinee,
       required Expression caseExpression,
       required SharedTypeView scrutineeType,
-      required SharedTypeView caseExpressionType,
-      required bool nullSafetyEnabled}) {
+      required SharedTypeView caseExpressionType}) {
     _recordError('caseExpressionTypeMismatch', {
       'scrutinee': scrutinee,
       'caseExpression': caseExpression,
       'scrutineeType': scrutineeType,
       'caseExpressionType': caseExpressionType,
-      'nullSafetyEnabled': nullSafetyEnabled,
     });
   }
 

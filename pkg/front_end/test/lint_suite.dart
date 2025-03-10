@@ -170,7 +170,8 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
 
     Parser parser = new Parser(description.listener,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: true);
+        allowPatterns: true,
+        enableFeatureEnhancedParts: true);
     parser.parseUnit(description.cache.firstToken!);
 
     if (description.listener.problems.isEmpty) {

@@ -19,14 +19,18 @@ class FlowGraph {
   final Renamer rename;
   final List<dynamic>? codegenBlockOrder;
 
-  FlowGraph(this._blocks, Map<String, dynamic> desc, this.flags,
-      {required this.rename, List<dynamic>? codegenBlockOrder})
-      : descriptors = {
-          for (var e in desc.entries)
-            e.key: InstructionDescriptor.fromJson(e.value)
-        },
-        codegenBlockOrder =
-            codegenBlockOrder?.map((idx) => _blocks[idx as int]).toList();
+  FlowGraph(
+    this._blocks,
+    Map<String, dynamic> desc,
+    this.flags, {
+    required this.rename,
+    List<dynamic>? codegenBlockOrder,
+  }) : descriptors = {
+         for (var e in desc.entries)
+           e.key: InstructionDescriptor.fromJson(e.value),
+       },
+       codegenBlockOrder =
+           codegenBlockOrder?.map((idx) => _blocks[idx as int]).toList();
 
   PrettyPrinter get printer => PrettyPrinter(descriptors);
 
@@ -91,8 +95,8 @@ class InstructionDescriptor {
   InstructionDescriptor.fromJson(List attrs) : this._(attrs.cast<String>());
 
   InstructionDescriptor._(List<String> attrs)
-      : attributes = attrs,
-        attributeIndex = {for (var i = 0; i < attrs.length; i++) attrs[i]: i};
+    : attributes = attrs,
+      attributeIndex = {for (var i = 0; i < attrs.length; i++) attrs[i]: i};
 }
 
 /// Matching environment.
@@ -136,7 +140,10 @@ class PrettyPrinter {
   PrettyPrinter(this.descriptors);
 
   void _formatAttributes(
-      StringBuffer buffer, Map<String, int> attributeIndex, List attributes) {
+    StringBuffer buffer,
+    Map<String, int> attributeIndex,
+    List attributes,
+  ) {
     bool addSeparator = false;
     for (final e in attributeIndex.entries) {
       final value = attributes[e.value];
@@ -330,7 +337,9 @@ class _BoundElementMatcher extends _BoundMatcher<ElementMatcher>
 
   @override
   ElementMatcher copyWith({bool? skipUntilMatched}) => _BoundElementMatcher(
-      this.name, nested.copyWith(skipUntilMatched: skipUntilMatched));
+    this.name,
+    nested.copyWith(skipUntilMatched: skipUntilMatched),
+  );
 }
 
 /// Matcher which matches a specified value [v].
@@ -394,7 +403,8 @@ class _RefMatcher implements Matcher {
       return e.nameToId[name] == v
           ? MatchStatus.matched
           : MatchStatus.fail(
-              'expected $name to bind to ${e.nameToId[name]} but got $v');
+            'expected $name to bind to ${e.nameToId[name]} but got $v',
+          );
     }
 
     if (!binding) {
@@ -426,15 +436,17 @@ class _ListMatcher implements Matcher {
 
     if (expected.length > got.length) {
       return MatchStatus.fail(
-          'expected at least ${expected.length} elements got ${got.length}');
+        'expected at least ${expected.length} elements got ${got.length}',
+      );
     }
 
     for (var i = 0; i < expected.length; i++) {
       final result = expected[i].match(e, got[i]);
       if (result.isFail) {
         return MatchStatus.fail(
-            'mismatch at index ${i}, expected ${expected[i]} '
-            'got ${got[i]}: ${result.message}');
+          'mismatch at index ${i}, expected ${expected[i]} '
+          'got ${got[i]}: ${result.message}',
+        );
       }
     }
 
@@ -443,7 +455,8 @@ class _ListMatcher implements Matcher {
     }
 
     return MatchStatus.fail(
-        'expected exactly ${expected.length} elements got ${got.length}');
+      'expected exactly ${expected.length} elements got ${got.length}',
+    );
   }
 
   @override
@@ -467,8 +480,9 @@ class _BlockMatcher implements Matcher {
   MatchStatus match(Env e, covariant Map<String, dynamic> block) {
     if (block['o'] != '${kind}Entry') {
       return MatchStatus.fail(
-          'Expected block of kind ${kind} got ${block['o']} '
-          'when matching B${block['b']}');
+        'Expected block of kind ${kind} got ${block['o']} '
+        'when matching B${block['b']}',
+      );
     }
 
     final gotBody = [...?block['d'], ...?block['is']];
@@ -480,14 +494,18 @@ class _BlockMatcher implements Matcher {
       if (result.isMatch) {
         matcherIndex++;
       } else if (!matcher.skipUntilMatched) {
-        return MatchStatus.fail('Unmatched instruction: ${body[matcherIndex]} '
-            'in block B${block['b']}: '
-            'got ${PrettyPrinter.instructionToString(e, gotBody[i])}');
+        return MatchStatus.fail(
+          'Unmatched instruction: ${body[matcherIndex]} '
+          'in block B${block['b']}: '
+          'got ${PrettyPrinter.instructionToString(e, gotBody[i])}',
+        );
       }
     }
     if (matcherIndex != body.length) {
-      return MatchStatus.fail('Unmatched instruction: ${body[matcherIndex]} '
-          'in block B${block['b']}');
+      return MatchStatus.fail(
+        'Unmatched instruction: ${body[matcherIndex]} '
+        'in block B${block['b']}',
+      );
     }
     return MatchStatus.matched;
   }
@@ -501,18 +519,22 @@ class _TryBlockMatcher implements Matcher {
   @override
   MatchStatus match(Env e, covariant Map<String, dynamic> block) {
     if (block['o'] != 'TryEntry') {
-      return MatchStatus.fail('Expected TryEntry block, got ${block['o']} '
-          'when matching B${block['b']}');
+      return MatchStatus.fail(
+        'Expected TryEntry block, got ${block['o']} '
+        'when matching B${block['b']}',
+      );
     }
     if (tryBody != null && "B${block['tryBody']}" != tryBody) {
       return MatchStatus.fail(
-          'Expected tryBody block $tryBody , got B${block['tryBody']} '
-          'when matching B${block['b']}');
+        'Expected tryBody block $tryBody , got B${block['tryBody']} '
+        'when matching B${block['b']}',
+      );
     }
     if (catches != null && "B${block['catches']}" != catches) {
       return MatchStatus.fail(
-          'Expected catches block $catches , got B${block['catches']} '
-          'when matching B${block['b']}');
+        'Expected catches block $catches , got B${block['catches']} '
+        'when matching B${block['b']}',
+      );
     }
     return MatchStatus.matched;
   }
@@ -531,9 +553,11 @@ class _AttributesMatcher implements Matcher {
 
   @override
   MatchStatus match(Env e, dynamic v) {
-    impl ??= _ListMatcher(e.descriptors[op]!.attributes
-        .map((name) => matchers[name] ?? const _AnyMatcher())
-        .toList());
+    impl ??= _ListMatcher(
+      e.descriptors[op]!.attributes
+          .map((name) => matchers[name] ?? const _AnyMatcher())
+          .toList(),
+    );
     return impl!.match(e, v);
   }
 
@@ -550,19 +574,19 @@ class InstructionMatcher implements ElementMatcher {
   final Map<String, Matcher> matchers;
   final bool skipUntilMatched;
 
-  InstructionMatcher(
-      {required String op,
-      List<Matcher>? data,
-      List<Matcher>? inputs,
-      required bool skipUntilMatched})
-      : this._(
-          op: op,
-          matchers: {
-            if (data != null) 'd': _ListMatcher(data),
-            if (inputs != null) 'i': _ListMatcher(inputs),
-          },
-          skipUntilMatched: skipUntilMatched,
-        );
+  InstructionMatcher({
+    required String op,
+    List<Matcher>? data,
+    List<Matcher>? inputs,
+    required bool skipUntilMatched,
+  }) : this._(
+         op: op,
+         matchers: {
+           if (data != null) 'd': _ListMatcher(data),
+           if (inputs != null) 'i': _ListMatcher(inputs),
+         },
+         skipUntilMatched: skipUntilMatched,
+       );
 
   InstructionMatcher._({
     required this.op,
@@ -571,9 +595,10 @@ class InstructionMatcher implements ElementMatcher {
   });
 
   InstructionMatcher copyWith({bool? skipUntilMatched}) => InstructionMatcher._(
-      op: this.op,
-      matchers: this.matchers,
-      skipUntilMatched: skipUntilMatched ?? this.skipUntilMatched);
+    op: this.op,
+    matchers: this.matchers,
+    skipUntilMatched: skipUntilMatched ?? this.skipUntilMatched,
+  );
 
   @override
   MatchStatus match(Env e, covariant Map<String, dynamic> instr) {
@@ -603,29 +628,35 @@ class _CompileTypeMatcher implements Matcher {
   final bool canBeSentinel;
   final bool canBeNull;
 
-  _CompileTypeMatcher(
-      {this.concreteClass,
-      this.type,
-      required this.canBeSentinel,
-      required this.canBeNull});
+  _CompileTypeMatcher({
+    this.concreteClass,
+    this.type,
+    required this.canBeSentinel,
+    required this.canBeNull,
+  });
 
   static final typenamePattern = RegExp(r'(\w+)(?:<(.*)>)?$');
 
   static ({String className, List<String> typeArgs}) splitTypeName(
-      String typeName) {
+    String typeName,
+  ) {
     final m = typenamePattern.firstMatch(typeName);
     if (m == null) {
       throw ArgumentError.value(typeName, 'typeName', 'Failed to parse type');
     }
     return (
       className: m[1]!,
-      typeArgs: m[2]?.split(',').map((v) => v.trim()).toList(growable: false) ??
-          const []
+      typeArgs:
+          m[2]?.split(',').map((v) => v.trim()).toList(growable: false) ??
+          const [],
     );
   }
 
-  static bool compareTypeNames(Env e,
-      {required String got, required String expected}) {
+  static bool compareTypeNames(
+    Env e, {
+    required String got,
+    required String expected,
+  }) {
     if (got == expected) {
       return true;
     }
@@ -644,8 +675,11 @@ class _CompileTypeMatcher implements Matcher {
     }
 
     for (var i = 0; i < gotType.typeArgs.length; i++) {
-      if (!compareTypeNames(e,
-          got: gotType.typeArgs[i], expected: expectedType.typeArgs[i])) {
+      if (!compareTypeNames(
+        e,
+        got: gotType.typeArgs[i],
+        expected: expectedType.typeArgs[i],
+      )) {
         return false;
       }
     }
@@ -656,28 +690,35 @@ class _CompileTypeMatcher implements Matcher {
   @override
   MatchStatus match(Env e, covariant Map<String, dynamic> compileType) {
     if (concreteClass != null &&
-        !compareTypeNames(e,
-            got: compileType['c']!, expected: concreteClass!)) {
+        !compareTypeNames(
+          e,
+          got: compileType['c']!,
+          expected: concreteClass!,
+        )) {
       return MatchStatus.fail(
-          'expected concrete class to be $concreteClass but got ${compileType['c']}');
+        'expected concrete class to be $concreteClass but got ${compileType['c']}',
+      );
     }
 
     if (type != null &&
         !compareTypeNames(e, got: compileType['t']!, expected: type!)) {
       return MatchStatus.fail(
-          'expected type to be $type but got ${compileType['t']}');
+        'expected type to be $type but got ${compileType['t']}',
+      );
     }
 
     final gotCanBeSentinel = compileType['s'] == true;
     if (canBeSentinel != gotCanBeSentinel) {
       return MatchStatus.fail(
-          'expected canBeSentinel to be $canBeSentinel but got $gotCanBeSentinel');
+        'expected canBeSentinel to be $canBeSentinel but got $gotCanBeSentinel',
+      );
     }
 
     final gotCanBeNull = compileType['n'] == true;
     if (canBeNull != gotCanBeNull) {
       return MatchStatus.fail(
-          'expected canBeNull to be $canBeNull but got $gotCanBeNull');
+        'expected canBeNull to be $canBeNull but got $gotCanBeNull',
+      );
     }
 
     return MatchStatus.matched;
@@ -717,44 +758,45 @@ class Matchers {
       InstructionMatcher._(
         op: 'Goto',
         matchers: {
-          's': _ListMatcher([_blockRef(dest)])
+          's': _ListMatcher([_blockRef(dest)]),
         },
         skipUntilMatched: skipUntilMatched,
       );
 
   // ignore: non_constant_identifier_names
-  InstructionMatcher Branch(Matcher compare,
-          {String? ifTrue, String? ifFalse, bool skipUntilMatched = true}) =>
-      InstructionMatcher._(
-        op: 'Branch',
-        matchers: {
-          'cc': compare,
-          's': _ListMatcher([
-            ifTrue != null ? _blockRef(ifTrue) : any,
-            ifFalse != null ? _blockRef(ifFalse) : any,
-          ])
-        },
-        skipUntilMatched: skipUntilMatched,
-      );
+  InstructionMatcher Branch(
+    Matcher compare, {
+    String? ifTrue,
+    String? ifFalse,
+    bool skipUntilMatched = true,
+  }) => InstructionMatcher._(
+    op: 'Branch',
+    matchers: {
+      'cc': compare,
+      's': _ListMatcher([
+        ifTrue != null ? _blockRef(ifTrue) : any,
+        ifFalse != null ? _blockRef(ifFalse) : any,
+      ]),
+    },
+    skipUntilMatched: skipUntilMatched,
+  );
 
   // ignore: non_constant_identifier_names
-  Matcher CompileType(
-          {String? concreteClass,
-          String? type,
-          bool canBeNull = false,
-          bool canBeSentinel = false}) =>
-      _CompileTypeMatcher(
-          concreteClass: concreteClass,
-          type: type,
-          canBeSentinel: canBeSentinel,
-          canBeNull: canBeNull);
+  Matcher CompileType({
+    String? concreteClass,
+    String? type,
+    bool canBeNull = false,
+    bool canBeSentinel = false,
+  }) => _CompileTypeMatcher(
+    concreteClass: concreteClass,
+    type: type,
+    canBeSentinel: canBeSentinel,
+    canBeNull: canBeNull,
+  );
 
   @override
   Object? noSuchMethod(Invocation invocation) {
-    const specialAttrs = {
-      #T,
-      #skipUntilMatched,
-    };
+    const specialAttrs = {#T, #skipUntilMatched};
 
     final data = {
       for (var e in invocation.namedArguments.entries)
@@ -763,12 +805,14 @@ class Matchers {
     };
     final op = getName(invocation.memberName);
     final binding = op == 'Phi'; // Allow Phis to have undeclared arguments.
-    final inputs = invocation.positionalArguments
-        .map((v) => Matchers._toInputMatcher(v, binding: binding))
-        .toList();
-    final compileTimeMatcher = invocation.namedArguments.containsKey(#T)
-        ? invocation.namedArguments[#T] as _CompileTypeMatcher
-        : null;
+    final inputs =
+        invocation.positionalArguments
+            .map((v) => Matchers._toInputMatcher(v, binding: binding))
+            .toList();
+    final compileTimeMatcher =
+        invocation.namedArguments.containsKey(#T)
+            ? invocation.namedArguments[#T] as _CompileTypeMatcher
+            : null;
     final skipUntilMatched =
         invocation.namedArguments.containsKey(#skipUntilMatched)
             ? invocation.namedArguments[#skipUntilMatched] as bool
@@ -801,7 +845,10 @@ class Matchers {
       return _RefMatcher(v, binding: binding);
     } else {
       throw ArgumentError.value(
-          v, 'v', 'Expected either a Matcher or a String (binding name)');
+        v,
+        'v',
+        'Expected either a Matcher or a String (binding name)',
+      );
     }
   }
 }
@@ -812,9 +859,9 @@ extension NoWildcards on List<dynamic> {
   /// Creates a copy of the list of [ElementMatchers] with
   /// [ElementMatcher.skipUtilMatched] set to `false`.
   List<ElementMatcher> get withoutWildcards {
-    return List<ElementMatcher>.from(this)
-        .map((m) => m.copyWith(skipUntilMatched: false))
-        .toList(growable: false);
+    return List<ElementMatcher>.from(
+      this,
+    ).map((m) => m.copyWith(skipUntilMatched: false)).toList(growable: false);
   }
 }
 
@@ -837,46 +884,49 @@ late String Function(Symbol) getName;
 
 const testRunnerKey = 'test_runner.configuration';
 
-final bool isSimulator = (() {
-  if (bool.hasEnvironment(testRunnerKey)) {
-    const config = String.fromEnvironment(testRunnerKey);
-    return config.contains('-sim');
-  }
-  final runtimeConfiguration = Platform.environment['DART_CONFIGURATION'];
-  if (runtimeConfiguration == null) {
-    throw 'Expected DART_CONFIGURATION to be defined';
-  }
-  return runtimeConfiguration.contains('SIM');
-})();
+final bool isSimulator =
+    (() {
+      if (bool.hasEnvironment(testRunnerKey)) {
+        const config = String.fromEnvironment(testRunnerKey);
+        return config.contains('-sim');
+      }
+      final runtimeConfiguration = Platform.environment['DART_CONFIGURATION'];
+      if (runtimeConfiguration == null) {
+        throw 'Expected DART_CONFIGURATION to be defined';
+      }
+      return runtimeConfiguration.contains('SIM');
+    })();
 
-final bool is32BitConfiguration = (() {
-  if (bool.hasEnvironment(testRunnerKey)) {
-    const config = String.fromEnvironment(testRunnerKey);
-    // No IA32 as AOT mode is unsupported there.
-    return config.endsWith('arm') ||
-        config.endsWith('arm_x64') ||
-        config.endsWith('riscv32');
-  }
-  final runtimeConfiguration = Platform.environment['DART_CONFIGURATION'];
-  if (runtimeConfiguration == null) {
-    throw 'Expected DART_CONFIGURATION to be defined';
-  }
-  // No IA32 as AOT mode is unsupported there.
-  return runtimeConfiguration.endsWith('ARM') ||
-      runtimeConfiguration.endsWith('ARM_X64') ||
-      runtimeConfiguration.endsWith('RISCV32');
-})();
+final bool is32BitConfiguration =
+    (() {
+      if (bool.hasEnvironment(testRunnerKey)) {
+        const config = String.fromEnvironment(testRunnerKey);
+        // No IA32 as AOT mode is unsupported there.
+        return config.endsWith('arm') ||
+            config.endsWith('arm_x64') ||
+            config.endsWith('riscv32');
+      }
+      final runtimeConfiguration = Platform.environment['DART_CONFIGURATION'];
+      if (runtimeConfiguration == null) {
+        throw 'Expected DART_CONFIGURATION to be defined';
+      }
+      // No IA32 as AOT mode is unsupported there.
+      return runtimeConfiguration.endsWith('ARM') ||
+          runtimeConfiguration.endsWith('ARM_X64') ||
+          runtimeConfiguration.endsWith('RISCV32');
+    })();
 
-final String _config = (() {
-  if (bool.hasEnvironment(testRunnerKey)) {
-    return const String.fromEnvironment(testRunnerKey);
-  } else if (Platform.environment['DART_CONFIGURATION']
-      case final runtimeConfiguration?) {
-    return runtimeConfiguration.toLowerCase();
-  } else {
-    throw 'Expected either $testRunnerKey or DART_CONFIGURATION to be defined';
-  }
-})();
+final String _config =
+    (() {
+      if (bool.hasEnvironment(testRunnerKey)) {
+        return const String.fromEnvironment(testRunnerKey);
+      } else if (Platform.environment['DART_CONFIGURATION']
+          case final runtimeConfiguration?) {
+        return runtimeConfiguration.toLowerCase();
+      } else {
+        throw 'Expected either $testRunnerKey or DART_CONFIGURATION to be defined';
+      }
+    })();
 
 final bool isArm64 = _config.endsWith('arm64');
 final bool isX64 = _config.endsWith('x64') && !_config.endsWith('arm_x64');

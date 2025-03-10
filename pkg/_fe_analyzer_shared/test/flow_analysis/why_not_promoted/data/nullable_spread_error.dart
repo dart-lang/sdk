@@ -16,56 +16,63 @@ class C {
 list_from_list_question(C c) {
   if (c.listQuestion == null) return;
   return [
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.listQuestion, type: List<int>?))*/ listQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.listQuestion))*/ listQuestion,
   ];
 }
 
 list_from_set_question(C c) {
   if (c.setQuestion == null) return;
   return [
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.setQuestion, type: Set<int>?))*/ setQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.setQuestion))*/ setQuestion,
   ];
 }
 
 list_from_map_question(C c) {
   if (c.mapQuestion == null) return;
   return [
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.mapQuestion, type: Map<int, int>?))*/ mapQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.mapQuestion))*/ mapQuestion,
   ];
 }
 
 list_from_object_question(C c) {
   if (c.objectQuestion is! List<int>) return;
   return [
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion, type: Object?))*/ objectQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion))*/ objectQuestion,
   ];
 }
 
 set_from_list_question(C c) {
   if (c.listQuestion == null) return;
   return {
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.listQuestion, type: List<int>?))*/ listQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.listQuestion))*/ listQuestion,
   };
 }
 
 set_from_set_question(C c) {
   if (c.setQuestion == null) return;
   return {
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.setQuestion, type: Set<int>?))*/ setQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.setQuestion))*/ setQuestion,
   };
 }
 
 set_from_map_question(C c) {
   if (c.mapQuestion == null) return;
   return {
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.mapQuestion, type: Map<int, int>?))*/ mapQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.mapQuestion))*/ mapQuestion,
   };
 }
 
@@ -73,8 +80,9 @@ set_from_object_question_type_disambiguate_by_entry(C c) {
   if (c.objectQuestion is! Set<int>) return;
   return {
     null,
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion, type: Object?))*/ objectQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion))*/ objectQuestion,
   };
 }
 
@@ -82,40 +90,45 @@ set_from_object_question_type_disambiguate_by_previous_spread(C c) {
   if (c.objectQuestion is! Set<int>) return;
   return {
     ...<int>{},
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion, type: Object?))*/ objectQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion))*/ objectQuestion,
   };
 }
 
 set_from_object_question_type_disambiguate_by_literal_args(C c) {
   if (c.objectQuestion is! Set<int>) return;
   return <int>{
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion, type: Object?))*/ objectQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion))*/ objectQuestion,
   };
 }
 
 map_from_list_question(C c) {
   if (c.listQuestion == null) return;
   return {
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.listQuestion, type: List<int>?))*/ listQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.listQuestion))*/ listQuestion,
   };
 }
 
 map_from_set_question(C c) {
   if (c.setQuestion == null) return;
   return {
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.setQuestion, type: Set<int>?))*/ setQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.setQuestion))*/ setQuestion,
   };
 }
 
 map_from_map_question(C c) {
   if (c.mapQuestion == null) return;
   return {
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.mapQuestion, type: Map<int, int>?))*/ mapQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.mapQuestion))*/ mapQuestion,
   };
 }
 
@@ -123,8 +136,9 @@ map_from_object_question_type_disambiguate_by_key_value_pair(C c) {
   if (c.objectQuestion is! Map<int, int>) return;
   return {
     null: null,
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion, type: Object?))*/ objectQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion))*/ objectQuestion,
   };
 }
 
@@ -132,8 +146,9 @@ map_from_object_question_type_disambiguate_by_previous_spread(C c) {
   if (c.objectQuestion is! Map<int, int>) return;
   return {
     ...<int, int>{},
-    ...c.
-        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion, type: Object?))*/ objectQuestion
+    ...c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.objectQuestion))*/ objectQuestion,
   };
 }
 
@@ -144,7 +159,8 @@ map_from_set_question_type_disambiguate_by_literal_args(C c) {
   // the other.
   if (c.setQuestion == null) return;
   return <int, int>{
-    ...c.
-        /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.setQuestion, type: Set<int>?))*/ setQuestion
+    ...c
+        .
+        /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.setQuestion))*/ setQuestion,
   };
 }

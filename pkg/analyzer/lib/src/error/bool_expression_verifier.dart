@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -20,7 +19,7 @@ class BoolExpressionVerifier {
   final ErrorReporter _errorReporter;
   final NullableDereferenceVerifier _nullableDereferenceVerifier;
 
-  final InterfaceType _boolType;
+  final InterfaceTypeImpl _boolType;
 
   BoolExpressionVerifier({
     required ResolverVisitor resolver,

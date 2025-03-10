@@ -45,16 +45,19 @@ class InstanceRecorder {
     final existingInstance = _getCall(constant.classNode);
 
     // Collect the (int, bool, double, or String) arguments passed in the call.
-    existingInstance.references
-        .add(_createInstanceReference(expression, constant));
+    existingInstance.references.add(
+      _createInstanceReference(expression, constant),
+    );
   }
 
   /// Collect the name and definition location of the invocation. This is
   /// shared across multiple calls to the same method.
   Usage<InstanceReference> _getCall(ast.Class cls) {
     final definition = _definitionFromClass(cls);
-    return _instancesForClass[cls] ??=
-        Usage(definition: definition, references: []);
+    return _instancesForClass[cls] ??= Usage(
+      definition: definition,
+      references: [],
+    );
   }
 
   Definition _definitionFromClass(ast.Class cls) {
@@ -72,20 +75,17 @@ class InstanceRecorder {
   InstanceReference _createInstanceReference(
     ast.ConstantExpression expression,
     ast.InstanceConstant constant,
-  ) =>
-      InstanceReference(
-        location: expression.location!.recordLocation(_source),
-        instanceConstant: _fieldsFromConstant(constant),
-        loadingUnit: loadingUnitForNode(expression, _loadingUnits).toString(),
-      );
+  ) => InstanceReference(
+    location: expression.location!.recordLocation(_source),
+    instanceConstant: _fieldsFromConstant(constant),
+    loadingUnit: loadingUnitForNode(expression, _loadingUnits).toString(),
+  );
 
   InstanceConstant _fieldsFromConstant(ast.InstanceConstant constant) =>
       InstanceConstant(
         fields: constant.fieldValues.map(
-          (key, value) => MapEntry(
-            key.asField.name.text,
-            evaluateConstant(value),
-          ),
+          (key, value) =>
+              MapEntry(key.asField.name.text, evaluateConstant(value)),
         ),
       );
 }

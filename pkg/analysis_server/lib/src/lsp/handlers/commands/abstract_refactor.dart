@@ -126,7 +126,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
 
       case RefactoringKind.CONVERT_GETTER_TO_METHOD:
         var node = NodeLocator(offset).searchWithin(result.unit);
-        var element = server.getElementOfNode2(node);
+        var element = server.getElementOfNode(node);
         if (element is GetterElement) {
           var refactor = ConvertGetterToMethodRefactoring(
             server.refactoringWorkspace,
@@ -142,7 +142,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
 
       case RefactoringKind.CONVERT_METHOD_TO_GETTER:
         var node = NodeLocator(offset).searchWithin(result.unit);
-        var element = server.getElementOfNode2(node);
+        var element = server.getElementOfNode(node);
         if (element is ExecutableElement2) {
           var refactor = ConvertMethodToGetterRefactoring(
             server.refactoringWorkspace,

@@ -7,9 +7,7 @@
 import "package:expect/expect.dart";
 
 class Indexed {
-  Indexed()
-      : _f = new List<dynamic>.filled(10, null),
-        count = 0 {
+  Indexed() : _f = new List<dynamic>.filled(10, null), count = 0 {
     _f[0] = 100;
     _f[1] = 200;
   }

@@ -183,8 +183,7 @@ class JSFunction extends Interceptor {
     );
   }
 
-  // TODO(nshahan): We can remove these if we canonicalize all tearoffs and no
-  // longer support weak null safety "same type" equality.
+  // TODO(nshahan): We can remove these if we canonicalize all tearoffs.
   operator ==(other) {
     // Basic function values (no generics, no bound instances) are represented
     // as the original functions so reference equality is sufficient.
@@ -204,32 +203,9 @@ class JSFunction extends Interceptor {
       // Generic instantiation was present.
       var typeArgs = JS('!', '#._typeArgs', this);
       var otherTypeArgs = JS('', '#._typeArgs', other);
-      // Test if all instantiated type arguments are equal.
-      if (JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-        // The list has been canonicalized on creation so reference equality
-        // is sufficient.
-        if (JS<bool>('!', '# !== #', typeArgs, otherTypeArgs)) return false;
-      } else {
-        // In weak null safety all types arguments must be compared in a way
-        // that is agnostic to legacy.
-        var typeArgCount = JS<int>('!', '#.length', typeArgs);
-        if (JS<bool>('!', '!#', otherTypeArgs) ||
-            typeArgCount != JS('', '#.length', otherTypeArgs)) {
-          return false;
-        }
-        for (var i = 0; i < typeArgCount; i++) {
-          var typeArg = JS<rti.Rti>('!', '#[#]', typeArgs, i);
-          var otherTypeArg = JS<rti.Rti>('!', '#[#]', otherTypeArgs, i);
-          if (JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-            if (typeArg != otherTypeArg) return false;
-          } else {
-            if (rti.Rti.getLegacyErasedRecipe(typeArg) !=
-                rti.Rti.getLegacyErasedRecipe(otherTypeArg)) {
-              return false;
-            }
-          }
-        }
-      }
+      // Test if all instantiated type arguments are equal. The list has been
+      // canonicalized on creation so reference equality is sufficient.
+      if (JS<bool>('!', '# !== #', typeArgs, otherTypeArgs)) return false;
       boundObj = JS('', '#._boundObject', originalFn);
       otherFn = JS('', '#._originalFn', other);
       if (boundObj == null) {

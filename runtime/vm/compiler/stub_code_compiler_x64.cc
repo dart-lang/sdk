@@ -348,6 +348,7 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
 
+  __ VerifyNotInGenerated(RAX);
   // Set the execution state to VM while waiting for the safepoint to end.
   // This isn't strictly necessary but enables tests to check that we're not
   // in native code anymore. See tests/ffi/function_gc_test.dart for example.
@@ -390,7 +391,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ popq(R12);
   __ CallCFunction(RBX, /*restore_rsp=*/true);
 
-  __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
+  __ TransitionNativeToGenerated(/*exit_safepoint=*/true);
 
   // Faster than jmp because it doesn't confuse the branch predictor.
   __ pushq(R12);
@@ -506,7 +507,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, RAX,
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_GetFfiCallbackMetadata, RAX,
                            TMP);
     } else {
       __ movq(RAX, Immediate(
@@ -585,7 +586,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitTemporaryIsolate, RAX, TMP);
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitTemporaryIsolate, RAX,
+                           TMP);
     } else {
       __ movq(RAX,
               Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
@@ -3368,7 +3370,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
               THR, compiler::target::Thread::exit_through_ffi_offset()),
           compiler::Immediate(target::Thread::exit_through_ffi()));
   __ j(NOT_EQUAL, &exit_through_non_ffi, compiler::Assembler::kNearJump);
-  __ TransitionNativeToGenerated(/*leave_safepoint=*/true,
+  __ TransitionNativeToGenerated(/*exit_safepoint=*/true,
                                  /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 
@@ -3391,7 +3393,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
 //
 // The arguments are stored in the Thread object.
 // No result.
-void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+static void GenerateRunExceptionHandler(Assembler* assembler,
+                                        bool unbox_exception) {
   ASSERT(kExceptionObjectReg == RAX);
   ASSERT(kStackTraceObjectReg == RDX);
   __ movq(CallingConventions::kArg1Reg,
@@ -3406,6 +3409,17 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
   Address exception_addr(THR, target::Thread::active_exception_offset());
   __ movq(kExceptionObjectReg, exception_addr);
   __ movq(exception_addr, TMP);
+  if (unbox_exception) {
+    compiler::Label not_smi, done;
+    __ BranchIfNotSmi(kExceptionObjectReg, &not_smi,
+                      compiler::Assembler::kNearJump);
+    __ SmiUntagAndSignExtend(kExceptionObjectReg);
+    __ jmp(&done, compiler::Assembler::kNearJump);
+    __ Bind(&not_smi);
+    __ movq(kExceptionObjectReg,
+            compiler::FieldAddress(kExceptionObjectReg, Mint::value_offset()));
+    __ Bind(&done);
+  }
 
   // Load the stacktrace from the current thread.
   Address stacktrace_addr(THR, target::Thread::active_stacktrace_offset());
@@ -3413,6 +3427,14 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
   __ movq(stacktrace_addr, TMP);
 
   __ jmp(CallingConventions::kArg1Reg);  // Jump to continuation point.
+}
+
+void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+  GenerateRunExceptionHandler(assembler, false);
+}
+
+void StubCodeCompiler::GenerateRunExceptionHandlerUnboxStub() {
+  GenerateRunExceptionHandler(assembler, true);
 }
 
 // Deoptimize a frame on the call stack before rewinding.

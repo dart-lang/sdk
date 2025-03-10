@@ -5,6 +5,16 @@ import "issue41210_lib.dart" as iss;
 
 import "org-dartlang-testcase:///issue41210_lib.dart";
 
+class E extends self::_E&Object&A&D {
+  synthetic constructor •() → self::E
+    : super self::_E&Object&A&D::•()
+    ;
+}
+class G extends self::_G&Object&A&F {
+  synthetic constructor •() → self::G
+    : super self::_G&Object&A&F::•()
+    ;
+}
 abstract class _E&Object&A extends core::Object implements iss::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A
     : super core::Object::•()
@@ -19,11 +29,6 @@ abstract class _E&Object&A&D extends self::_E&Object&A implements iss::D /*isAno
   forwarding-stub method method(covariant-by-declaration core::num i, {core::String s = #C1}) → core::String
     return super.{self::_E&Object&A::method}(i, s: s);
 }
-class E extends self::_E&Object&A&D {
-  synthetic constructor •() → self::E
-    : super self::_E&Object&A&D::•()
-    ;
-}
 abstract class _G&Object&A extends core::Object implements iss::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_G&Object&A
     : super core::Object::•()
@@ -34,11 +39,6 @@ abstract class _G&Object&A extends core::Object implements iss::A /*isAnonymousM
 abstract class _G&Object&A&F extends self::_G&Object&A implements iss::F /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_G&Object&A&F
     : super self::_G&Object&A::•()
-    ;
-}
-class G extends self::_G&Object&A&F {
-  synthetic constructor •() → self::G
-    : super self::_G&Object&A&F::•()
     ;
 }
 static method main() → dynamic {}

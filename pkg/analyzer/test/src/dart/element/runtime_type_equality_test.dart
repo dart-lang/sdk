@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -37,17 +36,17 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
   test_functionType_parameters() {
     void check(
-      FormalParameterElement T1_parameter,
-      FormalParameterElement T2_parameter,
+      FormalParameterElementImpl T1_parameter,
+      FormalParameterElementImpl T2_parameter,
       bool expected,
     ) {
-      var T1 = functionTypeNone2(
+      var T1 = functionTypeNone(
         returnType: voidNone,
-        parameters: [T1_parameter],
+        formalParameters: [T1_parameter],
       );
-      var T2 = functionTypeNone2(
+      var T2 = functionTypeNone(
         returnType: voidNone,
-        parameters: [T2_parameter],
+        formalParameters: [T2_parameter],
       );
       _check(T1, T2, expected);
     }
@@ -59,8 +58,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
         bool expected,
       ) {
         check(
-          requiredParameter2(type: T1_type),
-          requiredParameter2(type: T2_type),
+          requiredParameter(type: T1_type),
+          requiredParameter(type: T2_type),
           expected,
         );
       }
@@ -72,78 +71,78 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       checkRequiredParameter(intQuestion, intQuestion, true);
 
       check(
-        requiredParameter2(type: intNone, name: 'a'),
-        requiredParameter2(type: intNone, name: 'b'),
+        requiredParameter(type: intNone, name: 'a'),
+        requiredParameter(type: intNone, name: 'b'),
         true,
       );
 
       check(
-        requiredParameter2(type: intNone),
-        positionalParameter2(type: intNone),
+        requiredParameter(type: intNone),
+        positionalParameter(type: intNone),
         false,
       );
 
       check(
-        requiredParameter2(type: intNone),
-        namedParameter2(type: intNone, name: 'a'),
+        requiredParameter(type: intNone),
+        namedParameter(type: intNone, name: 'a'),
         false,
       );
 
       check(
-        requiredParameter2(type: intNone),
-        namedRequiredParameter2(type: intNone, name: 'a'),
+        requiredParameter(type: intNone),
+        namedRequiredParameter(type: intNone, name: 'a'),
         false,
       );
     }
 
     {
       check(
-        namedParameter2(type: intNone, name: 'a'),
-        namedParameter2(type: intNone, name: 'a'),
+        namedParameter(type: intNone, name: 'a'),
+        namedParameter(type: intNone, name: 'a'),
         true,
       );
 
       check(
-        namedParameter2(type: intNone, name: 'a'),
-        namedParameter2(type: boolNone, name: 'a'),
+        namedParameter(type: intNone, name: 'a'),
+        namedParameter(type: boolNone, name: 'a'),
         false,
       );
 
       check(
-        namedParameter2(type: intNone, name: 'a'),
-        namedParameter2(type: intNone, name: 'b'),
+        namedParameter(type: intNone, name: 'a'),
+        namedParameter(type: intNone, name: 'b'),
         false,
       );
 
       check(
-        namedParameter2(type: intNone, name: 'a'),
-        namedRequiredParameter2(type: intNone, name: 'a'),
+        namedParameter(type: intNone, name: 'a'),
+        namedRequiredParameter(type: intNone, name: 'a'),
         false,
       );
     }
 
     {
       check(
-        namedRequiredParameter2(type: intNone, name: 'a'),
-        namedRequiredParameter2(type: intNone, name: 'a'),
+        namedRequiredParameter(type: intNone, name: 'a'),
+        namedRequiredParameter(type: intNone, name: 'a'),
         true,
       );
 
       check(
-        namedRequiredParameter2(type: intNone, name: 'a'),
-        namedRequiredParameter2(type: boolNone, name: 'a'),
+        namedRequiredParameter(type: intNone, name: 'a'),
+        namedRequiredParameter(type: boolNone, name: 'a'),
         false,
       );
 
       check(
-        namedRequiredParameter2(type: intNone, name: 'a'),
-        namedRequiredParameter2(type: intNone, name: 'b'),
+        namedRequiredParameter(type: intNone, name: 'a'),
+        namedRequiredParameter(type: intNone, name: 'b'),
         false,
       );
 
       check(
-        namedRequiredParameter2(type: intNone, name: 'a'),
-        namedParameter2(type: intNone, name: 'a'),
+        namedRequiredParameter(type: intNone, name: 'a'),
+        namedParameter(type: intNone, name: 'a'),
         false,
       );
     }
@@ -151,8 +150,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
 
   test_functionType_returnType() {
     void check(
-      DartType T1_returnType,
-      DartType T2_returnType,
+      TypeImpl T1_returnType,
+      TypeImpl T2_returnType,
       bool expected,
     ) {
       var T1 = functionTypeNone(
@@ -173,7 +172,7 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       var T1_T = typeParameter('T', bound: numNone);
       _check(
         functionTypeNone(
-          typeFormals: [T1_T],
+          typeParameters: [T1_T],
           returnType: voidNone,
         ),
         functionTypeNone(
@@ -188,11 +187,11 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       var T2_U = typeParameter('U');
       _check(
         functionTypeNone(
-          typeFormals: [T1_T],
+          typeParameters: [T1_T],
           returnType: voidNone,
         ),
         functionTypeNone(
-          typeFormals: [T2_U],
+          typeParameters: [T2_U],
           returnType: voidNone,
         ),
         false,
@@ -204,18 +203,18 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
       var T2_U = typeParameter('U');
       _check(
         functionTypeNone(
-          typeFormals: [T1_T],
+          typeParameters: [T1_T],
           returnType: typeParameterTypeNone(T1_T),
-          parameters: [
+          formalParameters: [
             requiredParameter(
               type: typeParameterTypeNone(T1_T),
             )
           ],
         ),
         functionTypeNone(
-          typeFormals: [T2_U],
+          typeParameters: [T2_U],
           returnType: typeParameterTypeNone(T2_U),
-          parameters: [
+          formalParameters: [
             requiredParameter(
               type: typeParameterTypeNone(T2_U),
             )
@@ -237,11 +236,11 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   }
 
   test_interfaceType_typeArguments() {
-    void equal(DartType T1, DartType T2) {
+    void equal(TypeImpl T1, TypeImpl T2) {
       _equal(listNone(T1), listNone(T2));
     }
 
-    void notEqual(DartType T1, DartType T2) {
+    void notEqual(TypeImpl T1, TypeImpl T2) {
       _notEqual(listNone(T1), listNone(T2));
     }
 
@@ -307,7 +306,7 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
     _notEqual(voidNone, neverQuestion);
   }
 
-  void _check(DartType T1, DartType T2, bool expected) {
+  void _check(TypeImpl T1, TypeImpl T2, bool expected) {
     bool result;
 
     result = typeSystem.runtimeTypesEqual(T1, T2);
@@ -329,7 +328,7 @@ T2: ${typeString(T2)}
     }
   }
 
-  void _equal(DartType T1, DartType T2) {
+  void _equal(TypeImpl T1, TypeImpl T2) {
     _check(T1, T2, true);
   }
 
@@ -340,7 +339,7 @@ T2: ${typeString(T2)}
     );
   }
 
-  void _notEqual(DartType T1, DartType T2) {
+  void _notEqual(TypeImpl T1, TypeImpl T2) {
     _check(T1, T2, false);
   }
 

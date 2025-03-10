@@ -35,14 +35,14 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
   import "package:flutter/object.dart";
   import "org-dartlang-test:///lib2.dart";
 
-  abstract class _Adaptor&RenderFoo&LibMixin extends obj::RenderFoo implements lib2::LibMixin /*isAnonymousMixin,isEliminatedMixin*/  {
-    synthetic constructor •() → lib1::_Adaptor&RenderFoo&LibMixin
-      : super obj::RenderFoo::•()
-      ;
-  }
   abstract class Adaptor extends lib1::_Adaptor&RenderFoo&LibMixin {
     synthetic constructor •() → lib1::Adaptor
       : super lib1::_Adaptor&RenderFoo&LibMixin::•()
+      ;
+  }
+  abstract class _Adaptor&RenderFoo&LibMixin extends obj::RenderFoo implements lib2::LibMixin /*isAnonymousMixin,isEliminatedMixin*/  {
+    synthetic constructor •() → lib1::_Adaptor&RenderFoo&LibMixin
+      : super obj::RenderFoo::•()
       ;
   }
 }

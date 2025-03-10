@@ -154,8 +154,9 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
     int length, {
     Pattern? messageContains,
     Pattern? correctionContains,
+    String? name,
   }) => _ExpectedLint(
-    lintRule,
+    name ?? lintRule,
     offset,
     length,
     messageContains: messageContains,
@@ -175,6 +176,8 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
   bool get addKernelPackageDep => false;
 
   bool get addMetaPackageDep => false;
+
+  bool get addTestReflectiveLoaderPackageDep => false;
 
   bool get dumpAstOnFailures => true;
 
@@ -327,6 +330,14 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     if (addMetaPackageDep) {
       var metaPath = addMeta().parent.path;
       configCopy.add(name: 'meta', rootPath: metaPath);
+    }
+
+    if (addTestReflectiveLoaderPackageDep) {
+      var testReflectiveLoaderPath = addTestReflectiveLoader().parent.path;
+      configCopy.add(
+        name: 'test_reflective_loader',
+        rootPath: testReflectiveLoaderPath,
+      );
     }
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';

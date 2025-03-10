@@ -17,16 +17,28 @@ namespace dart {
 namespace internal {
 
 // Returns the running system's Mac OS X version which matches the encoding
-// of MAC_OS_X_VERSION_* defines in AvailabilityMacros.h
-int32_t MacOSXVersion();
+// of MAC_OS_X_VERSION_* defines in AvailabilityVersions.h
+int32_t DarwinVersion();
 
 }  // namespace internal
 
+#if defined(DART_HOST_OS_IOS)
+
+// Run-time OS version checks.
+#define DEFINE_IS_OS_FUNCS(VERSION_NAME, VALUE)                                \
+  inline bool IsAtLeastIOS##VERSION_NAME() {                                   \
+    return (internal::DarwinVersion() >= 180400);                              \
+  }
+
+DEFINE_IS_OS_FUNCS(18_4, 180400)
+
+#else
+
 // Run-time OS version checks.
 #define DEFINE_IS_OS_FUNCS(VERSION)                                            \
-  inline bool IsAtLeastOS##VERSION() {                                         \
+  inline bool IsAtLeastMacOSX##VERSION() {                                     \
     return (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_##VERSION) ||    \
-           (internal::MacOSXVersion() >= MAC_OS_X_VERSION_##VERSION);          \
+           (internal::DarwinVersion() >= MAC_OS_X_VERSION_##VERSION);          \
   }
 
 DEFINE_IS_OS_FUNCS(10_14)
@@ -36,7 +48,9 @@ DEFINE_IS_OS_FUNCS(10_14)
 //
 // Otherwise returns a malloc allocated error string with human readable
 // current and expected versions.
-char* CheckIsAtLeastMinRequiredMacOSVersion();
+char* CheckIsAtLeastMinRequiredMacOSXVersion();
+
+#endif  // defined(DART_HOST_OS_IOS)
 
 inline uint16_t Utils::HostToBigEndian16(uint16_t value) {
   return OSSwapHostToBigInt16(value);

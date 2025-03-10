@@ -55,7 +55,6 @@ compile_platform("compile_dart2wasm_platform") {
   args = [
     "--target=dart2wasm",
     "dart:core",
-    "--nnbd-strong",
   ]
 }
 
@@ -73,7 +72,6 @@ compile_platform("compile_dart2wasm_js_compatibility_platform") {
     "--target=dart2wasm_js_compatibility",
     "-Ddart.wasm.js_compatibility=true",
     "dart:core",
-    "--nnbd-strong",
   ]
 }
 

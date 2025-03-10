@@ -16,7 +16,7 @@ void _rehashObjects(List objects) {
 
 @patch
 @pragma("vm:entry-point")
-class Expando<T> {
+class Expando<T extends Object> {
   @patch
   Expando([String? name])
     : name = name,

@@ -147,6 +147,12 @@ config("dart_arch_config") {
     print("Invalid dart_target_arch: $dart_target_arch")
     assert(false)
   }
+  if (dart_force_simulator) {
+    defines += [ "USING_SIMULATOR" ]
+    if (dart_target_arch == "arm64") {
+      defines += [ "SIMULATOR_FFI" ]
+    }
+  }
 }
 
 config("dart_config") {

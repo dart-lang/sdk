@@ -169,8 +169,12 @@ class HotReloadTest {
   // TODO(nshahan): Support multiple expected errors for a single generation.
   final Map<int, String> expectedErrors;
 
+  /// Map of generation number to whether a hot restart was triggered before the
+  /// generation.
+  final Map<int, bool> isHotRestart;
+
   HotReloadTest(this.directory, this.name, this.generationCount, this.files,
-      ReloadTestConfiguration config)
+      ReloadTestConfiguration config, this.isHotRestart)
       : excludedPlatforms = config.excludedPlatforms,
         expectedErrors = config.expectedErrors;
 
@@ -376,8 +380,9 @@ abstract class HotReloadSuiteRunner {
         r'^(?<name>[\w,-]+)'
         // Followed by a dot and 1 or more digits.
         r'\.(?<generation>\d+)'
-        // Optionally a dot and the word 'reject'.
-        r'(?<reject>\.reject)?'
+        // Optionally a dot and either the word 'restart' indicating a hot
+        // restart, or the word 'reject', indicating a hot reload rejection.
+        r'((?<restart>\.restart)|(?<reject>\.reject))?'
         // Ending with a dot and the word 'dart'
         r'\.dart$');
     final testSuite = <HotReloadTest>[];
@@ -409,6 +414,7 @@ abstract class HotReloadSuiteRunner {
             label: testName);
         continue;
       }
+      final isHotRestart = <int, bool>{};
       final expectedErrors = testConfig.expectedErrors;
       final dartFiles = testDir
           .listSync()
@@ -420,15 +426,26 @@ abstract class HotReloadSuiteRunner {
         final matches = validTestSourceName.allMatches(fileName);
         if (matches.length != 1) {
           throw Exception('Invalid test source file name: $fileName\n'
-              'Valid names look like "file_name.10.dart" '
-              'or "file_name.10.reject.dart".');
+              'Valid names look like "file_name.10.dart", '
+              '"file_name.10.restart.dart" or "file_name.10.reject.dart".');
         }
         final match = matches.single;
         final name = match.namedGroup('name');
         final restoredName = '$name.dart';
         final generation = int.parse(match.namedGroup('generation')!);
         maxGenerations = max(maxGenerations, generation);
+        final restart = match.namedGroup('restart') != null;
+        if (!isHotRestart.containsKey(generation)) {
+          isHotRestart[generation] = restart;
+        } else {
+          if (restart != isHotRestart[generation]) {
+            throw Exception('Expected all files for generation $generation to '
+                "be consistent about having a '.restart' suffix, but $fileName "
+                'does not match other files in the same generation.');
+          }
+        }
         final rejectExpected = match.namedGroup('reject') != null;
+        assert(!(rejectExpected && restart));
         if (rejectExpected && !expectedErrors.containsKey(generation)) {
           throw Exception(
               'Expected error for generation file missing from config.json: '
@@ -465,8 +482,8 @@ abstract class HotReloadSuiteRunner {
             {for (final edit in fileEdits) edit.generation: edit});
         testFiles.add(TestFile(fileName, editsByGeneration));
       }
-      testSuite.add(HotReloadTest(
-          testDir, testName, maxGenerations + 1, testFiles, testConfig));
+      testSuite.add(HotReloadTest(testDir, testName, maxGenerations + 1,
+          testFiles, testConfig, isHotRestart));
     }
     return testSuite;
   }
@@ -735,7 +752,7 @@ abstract class HotReloadSuiteRunner {
           return false;
         }
         final rejectionMessage = reloadReceipt.rejectionMessage;
-        if (rejectionMessage != null &&
+        if (rejectionMessage == null ||
             !rejectionMessage.contains(expectedError)) {
           _print(
               'Generation ${reloadReceipt.generation} was rejected but error '
@@ -986,7 +1003,8 @@ abstract class DdcSuiteRunner extends HotReloadSuiteRunner {
       outputDillPath = outputIncrementalDillUri.toFilePath();
       compilerOutput = await controller.sendRecompile(
           snapshotEntrypointWithScheme,
-          invalidatedFiles: updatedFiles);
+          invalidatedFiles: updatedFiles,
+          recompileRestart: test.isHotRestart[generation]!);
     }
     final expectedError = test.expectedErrors[generation];
     if (compilerOutput.errorCount > 0) {
@@ -1289,7 +1307,10 @@ class VMSuiteRunner extends HotReloadSuiteRunner {
       // TODO(markzipan): Add logic to reject bad compiles.
       compilerOutput = await controller.sendRecompile(
           snapshotEntrypointWithScheme,
-          invalidatedFiles: updatedFiles);
+          invalidatedFiles: updatedFiles,
+          // The VM never uses the `recompile-restart` instruction as it does
+          // not recompile during a hot restart.
+          recompileRestart: false);
     }
     var hasExpectedCompileError = false;
     final expectedError = test.expectedErrors[generation];

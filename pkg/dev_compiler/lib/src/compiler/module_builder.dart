@@ -567,11 +567,29 @@ bool isSdkInternalRuntimeUri(Uri importUri) {
   return importUri.isScheme('dart') && importUri.path == '_runtime';
 }
 
+/// Returns a name that can be used to represent a library within the context
+/// of a module. This name is not globally unique and therefore should not be
+/// used as an import/export name for the library as this can lead to naming
+/// collisions. Use [libraryUriToImportName] to ensure global uniqueness.
+///
+/// The name should be given to a [ScopedId] to ensure there are no local
+/// collisions.
 String libraryUriToJsIdentifier(Uri importUri) {
   if (importUri.isScheme('dart')) {
     return isSdkInternalRuntimeUri(importUri) ? 'dart' : importUri.path;
   }
   return pathToJSIdentifier(p.withoutExtension(importUri.pathSegments.last));
+}
+
+/// Returns a globally unique name that can be used to represent a library.
+/// Since this name is unique, it can safely be used for imports and exports
+/// to/from JS modules. If global uniqueness is not necessary, use
+/// [libraryUriToJsIdentifier] which produces shorter names.
+String libraryUriToImportName(Uri importUri) {
+  if (importUri.isScheme('dart')) {
+    return isSdkInternalRuntimeUri(importUri) ? 'dart' : importUri.path;
+  }
+  return pathToJSIdentifier(p.withoutExtension(importUri.path));
 }
 
 /// Creates function name given [moduleName].

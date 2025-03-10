@@ -26,13 +26,13 @@ jobs:
         with:
           persist-credentials: false
       - name: "setup python"
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38
         with:
           python-version: '3.7.7' # install the python version needed
       - name: "extract deps, find commit hash, pass to osv-scanner"
         run: python .github/extract_deps.py --output osv-lockfile-${{github.sha}}.json
       - name: "upload osv-scanner deps"
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
           # use github.ref in name to avoid duplicated artifacts
           name: osv-lockfile-${{github.sha}}

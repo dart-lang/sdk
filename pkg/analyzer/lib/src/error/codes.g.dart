@@ -156,7 +156,7 @@ class CompileTimeErrorCode extends ErrorCode {
   ///  No parameters.
   static const CompileTimeErrorCode ASSIGNMENT_TO_CONST = CompileTimeErrorCode(
     'ASSIGNMENT_TO_CONST',
-    "Constant variables can't be assigned a value.",
+    "Constant variables can't be assigned a value after initialization.",
     correctionMessage:
         "Try removing the assignment, or remove the modifier 'const' from the "
         "variable.",
@@ -1546,8 +1546,8 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode ENUM_WITHOUT_CONSTANTS =
       CompileTimeErrorCode(
     'ENUM_WITHOUT_CONSTANTS',
-    "The enum must have at least one constant.",
-    correctionMessage: "Try declaring a constant.",
+    "The enum must have at least one enum constant.",
+    correctionMessage: "Try declaring an enum constant.",
   );
 
   ///  Parameters:
@@ -1742,6 +1742,15 @@ class CompileTimeErrorCode extends ErrorCode {
         "the same name.",
     correctionMessage:
         "Try renaming the member to a name that doesn't conflict.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_DECLARES_INSTANCE_FIELD =
+      CompileTimeErrorCode(
+    'EXTENSION_DECLARES_INSTANCE_FIELD',
+    "Extensions can't declare instance fields.",
+    correctionMessage: "Try replacing the field with a getter.",
     hasPublishedDocs: true,
   );
 
@@ -6453,10 +6462,22 @@ class WarningCode extends ErrorCode {
     correctionMessage: "Try removing the 'deferred' keyword.",
   );
 
+  static const WarningCode DOC_IMPORT_CANNOT_HAVE_COMBINATORS = WarningCode(
+    'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
+    "Doc imports can't have show or hide combinators.",
+    correctionMessage: "Try removing the combinator.",
+  );
+
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
     "Doc imports can't have configurations.",
     correctionMessage: "Try removing the configurations.",
+  );
+
+  static const WarningCode DOC_IMPORT_CANNOT_HAVE_PREFIX = WarningCode(
+    'DOC_IMPORT_CANNOT_HAVE_PREFIX',
+    "Doc imports can't have prefixes.",
+    correctionMessage: "Try removing the prefix.",
   );
 
   ///  Duplicate exports.

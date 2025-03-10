@@ -11,6 +11,16 @@ base class S extends core::Object {
     : super core::Object::•()
     ;
 }
+final class C extends self::_C&S&M1&M2 {
+  synthetic constructor •() → self::C
+    : super self::_C&S&M1&M2::•()
+    ;
+}
+final class D extends self::_D&S&M1 implements self::M2 /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::D
+    : super self::_D&S&M1::•()
+    ;
+}
 abstract final class _C&S&M1 extends self::S implements self::M1 /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_C&S&M1
     : super self::S::•()
@@ -21,18 +31,8 @@ abstract final class _C&S&M1&M2 extends self::_C&S&M1 implements self::M2 /*isAn
     : super self::_C&S&M1::•()
     ;
 }
-final class C extends self::_C&S&M1&M2 {
-  synthetic constructor •() → self::C
-    : super self::_C&S&M1&M2::•()
-    ;
-}
 abstract final class _D&S&M1 extends self::S implements self::M1 /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_D&S&M1
     : super self::S::•()
-    ;
-}
-final class D extends self::_D&S&M1 implements self::M2 /*isEliminatedMixin*/  {
-  synthetic constructor •() → self::D
-    : super self::_D&S&M1::•()
     ;
 }

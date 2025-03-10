@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -31,7 +32,8 @@ class ConstructorReferenceResolver {
     var element = node.constructorName.element;
     if (element != null && !element.isFactory) {
       var enclosingElement = element.enclosingElement2;
-      if (enclosingElement is ClassElement2 && enclosingElement.isAbstract) {
+      if (enclosingElement is ClassElementImpl2 &&
+          enclosingElement.isAbstract) {
         _resolver.errorReporter.atNode(
           node,
           CompileTimeErrorCode

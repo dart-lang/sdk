@@ -21,6 +21,14 @@ mixin class B extends core::Object implements self::A {
   no-such-method-forwarder set foo(core::int? value) → void
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol, dynamic>(#C4))){(core::Invocation) → dynamic};
 }
+class C extends self::_C&Object&B {
+  synthetic constructor •() → self::C
+    : super self::_C&Object&B::•()
+    ;
+  get foo() → core::int?
+    return 42;
+  set foo(core::int? value) → void {}
+}
 abstract class _C&Object&B extends core::Object implements self::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&B
     : super core::Object::•()
@@ -29,14 +37,6 @@ abstract class _C&Object&B extends core::Object implements self::B /*isAnonymous
     self::count = self::count.{core::num::+}(1){(core::num) → core::int};
     return null;
   }
-}
-class C extends self::_C&Object&B {
-  synthetic constructor •() → self::C
-    : super self::_C&Object&B::•()
-    ;
-  get foo() → core::int?
-    return 42;
-  set foo(core::int? value) → void {}
 }
 static field core::int count = 0;
 static method main() → dynamic {

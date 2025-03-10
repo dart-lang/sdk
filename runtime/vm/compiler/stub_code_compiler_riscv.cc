@@ -239,6 +239,7 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
 
   __ ReserveAlignedFrameSpace(0);
 
+  __ VerifyNotInGenerated(TMP);
   // Set the execution state to VM while waiting for the safepoint to end.
   // This isn't strictly necessary but enables tests to check that we're not
   // in native code anymore. See tests/ffi/function_gc_test.dart for example.
@@ -291,7 +292,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
 
   __ jalr(T0);
 
-  __ TransitionNativeToGenerated(T1, /*leave_safepoint=*/true);
+  __ TransitionNativeToGenerated(T1, /*exit_safepoint=*/true);
   __ jr(S3);
 }
 
@@ -399,7 +400,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, T1, T2);
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_GetFfiCallbackMetadata, T1,
+                           T2);
     } else {
       const intptr_t kPCRelativeLoadOffset = 12;
       intptr_t start = __ CodeSize();
@@ -485,7 +487,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitTemporaryIsolate, T1, T2);
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitTemporaryIsolate, T1, T2);
     } else {
       const intptr_t kPCRelativeLoadOffset = 12;
       intptr_t start = __ CodeSize();
@@ -2940,7 +2942,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
                     compiler::target::Thread::exit_through_ffi_offset());
   __ LoadImmediate(TMP2, target::Thread::exit_through_ffi());
   __ bne(TMP, TMP2, &exit_through_non_ffi);
-  __ TransitionNativeToGenerated(TMP, /*leave_safepoint=*/true,
+  __ TransitionNativeToGenerated(TMP, /*exit_safepoint=*/true,
                                  /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 
@@ -2966,11 +2968,21 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
 //
 // The arguments are stored in the Thread object.
 // Does not return.
-void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+static void GenerateRunExceptionHandler(Assembler* assembler,
+                                        bool unbox_exception) {
   // Exception object.
   ASSERT(kExceptionObjectReg == A0);
   __ LoadFromOffset(A0, THR, target::Thread::active_exception_offset());
   __ StoreToOffset(NULL_REG, THR, target::Thread::active_exception_offset());
+  if (unbox_exception) {
+    compiler::Label not_smi, done;
+    __ BranchIfNotSmi(A0, &not_smi);
+    __ SmiUntag(A0);
+    __ Jump(&done);
+    __ Bind(&not_smi);
+    __ lx(A0, FieldAddress(A0, Mint::value_offset()));
+    __ Bind(&done);
+  }
 
   // StackTrace object.
   ASSERT(kStackTraceObjectReg == A1);
@@ -2979,6 +2991,14 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
 
   __ LoadFromOffset(RA, THR, target::Thread::resume_pc_offset());
   __ ret();  // Jump to the exception handler code.
+}
+
+void StubCodeCompiler::GenerateRunExceptionHandlerStub() {
+  GenerateRunExceptionHandler(assembler, false);
+}
+
+void StubCodeCompiler::GenerateRunExceptionHandlerUnboxStub() {
+  GenerateRunExceptionHandler(assembler, true);
 }
 
 // Deoptimize a frame on the call stack before rewinding.

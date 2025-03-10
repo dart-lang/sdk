@@ -23,8 +23,8 @@ void cascadedAccessReceivesTheBenefitOfPromotion(C c) {
   c._field.expectStaticType<Exactly<int>>();
   c
     ?.._field.expectStaticType<Exactly<int>>()
-//  ^^^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+    // [error column 5, length 3]
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     .._field.expectStaticType<Exactly<int>>();
 
   // And the promotion remains on later accesses to the same variable.
@@ -37,8 +37,8 @@ void fieldAccessOnACascadeExpressionRetainsPromotion(C c) {
   c._field as int;
   c._field.expectStaticType<Exactly<int>>();
   (c?..f())._field.expectStaticType<Exactly<int>>();
-//  ^^^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+  //^^^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
   // And the promotion remains on later accesses to the same variable.
   c._field.expectStaticType<Exactly<int>>();
@@ -48,8 +48,8 @@ void fieldsPromotableWithinCascade(C c) {
   // Within a cascade, a field can be promoted using `!`.
   c
     ?.._field.expectStaticType<Exactly<Object?>>()
-//  ^^^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+    // [error column 5, length 3]
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     .._field!.expectStaticType<Exactly<Object>>()
     .._field.expectStaticType<Exactly<Object>>();
 
@@ -58,8 +58,8 @@ void fieldsPromotableWithinCascade(C c) {
   // preserve the promotion, but it's extra work to do so, and it's not clear
   // that there would be enough user benefit to justify the work).
   c?._field.expectStaticType<Exactly<Object?>>();
-// ^^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+  // [error column 4, length 2]
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 }
 
 void ephemeralValueFieldsArePromotable(C Function() getC) {
@@ -68,8 +68,8 @@ void ephemeralValueFieldsArePromotable(C Function() getC) {
   // the promotion can be seen in later cascade sections.
   getC()
     ?.._field.expectStaticType<Exactly<Object?>>()
-//  ^^^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+    // [error column 5, length 3]
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     .._field!.expectStaticType<Exactly<Object>>()
     .._field.expectStaticType<Exactly<Object>>();
 
@@ -88,8 +88,8 @@ void writeCapturedValueFieldsArePromotable(C c) {
 
   c
     ?.._field.expectStaticType<Exactly<Object?>>()
-//  ^^^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+    // [error column 5, length 3]
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     .._field!.expectStaticType<Exactly<Object>>()
     .._field.expectStaticType<Exactly<Object>>();
 
@@ -106,8 +106,8 @@ void writeDefeatsLaterAccessesButNotCascadeTarget(C c) {
   c._field.expectStaticType<Exactly<C>>();
   c
     ?.._field.f([c = C(C()), c._field.expectStaticType<Exactly<Object?>>()])
-//  ^^^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+    // [error column 5, length 3]
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     .._field.expectStaticType<Exactly<C>>();
   c._field.expectStaticType<Exactly<Object?>>();
 }

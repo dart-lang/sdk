@@ -27,6 +27,11 @@ abstract class M extends self::A /*isMixinDeclaration*/  {
     self::console = "M";
   }
 }
+class MA extends self::_MA&C&M {
+  synthetic constructor •() → self::MA
+    : super self::_MA&C&M::•()
+    ;
+}
 abstract class _MA&C&M extends self::C implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_MA&C&M
     : super self::C::•()
@@ -37,11 +42,6 @@ abstract class _MA&C&M extends self::C implements self::M /*isAnonymousMixin,isE
   method test() → dynamic {
     super.{self::A::g};
   }
-}
-class MA extends self::_MA&C&M {
-  synthetic constructor •() → self::MA
-    : super self::_MA&C&M::•()
-    ;
 }
 static field core::String console = "";
 static method main() → dynamic {

@@ -815,9 +815,9 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     if (literal == null) {
-      // Coverage-ignore-block(suite): Not run.
       printer.write('$value');
     } else {
       printer.write(literal!);
@@ -2967,6 +2967,7 @@ class PropertySet extends InternalExpression {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// An augment super invocation of the form `augment super()`.
 ///
 /// This will be transformed into an [InstanceInvocation], [InstanceGet] plus
@@ -2994,17 +2995,16 @@ class AugmentSuperInvocation extends InternalExpression {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.PRIMARY;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super');
     printer.writeArguments(arguments);
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// An augment super read of the form `augment super`.
 ///
 /// This will be transformed into an [InstanceGet], [InstanceTearOff],
@@ -3029,16 +3029,15 @@ class AugmentSuperGet extends InternalExpression {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.PRIMARY;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super');
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// An augment super write of the form `augment super = e`.
 ///
 /// This will be transformed into an [InstanceSet], or [StaticSet] after type
@@ -3069,7 +3068,6 @@ class AugmentSuperSet extends InternalExpression {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super = ');
     printer.writeExpression(value);
@@ -3220,4 +3218,92 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   @override
   String toString() =>
       'ExtensionTypeRepresentationFieldInitializer(${toStringInternal()})';
+}
+
+/// Internal expression for a dot shorthand.
+///
+/// This node wraps around the [innerExpression] and indicates to the
+/// [InferenceVisitor] that we need to save the context type of the expression.
+class DotShorthand extends InternalExpression {
+  /// The entire dot shorthand expression (e.g. `.zero` or `.parse(input)`).
+  Expression innerExpression;
+
+  DotShorthand(this.innerExpression);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitDotShorthand(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "DotShorthand(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(innerExpression);
+  }
+}
+
+/// Internal expression for a dot shorthand head with arguments.
+/// (e.g. `.parse(42)`).
+///
+/// This node could represent a shorthand of a static method or a named
+/// constructor.
+class DotShorthandInvocation extends InternalExpression {
+  Name name;
+
+  Arguments arguments;
+
+  DotShorthandInvocation(this.name, this.arguments);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitDotShorthandInvocation(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "DotShorthandInvocation(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('.');
+    printer.writeName(name);
+    printer.writeArguments(arguments);
+  }
+}
+
+/// Internal expression for a dot shorthand head with no arguments.
+/// (e.g. `.zero`).
+///
+/// This node could represent a shorthand of a static get or a tearoff.
+class DotShorthandPropertyGet extends InternalExpression {
+  Name name;
+
+  DotShorthandPropertyGet(this.name);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitDotShorthandPropertyGet(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "DotShorthandPropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('.');
+    printer.writeName(name);
+  }
 }

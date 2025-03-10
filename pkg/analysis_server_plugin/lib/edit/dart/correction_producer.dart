@@ -413,7 +413,7 @@ abstract class ResolvedCorrectionProducer
   /// Returns the class declaration for the given [fragment], or `null` if there
   /// is no such class.
   Future<ClassDeclaration?> getClassDeclaration(ClassFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ClassDeclaration) {
       return node;
@@ -425,7 +425,7 @@ abstract class ResolvedCorrectionProducer
   /// there is no such extension.
   Future<ExtensionDeclaration?> getExtensionDeclaration(
       ExtensionFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionDeclaration) {
       return node;
@@ -437,7 +437,7 @@ abstract class ResolvedCorrectionProducer
   /// is no such extension type.
   Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
       ExtensionTypeFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionTypeDeclaration) {
       return node;
@@ -448,7 +448,7 @@ abstract class ResolvedCorrectionProducer
   /// Returns the mixin declaration for the given [fragment], or `null` if there
   /// is no such mixin.
   Future<MixinDeclaration?> getMixinDeclaration(MixinFragment fragment) async {
-    var result = await sessionHelper.getElementDeclaration(fragment);
+    var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is MixinDeclaration) {
       return node;
@@ -458,7 +458,7 @@ abstract class ResolvedCorrectionProducer
 
   /// Returns the class element associated with the [target], or `null` if there
   /// is no such element.
-  InterfaceElement2? getTargetInterfaceElement2(Expression target) {
+  InterfaceElement2? getTargetInterfaceElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
       return type.element3;
@@ -494,7 +494,7 @@ abstract class ResolvedCorrectionProducer
           return FunctionTypeImpl(
             typeFormals: const [],
             parameters: const [],
-            returnType: typeProvider.dynamicType,
+            returnType: DynamicTypeImpl.instance,
             nullabilitySuffix: NullabilitySuffix.none,
           );
         }
@@ -610,6 +610,20 @@ abstract class ResolvedCorrectionProducer
           return _coreTypeBool;
         }
       }
+    }
+    // Handle `await`, infer a `Future` type.
+    if (parent is AwaitExpression) {
+      var grandParent = parent.parent;
+      // `await myFunction();`
+      if (grandParent is ExpressionStatement) {
+        return typeProvider.futureType(typeProvider.voidType);
+      }
+      var inferredParentType =
+          inferUndefinedExpressionType(parent) ?? typeProvider.dynamicType;
+      if (inferredParentType is InvalidType) {
+        inferredParentType = typeProvider.dynamicType;
+      }
+      return typeProvider.futureType(inferredParentType);
     }
     // We don't know.
     return null;

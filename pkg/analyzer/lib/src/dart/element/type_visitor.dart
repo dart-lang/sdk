@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -47,11 +45,11 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
   @override
   bool visitFunctionType(FunctionType type) => visitChildren([
         type.returnType,
-        ...type.typeFormals
-            .map((formal) => formal.bound)
+        ...type.typeParameters
+            .map((typeParameter) => typeParameter.bound)
             .where((type) => type != null)
             .map((type) => type!),
-        ...type.parameters.map((param) => param.type),
+        ...type.formalParameters.map((formalParameter) => formalParameter.type),
       ]);
 
   @override

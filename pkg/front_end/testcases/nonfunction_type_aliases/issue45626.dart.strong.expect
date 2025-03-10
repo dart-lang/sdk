@@ -88,39 +88,39 @@ class D5 extends core::Object implements self::C, self::C {
     : super core::Object::•()
     ;
 }
+abstract class CM extends self::_CM&C&C /*isMixinDeclaration*/  {
+}
+abstract class CM2 extends self::_CM2&C&CAlias /*isMixinDeclaration*/  {
+}
+abstract class CM3 extends self::_CM3&CAlias&C /*isMixinDeclaration*/  {
+}
+abstract class CM4 extends self::_CM4&C&C /*isMixinDeclaration*/  {
+}
+abstract class CM5 extends self::_CM5&C&C /*isMixinDeclaration*/  {
+}
 abstract class _CM&C&C extends core::Object implements self::C, self::C /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_CM&C&C
     : super core::Object::•()
     ;
-}
-abstract class CM extends self::_CM&C&C /*isMixinDeclaration*/  {
 }
 abstract class _CM2&C&CAlias extends core::Object implements self::C, self::C /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_CM2&C&CAlias
     : super core::Object::•()
     ;
 }
-abstract class CM2 extends self::_CM2&C&CAlias /*isMixinDeclaration*/  {
-}
 abstract class _CM3&CAlias&C extends core::Object implements self::C, self::C /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_CM3&CAlias&C
     : super core::Object::•()
     ;
-}
-abstract class CM3 extends self::_CM3&CAlias&C /*isMixinDeclaration*/  {
 }
 abstract class _CM4&C&C extends core::Object implements self::C, self::C /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_CM4&C&C
     : super core::Object::•()
     ;
 }
-abstract class CM4 extends self::_CM4&C&C /*isMixinDeclaration*/  {
-}
 abstract class _CM5&C&C extends core::Object implements self::C, self::C /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_CM5&C&C
     : super core::Object::•()
     ;
-}
-abstract class CM5 extends self::_CM5&C&C /*isMixinDeclaration*/  {
 }
 static method main() → dynamic {}

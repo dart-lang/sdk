@@ -10,13 +10,19 @@ static method expect(dynamic expected, dynamic actual) → dynamic
 
 library;
 import self as self2;
+import "dart:core" as core;
 import "a_lib.dart" as a_l;
 import "m_lib.dart" as m_l;
-import "dart:core" as core;
 
 import "org-dartlang-testcase:///a_lib.dart";
 import "org-dartlang-testcase:///m_lib.dart";
 
+class B extends self2::_B&A&M {
+  constructor •({core::double d = 2.71}) → self2::B
+    ;
+  static method _#new#tearOff({has-declared-initializer core::double d}) → self2::B
+    return new self2::B::•(d: d);
+}
 abstract class _B&A&M = a_l::A with m_l::M /*isAnonymousMixin*/  {
   synthetic constructor •({core::double d = 3.14, (core::String) → core::String s = a_l::_defaultStringy}) → self2::_B&A&M
     : super a_l::A::•(d: d, s: s)
@@ -26,12 +32,6 @@ abstract class _B&A&M = a_l::A with m_l::M /*isAnonymousMixin*/  {
     ;
   mixin-super-stub method m1() → dynamic
     return super.{m_l::M::m1}();
-}
-class B extends self2::_B&A&M {
-  constructor •({core::double d = 2.71}) → self2::B
-    ;
-  static method _#new#tearOff({has-declared-initializer core::double d}) → self2::B
-    return new self2::B::•(d: d);
 }
 
 library;

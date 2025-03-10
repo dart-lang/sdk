@@ -13,7 +13,7 @@ void main() {
   s: 's',
   b: true,
   l: [
-    {'l': 3}
+    {'l': 3},
   ],
   m: {'h': false},
   n: null,

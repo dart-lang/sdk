@@ -29,12 +29,7 @@ group("most") {
     ":dartanalyzer",
     ":ddc",
     ":runtime",
-    ":samples",
   ]
-}
-
-group("samples") {
-  deps = [ "samples/embedder:all" ]
 }
 
 group("runtime") {
@@ -69,7 +64,8 @@ group("runtime") {
 
   # AOT samples use dlopen to load AOT snapshots and it works only on
   # 64-bit Linux right now.
-  if (is_linux && (dart_target_arch == "x64" || dart_target_arch == "arm64")) {
+  if ((is_linux || is_mac) &&
+      (dart_target_arch == "x64" || dart_target_arch == "arm64")) {
     deps += [ "samples/embedder:aot" ]
   }
 
@@ -210,7 +206,7 @@ group("tools") {
 group("dart2js_bot") {
   deps = [
     ":create_sdk",
-    "utils/compiler:compile_dart2js_platform_unsound",
+    "utils/compiler:compile_dart2js_platform",
   ]
 }
 
@@ -362,6 +358,7 @@ if (is_fuchsia) {
     "tests/ffi/structs_typed_data_test.dart",
     "tests/ffi/unaligned_test.dart",
     "tests/ffi/variance_function_test.dart",
+    "tests/ffi/vmspecific_callback_unwind_error_through_handle_test.dart",
     "tests/ffi/vmspecific_deprecated_funcs_test.dart",
     "tests/ffi/vmspecific_dynamic_library_test.dart",
     "tests/ffi/vmspecific_enable_ffi_test.dart",

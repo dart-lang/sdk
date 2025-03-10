@@ -21,11 +21,10 @@ helper() {
 
 Future<void> main() async {
   Expect.equals('hello', helper());
-  Expect.equals(0, hotReloadGeneration);
-
   await hotReload();
 
-  Expect.contains('NoSuchMethodError', helper());
-  Expect.contains('deleted', helper());
-  Expect.equals(1, hotReloadGeneration);
+  Expect.throws<NoSuchMethodError>(
+    helper,
+    (error) => error.toString().contains('deleted'),
+  );
 }

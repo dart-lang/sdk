@@ -246,6 +246,24 @@ abstract class Site {
     });
   }
 
+  Future<void> handleWebSocketRequest(HttpRequest request) async {
+    var path = request.uri.path;
+
+    await _tryHandleRequest(request, (response, queryParameters) async {
+      var page = _getPage(path);
+      if (page == null) {
+        await respond(request, createUnknownPage(path), HttpStatus.notFound);
+        return;
+      } else if (page is WebSocketPage) {
+        var webSocket = await WebSocketTransformer.upgrade(request);
+        await (page as WebSocketPage).handleWebSocket(webSocket);
+        await webSocket.done;
+      } else {
+        throw 'Method not supported';
+      }
+    });
+  }
+
   Future<void> respond(
     HttpRequest request,
     Page page, [
@@ -316,11 +334,22 @@ abstract class Site {
         );
       } catch (e, st) {
         var response = request.response;
-        response.statusCode = HttpStatus.internalServerError;
-        response.headers.contentType = ContentType.text;
-        response.write('$e\n\n$st');
+        try {
+          response.statusCode = HttpStatus.internalServerError;
+          response.headers.contentType = ContentType.text;
+          response.write('$e\n\n$st');
+        } catch (_) {
+          // We may fail to send the above if the request that errored had
+          // already caused the HTTP headers to be flushed (this can happen
+          // after a WebSocket upgrade, for example).
+        }
         unawaited(response.close());
       }
     }
   }
+}
+
+abstract interface class WebSocketPage {
+  /// Handles a WebSocket connection to the page.
+  Future<void> handleWebSocket(WebSocket socket);
 }

@@ -364,7 +364,7 @@ static void Jump(const Error& error) {
 
 ErrorPtr Precompiler::CompileAll() {
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     Precompiler precompiler(Thread::Current());
     precompiler.DoCompileAll();
     precompiler.ReportStats();
@@ -993,6 +993,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
       const auto& call_site = UnlinkedCall::Cast(entry);
       // A dynamic call.
       *temp_selector = call_site.target_name();
+      *temp_selector = Function::DropImplicitCallPrefix(*temp_selector).ptr();
       AddSelector(*temp_selector);
       if (IsPotentialClosureCall(*temp_selector)) {
         const Array& arguments_descriptor =
@@ -1005,6 +1006,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
       // A dynamic call.
       const auto& cache = MegamorphicCache::Cast(entry);
       *temp_selector = cache.target_name();
+      *temp_selector = Function::DropImplicitCallPrefix(*temp_selector).ptr();
       AddSelector(*temp_selector);
       if (IsPotentialClosureCall(*temp_selector)) {
         const Array& arguments_descriptor =
@@ -3484,7 +3486,7 @@ bool PrecompileParsedFunctionHelper::GenerateCode(FlowGraph* flow_graph) {
 
   while (!done) {
     LongJumpScope jump;
-    const intptr_t val = setjmp(*jump.Set());
+    const intptr_t val = DART_SETJMP(*jump.Set());
     if (val == 0) {
       // Even in bare instructions mode we don't directly add objects into
       // the global object pool because code generation can bail out

@@ -141,6 +141,10 @@ class FastaErrorReporter {
           errorCode: ParserErrorCode.EXPECTED_TYPE_NAME,
         );
         return;
+      case "EXTENSION_DECLARES_INSTANCE_FIELD":
+        // Reported by
+        // [ErrorVerifier._checkForExtensionDeclaresInstanceField]
+        return;
       case "FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR":
         errorReporter?.atOffset(
           offset: offset,
@@ -517,7 +521,7 @@ class FastaErrorReporter {
         return;
       case "ABSTRACT_EXTENSION_FIELD":
         // Not reported but followed by a
-        // ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD.
+        // CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD.
         return;
       case "EXTENSION_TYPE_WITH_ABSTRACT_MEMBER":
         // Reported by [ErrorVerifier._checkForExtensionTypeWithAbstractMember].

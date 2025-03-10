@@ -7,15 +7,18 @@ import 'dart:collection';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
+import 'package:analysis_server/src/utilities/extensions/iterable.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
@@ -23,6 +26,12 @@ import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+
+typedef _ProducersGenerators =
+    Future<List<ResolvedCorrectionProducer>> Function(
+      String? prefix,
+      String name,
+    );
 
 class ImportLibrary extends MultiCorrectionProducer {
   final _ImportKind _importKind;
@@ -60,102 +69,121 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
-    return switch (_importKind) {
-      _ImportKind.forExtension => await _producersForExtension(),
-      _ImportKind.forExtensionMember => await _producersForExtensionMember(),
-      _ImportKind.forExtensionType => await _producersForExtensionType(),
-      _ImportKind.forFunction => await _producersForFunction(),
-      _ImportKind.forTopLevelVariable => await _producersForTopLevelVariable(),
-      _ImportKind.forType => await _producersForType(),
+    var names = await _allPossibleNames();
+    if (names.isEmpty) {
+      return const [];
+    }
+    return [
+      for (var name in names)
+        if (await name.producers case var producers?) ...producers,
+    ];
+  }
+
+  /// A map of all the error codes that this fix can be applied to and the
+  /// generators that can be used to apply the fix.
+  Map<ErrorCode, List<MultiProducerGenerator>> get _errorCodesWhereThisIsValid {
+    var producerGenerators = _ImportKind.values.map((key) => key.fn).toList();
+    var nonLintMultiProducers = registeredFixGenerators.nonLintMultiProducers;
+    return {
+      for (var MapEntry(:key, :value) in nonLintMultiProducers.entries)
+        if (value.containsAny(producerGenerators)) key: value,
     };
   }
 
-  List<ResolvedCorrectionProducer> _importExtensionInLibrary(
-    LibraryElement2 libraryToImport,
-    DartType targetType,
-    Name memberName,
-  ) {
-    // Look to see whether the library at the [uri] is already imported. If it
-    // is, then we can check the extension elements without needing to perform
-    // additional analysis.
-    var foundImport = false;
-    var producers = <ResolvedCorrectionProducer>[];
-    for (var import in unitResult.libraryFragment.libraryImports2) {
-      // prepare element
-      var importedLibrary = import.importedLibrary2;
-      if (importedLibrary == null || importedLibrary != libraryToImport) {
-        continue;
-      }
-      foundImport = true;
-      var instantiatedExtensions = importedLibrary.exportedExtensions
-          .havingMemberWithBaseName(memberName)
-          .applicableTo(
-            targetLibrary: libraryElement2,
-            targetType: targetType as TypeImpl,
-          );
-      for (var instantiatedExtension in instantiatedExtensions) {
-        // If the import has a combinator that needs to be updated, then offer
-        // to update it.
-        // TODO(FMorschel): We should fix all combinators for the import, if
-        // we don't, we may not import at all.
-        var combinators = import.combinators;
-        if (combinators.length == 1) {
-          var combinator = combinators[0];
-          if (combinator is HideElementCombinator) {
-            producers.add(
-              _ImportLibraryCombinator(
-                libraryToImport.uri.toString(),
-                combinator,
-                instantiatedExtension.extension.name3!,
-                context: context,
-              ),
-            );
-          } else if (combinator is ShowElementCombinator) {
-            producers.add(
-              _ImportLibraryCombinator(
-                libraryToImport.uri.toString(),
-                combinator,
-                instantiatedExtension.extension.name3!,
-                context: context,
-              ),
-            );
-          }
-        }
-      }
-    }
-
-    // If the library at the URI is not already imported, we return a correction
-    // producer that will either add an import or not based on the result of
-    // analyzing the library.
-    if (!foundImport) {
-      producers.add(
-        _ImportLibraryContainingExtension(
-          libraryToImport,
-          targetType,
-          memberName,
-          context: context,
-        ),
-      );
-    }
-    return producers;
+  Future<List<_PrefixedName>> _allPossibleNames() async {
+    return switch (_importKind) {
+      _ImportKind.forExtension => _namesForExtension(),
+      _ImportKind.forExtensionMember => await _namesForExtensionMember(),
+      _ImportKind.forExtensionType => _namesForExtensionType(),
+      _ImportKind.forFunction => _namesForFunction(),
+      _ImportKind.forTopLevelVariable => _namesForTopLevelVariable(),
+      _ImportKind.forType => _namesForType(),
+    };
   }
 
-  /// Returns a list of one or two import corrections.
+  Future<(_ImportLibraryCombinator?, _ImportLibraryCombinatorMultiple?)>
+  _importEditCombinators(
+    LibraryImport import,
+    LibraryElement2 libraryElement,
+    String uri,
+    String name, {
+    String? prefix,
+  }) async {
+    var combinators = import.combinators;
+    if (combinators.length != 1) {
+      return (null, null);
+    }
+    _ImportLibraryCombinator? importCombinator;
+    _ImportLibraryCombinatorMultiple? importCombinatorMultiple;
+    var combinator = combinators.first;
+    var otherNames = await _otherUnresolvedNames(prefix, name);
+    var namesInThisLibrary = <String>[
+      name,
+      for (var otherName in otherNames)
+        if (getExportedElement(libraryElement, otherName)?.name3
+            case var exportedName?)
+          exportedName,
+    ];
+    var importPrefix = import.prefix2?.element;
+    if (combinator is HideElementCombinator) {
+      importCombinator = _ImportLibraryCombinator(
+        uri,
+        combinator,
+        name,
+        removePrefix: importPrefix == null,
+        context: context,
+      );
+      if (namesInThisLibrary.length > 1) {
+        importCombinatorMultiple = _ImportLibraryCombinatorMultiple(
+          uri,
+          combinator,
+          namesInThisLibrary,
+          removePrefix: importPrefix == null,
+          context: context,
+        );
+      }
+    } else if (combinator is ShowElementCombinator) {
+      importCombinator = _ImportLibraryCombinator(
+        uri,
+        combinator,
+        name,
+        removePrefix: importPrefix == null,
+        context: context,
+      );
+      if (namesInThisLibrary.length > 1) {
+        importCombinatorMultiple = _ImportLibraryCombinatorMultiple(
+          uri,
+          combinator,
+          namesInThisLibrary,
+          removePrefix: importPrefix == null,
+          context: context,
+        );
+      }
+    }
+    return (importCombinator, importCombinatorMultiple);
+  }
+
+  /// Returns a list of two or four import correction producers.
   ///
-  /// If [includeRelativeFix] is `false`, only one correction, with an absolute
-  /// import path, is returned. Otherwise, a correction with an absolute import
-  /// path and a correction with a relative path are returned.
-  /// If the `always_use_package_imports` lint rule is active then only the
-  /// package import is returned.
-  /// If `prefer_relative_imports` is active then the relative path is returned.
-  /// Otherwise, both are returned in the order: absolute, relative.
+  /// For each import path used in the return values, one returned correction
+  /// producer uses a 'show' combinator, and one does not.
+  ///
+  /// If [includeRelativeFix] is `false`, only two correction producers, with
+  /// absolute import paths, are returned. Otherwise, correction producers with
+  /// absolute import paths and correction producers with relative paths are
+  /// returned. If the `always_use_package_imports` lint rule is enabled then
+  /// only correction producers using the package import are returned. If the
+  /// `prefer_relative_imports` lint rule is enabled then only correction
+  /// producers using the relative path are returned. Otherwise, correction
+  /// producers using both types of paths are returned in the order: absolute
+  /// imports, relative imports.
   List<ResolvedCorrectionProducer> _importLibrary(
     FixKind fixKind,
     FixKind fixKindShow,
     Uri library,
     String name, {
-    String? prefix,
-    bool includeRelativeFix = false,
+    required String? prefix,
+    required bool includeRelativeFix,
   }) {
     if (!includeRelativeFix) {
       return [
@@ -246,36 +274,18 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (!kinds.contains(element.kind)) {
         continue;
       }
-      _ImportLibraryCombinator? combinatorProducer;
       var importPrefix = import.prefix2?.element;
       // Maybe update a "show"/"hide" directive.
-      var combinators = import.combinators;
-      if (combinators.length == 1) {
-        // Prepare library name - unit name or 'dart:name' for SDK library.
-        var libraryName = libraryElement.uri.toString();
-        var combinator = combinators.first;
-        if (combinator is HideElementCombinator) {
-          // Don't add this library again.
-          alreadyImportedWithPrefix.add(libraryElement);
-          combinatorProducer = _ImportLibraryCombinator(
-            libraryName,
-            combinator,
-            name,
-            removePrefix: importPrefix == null,
-            context: context,
-          );
-        } else if (combinator is ShowElementCombinator) {
-          // Don't add this library again.
-          alreadyImportedWithPrefix.add(libraryElement);
-          combinatorProducer = _ImportLibraryCombinator(
-            libraryName,
-            combinator,
-            name,
-            removePrefix: importPrefix == null,
-            context: context,
-          );
-        }
-      }
+      var (
+        combinatorProducer,
+        combinatorProducerMultiple,
+      ) = await _importEditCombinators(
+        import,
+        libraryElement,
+        libraryElement.uri.toString(),
+        name,
+        prefix: prefix,
+      );
       // Maybe apply a prefix.
       if (importPrefix != null) {
         producers.add(
@@ -289,7 +299,11 @@ class ImportLibrary extends MultiCorrectionProducer {
         );
         continue;
       } else if (combinatorProducer != null) {
+        alreadyImportedWithPrefix.add(libraryElement);
         producers.add(combinatorProducer);
+        if (combinatorProducerMultiple != null) {
+          producers.add(combinatorProducerMultiple);
+        }
       }
     }
     // Find new top-level declarations.
@@ -384,18 +398,98 @@ class ImportLibrary extends MultiCorrectionProducer {
     return false;
   }
 
-  Future<List<ResolvedCorrectionProducer>> _producersForExtension() async {
+  List<_PrefixedName> _namesForExtension() {
     if (node case SimpleIdentifier(:var name, :var parent)) {
-      return await _producersForMethodInvocation(name, parent, const [
-        ElementKind.EXTENSION,
-      ]);
+      return _namesForMethodInvocation(name, parent, [ElementKind.EXTENSION]);
     }
 
     return const [];
   }
 
-  Future<List<ResolvedCorrectionProducer>>
-  _producersForExtensionMember() async {
+  List<_PrefixedName> _namesForExtensionInLibrary(
+    LibraryElement2 libraryToImport,
+    DartType targetType,
+    Name memberName,
+  ) {
+    // Look to see whether the library at the [uri] is already imported. If it
+    // is, then we can check the extension elements without needing to perform
+    // additional analysis.
+    var foundImport = false;
+    var names = <_PrefixedName>[];
+    for (var import in unitResult.libraryFragment.libraryImports2) {
+      // prepare element
+      var importedLibrary = import.importedLibrary2;
+      if (importedLibrary == null || importedLibrary != libraryToImport) {
+        continue;
+      }
+      foundImport = true;
+      var instantiatedExtensions = importedLibrary.exportedExtensions
+          .havingMemberWithBaseName(memberName)
+          .applicableTo(
+            targetLibrary: libraryElement2,
+            targetType: targetType as TypeImpl,
+          );
+      for (var instantiatedExtension in instantiatedExtensions) {
+        // If the import has a combinator that needs to be updated, then offer
+        // to update it.
+        // TODO(FMorschel): We should fix all combinators for the import, if
+        // we don't, we may not import at all.
+        var libraryElement = import.importedLibrary2;
+        if (libraryElement == null) {
+          continue;
+        }
+        names.add(
+          _PrefixedName(
+            name: instantiatedExtension.extension.name3!,
+            ignorePrefix: true,
+            producerGenerators: (prefix, name) async {
+              var producers = <ResolvedCorrectionProducer>[];
+              var (
+                importLibraryCombinator,
+                importLibraryCombinatorMultiple,
+              ) = await _importEditCombinators(
+                import,
+                libraryElement,
+                libraryToImport.uri.toString(),
+                name,
+              );
+              if (importLibraryCombinator != null) {
+                producers.add(importLibraryCombinator);
+                if (importLibraryCombinatorMultiple != null) {
+                  producers.add(importLibraryCombinatorMultiple);
+                }
+              }
+              return producers;
+            },
+          ),
+        );
+      }
+    }
+
+    // If the library at the URI is not already imported, we return a correction
+    // producer that will either add an import or not based on the result of
+    // analyzing the library.
+    if (!foundImport) {
+      names.add(
+        _PrefixedName(
+          name: memberName.name,
+          producerGenerators: (prefix, name) async {
+            return [
+              _ImportLibraryContainingExtension(
+                libraryToImport,
+                targetType,
+                memberName,
+                context: context,
+              ),
+            ];
+          },
+        ),
+      );
+    }
+    return names;
+  }
+
+  Future<List<_PrefixedName>> _namesForExtensionMember() async {
     String memberName;
     DartType? targetType;
     var node = this.node;
@@ -421,38 +515,46 @@ class ImportLibrary extends MultiCorrectionProducer {
     if (targetType == null) {
       return const [];
     }
+    var finalTargetType = targetType;
 
     var dartFixContext = context.dartFixContext;
     if (dartFixContext == null) {
       return const [];
     }
 
+    var names = <_PrefixedName>[];
     var name = Name.forLibrary(
       dartFixContext.unitResult.libraryElement2,
       memberName,
     );
-    var producers = <ResolvedCorrectionProducer>[];
     await for (var libraryToImport in librariesWithExtensions(memberName)) {
-      producers.addAll(
-        _importExtensionInLibrary(libraryToImport, targetType, name),
+      names.addAll(
+        _namesForExtensionInLibrary(libraryToImport, finalTargetType, name),
       );
     }
-    return producers;
+    return names;
   }
 
-  Future<List<ResolvedCorrectionProducer>> _producersForExtensionType() async {
+  List<_PrefixedName> _namesForExtensionType() {
     if (node case SimpleIdentifier(:var name)) {
-      return await _importLibraryForElement(name, const [
-        ElementKind.EXTENSION_TYPE,
-      ]);
+      return [
+        _PrefixedName(
+          name: name,
+          producerGenerators: (prefix, name) async {
+            return await _importLibraryForElement(name, const [
+              ElementKind.EXTENSION_TYPE,
+            ]);
+          },
+        ),
+      ];
     }
 
     return const [];
   }
 
-  Future<List<ResolvedCorrectionProducer>> _producersForFunction() async {
+  List<_PrefixedName> _namesForFunction() {
     if (node case SimpleIdentifier(:var name, :var parent)) {
-      return await _producersForMethodInvocation(name, parent, const [
+      return _namesForMethodInvocation(name, parent, const [
         ElementKind.FUNCTION,
         ElementKind.TOP_LEVEL_VARIABLE,
       ]);
@@ -468,20 +570,27 @@ class ImportLibrary extends MultiCorrectionProducer {
   ///
   /// If we have unresolved code like `foo.bar()` then we have two options:
   /// - Import of some library, prefixed with `foo`, that contains a top-level
-  /// function called bar;
-  /// - Import of some library that contains a top-level propriety or class
-  /// called `foo` that has a method called `bar` (has to be static for a
-  /// _class_ with that name).
-  Future<List<ResolvedCorrectionProducer>> _producersForMethodInvocation(
+  ///   function called `bar`.
+  /// - Import of some library that contains a top-level propriety or class-like
+  ///   member called `foo` that has a method called `bar` (has to be static for
+  ///   a class-like member with that name).
+  List<_PrefixedName> _namesForMethodInvocation(
     String name,
     AstNode? parent,
     List<ElementKind> kinds,
-  ) async {
+  ) {
     String? prefix;
-    var producers = <ResolvedCorrectionProducer>[];
+    var names = <_PrefixedName>[];
     if (parent case MethodInvocation(:var target?, :var function)) {
       // Getting the import library for elements with [name].
-      producers.addAll(await _importLibraryForElement(name, kinds));
+      names.add(
+        _PrefixedName(
+          name: name,
+          producerGenerators: (prefix, name) async {
+            return await _importLibraryForElement(name, kinds, prefix: prefix);
+          },
+        ),
+      );
 
       // Set the prefix and (maybe swap) name and get the other import library
       // option - with prefix!.
@@ -497,7 +606,14 @@ class ImportLibrary extends MultiCorrectionProducer {
       prefix: var parentPrefix,
       :var identifier,
     )) {
-      producers.addAll(await _importLibraryForElement(name, kinds));
+      names.add(
+        _PrefixedName(
+          name: name,
+          producerGenerators: (prefix, name) async {
+            return await _importLibraryForElement(name, kinds, prefix: prefix);
+          },
+        ),
+      );
 
       // Set the prefix and (maybe swap) name and get the other import library
       // option - with prefix!.
@@ -509,14 +625,19 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
     }
 
-    producers.addAll(
-      await _importLibraryForElement(name, kinds, prefix: prefix),
+    names.add(
+      _PrefixedName(
+        prefix: prefix,
+        name: name,
+        producerGenerators: (prefix, name) async {
+          return await _importLibraryForElement(name, kinds, prefix: prefix);
+        },
+      ),
     );
-    return producers;
+    return names;
   }
 
-  Future<List<ResolvedCorrectionProducer>>
-  _producersForTopLevelVariable() async {
+  List<_PrefixedName> _namesForTopLevelVariable() {
     String? prefix;
     var targetNode = node;
     if (targetNode.parent case PrefixedIdentifier prefixed
@@ -533,15 +654,23 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
     }
     if (targetNode case SimpleIdentifier(:var name)) {
-      return await _importLibraryForElement(name, const [
-        ElementKind.TOP_LEVEL_VARIABLE,
-      ], prefix: prefix);
+      return [
+        _PrefixedName(
+          prefix: prefix,
+          name: name,
+          producerGenerators: (prefix, name) async {
+            return await _importLibraryForElement(name, const [
+              ElementKind.TOP_LEVEL_VARIABLE,
+            ], prefix: prefix);
+          },
+        ),
+      ];
     }
 
     return const [];
   }
 
-  Future<List<ResolvedCorrectionProducer>> _producersForType() async {
+  List<_PrefixedName> _namesForType() {
     const kinds = [
       ElementKind.CLASS,
       ElementKind.ENUM,
@@ -551,7 +680,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       ElementKind.TYPE_ALIAS,
     ];
     if (node case SimpleIdentifier(:var name, :var parent)) {
-      return await _producersForMethodInvocation(name, parent, kinds);
+      return _namesForMethodInvocation(name, parent, kinds);
     }
     var targetNode = node;
     if (targetNode case Annotation(:var name)) {
@@ -574,16 +703,90 @@ class ImportLibrary extends MultiCorrectionProducer {
     }
     var typeName = targetNode.nameOfType;
     if (typeName != null) {
-      return await _importLibraryForElement(typeName, kinds, prefix: prefix);
+      return [
+        _PrefixedName(
+          name: typeName,
+          prefix: prefix,
+          producerGenerators: (prefix, name) async {
+            return await _importLibraryForElement(
+              typeName,
+              kinds,
+              prefix: prefix,
+            );
+          },
+        ),
+      ];
     }
-    if (targetNode.mightBeImplicitConstructor) {
-      var typeName = (targetNode as SimpleIdentifier).name;
-      return await _importLibraryForElement(typeName, const [
-        ElementKind.CLASS,
-      ], prefix: prefix);
+    if (targetNode is SimpleIdentifier &&
+        targetNode.mightBeImplicitConstructor) {
+      var typeName = targetNode.name;
+      return [
+        _PrefixedName(
+          name: typeName,
+          prefix: prefix,
+          producerGenerators: (prefix, name) async {
+            return await _importLibraryForElement(typeName, const [
+              ElementKind.CLASS,
+            ], prefix: prefix);
+          },
+        ),
+      ];
     }
 
     return const [];
+  }
+
+  /// Searches all diagnostics reported for this compilation unit for unresolved
+  /// names where this fix can be applied besides the current diagnostic.
+  Future<Set<String>> _otherUnresolvedNames(String? prefix, String name) async {
+    var errorsForThisFix = _errorCodesWhereThisIsValid;
+    var errors =
+        <AnalysisError, List<MultiProducerGenerator>>{}..addEntries(
+          unitResult.errors.map((error) {
+            if (error == diagnostic) return null;
+            var generators = errorsForThisFix[error.errorCode];
+            if (generators == null) return null;
+            return MapEntry(error, generators);
+          }).nonNulls,
+        );
+    var otherNames = <String>{};
+    if (errors.isNotEmpty) {
+      for (var MapEntry(:key, :value) in errors.entries) {
+        for (var generator in value) {
+          DartFixContext? dartFixContext;
+          if (context.dartFixContext case var context?) {
+            dartFixContext = DartFixContext(
+              instrumentationService: context.instrumentationService,
+              workspace: context.workspace,
+              libraryResult: context.libraryResult,
+              unitResult: context.unitResult,
+              error: key,
+            );
+          }
+          var multiCorrectionProducer = generator(
+            context: CorrectionProducerContext.createResolved(
+              libraryResult: libraryResult,
+              unitResult: unitResult,
+              diagnostic: key,
+              selectionLength: key.length,
+              selectionOffset: key.offset,
+              dartFixContext: dartFixContext,
+            ),
+          );
+          if (multiCorrectionProducer is ImportLibrary) {
+            var names = await multiCorrectionProducer._allPossibleNames();
+            for (var prefixedName in names) {
+              if (prefixedName.name != name &&
+                  (prefixedName.ignorePrefix ||
+                      prefixedName.prefix == prefix)) {
+                otherNames.add(prefixedName.name);
+              }
+            }
+          }
+        }
+      }
+    }
+    return otherNames;
   }
 }
 
@@ -606,9 +809,8 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [
@@ -635,44 +837,73 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
 }
 
 enum _ImportKind {
-  forExtension,
-  forExtensionMember,
-  forExtensionType,
-  forFunction,
-  forTopLevelVariable,
-  forType,
+  forExtension(ImportLibrary.forExtension),
+  forExtensionMember(ImportLibrary.forExtensionMember),
+  forExtensionType(ImportLibrary.forExtensionType),
+  forFunction(ImportLibrary.forFunction),
+  forTopLevelVariable(ImportLibrary.forTopLevelVariable),
+  forType(ImportLibrary.forType);
+
+  final ImportLibrary Function({required CorrectionProducerContext context}) fn;
+
+  const _ImportKind(this.fn);
 }
 
 /// A correction processor that can add/remove a name to/from the show/hide
 /// combinator of an existing import.
-class _ImportLibraryCombinator extends ResolvedCorrectionProducer {
+class _ImportLibraryCombinator extends _ImportLibraryCombinatorMultiple {
+  _ImportLibraryCombinator(
+    String libraryName,
+    NamespaceCombinator combinator,
+    String updatedName, {
+    super.removePrefix,
+    required super.context,
+  }) : super(libraryName, combinator, [updatedName]);
+
+  @override
+  List<String> get fixArguments => [_updatedNames.first, _libraryName];
+
+  @override
+  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_COMBINATOR;
+}
+
+/// A correction processor that can add/remove multiple names to/from the
+/// show/hide combinator of an existing import.
+class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
   final String _libraryName;
 
   final NamespaceCombinator _combinator;
 
-  final String _updatedName;
+  final List<String> _updatedNames;
 
   final bool _removePrefix;
 
-  _ImportLibraryCombinator(
+  _ImportLibraryCombinatorMultiple(
     this._libraryName,
     this._combinator,
-    this._updatedName, {
+    this._updatedNames, {
     bool removePrefix = false,
     required super.context,
   }) : _removePrefix = removePrefix;
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
-  List<String> get fixArguments => [_libraryName];
+  List<String> get fixArguments {
+    var othersCount = _updatedNames.length - 1;
+    return [
+      _updatedNames.first,
+      '$othersCount',
+      othersCount == 1 ? '' : 's', // plural for 'other(s)'
+      _libraryName,
+    ];
+  }
 
   @override
-  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_COMBINATOR;
+  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_COMBINATOR_MULTIPLE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -684,13 +915,13 @@ class _ImportLibraryCombinator extends ResolvedCorrectionProducer {
       finalNames.addAll(names);
       offset = _combinator.offset;
       length = _combinator.end - offset;
-      finalNames.add(_updatedName);
+      finalNames.addAll(_updatedNames);
       keyword = Keyword.SHOW;
     } else if (_combinator case HideElementCombinator(hiddenNames: var names)) {
       finalNames.addAll(names);
       offset = _combinator.offset;
       length = _combinator.end - offset;
-      finalNames.remove(_updatedName);
+      finalNames.removeAll(_updatedNames);
       keyword = Keyword.HIDE;
     } else {
       return;
@@ -747,9 +978,8 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_uriText];
@@ -791,9 +1021,8 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments {
@@ -855,9 +1084,8 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [
@@ -883,19 +1111,46 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
   }
 }
 
-extension on AstNode {
+/// Information needed to generate producers for a given [name] and [prefix].
+///
+/// This is used in normal cases simply to generate the producers, but for the
+/// [_ImportLibraryCombinatorMultiple] correction producer, it is used to save
+/// the different names that are being added to the combinator.
+class _PrefixedName {
+  /// Whether to ignore the prefix.
+  ///
+  /// This should only be used when the import is an extension and the library
+  /// is already imported and prefixed.
+  final bool ignorePrefix;
+  final String? prefix;
+  final String name;
+  final _ProducersGenerators _producerGenerators;
+
+  _PrefixedName({
+    required this.name,
+    this.prefix,
+    required _ProducersGenerators producerGenerators,
+    this.ignorePrefix = false,
+  }) : _producerGenerators = producerGenerators;
+
+  Future<List<ResolvedCorrectionProducer>>? get producers =>
+      _producerGenerators(prefix, name);
+}
+
+extension on SimpleIdentifier {
   /// Whether this [AstNode] is in a location where an implicit constructor
   /// invocation would be allowed.
   bool get mightBeImplicitConstructor {
-    if (this is SimpleIdentifier) {
-      var parent = this.parent;
-      if (parent is MethodInvocation) {
-        return parent.realTarget == null;
-      }
+    var parent = this.parent;
+    if (parent is MethodInvocation) {
+      return parent.realTarget == null;
     }
+
     return false;
   }
+}
 
+extension on AstNode {
   /// The "type name" of this node if it might represent a type, and `null`
   /// otherwise.
   String? get nameOfType {

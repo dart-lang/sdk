@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     // TODO(srawlins): Add tests with non-block-bodies for the for loop. Add
     // tests with multiple statements in the body.

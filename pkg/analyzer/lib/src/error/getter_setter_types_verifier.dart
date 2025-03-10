@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -22,18 +23,19 @@ class GetterSetterTypesVerifier {
   })  : _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
-  void checkExtension(ExtensionElement2 element) {
+  void checkExtension(ExtensionElementImpl2 element) {
     for (var getter in element.getters2) {
       _checkLocalGetter(getter);
     }
   }
 
-  void checkExtensionType(ExtensionTypeElement2 element, Interface interface) {
+  void checkExtensionType(
+      ExtensionTypeElementImpl2 element, Interface interface) {
     checkInterface(element, interface);
     checkStaticGetters(element.getters2);
   }
 
-  void checkInterface(InterfaceElement2 element, Interface interface) {
+  void checkInterface(InterfaceElementImpl2 element, Interface interface) {
     var libraryUri = element.library2.uri;
 
     var interfaceMap = interface.map2;
@@ -50,7 +52,7 @@ class GetterSetterTypesVerifier {
           if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
             Element2 errorElement;
             if (getter.enclosingElement2 == element) {
-              if (element is ExtensionTypeElement2 &&
+              if (element is ExtensionTypeElementImpl2 &&
                   element.representation2.getter2 == getter) {
                 errorElement = setter;
               } else {
@@ -85,7 +87,7 @@ class GetterSetterTypesVerifier {
     }
   }
 
-  void checkStaticGetters(List<GetterElement> getters) {
+  void checkStaticGetters(List<GetterElement2OrMember> getters) {
     for (var getter in getters) {
       if (getter.isStatic) {
         _checkLocalGetter(getter);
@@ -93,7 +95,7 @@ class GetterSetterTypesVerifier {
     }
   }
 
-  void _checkLocalGetter(GetterElement getter) {
+  void _checkLocalGetter(GetterElement2OrMember getter) {
     var name = getter.name3;
     if (name == null) {
       return;
@@ -120,12 +122,12 @@ class GetterSetterTypesVerifier {
   }
 
   /// Return the return type of the [getter].
-  static DartType _getGetterType(GetterElement getter) {
+  static TypeImpl _getGetterType(GetterElement2OrMember getter) {
     return getter.returnType;
   }
 
   /// Return the type of the first parameter of the [setter].
-  static DartType? _getSetterType(SetterElement setter) {
+  static TypeImpl? _getSetterType(SetterElement2OrMember setter) {
     var parameters = setter.formalParameters;
     if (parameters.isNotEmpty) {
       return parameters[0].type;

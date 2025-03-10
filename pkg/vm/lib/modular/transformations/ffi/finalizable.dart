@@ -47,8 +47,11 @@ mixin FinalizableTransformer on Transformer {
     _Scope? precomputedCaptureScope,
     Block? addPossiblyUninitializedTo,
   }) {
-    final scope =
-        _Scope(node, parent: _currentScope, declaresThis: declaresThis);
+    final scope = _Scope(
+      node,
+      parent: _currentScope,
+      declaresThis: declaresThis,
+    );
     if (precomputedCaptureScope != null) {
       scope._capturesThis = precomputedCaptureScope._capturesThis;
       scope._captures = precomputedCaptureScope._captures;
@@ -57,11 +60,17 @@ mixin FinalizableTransformer on Transformer {
     final result = f();
     if (appendFencesToStatement != null) {
       _appendReachabilityFences(
-          appendFencesToStatement, scope.toFenceThisScope);
+        appendFencesToStatement,
+        scope.toFenceThisScope,
+      );
     }
     if (appendFencesToExpression != null) {
-      appendFencesToExpression.replaceWith(_wrapReachabilityFences(
-          appendFencesToExpression, scope.toFenceThisScope));
+      appendFencesToExpression.replaceWith(
+        _wrapReachabilityFences(
+          appendFencesToExpression,
+          scope.toFenceThisScope,
+        ),
+      );
     }
     final possiblyUninitializedDeclarations =
         _currentScope?._possiblyUninitializedDeclarations ?? {};
@@ -89,8 +98,11 @@ mixin FinalizableTransformer on Transformer {
     if (lookup != null) {
       return lookup;
     }
-    final visitor =
-        FindCaptures(_currentScope!, thisIsFinalizable, _isFinalizable);
+    final visitor = FindCaptures(
+      _currentScope!,
+      thisIsFinalizable,
+      _isFinalizable,
+    );
     visitor.visitLocalFunction(node);
     _precomputedCaptures = visitor.precomputedScopes;
     return _precomputedCaptures[node]!;
@@ -226,26 +238,17 @@ mixin FinalizableTransformer on Transformer {
 
   @override
   TreeNode visitTryCatch(TryCatch node) {
-    return inScope(
-      node,
-      () => super.visitTryCatch(node),
-    );
+    return inScope(node, () => super.visitTryCatch(node));
   }
 
   @override
   TreeNode visitCatch(Catch node) {
-    return inScope(
-      node,
-      () => super.visitCatch(node),
-    );
+    return inScope(node, () => super.visitCatch(node));
   }
 
   @override
   TreeNode visitSwitchStatement(SwitchStatement node) {
-    return inScope(
-      node,
-      () => super.visitSwitchStatement(node),
-    );
+    return inScope(node, () => super.visitSwitchStatement(node));
   }
 
   bool _possiblyUninitialized(VariableDeclaration declaration) {
@@ -279,11 +282,15 @@ mixin FinalizableTransformer on Transformer {
           type: node.type.withDeclaredNullability(Nullability.nullable),
         );
         _currentScope!.addPossiblyUninitializedDeclaration(
-            node, alwaysInitializedDeclaration);
+          node,
+          alwaysInitializedDeclaration,
+        );
         final initializer = node.initializer;
         if (initializer != null) {
-          final newInitializer =
-              VariableSet(alwaysInitializedDeclaration, initializer);
+          final newInitializer = VariableSet(
+            alwaysInitializedDeclaration,
+            initializer,
+          );
           node.initializer = newInitializer;
           newInitializer.parent = node;
         }
@@ -307,22 +314,22 @@ mixin FinalizableTransformer on Transformer {
     // We can't fence late variables, they might not have been set yet.
     // Instead we fence the value variable and assign the late variable
     // value to the value variable.
-    final valueVariable = _currentScope?.alwaysInitializedDeclaration(variable,
-        checkAncestorScopes: true);
+    final valueVariable = _currentScope?.alwaysInitializedDeclaration(
+      variable,
+      checkAncestorScopes: true,
+    );
     if (valueVariable != null) {
-      final newExpression = _wrapReachabilityFences(
-        expression,
-        [VariableGet(valueVariable)],
-      );
+      final newExpression = _wrapReachabilityFences(expression, [
+        VariableGet(valueVariable),
+      ]);
       node.value = newExpression;
       newExpression.parent = node;
       return VariableSet(valueVariable, node);
     }
 
-    final newExpression = _wrapReachabilityFences(
-      expression,
-      [VariableGet(variable)],
-    );
+    final newExpression = _wrapReachabilityFences(expression, [
+      VariableGet(variable),
+    ]);
     node.value = newExpression;
     newExpression.parent = node;
     return node;
@@ -338,10 +345,7 @@ mixin FinalizableTransformer on Transformer {
 
     final expression = node.expression;
     if (expression == null) {
-      final newStatement = Block([
-        ..._reachabilityFences(declarations),
-        node,
-      ]);
+      final newStatement = Block([..._reachabilityFences(declarations), node]);
       return newStatement;
     }
 
@@ -387,8 +391,10 @@ mixin FinalizableTransformer on Transformer {
       return node;
     }
 
-    final newExpression =
-        _wrapReachabilityFences(node.expression, declarations);
+    final newExpression = _wrapReachabilityFences(
+      node.expression,
+      declarations,
+    );
 
     node.expression = newExpression;
     newExpression.parent = node;
@@ -417,14 +423,18 @@ mixin FinalizableTransformer on Transformer {
   @override
   TreeNode visitThrow(Throw node) {
     final declarations = _currentScope!.toFenceThrow(
-        staticTypeContext!.getExpressionType(node.expression), env);
+      staticTypeContext!.getExpressionType(node.expression),
+      env,
+    );
     node = super.visitThrow(node) as Throw;
     if (declarations.isEmpty) {
       return node;
     }
 
-    final newExpression =
-        _wrapReachabilityFences(node.expression, declarations);
+    final newExpression = _wrapReachabilityFences(
+      node.expression,
+      declarations,
+    );
 
     node.expression = newExpression;
     newExpression.parent = node;
@@ -444,9 +454,7 @@ mixin FinalizableTransformer on Transformer {
     }
 
     return BlockExpression(
-      Block(<Statement>[
-        ..._reachabilityFences(declarations),
-      ]),
+      Block(<Statement>[..._reachabilityFences(declarations)]),
       node,
     );
   }
@@ -459,10 +467,7 @@ mixin FinalizableTransformer on Transformer {
       return node;
     }
 
-    final newStatement = Block([
-      ..._reachabilityFences(declarations),
-      node,
-    ]);
+    final newStatement = Block([..._reachabilityFences(declarations), node]);
     return newStatement;
   }
 
@@ -481,10 +486,7 @@ mixin FinalizableTransformer on Transformer {
       return node;
     }
 
-    final newStatement = Block([
-      ..._reachabilityFences(declarations),
-      node,
-    ]);
+    final newStatement = Block([..._reachabilityFences(declarations), node]);
     return newStatement;
   }
 
@@ -495,10 +497,10 @@ mixin FinalizableTransformer on Transformer {
 
   /// Whether [type] is something that subtypes `FutureOr<Finalizable?>?`.
   bool _isFinalizable(DartType type) => type.isFinalizable(
-        finalizableClass: finalizableClass,
-        typeEnvironment: env,
-        cache: _isFinalizableCache,
-      );
+    finalizableClass: finalizableClass,
+    typeEnvironment: env,
+    cache: _isFinalizableCache,
+  );
 
   bool _thisIsFinalizableFromMember(Member member) {
     final enclosingClass_ = member.enclosingClass;
@@ -518,7 +520,8 @@ mixin FinalizableTransformer on Transformer {
       return false;
     }
     return _isFinalizable(
-        InterfaceType(enclosingClass_, Nullability.nonNullable));
+      InterfaceType(enclosingClass_, Nullability.nonNullable),
+    );
   }
 
   List<Statement> _reachabilityFences(List<Expression> declarations) =>
@@ -545,24 +548,26 @@ mixin FinalizableTransformer on Transformer {
   ///
   /// Note that this modifies the parent of [expression].
   Expression _wrapReachabilityFences(
-      Expression expression, List<Expression> declarations) {
+    Expression expression,
+    List<Expression> declarations,
+  ) {
     final resultVariable = VariableDeclaration(
-        ":expressionValueWrappedFinalizable",
-        initializer: expression,
-        type: staticTypeContext!.getExpressionType(expression),
-        isFinal: true,
-        isSynthesized: true);
+      ":expressionValueWrappedFinalizable",
+      initializer: expression,
+      type: staticTypeContext!.getExpressionType(expression),
+      isFinal: true,
+      isSynthesized: true,
+    );
     return BlockExpression(
-      Block(<Statement>[
-        resultVariable,
-        ..._reachabilityFences(declarations),
-      ]),
+      Block(<Statement>[resultVariable, ..._reachabilityFences(declarations)]),
       VariableGet(resultVariable),
     );
   }
 
   Statement _appendReachabilityFences(
-      Statement statement, List<Expression> declarations) {
+    Statement statement,
+    List<Expression> declarations,
+  ) {
     if (declarations.isEmpty) {
       return statement;
     }
@@ -628,18 +633,12 @@ class FindCaptures extends RecursiveVisitor {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    inScope(
-      node,
-      () => super.visitFunctionDeclaration(node),
-    );
+    inScope(node, () => super.visitFunctionDeclaration(node));
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    inScope(
-      node,
-      () => super.visitFunctionExpression(node),
-    );
+    inScope(node, () => super.visitFunctionExpression(node));
   }
 
   @override
@@ -698,7 +697,7 @@ class _Scope {
   ///
   /// The map is mutable, because we populate it during visiting statements.
   final Map<VariableDeclaration, VariableDeclaration>
-      _possiblyUninitializedDeclarations = {};
+  _possiblyUninitializedDeclarations = {};
 
   /// [ThisExpression] is not a [VariableDeclaration] and needs to be tracked
   /// separately.
@@ -711,10 +710,9 @@ class _Scope {
   final Set<LabeledStatement> _labels = {};
 
   _Scope(this.node, {this.parent, bool? declaresThis})
-      : this.declaresThis = declaresThis ?? false,
-        this.allDeclarationsIsEmpty =
-            (parent?.allDeclarationsIsEmpty ?? true) &&
-                !(declaresThis ?? false);
+    : this.declaresThis = declaresThis ?? false,
+      this.allDeclarationsIsEmpty =
+          (parent?.allDeclarationsIsEmpty ?? true) && !(declaresThis ?? false);
 
   @override
   String toString() => toStringIndented();
@@ -738,15 +736,17 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
   }
 
   void addPossiblyUninitializedDeclaration(
-      VariableDeclaration possiblyUninitialized,
-      VariableDeclaration nullableValue) {
+    VariableDeclaration possiblyUninitialized,
+    VariableDeclaration nullableValue,
+  ) {
     _possiblyUninitializedDeclarations[possiblyUninitialized] = nullableValue;
     addDeclaration(possiblyUninitialized);
   }
 
   VariableDeclaration? alwaysInitializedDeclaration(
-      VariableDeclaration possiblyUninitialized,
-      {required bool checkAncestorScopes}) {
+    VariableDeclaration possiblyUninitialized, {
+    required bool checkAncestorScopes,
+  }) {
     final resultThisScope =
         _possiblyUninitializedDeclarations[possiblyUninitialized];
     if (resultThisScope != null) {
@@ -755,14 +755,20 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     if (!checkAncestorScopes) {
       return null;
     }
-    return parent?.alwaysInitializedDeclaration(possiblyUninitialized,
-        checkAncestorScopes: checkAncestorScopes);
+    return parent?.alwaysInitializedDeclaration(
+      possiblyUninitialized,
+      checkAncestorScopes: checkAncestorScopes,
+    );
   }
 
-  VariableDeclaration variableToFence(VariableDeclaration declaration,
-      {required bool checkAncestorScopes}) {
-    final possibleValueToFence = alwaysInitializedDeclaration(declaration,
-        checkAncestorScopes: checkAncestorScopes);
+  VariableDeclaration variableToFence(
+    VariableDeclaration declaration, {
+    required bool checkAncestorScopes,
+  }) {
+    final possibleValueToFence = alwaysInitializedDeclaration(
+      declaration,
+      checkAncestorScopes: checkAncestorScopes,
+    );
     if (possibleValueToFence != null) {
       return possibleValueToFence;
     }
@@ -779,9 +785,9 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
   ///
   /// Excluding `this`.
   List<VariableDeclaration> get allDeclarations => [
-        ...?parent?.allDeclarations,
-        ..._declarations,
-      ];
+    ...?parent?.allDeclarations,
+    ..._declarations,
+  ];
 
   bool get canCapture => node is LocalFunction;
 
@@ -852,15 +858,17 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
   /// Whether when a return is found, this is the last ancestor of which
   /// declarations should be considered.
   bool get scopesReturn {
-    assert(node is Block ||
-        node is Catch ||
-        node is ForInStatement ||
-        node is ForStatement ||
-        node is Let ||
-        node is LocalFunction ||
-        node is Member ||
-        node is SwitchStatement ||
-        node is TryCatch);
+    assert(
+      node is Block ||
+          node is Catch ||
+          node is ForInStatement ||
+          node is ForStatement ||
+          node is Let ||
+          node is LocalFunction ||
+          node is Member ||
+          node is SwitchStatement ||
+          node is TryCatch,
+    );
     return node is Member || node is LocalFunction;
   }
 
@@ -868,20 +876,14 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
   ///
   /// This include all declarations in scopes until we see a function scope.
   List<Expression> get toFenceReturn {
-    return [
-      if (!scopesReturn) ...parent!.toFenceReturn,
-      ...toFenceThisScope,
-    ];
+    return [if (!scopesReturn) ...parent!.toFenceReturn, ...toFenceThisScope];
   }
 
   List<Expression> toFenceBreak(LabeledStatement label) {
     if (_labels.contains(label)) {
       return [];
     }
-    return [
-      ...parent!.toFenceBreak(label),
-      ...toFenceThisScope,
-    ];
+    return [...parent!.toFenceBreak(label), ...toFenceThisScope];
   }
 
   List<Expression> toFenceSwitchContinue(SwitchStatement switchStatement) {
@@ -902,7 +904,10 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     final catches = node_.catches;
     for (final catch_ in catches) {
       if (typeEnvironment.isSubtypeOf(
-          exceptionType, catch_.guard, SubtypeCheckMode.withNullabilities)) {
+        exceptionType,
+        catch_.guard,
+        SubtypeCheckMode.withNullabilities,
+      )) {
         return true;
       }
     }
@@ -912,12 +917,11 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
   List<Expression> toFenceThrow(
     DartType exceptionType,
     TypeEnvironment typeEnvironment,
-  ) =>
-      [
-        if (!scopesThrow(exceptionType, typeEnvironment))
-          ...?parent?.toFenceThrow(exceptionType, typeEnvironment),
-        ...toFenceThisScope,
-      ];
+  ) => [
+    if (!scopesThrow(exceptionType, typeEnvironment))
+      ...?parent?.toFenceThrow(exceptionType, typeEnvironment),
+    ...toFenceThisScope,
+  ];
 
   DartType get rethrowType {
     final node_ = node;
@@ -928,7 +932,9 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
   }
 
   List<Expression> toFenceRethrow(
-      DartType exceptionType, TypeEnvironment typeEnvironment) {
+    DartType exceptionType,
+    TypeEnvironment typeEnvironment,
+  ) {
     return [
       if (!scopesThrow(exceptionType, typeEnvironment))
         ...?parent?.toFenceRethrow(exceptionType, typeEnvironment),
@@ -1028,8 +1034,9 @@ extension FinalizableDartType on DartType {
     }
 
     final finalizableType = FutureOrType(
-        InterfaceType(finalizableClass, Nullability.nullable),
-        Nullability.nullable);
+      InterfaceType(finalizableClass, Nullability.nullable),
+      Nullability.nullable,
+    );
     if (!typeEnvironment.isSubtypeOf(
       type,
       finalizableType,
@@ -1040,13 +1047,16 @@ extension FinalizableDartType on DartType {
     }
 
     // Exclude never types.
-    final futureOfNeverType =
-        FutureOrType(NeverType.nullable(), Nullability.nullable);
-    final result = !typeEnvironment.isSubtypeOf(
-      type,
-      futureOfNeverType,
-      SubtypeCheckMode.ignoringNullabilities,
+    final futureOfNeverType = FutureOrType(
+      NeverType.nullable(),
+      Nullability.nullable,
     );
+    final result =
+        !typeEnvironment.isSubtypeOf(
+          type,
+          futureOfNeverType,
+          SubtypeCheckMode.ignoringNullabilities,
+        );
     cache?[type] = result;
     return result;
   }

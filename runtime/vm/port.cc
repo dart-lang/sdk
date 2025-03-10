@@ -140,7 +140,7 @@ void PortMap::ClosePorts(MessageHandler* handler) {
 
 bool PortMap::PostMessage(std::unique_ptr<Message> message,
                           bool before_events) {
-  MutexLocker ml(mutex_);
+  Locker ml;
   if (ports_ == nullptr) {
     return false;
   }
@@ -158,17 +158,21 @@ bool PortMap::PostMessage(std::unique_ptr<Message> message,
 
 #if defined(TESTING)
 bool PortMap::PortExists(Dart_Port id) {
-  MutexLocker ml(mutex_);
+  Locker ml;
   if (ports_ == nullptr) {
     return false;
   }
   auto it = ports_->TryLookup(id);
   return it != ports_->end();
 }
-#endif  // defined(TESTING)
 
 Isolate* PortMap::GetIsolate(Dart_Port id) {
-  MutexLocker ml(mutex_);
+  Locker ml;
+  return GetIsolateLocked(ml, id);
+}
+#endif  // defined(TESTING)
+
+Isolate* PortMap::GetIsolateLocked(const Locker& ml, Dart_Port id) {
   if (ports_ == nullptr) {
     return nullptr;
   }
@@ -183,7 +187,7 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
 }
 
 Dart_Port PortMap::GetOriginId(Dart_Port id) {
-  MutexLocker ml(mutex_);
+  Locker ml;
   if (ports_ == nullptr) {
     return ILLEGAL_PORT;
   }
@@ -202,9 +206,19 @@ Dart_Port PortMap::GetOriginId(Dart_Port id) {
   return isolate->origin_id();
 }
 
+bool PortMap::IsOwnedByCurrentThread(Dart_Port id) {
+  Locker ml;
+  Isolate* isolate = GetIsolateLocked(ml, id);
+  if (isolate == nullptr) {
+    // Either the port is invalid, or the isolate has already shut down.
+    return false;
+  }
+  return isolate->GetOwnerThread(&ml) == OSThread::GetCurrentThreadId();
+}
+
 #if defined(TESTING)
 bool PortMap::HasPorts(MessageHandler* handler) {
-  MutexLocker ml(mutex_);
+  Locker ml;
   if (ports_ == nullptr) {
     return false;
   }
@@ -216,7 +230,7 @@ bool PortMap::HasPorts(MessageHandler* handler) {
 
 bool PortMap::IsReceiverInThisIsolateGroupOrClosed(Dart_Port receiver,
                                                    IsolateGroup* group) {
-  MutexLocker ml(mutex_);
+  Locker ml;
   if (ports_ == nullptr) {
     // Port was closed.
     return true;
@@ -266,7 +280,7 @@ void PortMap::Cleanup() {
   ports_->Rebalance();
 
   // Grab the mutex and delete the port set.
-  MutexLocker ml(mutex_);
+  Locker ml;
   delete prng_;
   prng_ = nullptr;
   delete ports_;

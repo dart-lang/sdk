@@ -5,11 +5,7 @@
 part of 'declaration_builders.dart';
 
 abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
-  LookupScope get scope;
-
   DeclarationNameSpace get nameSpace;
-
-  ConstructorScope get constructorScope;
 
   /// Type parameters declared on this declaration.
   ///
@@ -75,11 +71,17 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
       return null;
     }
     MemberBuilder? declaration =
-        constructorScope.lookup(name == 'new' ? '' : name, charOffset, uri);
+        nameSpace.lookupConstructor(name == 'new' ? '' : name);
     if (declaration == null && isAugmenting) {
+      // Coverage-ignore-block(suite): Not run.
       return origin.findConstructorOrFactory(
           name, charOffset, uri, accessingLibrary);
     }
+    if (declaration != null && declaration.next != null) {
+      return new AmbiguousMemberBuilder(
+          name.isEmpty ? this.name : name, declaration, charOffset, fileUri);
+    }
+
     return declaration;
   }
 

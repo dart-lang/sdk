@@ -378,15 +378,20 @@ class PropertyAccessorElementFlags {
   static const int _isGenerator = 1 << 9;
   static const int _isStatic = 1 << 10;
 
+  static bool isGetter(int flags) => (flags & _isGetter) != 0;
+
   static void read(
     SummaryDataReader reader,
     PropertyAccessorElementImpl element,
   ) {
     var byte = reader.readUInt30();
+    setFlagsBasedOnFlagByte(element, byte);
+  }
+
+  static void setFlagsBasedOnFlagByte(
+      PropertyAccessorElementImpl element, int byte) {
     element.invokesSuperSelf = (byte & _invokesSuperSelf) != 0;
     element.isAugmentation = (byte & _isAugmentation) != 0;
-    element.isGetter = (byte & _isGetter) != 0;
-    element.isSetter = (byte & _isSetter) != 0;
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;

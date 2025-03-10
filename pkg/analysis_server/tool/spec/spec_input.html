@@ -581,6 +581,26 @@
       </field>
     </params>
   </notification>
+  <notification event="pluginError">
+    <p>
+      Reports that an unexpected error has occurred while
+      setting up an analyzer plugin, or during a plugin's
+      execution.
+    </p>
+    <p>
+      It is not possible to subscribe to or unsubscribe from this
+      notification.
+    </p>
+    <params>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          The error message indicating what kind of error was
+          encountered.
+        </p>
+      </field>
+    </params>
+  </notification>
   <notification event="log" experimental="true">
     <p>
       The stream of entries describing events happened in the server.

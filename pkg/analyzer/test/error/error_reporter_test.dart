@@ -145,7 +145,7 @@ main() {
     var fa = findNode.topLevelVariableDeclaration('fa');
     var fb = findNode.topLevelVariableDeclaration('fb');
 
-    var source = result.unit.declaredFragment!.libraryFragment!.source;
+    var source = result.unit.declaredFragment!.source;
     var reporter = ErrorReporter(listener, source);
     reporter.atNode(
       findNode.simple('x'),
@@ -176,7 +176,7 @@ main() {
     var ba = findNode.topLevelVariableDeclaration('ba');
     var bb = findNode.topLevelVariableDeclaration('bb');
 
-    var source = result.unit.declaredFragment!.libraryFragment!.source;
+    var source = result.unit.declaredFragment!.source;
     var reporter = ErrorReporter(listener, source);
     reporter.atNode(
       findNode.simple('x'),

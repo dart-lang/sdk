@@ -59,6 +59,111 @@ foo(String str) {}
     expect(result.path.first.name, 'f');
   }
 
+  Future<void> test_findReferences_inNullAware_listElement() async {
+    var text = r'''
+List<int> f(int? foo) {
+  return [?foo /* target */];
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var results = (await _findElementReferences(text))!;
+    expect(results, hasLength(1));
+    var result = results.first;
+    expect(result.location.file, pathname);
+    expect(result.isPotential, isFalse);
+    expect(result.kind.name, SearchResultKind.READ.name);
+    expect(result.path.first.name, 'f');
+  }
+
+  Future<void> test_findReferences_inNullAware_mapKey() async {
+    var text = r'''
+Map<int, String> f(int? foo) {
+  return {?foo /* target */: "value"};
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var results = (await _findElementReferences(text))!;
+    expect(results, hasLength(1));
+    var result = results.first;
+    expect(result.location.file, pathname);
+    expect(result.isPotential, isFalse);
+    expect(result.kind.name, SearchResultKind.READ.name);
+    expect(result.path.first.name, 'f');
+  }
+
+  Future<void> test_findReferences_inNullAware_mapKeyValue() async {
+    var text = r'''
+Map<int, String> f(int? key, String? value) {
+  return {?key: ?value /* target */};
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var results = (await _findElementReferences(text))!;
+    expect(results, hasLength(1));
+    var result = results.first;
+    expect(result.location.file, pathname);
+    expect(result.isPotential, isFalse);
+    expect(result.kind.name, SearchResultKind.READ.name);
+    expect(result.path.first.name, 'f');
+  }
+
+  Future<void> test_findReferences_inNullAware_mapValue() async {
+    var text = r'''
+Map<String, int> f(int? foo) {
+  return {"key": ?foo /* target */};
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var results = (await _findElementReferences(text))!;
+    expect(results, hasLength(1));
+    var result = results.first;
+    expect(result.location.file, pathname);
+    expect(result.isPotential, isFalse);
+    expect(result.kind.name, SearchResultKind.READ.name);
+    expect(result.path.first.name, 'f');
+  }
+
+  Future<void> test_findReferences_inNullAware_setElement() async {
+    var text = r'''
+Set<int> f(int? foo) {
+  return {?foo /* target */};
+}
+''';
+
+    pathname = sourcePath('foo.dart');
+    writeFile(pathname, text);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var results = (await _findElementReferences(text))!;
+    expect(results, hasLength(1));
+    var result = results.first;
+    expect(result.location.file, pathname);
+    expect(result.isPotential, isFalse);
+    expect(result.kind.name, SearchResultKind.READ.name);
+    expect(result.path.first.name, 'f');
+  }
+
   Future<List<SearchResult>?> _findElementReferences(String text) async {
     var offset = text.indexOf(' /* target */') - 1;
     var result = await sendSearchFindElementReferences(pathname, offset, false);

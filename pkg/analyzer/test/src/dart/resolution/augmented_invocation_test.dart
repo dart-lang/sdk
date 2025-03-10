@@ -9,7 +9,8 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AugmentedInvocationResolutionTest);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(AugmentedInvocationResolutionTest);
   });
 }
 
@@ -47,7 +48,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@class::A::@constructor::named
-  element2: package:test/a.dart::<fragment>::@class::A::@constructor::named#element
+  fragment: package:test/a.dart::<fragment>::@class::A::@constructor::named
   staticType: A
 ''');
   }
@@ -84,7 +85,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@class::A::@constructor::new
-  element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+  fragment: package:test/a.dart::<fragment>::@class::A::@constructor::new
   staticType: A
 ''');
   }
@@ -166,7 +167,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@class::A::@method::foo
-  element2: package:test/a.dart::<fragment>::@class::A::@method::foo#element
+  fragment: package:test/a.dart::<fragment>::@class::A::@method::foo
   staticType: void
 ''');
   }
@@ -199,7 +200,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: void
 ''');
   }
@@ -235,7 +236,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: <null>
-  element2: <null>
+  fragment: <null>
   staticType: InvalidType
 ''');
   }
@@ -247,13 +248,15 @@ part 'test.dart';
 T foo<T>(T a) => a;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 part of 'a.dart';
 
 augment void foo<T2>(T2 a) {
   augmented(0);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
+    ]);
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -270,7 +273,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: int
 ''');
   }
@@ -282,13 +285,15 @@ part 'test.dart';
 T foo<T extends num>(T a) => throw 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 part of 'a.dart';
 
 augment void foo<T2 extends num>(T2 a) {
   augmented('');
 }
-''');
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
+    ]);
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -301,7 +306,7 @@ AugmentedInvocation
         literal: ''
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: num
 ''');
   }
@@ -355,7 +360,7 @@ AugmentedInvocation
         staticType: String Function(int)
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: String
 ''');
   }
@@ -374,6 +379,7 @@ augment void foo<T2>() {
   int a = augmented();
 }
 ''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
     ]);
 
@@ -385,7 +391,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: int
 ''');
   }
@@ -397,13 +403,15 @@ part 'test.dart';
 T foo<T>() => throw 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 part of 'a.dart';
 
 augment void foo<T2>() {
   augmented<int>();
 }
-''');
+''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
+    ]);
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -422,7 +430,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: int
 ''');
   }
@@ -441,6 +449,7 @@ augment void foo<T2 extends num>() {
   augmented<String>();
 }
 ''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 68, 6),
     ]);
 
@@ -461,7 +470,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: String
 ''');
   }
@@ -480,6 +489,7 @@ augment void foo<T2>() {
   augmented<int, String>();
 }
 ''', [
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 32, 3),
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 55, 13),
     ]);
 
@@ -505,7 +515,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::@function::foo
+  fragment: package:test/a.dart::<fragment>::@function::foo
   staticType: dynamic
 ''');
   }
@@ -578,7 +588,7 @@ ExpressionStatement
       leftParenthesis: (
       rightParenthesis: )
     element: package:test/a.dart::<fragment>::@getter::foo
-    element2: package:test/a.dart::<fragment>::@getter::foo#element
+    fragment: package:test/a.dart::<fragment>::@getter::foo
     staticType: InvalidType
   semicolon: ;
 ''');
@@ -696,7 +706,7 @@ ExpressionStatement
       leftParenthesis: (
       rightParenthesis: )
     element: package:test/a.dart::<fragment>::@getter::foo
-    element2: package:test/a.dart::<fragment>::@getter::foo#element
+    fragment: package:test/a.dart::<fragment>::@getter::foo
     staticType: InvalidType
   semicolon: ;
 ''');
@@ -737,7 +747,7 @@ ExpressionStatement
           staticType: int
       rightParenthesis: )
     element: package:test/a.dart::<fragment>::@setter::foo
-    element2: package:test/a.dart::<fragment>::@setter::foo#element
+    fragment: package:test/a.dart::<fragment>::@setter::foo
     staticType: InvalidType
   semicolon: ;
 ''');

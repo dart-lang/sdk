@@ -53,13 +53,13 @@ testCallbackLeaf() {
 }
 
 main() {
-  testLeafCall(); //# 01: ok
+  testLeafCall();
   // These tests terminate the process after successful completion, so we have
   // to run them separately.
   //
   // Since they use signal handlers they only run on Linux.
   if (Platform.isLinux && !const bool.fromEnvironment("dart.vm.product")) {
-    testLeafCallApi(); //# 02: ok
-    testCallbackLeaf(); //# 03: ok
+    testLeafCallApi();
+    testCallbackLeaf();
   }
 }

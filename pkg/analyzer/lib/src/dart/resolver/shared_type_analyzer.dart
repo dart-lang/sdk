@@ -34,8 +34,7 @@ class SharedTypeAnalyzerErrors
       {required Expression scrutinee,
       required Expression caseExpression,
       required SharedTypeView scrutineeType,
-      required SharedTypeView caseExpressionType,
-      required bool nullSafetyEnabled}) {
+      required SharedTypeView caseExpressionType}) {
     _errorReporter.atNode(
       caseExpression,
       CompileTimeErrorCode

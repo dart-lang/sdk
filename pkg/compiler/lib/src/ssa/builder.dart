@@ -2065,7 +2065,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     HInstruction value,
     DartType type,
   ) {
-    if (!options.enableNullAssertions) return value;
     if (!dartTypes.isNonNullableIfSound(type)) return value;
 
     // `operator==` is usually augmented to handle a `null`-argument before this
@@ -2342,6 +2341,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         }
         parameterMap[local] = _typeInferenceMap.getInferredTypeOfParameter(
           local,
+          member,
         );
       }
 
@@ -7717,7 +7717,45 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void visitIsExpression(ir.IsExpression node) {
     node.operand.accept(this);
     HInstruction expression = pop();
-    _pushIsTest(node.type, expression, _sourceInformationBuilder.buildIs(node));
+    _pushIsTest(
+      _widenCheckedTypeForOperand(node.type, node.operand),
+      expression,
+      _sourceInformationBuilder.buildIs(node),
+    );
+  }
+
+  /// Returns a type that is equivalent to `checkedType`, but possibly simpler.
+  /// For example, if operand has static type `Iterable<E>` and checkedType is
+  /// `List<E>`, returns `List<dynamic>` since that is an easier test that does
+  /// not reference any type variables.
+  ir.DartType _widenCheckedTypeForOperand(
+    ir.DartType checkedType,
+    ir.Expression operand,
+  ) {
+    if (checkedType is ir.InterfaceType) {
+      if (checkedType.typeArguments.isEmpty) return checkedType;
+      final operandType = operand.getStaticType(
+        _currentFrame!.staticTypeContext!,
+      );
+      final sufficiency = closedWorld.elementMap.typeEnvironment
+          .computeTypeShapeCheckSufficiency(
+            expressionStaticType: operandType,
+            checkTargetType: checkedType,
+            subtypeCheckMode: ir.SubtypeCheckMode.withNullabilities,
+          );
+
+      // If `true` the caller only needs to check nullabillity and the actual
+      // concrete class, no need to check [testedAgainstType] arguments.
+      if (sufficiency == ir.TypeShapeCheckSufficiency.interfaceShape) {
+        return closedWorld.elementMap.coreTypes.rawType(
+          checkedType.classNode,
+          operandType.nullability == ir.Nullability.nonNullable
+              ? ir.Nullability.nonNullable
+              : checkedType.nullability,
+        );
+      }
+    }
+    return checkedType;
   }
 
   void _pushIsTest(

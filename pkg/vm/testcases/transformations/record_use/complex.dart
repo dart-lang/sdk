@@ -17,18 +17,17 @@ class OtherClass {
   AnotherClass object = AnotherClass();
 
   Future<String> someMethod({required String argument}) async {
-    return await generate(
-      bundle,
-      [argument],
-      string,
-      object,
-      42,
-    );
+    return await generate(bundle, [argument], string, object, 42);
   }
 
   @RecordUse()
-  static Future<String> generate(AssetBundle bundle, List args, String string,
-      AnotherClass object, int index) async {
+  static Future<String> generate(
+    AssetBundle bundle,
+    List args,
+    String string,
+    AnotherClass object,
+    int index,
+  ) async {
     final message = await bundle.byIndex(string: string, index: index);
     return message.generateString(args, object: object);
   }
@@ -41,8 +40,10 @@ class AssetBundle {
 }
 
 class Message {
-  Future<String> generateString(List args,
-      {required AnotherClass object}) async {
+  Future<String> generateString(
+    List args, {
+    required AnotherClass object,
+  }) async {
     return args.firstOrNull.toString();
   }
 }

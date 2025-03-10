@@ -33,8 +33,10 @@ void switchSingleCase() {
 /// Guard and body use same variables in if-case statements.
 void ifCase() {
   _closures.clear();
-  if (['one', 'two']
-      case [var a, var b] when _capture(() => a) && _capture(() => b)) {
+  if (['one', 'two'] case [
+    var a,
+    var b,
+  ] when _capture(() => a) && _capture(() => b)) {
     Expect.equals('one two', _runClosures());
     Expect.equals('one', a);
     Expect.equals('two', b);

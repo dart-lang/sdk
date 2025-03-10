@@ -75,7 +75,7 @@ for command; do
     rm -f linux-x64_profile.tar.gz
   elif [ "$command" = linux-ia32-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    ./tools/build.py --mode=release --arch=ia32 create_sdk runtime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot
+    ./tools/build.py --mode=release --arch=ia32 create_sdk runtime dart2js_platform.dill kernel-service.dart.snapshot
   elif [ "$command" = linux-ia32-archive ]; then
     export GZIP=-1
     strip -w \
@@ -141,7 +141,6 @@ for command; do
       --exclude pkg/front_end/testcases \
       -- \
       out/ReleaseIA32/dart2js_platform.dill \
-      out/ReleaseIA32/dart2js_platform_unsound.dill \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
       out/ReleaseIA32/gen/kernel_service.dill \
@@ -181,7 +180,7 @@ EOF
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dartaotruntime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot ddc_stable_test ddc_canary_test dart2wasm_benchmark
+    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dartaotruntime dart2js_platform.dill kernel-service.dart.snapshot ddc_stable_test ddc_canary_test dart2wasm_benchmark
   elif [ "$command" = linux-x64-archive ]; then
     export GZIP=-1
     strip -w \
@@ -266,7 +265,6 @@ EOF
       --exclude pkg/front_end/testcases \
       -- \
       out/ReleaseX64/dart2js_platform.dill \
-      out/ReleaseX64/dart2js_platform_unsound.dill \
       out/ReleaseX64/dart2wasm_outline.dill \
       out/ReleaseX64/dart2wasm_platform.dill \
       out/ReleaseX64/vm_outline_strong.dill \
@@ -283,7 +281,6 @@ EOF
       third_party/firefox_jsshell/ \
       out/ReleaseX64/dartaotruntime \
       out/ReleaseX64/gen/utils/ddc \
-      out/ReleaseX64/ddc_outline_unsound.dill \
       out/ReleaseX64/ddc_outline.dill \
       sdk \
       pkg/compiler/test/codesize/swarm \
@@ -308,20 +305,11 @@ EOF
     out/ReleaseX64/dart --profile-period=10000 --optimization-counter-threshold=-1 hello.dart
     DART_CONFIGURATION=ReleaseX64 pkg/dart2wasm/tool/compile_benchmark hello.dart hello.wasm
     DART_CONFIGURATION=ReleaseX64 pkg/dart2wasm/tool/run_benchmark hello.wasm
-    out/ReleaseX64/dart-sdk/bin/dart compile js --no-sound-null-safety --platform-binaries=out/ReleaseX64 --out=out.js -m hello.dart
-    third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart compile js --sound-null-safety --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseX64/dart-sdk/bin/dart compile js --no-sound-null-safety --platform-binaries=out/ReleaseX64 --out=out.js -m hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart --print_metrics compile js --no-sound-null-safety --platform-binaries=out/ReleaseX64 --out=out.js -m hello.dart
-    LD_LIBRARY_PATH=third_party/firefox_jsshell/ third_party/firefox_jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
     out/ReleaseX64/dart-sdk/bin/dart compile js --sound-null-safety --out=out.js -m hello.dart
     LD_LIBRARY_PATH=third_party/firefox_jsshell/ third_party/firefox_jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
-    out/ReleaseX64/dart-sdk/bin/dart compile js --no-sound-null-safety --platform-binaries=out/ReleaseX64 --benchmarking-production --out=out.js -m hello.dart
-    third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart compile js --sound-null-safety --benchmarking-production --out=out.js -m hello.dart
-    third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseX64/dart-sdk/bin/dart compile js --no-sound-null-safety --platform-binaries=out/ReleaseX64 --benchmarking-x --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --sound-null-safety hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --sound-null-safety --mode=compile --compile-vm-options=--print-metrics --out out.js hello.dart

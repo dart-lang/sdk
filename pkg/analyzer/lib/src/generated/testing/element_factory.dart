@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart' show NonExistingSource;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -37,7 +38,7 @@ class ElementFactory {
   }
 
   static InterfaceType get objectType {
-    return _objectType ??= object.instantiate(
+    return _objectType ??= object.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -126,6 +127,7 @@ class ElementFactory {
     var constructor = name == null || name == 'new'
         ? ConstructorElementImpl('', offset)
         : ConstructorElementImpl(name, offset);
+    constructor.name2 = name ?? 'new';
     if (name != null) {
       if (name.isEmpty) {
         constructor.nameEnd = definingClass.name.length;
@@ -173,6 +175,8 @@ class ElementFactory {
       FieldFormalParameterElementImpl(
         name: name.name,
         nameOffset: name.offset,
+        name2: name.name.nullIfEmpty,
+        nameOffset2: name.offset.nullIfNegative,
         parameterKind: ParameterKind.REQUIRED,
       );
 
@@ -183,16 +187,15 @@ class ElementFactory {
     _objectElement = null;
   }
 
-  static PropertyAccessorElementImpl getterElement(
+  static GetterFragmentImpl getterElement(
       String name, bool isStatic, TypeImpl type) {
     FieldElementImpl field = FieldElementImpl(name, -1);
     field.isStatic = isStatic;
     field.isSynthetic = true;
     field.type = type;
     field.isFinal = true;
-    PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, 0);
+    GetterFragmentImpl getter = GetterFragmentImpl(name, 0);
     getter.isSynthetic = false;
-    getter.isGetter = true;
     getter.variable2 = field;
     getter.returnType = type;
     getter.isStatic = isStatic;
@@ -231,6 +234,7 @@ class ElementFactory {
     MethodElementImpl method = MethodElementImpl(methodName, 0);
     method.parameters = _requiredParameters(argumentTypes);
     method.returnType = returnType;
+    MethodElementImpl2(Reference.root(), methodName, method);
     return method;
   }
 
@@ -272,6 +276,8 @@ class ElementFactory {
     return ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
     );
   }
@@ -280,6 +286,8 @@ class ElementFactory {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
     );
     parameter.type = type;
@@ -290,6 +298,8 @@ class ElementFactory {
     return ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
   }
@@ -298,6 +308,8 @@ class ElementFactory {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
     parameter.type = type;
@@ -310,6 +322,8 @@ class ElementFactory {
     return ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
   }
@@ -318,6 +332,8 @@ class ElementFactory {
     var parameter = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
     parameter.type = type;
@@ -330,14 +346,12 @@ class ElementFactory {
     field.isStatic = isStatic;
     field.isSynthetic = true;
     field.type = type;
-    PropertyAccessorElementImpl getter = PropertyAccessorElementImpl(name, -1);
-    getter.isGetter = true;
+    GetterFragmentImpl getter = GetterFragmentImpl(name, -1);
     getter.variable2 = field;
     getter.returnType = type;
     field.getter = getter;
     ParameterElementImpl parameter = requiredParameter2("a", type);
-    PropertyAccessorElementImpl setter = PropertyAccessorElementImpl(name, -1);
-    setter.isSetter = true;
+    SetterFragmentImpl setter = SetterFragmentImpl(name, -1);
     setter.isSynthetic = true;
     setter.variable2 = field;
     setter.parameters = [parameter];
@@ -372,6 +386,8 @@ class ElementFactory {
       var parameter = ParameterElementImpl(
         name: 'a$index',
         nameOffset: index,
+        name2: 'a$index',
+        nameOffset2: index,
         parameterKind: ParameterKind.REQUIRED,
       );
       parameter.type = type;

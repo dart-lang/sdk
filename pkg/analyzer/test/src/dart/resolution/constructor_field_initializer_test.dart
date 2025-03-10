@@ -16,6 +16,7 @@ main() {
 @reflectiveTest
 class ConstructorFieldInitializerResolutionTest
     extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_fieldOfAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

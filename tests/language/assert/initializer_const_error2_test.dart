@@ -20,7 +20,21 @@ class C {
   const C.cc10(this.x, y) : assert(x < y, "$x < $y");
 }
 
-main() {
+void main() {
+  {
+    const x = 3;
+    const C.cc01(2, x);
+    const C.cc02(2, x);
+    const C.cc03(2, x);
+    const C.cc04(2, x);
+    const C.cc05(2, x);
+    const C.cc06(2, x);
+    const C.cc07(2, x);
+    const C.cc08(2, x);
+    const C.cc09(2, x);
+    const C.cc10(2, x);
+  }
+
   {
     const x = 1;
     const C.cc01(2, x);
@@ -28,73 +42,55 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
     //    ^
     // [cfe] Constant evaluation error:
-  }
-  {
-    const x = 1;
+
     const C.cc02(2, x);
     // [error column 5, length 18]
     // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
     //    ^
     // [cfe] Constant evaluation error:
-  }
-  {
-    const x = 1;
+
     const C.cc03(2, x);
     // [error column 5, length 18]
     // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
     //    ^
     // [cfe] Constant evaluation error:
-  }
-  {
-    const x = 1;
+
     const C.cc04(2, x);
     // [error column 5, length 18]
     // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
     //    ^
     // [cfe] Constant evaluation error:
-  }
-  {
-    const x = 1;
+
     const C.cc05(2, x);
     // [error column 5, length 18]
     // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
     //    ^
     // [cfe] Constant evaluation error:
-  }
-  {
-    const x = 1;
+
     const C.cc06(2, x);
     // [error column 5, length 18]
     // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
     //    ^
     // [cfe] Constant evaluation error:
-  }
-  {
-    const x = 1;
+
     const C.cc07(2, x);
     // [error column 5, length 18]
     // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
     //    ^
     // [cfe] Constant evaluation error:
-  }
-  {
-    const x = 1;
+
     const C.cc08(2, x);
     // [error column 5, length 18]
     // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
     //    ^
     // [cfe] Constant evaluation error:
-  }
-  {
-    const x = 1;
+
     const C.cc09(2, x);
     // [error column 5, length 18]
     // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
     //    ^
     // [cfe] Constant evaluation error:
-  }
-  {
-    const x = 1;
+
     const C.cc10(2, x);
     // [error column 5, length 18]
     // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION

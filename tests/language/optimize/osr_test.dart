@@ -19,7 +19,7 @@ class MyList<E> extends ListBase<E> {
   List<E?> _list;
 
   MyList([int? length])
-      : _list = (length == null ? <E?>[] : new List<E?>.filled(length, null));
+    : _list = (length == null ? <E?>[] : new List<E?>.filled(length, null));
 
   E operator [](int index) => _list[index]!;
 

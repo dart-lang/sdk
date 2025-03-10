@@ -69,6 +69,7 @@ runTest(List<String> options, {bool trust = true}) async {
             localsMap.getLocalVariable(
               procedure.function.positionalParameters.first,
             ),
+            closedWorld.elementMap.getMethod(procedure),
           )
           as TypeMask;
 

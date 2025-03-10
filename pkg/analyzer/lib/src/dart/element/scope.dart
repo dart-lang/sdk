@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
@@ -507,6 +508,7 @@ class PrefixScope implements Scope {
   final PrefixScope? parent;
 
   final List<LibraryImportElementImpl> _importElements = [];
+  final List<LibraryElementImpl> _importedLibraries = [];
 
   final Map<String, Element2> _getters = {};
   final Map<String, Element2> _setters = {};
@@ -530,6 +532,7 @@ class PrefixScope implements Scope {
           import.prefix2?.element == prefix) {
         _importElements.add(import);
         var importedLibrary = importedUri.library;
+        _importedLibraries.add(importedLibrary);
         var combinators = import.combinators.build();
         for (var exportedReference in importedLibrary.exportedReferences) {
           var reference = exportedReference.reference;
@@ -575,6 +578,15 @@ class PrefixScope implements Scope {
         getter2: deferredLibrary.loadLibraryFunction2,
         setter2: null,
       );
+    }
+
+    if (linkingBundleManifest case var linkingBundleManifest?) {
+      for (var importedLibrary in _importedLibraries) {
+        linkingBundleManifest.notifyRequest(
+          importedLibrary: importedLibrary,
+          nameStr: id,
+        );
+      }
     }
 
     var getter = _getters[id];
@@ -741,13 +753,13 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
                 ? setterIsFromDeprecatedExportBit
                 : 0);
 
-  /// This flag is set to `true` if [getter] is available using import
+  /// This flag is set to `true` if [getter2] is available using import
   /// directives where every imported library re-exports the element, and
   /// every such `export` directive is marked as deprecated.
   bool get getterIsFromDeprecatedExport =>
       (_deprecatedBits & getterIsFromDeprecatedExportBit) != 0;
 
-  /// This flag is set to `true` if [setter] is available using import
+  /// This flag is set to `true` if [setter2] is available using import
   /// directives where every imported library re-exports the element, and
   /// every such `export` directive is marked as deprecated.
   bool get setterIsFromDeprecatedExport =>

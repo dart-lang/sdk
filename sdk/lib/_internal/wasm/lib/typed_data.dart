@@ -1969,8 +1969,8 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
         );
         return;
       }
-      if (fromElementSize == 2 && this is _WasmI16ArrayBase) {
-        final destTypedData = unsafeCast<_WasmI16ArrayBase>(this);
+      if (fromElementSize == 2 && this is WasmI16ArrayBase) {
+        final destTypedData = unsafeCast<WasmI16ArrayBase>(this);
         copyToWasmI16Array(
           fromTypedData.toJSArrayExternRef()!,
           skipCount,
@@ -2554,16 +2554,16 @@ abstract class WasmI8ArrayBase extends WasmTypedDataBase {
   _I8ByteBuffer get buffer => _I8ByteBuffer(_data);
 }
 
-abstract class _WasmI16ArrayBase extends WasmTypedDataBase {
+abstract class WasmI16ArrayBase extends WasmTypedDataBase {
   final WasmArray<WasmI16> _data;
   final int _offsetInElements;
   final int length;
 
-  _WasmI16ArrayBase(this.length)
+  WasmI16ArrayBase(this.length)
     : _data = WasmArray(_newArrayLengthCheck(length)),
       _offsetInElements = 0;
 
-  _WasmI16ArrayBase._(this._data, this._offsetInElements, this.length);
+  WasmI16ArrayBase._(this._data, this._offsetInElements, this.length);
 
   int get elementSizeInBytes => 2;
 
@@ -2657,7 +2657,7 @@ extension WasmI8ArrayBaseExt on WasmI8ArrayBase {
   int get offsetInElements => _offsetInElements;
 }
 
-extension WasmI16ArrayBaseExt on _WasmI16ArrayBase {
+extension WasmI16ArrayBaseExt on WasmI16ArrayBase {
   @pragma('wasm:prefer-inline')
   WasmArray<WasmI16> get data => _data;
 
@@ -2826,7 +2826,7 @@ class U8ClampedList extends WasmI8ArrayBase
   }
 }
 
-class I16List extends _WasmI16ArrayBase
+class I16List extends WasmI16ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<I16List>,
@@ -2868,7 +2868,7 @@ class I16List extends _WasmI16ArrayBase
   }
 }
 
-class U16List extends _WasmI16ArrayBase
+class U16List extends WasmI16ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<U16List>,
@@ -2899,13 +2899,23 @@ class U16List extends _WasmI16ArrayBase
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
-    return _data.readUnsigned(_offsetInElements + index);
+    return getUnchecked(index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
     IndexErrorUtils.checkIndexBCE(index, length);
+    setUnchecked(index, value);
+  }
+}
+
+extension U16ListUncheckedOperations on U16List {
+  @pragma("wasm:prefer-inline")
+  int getUnchecked(int index) => _data.readUnsigned(_offsetInElements + index);
+
+  @pragma("wasm:prefer-inline")
+  void setUnchecked(int index, int value) {
     _data.write(_offsetInElements + index, value);
   }
 }

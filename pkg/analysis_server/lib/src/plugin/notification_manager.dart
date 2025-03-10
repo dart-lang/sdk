@@ -95,6 +95,20 @@ abstract class AbstractNotificationManager {
   Stream<bool> get pluginAnalysisStatusChanges =>
       _analysisStatusChangesController.stream;
 
+  /// Handles a plugin error.
+  ///
+  /// This amounts to notifying the client, and setting the 'is analyzing'
+  /// status to `false`.
+  ///
+  /// The caller is responsible for logging the error with the instrumentation
+  /// service.
+  void handlePluginError(String message) {
+    _analysisStatusChangesController.add(false /* isAnalyzing */);
+    pluginStatusAnalyzing = false;
+
+    sendPluginError(message);
+  }
+
   /// Handle the given [notification] from the plugin with the given [pluginId].
   void handlePluginNotification(
     String pluginId,
@@ -260,6 +274,9 @@ abstract class AbstractNotificationManager {
   @visibleForOverriding
   void sendOutlines(String filePath, List<Outline> mergedOutlines);
 
+  @visibleForOverriding
+  void sendPluginError(String message);
+
   /// Sends plugin errors to the client.
   @visibleForOverriding
   void sendPluginErrorNotification(plugin.Notification notification);
@@ -363,11 +380,6 @@ abstract class AbstractNotificationManager {
     }
     var isAnalyzing = analysis.isAnalyzing;
     _analysisStatusChangesController.add(isAnalyzing);
-
-    // Only send status when it changes.
-    if (pluginStatusAnalyzing == isAnalyzing) {
-      return;
-    }
     pluginStatusAnalyzing = isAnalyzing;
   }
 }
@@ -445,6 +457,15 @@ class NotificationManager extends AbstractNotificationManager {
         filePath,
         server.FileKind.LIBRARY,
         mergedOutlines[0],
+      ).toNotification(clientUriConverter: uriConverter),
+    );
+  }
+
+  @override
+  void sendPluginError(String message) {
+    _channel.sendNotification(
+      server.ServerPluginErrorParams(
+        message,
       ).toNotification(clientUriConverter: uriConverter),
     );
   }

@@ -72,7 +72,7 @@ void main(
   @set
   @static
   @typedef
-      List<String> args,
+  List<String> args,
 ) {
   @abstract
   @as
@@ -99,27 +99,28 @@ void main(
   var x = true;
 
   void f<
-      @abstract
-      @as
-      @covariant
-      @deferred
-      @dynamic
-      @export
-      @external
-      @factory
-      @Function
-      @get
-      @implements
-      @import
-      @interface
-      @late
-      @library
-      @mixin
-      @operator
-      @part
-      @required
-      @set
-      @static
-      @typedef
-          X>() {}
+    @abstract
+    @as
+    @covariant
+    @deferred
+    @dynamic
+    @export
+    @external
+    @factory
+    @Function
+    @get
+    @implements
+    @import
+    @interface
+    @late
+    @library
+    @mixin
+    @operator
+    @part
+    @required
+    @set
+    @static
+    @typedef
+    X
+  >() {}
 }

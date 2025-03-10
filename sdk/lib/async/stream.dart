@@ -181,7 +181,6 @@ abstract mixin class Stream<T> {
   ///
   /// The returned stream is effectively equivalent to one created by
   /// `(() async* { yield value; } ())` or `Future<T>.value(value).asStream()`.
-  @Since("2.5")
   factory Stream.value(T value) =>
       (_AsyncStreamController<T>(null, null, null, null)
             .._add(value)
@@ -210,7 +209,6 @@ abstract mixin class Stream<T> {
   /// `Future<T>.error(error, stackTrace).asStream()`, by or
   /// `(() async* { throw error; } ())`, except that you can control the
   /// stack trace as well.
-  @Since("2.5")
   factory Stream.error(Object error, [StackTrace? stackTrace]) {
     AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
     return (_AsyncStreamController<T>(null, null, null, null)
@@ -359,7 +357,8 @@ abstract mixin class Stream<T> {
         try {
           iterator = elements.iterator;
         } catch (e, s) {
-          controller.addError(e, s);
+          var error = _interceptCaughtError(e, s);
+          controller.addError(error.error, error.stackTrace);
           controller.close();
           return;
         }
@@ -376,7 +375,8 @@ abstract mixin class Stream<T> {
           try {
             hasNext = iterator.moveNext();
           } catch (e, s) {
-            controller.addErrorSync(e, s);
+            var error = _interceptCaughtError(e, s);
+            controller.addErrorSync(error.error, error.stackTrace);
             controller.closeSync();
             return;
           }
@@ -384,7 +384,8 @@ abstract mixin class Stream<T> {
             try {
               controller.addSync(iterator.current);
             } catch (e, s) {
-              controller.addErrorSync(e, s);
+              var error = _interceptCaughtError(e, s);
+              controller.addErrorSync(error.error, error.stackTrace);
             }
             if (controller.hasListener && !controller.isPaused) {
               zone.scheduleMicrotask(next);
@@ -469,7 +470,6 @@ abstract mixin class Stream<T> {
   ///   }
   /// }
   /// ```
-  @Since("2.9")
   factory Stream.multi(
     void Function(MultiStreamController<T>) onListen, {
     bool isBroadcast = false,
@@ -521,7 +521,8 @@ abstract mixin class Stream<T> {
           try {
             event = computation(computationCount++);
           } catch (e, s) {
-            controller.addError(e, s);
+            var error = _interceptCaughtError(e, s);
+            controller.addError(error.error, error.stackTrace);
             return;
           }
           controller.add(event);
@@ -830,7 +831,8 @@ abstract mixin class Stream<T> {
         try {
           newValue = convert(event);
         } catch (e, s) {
-          controller.addError(e, s);
+          var error = _interceptCaughtError(e, s);
+          controller.addError(error.error, error.stackTrace);
           return;
         }
         if (newValue is Future<E>) {
@@ -885,7 +887,8 @@ abstract mixin class Stream<T> {
         try {
           newStream = convert(event);
         } catch (e, s) {
-          controller.addError(e, s);
+          var error = _interceptCaughtError(e, s);
+          controller.addError(error.error, error.stackTrace);
           return;
         }
         if (newStream != null) {
@@ -1070,14 +1073,10 @@ abstract mixin class Stream<T> {
       onError: result._completeError,
       onDone: () {
         if (!seenFirst) {
-          try {
-            // Throw and recatch, instead of just doing
-            //  _completeWithErrorCallback, e, theError, StackTrace.current),
-            // to ensure that the stackTrace is set on the error.
-            throw IterableElementError.noElement();
-          } catch (e, s) {
-            _completeWithErrorCallback(result, e, s);
-          }
+          var stack = StackTrace.empty;
+          var error = IterableElementError.noElement();
+          _trySetStackTrace(error, stack);
+          _completeWithErrorCallback(result, error, stack);
         } else {
           result._complete(value);
         }
@@ -1650,11 +1649,10 @@ abstract mixin class Stream<T> {
       null,
       onError: future._completeError,
       onDone: () {
-        try {
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
@@ -1687,11 +1685,10 @@ abstract mixin class Stream<T> {
           future._complete(result);
           return;
         }
-        try {
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
@@ -1718,22 +1715,20 @@ abstract mixin class Stream<T> {
           future._complete(result);
           return;
         }
-        try {
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
     subscription.onData((T value) {
       if (foundResult) {
         // This is the second element we get.
-        try {
-          throw IterableElementError.tooMany();
-        } catch (e, s) {
-          _cancelAndErrorWithReplacement(subscription, future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.tooMany();
+        _trySetStackTrace(error, stack);
+        _cancelAndErrorWithReplacement(subscription, future, error, stack);
         return;
       }
       foundResult = true;
@@ -1788,12 +1783,10 @@ abstract mixin class Stream<T> {
           _runUserCode(orElse, future._complete, future._completeError);
           return;
         }
-        try {
-          // Sets stackTrace on error.
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
@@ -1849,11 +1842,10 @@ abstract mixin class Stream<T> {
           _runUserCode(orElse, future._complete, future._completeError);
           return;
         }
-        try {
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
@@ -1917,11 +1909,10 @@ abstract mixin class Stream<T> {
           _runUserCode(orElse, future._complete, future._completeError);
           return;
         }
-        try {
-          throw IterableElementError.noElement();
-        } catch (e, s) {
-          _completeWithErrorCallback(future, e, s);
-        }
+        var stack = StackTrace.empty;
+        var error = IterableElementError.noElement();
+        _trySetStackTrace(error, stack);
+        _completeWithErrorCallback(future, error, stack);
       },
       cancelOnError: true,
     );
@@ -1930,11 +1921,10 @@ abstract mixin class Stream<T> {
       _runUserCode(() => test(value), (bool isMatch) {
         if (isMatch) {
           if (foundResult) {
-            try {
-              throw IterableElementError.tooMany();
-            } catch (e, s) {
-              _cancelAndErrorWithReplacement(subscription, future, e, s);
-            }
+            var stack = StackTrace.empty;
+            var error = IterableElementError.tooMany();
+            _trySetStackTrace(error, stack);
+            _cancelAndErrorWithReplacement(subscription, future, error, stack);
             return;
           }
           foundResult = true;
@@ -2622,7 +2612,6 @@ abstract interface class StreamTransformer<S, T> {
   /// final splitDecoded = StreamTransformer<List<int>, String>.fromBind(
   ///     (stream) => stream.transform(utf8.decoder).transform(LineSplitter()));
   /// ```
-  @Since("2.1")
   factory StreamTransformer.fromBind(Stream<T> Function(Stream<S>) bind) =
       _StreamBindTransformer<S, T>;
 
@@ -2786,7 +2775,6 @@ class _ControllerEventSinkWrapper<T> implements EventSink<T> {
 /// That usually means only delivering events synchronously in response to other
 /// asynchronous events, because that is a time when an asynchronous event could
 /// happen.
-@Since("2.9")
 abstract interface class MultiStreamController<T>
     implements StreamController<T> {
   /// Adds and delivers an event.

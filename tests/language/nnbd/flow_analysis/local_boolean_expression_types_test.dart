@@ -85,9 +85,11 @@ is_(Object x) {
     if (_alwaysTrue(null)) break;
   } while (b);
   x.expectStaticType<Exactly<Object>>();
-  for (x.expectStaticType<Exactly<Object>>();
-      b;
-      x.expectStaticType<Exactly<int>>()) {
+  for (
+    x.expectStaticType<Exactly<Object>>();
+    b;
+    x.expectStaticType<Exactly<int>>()
+  ) {
     x.expectStaticType<Exactly<int>>();
     if (_alwaysTrue(null)) break;
   }
@@ -144,9 +146,11 @@ isNot(Object x) {
     x.expectStaticType<Exactly<int>>();
   }
   x.expectStaticType<Exactly<Object>>();
-  for (x.expectStaticType<Exactly<Object>>();
-      b;
-      x.expectStaticType<Exactly<Object>>()) {
+  for (
+    x.expectStaticType<Exactly<Object>>();
+    b;
+    x.expectStaticType<Exactly<Object>>()
+  ) {
     x.expectStaticType<Exactly<Object>>();
     if (_alwaysTrue(null)) break;
   }
@@ -203,9 +207,11 @@ not(Object x) {
     x.expectStaticType<Exactly<int>>();
   }
   x.expectStaticType<Exactly<Object>>();
-  for (x.expectStaticType<Exactly<Object>>();
-      b;
-      x.expectStaticType<Exactly<Object>>()) {
+  for (
+    x.expectStaticType<Exactly<Object>>();
+    b;
+    x.expectStaticType<Exactly<Object>>()
+  ) {
     x.expectStaticType<Exactly<Object>>();
     if (_alwaysTrue(null)) break;
   }
@@ -262,9 +268,11 @@ eqNull(int? x) {
     x.expectStaticType<Exactly<int>>();
   }
   x.expectStaticType<Exactly<int?>>();
-  for (x.expectStaticType<Exactly<int?>>();
-      b;
-      x.expectStaticType<Exactly<int?>>()) {
+  for (
+    x.expectStaticType<Exactly<int?>>();
+    b;
+    x.expectStaticType<Exactly<int?>>()
+  ) {
     x.expectStaticType<Exactly<int?>>();
     if (_alwaysTrue(null)) break;
   }
@@ -317,9 +325,11 @@ notEqNull(int? x) {
     if (_alwaysTrue(null)) break;
   } while (b);
   x.expectStaticType<Exactly<int?>>();
-  for (x.expectStaticType<Exactly<int?>>();
-      b;
-      x.expectStaticType<Exactly<int>>()) {
+  for (
+    x.expectStaticType<Exactly<int?>>();
+    b;
+    x.expectStaticType<Exactly<int>>()
+  ) {
     x.expectStaticType<Exactly<int>>();
     if (_alwaysTrue(null)) break;
   }
@@ -376,9 +386,11 @@ nullEq(int? x) {
     x.expectStaticType<Exactly<int>>();
   }
   x.expectStaticType<Exactly<int?>>();
-  for (x.expectStaticType<Exactly<int?>>();
-      b;
-      x.expectStaticType<Exactly<int?>>()) {
+  for (
+    x.expectStaticType<Exactly<int?>>();
+    b;
+    x.expectStaticType<Exactly<int?>>()
+  ) {
     x.expectStaticType<Exactly<int?>>();
     if (_alwaysTrue(null)) break;
   }
@@ -431,9 +443,11 @@ nullNotEq(int? x) {
     if (_alwaysTrue(null)) break;
   } while (b);
   x.expectStaticType<Exactly<int?>>();
-  for (x.expectStaticType<Exactly<int?>>();
-      b;
-      x.expectStaticType<Exactly<int>>()) {
+  for (
+    x.expectStaticType<Exactly<int?>>();
+    b;
+    x.expectStaticType<Exactly<int>>()
+  ) {
     x.expectStaticType<Exactly<int>>();
     if (_alwaysTrue(null)) break;
   }
@@ -458,7 +472,7 @@ and(Object x, Object y) {
   if (b &&
       _alwaysTrue([
         x.expectStaticType<Exactly<int>>(),
-        y.expectStaticType<Exactly<int>>()
+        y.expectStaticType<Exactly<int>>(),
       ])) {
     x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int>>();
@@ -468,7 +482,7 @@ and(Object x, Object y) {
   }
   if (_alwaysTrue([
         x.expectStaticType<Exactly<Object>>(),
-        y.expectStaticType<Exactly<Object>>()
+        y.expectStaticType<Exactly<Object>>(),
       ]) &&
       b) {
     x.expectStaticType<Exactly<int>>();
@@ -480,7 +494,7 @@ and(Object x, Object y) {
   if (b ||
       _alwaysFalse([
         x.expectStaticType<Exactly<Object>>(),
-        y.expectStaticType<Exactly<Object>>()
+        y.expectStaticType<Exactly<Object>>(),
       ])) {
     x.expectStaticType<Exactly<Object>>();
     y.expectStaticType<Exactly<Object>>();
@@ -490,7 +504,7 @@ and(Object x, Object y) {
   }
   if (_alwaysFalse([
         x.expectStaticType<Exactly<Object>>(),
-        y.expectStaticType<Exactly<Object>>()
+        y.expectStaticType<Exactly<Object>>(),
       ]) ||
       b) {
     x.expectStaticType<Exactly<Object>>();
@@ -520,12 +534,14 @@ and(Object x, Object y) {
   } while (b);
   x.expectStaticType<Exactly<Object>>();
   y.expectStaticType<Exactly<Object>>();
-  for ([
-    x.expectStaticType<Exactly<Object>>(),
-    y.expectStaticType<Exactly<Object>>()
-  ];
-      b;
-      x.expectStaticType<Exactly<int>>(), y.expectStaticType<Exactly<int>>()) {
+  for (
+    [
+      x.expectStaticType<Exactly<Object>>(),
+      y.expectStaticType<Exactly<Object>>(),
+    ];
+    b;
+    x.expectStaticType<Exactly<int>>(), y.expectStaticType<Exactly<int>>()
+  ) {
     x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int>>();
     if (_alwaysTrue(null)) break;
@@ -551,7 +567,7 @@ or(Object x, Object y) {
   if (b &&
       _alwaysTrue([
         x.expectStaticType<Exactly<Object>>(),
-        y.expectStaticType<Exactly<Object>>()
+        y.expectStaticType<Exactly<Object>>(),
       ])) {
     x.expectStaticType<Exactly<Object>>();
     y.expectStaticType<Exactly<Object>>();
@@ -561,7 +577,7 @@ or(Object x, Object y) {
   }
   if (_alwaysTrue([
         x.expectStaticType<Exactly<Object>>(),
-        y.expectStaticType<Exactly<Object>>()
+        y.expectStaticType<Exactly<Object>>(),
       ]) &&
       b) {
     x.expectStaticType<Exactly<Object>>();
@@ -573,7 +589,7 @@ or(Object x, Object y) {
   if (b ||
       _alwaysFalse([
         x.expectStaticType<Exactly<int>>(),
-        y.expectStaticType<Exactly<int>>()
+        y.expectStaticType<Exactly<int>>(),
       ])) {
     x.expectStaticType<Exactly<Object>>();
     y.expectStaticType<Exactly<Object>>();
@@ -583,7 +599,7 @@ or(Object x, Object y) {
   }
   if (_alwaysFalse([
         x.expectStaticType<Exactly<Object>>(),
-        y.expectStaticType<Exactly<Object>>()
+        y.expectStaticType<Exactly<Object>>(),
       ]) ||
       b) {
     x.expectStaticType<Exactly<Object>>();
@@ -618,13 +634,14 @@ or(Object x, Object y) {
   }
   x.expectStaticType<Exactly<Object>>();
   y.expectStaticType<Exactly<Object>>();
-  for ([
-    x.expectStaticType<Exactly<Object>>(),
-    y.expectStaticType<Exactly<Object>>()
-  ];
-      b;
+  for (
+    [
       x.expectStaticType<Exactly<Object>>(),
-      y.expectStaticType<Exactly<Object>>()) {
+      y.expectStaticType<Exactly<Object>>(),
+    ];
+    b;
+    x.expectStaticType<Exactly<Object>>(), y.expectStaticType<Exactly<Object>>()
+  ) {
     x.expectStaticType<Exactly<Object>>();
     y.expectStaticType<Exactly<Object>>();
     if (_alwaysTrue(null)) break;
@@ -678,9 +695,11 @@ conditional(Object x) {
     if (_alwaysTrue(null)) break;
   } while (b);
   x.expectStaticType<Exactly<Object>>();
-  for (x.expectStaticType<Exactly<Object>>();
-      b;
-      x.expectStaticType<Exactly<int>>()) {
+  for (
+    x.expectStaticType<Exactly<Object>>();
+    b;
+    x.expectStaticType<Exactly<int>>()
+  ) {
     x.expectStaticType<Exactly<int>>();
     if (_alwaysTrue(null)) break;
   }
@@ -736,9 +755,11 @@ assignment(Object x) {
     if (_alwaysTrue(null)) break;
   } while (b2);
   x.expectStaticType<Exactly<Object>>();
-  for (x.expectStaticType<Exactly<Object>>();
-      b2;
-      x.expectStaticType<Exactly<Object>>()) {
+  for (
+    x.expectStaticType<Exactly<Object>>();
+    b2;
+    x.expectStaticType<Exactly<Object>>()
+  ) {
     x.expectStaticType<Exactly<Object>>();
     if (_alwaysTrue(null)) break;
   }

@@ -101,9 +101,7 @@ switcheroo() {
 }
 
 class ThrowConstructor {
-  ThrowConstructor()
-      : foo = callMeTrue(),
-        bar = kast("ThrowConstructor") {
+  ThrowConstructor() : foo = callMeTrue(), bar = kast("ThrowConstructor") {
     called = false;
   }
 
@@ -117,7 +115,9 @@ throwConstructor() {
 }
 
 cascade() {
-  return []..add(callMeTrue())..add(kast("cascade"));
+  return []
+    ..add(callMeTrue())
+    ..add(kast("cascade"));
 }
 
 interpole() => "inter${kast('tada!')}pole";

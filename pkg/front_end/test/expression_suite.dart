@@ -20,7 +20,6 @@ import "package:front_end/src/api_prototype/terminal_color_support.dart"
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler;
-import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
@@ -417,7 +416,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       IncrementalCompilerResult compilerResult,
       Context context) async {
     Map<String, DartType>? definitions = createDefinitionsWithTypes(
-        compilerResult.classHierarchy?.knownLibraries,
+        compilerResult.classHierarchy.knownLibraries,
         test.definitionTypes,
         test.definitions);
 
@@ -428,7 +427,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       }
     }
     List<TypeParameter>? typeParams = createTypeParametersWithBounds(
-        compilerResult.classHierarchy?.knownLibraries,
+        compilerResult.classHierarchy.knownLibraries,
         test.typeBounds,
         test.typeDefaults,
         test.typeDefinitions);
@@ -471,7 +470,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       IncrementalCompiler compilerNoNNBD,
       IncrementalCompilerResult compilerResult,
       Context context) async {
-    for (Library lib in compilerResult.classHierarchy!.knownLibraries) {
+    for (Library lib in compilerResult.classHierarchy.knownLibraries) {
       if (!context.fuzzedLibraries.add(lib.importUri)) continue;
 
       for (Member m in lib.members) {
@@ -738,14 +737,13 @@ Future<Context> createContext(
       errors.add(message);
     }
     ..environmentDefines = const {}
-    // TODO(johnniwinther): We should default to strong mode.
-    ..nnbdMode = NnbdMode.Weak
     ..explicitExperimentalFlags = {}
     ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
 
   final ProcessedOptions options =
       new ProcessedOptions(options: optionBuilder, inputs: [entryPoint]);
 
+  // TODO(jensj): Remove this. We don't support no-nnbd anymore.
   final CompilerOptions optionBuilderNoNNBD = new CompilerOptions()
     ..target = new VmTarget(new TargetFlags())
     ..verbose = true
@@ -757,7 +755,6 @@ Future<Context> createContext(
       errors.add(message);
     }
     ..environmentDefines = const {}
-    ..nnbdMode = NnbdMode.Weak
     ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
     ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
 

@@ -76,7 +76,6 @@ class _Client {
     final fe.CompilerOptions compilerOptions = new fe.CompilerOptions()
       ..environmentDefines = {}
       ..fileSystem = new _FileSystem(_channel, _dills)
-      ..nnbdMode = fe.NnbdMode.Strong
       ..sdkSummary = Uri.parse(sdkSummaryUriStr)
       ..target = new vm.VmTarget(new fe.TargetFlags());
 

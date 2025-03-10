@@ -5,8 +5,6 @@
 // Test the interactions between a wildcard class members, which are binding,
 // with local non-binding wildcard variables.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 void main() {

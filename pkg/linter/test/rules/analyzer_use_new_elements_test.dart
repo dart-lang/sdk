@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalyzerUseNewElementsTest);
   });
@@ -100,6 +100,35 @@ void f() {
     );
   }
 
+  test_methodInvocation_inDeprecated() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:analyzer/dart/element/element.dart';
+
+List<ClassElement> getAllClasses() => [];
+''');
+
+    await assertNoDiagnostics(r'''
+import 'a.dart';
+
+@deprecated
+void f() {
+  getAllClasses();
+}
+''');
+  }
+
+  test_methodInvocation_inDeprecated2() async {
+    await assertNoDiagnostics(r'''
+import 'package:analyzer/dart/element/element.dart';
+
+@deprecated
+void f(Element element) {
+  var foo = element.nonSynthetic;
+  print(foo);
+}
+''');
+  }
+
   test_namedType() async {
     await assertDiagnostics(
       r'''
@@ -122,7 +151,10 @@ void f(ClassDeclaration a) {
   a.declaredElement;
 }
 ''',
-      [lint(79, 15)],
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 79, 15),
+        lint(79, 15),
+      ],
     );
   }
 
@@ -135,7 +167,10 @@ void f(ClassDeclarationImpl a) {
   a.declaredElement;
 }
 ''',
-      [lint(87, 15)],
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 87, 15),
+        lint(87, 15),
+      ],
     );
   }
 

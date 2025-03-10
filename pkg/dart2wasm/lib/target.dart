@@ -10,7 +10,7 @@ import 'package:_js_interop_checks/src/transformations/shared_interop_transforme
 import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constantEvaluator show ConstantEvaluator, EvaluationMode;
+    as constantEvaluator show ConstantEvaluator;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -106,8 +106,6 @@ class WasmTarget extends Target {
   Class? _wasmDefaultSet;
   Class? _wasmImmutableMap;
   Class? _wasmImmutableSet;
-  Class? _oneByteString;
-  Class? _twoByteString;
   Class? _jsString;
   Class? _closure;
   Class? _boxedInt;
@@ -322,7 +320,6 @@ class WasmTarget extends Target {
         component,
         reportError,
         environmentDefines: environmentDefines,
-        evaluationMode: constantEvaluator.EvaluationMode.strong,
         coreTypes: coreTypes,
         classHierarchy: hierarchy,
         removeAsserts: removeAsserts,
@@ -505,20 +502,8 @@ class WasmTarget extends Target {
 
   @override
   Class concreteStringLiteralClass(CoreTypes coreTypes, String value) {
-    // In JSCM all strings are JS strings.
-    if (mode == Mode.jsCompatibility) {
-      return _jsString ??=
-          coreTypes.index.getClass("dart:_string", "JSStringImpl");
-    }
-    const int maxLatin1 = 0xff;
-    for (int i = 0; i < value.length; ++i) {
-      if (value.codeUnitAt(i) > maxLatin1) {
-        return _twoByteString ??=
-            coreTypes.index.getClass('dart:_string', 'TwoByteString');
-      }
-    }
-    return _oneByteString ??=
-        coreTypes.index.getClass('dart:_string', 'OneByteString');
+    return _jsString ??=
+        coreTypes.index.getClass("dart:_string", "JSStringImpl");
   }
 
   // In dart2wasm we can't assume that `x == "hello"` means `x`'s class is

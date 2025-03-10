@@ -48,10 +48,6 @@ abstract class J extends core::Object {
 }
 abstract class MAiBC extends self::A implements self::B /*isMixinDeclaration*/  {
 }
-abstract class _MBCiIJ&B&Function extends core::Object implements self::B /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_MBCiIJ&B&Function
-    ;
-}
 abstract class MBCiIJ extends self::_MBCiIJ&B&Function implements self::I, self::J /*isMixinDeclaration*/  {
 }
 class CAaMAiBC = self::A with self::MAiBC {
@@ -59,12 +55,16 @@ class CAaMAiBC = self::A with self::MAiBC {
     : super self::A::•()
     ;
 }
+class CAaMAiBCaMBCiIJ_2 extends self::_CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ {
+  synthetic constructor •() → self::CAaMAiBCaMBCiIJ_2
+    ;
+}
+abstract class _MBCiIJ&B&Function extends core::Object implements self::B /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MBCiIJ&B&Function
+    ;
+}
 abstract class _CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ = self::CAaMAiBC with self::MBCiIJ /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ
     : super self::CAaMAiBC::•()
-    ;
-}
-class CAaMAiBCaMBCiIJ_2 extends self::_CAaMAiBCaMBCiIJ_2&CAaMAiBC&MBCiIJ {
-  synthetic constructor •() → self::CAaMAiBCaMBCiIJ_2
     ;
 }

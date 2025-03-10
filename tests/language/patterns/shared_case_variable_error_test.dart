@@ -10,18 +10,18 @@ main() {
     case (0, int x):
     case (1, final int x):
       print(x);
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
-      // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+    // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
   }
 
   switch ((0, 1)) {
     case (2, var x):
     case (3, final x):
       print(x);
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
-      // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+    // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
   }
 
   // Variables in shared cases must agree on type if used in the body.
@@ -29,18 +29,18 @@ main() {
     case (0, int x):
     case (1, num x):
       print(x);
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
-      // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+    // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
   }
 
   switch ((0, 's')) {
     case (0, int x):
     case (2, var x): // Infer String.
       print(x);
-      //    ^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
-      // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
+    //      ^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+    // [cfe] Variable pattern 'x' doesn't have the same type or finality in all cases.
   }
 
   // Variables must be defined in all cases if used in body.
@@ -54,9 +54,9 @@ main() {
       // [cfe] The variable 'unique' is available in some, but not all cases that share this body.
 
       print(inTwo);
-      //    ^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
-      // [cfe] The variable 'inTwo' is available in some, but not all cases that share this body.
+    //      ^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+    // [cfe] The variable 'inTwo' is available in some, but not all cases that share this body.
   }
 
   // Mismatched variable types because of inference from a promoted type.
@@ -67,9 +67,9 @@ main() {
       case (0, var a):
       case (1, Object a):
         print(a);
-        //    ^
-        // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
-        // [cfe] Variable pattern 'a' doesn't have the same type or finality in all cases.
+      //      ^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
+      // [cfe] Variable pattern 'a' doesn't have the same type or finality in all cases.
     }
   }
 }

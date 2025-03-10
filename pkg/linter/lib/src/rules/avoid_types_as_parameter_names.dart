@@ -6,8 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/extensions.dart' // ignore: implementation_imports
+    show Element2Extension;
 
 import '../analyzer.dart';
 import '../util/scope.dart';

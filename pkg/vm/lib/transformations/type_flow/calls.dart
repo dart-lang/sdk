@@ -99,10 +99,12 @@ class DirectSelector extends Selector {
   final Member member;
 
   DirectSelector(this.member, {CallKind callKind = CallKind.Method})
-      : super(callKind) {
-    assert((callKind == CallKind.Method) ||
-        (callKind == CallKind.PropertyGet) ||
-        memberAgreesToCallKind(member));
+    : super(callKind) {
+    assert(
+      (callKind == CallKind.Method) ||
+          (callKind == CallKind.PropertyGet) ||
+          memberAgreesToCallKind(member),
+    );
   }
 
   @override
@@ -114,7 +116,8 @@ class DirectSelector extends Selector {
       other is DirectSelector && super == (other) && other.member == member;
 
   @override
-  String toString() => 'direct ${_callKindPrefix}'
+  String toString() =>
+      'direct ${_callKindPrefix}'
       '[${nodeToText(member)}]';
 }
 
@@ -123,7 +126,7 @@ class InterfaceSelector extends Selector {
   final Member member;
 
   InterfaceSelector(this.member, {CallKind callKind = CallKind.Method})
-      : super(callKind);
+    : super(callKind);
 
   @override
   int get hashCode => combineHashes(super.hashCode, member.hashCode);
@@ -134,14 +137,15 @@ class InterfaceSelector extends Selector {
       other is InterfaceSelector && super == (other) && other.member == member;
 
   @override
-  String toString() => '${_callKindPrefix}'
+  String toString() =>
+      '${_callKindPrefix}'
       '[${nodeToText(member)}]';
 }
 
 /// Virtual call (using 'this' as a receiver).
 class VirtualSelector extends InterfaceSelector {
   VirtualSelector(Member member, {CallKind callKind = CallKind.Method})
-      : super(member, callKind: callKind);
+    : super(member, callKind: callKind);
 
   @override
   int get hashCode {
@@ -154,7 +158,8 @@ class VirtualSelector extends InterfaceSelector {
       identical(this, other) || other is VirtualSelector && super == (other);
 
   @override
-  String toString() => 'virtual ${_callKindPrefix}'
+  String toString() =>
+      'virtual ${_callKindPrefix}'
       '[${nodeToText(member)}]';
 }
 
@@ -222,8 +227,8 @@ class Args<T extends TypeExpr> {
   }
 
   Args.withReceiver(Args<T> args, T receiver)
-      : values = new List.from(args.values),
-        names = args.names {
+    : values = new List.from(args.values),
+      names = args.names {
     values[0] = receiver;
   }
 

@@ -13,8 +13,8 @@ namespace dart {
 #if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_MACOS_IOS)
 // On iOS even with debugger attached we must still guarantee that memory
 // is never executable and writable at the same time. On Mac OS X
-// com.apple.security.cs.allow-jit entitelement allows WX memory regions to be
-// created - but we should not rely on this entitelement to be present.
+// com.apple.security.cs.allow-jit entitlement allows WX memory regions to be
+// created - but we should not rely on this entitlement to be present.
 static constexpr bool kShouldWriteProtectCodeByDefault = true;
 #else
 static constexpr bool kShouldWriteProtectCodeByDefault = false;

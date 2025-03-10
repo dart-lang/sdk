@@ -602,6 +602,7 @@ class B implements A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_method_returnType_interface_fromAugmentation() async {
     await assertErrorsInCode('''
 class A {
@@ -663,6 +664,7 @@ class B extends A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_method_returnType_superclass_fromAugmentation() async {
     await assertErrorsInCode('''
 class A {
@@ -775,6 +777,7 @@ mixin M on A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_method_returnType_on_fromAugmentation() async {
     await assertErrorsInCode(r'''
 class A {

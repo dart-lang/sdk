@@ -98,9 +98,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// The type in the `implements` clause of a class or mixin declaration.
   List<TypeBuilder>? get interfaceBuilders;
 
-  /// The types in the `on` clause of an extension or mixin declaration.
-  List<TypeBuilder>? get onTypes;
-
   @override
   Uri get fileUri;
 
@@ -124,7 +121,7 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   bool get isAnonymousMixinApplication;
 
-  abstract TypeBuilder? mixedInTypeBuilder;
+  TypeBuilder? get mixedInTypeBuilder;
 
   bool get isFutureOr;
 
@@ -195,16 +192,22 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         name.startsWith("_")) {
       return null;
     }
-    Builder? declaration = normalizeLookup(
-        getable: nameSpace.lookupLocalMember(name, setter: false),
-        setable: nameSpace.lookupLocalMember(name, setter: true),
-        name: name,
-        charOffset: fileOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: this.name,
-        isSetter: isSetter,
-        forStaticAccess: true);
+    Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
+    Builder? setable = nameSpace.lookupLocalMember(name, setter: true);
+    Builder? declaration;
+    if (getable != null || setable != null) {
+      declaration = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: fileOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: this.name,
+          isSetter: isSetter,
+          forStaticAccess: true);
+    }
     if (declaration == null && isAugmenting) {
+      // Coverage-ignore-block(suite): Not run.
       return origin.findStaticBuilder(
           name, fileOffset, fileUri, accessingLibrary,
           isSetter: isSetter);
@@ -228,24 +231,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           null);
     }
     return builder;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  /// Find the first member of this class with [name]. This method isn't
-  /// suitable for scope lookups as it will throw an error if the name isn't
-  /// declared. The [scope] should be used for that. This method is used to
-  /// find a member that is known to exist and it will pick the first
-  /// declaration if the name is ambiguous.
-  ///
-  /// For example, this method is convenient for use when building synthetic
-  /// members, such as those of an enum.
-  MemberBuilder? firstMemberNamed(String name) {
-    MemberBuilder declaration =
-        lookupLocalMember(name, required: true) as MemberBuilder;
-    while (declaration.next != null) {
-      declaration = declaration.next as MemberBuilder;
-    }
-    return declaration;
   }
 
   @override

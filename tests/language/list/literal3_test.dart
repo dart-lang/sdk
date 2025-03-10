@@ -31,7 +31,7 @@ class ListLiteral3Test {
     // Elements of canonical lists are canonicalized.
     List<List<int>> a = const <List<int>>[
       const [1, 2],
-      const [1, 2]
+      const [1, 2],
     ];
     Expect.identical(a[0], a[1]);
     Expect.identical(a[0][0], a[1][0]);
@@ -39,7 +39,7 @@ class ListLiteral3Test {
 
     List<List<double>> b = const [
       const [1.0, 2.0],
-      const [1.0, 2.0]
+      const [1.0, 2.0],
     ];
     Expect.identical(b[0], b[1]);
     Expect.equals(true, b[0][0] == 1.0);

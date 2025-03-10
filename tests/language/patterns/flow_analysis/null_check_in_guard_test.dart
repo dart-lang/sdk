@@ -19,9 +19,9 @@ bool inSwitchStatement(x) {
 }
 
 bool inSwitchExpression(x) => switch (x) {
-      int? y when y != null => [y.expectStaticType<Exactly<int>>()].isNotEmpty,
-      _ => false
-    };
+  int? y when y != null => [y.expectStaticType<Exactly<int>>()].isNotEmpty,
+  _ => false,
+};
 
 bool inIfCaseStatement(x) {
   if (x case int? y when y != null) {
@@ -32,16 +32,19 @@ bool inIfCaseStatement(x) {
   }
 }
 
-bool inIfCaseElementInList(x) => [
-      if (x case int? y when y != null) y.expectStaticType<Exactly<int>>()
+bool inIfCaseElementInList(x) =>
+    [
+      if (x case int? y when y != null) y.expectStaticType<Exactly<int>>(),
     ].isNotEmpty;
 
-bool inIfCaseElementInMap(x) => {
-      if (x case int? y when y != null) '': y.expectStaticType<Exactly<int>>()
+bool inIfCaseElementInMap(x) =>
+    {
+      if (x case int? y when y != null) '': y.expectStaticType<Exactly<int>>(),
     }.isNotEmpty;
 
-bool inIfCaseElementInSet(x) => {
-      if (x case int? y when y != null) y.expectStaticType<Exactly<int>>()
+bool inIfCaseElementInSet(x) =>
+    {
+      if (x case int? y when y != null) y.expectStaticType<Exactly<int>>(),
     }.isNotEmpty;
 
 main() {

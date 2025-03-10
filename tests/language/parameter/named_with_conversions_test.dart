@@ -82,12 +82,14 @@ class NamedParametersWithConversionsTest {
 
     Expect.equals(7, a.calls);
 
-    Expect.throwsNoSuchMethodError(() => a.foo()); // Too few arguments.
-    Expect.throwsNoSuchMethodError(
-        () => a.foo('abc', 1, 2, 3)); //              Too many arguments.
-    Expect.throwsNoSuchMethodError(() => a.foo2('c', c: 1)); // Bad name.
-    Expect.throwsNoSuchMethodError(
-        () => a.foo2('c', a: 111, c: 1)); //                    Bad name.
+    // Too few arguments.
+    Expect.throwsNoSuchMethodError(() => a.foo());
+    // Too many arguments.
+    Expect.throwsNoSuchMethodError(() => a.foo('abc', 1, 2, 3));
+    // Bad name.
+    Expect.throwsNoSuchMethodError(() => a.foo2('c', c: 1));
+    // Bad name.
+    Expect.throwsNoSuchMethodError(() => a.foo2('c', a: 111, c: 1));
 
     Expect.equals(7, a.calls);
   }
@@ -105,11 +107,14 @@ class NamedParametersWithConversionsTest {
 
     Expect.equals(7, a.calls);
 
-    Expect.throwsNoSuchMethodError(() => f()); // Too few arguments.
-    Expect.throwsNoSuchMethodError(
-        () => f('abc', 1, 2, 3)); //              Too many arguments.
-    Expect.throwsNoSuchMethodError(() => f2('c', c: 1)); //         Bad name.
-    Expect.throwsNoSuchMethodError(() => f2('c', a: 111, c: 1)); // Bad name.
+    // Too few arguments.
+    Expect.throwsNoSuchMethodError(() => f());
+    // Too many arguments.
+    Expect.throwsNoSuchMethodError(() => f('abc', 1, 2, 3));
+    // Bad name.
+    Expect.throwsNoSuchMethodError(() => f2('c', c: 1));
+    // Bad name.
+    Expect.throwsNoSuchMethodError(() => f2('c', a: 111, c: 1));
 
     Expect.equals(7, a.calls);
   }

@@ -24,6 +24,14 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
   @override
   bool get verifyNoTestUnitErrors => false;
 
+  String applySnippet(TestCode code, Snippet snippet) {
+    var result = code.code;
+    for (var edit in snippet.change.edits) {
+      result = SourceEdit.applySequence(result, edit.edits);
+    }
+    return result;
+  }
+
   Future<void> assertSnippet(String content, String expected) async {
     var code = TestCode.parse(content);
     var expectedCode = TestCode.parse(expected);

@@ -10,7 +10,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// Returns direct children of [parent].
 List<Element2> getChildren(Element2 parent, [String? name]) {
   var children = <Element2>[];
-  visitChildren2(parent, (element) {
+  visitChildren(parent, (element) {
     if (name == null || _getBaseName(element) == name) {
       children.add(element);
     }
@@ -25,7 +25,7 @@ List<Element2> getChildren(Element2 parent, [String? name]) {
 /// Excludes: constructors and synthetic elements.
 List<Element2> getClassMembers(InterfaceElement2 clazz, [String? name]) {
   var members = <Element2>[];
-  visitChildren2(clazz, (Element2 element) {
+  visitChildren(clazz, (Element2 element) {
     if (element.isSynthetic) {
       return false;
     }
@@ -57,7 +57,7 @@ Future<Set<InterfaceElement2>> getDirectSubClasses(
 ) async {
   var matches = await searchEngine.searchSubtypes(seed, searchEngineCache);
   return matches
-      .map((match) => match.element2)
+      .map((match) => match.element)
       .cast<InterfaceElement2>()
       .toSet();
 }
@@ -69,7 +69,7 @@ List<Element2> getExtensionMembers(
   String? name,
 ]) {
   var members = <Element2>[];
-  visitChildren2(extension, (element) {
+  visitChildren(extension, (element) {
     if (element.isSynthetic) {
       return false;
     }
@@ -87,12 +87,8 @@ List<Element2> getExtensionMembers(
   return members;
 }
 
-/// Return all implementations of the given [member], including in its
+/// Returns all implementations of the given [member], including in its
 /// superclasses and their subclasses.
-///
-/// If [includeParametersForFields] is true and [member] is a [FieldElement2],
-/// any [FieldFormalParameterElement2]s for the member will also be provided
-/// (otherwise, the parameter set will be empty in the result).
 Future<Set<Element2>> getHierarchyMembers(
   SearchEngine searchEngine,
   Element2 member, {
@@ -106,10 +102,10 @@ Future<Set<Element2>> getHierarchyMembers(
   return members;
 }
 
-/// Return all implementations of the given [member], including in its
+/// Returns all implementations of the given [member2], including in its
 /// superclasses and their subclasses.
 ///
-/// If [includeParametersForFields] is true and [member] is a [FieldElement2],
+/// If [includeParametersForFields] is true and [member2] is a [FieldElement2],
 /// any [FieldFormalParameterElement2]s for the member will also be provided
 /// (otherwise, the parameter set will be empty in the result).
 Future<(Set<Element2>, Set<FormalParameterElement>)>
@@ -123,8 +119,8 @@ getHierarchyMembersAndParameters(
   var members = <Element2>{};
   var parameters = <FormalParameterElement>{};
   // extension member
-  var enclosingElement2 = member2.enclosingElement2;
-  if (enclosingElement2 is ExtensionElement2) {
+  var enclosingElement = member2.enclosingElement2;
+  if (enclosingElement is ExtensionElement2) {
     members.add(member2);
     return (members, parameters);
   }
@@ -137,17 +133,17 @@ getHierarchyMembersAndParameters(
       return (members, parameters);
   }
   // method, field, etc
-  if (enclosingElement2 is InterfaceElement2) {
+  if (enclosingElement is InterfaceElement2) {
     var name = member2.displayName;
 
     var superElementsToSearch =
-        enclosingElement2.allSupertypes
+        enclosingElement.allSupertypes
             .map((superType) => superType.element3)
             .where((interface) {
               return member2.isPublic || interface.library2 == member2.library2;
             })
             .toList();
-    var searchClasses = [...superElementsToSearch, enclosingElement2];
+    var searchClasses = [...superElementsToSearch, enclosingElement];
     var subClasses = <InterfaceElement2>{};
     for (var superClass in searchClasses) {
       // ignore if super- class does not declare member

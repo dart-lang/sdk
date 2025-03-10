@@ -1348,7 +1348,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ CallCFunction(target_address, /*restore_rsp=*/true);
 
       // Update information in the thread object and leave the safepoint.
-      __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
+      __ TransitionNativeToGenerated(/*exit_safepoint=*/true);
     } else {
       // We cannot trust that this code will be executable within a safepoint.
       // Therefore we delegate the responsibility of entering/exiting the

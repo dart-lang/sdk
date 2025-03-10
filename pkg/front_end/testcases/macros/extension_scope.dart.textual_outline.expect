@@ -1,7 +1,0 @@
-import 'extension_scope_lib.dart';
-
-test(Class c) {}
-
-method(Class c) {}
-
-main() {}

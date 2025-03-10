@@ -90,7 +90,8 @@ abstract class AstCodeGenerator
   final LinkedHashMap<LabeledStatement, List<w.Label>> breakFinalizers =
       LinkedHashMap();
 
-  final List<w.Label> tryLabels = [];
+  final List<({w.Local exceptionLocal, w.Local stackTraceLocal})>
+      tryBlockLocals = [];
 
   final Map<SwitchCase, w.Label> switchLabels = {};
 
@@ -670,11 +671,13 @@ abstract class AstCodeGenerator
   List<w.ValueType> call(Reference target) {
     final targetModule = translator.moduleForReference(target);
     final isLocalModuleCall = targetModule == b.module;
+    final name = translator.functions.getFunctionName(target);
 
     if (isLocalModuleCall) {
+      b.comment('Direct call to $name');
       return b.invoke(translator.directCallTarget(target));
     } else {
-      b.comment('Indirect call to $target');
+      b.comment('Direct call to $name (across modules)');
       return translator.callReference(target, b);
     }
   }
@@ -854,9 +857,7 @@ abstract class AstCodeGenerator
         b.ref_null(w.HeapType.none);
       }
       final Location? location = node.location;
-      final stringClass = translator.options.jsCompatibility
-          ? translator.jsStringClass
-          : translator.stringBaseClass;
+      final stringClass = translator.jsStringClass;
       final w.RefType stringRefType =
           translator.classInfo[stringClass]!.nullableType;
       if (location != null) {
@@ -901,33 +902,48 @@ abstract class AstCodeGenerator
 
   @override
   void visitTryCatch(TryCatch node) {
-    // It is not valid dart to have a try without a catch.
+    // It is not valid Dart to have a try without a catch.
     assert(node.catches.isNotEmpty);
 
-    // We lower a [TryCatch] to a wasm try block.
-    w.Label try_ = b.try_();
-    translateStatement(node.body);
-    b.br(try_);
+    final w.RefType exceptionType = translator.topInfo.nonNullableType;
+    final w.RefType stackTraceType =
+        translator.stackTraceInfo.repr.nonNullableType;
 
-    // Note: We must wait to add the try block to the [tryLabels] stack until
-    // after we have visited the body of the try. This is to handle the case of
-    // a rethrow nested within a try nested within a catch, that is we need the
-    // rethrow to target the last try block with a catch.
-    tryLabels.add(try_);
+    final w.Label wrapperBlock = b.block();
+
+    // Create a block target for each Dart `catch` block, to be able to share
+    // code when generating a `catch` and `catch_all` for the same Dart `catch`
+    // block, when the block can catch both Dart and JS exceptions.
+    // The `end` for the Wasm `try` block works as the first exception handler
+    // target.
+    List<w.Label> catchBlockLabels = List.generate(node.catches.length - 1,
+        (i) => b.block([], [exceptionType, stackTraceType]),
+        growable: true);
+
+    w.Label try_ = b.try_([], [exceptionType, stackTraceType]);
+    catchBlockLabels.add(try_);
+
+    catchBlockLabels = catchBlockLabels.reversed.toList();
+
+    translateStatement(node.body);
+    b.br(wrapperBlock);
 
     // Stash the original exception in a local so we can push it back onto the
     // stack after each type test. Also, store the stack trace in a local.
-    w.Local thrownException = addLocal(translator.topInfo.nonNullableType);
-    w.Local thrownStackTrace =
-        addLocal(translator.stackTraceInfo.repr.nonNullableType);
+    w.Local thrownException = addLocal(exceptionType);
+    w.Local thrownStackTrace = addLocal(stackTraceType);
 
-    void emitCatchBlock(Catch catch_, bool emitGuard) {
+    tryBlockLocals.add(
+        (exceptionLocal: thrownException, stackTraceLocal: thrownStackTrace));
+
+    void emitCatchBlock(
+        w.Label catchBlockTarget, Catch catch_, bool emitGuard) {
       // For each catch node:
       //   1) Create a block for the catch.
       //   2) Push the caught exception onto the stack.
       //   3) Add a type test based on the guard of the catch.
       //   4) If the test fails, we jump to the next catch. Otherwise, we
-      //      execute the body of the catch.
+      //      jump to the block for the body of the catch.
       w.Label catchBlock = b.block();
       DartType guard = catch_.guard;
 
@@ -939,6 +955,86 @@ abstract class AstCodeGenerator
         b.i32_eqz();
         b.br_if(catchBlock);
       }
+
+      b.local_get(thrownException);
+      b.local_get(thrownStackTrace);
+      b.br(catchBlockTarget);
+
+      b.end(); // end catchBlock.
+    }
+
+    // Insert a catch instruction which will catch any thrown Dart
+    // exceptions.
+    b.catch_(translator.getExceptionTag(b.module));
+
+    b.local_set(thrownStackTrace);
+    b.local_set(thrownException);
+    for (int catchBlockIndex = 0;
+        catchBlockIndex < node.catches.length;
+        catchBlockIndex += 1) {
+      final catch_ = node.catches[catchBlockIndex];
+      // Only insert type checks if the guard is not `Object`
+      final bool shouldEmitGuard =
+          catch_.guard != translator.coreTypes.objectNonNullableRawType;
+      emitCatchBlock(
+          catchBlockLabels[catchBlockIndex], catch_, shouldEmitGuard);
+      if (!shouldEmitGuard) {
+        // If we didn't emit a guard, we won't ever fall through to the
+        // following catch blocks.
+        break;
+      }
+    }
+
+    // Rethrow if all the catch blocks fall through
+    b.rethrow_(try_);
+
+    // If we have a catches that are generic enough to catch a JavaScript
+    // error, we need to put that into a catch_all block.
+    if (node.catches
+        .any((c) => guardCanMatchJSException(translator, c.guard))) {
+      // This catches any objects that aren't dart exceptions, such as
+      // JavaScript exceptions or objects.
+      b.catch_all();
+
+      // We can't inspect the thrown object in a catch_all and get a stack
+      // trace, so we just attach the current stack trace.
+      call(translator.stackTraceCurrent.reference);
+      b.local_set(thrownStackTrace);
+
+      // We create a generic JavaScript error in this case.
+      call(translator.javaScriptErrorFactory.reference);
+      b.local_set(thrownException);
+
+      for (int catchBlockIndex = 0;
+          catchBlockIndex < node.catches.length;
+          catchBlockIndex += 1) {
+        final catch_ = node.catches[catchBlockIndex];
+        if (!guardCanMatchJSException(translator, catch_.guard)) {
+          continue;
+        }
+        // Type guards based on a type parameter are special, in that we cannot
+        // statically determine whether a JavaScript error will always satisfy
+        // the guard, so we should emit the type checking code for it. All
+        // other guards will always match a JavaScript error, however, so no
+        // need to emit type checks for those.
+        final bool shouldEmitGuard = catch_.guard is TypeParameterType;
+        emitCatchBlock(
+            catchBlockLabels[catchBlockIndex], catch_, shouldEmitGuard);
+        if (!shouldEmitGuard) {
+          // If we didn't emit a guard, we won't ever fall through to the
+          // following catch blocks.
+          break;
+        }
+      }
+
+      // Rethrow if the catch block falls through
+      b.rethrow_(try_);
+    }
+
+    for (Catch catch_ in node.catches) {
+      b.end();
+      b.local_set(thrownStackTrace);
+      b.local_set(thrownException);
 
       final VariableDeclaration? exceptionDeclaration = catch_.exception;
       if (exceptionDeclaration != null) {
@@ -960,72 +1056,11 @@ abstract class AstCodeGenerator
       }
 
       translateStatement(catch_.body);
-
-      // Jump out of the try entirely if we enter any catch block.
-      b.br(try_);
-      b.end(); // end catchBlock.
+      b.br(wrapperBlock);
     }
 
-    // Insert a catch instruction which will catch any thrown Dart
-    // exceptions.
-    b.catch_(translator.getExceptionTag(b.module));
-
-    b.local_set(thrownStackTrace);
-    b.local_set(thrownException);
-    for (final Catch catch_ in node.catches) {
-      // Only insert type checks if the guard is not `Object`
-      final bool shouldEmitGuard =
-          catch_.guard != translator.coreTypes.objectNonNullableRawType;
-      emitCatchBlock(catch_, shouldEmitGuard);
-      if (!shouldEmitGuard) {
-        // If we didn't emit a guard, we won't ever fall through to the
-        // following catch blocks.
-        break;
-      }
-    }
-    // Rethrow if all the catch blocks fall through
-    b.rethrow_(try_);
-
-    // If we have a catches that are generic enough to catch a JavaScript
-    // error, we need to put that into a catch_all block.
-    final Iterable<Catch> catchAllCatches = node.catches
-        .where((c) => guardCanMatchJSException(translator, c.guard));
-
-    if (catchAllCatches.isNotEmpty) {
-      // This catches any objects that aren't dart exceptions, such as
-      // JavaScript exceptions or objects.
-      b.catch_all();
-
-      // We can't inspect the thrown object in a catch_all and get a stack
-      // trace, so we just attach the current stack trace.
-      call(translator.stackTraceCurrent.reference);
-      b.local_set(thrownStackTrace);
-
-      // We create a generic JavaScript error in this case.
-      call(translator.javaScriptErrorFactory.reference);
-      b.local_set(thrownException);
-
-      for (final c in catchAllCatches) {
-        // Type guards based on a type parameter are special, in that we cannot
-        // statically determine whether a JavaScript error will always satisfy
-        // the guard, so we should emit the type checking code for it. All
-        // other guards will always match a JavaScript error, however, so no
-        // need to emit type checks for those.
-        final bool shouldEmitGuard = c.guard is TypeParameterType;
-        emitCatchBlock(c, shouldEmitGuard);
-        if (!shouldEmitGuard) {
-          // If we didn't emit a guard, we won't ever fall through to the
-          // following catch blocks.
-          break;
-        }
-      }
-
-      // Rethrow if the catch block falls through
-      b.rethrow_(try_);
-    }
-
-    tryLabels.removeLast();
-    b.end(); // end try_.
+    tryBlockLocals.removeLast();
+    b.end(); // end tryWrapper
   }
 
   @override
@@ -1540,9 +1575,15 @@ abstract class AstCodeGenerator
   }
 
   Member _lookupSuperTarget(Member interfaceTarget, {required bool setter}) {
-    return translator.hierarchy.getDispatchTarget(
+    final staticTarget = translator.hierarchy.getDispatchTarget(
         enclosingMember.enclosingClass!.superclass!, interfaceTarget.name,
-        setter: setter)!;
+        setter: setter);
+    if (staticTarget != null) return staticTarget;
+
+    // During dynamic module compilation a mixin might include a super call to
+    // an abstract class with no implementations yet.
+    assert(translator.dynamicModuleSupportEnabled);
+    return interfaceTarget;
   }
 
   @override
@@ -1669,7 +1710,7 @@ abstract class AstCodeGenerator
             translateExpression(node.receiver, signature.inputs.first),
         (w.FunctionType signature, ParameterInfo paramInfo) {
       _visitArguments(node.arguments, signature, paramInfo, 1);
-    });
+    }, useUncheckedEntry: useUncheckedEntry);
   }
 
   @override
@@ -1808,11 +1849,13 @@ abstract class AstCodeGenerator
         }
       }
 
+      final useUncheckedEntry =
+          translator.canUseUncheckedEntry(node.left, node);
       if (singleTarget != null) {
         left();
         right();
         call(translator.getFunctionEntry(singleTarget.reference,
-            uncheckedEntry: translator.canUseUncheckedEntry(node, node.left)));
+            uncheckedEntry: useUncheckedEntry));
       } else {
         _virtualCall(
           node,
@@ -1820,6 +1863,7 @@ abstract class AstCodeGenerator
           _VirtualCallKind.Call,
           left,
           right,
+          useUncheckedEntry: useUncheckedEntry,
         );
       }
       if (leftNullable || rightNullable) {
@@ -1853,42 +1897,56 @@ abstract class AstCodeGenerator
       _VirtualCallKind kind,
       void Function(w.FunctionType signature) pushReceiver,
       void Function(w.FunctionType signature, ParameterInfo) pushArguments,
-      {bool useUncheckedEntry = false}) {
+      {required bool useUncheckedEntry}) {
     assert(kind != _VirtualCallKind.Get || !useUncheckedEntry);
     SelectorInfo selector = translator.dispatchTable.selectorForTarget(
         interfaceTarget.referenceAs(
             getter: kind.isGetter, setter: kind.isSetter));
+    final name = selector.entryPointName(useUncheckedEntry);
     assert(selector.name == interfaceTarget.name.text);
 
     pushReceiver(selector.signature);
 
-    if (selector.targetRanges.length == 1) {
-      // TODO(natebiggs): Ensure dynamic modules exclude this.
+    SelectorTargets targets;
 
-      assert(selector.staticDispatchRanges.length == 1);
-      final target = translator.getFunctionEntry(
-          selector.targetRanges[0].target,
-          uncheckedEntry: useUncheckedEntry);
-      final signature = translator.signatureForDirectCall(target);
-      final paramInfo = translator.paramInfoForDirectCall(target);
-      pushArguments(signature, paramInfo);
-      return translator.outputOrVoid(call(target));
+    if (!translator.dynamicModuleSupportEnabled ||
+        b.module == translator.mainModule) {
+      targets =
+          selector.targets(unchecked: useUncheckedEntry, dynamicModule: false);
+    } else {
+      targets =
+          selector.targets(unchecked: useUncheckedEntry, dynamicModule: true);
     }
 
-    if (selector.targetRanges.isEmpty) {
-      // TODO(natebiggs): Ensure dynamic modules exclude this.
-
-      // Unreachable call
-      b.comment("Virtual call of ${selector.name} with no targets"
-          " at ${node.location}");
-      pushArguments(selector.signature, selector.paramInfo);
-      for (int i = 0; i < selector.signature.inputs.length; ++i) {
-        b.drop();
+    final isDynamicModuleOverrideable = selector.isDynamicModuleOverrideable;
+    if (!isDynamicModuleOverrideable) {
+      w.ValueType? checkRanges(List<({Range range, Reference target})> ranges) {
+        if (ranges.length == 1) {
+          final target = translator.getFunctionEntry(ranges[0].target,
+              uncheckedEntry: useUncheckedEntry);
+          final signature = translator.signatureForDirectCall(target);
+          final paramInfo = translator.paramInfoForDirectCall(target);
+          pushArguments(signature, paramInfo);
+          return translator.outputOrVoid(call(target));
+        }
+        if (ranges.isEmpty) {
+          // Unreachable call
+          b.comment("Virtual call of $name with no targets"
+              " at ${node.location}");
+          pushArguments(selector.signature, selector.paramInfo);
+          for (int i = 0; i < selector.signature.inputs.length; ++i) {
+            b.drop();
+          }
+          b.block(const [], selector.signature.outputs);
+          b.unreachable();
+          b.end();
+          return translator.outputOrVoid(selector.signature.outputs);
+        }
+        return null;
       }
-      b.block(const [], selector.signature.outputs);
-      b.unreachable();
-      b.end();
-      return translator.outputOrVoid(selector.signature.outputs);
+
+      final result = checkRanges(targets.targetRanges);
+      if (result != null) return result;
     }
 
     // Receiver is already on stack.
@@ -1897,16 +1955,18 @@ abstract class AstCodeGenerator
     b.local_tee(receiverVar);
     pushArguments(selector.signature, selector.paramInfo);
 
-    if (selector.staticDispatchRanges.isNotEmpty) {
-      // TODO(natebiggs): Ensure dynamic modules exclude this.
-
+    if (targets.staticDispatchRanges.isNotEmpty) {
+      assert(!translator.dynamicModuleSupportEnabled);
       b.invoke(translator
           .getPolymorphicDispatchersForModule(b.module)
-          .getPolymorphicDispatcher(selector));
+          .getPolymorphicDispatcher(selector,
+              useUncheckedEntry: useUncheckedEntry));
     } else {
-      b.comment("Instance $kind of '${selector.name}'");
+      b.comment("Instance $kind of '$name'");
       b.local_get(receiverVar);
-      translator.callDispatchTable(b, selector);
+      translator.callDispatchTable(b, selector,
+          interfaceTarget: interfaceTarget,
+          useUncheckedEntry: useUncheckedEntry);
     }
 
     return translator.outputOrVoid(selector.signature.outputs);
@@ -2012,7 +2072,7 @@ abstract class AstCodeGenerator
     if (target is Procedure && !target.isGetter) {
       // Super tear-off
       w.StructType closureStruct = _pushClosure(
-          translator.getTearOffClosure(target),
+          translator.getTearOffClosure(target, b.module),
           translator.getTearOffType(target),
           () => visitThis(w.RefType.struct(nullable: false)));
       return w.RefType.def(closureStruct, nullable: false);
@@ -2039,7 +2099,7 @@ abstract class AstCodeGenerator
         w.Label nullLabel = b.block();
         translateExpression(node.receiver, translator.topInfo.nullableType);
         b.br_on_null(nullLabel);
-      }, (_, __) {});
+      }, (_, __) {}, useUncheckedEntry: false);
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -2069,7 +2129,8 @@ abstract class AstCodeGenerator
           _VirtualCallKind.Get,
           (signature) =>
               translateExpression(node.receiver, signature.inputs.first),
-          (_, __) {});
+          (_, __) {},
+          useUncheckedEntry: false);
     }
   }
 
@@ -2181,7 +2242,7 @@ abstract class AstCodeGenerator
         b.br_on_null(nullLabel);
         translator.convertType(
             b, translator.topInfo.nullableType, signature.inputs[0]);
-      }, (_, __) {});
+      }, (_, __) {}, useUncheckedEntry: false);
       b.br(doneLabel);
       b.end(); // nullLabel
       switch (target.name.text) {
@@ -2212,7 +2273,8 @@ abstract class AstCodeGenerator
         _VirtualCallKind.Get,
         (signature) =>
             translateExpression(node.receiver, signature.inputs.first),
-        (_, __) {});
+        (_, __) {},
+        useUncheckedEntry: false);
   }
 
   @override
@@ -2311,6 +2373,7 @@ abstract class AstCodeGenerator
     ClosureImplementation closure = translator.getClosure(
         functionNode,
         lambda.function,
+        b.module,
         ParameterInfo.fromLocalFunction(functionNode),
         "closure wrapper at ${functionNode.location}");
     return _pushClosure(
@@ -2326,7 +2389,7 @@ abstract class AstCodeGenerator
     ClassInfo info = translator.closureInfo;
     translator.functions.recordClassAllocation(info.classId);
 
-    b.pushObjectHeaderFields(info);
+    b.pushObjectHeaderFields(translator, info);
     pushContext();
     translator.globals.readGlobal(b, closure.vtable);
     types.makeType(this, functionType);
@@ -2638,9 +2701,10 @@ abstract class AstCodeGenerator
       }
     }
 
-    if (node.expressions.every(isConstantString)) {
+    final expressions = node.expressions;
+    if (expressions.every(isConstantString)) {
       StringBuffer result = StringBuffer();
-      for (final expr in node.expressions) {
+      for (final expr in expressions) {
         result.write(extractConstantString(expr));
       }
       final expr = StringLiteral(result.toString());
@@ -2649,32 +2713,28 @@ abstract class AstCodeGenerator
 
     late final Procedure target;
 
-    final expressions = node.expressions;
-    // We have special cases for 1/2/3/4 arguments in non-JSCM mode.
-    if (!translator.options.jsCompatibility && expressions.length <= 4) {
+    // We have special cases for 1/2/3/4 arguments.
+    if (expressions.length <= 4) {
       final nullableObjectType =
           translator.translateType(translator.coreTypes.objectNullableRawType);
       for (final expression in expressions) {
         translateExpression(expression, nullableObjectType);
       }
       if (expressions.length == 1) {
-        target = translator.stringInterpolate1;
+        target = translator.jsStringInterpolate1;
       } else if (expressions.length == 2) {
-        target = translator.stringInterpolate2;
+        target = translator.jsStringInterpolate2;
       } else if (expressions.length == 3) {
-        target = translator.stringInterpolate3;
+        target = translator.jsStringInterpolate3;
       } else {
         assert(expressions.length == 4);
-        target = translator.stringInterpolate4;
+        target = translator.jsStringInterpolate4;
       }
     } else {
       final nullableObjectType = translator.coreTypes.objectNullableRawType;
-      makeArrayFromExpressions(node.expressions, nullableObjectType);
-      target = translator.options.jsCompatibility
-          ? translator.jsStringInterpolate
-          : translator.stringInterpolate;
+      makeArrayFromExpressions(expressions, nullableObjectType);
+      target = translator.jsStringInterpolate;
     }
-
     return translator.outputOrVoid(call(target.reference));
   }
 
@@ -2691,7 +2751,10 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitRethrow(Rethrow node, w.ValueType expectedType) {
-    b.rethrow_(tryLabels.last);
+    final exceptionLocals = tryBlockLocals.last;
+    b.local_get(exceptionLocals.exceptionLocal);
+    b.local_get(exceptionLocals.stackTraceLocal);
+    b.throw_(translator.getExceptionTag(b.module));
     return expectedType;
   }
 
@@ -2937,7 +3000,7 @@ abstract class AstCodeGenerator
         translator.getRecordClassInfo(node.recordType);
     translator.functions.recordClassAllocation(recordClassInfo.classId);
 
-    b.pushObjectHeaderFields(recordClassInfo);
+    b.pushObjectHeaderFields(translator, recordClassInfo);
     for (Expression positional in node.positional) {
       translateExpression(positional, translator.topInfo.nullableType);
     }
@@ -3187,13 +3250,13 @@ CodeGenerator? getInlinableMemberCodeGenerator(Translator translator,
 
 class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
   final Procedure member;
-  final SynchronousProcedureKind kind;
+  final EntryPoint kind;
 
   SynchronousProcedureCodeGenerator(Translator translator,
       w.FunctionType functionType, this.member, this.kind)
       : super(translator, functionType, member) {
-    assert(!translator.needToCheckTypesFor(member) ||
-        kind != SynchronousProcedureKind.normal);
+    assert(
+        !translator.needToCheckTypesFor(member) || kind != EntryPoint.normal);
   }
 
   @override
@@ -3216,16 +3279,16 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
     closures = translator.getClosures(member);
 
     switch (kind) {
-      case SynchronousProcedureKind.normal:
+      case EntryPoint.normal:
         b.comment('Normal Entry');
         _makeNonMultiEntryPointFunction();
-      case SynchronousProcedureKind.checked:
+      case EntryPoint.checked:
         b.comment('Checked Entry');
         _makeMultipleEntryPoint(true);
-      case SynchronousProcedureKind.unchecked:
+      case EntryPoint.unchecked:
         b.comment('Unchecked Entry');
         _makeMultipleEntryPoint(false);
-      case SynchronousProcedureKind.body:
+      case EntryPoint.body:
         b.comment('Body for Checked & Unchecked Entry');
         _makeMultipleEntryPointSharedBody();
         break;
@@ -3341,13 +3404,14 @@ class TearOffCodeGenerator extends AstCodeGenerator {
     _initializeThis(member.reference);
     Procedure procedure = member as Procedure;
     DartType functionType = translator.getTearOffType(procedure);
-    ClosureImplementation closure = translator.getTearOffClosure(procedure);
+    ClosureImplementation closure =
+        translator.getTearOffClosure(procedure, b.module);
     w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.closureInfo;
     translator.functions.recordClassAllocation(info.classId);
 
-    b.pushObjectHeaderFields(info);
+    b.pushObjectHeaderFields(translator, info);
     b.local_get(paramLocals[0]); // `this` as context
     // The closure requires a struct value so box `this` if necessary.
     translator.convertType(b, paramLocals[0].type,
@@ -3827,7 +3891,7 @@ class ConstructorAllocatorCodeGenerator extends AstCodeGenerator {
     }
 
     // Set field values
-    b.pushObjectHeaderFields(info);
+    b.pushObjectHeaderFields(translator, info);
 
     for (w.Local local in orderedFieldLocals.reversed) {
       b.local_get(local);
@@ -3991,6 +4055,26 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     b.global_get(global);
     translator.convertType(b, global.type.type, outputs.single);
     b.end();
+  }
+}
+
+/// Will eagerly initialize a static field as part of the module's start
+/// function.
+class EagerStaticFieldInitializerCodeGenerator extends AstCodeGenerator {
+  final Field field;
+  final w.Global global;
+
+  EagerStaticFieldInitializerCodeGenerator(
+      Translator translator, this.field, this.global)
+      : super(translator, w.FunctionType([], []), field);
+
+  @override
+  void generateInternal() {
+    final source = field.enclosingComponent!.uriToSource[field.fileUri]!;
+    setSourceMapSourceAndFileOffset(source, field.fileOffset);
+
+    translateExpression(field.initializer!, global.type.type);
+    b.global_set(global);
   }
 }
 
@@ -4259,9 +4343,7 @@ class SwitchInfo {
       } else if (check<IntLiteral, IntConstant>()) {
         equalsMember = translator.boxedIntEquals;
       } else if (check<StringLiteral, StringConstant>()) {
-        equalsMember = translator.options.jsCompatibility
-            ? translator.jsStringEquals
-            : translator.stringEquals;
+        equalsMember = translator.jsStringEquals;
       } else {
         equalsMember = translator.coreTypes.identicalProcedure;
       }
@@ -4324,9 +4406,7 @@ class SwitchInfo {
       compare = (switchExprLocal, pushCaseExpr) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
-        codeGen.call(translator.options.jsCompatibility
-            ? translator.jsStringEquals.reference
-            : translator.stringEquals.reference);
+        codeGen.call(translator.jsStringEquals.reference);
       };
     } else {
       // Object identity switch
@@ -4388,6 +4468,80 @@ extension MacroAssembler on w.InstructionsBuilder {
       }
     }
     return outputs;
+  }
+
+  void incrementingLoop(
+      {required void Function() pushStart,
+      required void Function() pushLimit,
+      required void Function(w.Local) genBody,
+      int step = 1}) {
+    final endLoop = block();
+    final limitVar = addLocal(w.NumType.i32);
+    final loopVar = addLocal(w.NumType.i32);
+    pushLimit();
+    local_set(limitVar);
+    pushStart();
+    local_set(loopVar);
+
+    final loopLabel = loop();
+    local_get(loopVar);
+    local_get(limitVar);
+    i32_ge_u();
+    br_if(endLoop);
+
+    genBody(loopVar);
+    local_get(loopVar);
+    i32_const(step);
+    i32_add();
+    local_set(loopVar);
+    br(loopLabel);
+    end();
+    end();
+  }
+
+  /// [ref Array] [ref Array] -> [ref Array]
+  ///
+  /// Takes the two arrays on the stack and concatenates them into a single
+  /// array. They both must have the same type provided as [arrayRefType].
+  /// Uses [pushDefaultElement] as the filler element that holds space in the
+  /// array until values are copied over.
+  void concatenateWasmArrays(w.ArrayType arrayType,
+      {required void Function(
+              w.InstructionsBuilder b, w.Local oldArray, w.Local newArray)
+          pushDefaultElement}) {
+    final arrayRefType = w.RefType(arrayType, nullable: false);
+    final newArray = addLocal(arrayRefType);
+    final oldArray = addLocal(arrayRefType);
+    final newArrayLen = addLocal(w.NumType.i32);
+    final oldArrayLen = addLocal(w.NumType.i32);
+    final joinedArray = addLocal(arrayRefType);
+
+    local_set(newArray);
+    local_set(oldArray);
+    pushDefaultElement(this, oldArray, newArray);
+    local_get(newArray);
+    array_len();
+    local_set(newArrayLen);
+    local_get(oldArray);
+    array_len();
+    local_tee(oldArrayLen);
+    local_get(newArrayLen);
+    i32_add();
+    array_new(arrayType);
+    local_tee(joinedArray);
+    i32_const(0);
+    local_get(oldArray);
+    i32_const(0);
+    local_get(oldArrayLen);
+    array_copy(arrayType, arrayType);
+    local_get(joinedArray);
+    local_get(oldArrayLen);
+    local_get(newArray);
+    i32_const(0);
+    local_get(newArrayLen);
+    array_copy(arrayType, arrayType);
+    local_get(joinedArray);
+    end();
   }
 
   /// `[i32] -> [i32]`
@@ -4723,10 +4877,20 @@ extension MacroAssembler on w.InstructionsBuilder {
   }
 
   /// Pushes fields common to all Dart objects (class id, id hash).
-  void pushObjectHeaderFields(ClassInfo classInfo) {
-    // TODO(natebiggs): Adjust class ID for dynamic module if appropriate.
-    i32_const(classInfo.classId);
+  void pushObjectHeaderFields(Translator translator, ClassInfo classInfo) {
+    pushClassIdToStack(translator, classInfo.classId);
     i32_const(initialIdentityHash);
+  }
+
+  void pushClassIdToStack(Translator translator, ClassId classId) {
+    switch (classId) {
+      case AbsoluteClassId():
+        i32_const(classId.value);
+      case RelativeClassId():
+        i32_const(classId.relativeValue);
+        translator.pushModuleId(this);
+        translator.callReference(translator.globalizeClassId.reference, this);
+    }
   }
 }
 

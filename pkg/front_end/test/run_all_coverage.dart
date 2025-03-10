@@ -44,7 +44,6 @@ Future<void> main() async {
 
   addSuiteSkipVm("pkg/front_end/test/strong_suite.dart");
   addSuiteSkipVm("pkg/front_end/test/modular_suite.dart");
-  addSuiteSkipVm("pkg/front_end/test/weak_suite.dart");
 
   addWithCoverageArgument("pkg/front_end/test/messages_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/outline_suite.dart");

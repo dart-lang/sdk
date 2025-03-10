@@ -40,22 +40,10 @@ class NullableInference extends ExpressionVisitor<bool>
   /// [allowNotNullDeclarations].
   bool allowPackageMetaAnnotations = false;
 
-  /// Whether or not to treat type declarations as sound regardless of sound
-  /// null safety mode.
-  ///
-  /// This is used to avoid emitting extraneous null checks in internal SDK
-  /// libraries in legacy or mixed mode.
-  ///
-  /// Only used in dart:_runtime and dart:_rti.
-  bool treatDeclaredTypesAsSound = false;
-
   final _variableInference = _NullableVariableInference();
 
-  final bool _soundNullSafety;
-
   NullableInference(this.jsTypeRep, this._staticTypeContext, {Options? options})
-      : coreTypes = jsTypeRep.coreTypes,
-        _soundNullSafety = options?.soundNullSafety ?? true {
+      : coreTypes = jsTypeRep.coreTypes {
     _variableInference._nullInference = this;
   }
 
@@ -181,8 +169,7 @@ class NullableInference extends ExpressionVisitor<bool>
     if (target == null) return true;
     if (target.name.text == 'toString' && receiver != null) {
       var receiverType = receiver.getStaticType(_staticTypeContext);
-      if (receiverType == coreTypes.stringLegacyRawType ||
-          receiverType == coreTypes.stringNonNullableRawType) {
+      if (receiverType == coreTypes.stringNonNullableRawType) {
         // TODO(nshahan): In unsound null safety the return type of
         // `Object.toString()` is still considered nullable. The `class String`
         // in dart:core does not explicitly declare `.toString()`, which results
@@ -206,10 +193,8 @@ class NullableInference extends ExpressionVisitor<bool>
     return _returnValueIsNullable(target);
   }
 
-  bool get soundNullSafety => _soundNullSafety || treatDeclaredTypesAsSound;
-
   bool _staticallyNonNullable(DartType type) =>
-      soundNullSafety && type.nullability == Nullability.nonNullable;
+      type.nullability == Nullability.nonNullable;
 
   bool _returnValueIsNullable(Member target) {
     var targetClass = target.enclosingClass;
@@ -413,11 +398,8 @@ class _NullableVariableInference extends RecursiveVisitor {
   @override
   void visitFunctionNode(FunctionNode node) {
     _functions.add(node);
-    if (_nullInference.allowNotNullDeclarations ||
-        _nullInference.soundNullSafety) {
-      visitList(node.positionalParameters, this);
-      visitList(node.namedParameters, this);
-    }
+    visitList(node.positionalParameters, this);
+    visitList(node.namedParameters, this);
     node.body?.accept(this);
   }
 
@@ -440,8 +422,7 @@ class _NullableVariableInference extends RecursiveVisitor {
       }
     }
     var initializer = node.initializer;
-    if (_nullInference.soundNullSafety &&
-        node.type.nullability == Nullability.nonNullable) {
+    if (node.type.nullability == Nullability.nonNullable) {
       // Avoid null checks for variables when the type system guarantees they
       // can never be null.
       _notNullLocals.add(node);

@@ -23,52 +23,52 @@ class DefaultTypesBuilder {
 
   void build(List<AstNode> nodes) {
     for (var node in nodes) {
-      if (node is ClassDeclaration) {
+      if (node is ClassDeclarationImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
-      } else if (node is ClassTypeAlias) {
+      } else if (node is ClassTypeAliasImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
-      } else if (node is EnumDeclaration) {
+      } else if (node is EnumDeclarationImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
-      } else if (node is ExtensionDeclaration) {
+      } else if (node is ExtensionDeclarationImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclarationImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
-      } else if (node is FunctionTypeAlias) {
+      } else if (node is FunctionTypeAliasImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
-      } else if (node is GenericTypeAlias) {
+      } else if (node is GenericTypeAliasImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
-      } else if (node is MixinDeclaration) {
+      } else if (node is MixinDeclarationImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
-      } else if (node is MethodDeclaration) {
+      } else if (node is MethodDeclarationImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
-      } else if (node is FunctionDeclaration) {
+      } else if (node is FunctionDeclarationImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.functionExpression.typeParameters);
         _breakRawTypeCycles(element, node.functionExpression.typeParameters);
@@ -76,25 +76,25 @@ class DefaultTypesBuilder {
       }
     }
     for (var node in nodes) {
-      if (node is ClassDeclaration) {
+      if (node is ClassDeclarationImpl) {
         _build(node.typeParameters);
-      } else if (node is ClassTypeAlias) {
+      } else if (node is ClassTypeAliasImpl) {
         _build(node.typeParameters);
-      } else if (node is EnumDeclaration) {
+      } else if (node is EnumDeclarationImpl) {
         _build(node.typeParameters);
-      } else if (node is ExtensionDeclaration) {
+      } else if (node is ExtensionDeclarationImpl) {
         _build(node.typeParameters);
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclarationImpl) {
         _build(node.typeParameters);
-      } else if (node is FunctionTypeAlias) {
+      } else if (node is FunctionTypeAliasImpl) {
         _build(node.typeParameters);
-      } else if (node is GenericTypeAlias) {
+      } else if (node is GenericTypeAliasImpl) {
         _build(node.typeParameters);
-      } else if (node is MixinDeclaration) {
+      } else if (node is MixinDeclarationImpl) {
         _build(node.typeParameters);
-      } else if (node is FunctionDeclaration) {
+      } else if (node is FunctionDeclarationImpl) {
         _build(node.functionExpression.typeParameters);
-      } else if (node is MethodDeclaration) {
+      } else if (node is MethodDeclarationImpl) {
         _build(node.typeParameters);
       }
     }
@@ -174,11 +174,11 @@ class DefaultTypesBuilder {
   }
 
   /// Build actual default type [DartType]s from computed [TypeBuilder]s.
-  void _build(TypeParameterList? parameterList) {
+  void _build(TypeParameterListImpl? parameterList) {
     if (parameterList == null) return;
 
     for (var parameter in parameterList.typeParameters) {
-      var element = parameter.declaredFragment as TypeParameterElementImpl;
+      var element = parameter.declaredFragment!;
       var defaultType = element.defaultType;
       if (defaultType is TypeBuilder) {
         var builtType = defaultType.build();
@@ -191,7 +191,7 @@ class DefaultTypesBuilder {
   /// arguments on raw types with the given type parameters.
   void _computeBounds(
     Element2 declarationElement,
-    TypeParameterList? parameterList,
+    TypeParameterListImpl? parameterList,
   ) {
     if (parameterList == null) return;
 
@@ -201,18 +201,18 @@ class DefaultTypesBuilder {
     var nodes = parameterList.typeParameters;
     var length = nodes.length;
     var elements = <TypeParameterElementImpl2>[];
-    var bounds = <DartType>[];
+    var bounds = <TypeImpl>[];
     for (int i = 0; i < length; i++) {
       var node = nodes[i];
-      elements.add(node.declaredFragment!.element as TypeParameterElementImpl2);
+      elements.add(node.declaredFragment!.element);
       bounds.add(node.bound?.type ?? dynamicType);
     }
 
     var graph = _TypeParametersGraph(elements, bounds);
     var stronglyConnected = computeStrongComponents(graph);
     for (var component in stronglyConnected) {
-      var dynamicSubstitution = <TypeParameterElement2, DartType>{};
-      var nullSubstitution = <TypeParameterElement2, DartType>{};
+      var dynamicSubstitution = <TypeParameterElement2, TypeImpl>{};
+      var nullSubstitution = <TypeParameterElement2, TypeImpl>{};
       for (var i in component) {
         var element = elements[i];
         dynamicSubstitution[element] = dynamicType;
@@ -231,8 +231,8 @@ class DefaultTypesBuilder {
     }
 
     for (var i = 0; i < length; i++) {
-      var thisSubstitution = <TypeParameterElement2, DartType>{};
-      var nullSubstitution = <TypeParameterElement2, DartType>{};
+      var thisSubstitution = <TypeParameterElement2, TypeImpl>{};
+      var nullSubstitution = <TypeParameterElement2, TypeImpl>{};
       var element = elements[i];
       thisSubstitution[element] = bounds[i];
       nullSubstitution[element] = bottomType;
@@ -250,7 +250,7 @@ class DefaultTypesBuilder {
 
     // Set computed TypeBuilder(s) as default types.
     for (var i = 0; i < length; i++) {
-      var element = nodes[i].declaredFragment as TypeParameterElementImpl;
+      var element = nodes[i].declaredFragment!;
       element.defaultType = bounds[i];
     }
   }
@@ -274,7 +274,8 @@ class DefaultTypesBuilder {
         } else if (visited.add(startType.element3)) {
           void recurseParameters(List<TypeParameterElement2> parameters) {
             for (var parameter in parameters) {
-              var parameterNode = _linker.getLinkingNode2(parameter);
+              var parameterNode =
+                  _linker.getLinkingNode2(parameter.firstFragment);
               if (parameterNode is TypeParameter) {
                 var bound = parameterNode.bound;
                 if (bound != null) {
@@ -418,13 +419,13 @@ class _TypeParametersGraph implements Graph<int> {
 }
 
 class _UpperLowerReplacementVisitor extends ReplacementVisitor {
-  final Map<TypeParameterElement2, DartType> _upper;
-  final Map<TypeParameterElement2, DartType> _lower;
+  final Map<TypeParameterElement2, TypeImpl> _upper;
+  final Map<TypeParameterElement2, TypeImpl> _lower;
   Variance _variance;
 
   _UpperLowerReplacementVisitor({
-    required Map<TypeParameterElement2, DartType> upper,
-    required Map<TypeParameterElement2, DartType> lower,
+    required Map<TypeParameterElement2, TypeImpl> upper,
+    required Map<TypeParameterElement2, TypeImpl> lower,
     required Variance variance,
   })  : _upper = upper,
         _lower = lower,
@@ -439,20 +440,18 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
     }
   }
 
-  DartType run(DartType type) {
+  TypeImpl run(TypeImpl type) {
     return type.accept(this) ?? type;
   }
 
   @override
-  DartType? visitTypeArgument(
-    TypeParameterElement2 parameter,
-    DartType argument,
+  TypeImpl? visitTypeArgument(
+    TypeParameterElementImpl2 parameter,
+    TypeImpl argument,
   ) {
     var savedVariance = _variance;
     try {
-      _variance = _variance.combine(
-        (parameter as TypeParameterElementImpl2).variance,
-      );
+      _variance = _variance.combine(parameter.variance);
       return super.visitTypeArgument(parameter, argument);
     } finally {
       _variance = savedVariance;
@@ -460,7 +459,7 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType type) {
+  TypeImpl? visitTypeParameterType(TypeParameterType type) {
     if (_variance == Variance.contravariant) {
       return _lower[type.element3];
     } else {

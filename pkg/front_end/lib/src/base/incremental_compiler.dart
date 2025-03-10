@@ -67,7 +67,6 @@ import '../api_prototype/incremental_kernel_generator.dart'
 import '../api_prototype/lowering_predicates.dart'
     show isExtensionThisName, syntheticThisName;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
-import '../base/nnbd_mode.dart';
 import '../builder/builder.dart' show Builder;
 import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
@@ -953,23 +952,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // Check compilation mode up against what we've seen here and set
     // `hasInvalidNnbdModeLibrary` accordingly.
     if (c.options.globalFeatures.nonNullable.isEnabled) {
-      switch (c.options.nnbdMode) {
-        case NnbdMode.Weak:
-          // Coverage-ignore(suite): Not run.
-          // Don't expect strong or invalid.
-          if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
-              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
-          }
-          break;
-        case NnbdMode.Strong:
-          // Don't expect weak or invalid.
-          if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
-              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            // Coverage-ignore-block(suite): Not run.
-            kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
-          }
-          break;
+      // Don't expect weak or invalid.
+      if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
+          seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+        // Coverage-ignore-block(suite): Not run.
+        kernelTarget.loader.hasInvalidNnbdModeLibrary = true;
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
@@ -1181,8 +1168,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 context.options.globalFeatures.tripleShift.isEnabled);
         bool enablePatterns =
             builder.languageVersion >= ExperimentalFlag.patterns.enabledVersion;
+        bool enableEnhancedParts = builder.languageVersion >=
+            ExperimentalFlag.enhancedParts.enabledVersion;
         String? before = textualOutline(previousSource, scannerConfiguration,
-            performModelling: true, enablePatterns: enablePatterns);
+            performModelling: true,
+            enablePatterns: enablePatterns,
+            enableEnhancedParts: enableEnhancedParts);
         if (before == null) {
           // Coverage-ignore-block(suite): Not run.
           recorderForTesting?.recordAdvancedInvalidationResult(
@@ -1193,7 +1184,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         FileSystemEntity entity = c.options.fileSystem.entityForUri(uri);
         if (await entity.exists()) {
           now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
-              performModelling: true, enablePatterns: enablePatterns);
+              performModelling: true,
+              enablePatterns: enablePatterns,
+              enableEnhancedParts: enableEnhancedParts);
         }
         if (before != now) {
           recorderForTesting?.recordAdvancedInvalidationResult(
@@ -1629,7 +1622,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Library> removedLibraries = <Library>[];
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
-      // Coverage-ignore-block(suite): Not run.
       if (uri.isScheme("package")) continue;
       LibraryBuilder? builder =
           currentKernelTarget.loader.deregisterLoadedLibraryBuilder(uri);
@@ -1649,12 +1641,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         _componentProblems.removeLibrary(lib, uriTranslator, partsUsed);
 
         // Technically this isn't necessary as the uri is not a package-uri.
-        _incrementalSerializer?.invalidate(builder.fileUri);
+        _incrementalSerializer
+            // Coverage-ignore(suite): Not run.
+            ?.invalidate(builder.fileUri);
       }
     }
     hierarchy.applyTreeChanges(removedLibraries, const [], const []);
     if (removedDillBuilders) {
-      // Coverage-ignore-block(suite): Not run.
       _makeDillLoaderLibrariesUpToDateWithBuildersMap();
     }
 
@@ -1687,7 +1680,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       [Map<Uri, Source>? uriToSourceExtra,
       Set<Uri?>? partsUsed]) {
     uriToSource.remove(builder.fileUri);
-    // Coverage-ignore(suite): Not run.
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {
@@ -1972,6 +1964,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         debugLibrary.addImportsToScope();
         _ticker.logMs("Added imports");
       }
+      SourceCompilationUnit? orgCompilationUnit = debugCompilationUnit;
       debugCompilationUnit = new SourceCompilationUnitImpl(
           importUri: libraryUri,
           fileUri: debugExprUri,
@@ -1980,7 +1973,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               new ImplicitLanguageVersion(libraryBuilder.languageVersion),
           loader: lastGoodKernelTarget.loader,
           nameOrigin: libraryBuilder,
-          parentScope: debugLibrary.scope,
+          parentScope: debugCompilationUnit.compilationUnitScope,
           isUnsupported: libraryBuilder.isUnsupported,
           forAugmentationLibrary: false,
           forPatchLibrary: false,
@@ -1992,25 +1985,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           mayImplementRestrictedTypes: false);
       debugCompilationUnit.markLanguageVersionFinal();
 
-      SourceLibraryBuilder? orgDebugLibrary = debugLibrary;
       debugLibrary = debugCompilationUnit.createLibrary();
 
       // Copy over the prefix namespace for extensions
       // (`forEachExtensionInScope`) to be found when imported via prefixes.
-      // TODO(johnniwinther): Extensions should be available through
-      // [parentScope].
-      orgDebugLibrary.prefixNameSpace.forEachLocalMember((name, member) {
-        debugLibrary.prefixNameSpace
+      // TODO(johnniwinther): Do we still need these with the new scope
+      //  structure?
+      orgCompilationUnit.prefixNameSpace.forEachLocalMember((name, member) {
+        debugCompilationUnit.prefixNameSpace
             .addLocalMember(name, member, setter: false);
       });
       // Does a prefix namespace ever have anything but locals?
-      orgDebugLibrary.prefixNameSpace.forEachLocalSetter((name, member) {
-        debugLibrary.prefixNameSpace.addLocalMember(name, member, setter: true);
+      orgCompilationUnit.prefixNameSpace.forEachLocalSetter((name, member) {
+        debugCompilationUnit.prefixNameSpace
+            .addLocalMember(name, member, setter: true);
       });
-      orgDebugLibrary.prefixNameSpace.forEachLocalExtension((member) {
-        debugLibrary.prefixNameSpace.addExtension(member);
+      orgCompilationUnit.prefixNameSpace.forEachLocalExtension((member) {
+        debugCompilationUnit.prefixNameSpace.addExtension(member);
       });
-      orgDebugLibrary = null;
+      orgCompilationUnit = null;
 
       HybridFileSystem hfs =
           lastGoodKernelTarget.fileSystem as HybridFileSystem;
@@ -2629,19 +2622,8 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
                 checkCanonicalNames: true, createView: true)!;
 
         // Compute "output nnbd mode".
-        NonNullableByDefaultCompiledMode compiledMode;
-        if (context.options.globalFeatures.nonNullable.isEnabled) {
-          switch (context.options.nnbdMode) {
-            case NnbdMode.Weak:
-              compiledMode = NonNullableByDefaultCompiledMode.Weak;
-              break;
-            case NnbdMode.Strong:
-              compiledMode = NonNullableByDefaultCompiledMode.Strong;
-              break;
-          }
-        } else {
-          compiledMode = NonNullableByDefaultCompiledMode.Weak;
-        }
+        NonNullableByDefaultCompiledMode compiledMode =
+            NonNullableByDefaultCompiledMode.Strong;
 
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).

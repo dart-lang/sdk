@@ -396,8 +396,8 @@ libraryCycles
   /workspace/dart/test/lib/a.dart
     current: cycle_4
       key: k03
-    get: []
-    put: [k03, k03]
+    get: [k03]
+    put: [k03]
   /workspace/dart/test/lib/b.dart
     current: cycle_1
       key: k04
@@ -406,17 +406,20 @@ libraryCycles
   /workspace/dart/test/lib/c.dart
     current: cycle_5
       key: k05
-    get: []
-    put: [k05, k05]
+    get: [k05]
+    put: [k05]
 elementFactory
   hasElement
     package:dart.test/a.dart
     package:dart.test/b.dart
     package:dart.test/c.dart
+  hasReader
+    package:dart.test/a.dart
+    package:dart.test/c.dart
 unlinkedUnitStore
   1: [k00, k01, k02, k06, k07, k08, k09, k10]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+  1: [k00, k01, k02, k04, k06, k07, k08, k09, k10, k11]
 ''');
   }
 
@@ -643,15 +646,17 @@ libraryCycles
   /workspace/dart/test/lib/a.dart
     current: cycle_2
       key: k02
-    get: []
-    put: [k02, k02]
+    get: [k02]
+    put: [k02]
 elementFactory
   hasElement
+    package:dart.test/a.dart
+  hasReader
     package:dart.test/a.dart
 unlinkedUnitStore
   1: [k00, k01, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
+  1: [k00, k01, k03, k04, k05, k06, k07, k08]
 ''');
   }
 
@@ -826,21 +831,24 @@ libraryCycles
   /workspace/dart/test/lib/a.dart
     current: cycle_3
       key: k03
-    get: []
-    put: [k03, k03]
+    get: [k03]
+    put: [k03]
   /workspace/dart/test/lib/c.dart
     current: cycle_4
       key: k04
-    get: []
-    put: [k04, k04]
+    get: [k04]
+    put: [k04]
 elementFactory
   hasElement
+    package:dart.test/a.dart
+    package:dart.test/c.dart
+  hasReader
     package:dart.test/a.dart
     package:dart.test/c.dart
 unlinkedUnitStore
   1: [k00, k01, k02, k05, k06, k07, k08, k09]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10]
+  1: [k00, k01, k02, k05, k06, k07, k08, k09, k10]
 ''');
   }
 }
@@ -1560,7 +1568,7 @@ elementFactory
 unlinkedUnitStore
   1: [k00, k02, k03, k04, k05, k06]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06]
 ''');
 
     await fileResolver.getLibraryByUri2(
@@ -1597,7 +1605,7 @@ elementFactory
 unlinkedUnitStore
   1: [k00, k02, k03, k04, k05, k06]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06]
 ''');
 
     await fileResolver.linkLibraries2(path: b.path);
@@ -1637,9 +1645,9 @@ files
           dependencies: cycle_0 dart:core
           libraries: library_6
           apiSignature_1
-      unlinkedKey: k08
+      unlinkedKey: k07
     unlinkedGet: []
-    unlinkedPut: [k08]
+    unlinkedPut: [k07]
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current: cycle_0
@@ -1648,17 +1656,17 @@ libraryCycles
     put: [k01]
   /workspace/dart/test/lib/b.dart
     current: cycle_2
-      key: k09
-    get: [k09]
-    put: [k09]
+      key: k08
+    get: [k08]
+    put: [k08]
 elementFactory
   hasReader
     package:dart.test/a.dart
     package:dart.test/b.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06, k08]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 ''');
 
     var b_library = await fileResolver.getLibraryByUri2(
@@ -1704,9 +1712,9 @@ files
           dependencies: cycle_0 dart:core
           libraries: library_6
           apiSignature_1
-      unlinkedKey: k08
+      unlinkedKey: k07
     unlinkedGet: []
-    unlinkedPut: [k08]
+    unlinkedPut: [k07]
 libraryCycles
   /workspace/dart/test/lib/a.dart
     current: cycle_0
@@ -1715,9 +1723,9 @@ libraryCycles
     put: [k01]
   /workspace/dart/test/lib/b.dart
     current: cycle_2
-      key: k09
-    get: [k09]
-    put: [k09]
+      key: k08
+    get: [k08]
+    put: [k08]
 elementFactory
   hasElement
     package:dart.test/b.dart
@@ -1725,9 +1733,9 @@ elementFactory
     package:dart.test/a.dart
     package:dart.test/b.dart
 unlinkedUnitStore
-  1: [k00, k02, k03, k04, k05, k06, k08]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
+  1: [k00, k02, k03, k04, k05, k06, k07]
 ''');
   }
 
@@ -1773,7 +1781,7 @@ elementFactory
 unlinkedUnitStore
   1: [k00, k02, k03, k04, k05, k06]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06]
 ''');
 
     var result = await getTestErrors();
@@ -1816,7 +1824,7 @@ elementFactory
 unlinkedUnitStore
   1: [k00, k02, k03, k04, k05, k06]
 byteStore
-  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+  1: [k00, k02, k03, k04, k05, k06]
 ''');
   }
 

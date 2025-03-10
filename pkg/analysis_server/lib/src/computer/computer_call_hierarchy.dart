@@ -245,7 +245,7 @@ class DartCallHierarchyComputer {
     // across calls.
     var parsedUnits = <String, SomeParsedUnitResult?>{};
     for (var reference in references) {
-      var container = _getContainer(reference.element2);
+      var container = _getContainer(reference.element);
       if (container == null) {
         continue;
       }

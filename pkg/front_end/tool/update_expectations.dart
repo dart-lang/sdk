@@ -5,9 +5,8 @@
 import 'cfe.dart' as cfe;
 
 const List<String> standardSuites = <String>[
-  'weak',
-  'outline',
   'strong',
+  'outline',
   'modular',
   'textual_outline',
 ];
@@ -20,7 +19,7 @@ const List<String> specialSuites = <String>[
 
 Future<void> runStandardSuites([List<String>? args]) async {
   // Assert that 'strong' is the first suite - we use the assumption below.
-  assert(standardSuites.first == 'weak', "Suite 'weak' most be the first.");
+  assert(standardSuites.first == 'strong', "Suite 'strong' most be the first.");
 
   List<String> testingArguments = [];
   for (String suite in standardSuites) {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:meta/meta.dart';
@@ -287,6 +288,7 @@ class EnabledDisabledFlags {
 
 /// Information about a single experimental flag that the user might use to
 /// request that a feature be enabled (or disabled).
+@AnalyzerPublicApi(message: 'Exposed by static fields in the Feature class.')
 class ExperimentalFeature implements Feature {
   /// Index of the flag in the private data structure maintained by
   /// [ExperimentStatus].
@@ -317,6 +319,12 @@ class ExperimentalFeature implements Feature {
   @override
   final Version? releaseVersion;
 
+  /// The channels on which this experiment is available.
+  ///
+  /// Valid channels are "stable", "beta", and "main". The "dev" channel in Dart
+  /// is implied by main.
+  final List<String> channels;
+
   ExperimentalFeature({
     required this.index,
     required this.enableString,
@@ -325,6 +333,7 @@ class ExperimentalFeature implements Feature {
     required this.documentation,
     required this.experimentalReleaseVersion,
     required this.releaseVersion,
+    this.channels = const [],
   }) : assert(isEnabledByDefault
             ? releaseVersion != null
             : releaseVersion == null);

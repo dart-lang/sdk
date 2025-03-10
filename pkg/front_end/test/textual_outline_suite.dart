@@ -8,7 +8,8 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:dart_style/dart_style.dart' show DartFormatter;
+import 'package:dart_style/dart_style.dart'
+    show DartFormatter, FormatterException;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/util/textual_outline.dart';
 import 'package:testing/testing.dart'
@@ -110,6 +111,17 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
     Map<ExperimentalFlag, bool> experimentalFlagsExplicit =
         folderOptions.computeExplicitExperimentalFlags(const {});
 
+    bool allowFormatterCrash = false;
+    for (MapEntry<ExperimentalFlag, bool> entry
+        in experimentalFlagsExplicit.entries) {
+      if (entry.value) {
+        if (!entry.key.isEnabledByDefault) {
+          allowFormatterCrash = true;
+          break;
+        }
+      }
+    }
+
     Uint8List bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
       TextualOutlineInfoForTesting info = new TextualOutlineInfoForTesting();
@@ -123,6 +135,8 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         performModelling: modelled,
         returnNullOnError: false,
         enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
+            explicitExperimentalFlags: experimentalFlags),
+        enableEnhancedParts: isExperimentEnabled(ExperimentalFlag.enhancedParts,
             explicitExperimentalFlags: experimentalFlags),
         infoForTesting: info,
       );
@@ -164,6 +178,13 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         } catch (e, st) {
           formatterException = e;
           formatterExceptionSt = st;
+          if (e is FormatterException) {
+            for (var error in e.errors) {
+              if (error.errorCode.name == "EXPERIMENT_NOT_ENABLED") {
+                allowFormatterCrash = true;
+              }
+            }
+          }
         }
       }
 
@@ -182,22 +203,12 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
             null, context.expectationSet["UnknownChunk"], description.uri);
       }
 
-      if (formatterException != null && !info.hasParserErrors) {
-        bool hasUnreleasedExperiment = false;
-        for (MapEntry<ExperimentalFlag, bool> entry
-            in experimentalFlagsExplicit.entries) {
-          if (entry.value) {
-            if (!entry.key.isEnabledByDefault) {
-              hasUnreleasedExperiment = true;
-              break;
-            }
-          }
-        }
-        if (!hasUnreleasedExperiment) {
-          return new Result(null, context.expectationSet["FormatterCrash"],
-              formatterException,
-              trace: formatterExceptionSt);
-        }
+      if (formatterException != null &&
+          !info.hasParserErrors &&
+          !allowFormatterCrash) {
+        return new Result(
+            null, context.expectationSet["FormatterCrash"], formatterException,
+            trace: formatterExceptionSt);
       }
     }
 

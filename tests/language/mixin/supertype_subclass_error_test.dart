@@ -20,9 +20,13 @@ mixin ME on E {}
 mixin MF on F {}
 
 class AB extends E with MB {}
+
 class AC extends E with MC {}
+
 class AD extends E with MD {}
+
 class AE extends E with ME {}
+
 class AF extends E with MF {}
 //    ^
 // [cfe] 'E' doesn't implement 'F' so it can't be used with 'MF'.

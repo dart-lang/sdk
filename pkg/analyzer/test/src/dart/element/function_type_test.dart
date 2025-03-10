@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -73,13 +74,13 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_equality_leftRequired_rightPositional() {
     var f1 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'a', type: typeProvider.intType),
       ],
     );
     var f2 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         positionalParameter(name: 'a', type: typeProvider.intType),
       ],
     );
@@ -89,13 +90,13 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_equality_namedParameters_differentName() {
     var f1 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.intType),
       ],
     );
     var f2 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'b', type: typeProvider.intType),
       ],
     );
@@ -105,13 +106,13 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_equality_namedParameters_differentType() {
     var f1 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.intType),
       ],
     );
     var f2 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.doubleType),
       ],
     );
@@ -121,14 +122,14 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_equality_namedParameters_equal() {
     var f1 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.intType),
         namedParameter(name: 'b', type: typeProvider.doubleType),
       ],
     );
     var f2 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.intType),
         namedParameter(name: 'b', type: typeProvider.doubleType),
       ],
@@ -139,14 +140,14 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_equality_namedParameters_extraLeft() {
     var f1 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.intType),
         namedParameter(name: 'b', type: typeProvider.doubleType),
       ],
     );
     var f2 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.intType),
       ],
     );
@@ -156,13 +157,13 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_equality_namedParameters_extraRight() {
     var f1 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.intType),
       ],
     );
     var f2 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.intType),
         namedParameter(name: 'b', type: typeProvider.doubleType),
       ],
@@ -173,13 +174,13 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_equality_namedParameters_required_left() {
     var f1 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedRequiredParameter(name: 'a', type: typeProvider.intType),
       ],
     );
     var f2 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.intType),
       ],
     );
@@ -189,13 +190,13 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_equality_namedParameters_required_right() {
     var f1 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedParameter(name: 'a', type: typeProvider.intType),
       ],
     );
     var f2 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         namedRequiredParameter(name: 'a', type: typeProvider.intType),
       ],
     );
@@ -205,14 +206,14 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_equality_requiredParameters_extraLeft() {
     var f1 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'a', type: typeProvider.intType),
         requiredParameter(name: 'b', type: typeProvider.doubleType),
       ],
     );
     var f2 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'a', type: typeProvider.intType),
       ],
     );
@@ -222,13 +223,13 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_equality_requiredParameters_extraRight() {
     var f1 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'a', type: typeProvider.intType),
       ],
     );
     var f2 = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'a', type: typeProvider.intType),
         requiredParameter(name: 'b', type: typeProvider.doubleType),
       ],
@@ -242,6 +243,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
               typeFormals: const [],
               parameters: [
                 namedParameter(name: 'p$i', type: typeProvider.intType)
+                    .asElement
               ],
               returnType: typeProvider.voidType,
               nullabilitySuffix: NullabilitySuffix.none),
@@ -249,6 +251,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
               typeFormals: const [],
               parameters: [
                 namedRequiredParameter(name: 'p$i', type: typeProvider.intType)
+                    .asElement
               ],
               returnType: typeProvider.voidType,
               nullabilitySuffix: NullabilitySuffix.none)
@@ -261,12 +264,16 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
       return (
         FunctionTypeImpl(
             typeFormals: const [],
-            parameters: [requiredParameter(name: 'x', type: c.thisType)],
+            parameters: [
+              requiredParameter(name: 'x', type: c.thisType).asElement
+            ],
             returnType: typeProvider.voidType,
             nullabilitySuffix: NullabilitySuffix.none),
         FunctionTypeImpl(
             typeFormals: const [],
-            parameters: [requiredParameter(name: 'x', type: c.thisType)],
+            parameters: [
+              requiredParameter(name: 'x', type: c.thisType).asElement
+            ],
             returnType: typeProvider.voidType,
             nullabilitySuffix: NullabilitySuffix.question)
       );
@@ -275,10 +282,12 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
 
   test_hash_optionalNamedParameterName() {
     _testHashesSometimesDiffer((i) => FunctionTypeImpl(
-        typeFormals: const [],
-        parameters: [namedParameter(name: 'p$i', type: typeProvider.intType)],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: NullabilitySuffix.none));
+            typeFormals: const [],
+            parameters: [
+              namedParameter(name: 'p$i', type: typeProvider.intType).asElement
+            ],
+            returnType: typeProvider.voidType,
+            nullabilitySuffix: NullabilitySuffix.none));
   }
 
   test_hash_optionalNamedParameterType() {
@@ -286,6 +295,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
             typeFormals: const [],
             parameters: [
               namedParameter(name: 'x', type: class_(name: 'C$i').thisType)
+                  .asElement
             ],
             returnType: typeProvider.voidType,
             nullabilitySuffix: NullabilitySuffix.none));
@@ -297,6 +307,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
             typeFormals: const [],
             parameters: [
               positionalParameter(name: 'p$i', type: typeProvider.intType)
+                  .asElement
             ],
             returnType: typeProvider.voidType,
             nullabilitySuffix: NullabilitySuffix.none));
@@ -307,6 +318,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
             typeFormals: const [],
             parameters: [
               positionalParameter(name: 'x', type: class_(name: 'C$i').thisType)
+                  .asElement
             ],
             returnType: typeProvider.voidType,
             nullabilitySuffix: NullabilitySuffix.none));
@@ -318,6 +330,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
               typeFormals: const [],
               parameters: [
                 requiredParameter(name: 'p$i', type: typeProvider.intType)
+                    .asElement
               ],
               returnType: typeProvider.voidType,
               nullabilitySuffix: NullabilitySuffix.none),
@@ -325,6 +338,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
               typeFormals: const [],
               parameters: [
                 positionalParameter(name: 'p$i', type: typeProvider.intType)
+                    .asElement
               ],
               returnType: typeProvider.voidType,
               nullabilitySuffix: NullabilitySuffix.none)
@@ -336,6 +350,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
             typeFormals: const [],
             parameters: [
               namedRequiredParameter(name: 'p$i', type: typeProvider.intType)
+                  .asElement
             ],
             returnType: typeProvider.voidType,
             nullabilitySuffix: NullabilitySuffix.none));
@@ -346,7 +361,8 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
             typeFormals: const [],
             parameters: [
               namedRequiredParameter(
-                  name: 'x', type: class_(name: 'C$i').thisType)
+                      name: 'x', type: class_(name: 'C$i').thisType)
+                  .asElement
             ],
             returnType: typeProvider.voidType,
             nullabilitySuffix: NullabilitySuffix.none));
@@ -358,6 +374,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
             typeFormals: const [],
             parameters: [
               requiredParameter(name: 'p$i', type: typeProvider.intType)
+                  .asElement
             ],
             returnType: typeProvider.voidType,
             nullabilitySuffix: NullabilitySuffix.none));
@@ -368,6 +385,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
             typeFormals: const [],
             parameters: [
               requiredParameter(name: 'x', type: class_(name: 'C$i').thisType)
+                  .asElement
             ],
             returnType: typeProvider.voidType,
             nullabilitySuffix: NullabilitySuffix.none));
@@ -392,13 +410,15 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
           ],
           parameters: [
             requiredParameter(
-                name: 'x',
-                type: TypeParameterTypeImpl(
-                    element: t, nullabilitySuffix: NullabilitySuffix.none)),
+                    name: 'x',
+                    type: TypeParameterTypeImpl(
+                        element: t, nullabilitySuffix: NullabilitySuffix.none))
+                .asElement,
             requiredParameter(
-                name: 'y',
-                type: TypeParameterTypeImpl(
-                    element: t, nullabilitySuffix: NullabilitySuffix.none))
+                    name: 'y',
+                    type: TypeParameterTypeImpl(
+                        element: t, nullabilitySuffix: NullabilitySuffix.none))
+                .asElement
           ],
           returnType: typeProvider.voidType,
           nullabilitySuffix: NullabilitySuffix.none);
@@ -408,7 +428,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   test_new_sortsNamedParameters() {
     var f = functionTypeNone(
       returnType: typeProvider.voidType,
-      parameters: [
+      formalParameters: [
         requiredParameter(name: 'a', type: typeProvider.intType),
         namedParameter(name: 'c', type: typeProvider.intType),
         namedParameter(name: 'b', type: typeProvider.intType),
@@ -436,8 +456,8 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     var t = typeParameter('T');
     var x = requiredParameter(name: 'x', type: typeParameterTypeNone(t));
     FunctionType f = FunctionTypeImpl(
-      typeFormals: [t],
-      parameters: [x],
+      typeFormals: [t.asElement],
+      parameters: [x.asElement],
       returnType: typeParameterTypeNone(t),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -454,7 +474,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     // dynamic Function<T>()
     var t = typeParameter('T');
     FunctionType f = FunctionTypeImpl(
-      typeFormals: [t],
+      typeFormals: [t.asElement],
       parameters: const [],
       returnType: dynamicType,
       nullabilitySuffix: NullabilitySuffix.none,
@@ -476,7 +496,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     var p = namedParameter(name: 'x', type: objectType);
     FunctionType f = FunctionTypeImpl(
       typeFormals: const [],
-      parameters: [p],
+      parameters: [p.asElement],
       returnType: dynamicType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -493,7 +513,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     var p = requiredParameter(name: 'x', type: objectType);
     FunctionType f = FunctionTypeImpl(
       typeFormals: const [],
-      parameters: [p],
+      parameters: [p.asElement],
       returnType: dynamicType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -511,7 +531,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     var p = positionalParameter(name: 'x', type: objectType);
     FunctionType f = FunctionTypeImpl(
       typeFormals: const [],
-      parameters: [p],
+      parameters: [p.asElement],
       returnType: dynamicType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -537,16 +557,16 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   }
 
   test_synthetic_typeFormals() {
-    var t = typeParameter2('T');
+    var t = typeParameter('T');
     FunctionType f = FunctionTypeImpl.v2(
       typeParameters: [t],
       formalParameters: const [],
-      returnType: typeParameterTypeNone2(t),
+      returnType: typeParameterTypeNone(t),
       nullabilitySuffix: NullabilitySuffix.none,
     );
     basicChecks(f,
         displayName: 'T Function<T>()',
-        returnType: typeParameterTypeNone2(t),
+        returnType: typeParameterTypeNone(t),
         typeFormals: [same(t)]);
   }
 

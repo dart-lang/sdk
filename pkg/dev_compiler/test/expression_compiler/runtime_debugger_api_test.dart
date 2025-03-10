@@ -159,6 +159,72 @@ main() {
 
 void runSharedTests(
     SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
+  group('Runtime debugging API after loading sources but before running main |',
+      () {
+    var source = simpleClassSource;
+
+    // Set up and tear down after every test so that the bootstrapper script is
+    // re-run every time, therefore triggering the `OnScheduleMain` breakpoint.
+    setUp(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDown(() async {
+      await driver.cleanupTest();
+    });
+
+    test('getClassesInLibrary', () async {
+      var getClasses = setup.emitLibraryBundle
+          ? 'getClassesInLibrary'
+          : 'getLibraryMetadata';
+      await driver.checkRuntimeInFrame(
+        breakpointId: 'OnScheduleMain',
+        // Query a user definition to test if it's initialized.
+        expression: 'dart.$getClasses("package:eval_test/test.dart")',
+        expectedResult: ['BaseClass', 'DerivedClass', 'AnotherClass'],
+      );
+    });
+
+    test('getClassMetadata in non-SDK library', () async {
+      await driver.checkRuntimeInFrame(
+          breakpointId: 'OnScheduleMain',
+          // Query a user definition to test if it's initialized.
+          expression:
+              'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass")',
+          expectedResult: {
+            'className': 'DerivedClass',
+            'superClassName': 'BaseClass',
+            'superClassLibraryId': 'package:eval_test/test.dart',
+            'fields': {
+              'newPublicField': {
+                'isFinal': true,
+                'className': 'int',
+                'classLibraryId': 'dart:core',
+              },
+              '_newPrivateField': {
+                'isFinal': true,
+                'className': 'int',
+                'classLibraryId': 'dart:core',
+              },
+              '_newStaticConstPrivateField': {'isStatic': true},
+            },
+            'methods': {
+              'stringLength': {},
+              'lateFinalField': {'isGetter': true},
+              'getter': {'isGetter': true},
+              '_privateGetter': {'isGetter': true},
+              'factory': {'isStatic': true},
+              'staticMethod': {'isStatic': true},
+              'extensionTypeGetter': {'isGetter': true},
+              '_privateExtensionTypeGetter': {'isGetter': true},
+            },
+          });
+    });
+  },
+      // DDC module format doesn't guarantee that libraries are initialized when
+      // using debugging APIs before main is started.
+      skip: setup.moduleFormat == ModuleFormat.ddc && !setup.canaryFeatures);
+
   group('Runtime debugging API |', () {
     var source = simpleClassSource;
 

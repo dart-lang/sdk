@@ -10,12 +10,6 @@ class B extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class _C&Object&M extends core::Object implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_C&Object&M
-    : super core::Object::•()
-    ;
-  method mixinMethod() → void {}
-}
 class C extends self::_C&Object&M {
   synthetic constructor •() → self::C
     : super self::_C&Object&M::•()
@@ -23,6 +17,12 @@ class C extends self::_C&Object&M {
 }
 class D extends core::Object implements self::M /*isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  method mixinMethod() → void {}
+}
+abstract class _C&Object&M extends core::Object implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C&Object&M
     : super core::Object::•()
     ;
   method mixinMethod() → void {}

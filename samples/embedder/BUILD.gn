@@ -20,6 +20,11 @@ group("aot") {
     ":run_timer_async_aot",
     ":run_two_programs_aot",
   ]
+
+  # FFI can't execute on the VM's simulator
+  if (dart_target_arch == host_cpu) {
+    deps += [ ":run_futures_aot" ]
+  }
 }
 
 group("kernel") {
@@ -29,6 +34,11 @@ group("kernel") {
     ":run_timer_kernel",
     ":run_two_programs_kernel",
   ]
+
+  # FFI can't execute on the VM's simulator
+  if (dart_target_arch == host_cpu) {
+    deps += [ ":run_futures_kernel" ]
+  }
 }
 
 # Generates a pair of executables for kernel and AOT snapshots.
@@ -99,6 +109,14 @@ template("snapshots") {
   # AOT snapshot
   aot_snapshot("${target_name}_aot") {
     main_dart = invoker.main_dart
+
+    # AOT snapshots as shared libraries on Windows are not
+    # supported, and in fact we don't build AOT samples on
+    # Windows. However, GN evaluation model will still
+    # evaluate the `aot_snapshot` template on Windows,
+    # and it will fail the assert if as_shared_library is
+    # true, and the current platform is Windows.
+    as_shared_library = !is_win
   }
 }
 
@@ -141,4 +159,16 @@ sample("run_timer_async") {
 
 snapshots("timer") {
   main_dart = "timer.dart"
+}
+
+# FFI can't execute on the VM's simulator
+if (dart_target_arch == host_cpu) {
+  snapshots("futures") {
+    main_dart = "futures.dart"
+  }
+
+  sample("run_futures") {
+    sources = [ "run_futures.cc" ]
+    snapshots = [ ":futures" ]
+  }
 }

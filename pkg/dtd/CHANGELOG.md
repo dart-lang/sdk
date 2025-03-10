@@ -1,3 +1,7 @@
+## 2.4.1-wip
+
+- Update SDK constraints to `^3.5.0`.
+
 ## 2.4.0
 
 - Bump `unified_analytics` dependency to ^7.0.0.

@@ -106,9 +106,23 @@ enum ScopeKind {
   /// Scope for type parameters of declarations
   typeParameters,
 
-  import,
+  /// Scope for a compilation unit.
+  ///
+  /// This contains the entities declared in the library to which the
+  /// compilation unit belongs. Its parent scopes are the [prefix] and [import]
+  /// scopes of the compilation unit.
+  compilationUnit,
 
+  /// Scope for the prefixed imports in a compilation unit.
+  ///
+  /// The parent scope is the [import] scope of the same compilation unit.
   prefix,
+
+  /// Scope for the non-prefixed imports in a compilation unit.
+  ///
+  /// The parent scope is the [prefix] scope of the parent compilation unit,
+  /// if any.
+  import,
 }
 
 abstract class LookupScope {
@@ -139,6 +153,9 @@ Builder? normalizeLookup(
     required String classNameOrDebugName,
     required bool isSetter,
     bool forStaticAccess = false}) {
+  if (getable == null && setable == null) {
+    return null;
+  }
   Builder? thisBuilder;
   Builder? otherBuilder;
   if (isSetter) {
@@ -216,8 +233,12 @@ mixin LookupScopeMixin implements LookupScope {
 
   Builder? lookupGetableIn(
       String name, int charOffset, Uri fileUri, Map<String, Builder> getables) {
+    Builder? getable = getables[name];
+    if (getable == null) {
+      return null;
+    }
     return normalizeLookup(
-        getable: getables[name],
+        getable: getable,
         setable: null,
         name: name,
         charOffset: charOffset,
@@ -228,8 +249,13 @@ mixin LookupScopeMixin implements LookupScope {
 
   Builder? lookupSetableIn(String name, int charOffset, Uri fileUri,
       Map<String, Builder>? getables) {
+    Builder? getable = getables?[name];
+    if (getable == null) {
+      return null;
+    }
+    // Coverage-ignore(suite): Not run.
     return normalizeLookup(
-        getable: getables?[name],
+        getable: getable,
         setable: null,
         name: name,
         charOffset: charOffset,
@@ -237,6 +263,9 @@ mixin LookupScopeMixin implements LookupScope {
         classNameOrDebugName: classNameOrDebugName,
         isSetter: true);
   }
+
+  @override
+  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
 /// A [LookupScope] based directly on a [NameSpace].
@@ -254,27 +283,37 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
 
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: _nameSpace.lookupLocalMember(name, setter: false),
-        setable: _nameSpace.lookupLocalMember(name, setter: true),
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: false);
+    Builder? getable = _nameSpace.lookupLocalMember(name, setter: false);
+    Builder? setable = _nameSpace.lookupLocalMember(name, setter: true);
+    Builder? builder;
+    if (getable != null || setable != null) {
+      builder = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: false);
+    }
     return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: _nameSpace.lookupLocalMember(name, setter: false),
-        setable: _nameSpace.lookupLocalMember(name, setter: true),
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: true);
+    Builder? getable = _nameSpace.lookupLocalMember(name, setter: false);
+    Builder? setable = _nameSpace.lookupLocalMember(name, setter: true);
+    Builder? builder;
+    if (getable != null || setable != null) {
+      builder = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: true);
+    }
     return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
@@ -283,6 +322,9 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
     _nameSpace.forEachLocalExtension(f);
     _parent?.forEachExtension(f);
   }
+
+  @override
+  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
 class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
@@ -310,37 +352,48 @@ abstract class AbstractTypeParameterScope implements LookupScope {
 
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: getTypeParameter(name),
-        setable: null,
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: false);
+    Builder? typeParameter = getTypeParameter(name);
+    Builder? builder;
+    if (typeParameter != null) {
+      builder = normalizeLookup(
+          getable: typeParameter,
+          setable: null,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: false);
+    }
     return builder ?? _parent.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: getTypeParameter(name),
-        setable: null,
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: true);
+    Builder? typeParameter = getTypeParameter(name);
+    Builder? builder;
+    if (typeParameter != null) {
+      // Coverage-ignore-block(suite): Not run.
+      builder = normalizeLookup(
+          getable: typeParameter,
+          setable: null,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: true);
+    }
     return builder ?? _parent.lookupSetable(name, charOffset, fileUri);
   }
 
   String get classNameOrDebugName => "type parameter";
 
   @override
-  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent.forEachExtension(f);
   }
+
+  @override
+  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
 class TypeParameterScope extends AbstractTypeParameterScope {
@@ -382,27 +435,37 @@ class FixedLookupScope implements LookupScope {
 
   @override
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: _getables?[name],
-        setable: _setables?[name],
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: false);
+    Builder? getable = _getables?[name];
+    Builder? setable = _setables?[name];
+    Builder? builder;
+    if (getable != null || setable != null) {
+      builder = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: false);
+    }
     return builder ?? _parent?.lookupGetable(name, charOffset, fileUri);
   }
 
   @override
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
-    Builder? builder = normalizeLookup(
-        getable: _getables?[name],
-        setable: _setables?[name],
-        name: name,
-        charOffset: charOffset,
-        fileUri: fileUri,
-        classNameOrDebugName: classNameOrDebugName,
-        isSetter: true);
+    Builder? getable = _getables?[name];
+    Builder? setable = _setables?[name];
+    Builder? builder;
+    if (getable != null || setable != null) {
+      builder = normalizeLookup(
+          getable: getable,
+          setable: setable,
+          name: name,
+          charOffset: charOffset,
+          fileUri: fileUri,
+          classNameOrDebugName: classNameOrDebugName,
+          isSetter: true);
+    }
     return builder ?? _parent?.lookupSetable(name, charOffset, fileUri);
   }
 
@@ -410,12 +473,45 @@ class FixedLookupScope implements LookupScope {
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent?.forEachExtension(f);
   }
+
+  @override
+  String toString() => "$runtimeType(${kind},$classNameOrDebugName)";
 }
 
-// Coverage-ignore(suite): Not run.
-// TODO(johnniwinther): Use this instead of [SourceLibraryBuilderScope].
+/// The import scope of a compilation unit.
+///
+/// This includes all declaration available through imports in this compilation
+/// unit. Its parent scope is the prefix scope of the parent compilation unit.
+/// If the compilation unit has no parent, the
+/// [SourceLibraryBuilder.parentScope] is used as the parent. This is not a
+/// normal Dart scope, but instead a synthesized scope used for expression
+/// compilation.
+class CompilationUnitImportScope extends BaseNameSpaceLookupScope {
+  final SourceCompilationUnit _compilationUnit;
+  final NameSpace _importNameSpace;
+
+  CompilationUnitImportScope(this._compilationUnit, this._importNameSpace)
+      : super(ScopeKind.import, 'import');
+
+  @override
+  NameSpace get _nameSpace => _importNameSpace;
+
+  @override
+  LookupScope? get _parent =>
+      _compilationUnit.parentCompilationUnit?.prefixScope ??
+      _compilationUnit.libraryBuilder.parentScope;
+}
+
+/// The scope of a compilation unit.
+///
+/// This is the enclosing scope for all declarations within the compilation
+/// unit. It gives access to all declarations in the library the compilation
+/// unit is part of. Its parent scope is the prefix scope, which contains all
+/// imports with prefixes declared in this compilation unit. The grand parent
+/// scope is the import scope of the compilation  unit implemented through
+/// [CompilationUnitImportScope].
 class CompilationUnitScope extends BaseNameSpaceLookupScope {
-  final CompilationUnit _compilationUnit;
+  final SourceCompilationUnit _compilationUnit;
 
   @override
   final LookupScope? _parent;
@@ -427,42 +523,75 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
 
   @override
   NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
-}
 
-class SourceLibraryBuilderScope extends BaseNameSpaceLookupScope {
-  final SourceCompilationUnit _compilationUnit;
-
-  SourceLibraryBuilderScope(
-      this._compilationUnit, super.kind, super.classNameOrDebugName);
+  /// Set of extension declarations in scope. This is computed lazily in
+  /// [forEachExtension].
+  Set<ExtensionBuilder>? _extensions;
 
   @override
-  NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
-
-  @override
-  LookupScope? get _parent => _compilationUnit.libraryBuilder.prefixScope;
-}
-
-abstract class ConstructorScope {
-  MemberBuilder? lookup(String name, int charOffset, Uri fileUri);
-}
-
-class DeclarationNameSpaceConstructorScope implements ConstructorScope {
-  final String _className;
-
-  final DeclarationNameSpace _nameSpace;
-
-  DeclarationNameSpaceConstructorScope(this._className, this._nameSpace);
-
-  @override
-  MemberBuilder? lookup(String name, int charOffset, Uri fileUri) {
-    MemberBuilder? builder = _nameSpace.lookupConstructor(name);
-    if (builder == null) return null;
-    if (builder.next != null) {
-      return new AmbiguousMemberBuilder(
-          name.isEmpty ? _className : name, builder, charOffset, fileUri);
-    } else {
-      return builder;
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    if (_extensions == null) {
+      Set<ExtensionBuilder> extensions = _extensions = <ExtensionBuilder>{};
+      _parent?.forEachExtension(extensions.add);
+      _nameSpace.forEachLocalExtension(extensions.add);
     }
+    _extensions!.forEach(f);
+  }
+}
+
+/// The scope containing the prefixes imported into a compilation unit.
+class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
+  @override
+  final NameSpace _nameSpace;
+
+  @override
+  final LookupScope? _parent;
+
+  CompilationUnitPrefixScope(
+      this._nameSpace, super.kind, super.classNameOrDebugName,
+      {required LookupScope? parent})
+      : _parent = parent;
+
+  /// Set of extension declarations in scope. This is computed lazily in
+  /// [forEachExtension].
+  Set<ExtensionBuilder>? _extensions;
+
+  @override
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    if (_extensions == null) {
+      Set<ExtensionBuilder> extensions = _extensions = {};
+      Iterator<PrefixBuilder> iterator = _nameSpace.filteredIterator(
+          includeDuplicates: false, includeAugmentations: false);
+      while (iterator.moveNext()) {
+        iterator.current.forEachExtension((e) {
+          extensions.add(e);
+        });
+      }
+      _parent?.forEachExtension(extensions.add);
+    }
+    _extensions!.forEach(f);
+  }
+}
+
+class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
+  DeclarationBuilder? _declarationBuilder;
+
+  @override
+  final LookupScope? _parent;
+
+  DeclarationBuilderScope(this._parent)
+      : super(ScopeKind.declaration, 'declaration');
+
+  @override
+  NameSpace get _nameSpace {
+    assert(_declarationBuilder != null, "declarationBuilder has not been set.");
+    return _declarationBuilder!.nameSpace;
+  }
+
+  void set declarationBuilder(DeclarationBuilder value) {
+    assert(_declarationBuilder == null,
+        "declarationBuilder has already been set.");
+    _declarationBuilder = value;
   }
 }
 
@@ -1078,7 +1207,6 @@ extension IteratorExtension<T extends Builder> on Iterator<T> {
     }
   }
 
-  // Coverage-ignore(suite): Not run.
   List<T> toList() {
     List<T> list = [];
     while (moveNext()) {
@@ -1109,6 +1237,7 @@ abstract class MergedScope<T extends Builder> {
 
   SourceLibraryBuilder get originLibrary;
 
+  // Coverage-ignore(suite): Not run.
   void _addBuilderToMergedScope(
       String name, Builder newBuilder, Builder? existingBuilder,
       {required bool setter, required bool inPatchLibrary}) {
@@ -1148,7 +1277,6 @@ abstract class MergedScope<T extends Builder> {
                 ? templateNonPatchLibraryConflict.withArguments(name)
                 : templateNonAugmentationLibraryConflict.withArguments(name);
           } else {
-            // Coverage-ignore-block(suite): Not run.
             message = inPatchLibrary
                 ? templateNonPatchClassMemberConflict.withArguments(name)
                 : templateNonAugmentationClassMemberConflict
@@ -1184,9 +1312,7 @@ abstract class MergedScope<T extends Builder> {
         } else {
           message = inPatchLibrary
               ? templateUnmatchedPatchDeclaration.withArguments(name)
-              :
-              // Coverage-ignore(suite): Not run.
-              templateUnmatchedAugmentationDeclaration.withArguments(name);
+              : templateUnmatchedAugmentationDeclaration.withArguments(name);
         }
         originLibrary.addProblem(
             message, newBuilder.fileOffset, name.length, newBuilder.fileUri);
@@ -1223,6 +1349,7 @@ abstract class MergedScope<T extends Builder> {
     if (augmentationMember == null) {
       augmentationNameSpace.addLocalMember(name, member, setter: setter);
       if (member is ExtensionBuilder) {
+        // Coverage-ignore-block(suite): Not run.
         augmentationNameSpace.addExtension(member);
       }
     }
@@ -1236,7 +1363,9 @@ abstract class MergedScope<T extends Builder> {
     // `scope.forEachLocalMember`/`scope.forEachLocalSetter`.
 
     // Include all augmentation scope members to the origin scope.
-    nameSpace.forEachLocalMember((String name, Builder member) {
+    nameSpace.forEachLocalMember(
+        // Coverage-ignore(suite): Not run.
+        (String name, Builder member) {
       // In case of duplicates we use the first declaration.
       while (member.isDuplicate) {
         member = member.next!;
@@ -1246,6 +1375,7 @@ abstract class MergedScope<T extends Builder> {
           setter: false, inPatchLibrary: inPatchLibrary);
     });
     if (augmentations != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (String augmentedName in augmentations.keys) {
         for (Builder augmentation in augmentations[augmentedName]!) {
           _addBuilderToMergedScope(augmentedName, augmentation,
@@ -1254,7 +1384,9 @@ abstract class MergedScope<T extends Builder> {
         }
       }
     }
-    nameSpace.forEachLocalSetter((String name, Builder member) {
+    nameSpace.forEachLocalSetter(
+        // Coverage-ignore(suite): Not run.
+        (String name, Builder member) {
       // In case of duplicates we use the first declaration.
       while (member.isDuplicate) {
         member = member.next!;
@@ -1264,6 +1396,7 @@ abstract class MergedScope<T extends Builder> {
           setter: true, inPatchLibrary: inPatchLibrary);
     });
     if (setterAugmentations != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (String augmentedName in setterAugmentations.keys) {
         for (Builder augmentation in setterAugmentations[augmentedName]!) {
           _addBuilderToMergedScope(augmentedName, augmentation,
@@ -1272,7 +1405,9 @@ abstract class MergedScope<T extends Builder> {
         }
       }
     }
-    nameSpace.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
+    nameSpace.forEachLocalExtension(
+        // Coverage-ignore(suite): Not run.
+        (ExtensionBuilder extensionBuilder) {
       if (extensionBuilder is SourceExtensionBuilder &&
           extensionBuilder.isUnnamedExtension) {
         _originNameSpace.addExtension(extensionBuilder);
@@ -1292,7 +1427,9 @@ abstract class MergedScope<T extends Builder> {
       _addBuilderToAugmentationNameSpace(nameSpace, name, originMember,
           setter: true);
     });
-    _originNameSpace.forEachLocalExtension((ExtensionBuilder extensionBuilder) {
+    _originNameSpace.forEachLocalExtension(
+        // Coverage-ignore(suite): Not run.
+        (ExtensionBuilder extensionBuilder) {
       if (extensionBuilder is SourceExtensionBuilder &&
           extensionBuilder.isUnnamedExtension) {
         nameSpace.addExtension(extensionBuilder);
@@ -1305,6 +1442,7 @@ abstract class MergedScope<T extends Builder> {
   bool _allowInjectedPublicMember(Builder newBuilder);
 }
 
+// Coverage-ignore(suite): Not run.
 class MergedLibraryScope extends MergedScope<SourceLibraryBuilder> {
   MergedLibraryScope(SourceLibraryBuilder origin)
       : super(origin, origin.libraryNameSpace);
@@ -1336,11 +1474,14 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
         super(origin, origin.nameSpace);
 
   @override
+  // Coverage-ignore(suite): Not run.
   SourceLibraryBuilder get originLibrary => _origin.libraryBuilder;
 
   void _addAugmentationConstructorScope(DeclarationNameSpace nameSpace,
       {required bool inPatchLibrary}) {
-    nameSpace.forEachConstructor((String name, MemberBuilder newConstructor) {
+    nameSpace.forEachConstructor(
+        // Coverage-ignore(suite): Not run.
+        (String name, MemberBuilder newConstructor) {
       MemberBuilder? existingConstructor =
           _originConstructorNameSpace.lookupConstructor(name);
       bool isAugmentationBuilder = inPatchLibrary
@@ -1355,9 +1496,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
               inPatchLibrary
                   ? templateNonPatchConstructorConflict
                       .withArguments(newConstructor.fullNameForErrors)
-                  :
-                  // Coverage-ignore(suite): Not run.
-                  templateNonAugmentationConstructorConflict
+                  : templateNonAugmentationConstructorConflict
                       .withArguments(newConstructor.fullNameForErrors),
               newConstructor.fileOffset,
               noLength,
@@ -1375,9 +1514,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
               inPatchLibrary
                   ? templateUnmatchedPatchConstructor
                       .withArguments(newConstructor.fullNameForErrors)
-                  :
-                  // Coverage-ignore(suite): Not run.
-                  templateUnmatchedAugmentationConstructor
+                  : templateUnmatchedAugmentationConstructor
                       .withArguments(newConstructor.fullNameForErrors),
               newConstructor.fileOffset,
               noLength,
@@ -1386,7 +1523,6 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
           _originConstructorNameSpace.addConstructor(name, newConstructor);
           for (DeclarationNameSpace augmentationConstructorNameSpace
               in _augmentationConstructorNameSpaces.values) {
-            // Coverage-ignore-block(suite): Not run.
             _addConstructorToAugmentationScope(
                 augmentationConstructorNameSpace, name, newConstructor);
           }
@@ -1394,7 +1530,6 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
         if (inPatchLibrary &&
             !name.startsWith('_') &&
             !_allowInjectedPublicMember(newConstructor)) {
-          // Coverage-ignore-block(suite): Not run.
           originLibrary.addProblem(
               templatePatchInjectionFailed.withArguments(
                   name, originLibrary.importUri),
@@ -1433,13 +1568,13 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool _allowInjectedPublicMember(Builder newBuilder) {
     if (originLibrary.importUri.isScheme("dart") &&
         originLibrary.importUri.path.startsWith("_")) {
       return true;
     }
     if (newBuilder.isStatic) {
-      // Coverage-ignore-block(suite): Not run.
       return _origin.name.startsWith('_');
     }
     // TODO(johnniwinther): Restrict the use of injected public class members.
@@ -1448,10 +1583,10 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
 }
 
 extension on Builder {
+  // Coverage-ignore(suite): Not run.
   bool get isAugmentation {
     Builder self = this;
     if (self is SourceLibraryBuilder) {
-      // Coverage-ignore-block(suite): Not run.
       return self.isAugmentationLibrary;
     } else if (self is SourceClassBuilder) {
       return self.isAugmentation;
@@ -1474,6 +1609,7 @@ extension on Builder {
     return false;
   }
 
+  // Coverage-ignore(suite): Not run.
   void set isConflictingAugmentationMember(bool value) {
     Builder self = this;
     if (self is SourceMemberBuilder) {
@@ -1484,6 +1620,7 @@ extension on Builder {
     // TODO(johnniwinther): Handle all cases here.
   }
 
+  // Coverage-ignore(suite): Not run.
   bool _hasPatchAnnotation(Iterable<MetadataBuilder>? metadata) {
     if (metadata == null) {
       return false;
@@ -1496,6 +1633,7 @@ extension on Builder {
     return false;
   }
 
+  // Coverage-ignore(suite): Not run.
   bool get hasPatchAnnotation {
     Builder self = this;
     if (self is SourceFunctionBuilder) {
@@ -1508,9 +1646,7 @@ extension on Builder {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceMethodBuilder) {
       return _hasPatchAnnotation(self.metadata);
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (self is SourceExtensionTypeDeclarationBuilder) {
+    } else if (self is SourceExtensionTypeDeclarationBuilder) {
       return _hasPatchAnnotation(self.metadata);
     }
     return false;

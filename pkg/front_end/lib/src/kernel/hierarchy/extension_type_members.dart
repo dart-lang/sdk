@@ -279,6 +279,23 @@ class ExtensionTypeMembersNode {
     }
     return result;
   }
+
+  ClassMember? getStaticMember(Name name, bool isSetter) {
+    ClassMember? result = isSetter
+        ?
+        // Coverage-ignore(suite): Not run.
+        (extensionTypeSetableMap?[name] ?? nonExtensionTypeSetableMap?[name])
+        : (extensionTypeGetableMap?[name] ??
+            nonExtensionTypeGetableMap
+                // Coverage-ignore(suite): Not run.
+                ?[name]);
+    if (result == null) {
+      return null;
+    } else if (result.isStatic) {
+      return result;
+    }
+    return null;
+  }
 }
 
 class _Tuple {

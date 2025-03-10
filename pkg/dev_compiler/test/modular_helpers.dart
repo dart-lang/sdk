@@ -9,7 +9,6 @@ import 'package:modular_test/src/create_package_config.dart';
 import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/runner.dart';
-import 'package:modular_test/src/steps/macro_precompile_aot.dart';
 import 'package:modular_test/src/steps/util.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:path/path.dart' as p;
@@ -34,7 +33,7 @@ class SourceToSummaryDillStep implements IOModularStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [dillId, precompiledMacroId];
+  List<DataId> get dependencyDataNeeded => const [dillId];
 
   @override
   List<DataId> get moduleDataNeeded => const [];
@@ -108,10 +107,6 @@ class SourceToSummaryDillStep implements IOModularStep {
       ...transitiveDependencies
           .where((m) => !m.isSdk)
           .expand((m) => ['--input-summary', '${toUri(m, dillId)}']),
-      ...transitiveDependencies
-          .where((m) => m.macroConstructors.isNotEmpty)
-          .expand((m) =>
-              ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};']),
       ...sources.expand((String uri) => ['--source', uri]),
       ...flags.expand((String flag) => ['--enable-experiment', flag]),
     ];
@@ -125,9 +120,6 @@ class SourceToSummaryDillStep implements IOModularStep {
   void notifyCached(Module module) {
     if (_options.verbose) print('\ncached step: source-to-dill on $module');
   }
-
-  @override
-  bool shouldExecute(Module module) => true;
 }
 
 class DDCStep implements IOModularStep {
@@ -142,7 +134,7 @@ class DDCStep implements IOModularStep {
   bool get needsSources => true;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [dillId, precompiledMacroId];
+  List<DataId> get dependencyDataNeeded => const [dillId];
 
   @override
   List<DataId> get moduleDataNeeded => const [dillId];
@@ -206,10 +198,6 @@ class DDCStep implements IOModularStep {
       ...transitiveDependencies
           .where((m) => !m.isSdk)
           .expand((m) => ['-s', '${toUri(m, dillId)}=${m.name}']),
-      ...transitiveDependencies
-          .where((m) => m.macroConstructors.isNotEmpty)
-          .expand((m) =>
-              ['--precompiled-macro', '${precompiledMacroArg(m, toUri)};']),
       '-o',
       '$output',
     ];
@@ -222,9 +210,6 @@ class DDCStep implements IOModularStep {
   void notifyCached(Module module) {
     if (_options.verbose) print('\ncached step: ddc on $module');
   }
-
-  @override
-  bool shouldExecute(Module module) => true;
 }
 
 class RunD8 implements IOModularStep {
@@ -287,9 +272,6 @@ class RunD8 implements IOModularStep {
   void notifyCached(Module module) {
     if (_options.verbose) print('\ncached step: d8 on $module');
   }
-
-  @override
-  bool shouldExecute(Module module) => true;
 }
 
 String get _d8executable {

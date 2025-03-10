@@ -12,16 +12,14 @@ class Foo {
 
 class CoffeeShop {
   final String shopName = "Coffee Lab";
-  CoffeeShop.name(String shopName)
-      : this.shopName = shopName;
-      //     ^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
-      //              ^
-      // [cfe] 'shopName' is a final instance variable that was initialized at the declaration.
+  CoffeeShop.name(String shopName) : this.shopName = shopName;
+  //                                      ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+  //                                               ^
+  // [cfe] 'shopName' is a final instance variable that was initialized at the declaration.
 }
 
 void main() {
   Foo f = new Foo(10);
-  CoffeeShop presidentialCoffee =
-      new CoffeeShop.name("Covfefe Lab");
+  CoffeeShop presidentialCoffee = new CoffeeShop.name("Covfefe Lab");
 }

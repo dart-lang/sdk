@@ -1,0 +1,16 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///part_with_import_lib.dart";
+
+part part_with_import_part.dart;
+static method method1() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///part_with_import_part.dart */ method2() → dynamic
+  ;
+
+library;
+import self as self2;
+
+static method foo() → void
+  ;

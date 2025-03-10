@@ -38,7 +38,7 @@ void LongJumpScope::Jump(int value) {
 
   // Destruct all the active StackResource objects.
   StackResource::UnwindAbove(thread, top_);
-  longjmp(environment_, value);
+  DART_LONGJMP(environment_, value);
   UNREACHABLE();
 }
 

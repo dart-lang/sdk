@@ -322,7 +322,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       // Converts/Rewrites
       if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
         var node = NodeLocator(offset).searchWithin(unitResult.unit);
-        var element = server.getElementOfNode2(node);
+        var element = server.getElementOfNode(node);
 
         // Getter to Method
         if (element is GetterElement &&

@@ -66,13 +66,31 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 library;
 import self as cac;
 import "dart:core" as core;
+import "cache_lookups.dart" as self;
 import "dart:collection" as col;
 import "dart:math" as math;
-import "cache_lookups.dart" as self;
 
 import "dart:collection";
 import "org-dartlang-testcase:///cache_lookups.dart";
 
+class CustomList<E extends core::Object? = dynamic> extends cac::_CustomList&Object&ListMixin<cac::CustomList::E%> {
+  final field core::List<cac::CustomList::E%> list;
+  constructor •(core::List<cac::CustomList::E%> list) → cac::CustomList<cac::CustomList::E%>
+    : cac::CustomList::list = list, super cac::_CustomList&Object&ListMixin::•()
+    ;
+  get length() → core::int {
+    self::counter = self::counter.{core::num::+}(1){(core::num) → core::int};
+    return this.{cac::CustomList::list}{core::List<cac::CustomList::E%>}.{core::List::length}{core::int};
+  }
+  set length(core::int value) → void {
+    this.{cac::CustomList::list}{core::List<cac::CustomList::E%>}.{core::List::length} = value;
+  }
+  operator [](core::int index) → cac::CustomList::E%
+    return this.{cac::CustomList::list}{core::List<cac::CustomList::E%>}.{core::List::[]}(index){(core::int) → cac::CustomList::E%};
+  operator []=(core::int index, covariant-by-class cac::CustomList::E% value) → void {
+    this.{cac::CustomList::list}{core::List<cac::CustomList::E%>}.{core::List::[]=}(index, value){(core::int, cac::CustomList::E%) → void};
+  }
+}
 abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> = core::Object with col::ListBase<cac::_CustomList&Object&ListMixin::E%> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → cac::_CustomList&Object&ListMixin<cac::_CustomList&Object&ListMixin::E%>
     : super core::Object::•()
@@ -197,24 +215,6 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> =
     return super.{col::ListBase::reversed};
   mixin-super-stub method toString() → core::String
     return super.{col::ListBase::toString}();
-}
-class CustomList<E extends core::Object? = dynamic> extends cac::_CustomList&Object&ListMixin<cac::CustomList::E%> {
-  final field core::List<cac::CustomList::E%> list;
-  constructor •(core::List<cac::CustomList::E%> list) → cac::CustomList<cac::CustomList::E%>
-    : cac::CustomList::list = list, super cac::_CustomList&Object&ListMixin::•()
-    ;
-  get length() → core::int {
-    self::counter = self::counter.{core::num::+}(1){(core::num) → core::int};
-    return this.{cac::CustomList::list}{core::List<cac::CustomList::E%>}.{core::List::length}{core::int};
-  }
-  set length(core::int value) → void {
-    this.{cac::CustomList::list}{core::List<cac::CustomList::E%>}.{core::List::length} = value;
-  }
-  operator [](core::int index) → cac::CustomList::E%
-    return this.{cac::CustomList::list}{core::List<cac::CustomList::E%>}.{core::List::[]}(index){(core::int) → cac::CustomList::E%};
-  operator []=(core::int index, covariant-by-class cac::CustomList::E% value) → void {
-    this.{cac::CustomList::list}{core::List<cac::CustomList::E%>}.{core::List::[]=}(index, value){(core::int, cac::CustomList::E%) → void};
-  }
 }
 
 constants  {

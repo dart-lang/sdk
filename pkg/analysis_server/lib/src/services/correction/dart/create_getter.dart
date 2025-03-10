@@ -91,9 +91,8 @@ class CreateGetter extends CreateFieldOrGetter {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_getterName];
@@ -199,7 +198,7 @@ class CreateGetter extends CreateFieldOrGetter {
       return;
     }
     // prepare target declaration
-    var targetDeclarationResult = await sessionHelper.getElementDeclaration(
+    var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
     );
     if (targetDeclarationResult == null) {

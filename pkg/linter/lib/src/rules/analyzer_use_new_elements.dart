@@ -6,7 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_visitor.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/dart/element/type_visitor.dart' // ignore: implementation_imports
+    show RecursiveTypeVisitor;
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -122,11 +123,16 @@ class _TypeVisitor extends RecursiveTypeVisitor {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final Map<AstNode, bool> _deprecatedNodes = {};
 
   _Visitor(this.rule);
 
   @override
   visitMethodInvocation(MethodInvocation node) {
+    if (_isDeprecatedNode(node)) {
+      return;
+    }
+
     if (_isOldModelType(node.staticType)) {
       rule.reportLint(node.methodName);
     }
@@ -134,6 +140,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   visitNamedType(NamedType node) {
+    if (_isDeprecatedNode(node)) {
+      return;
+    }
+
     if (_isOldModelElement(node.element2)) {
       rule.reportLintForToken(node.name2);
     }
@@ -141,6 +151,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (_isDeprecatedNode(node)) {
+      return;
+    }
+
     if (node.parent case MethodInvocation invocation) {
       if (invocation.methodName == node) {
         return;
@@ -152,8 +166,32 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (_isOldModelType(node.staticType)) {
+      _isDeprecatedNode(node);
       rule.reportLint(node);
     }
+  }
+
+  /// Returns whether [node] is or inside a deprecated node.
+  bool _isDeprecatedNode(AstNode? node) {
+    if (node == null) {
+      return false;
+    }
+
+    if (_deprecatedNodes[node] case var result?) {
+      return result;
+    }
+
+    if (node is Declaration) {
+      var element = node.declaredFragment?.element;
+      if (element case Annotatable annotatable) {
+        var hasDeprecated = annotatable.metadata2.hasDeprecated;
+        if (hasDeprecated) {
+          return _deprecatedNodes[node] = true;
+        }
+      }
+    }
+
+    return _deprecatedNodes[node] = _isDeprecatedNode(node.parent);
   }
 }
 

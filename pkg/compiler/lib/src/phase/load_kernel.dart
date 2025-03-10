@@ -164,10 +164,6 @@ void _simplifyConstConditionals(
     reportMessage,
     environmentDefines: options.environment,
     classHierarchy: classHierarchy,
-    evaluationMode:
-        options.useLegacySubtyping
-            ? fe.EvaluationMode.weak
-            : fe.EvaluationMode.strong,
     shouldNotInline: shouldNotInline,
     removeAsserts: !options.enableUserAssertions,
   ).run();
@@ -186,7 +182,7 @@ void _doTransformsOnKernelLoad(
     final classHierarchy = ir.ClassHierarchy(
       component,
       coreTypes,
-      onAmbiguousSupertypes: (_, __, ___) {},
+      onAmbiguousSupertypes: (_, _, _) {},
     );
     ir.TypeEnvironment typeEnvironment = ir.TypeEnvironment(
       coreTypes,
@@ -198,10 +194,6 @@ void _doTransformsOnKernelLoad(
       (fe.LocatedMessage message, List<fe.LocatedMessage>? context) =>
           reportLocatedMessage(reporter, message, context),
       environment: Environment(options.environment),
-      evaluationMode:
-          options.useLegacySubtyping
-              ? fe.EvaluationMode.weak
-              : fe.EvaluationMode.strong,
     );
     StaticInteropClassEraser(coreTypes).visitComponent(component);
     global_transforms.transformLibraries(
@@ -233,19 +225,6 @@ Future<_LoadFromKernelResult> _loadFromKernel(
   }
 
   await read(resolvedUri);
-
-  var isStrongDill =
-      component.mode == ir.NonNullableByDefaultCompiledMode.Strong;
-  var incompatibleNullSafetyMode =
-      isStrongDill ? NullSafetyMode.unsound : NullSafetyMode.sound;
-  if (options.nullSafetyMode == incompatibleNullSafetyMode) {
-    var dillMode = isStrongDill ? 'sound' : 'unsound';
-    var option = isStrongDill ? Flags.noSoundNullSafety : Flags.soundNullSafety;
-    throw ArgumentError(
-      "$resolvedUri was compiled with $dillMode null "
-      "safety and is incompatible with the '$option' option",
-    );
-  }
 
   if (options.platformBinaries != null &&
       options.stage.shouldReadPlatformBinaries) {
@@ -294,9 +273,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
   Map<String, String>? environment = cfeConstants ? options.environment : null;
   Target target = Dart2jsTarget(
     targetName,
-    TargetFlags(
-      soundNullSafety: options.nullSafetyMode == NullSafetyMode.sound,
-    ),
+    TargetFlags(),
     options: options,
     supportsUnevaluatedConstants: !cfeConstants,
   );
@@ -333,14 +310,12 @@ Future<_LoadFromSourceResult> _loadFromSource(
           '${Flags.experimentNullSafetyChecks}.',
     });
   }
-  if (isLegacy && options.nullSafetyMode == NullSafetyMode.sound) {
+  if (isLegacy) {
     reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
       'text':
           "Starting with Dart 3.0, `dart compile js` expects programs to "
           "be null-safe by default. Some libraries reached from $resolvedUri "
-          "are opted out of null safety. You can temporarily compile this "
-          "application using the deprecated '${Flags.noSoundNullSafety}' "
-          "option.",
+          "are opted out of null safety.",
     });
   }
 
@@ -364,8 +339,6 @@ Future<_LoadFromSourceResult> _loadFromSource(
     options.packageConfig,
     explicitExperimentalFlags: options.explicitExperimentalFlags,
     environmentDefines: environment,
-    nnbdMode:
-        options.useLegacySubtyping ? fe.NnbdMode.Weak : fe.NnbdMode.Strong,
     invocationModes: options.cfeInvocationModes,
     verbosity: verbosity,
   );

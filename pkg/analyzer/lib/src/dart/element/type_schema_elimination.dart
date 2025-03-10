@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 
 /// Visitor that computes least and greatest closures of a type schema.
@@ -12,8 +12,8 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 /// type, otherwise it returns the result of substituting `_` with [_bottomType]
 /// or [_topType], as appropriate.
 class TypeSchemaEliminationVisitor extends ReplacementVisitor {
-  final DartType _topType;
-  final DartType _bottomType;
+  final TypeImpl _topType;
+  final TypeImpl _bottomType;
 
   bool _isLeastClosure;
 
@@ -29,18 +29,18 @@ class TypeSchemaEliminationVisitor extends ReplacementVisitor {
   }
 
   @override
-  DartType visitUnknownInferredType(UnknownInferredType type) {
+  TypeImpl visitUnknownInferredType(UnknownInferredType type) {
     return _isLeastClosure ? _bottomType : _topType;
   }
 
   /// Runs an instance of the visitor on the given [schema] and returns the
   /// resulting type.  If the schema contains no instances of `_`, the original
   /// schema object is returned to avoid unnecessary allocation.
-  static DartType run({
-    required DartType topType,
-    required DartType bottomType,
+  static TypeImpl run({
+    required TypeImpl topType,
+    required TypeImpl bottomType,
     required bool isLeastClosure,
-    required DartType schema,
+    required TypeImpl schema,
   }) {
     var visitor = TypeSchemaEliminationVisitor._(
       topType,

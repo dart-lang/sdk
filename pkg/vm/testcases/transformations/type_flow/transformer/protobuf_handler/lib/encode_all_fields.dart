@@ -7,15 +7,17 @@ import 'dart:math';
 import 'generated/foo.pb.dart';
 
 main() {
-  FooKeep foo = FooKeep()
-    ..barKeep = (BarKeep()
-      ..aKeep = 5
-      ..bDrop = 4)
-    ..mapKeep['foo'] = (BarKeep()..aKeep = 42)
-    ..mapDrop['zop'] = (ZopDrop()..aDrop = 3)
-    ..aKeep = 43
-    ..hasKeep = HasKeep()
-    ..clearKeep = ClearKeep();
+  FooKeep foo =
+      FooKeep()
+        ..barKeep =
+            (BarKeep()
+              ..aKeep = 5
+              ..bDrop = 4)
+        ..mapKeep['foo'] = (BarKeep()..aKeep = 42)
+        ..mapDrop['zop'] = (ZopDrop()..aDrop = 3)
+        ..aKeep = 43
+        ..hasKeep = HasKeep()
+        ..clearKeep = ClearKeep();
   final buffer = foo.writeToBuffer();
   print('List<int> buffer = <int>[');
   for (int i = 0; i < buffer.length; i += 5) {

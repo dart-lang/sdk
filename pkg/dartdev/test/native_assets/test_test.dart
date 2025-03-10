@@ -10,6 +10,10 @@ import '../utils.dart';
 import 'helpers.dart';
 
 void main(List<String> args) async {
+  if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
+    return;
+  }
+
   // No --source option, `dart run` from source does not output target program
   // stdout.
 

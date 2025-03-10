@@ -40,7 +40,6 @@ import '../base/messages.dart'
         templateFinalFieldNotInitializedByConstructor,
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
-import '../base/nnbd_mode.dart';
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/scope.dart' show AmbiguousBuilder;
 import '../base/ticker.dart' show Ticker;
@@ -71,7 +70,6 @@ import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import 'cfe_verifier.dart' show verifyComponent, verifyGetStaticType;
 import 'constant_evaluator.dart' as constants
     show
-        EvaluationMode,
         transformLibraries,
         transformProcedure,
         ConstantCoverage,
@@ -80,6 +78,7 @@ import 'constructor_tearoff_lowering.dart';
 import 'dynamic_module_validator.dart' as dynamic_module_validator;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
+import 'utils.dart';
 
 class KernelTarget {
   final Ticker ticker;
@@ -100,6 +99,14 @@ class KernelTarget {
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final NamedTypeBuilder dynamicType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("dynamic"), const NullabilityBuilder.inherent(),
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
+
+  final NamedTypeBuilder intType = new NamedTypeBuilderImpl(
+      const PredefinedTypeName("int"), const NullabilityBuilder.omitted(),
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
+
+  final NamedTypeBuilder stringType = new NamedTypeBuilderImpl(
+      const PredefinedTypeName("String"), const NullabilityBuilder.omitted(),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
@@ -391,6 +398,7 @@ class KernelTarget {
       Iterable<SourceLibraryBuilder> libraryBuilders) {
     loader.computeLibraryScopes(libraryBuilders);
     loader.resolveTypes(libraryBuilders);
+    loader.computeSupertypes(libraryBuilders);
     loader.computeDefaultTypes(
         libraryBuilders, dynamicType, nullType, bottomType, objectClassBuilder);
   }
@@ -420,6 +428,11 @@ class KernelTarget {
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.outline_resolveTypes);
       loader.resolveTypes(loader.sourceLibraryBuilders);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeSupertypes);
+      loader.computeSupertypes(loader.sourceLibraryBuilders);
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -738,19 +751,8 @@ class KernelTarget {
     Component component = backendTarget.configureComponent(new Component(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
 
-    NonNullableByDefaultCompiledMode? compiledMode = null;
-    if (globalFeatures.nonNullable.isEnabled) {
-      switch (loader.nnbdMode) {
-        case NnbdMode.Weak:
-          compiledMode = NonNullableByDefaultCompiledMode.Weak;
-          break;
-        case NnbdMode.Strong:
-          compiledMode = NonNullableByDefaultCompiledMode.Strong;
-          break;
-      }
-    } else {
-      compiledMode = NonNullableByDefaultCompiledMode.Weak;
-    }
+    NonNullableByDefaultCompiledMode? compiledMode =
+        NonNullableByDefaultCompiledMode.Strong;
     if (loader.hasInvalidNnbdModeLibrary) {
       compiledMode = NonNullableByDefaultCompiledMode.Invalid;
     }
@@ -785,6 +787,7 @@ class KernelTarget {
 
   String? _getLibraryNnbdModeError(Component component) {
     if (loader.hasInvalidNnbdModeLibrary) {
+      // Coverage-ignore-block(suite): Not run.
       // At least 1 library should be invalid or there should be a mix of strong
       // and weak. For libraries we've just compiled it will be marked as
       // invalid, but for libraries loaded from dill they have their original
@@ -1227,29 +1230,15 @@ class KernelTarget {
   }
 
   void setupTopAndBottomTypes() {
-    objectType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("Object", required: true)
-            as TypeDeclarationBuilder);
-    dynamicType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("dynamic", required: true)
-            as TypeDeclarationBuilder);
-    ClassBuilder nullClassBuilder = loader.coreLibrary
-        .lookupLocalMember("Null", required: true) as ClassBuilder;
-    nullType.bind(loader.coreLibrary, nullClassBuilder..isNullClass = true);
-    bottomType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("Never", required: true)
-            as TypeDeclarationBuilder);
-    enumType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("Enum", required: true)
-            as TypeDeclarationBuilder);
-    underscoreEnumType.bind(
-        loader.coreLibrary,
-        loader.coreLibrary.lookupLocalMember("_Enum", required: true)
-            as TypeDeclarationBuilder);
+    LibraryBuilder coreLibrary = loader.coreLibrary;
+    bindCoreType(coreLibrary, objectType);
+    bindCoreType(coreLibrary, stringType);
+    bindCoreType(coreLibrary, intType);
+    bindCoreType(coreLibrary, dynamicType);
+    bindCoreType(coreLibrary, nullType, isNullClass: true);
+    bindCoreType(coreLibrary, bottomType);
+    bindCoreType(coreLibrary, enumType);
+    bindCoreType(coreLibrary, underscoreEnumType);
   }
 
   void computeCoreTypes() {
@@ -1381,7 +1370,7 @@ class KernelTarget {
     _finishConstructors(extensionTypeDeclaration);
   }
 
-  void _finishConstructors(ClassDeclaration classDeclaration) {
+  void _finishConstructors(ClassDeclarationBuilder classDeclaration) {
     SourceLibraryBuilder libraryBuilder = classDeclaration.libraryBuilder;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
@@ -1415,15 +1404,16 @@ class KernelTarget {
       }
     }
 
-    Map<ConstructorDeclaration, Set<SourcePropertyBuilder>>
+    Map<ConstructorDeclarationBuilder, Set<SourcePropertyBuilder>>
         constructorInitializedFields = new Map.identity();
     Set<SourcePropertyBuilder>? initializedFieldBuilders = null;
     Set<SourcePropertyBuilder>? uninitializedInstanceFields;
 
-    Iterator<ConstructorDeclaration> constructorIterator =
-        classDeclaration.fullConstructorIterator<ConstructorDeclaration>();
+    Iterator<ConstructorDeclarationBuilder> constructorIterator =
+        classDeclaration
+            .fullConstructorIterator<ConstructorDeclarationBuilder>();
     while (constructorIterator.moveNext()) {
-      ConstructorDeclaration constructor = constructorIterator.current;
+      ConstructorDeclarationBuilder constructor = constructorIterator.current;
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.addProblem(messageConstConstructorNonFinalField,
@@ -1508,9 +1498,10 @@ class KernelTarget {
 
     // Run through all fields that are initialized by some constructor, and
     // make sure that all other constructors also initialize them.
-    for (MapEntry<ConstructorDeclaration, Set<SourcePropertyBuilder>> entry
+    for (MapEntry<ConstructorDeclarationBuilder,
+            Set<SourcePropertyBuilder>> entry
         in constructorInitializedFields.entries) {
-      ConstructorDeclaration constructorBuilder = entry.key;
+      ConstructorDeclarationBuilder constructorBuilder = entry.key;
       Set<SourcePropertyBuilder> fieldBuilders = entry.value;
       for (SourcePropertyBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {
@@ -1585,7 +1576,6 @@ class KernelTarget {
 
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
-    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
 
     constants.ConstantEvaluationData constantEvaluationData =
         constants.transformLibraries(
@@ -1595,7 +1585,6 @@ class KernelTarget {
             environmentDefines,
             environment,
             new KernelConstantErrorReporter(loader),
-            evaluationMode,
             evaluateAnnotations: true,
             enableTripleShift: globalFeatures.tripleShift.isEnabled,
             enableConstFunctions: globalFeatures.constFunctions.isEnabled,
@@ -1638,8 +1627,6 @@ class KernelTarget {
   void runProcedureTransformations(Procedure procedure) {
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
-    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
-
     constants.transformProcedure(
       procedure,
       backendTarget,
@@ -1647,7 +1634,6 @@ class KernelTarget {
       environmentDefines,
       environment,
       new KernelConstantErrorReporter(loader),
-      evaluationMode,
       evaluateAnnotations: true,
       enableTripleShift: globalFeatures.tripleShift.isEnabled,
       enableConstFunctions: globalFeatures.constFunctions.isEnabled,
@@ -1659,22 +1645,6 @@ class KernelTarget {
     backendTarget.performTransformationsOnProcedure(
         loader.coreTypes, loader.hierarchy, procedure, environmentDefines,
         logger: (String msg) => ticker.logMs(msg));
-  }
-
-  constants.EvaluationMode getConstantEvaluationModeForTesting() =>
-      _getConstantEvaluationMode();
-
-  constants.EvaluationMode _getConstantEvaluationMode() {
-    // If nnbd is not enabled we will use weak evaluation mode. This is needed
-    // because the SDK might be agnostic and therefore needs to be weakened
-    // for legacy mode.
-    assert(
-        globalFeatures.nonNullable.isEnabled ||
-            // Coverage-ignore(suite): Not run.
-            loader.nnbdMode == NnbdMode.Weak,
-        "Non-weak nnbd mode found without experiment enabled: "
-        "${loader.nnbdMode}.");
-    return constants.EvaluationMode.fromNnbdMode(loader.nnbdMode);
   }
 
   void _verify({required bool allowVerificationErrorForTesting}) {
@@ -1714,12 +1684,12 @@ class KernelTarget {
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {
       for (Uri patch in patches) {
-        loader.read(patch, -1,
+        compilationUnit.registerAugmentation(loader.read(patch, -1,
             fileUri: patch,
             originImportUri: originImportUri,
             origin: compilationUnit,
             accessor: compilationUnit,
-            isPatch: true);
+            isPatch: true));
       }
     }
   }

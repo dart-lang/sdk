@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     // TODO(srawlins): Add tests for field formal parameters.
     // TODO(srawlins): Add tests for super formal parameters.

@@ -3482,6 +3482,15 @@ final Matcher isServerOpenUrlRequestParams = LazyMatcher(
 /// server.openUrlRequest result
 final Matcher isServerOpenUrlRequestResult = isNull;
 
+/// server.pluginError params
+///
+/// {
+///   "message": String
+/// }
+final Matcher isServerPluginErrorParams = LazyMatcher(
+  () => MatchesJsonObject('server.pluginError params', {'message': isString}),
+);
+
 /// server.setClientCapabilities params
 ///
 /// {

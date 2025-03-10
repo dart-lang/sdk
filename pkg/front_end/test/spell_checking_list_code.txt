@@ -133,6 +133,7 @@ bail
 balance
 bang
 bar
+bars
 basename
 basically
 basis
@@ -225,6 +226,7 @@ canonicalizer
 canonicalizing
 cant
 cardinality
+carefully
 caret
 carets
 carriage
@@ -584,6 +586,7 @@ enumerates
 enuum
 env
 eof
+eol
 epoch
 eq
 equally
@@ -756,6 +759,7 @@ googlesource
 goto
 gotos
 gradually
+grand
 granted
 granularity
 graphs
@@ -1101,6 +1105,7 @@ mini
 minutes
 misc
 miss
+misses
 mistakes
 misuse
 mixers
@@ -1269,6 +1274,7 @@ payload
 payloads
 pdf
 pedantic
+peeked
 per
 percentages
 perf
@@ -1466,6 +1472,7 @@ red
 redeclared
 redefine
 redirectee
+redirections
 redirector
 redo
 reevaluation
@@ -1543,6 +1550,7 @@ ret
 retrieval
 reusage
 reversible
+reviewed
 rewinding
 rewinds
 rework
@@ -1604,6 +1612,7 @@ scrutinee's
 sdk's
 seconds
 sections
+seemingly
 segment
 selectively
 selectors
@@ -1709,7 +1718,9 @@ speeding
 spend
 spent
 spin
+spite
 splitting
+spots
 spuriously
 sq
 sra
@@ -1759,6 +1770,7 @@ stub
 stubs
 stx
 sub
+subdirectories
 subdirectory
 subdivide
 subdivided
@@ -1770,6 +1782,7 @@ subgraph
 subname
 subnode
 subnodes
+subpart
 subpatterns
 subproperties
 subscription
@@ -1966,6 +1979,7 @@ undergoes
 undermine
 undo
 undoable
+unduly
 unequal
 unescape
 unexact
@@ -2043,6 +2057,7 @@ usual
 usually
 util
 utilizes
+utilizing
 utils
 uuid
 v

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -36,7 +34,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
       var astResolver =
           AstResolver(_linker, _unitElement, _scope, analysisOptions);
       astResolver.resolveAnnotation(node);
-      annotationElement.element = node.element;
+      annotationElement.element2 = node.element2;
     }
   }
 
@@ -101,7 +99,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     // We might have already accessed metadata flags, e.g. `hasDeprecated`,
     // before we finished metadata resolution, during `PrefixScope` building.
     // So, these flags are not accurate anymore, and we need to reset them.
-    node.element!.resetMetadataFlags();
+    node.libraryExport!.resetMetadataFlags();
   }
 
   @override

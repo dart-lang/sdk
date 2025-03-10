@@ -7,12 +7,15 @@ import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../../generated/test_support.dart';
 
-abstract class AbstractAnalysisOptionsTest with ResourceProviderMixin {
+abstract class AbstractAnalysisOptionsTest
+    with ResourceProviderMixin, LintRegistrationMixin {
   late SourceFactory sourceFactory;
 
   VersionConstraint? get sdkVersionConstraint => null;
@@ -48,5 +51,10 @@ abstract class AbstractAnalysisOptionsTest with ResourceProviderMixin {
   void setUp() {
     var resolvers = [ResourceUriResolver(resourceProvider)];
     sourceFactory = SourceFactoryImpl(resolvers);
+  }
+
+  @mustCallSuper
+  void tearDown() {
+    unregisterLintRules();
   }
 }

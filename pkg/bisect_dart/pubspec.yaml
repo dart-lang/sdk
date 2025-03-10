@@ -3,11 +3,10 @@ name: bisect_dart
 publish_to: none
 
 environment:
-  sdk: ^3.1.0
+  sdk: ^3.5.0
 
 dependencies:
   cli_config: any
-  intl: any
   logging: any
 
 dev_dependencies:

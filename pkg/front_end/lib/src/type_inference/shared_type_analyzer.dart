@@ -42,18 +42,11 @@ class SharedTypeAnalyzerErrors
       {required Expression scrutinee,
       required Expression caseExpression,
       required SharedTypeView caseExpressionType,
-      required SharedTypeView scrutineeType,
-      required bool nullSafetyEnabled}) {
+      required SharedTypeView scrutineeType}) {
     return helper.buildProblem(
-        nullSafetyEnabled
-            ? templateSwitchExpressionNotSubtype.withArguments(
-                caseExpressionType.unwrapTypeView(),
-                scrutineeType.unwrapTypeView())
-            :
-            // Coverage-ignore(suite): Not run.
-            templateSwitchExpressionNotAssignable.withArguments(
-                scrutineeType.unwrapTypeView(),
-                caseExpressionType.unwrapTypeView()),
+        templateSwitchExpressionNotSubtype.withArguments(
+            caseExpressionType.unwrapTypeView(),
+            scrutineeType.unwrapTypeView()),
         caseExpression.fileOffset,
         noLength,
         context: [

@@ -229,7 +229,7 @@ class VarianceBuilder {
   }
 
   void _typeAliasElement(TypeAliasElementImpl2 element) {
-    var node = _linker.getLinkingNode2(element);
+    var node = _linker.getLinkingNode2(element.firstFragment);
     if (node == null) {
       // Not linking.
     } else if (node is GenericTypeAliasImpl) {

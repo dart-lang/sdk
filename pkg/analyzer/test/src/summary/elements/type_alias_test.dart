@@ -11,8 +11,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeAliasElementTest_keepLinking);
     defineReflectiveTests(TypeAliasElementTest_fromBytes);
-    defineReflectiveTests(TypeAliasElementTest_augmentation_keepLinking);
-    defineReflectiveTests(TypeAliasElementTest_augmentation_fromBytes);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(TypeAliasElementTest_augmentation_keepLinking);
+    // defineReflectiveTests(TypeAliasElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -2940,7 +2941,7 @@ library
               reference: <testLibraryFragment>::@class::A::@setter::f
               element: <testLibraryFragment>::@class::A::@setter::f#element
               formalParameters
-                <null-name>
+                _f
                   element: <testLibraryFragment>::@class::A::@setter::f::@parameter::_f#element
       typeAliases
         Foo @8

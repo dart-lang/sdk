@@ -23,23 +23,23 @@ class C2<T> {
 
 void main() {
   const c1 = C1<int>.test("hello");
-  //         ^
-  // [analyzer] unspecified
+  //         ^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
   // [cfe] Constant evaluation error:
   const c2 = C1<int>.test(null);
-  //         ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //         ^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+  // [cfe] Constant evaluation error:
   const c3 = C2<int>.test(<num>[0]);
-  //         ^
-  // [analyzer] unspecified
+  //         ^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
   // [cfe] Constant evaluation error:
   const c4 = C2<int>.test("hello");
-  //         ^
-  // [analyzer] unspecified
+  //         ^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
   // [cfe] Constant evaluation error:
   const c5 = C2<int>.test(null);
-  //         ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //         ^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
+  // [cfe] Constant evaluation error:
 }

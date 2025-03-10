@@ -66,6 +66,7 @@ import 'dart:_rti'
         interfaceTypeRecipePropertyName,
         isGenericFunctionType,
         isRecordType,
+        isSoundTopType,
         isSubtype,
         Rti,
         rtiToString,
@@ -262,9 +263,6 @@ void hotRestart() {
   resetFields.clear();
   for (var m in _cacheMaps) JS('', '#.clear()', m);
   _cacheMaps.clear();
-  // TODO(nshahan) Verify _nullComparisonSet isn't used with the new type system
-  // and delete.
-  JS('', '#.clear()', _nullComparisonSet);
   JS('', '#.clear()', constants);
   JS('', '#.clear()', constantLists);
   JS('', '#.clear()', constantSets);

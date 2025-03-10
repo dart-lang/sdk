@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/missing_part_file.dart:5:6: Error: Error when reading 'pkg/front_end/testcases/general/non_existing_part_file.dart': <os-message>
+// part 'non_existing_part_file.dart';
+//      ^
+//
+// pkg/front_end/testcases/general/missing_part_file.dart:5:6: Error: Can't use 'pkg/front_end/testcases/general/non_existing_part_file.dart' as a part, because it has no 'part of' declaration.
+// part 'non_existing_part_file.dart';
+//      ^
+//
+import self as self;
+
+part non_existing_part_file.dart;
+
+library;
+import self as self2;

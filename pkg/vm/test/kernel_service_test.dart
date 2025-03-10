@@ -18,28 +18,46 @@ Future<void> main() async {
   // Expect to work with both absolute and relative package specification
   // if the file specified exists and is valid.
   result = await singleShotCompile(
-      relativeEntry, fooSourceFiles, absolutePackageConfig);
+    relativeEntry,
+    fooSourceFiles,
+    absolutePackageConfig,
+  );
   expect(result, kernel_service.Status.ok);
   result = await singleShotCompile(
-      relativeEntry, fooSourceFiles, relativePackageConfig);
+    relativeEntry,
+    fooSourceFiles,
+    relativePackageConfig,
+  );
   expect(result, kernel_service.Status.ok);
 
   // Expect an error with both absolute and relative package specification
   // if the file specified does not exist.
   result = await singleShotCompile(
-      relativeEntry, fooSourceFiles, nonExistentAbsolutePackageConfig);
+    relativeEntry,
+    fooSourceFiles,
+    nonExistentAbsolutePackageConfig,
+  );
   expect(result, kernel_service.Status.error);
   result = await singleShotCompile(
-      relativeEntry, fooSourceFiles, nonExistentRelativePackageConfig);
+    relativeEntry,
+    fooSourceFiles,
+    nonExistentRelativePackageConfig,
+  );
   expect(result, kernel_service.Status.error);
 
   // Expect an error with both absolute and relative package specification
   // if the file specified does exist but is invalid.
   result = await singleShotCompile(
-      relativeEntry, fooSourceFiles, invalidAbsolutePackageConfig);
+    relativeEntry,
+    fooSourceFiles,
+    invalidAbsolutePackageConfig,
+  );
   expect(result, kernel_service.Status.error);
   result = await singleShotCompile(
-      relativeEntry, fooSourceFiles, invalidRelativePackageConfig);
+    relativeEntry,
+    fooSourceFiles,
+    invalidRelativePackageConfig,
+  );
   expect(result, kernel_service.Status.error);
 }
 
@@ -105,7 +123,10 @@ List fooSourceFiles = [
 ];
 
 Future<kernel_service.Status> singleShotCompile(
-    String entryFile, List sourceFiles, String? packageConfig) async {
+  String entryFile,
+  List sourceFiles,
+  String? packageConfig,
+) async {
   final RawReceivePort kernelServicePort = kernel_service.main();
   final SendPort sendPort = kernelServicePort.sendPort;
   final ReceivePort myReceivePort = new ReceivePort();

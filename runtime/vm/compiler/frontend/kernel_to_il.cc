@@ -3640,6 +3640,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   const Class& owner = Class::Handle(Z, function.Owner());
   ASSERT(!owner.IsNull());
   auto& field_name = String::Handle(Z, function.name());
+  ASSERT(field_name.ptr() != Symbols::DynamicImplicitCall().ptr());
   // If the field name has a dyn: tag, then remove it. We don't add dynamic
   // invocation forwarders for field getters used for invoking, we just use
   // the tag in the name of the invoke field dispatcher to detect dynamic calls.
@@ -5284,14 +5285,12 @@ Fragment FlowGraphBuilder::FfiNativeLookupAddress(
   const auto& native_class = Class::Handle(Z, native.clazz());
   ASSERT(String::Handle(Z, native_class.UserVisibleName())
              .Equals(Symbols::FfiNative()));
-  const auto& native_class_fields = Array::Handle(Z, native_class.fields());
-  ASSERT(native_class_fields.Length() == 4);
-  const auto& symbol_field =
-      Field::Handle(Z, Field::RawCast(native_class_fields.At(1)));
-  ASSERT(!symbol_field.is_static());
-  const auto& asset_id_field =
-      Field::Handle(Z, Field::RawCast(native_class_fields.At(2)));
-  ASSERT(!asset_id_field.is_static());
+  const auto& symbol_field = Field::Handle(
+      Z, native_class.LookupInstanceFieldAllowPrivate(Symbols::symbol()));
+  ASSERT(!symbol_field.IsNull());
+  const auto& asset_id_field = Field::Handle(
+      Z, native_class.LookupInstanceFieldAllowPrivate(Symbols::assetId()));
+  ASSERT(!asset_id_field.IsNull());
   const auto& symbol =
       String::ZoneHandle(Z, String::RawCast(native.GetField(symbol_field)));
   const auto& asset_id =

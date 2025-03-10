@@ -6,7 +6,9 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
     show DependencyWalker, Node;
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
@@ -43,11 +45,31 @@ class LibraryCycle {
   /// of all files that [libraries] reference.
   final String apiSignature;
 
+  /// The signature to find linked summary bundles when [withFineDependencies]
+  /// is `true`.
+  ///
+  /// It is based on the URIs and paths of the files of this cycle. It is *not*
+  /// based on API signatures, because we want to be able to find previous
+  /// manifests to compare new elements against it, to keep IDs for not
+  /// affected element.
+  final String manifestSignature;
+
+  /// The non-transitive API signature of this cycle.
+  ///
+  /// It is based on the API signatures of all files of the [libraries]. But
+  /// it does *not* include API signatures of dependencies. We want to know
+  /// when we have to relink this bundle. And the idea of the fine grained
+  /// dependencies is that library cycles depend only on a small number of
+  /// elements from their dependency cycles, not on all of them.
+  final String nonTransitiveApiSignature;
+
   LibraryCycle({
     required this.libraries,
     required this.libraryUris,
     required this.directDependencies,
     required this.apiSignature,
+    required this.manifestSignature,
+    required this.nonTransitiveApiSignature,
   }) {
     for (var directDependency in directDependencies) {
       directDependency.directUsers.add(this);
@@ -55,7 +77,13 @@ class LibraryCycle {
   }
 
   /// The key of the linked libraries in the byte store.
-  String get linkedKey => '$apiSignature.linked';
+  String get linkedKey {
+    if (withFineDependencies) {
+      return '$manifestSignature.linked';
+    } else {
+      return '$apiSignature.linked';
+    }
+  }
 
   /// Dispose this cycle and any cycles that directly or indirectly use it.
   ///
@@ -170,12 +198,32 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       }
     }
 
+    String manifestSignature;
+    String nonTransitiveApiSignature;
+    {
+      var manifestBuilder = ApiSignature();
+      var apiSignatureBuilder = ApiSignature();
+      manifestBuilder.addInt(AnalysisDriver.DATA_VERSION);
+      var sortedFiles = libraries
+          .expand((library) => library.files)
+          .sortedBy((file) => file.path);
+      for (var file in sortedFiles) {
+        manifestBuilder.addString(file.path);
+        manifestBuilder.addString(file.uriStr);
+        apiSignatureBuilder.addBytes(file.apiSignature);
+      }
+      manifestSignature = manifestBuilder.toHex();
+      nonTransitiveApiSignature = apiSignatureBuilder.toHex();
+    }
+
     // Create the LibraryCycle instance for the cycle.
     var cycle = LibraryCycle(
       libraries: libraries.toFixedList(),
       libraryUris: libraryUris,
       directDependencies: directDependencies,
       apiSignature: apiSignature.toHex(),
+      manifestSignature: manifestSignature,
+      nonTransitiveApiSignature: nonTransitiveApiSignature,
     );
 
     // Set the instance into the libraries.

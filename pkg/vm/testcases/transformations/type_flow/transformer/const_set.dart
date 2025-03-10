@@ -4,15 +4,9 @@
 
 // This test verifies correct type assignment of type to const sets.
 
-enum _AttributeName {
-  name,
-  sibling,
-}
+enum _AttributeName { name, sibling }
 
-const _attributeNames = <int>{
-  0x00,
-  0x01,
-};
+const _attributeNames = <int>{0x00, 0x01};
 
 class _Attribute {
   final _AttributeName name;

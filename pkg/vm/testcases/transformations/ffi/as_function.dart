@@ -7,26 +7,28 @@
 import 'dart:ffi';
 
 testVoidNoArg() {
-  final pointer =
-      Pointer<NativeFunction<Void Function()>>.fromAddress(0xdeadbeef);
+  final pointer = Pointer<NativeFunction<Void Function()>>.fromAddress(
+    0xdeadbeef,
+  );
   final function = pointer.asFunction<void Function()>();
   function();
 }
 
 testIntInt() {
-  final pointer =
-      Pointer<NativeFunction<Int32 Function(Int64)>>.fromAddress(0xdeadbeef);
+  final pointer = Pointer<NativeFunction<Int32 Function(Int64)>>.fromAddress(
+    0xdeadbeef,
+  );
   final function = pointer.asFunction<int Function(int)>();
   return function(42);
 }
 
 testLeaf5Args() {
   final pointer = Pointer<
-      NativeFunction<
-          Int32 Function(
-              Int32, Int32, Int32, Int32, Int32)>>.fromAddress(0xdeadbeef);
-  final function =
-      pointer.asFunction<int Function(int, int, int, int, int)>(isLeaf: true);
+    NativeFunction<Int32 Function(Int32, Int32, Int32, Int32, Int32)>
+  >.fromAddress(0xdeadbeef);
+  final function = pointer.asFunction<int Function(int, int, int, int, int)>(
+    isLeaf: true,
+  );
   return function(1, 2, 3, 4, 5);
 }
 

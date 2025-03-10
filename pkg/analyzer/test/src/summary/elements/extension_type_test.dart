@@ -11,8 +11,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionTypeElementTest_keepLinking);
     defineReflectiveTests(ExtensionTypeElementTest_fromBytes);
-    defineReflectiveTests(ExtensionTypeElementTest_augmentation_keepLinking);
-    defineReflectiveTests(ExtensionTypeElementTest_augmentation_fromBytes);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(ExtensionTypeElementTest_augmentation_keepLinking);
+    // defineReflectiveTests(ExtensionTypeElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -961,6 +962,10 @@ library
             hasInitializer foo @46
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 0 @52
+                  staticType: int
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             synthetic get it
@@ -984,6 +989,9 @@ library
         static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@extensionType::A::@field::foo
+            expression: expression_0
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
       getters
         synthetic get it
@@ -1056,6 +1064,10 @@ library
             hasInitializer foo @42
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 0 @48
+                  staticType: int
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
           getters
             synthetic get it
@@ -1079,6 +1091,9 @@ library
         static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@extensionType::A::@field::foo
+            expression: expression_0
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
       getters
         synthetic get it
@@ -1512,7 +1527,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
           typeErasure: int
           interfaces
-            Object
+            B
           fields
             final it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1530,7 +1545,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
           typeErasure: int
           interfaces
-            Object
+            A
           fields
             final it @62
               reference: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1573,14 +1588,14 @@ library
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
-    extension type A
+    hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibraryFragment>::@extensionType::A::@field::it#element
       primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       interfaces
-        B
+        Object
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1589,14 +1604,14 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
-    extension type B
+    hasImplementsSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibraryFragment>::@extensionType::B::@field::it#element
       primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
       typeErasure: int
       interfaces
-        A
+        Object
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
@@ -1629,7 +1644,7 @@ library
           primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
           typeErasure: int
           interfaces
-            Object
+            A
           fields
             final it @21
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1660,14 +1675,14 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
-    extension type A
+    hasImplementsSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibraryFragment>::@extensionType::A::@field::it#element
       primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: int
       interfaces
-        A
+        Object
       fields
         final it
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2128,9 +2143,9 @@ library
   fieldNameNonPromotabilityInfo
     _it
       conflictingFields
-        <testLibraryFragment>::@class::B::@field::_it
+        <testLibraryFragment>::@class::B::@field::_it#element
       conflictingGetters
-        <testLibraryFragment>::@class::C::@getter::_it
+        <testLibraryFragment>::@class::C::@getter::_it#element
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -2194,9 +2209,9 @@ library
   fieldNameNonPromotabilityInfo
     _it
       conflictingFields
-        <testLibraryFragment>::@class::B::@field::_it
+        <testLibraryFragment>::@class::B::@field::_it#element
       conflictingGetters
-        <testLibraryFragment>::@class::C::@getter::_it
+        <testLibraryFragment>::@class::C::@getter::_it#element
 ''');
   }
 
@@ -2473,6 +2488,10 @@ library
                 default a @43
                   reference: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
                   element: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a#element
+                  initializer: expression_0
+                    IntegerLiteral
+                      literal: 0 @47
+                      staticType: int
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2496,6 +2515,9 @@ library
             optionalNamed a
               firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
               type: int
+              constantInitializer
+                fragment: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::a
+                expression: expression_0
 ''');
   }
 
@@ -2924,7 +2946,7 @@ library
               reference: <testLibraryFragment>::@extensionType::B::@getter::it
               element: <testLibraryFragment>::@extensionType::B::@getter::it#element
   extensionTypes
-    extension type A
+    hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibraryFragment>::@extensionType::A::@field::it#element
@@ -2938,7 +2960,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
-    extension type B
+    hasRepresentationSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibraryFragment>::@extensionType::B::@field::it#element
@@ -3049,7 +3071,7 @@ library
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
-    extension type B
+    hasRepresentationSelfReference extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: <testLibraryFragment>::@extensionType::B
       representation: <testLibraryFragment>::@extensionType::B::@field::it#element
@@ -3116,7 +3138,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
   extensionTypes
-    extension type A
+    hasRepresentationSelfReference extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: <testLibraryFragment>::@extensionType::A
       representation: <testLibraryFragment>::@extensionType::A::@field::it#element
@@ -4595,7 +4617,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -4828,7 +4850,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -5079,7 +5101,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -5331,7 +5353,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
@@ -5555,7 +5577,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -5956,7 +5978,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo1
               element: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
               formalParameters
-                <null-name>
+                _foo1
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -5982,7 +6004,7 @@ library
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2#element
               formalParameters
-                <null-name>
+                _foo2
                   element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setter::foo2::@parameter::_foo2#element
   extensionTypes
     extension type A
@@ -6588,7 +6610,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -6821,7 +6843,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
@@ -9890,7 +9912,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@setter::foo
               element: <testLibraryFragment>::@extensionType::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart

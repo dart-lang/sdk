@@ -6,12 +6,10 @@ import "duplicate_interface_lib.dart" as alib;
 import "duplicate_interface_lib.dart" show InterfA;
 
 // Expect error since InterfA and alib.InterfA refer to the same interface.
-class Foo implements InterfA
-    , alib.InterfA
-    //^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_REPEATED
-    // [cfe] 'InterfA' can only be implemented once.
-{}
+class Foo implements InterfA, alib.InterfA {}
+//                            ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_REPEATED
+// [cfe] 'InterfA' can only be implemented once.
 
 main() {
   new Foo();

@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import '../tool/checks/driver.dart';
 
-main() {
+void main() {
   group('custom checks', () {
     var checkNames = customChecks.map((c) => c.name).join(', ');
     test(checkNames, () async {

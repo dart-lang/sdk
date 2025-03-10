@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary2/instance_member_inferrer.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -252,10 +253,8 @@ class _PropertyInducingElementTypeInference
     _status = _InferenceStatus.beingInferred;
 
     var enclosingElement = _element.enclosingElement3;
-    var enclosingInterfaceElement = enclosingElement
-        .ifTypeOrNull<InterfaceElement>()
-        ?.augmented
-        .firstFragment;
+    var enclosingInterfaceElement =
+        enclosingElement.ifTypeOrNull<InterfaceElementImpl>()?.asElement2;
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(

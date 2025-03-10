@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -881,42 +879,42 @@ class _MockSdkElementsBuilder {
 
   VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
-  InterfaceTypeImpl futureOrType(DartType elementType) {
+  InterfaceTypeImpl futureOrType(TypeImpl elementType) {
     return _interfaceType(
       futureOrElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceTypeImpl futureType(DartType elementType) {
+  InterfaceTypeImpl futureType(TypeImpl elementType) {
     return _interfaceType(
       futureElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceTypeImpl iterableType(DartType elementType) {
+  InterfaceTypeImpl iterableType(TypeImpl elementType) {
     return _interfaceType(
       iterableElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceTypeImpl iteratorType(DartType elementType) {
+  InterfaceTypeImpl iteratorType(TypeImpl elementType) {
     return _interfaceType(
       iteratorElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceTypeImpl listType(DartType elementType) {
+  InterfaceTypeImpl listType(TypeImpl elementType) {
     return _interfaceType(
       listElement,
       typeArguments: [elementType],
     );
   }
 
-  InterfaceTypeImpl streamSubscriptionType(DartType valueType) {
+  InterfaceTypeImpl streamSubscriptionType(TypeImpl valueType) {
     return _interfaceType(
       streamSubscriptionElement,
       typeArguments: [valueType],
@@ -978,12 +976,13 @@ class _MockSdkElementsBuilder {
   ClassElementImpl _class({
     required String name,
     bool isAbstract = false,
-    List<TypeParameterElementImpl> typeParameters = const [],
+    List<TypeParameterElementImpl2> typeParameters = const [],
     required CompilationUnitElementImpl unit,
   }) {
     var fragment = ClassElementImpl(name, 0);
     ClassElementImpl2(Reference.root(), fragment);
-    fragment.typeParameters = typeParameters;
+    fragment.typeParameters =
+        typeParameters.map((tp) => tp.firstFragment).toList();
     fragment.constructors = <ConstructorElementImpl>[
       _constructor(),
     ];
@@ -995,13 +994,14 @@ class _MockSdkElementsBuilder {
     String name = '',
     bool isConst = false,
     bool isFactory = false,
-    List<ParameterElementImpl> parameters = const [],
+    List<FormalParameterElement> parameters = const [],
   }) {
     var element = ConstructorElementImpl(name, 0);
     element.name2 = name.ifNotEmptyOrElse('new');
     element.isFactory = isFactory;
     element.isConst = isConst;
-    element.parameters = parameters;
+    element.parameters =
+        parameters.map((p) => p.firstFragment as ParameterElementImpl).toList();
     return element;
   }
 
@@ -1019,10 +1019,12 @@ class _MockSdkElementsBuilder {
     String name,
     DartType returnType, {
     List<TypeParameterElementImpl> typeFormals = const [],
-    List<ParameterElementImpl> parameters = const [],
+    List<FormalParameterElement> parameters = const [],
   }) {
     var fragment = FunctionElementImpl(name, 0)
       ..parameters = parameters
+          .map((p) => p.firstFragment as ParameterElementImpl)
+          .toList()
       ..returnType = returnType
       ..typeParameters = typeFormals;
     TopLevelFunctionElementImpl(Reference.root(), fragment);
@@ -1030,13 +1032,13 @@ class _MockSdkElementsBuilder {
   }
 
   FunctionTypeImpl _functionType({
-    required DartType returnType,
-    List<TypeParameterElement> typeFormals = const [],
-    List<ParameterElement> parameters = const [],
+    required TypeImpl returnType,
+    List<TypeParameterElementImpl2> typeFormals = const [],
+    List<FormalParameterElement> parameters = const [],
   }) {
-    return FunctionTypeImpl(
-      typeFormals: typeFormals,
-      parameters: parameters,
+    return FunctionTypeImpl.v2(
+      typeParameters: typeFormals,
+      formalParameters: parameters.cast(),
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -1052,8 +1054,7 @@ class _MockSdkElementsBuilder {
     field.isSynthetic = true;
     field.type = type;
 
-    var getter = PropertyAccessorElementImpl(name, 0);
-    getter.isGetter = true;
+    var getter = GetterFragmentImpl(name, 0);
     getter.isStatic = isStatic;
     getter.isSynthetic = false;
     getter.returnType = type;
@@ -1065,7 +1066,7 @@ class _MockSdkElementsBuilder {
 
   InterfaceTypeImpl _interfaceType(
     InterfaceElementImpl element, {
-    List<DartType> typeArguments = const [],
+    List<TypeImpl> typeArguments = const [],
   }) {
     return InterfaceTypeImpl(
       element: element.element,
@@ -1078,26 +1079,30 @@ class _MockSdkElementsBuilder {
     String name,
     DartType returnType, {
     List<TypeParameterElementImpl> typeFormals = const [],
-    List<ParameterElementImpl> parameters = const [],
+    List<FormalParameterElement> parameters = const [],
   }) {
     var fragment = MethodElementImpl(name, 0)
       ..parameters = parameters
+          .map((p) => p.firstFragment as ParameterElementImpl)
+          .toList()
       ..returnType = returnType
       ..typeParameters = typeFormals;
     MethodElementImpl2(Reference.root(), name, fragment);
     return fragment;
   }
 
-  ParameterElementImpl _namedParameter(String name, TypeImpl type,
+  FormalParameterElement _namedParameter(String name, TypeImpl type,
       {String? initializerCode}) {
-    var parameter = DefaultParameterElementImpl(
+    var fragment = DefaultParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.NAMED,
     );
-    parameter.type = type;
-    parameter.defaultValueCode = initializerCode;
-    return parameter;
+    fragment.type = type;
+    fragment.defaultValueCode = initializerCode;
+    return FormalParameterElementImpl(fragment);
   }
 
   void _populateAsync() {
@@ -1169,24 +1174,28 @@ class _MockSdkElementsBuilder {
     _fillLibraryFromFragment(_coreLibrary, _coreUnit);
   }
 
-  ParameterElementImpl _positionalParameter(String name, TypeImpl type) {
-    var parameter = ParameterElementImpl(
+  FormalParameterElement _positionalParameter(String name, TypeImpl type) {
+    var fragment = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.POSITIONAL,
     );
-    parameter.type = type;
-    return parameter;
+    fragment.type = type;
+    return FormalParameterElementImpl(fragment);
   }
 
-  ParameterElementImpl _requiredParameter(String name, TypeImpl type) {
-    var parameter = ParameterElementImpl(
+  FormalParameterElement _requiredParameter(String name, TypeImpl type) {
+    var fragment = ParameterElementImpl(
       name: name,
       nameOffset: 0,
+      name2: name,
+      nameOffset2: 0,
       parameterKind: ParameterKind.REQUIRED,
     );
-    parameter.type = type;
-    return parameter;
+    fragment.type = type;
+    return FormalParameterElementImpl(fragment);
   }
 
   /// Set the [accessors] and the corresponding fields for the [classElement].
@@ -1213,12 +1222,15 @@ class _MockSdkElementsBuilder {
     return fragment;
   }
 
-  TypeParameterElementImpl _typeParameter(String name) {
-    return TypeParameterElementImpl(name, 0);
+  TypeParameterElementImpl2 _typeParameter(String name) {
+    return TypeParameterElementImpl2(
+      firstFragment: TypeParameterElementImpl(name, 0),
+      name3: name.nullIfEmpty,
+    );
   }
 
-  TypeParameterTypeImpl _typeParameterType(TypeParameterElement element) {
-    return TypeParameterTypeImpl(
+  TypeParameterTypeImpl _typeParameterType(TypeParameterElement2 element) {
+    return TypeParameterTypeImpl.v2(
       element: element,
       nullabilitySuffix: NullabilitySuffix.none,
     );

@@ -25,7 +25,7 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
 
     void checkContravariant(TypeImpl type, String expectedStr) {
       _check(
-        functionTypeNone(returnType: intNone, parameters: [
+        functionTypeNone(returnType: intNone, formalParameters: [
           requiredParameter(type: type),
         ]),
         'int Function($expectedStr)',
@@ -57,9 +57,9 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     _check(futureOrNone(futureOrNone(voidNone)), 'Never');
 
     _check(
-      functionTypeNone(returnType: intNone, parameters: [
+      functionTypeNone(returnType: intNone, formalParameters: [
         requiredParameter(
-          type: functionTypeNone(returnType: intNone, parameters: [
+          type: functionTypeNone(returnType: intNone, formalParameters: [
             requiredParameter(type: objectQuestion),
           ]),
         ),
@@ -86,7 +86,7 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
       typeParameters: [T],
       aliasedType: functionTypeNone(
         returnType: T_none,
-        parameters: [requiredParameter(type: T_none)],
+        formalParameters: [requiredParameter(type: T_none)],
       ),
     );
 
@@ -97,7 +97,7 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     _check(F_dynamic, 'Never Function(Never)');
   }
 
-  void _check(DartType type, String expectedStr, {String? typeStr}) {
+  void _check(TypeImpl type, String expectedStr, {String? typeStr}) {
     if (typeStr != null) {
       expect(_typeString(type), typeStr);
     }

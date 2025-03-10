@@ -27,8 +27,8 @@ import '../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
-import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
+import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../codes/cfe_codes.dart';
@@ -42,7 +42,6 @@ import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import '../source/source_member_builder.dart';
 import '../testing/id_extractor.dart';
-import '../testing/id_testing_utils.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
@@ -172,10 +171,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   @pragma("vm:prefer-inline")
   SourceLibraryBuilder get libraryBuilder => _inferrer.libraryBuilder;
 
+  LookupScope get extensionScope => _inferrer.extensionScope;
+
   bool get isInferenceUpdate1Enabled =>
       libraryBuilder.isInferenceUpdate1Enabled;
-
-  NnbdMode get nnbdMode => libraryBuilder.loader.nnbdMode;
 
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
@@ -233,11 +232,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             Id id = computeMemberId(whyNotPromotedVisitor.propertyReference!);
             args.add('target: $id');
           }
-          if (whyNotPromotedVisitor.propertyType != null) {
-            String typeText = typeToText(whyNotPromotedVisitor.propertyType!,
-                TypeRepresentation.analyzerNonNullableByDefault);
-            args.add('type: $typeText');
-          }
           if (args.isNotEmpty) {
             nonPromotionReasonText += '(${args.join(', ')})';
           }
@@ -272,7 +266,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Returns `true` if exceptions should be thrown in paths reachable only due
   /// to unsoundness in flow analysis in mixed mode.
-  bool get shouldThrowUnsoundnessException => nnbdMode != NnbdMode.Strong;
+  // TODO(johnniwinther): Remove this.
+  bool get shouldThrowUnsoundnessException => false;
 
   void registerIfUnreachableForTesting(TreeNode node, {bool? isReachable}) {
     if (dataForTesting == null) return;
@@ -971,9 +966,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   ObjectAccessTarget? _findExtensionTypeMember(DartType receiverType,
       ExtensionType extensionType, Name name, int fileOffset,
-      {required bool isSetter, required bool hasNonObjectMemberAccess}) {
-    ClassMember? classMember = _getExtensionTypeMember(
-        extensionType.extensionTypeDeclaration, name, isSetter);
+      {required bool isSetter,
+      required bool hasNonObjectMemberAccess,
+      bool isDotShorthand = false}) {
+    ClassMember? classMember = isDotShorthand
+        ? _getExtensionTypeStaticMember(
+            extensionType.extensionTypeDeclaration, name, false)
+        : _getExtensionTypeMember(
+            extensionType.extensionTypeDeclaration, name, isSetter);
     if (classMember == null) {
       return null;
     }
@@ -1037,7 +1037,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     bool otherIsSetter = descriptor.complementaryIsSetter;
     ExtensionAccessCandidate? bestSoFar;
     List<ExtensionAccessCandidate> noneMoreSpecific = [];
-    libraryBuilder.forEachExtensionInScope((ExtensionBuilder extensionBuilder) {
+    extensionScope.forEachExtension((ExtensionBuilder extensionBuilder) {
       MemberBuilder? thisBuilder = extensionBuilder
           .lookupLocalMemberByName(name, setter: setter) as MemberBuilder?;
       MemberBuilder? otherBuilder = extensionBuilder.lookupLocalMemberByName(
@@ -1169,6 +1169,28 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return defaultTarget;
   }
 
+  /// Finds a constructor of [type] called [name].
+  Member? findConstructor(TypeDeclarationType type, Name name, int fileOffset) {
+    assert(isKnown(type));
+
+    // TODO(Dart Model team): Seems like an abstraction level issue to require
+    // going from `Class` objects back to builders to find a `Member`.
+    DeclarationBuilder builder;
+    switch (type) {
+      case InterfaceType():
+        builder = engine.hierarchyBuilder.loader
+            .computeClassBuilderFromTargetClass(type.classNode);
+      case ExtensionType():
+        builder = engine.hierarchyBuilder.loader
+            .computeExtensionTypeBuilderFromTargetExtensionType(
+                type.extensionTypeDeclaration);
+    }
+
+    MemberBuilder? constructorBuilder = builder.findConstructorOrFactory(
+        name.text, fileOffset, helper.uri, libraryBuilder);
+    return constructorBuilder?.invokeTarget;
+  }
+
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation using [fileOffset].
   ///
@@ -1184,7 +1206,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType, Name name, int fileOffset,
       {required bool isSetter,
       bool instrumented = true,
-      bool includeExtensionMethods = false}) {
+      bool includeExtensionMethods = false,
+      bool isDotShorthand = false}) {
     assert(isKnown(receiverType));
 
     DartType receiverBound = receiverType.nonTypeParameterBound;
@@ -1203,6 +1226,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             classNode: classNode,
             receiverBound: receiverBound,
             hasNonObjectMemberAccess: hasNonObjectMemberAccess,
+            isDotShorthand: isDotShorthand,
             isSetter: isSetter,
             fileOffset: fileOffset);
 
@@ -3735,6 +3759,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
   }
 
+  Member? _getStaticMember(Class class_, Name name, bool setter) {
+    Member? member =
+        engine.membersBuilder.getStaticMember(class_, name, setter: setter);
+    return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
+  }
+
   ClassMember? _getExtensionTypeMember(
       ExtensionTypeDeclaration extensionTypeDeclaration,
       Name name,
@@ -3742,6 +3772,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     ClassMember? member = engine.membersBuilder.getExtensionTypeClassMember(
         extensionTypeDeclaration, name,
         setter: setter);
+    TypeInferenceEngine.resolveInferenceNode(
+        member?.getMember(engine.membersBuilder), hierarchyBuilder);
+    return member;
+  }
+
+  ClassMember? _getExtensionTypeStaticMember(
+      ExtensionTypeDeclaration extensionTypeDeclaration,
+      Name name,
+      bool setter) {
+    ClassMember? member = engine.membersBuilder
+        .getExtensionTypeStaticClassMember(extensionTypeDeclaration, name,
+            setter: setter);
     TypeInferenceEngine.resolveInferenceNode(
         member?.getMember(engine.membersBuilder), hierarchyBuilder);
     return member;
@@ -4371,12 +4413,10 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
 class _WhyNotPromotedVisitor
     implements
         NonPromotionReasonVisitor<List<LocatedMessage>, Node,
-            VariableDeclaration, SharedTypeView> {
+            VariableDeclaration> {
   final InferenceVisitorBase inferrer;
 
   Member? propertyReference;
-
-  DartType? propertyType;
 
   _WhyNotPromotedVisitor(this.inferrer);
 
@@ -4398,7 +4438,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitPropertyNotPromotedForNonInherentReason(
-      PropertyNotPromotedForNonInherentReason<SharedTypeView> reason) {
+      PropertyNotPromotedForNonInherentReason reason) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
@@ -4454,7 +4494,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitPropertyNotPromotedForInherentReason(
-      PropertyNotPromotedForInherentReason<SharedTypeView> reason) {
+      PropertyNotPromotedForInherentReason reason) {
     Object? member = reason.propertyMember;
     if (member is Member) {
       if (member case Procedure(:var stubTarget?)) {
@@ -4463,7 +4503,6 @@ class _WhyNotPromotedVisitor
         member = stubTarget;
       }
       propertyReference = member;
-      propertyType = reason.staticType.unwrapTypeView();
       Template<Message Function(String, String)> template =
           switch (reason.whyNotPromotable) {
         PropertyNonPromotabilityReason.isNotField =>
@@ -4501,8 +4540,7 @@ class _WhyNotPromotedVisitor
   }
 
   void _addFieldPromotionUnavailableMessage(
-      PropertyNotPromoted<SharedTypeView> reason,
-      List<LocatedMessage> messages) {
+      PropertyNotPromoted reason, List<LocatedMessage> messages) {
     Object? member = reason.propertyMember;
     if (member is Member) {
       messages.add(templateFieldNotPromotedBecauseNotEnabled
@@ -4624,6 +4662,7 @@ class _ObjectAccessDescriptor {
   final DartType receiverBound;
   final Class classNode;
   final bool hasNonObjectMemberAccess;
+  final bool isDotShorthand;
   final bool isSetter;
   final int fileOffset;
 
@@ -4633,6 +4672,7 @@ class _ObjectAccessDescriptor {
       required this.receiverBound,
       required this.classNode,
       required this.hasNonObjectMemberAccess,
+      required this.isDotShorthand,
       required this.isSetter,
       required this.fileOffset});
 
@@ -4717,15 +4757,17 @@ class _ObjectAccessDescriptor {
       ObjectAccessTarget? target = visitor._findExtensionTypeMember(
           receiverType, receiverBound, name, fileOffset,
           isSetter: isSetter,
-          hasNonObjectMemberAccess: hasNonObjectMemberAccess);
+          hasNonObjectMemberAccess: hasNonObjectMemberAccess,
+          isDotShorthand: isDotShorthand);
       if (target != null) {
         return target;
       }
     }
 
     ObjectAccessTarget? target;
-    Member? interfaceMember =
-        visitor._getInterfaceMember(classNode, name, isSetter);
+    Member? interfaceMember = isDotShorthand
+        ? visitor._getStaticMember(classNode, name, false)
+        : visitor._getInterfaceMember(classNode, name, isSetter);
     if (interfaceMember != null) {
       target = new ObjectAccessTarget.interfaceMember(
           receiverType, interfaceMember,

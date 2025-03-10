@@ -171,7 +171,7 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            <null-name>
+            _x
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
@@ -237,6 +237,12 @@ library
         hasInitializer x @27
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
+            SimpleIdentifier
+              token: FutureOr @31
+              staticElement: dart:async::<fragment>::@class::FutureOr
+              element: dart:async::@class::FutureOr
+              staticType: Type
           getter2: <testLibraryFragment>::@getter::x
       getters
         synthetic get x
@@ -247,6 +253,9 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Type
+      constantInitializer
+        fragment: <testLibraryFragment>::@topLevelVariable::x
+        expression: expression_0
       getter: <testLibraryFragment>::@getter::x#element
   getters
     synthetic static get x
@@ -346,13 +355,13 @@ library
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            <null-name>
+            _x
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
         synthetic set y
           reference: <testLibraryFragment>::@setter::y
           element: <testLibraryFragment>::@setter::y#element
           formalParameters
-            <null-name>
+            _y
               element: <testLibraryFragment>::@setter::y::@parameter::_y#element
       functions
         f @35
@@ -723,7 +732,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -792,7 +801,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -870,7 +879,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -947,7 +956,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -1024,7 +1033,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -1114,7 +1123,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::v
               element: <testLibraryFragment>::@class::C::@setter::v#element
               formalParameters
-                <null-name>
+                _v
                   element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
   classes
     class C
@@ -1449,7 +1458,7 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   classes
     notSimplyBounded class C
@@ -1609,7 +1618,7 @@ library
               reference: <testLibraryFragment>::@class::B::@setter::c3
               element: <testLibraryFragment>::@class::B::@setter::c3#element
               formalParameters
-                <null-name>
+                _c3
                   element: <testLibraryFragment>::@class::B::@setter::c3::@parameter::_c3#element
       topLevelVariables
         c @29
@@ -1634,13 +1643,13 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
         synthetic set c2
           reference: <testLibraryFragment>::@setter::c2
           element: <testLibraryFragment>::@setter::c2#element
           formalParameters
-            <null-name>
+            _c2
               element: <testLibraryFragment>::@setter::c2::@parameter::_c2#element
   classes
     notSimplyBounded class C
@@ -1784,7 +1793,7 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   classes
     notSimplyBounded class C
@@ -1971,7 +1980,7 @@ library
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
-            <null-name>
+            _f
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   typeAliases
     F
@@ -2106,7 +2115,7 @@ library
           reference: <testLibraryFragment>::@setter::b
           element: <testLibraryFragment>::@setter::b#element
           formalParameters
-            <null-name>
+            _b
               element: <testLibraryFragment>::@setter::b::@parameter::_b#element
   classes
     class A
@@ -2228,7 +2237,7 @@ library
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
-            <null-name>
+            _f
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   typeAliases
     F
@@ -2452,7 +2461,7 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   classes
     class C
@@ -2564,7 +2573,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::v
               element: <testLibraryFragment>::@class::C::@setter::v#element
               formalParameters
-                <null-name>
+                _v
                   element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
   classes
     class C
@@ -2645,6 +2654,14 @@ library
           formalParameters
             default p @39
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
+              initializer: expression_0
+                SimpleIdentifier
+                  token: V @43
+                  staticElement: <null>
+                  element: multiplyDefinedElement
+                    package:test/a.dart::@function::V
+                    package:test/b.dart::@function::V
+                  staticType: InvalidType
   functions
     foo
       reference: <testLibrary>::@function::foo
@@ -2652,6 +2669,8 @@ library
       formalParameters
         optionalPositional hasImplicitType p
           type: dynamic
+          constantInitializer
+            expression: expression_0
       returnType: dynamic
 ''');
   }
@@ -2706,6 +2725,12 @@ library
           formalParameters
             default p @22
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
+              initializer: expression_0
+                SimpleIdentifier
+                  token: V @26
+                  staticElement: package:test/a.dart::<fragment>::@function::V
+                  element: package:test/a.dart::@function::V
+                  staticType: dynamic Function()
   functions
     foo
       reference: <testLibrary>::@function::foo
@@ -2713,6 +2738,8 @@ library
       formalParameters
         optionalPositional hasImplicitType p
           type: dynamic
+          constantInitializer
+            expression: expression_0
       returnType: dynamic
 ''');
   }
@@ -2786,7 +2813,7 @@ library
           reference: <testLibraryFragment>::@setter::V
           element: <testLibraryFragment>::@setter::V#element
           formalParameters
-            <null-name>
+            _V
               element: <testLibraryFragment>::@setter::V::@parameter::_V#element
       functions
         foo @0
@@ -2795,6 +2822,12 @@ library
           formalParameters
             default p @5
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
+              initializer: expression_0
+                SimpleIdentifier
+                  token: V @9
+                  staticElement: <testLibraryFragment>::@getter::V
+                  element: <testLibraryFragment>::@getter::V#element
+                  staticType: dynamic
         V @16
           reference: <testLibraryFragment>::@function::V
           element: <testLibrary>::@function::V
@@ -2821,6 +2854,8 @@ library
       formalParameters
         optionalPositional hasImplicitType p
           type: dynamic
+          constantInitializer
+            expression: expression_0
       returnType: dynamic
     V
       reference: <testLibrary>::@function::V
@@ -2890,7 +2925,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -2973,7 +3008,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -3060,7 +3095,7 @@ library
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            <null-name>
+            _v
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     hasInitializer v
@@ -3617,7 +3652,7 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::v
               element: <testLibraryFragment>::@class::C::@setter::v#element
               formalParameters
-                <null-name>
+                _v
                   element: <testLibraryFragment>::@class::C::@setter::v::@parameter::_v#element
       functions
         f @74
@@ -3889,7 +3924,7 @@ library
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
-            <null-name>
+            _m
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
@@ -3957,7 +3992,7 @@ library
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
-            <null-name>
+            _m
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
@@ -4025,7 +4060,7 @@ library
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
-            <null-name>
+            _m
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
@@ -4093,7 +4128,7 @@ library
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
-            <null-name>
+            _m
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
@@ -4161,7 +4196,7 @@ library
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
-            <null-name>
+            _m
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
@@ -4229,7 +4264,7 @@ library
           reference: <testLibraryFragment>::@setter::d
           element: <testLibraryFragment>::@setter::d#element
           formalParameters
-            <null-name>
+            _d
               element: <testLibraryFragment>::@setter::d::@parameter::_d#element
   topLevelVariables
     d
@@ -4297,7 +4332,7 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   topLevelVariables
     c
@@ -4377,7 +4412,7 @@ library
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
-            <null-name>
+            _c
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
   topLevelVariables
     c

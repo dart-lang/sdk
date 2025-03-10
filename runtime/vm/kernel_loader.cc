@@ -526,7 +526,7 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
   }
 
   LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     // Note that `problemsAsJson` on Component is implicitly skipped.
     const intptr_t length = program_->library_count();
     for (intptr_t i = 0; i < length; i++) {
@@ -652,7 +652,7 @@ void KernelLoader::FindModifiedLibraries(Program* program,
                                          intptr_t* p_num_procedures) {
   LongJumpScope jump;
   Zone* zone = Thread::Current()->zone();
-  if (setjmp(*jump.Set()) == 0) {
+  if (DART_SETJMP(*jump.Set()) == 0) {
     if (force_reload) {
       // If a reload is being forced we mark all libraries as having
       // been modified.

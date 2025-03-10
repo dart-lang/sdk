@@ -1075,10 +1075,12 @@ ObjectPtr BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
       const Type& type = Type::CheckedHandle(Z, ReadObject());
       const Class& cls = Class::Handle(Z, type.type_class());
       const Instance& obj = Instance::Handle(Z, Instance::New(cls, Heap::kOld));
-      if (type.arguments() != TypeArguments::null()) {
-        const TypeArguments& type_args =
-            TypeArguments::Handle(Z, type.arguments());
+      if (cls.NumTypeArguments() > 0) {
+        auto& type_args = TypeArguments::Handle(Z, type.arguments());
+        type_args = cls.GetInstanceTypeArguments(thread_, type_args);
         obj.SetTypeArguments(type_args);
+      } else {
+        ASSERT(type.arguments() == TypeArguments::null());
       }
       const intptr_t num_fields = reader_.ReadUInt();
       Field& field = Field::Handle(Z);
@@ -1549,6 +1551,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
                        (flags & kIsReflectableFlag) != 0, is_late, script_class,
                        type, position, end_position);
 
+    field.set_is_unboxed(false);
     field.set_has_pragma(has_pragma);
     field.set_is_covariant((flags & kIsCovariantFlag) != 0);
     field.set_is_generic_covariant_impl((flags & kIsCovariantByClassFlag) != 0);

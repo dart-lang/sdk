@@ -1111,18 +1111,18 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 }
 
-/// A container with sets of used [Element]s.
+/// A container with sets of used [Element2]s.
 /// All these elements are defined in a single compilation unit or a library.
 class UsedLocalElements {
   /// Resolved, locally defined elements that are used or potentially can be
   /// used.
   final HashSet<Element2> elements = HashSet<Element2>();
 
-  /// [LocalVariableElement]s that represent exceptions in [CatchClause]s.
+  /// [LocalVariableElement2]s that represent exceptions in [CatchClause]s.
   final HashSet<LocalVariableElement2> catchExceptionElements =
       HashSet<LocalVariableElement2>();
 
-  /// [LocalVariableElement]s that represent stack traces in [CatchClause]s.
+  /// [LocalVariableElement2]s that represent stack traces in [CatchClause]s.
   final HashSet<LocalVariableElement2> catchStackTraceElements =
       HashSet<LocalVariableElement2>();
 

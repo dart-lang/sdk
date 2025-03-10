@@ -3,5 +3,4 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export '../base/uri_translator.dart' show UriTranslator;
-export '../base/nnbd_mode.dart' show NnbdMode;
 export '../kernel/utils.dart' show serializeComponent;

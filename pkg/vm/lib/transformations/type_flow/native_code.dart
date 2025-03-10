@@ -54,12 +54,16 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   final PragmaAnnotationParser matcher;
 
   PragmaEntryPointsVisitor(
-      this.entryPoints, this.nativeCodeOracle, this.matcher);
+    this.entryPoints,
+    this.nativeCodeOracle,
+    this.matcher,
+  );
 
   // Returns list of entry point types specified by
   // pragmas in the given annotations.
   List<PragmaEntryPointType> entryPointTypesFromPragmas(
-      List<Expression> annotations) {
+    List<Expression> annotations,
+  ) {
     List<PragmaEntryPointType>? types;
     for (var annotation in annotations) {
       ParsedPragma? pragma = matcher.parsePragma(annotation);
@@ -120,9 +124,11 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     if (types.isEmpty) return;
 
     void addSelector(CallKind ck) {
-      entryPoints.addRawCall(proc.isInstanceMember
-          ? new InterfaceSelector(proc, callKind: ck)
-          : new DirectSelector(proc, callKind: ck));
+      entryPoints.addRawCall(
+        proc.isInstanceMember
+            ? new InterfaceSelector(proc, callKind: ck)
+            : new DirectSelector(proc, callKind: ck),
+      );
     }
 
     for (final type in types) {
@@ -190,8 +196,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
             "constructor ($ctor) must evaluate to null, true, false or "
             "'call'.\n$_referenceToDocumentation";
       }
-      entryPoints
-          .addRawCall(new DirectSelector(ctor, callKind: CallKind.Method));
+      entryPoints.addRawCall(
+        new DirectSelector(ctor, callKind: CallKind.Method),
+      );
       entryPoints.addAllocatedClass(ctor.enclosingClass);
       nativeCodeOracle.setMemberReferencedFromNativeCode(ctor);
     }
@@ -203,9 +210,11 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     if (types.isEmpty) return;
 
     void addSelector(CallKind ck) {
-      entryPoints.addRawCall(field.isInstanceMember
-          ? new InterfaceSelector(field, callKind: ck)
-          : new DirectSelector(field, callKind: ck));
+      entryPoints.addRawCall(
+        field.isInstanceMember
+            ? new InterfaceSelector(field, callKind: ck)
+            : new DirectSelector(field, callKind: ck),
+      );
     }
 
     for (final type in types) {
@@ -291,8 +300,10 @@ class NativeCodeOracle {
     return null;
   }
 
-  bool isRecognized(Member member,
-      [List<PragmaRecognizedType>? expectedTypes]) {
+  bool isRecognized(
+    Member member, [
+    List<PragmaRecognizedType>? expectedTypes,
+  ]) {
     PragmaRecognizedType? type = recognizedType(member);
     return type != null &&
         (expectedTypes == null || expectedTypes.contains(type));
@@ -314,10 +325,11 @@ class NativeCodeOracle {
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.
   TypeExpr handleNativeProcedure(
-      Member member,
-      EntryPointsListener entryPointsListener,
-      TypesBuilder typesBuilder,
-      RuntimeTypeTranslator translator) {
+    Member member,
+    EntryPointsListener entryPointsListener,
+    TypesBuilder typesBuilder,
+    RuntimeTypeTranslator translator,
+  ) {
     TypeExpr? returnType = null;
 
     for (var annotation in member.annotations) {
@@ -339,10 +351,11 @@ class NativeCodeOracle {
           returnType = entryPointsListener.addAllocatedClass(type.classNode);
           if (pragma.resultTypeUsesPassedTypeArguments) {
             returnType = translator.instantiateConcreteType(
-                returnType as ConcreteType,
-                member.function!.typeParameters
-                    .map((t) => TypeParameterType.withDefaultNullability(t))
-                    .toList());
+              returnType as ConcreteType,
+              member.function!.typeParameters
+                  .map((t) => TypeParameterType.withDefaultNullability(t))
+                  .toList(),
+            );
           }
           continue;
         }

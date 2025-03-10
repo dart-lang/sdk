@@ -79,8 +79,6 @@ final List<Option> options = [
       (o, values) => o.deleteToStringPackageUri = values),
   StringOption("depfile", (o, value) => o.depFile = value),
   StringOption(
-      "js-runtime-output", (o, value) => o.outputJSRuntimeFile = value),
-  StringOption(
       "dump-kernel-after-cfe", (o, value) => o.dumpKernelAfterCfe = value,
       hide: true),
   StringOption(
@@ -99,6 +97,9 @@ final List<Option> options = [
   Flag("enable-deferred-loading",
       (o, value) => o.translatorOptions.enableDeferredLoading = value,
       defaultsTo: _d.translatorOptions.enableDeferredLoading),
+  Flag("require-js-string-builtin",
+      (o, value) => o.translatorOptions.requireJsStringBuiltin = value,
+      defaultsTo: _d.translatorOptions.requireJsStringBuiltin),
   Flag("enable-multi-module-stress-test-mode",
       (o, value) => o.translatorOptions.enableMultiModuleStressTestMode = value,
       defaultsTo: _d.translatorOptions.enableMultiModuleStressTestMode),

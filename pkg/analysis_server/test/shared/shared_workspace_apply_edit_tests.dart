@@ -36,7 +36,7 @@ mixin SharedWorkspaceApplyEditTests
     setDocumentChangesSupport();
   }
 
-  test_applyEdit_existingFile() async {
+  Future<void> test_applyEdit_existingFile() async {
     var code = TestCode.parse('''
 void f() {
   print('--/*[0*/replace/*0]*/--');
@@ -90,7 +90,7 @@ void f() {
     verifier.verifyFiles(expectedResult);
   }
 
-  test_applyEdit_newFile() async {
+  Future<void> test_applyEdit_newFile() async {
     await initializeServer();
 
     var fileEdits = [
@@ -113,7 +113,7 @@ inserted<<<<<<<<<<
 ''');
   }
 
-  test_bad_failedToApply() async {
+  Future<void> test_bad_failedToApply() async {
     await initializeServer();
 
     var fileEdits = [

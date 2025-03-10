@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     // TODO(mfairhurst): test void with a prefix, except that causes bugs.
     // TODO(mfairhurst): test defining a class named Null (requires a 2nd file).

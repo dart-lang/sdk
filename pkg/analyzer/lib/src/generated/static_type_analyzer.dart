@@ -82,7 +82,7 @@ class StaticTypeAnalyzer {
   }
 
   void visitConditionalExpression(covariant ConditionalExpressionImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     // A conditional expression `E` of the form `b ? e1 : e2` with context type
     // `K` is analyzed as follows:
     //
@@ -178,7 +178,7 @@ class StaticTypeAnalyzer {
   /// same contexttype
   /// </blockquote>
   void visitIntegerLiteral(IntegerLiteralImpl node,
-      {required DartType contextType}) {
+      {required TypeImpl contextType}) {
     var strictCasts = _resolver.analysisOptions.strictCasts;
     if (_typeSystem.isAssignableTo(_typeProvider.intType, contextType,
             strictCasts: strictCasts) ||

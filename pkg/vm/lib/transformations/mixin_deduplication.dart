@@ -6,14 +6,13 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
 /// De-duplication of identical mixin applications.
-void transformComponent(Component component) {
+void transformLibraries(List<Library> libraries) {
   final deduplicateMixins = new DeduplicateMixinsTransformer();
   final referenceUpdater = ReferenceUpdater(deduplicateMixins);
 
   // Deduplicate mixins and re-resolve super initializers.
   // (this is a shallow transformation)
-  component.libraries
-      .forEach((library) => deduplicateMixins.visitLibrary(library, null));
+  libraries.forEach((library) => deduplicateMixins.visitLibrary(library, null));
 
   // Do a deep transformation to update references to the removed mixin
   // application classes in the interface targets and types.
@@ -32,7 +31,12 @@ void transformComponent(Component component) {
   // TODO(dartbug.com/39375): Remove this extra O(N) pass over the AST if the
   // CFE decides to consistently let the interface target point to the mixin
   // class (instead of mixin application).
-  component.libraries.forEach(referenceUpdater.visitLibrary);
+  libraries.forEach(referenceUpdater.visitLibrary);
+}
+
+/// De-duplication of identical mixin applications.
+void transformComponent(Component component) {
+  transformLibraries(component.libraries);
 }
 
 class _DeduplicateMixinKey {
@@ -78,10 +82,11 @@ class _DeduplicateMixinKey {
     final substitution = Substitution.fromMap({
       for (int i = 0; i < otherParameters.length; ++i)
         otherParameters[i]: TypeParameterType(
-            thisParameters[i],
-            otherParameters[i].bound.nullability == Nullability.nonNullable
-                ? Nullability.nonNullable
-                : Nullability.undetermined),
+          thisParameters[i],
+          otherParameters[i].bound.nullability == Nullability.nonNullable
+              ? Nullability.nonNullable
+              : Nullability.undetermined,
+        ),
     });
     if (thisSupertype != substitution.substituteSupertype(otherSupertype)) {
       return false;
@@ -143,8 +148,10 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
       return c;
     }
 
-    Class canonical =
-        _canonicalMixins.putIfAbsent(new _DeduplicateMixinKey(c), () => c);
+    Class canonical = _canonicalMixins.putIfAbsent(
+      new _DeduplicateMixinKey(c),
+      () => c,
+    );
 
     if (canonical != c) {
       // Ensure that kernel file writer will not be able to
@@ -164,7 +171,10 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
   }
 
   Supertype _transformSupertype(
-      Supertype supertype, Class? cls, bool isSuperclass) {
+    Supertype supertype,
+    Class? cls,
+    bool isSuperclass,
+  ) {
     Class oldSuper = supertype.classNode;
     Class newSuper = visitClass(oldSuper, dummyClass) as Class;
     if (identical(newSuper, dummyClass)) {

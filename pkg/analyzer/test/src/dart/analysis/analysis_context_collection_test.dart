@@ -418,6 +418,7 @@ analysisOptions
       named-arguments-anywhere
       non-nullable
       nonfunction-type-aliases
+      null-aware-elements
       patterns
       records
       sealed-class
@@ -495,6 +496,7 @@ analysisOptions
       named-arguments-anywhere
       non-nullable
       nonfunction-type-aliases
+      null-aware-elements
       patterns
       records
       sealed-class

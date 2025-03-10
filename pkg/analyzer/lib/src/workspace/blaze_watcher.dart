@@ -92,7 +92,7 @@ class BlazeFilePoller {
   /// Tries polling all the possible paths.
   ///
   /// Will set [_validPath] and return its modified time if a file is found.
-  /// Returns [null] if nothing is found.
+  /// Returns `null` if nothing is found.
   FileInfo? _pollAll() {
     assert(_validPath == null);
     for (var path in _candidates) {
@@ -267,9 +267,7 @@ class BlazeFileWatcherIsolate {
 /// instantiating [BlazeFileWatcherService] is very cheap.
 ///
 /// The protocol when communicating with the isolate:
-/// 1. The watcher isolate sends to the main one a [BlazeWatcherIsolateStarted]
-///    and expects a [BlazeWatcherInitializeIsolate] to be sent from the main
-///    isolate as a reply.
+/// 1. The watcher isolate sends to the main one a [BlazeWatcherIsolateStarted].
 /// 2. The main isolate can request to start watching a file by sending
 ///    [BlazeWatcherStartWatching] request. There is no response expected.
 /// 3. The watcher isolate will send a [BlazeWatcherEvents] notification when

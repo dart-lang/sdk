@@ -39,7 +39,6 @@ import '../base/import_chains.dart';
 import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
 import '../base/local_scope.dart';
-import '../base/nnbd_mode.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/ticker.dart' show Ticker;
@@ -50,8 +49,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
-import '../builder/named_type_builder.dart';
-import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart';
@@ -344,7 +341,6 @@ class SourceLoader extends Loader {
     _loadedLibraryBuilders[uri] = libraryBuilder;
   }
 
-  // Coverage-ignore(suite): Not run.
   LibraryBuilder? deregisterLoadedLibraryBuilder(Uri importUri) {
     LibraryBuilder? libraryBuilder = _loadedLibraryBuilders.remove(importUri);
     if (libraryBuilder != null) {
@@ -621,19 +617,10 @@ class SourceLoader extends Loader {
       registerNnbdMismatchLibrary(
           libraryBuilder, messageInvalidNnbdDillLibrary);
     } else {
-      switch (nnbdMode) {
-        case NnbdMode.Weak:
-          if (libraryMode != NonNullableByDefaultCompiledMode.Weak) {
-            registerNnbdMismatchLibrary(
-                libraryBuilder, messageWeakWithStrongDillLibrary);
-          }
-          break;
-        case NnbdMode.Strong:
-          if (libraryMode != NonNullableByDefaultCompiledMode.Strong) {
-            registerNnbdMismatchLibrary(
-                libraryBuilder, messageStrongWithWeakDillLibrary);
-          }
-          break;
+      if (libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+        // Coverage-ignore-block(suite): Not run.
+        registerNnbdMismatchLibrary(
+            libraryBuilder, messageStrongWithWeakDillLibrary);
       }
     }
   }
@@ -930,17 +917,15 @@ severity: $severity
   }
 
   BodyBuilder createBodyBuilderForOutlineExpression(
-      SourceLibraryBuilder library,
+      SourceLibraryBuilder libraryBuilder,
       BodyBuilderContext bodyBuilderContext,
       LookupScope scope,
       Uri fileUri,
       {LocalScope? formalParameterScope}) {
     return new BodyBuilder.forOutlineExpression(
-        library, bodyBuilderContext, scope, fileUri,
+        libraryBuilder, bodyBuilderContext, scope, fileUri,
         formalParameterScope: formalParameterScope);
   }
-
-  NnbdMode get nnbdMode => target.context.options.nnbdMode;
 
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
@@ -1114,6 +1099,7 @@ severity: $severity
 
   Map<LibraryBuilder, Message>? _nnbdMismatchLibraries;
 
+  // Coverage-ignore(suite): Not run.
   void registerNnbdMismatchLibrary(
       LibraryBuilder libraryBuilder, Message message) {
     _nnbdMismatchLibraries ??= {};
@@ -1152,6 +1138,7 @@ severity: $severity
     currentUriForCrashReporting = null;
     logSummary(outlineSummaryTemplate);
     if (_nnbdMismatchLibraries != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (MapEntry<LibraryBuilder, Message> entry
           in _nnbdMismatchLibraries!.entries) {
         addProblem(entry.value, -1, noLength, entry.key.fileUri);
@@ -1233,7 +1220,9 @@ severity: $severity
     Token tokens = await tokenize(compilationUnit);
     OutlineBuilder listener = compilationUnit.createOutlineBuilder();
     new ClassMemberParser(listener,
-            allowPatterns: compilationUnit.libraryFeatures.patterns.isEnabled)
+            allowPatterns: compilationUnit.libraryFeatures.patterns.isEnabled,
+            enableFeatureEnhancedParts:
+                compilationUnit.libraryFeatures.enhancedParts.isEnabled)
         .parseUnit(tokens);
   }
 
@@ -1245,6 +1234,7 @@ severity: $severity
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         library.augmentationLibraries;
     if (augmentationLibraries != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         await buildBody(augmentationLibrary);
       }
@@ -1270,7 +1260,9 @@ severity: $severity
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_diet_parser);
         DietParser parser = new DietParser(new ForwardingListener(),
-            allowPatterns: library.libraryFeatures.patterns.isEnabled);
+            allowPatterns: library.libraryFeatures.patterns.isEnabled,
+            enableFeatureEnhancedParts:
+                library.libraryFeatures.enhancedParts.isEnabled);
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
       }
@@ -1279,24 +1271,30 @@ severity: $severity
         target.benchmarker?.beginSubdivide(
             BenchmarkSubdivides.body_buildBody_benchmark_specific_parser);
         Parser parser = new Parser(new ForwardingListener(),
-            allowPatterns: library.libraryFeatures.patterns.isEnabled);
+            allowPatterns: library.libraryFeatures.patterns.isEnabled,
+            enableFeatureEnhancedParts:
+                library.libraryFeatures.enhancedParts.isEnabled);
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
       }
     }
 
-    DietListener listener =
-        createDietListener(library, compilationUnit.offsetMap);
+    DietListener listener = createDietListener(library,
+        compilationUnit.compilationUnitScope, compilationUnit.offsetMap);
     DietParser parser = new DietParser(listener,
-        allowPatterns: library.libraryFeatures.patterns.isEnabled);
+        allowPatterns: library.libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts:
+            library.libraryFeatures.enhancedParts.isEnabled);
     parser.parseUnit(tokens);
     for (SourceCompilationUnit compilationUnit in library.parts) {
       Token tokens = await tokenize(compilationUnit,
           suppressLexicalErrors: true, allowLazyStrings: false);
-      DietListener listener =
-          createDietListener(library, compilationUnit.offsetMap);
+      DietListener listener = createDietListener(library,
+          compilationUnit.compilationUnitScope, compilationUnit.offsetMap);
       DietParser parser = new DietParser(listener,
-          allowPatterns: library.libraryFeatures.patterns.isEnabled);
+          allowPatterns: library.libraryFeatures.patterns.isEnabled,
+          enableFeatureEnhancedParts:
+              library.libraryFeatures.enhancedParts.isEnabled);
       parser.parseUnit(tokens);
     }
   }
@@ -1308,37 +1306,37 @@ severity: $severity
       bool isClassInstanceMember,
       Procedure procedure,
       VariableDeclaration? extensionThis) async {
-    Token token = await tokenize(libraryBuilder.compilationUnit,
-        suppressLexicalErrors: false, allowLazyStrings: false);
-    DietListener dietListener = createDietListener(
-        libraryBuilder,
-        // Expression compilation doesn't build an outline, and thus doesn't
-        // support members from source, so we provide an empty [DeclarationMap].
-        new OffsetMap(libraryBuilder.fileUri));
+    // TODO(johnniwinther): Support expression compilation in a specific
+    //  compilation unit.
+    LookupScope memberScope =
+        libraryBuilder.compilationUnit.compilationUnitScope;
 
+    DeclarationBuilder? declarationBuilder;
     if (enclosingClassOrExtension != null) {
-      Builder? builder = dietListener.memberScope
-          .lookupGetable(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
+      Builder? builder = memberScope.lookupGetable(
+          enclosingClassOrExtension, -1, libraryBuilder.fileUri);
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
-            dietListener
-              ..currentDeclaration = builder
-              ..memberScope = new NameSpaceLookupScope(
-                  builder.nameSpace,
-                  ScopeKind.declaration,
-                  "debugExpression in class $enclosingClassOrExtension",
-                  parent: TypeParameterScope.fromList(
-                      dietListener.memberScope, builder.typeParameters));
+            declarationBuilder = builder;
+            // TODO(johnniwinther): This should be the body scope of the
+            //  fragment in which we are compiling the expression.
+            memberScope = new NameSpaceLookupScope(
+                builder.nameSpace,
+                ScopeKind.declaration,
+                "debugExpression in class $enclosingClassOrExtension",
+                parent: TypeParameterScope.fromList(
+                    memberScope, builder.typeParameters));
           case ExtensionBuilder():
-            dietListener
-              ..currentDeclaration = builder
-              ..memberScope = new NameSpaceLookupScope(
-                  builder.nameSpace,
-                  ScopeKind.declaration,
-                  "debugExpression in extension $enclosingClassOrExtension",
-                  // TODO(johnniwinther): Shouldn't type parameters be in scope?
-                  parent: dietListener.memberScope);
+            declarationBuilder = builder;
+            // TODO(johnniwinther): This should be the body scope of the
+            //  fragment in which we are compiling the expression.
+            memberScope = new NameSpaceLookupScope(
+                builder.nameSpace,
+                ScopeKind.declaration,
+                "debugExpression in extension $enclosingClassOrExtension",
+                // TODO(johnniwinther): Shouldn't type parameters be in scope?
+                parent: memberScope);
           case ExtensionTypeDeclarationBuilder():
           // TODO(johnniwinther): Handle this case.
           case TypeAliasBuilder():
@@ -1350,10 +1348,20 @@ severity: $severity
       }
     }
 
+    Token token = await tokenize(libraryBuilder.compilationUnit,
+        suppressLexicalErrors: false, allowLazyStrings: false);
+    DietListener dietListener = createDietListener(
+        libraryBuilder,
+        memberScope,
+        // Expression compilation doesn't build an outline, and thus doesn't
+        // support members from source, so we provide an empty [DeclarationMap].
+        new OffsetMap(libraryBuilder.fileUri));
+
     BodyBuilder listener = dietListener.createListener(
-        new ExpressionCompilerProcedureBodyBuildContext(dietListener, procedure,
+        new ExpressionCompilerProcedureBodyBuildContext(
+            dietListener, procedure, libraryBuilder, declarationBuilder,
             isDeclarationInstanceMember: isClassInstanceMember),
-        dietListener.memberScope,
+        memberScope,
         thisVariable: extensionThis);
     for (VariableDeclaration variable
         in procedure.function.positionalParameters) {
@@ -1363,15 +1371,17 @@ severity: $severity
     return listener.parseSingleExpression(
         new Parser(listener,
             useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-            allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled),
+            allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
+            enableFeatureEnhancedParts:
+                libraryBuilder.libraryFeatures.enhancedParts.isEnabled),
         token,
         procedure.function);
   }
 
-  DietListener createDietListener(
-      SourceLibraryBuilder library, OffsetMap offsetMap) {
-    return new DietListener(
-        library, hierarchy, coreTypes, typeInferenceEngine, offsetMap);
+  DietListener createDietListener(SourceLibraryBuilder library,
+      LookupScope compilationUnitScope, OffsetMap offsetMap) {
+    return new DietListener(library, compilationUnitScope, hierarchy, coreTypes,
+        typeInferenceEngine, offsetMap);
   }
 
   void resolveParts() {
@@ -1405,24 +1415,6 @@ severity: $severity
       library.includeParts(usedParts);
     }
 
-    List<SourceLibraryBuilder> augmentationLibraries = [];
-
-    // Create augmentation libraries now that normal libraries have been
-    // created.
-    for (SourceCompilationUnit compilationUnit
-        in augmentationCompilationUnits) {
-      SourceLibraryBuilder sourceLibraryBuilder =
-          compilationUnit.createLibrary();
-      // TODO(johnniwinther): Avoid creating a [SourceLibraryBuilder]
-      // for augmentation libraries.
-      augmentationLibraries.add(sourceLibraryBuilder);
-    }
-
-    // Include parts in augment libraries.
-    for (SourceLibraryBuilder library in augmentationLibraries) {
-      library.includeParts(usedParts);
-    }
-
     for (MapEntry<Uri, SourceCompilationUnit> entry in parts.entries) {
       Uri uri = entry.key;
       SourceCompilationUnit part = entry.value;
@@ -1441,26 +1433,7 @@ severity: $severity
     }
     ticker.logMs("Resolved parts");
 
-    for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-      _compilationUnits.remove(augmentationLibrary.fileUri);
-      augmentationLibrary.origin.addAugmentationLibrary(augmentationLibrary);
-    }
     _sourceLibraryBuilders = sourceLibraries;
-    assert(
-        _compilationUnits.values.every((compilationUnit) =>
-            !(compilationUnit is SourceCompilationUnit &&
-                compilationUnit.isAugmenting)),
-        "Augmentation library found in libraryBuilders: " +
-            _compilationUnits.values
-                .where((compilationUnit) =>
-                    !(compilationUnit is SourceCompilationUnit &&
-                        compilationUnit.isAugmenting))
-                .join(', ') +
-            ".");
-    assert(
-        sourceLibraries.every((library) => !library.isAugmenting),
-        "Augmentation library found in sourceLibraryBuilders: "
-        "${sourceLibraries.where((library) => library.isAugmenting)}.");
     assert(
         _compilationUnits.values.every((compilationUnit) =>
             compilationUnit.loader != this ||
@@ -1685,25 +1658,9 @@ severity: $severity
   /// Check that [objectClass] has no supertypes. Recover by removing any
   /// found.
   void checkObjectClassHierarchy(ClassBuilder objectClass) {
-    if (objectClass is SourceClassBuilder &&
-        // Coverage-ignore(suite): Not run.
-        objectClass.libraryBuilder.loader == this) {
+    if (objectClass is SourceClassBuilder) {
       // Coverage-ignore-block(suite): Not run.
-      if (objectClass.supertypeBuilder != null) {
-        objectClass.supertypeBuilder = null;
-        objectClass.addProblem(
-            messageObjectExtends, objectClass.fileOffset, noLength);
-      }
-      if (objectClass.interfaceBuilders != null) {
-        objectClass.addProblem(
-            messageObjectImplements, objectClass.fileOffset, noLength);
-        objectClass.interfaceBuilders = null;
-      }
-      if (objectClass.mixedInTypeBuilder != null) {
-        objectClass.addProblem(
-            messageObjectMixesIn, objectClass.fileOffset, noLength);
-        objectClass.mixedInTypeBuilder = null;
-      }
+      objectClass.checkObjectSupertypes();
     }
   }
 
@@ -1765,29 +1722,8 @@ severity: $severity
       classesWithCycles.sort();
       for (int i = 0; i < classesWithCycles.length; i++) {
         SourceClassBuilder classBuilder = classesWithCycles[i];
-
-        // Ensure that the cycle is broken by removing superclass and
-        // implemented interfaces.
-        Class cls = classBuilder.cls;
-        cls.implementedTypes.clear();
-        cls.supertype = null;
-        cls.mixedInType = null;
-        classBuilder.supertypeBuilder =
-            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                objectClass, const NullabilityBuilder.omitted(),
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Unexpected);
-        classBuilder.interfaceBuilders = null;
-        classBuilder.mixedInTypeBuilder = null;
-
+        classBuilder.markAsCyclic(objectClass);
         classes.add(classBuilder);
-        // TODO(johnniwinther): Update the message for when a class depends on
-        // a cycle but does not depend on itself.
-        classBuilder.addProblem(
-            templateCyclicClassHierarchy
-                .withArguments(classBuilder.fullNameForErrors),
-            classBuilder.fileOffset,
-            noLength);
       }
     }
 
@@ -2317,6 +2253,13 @@ severity: $severity
     }
   }
 
+  /// Computes the direct super type for all source classes.
+  void computeSupertypes(Iterable<SourceLibraryBuilder> sourceLibraryBuilders) {
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
+      libraryBuilder.computeSupertypes();
+    }
+  }
+
   /// Builds the core AST structure needed for the outline of the component.
   void buildOutlineNodes() {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
@@ -2697,6 +2640,7 @@ severity: $severity
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
         libraryBuilder.augmentationLibraries;
     if (augmentationLibraries != null) {
+      // Coverage-ignore-block(suite): Not run.
       for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
         _checkMainMethods(augmentationLibrary, listOfString);
       }

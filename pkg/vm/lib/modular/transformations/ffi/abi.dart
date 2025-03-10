@@ -5,14 +5,7 @@
 import 'common.dart';
 
 /// The hardware architectures the Dart VM runs on.
-enum _Architecture {
-  arm,
-  arm64,
-  ia32,
-  x64,
-  riscv32,
-  riscv64,
-}
+enum _Architecture { arm, arm64, ia32, x64, riscv32, riscv64 }
 
 extension on _Architecture {
   /// The size of integer registers and memory addresses in bytes.
@@ -31,14 +24,7 @@ extension on _Architecture {
 }
 
 /// The operating systems the Dart VM runs on.
-enum _OS {
-  android,
-  fuchsia,
-  ios,
-  linux,
-  macos,
-  windows,
-}
+enum _OS { android, fuchsia, ios, linux, macos, windows }
 
 /// An application binary interface (ABI).
 ///
@@ -225,8 +211,9 @@ const Map<Abi, String> abiNames = {
 
 /// The size of integer registers and memory addresses in bytes per [Abi].
 // Keep consistent with sdk/lib/_internal/vm/lib/ffi_patch.dart
-final Map<Abi, int> wordSize =
-    Map.unmodifiable({for (final abi in Abi.values) abi: abi.wordSize});
+final Map<Abi, int> wordSize = Map.unmodifiable({
+  for (final abi in Abi.values) abi: abi.wordSize,
+});
 
 /// Alignment for types that are not aligned to a multiple of their size.
 ///
@@ -283,7 +270,7 @@ const Map<NativeType, int> _wordSize64 = {};
 const Map<NativeType, int> _wordSize32Align32 = {
   NativeType.kDouble: 4,
   NativeType.kInt64: 4,
-  NativeType.kUint64: 4
+  NativeType.kUint64: 4,
 };
 
 // The default for MSVC x86:

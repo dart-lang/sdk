@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,7 +22,7 @@ void main() {
 class FromEnvironmentEvaluatorTest {
   static const String _defaultValue = 'defaultValue';
 
-  late final TypeProvider typeProvider;
+  late final TypeProviderImpl typeProvider;
   late final TypeSystemImpl typeSystem;
 
   DartObjectImpl get _boolValueFalse {

@@ -137,6 +137,8 @@ typedef Dart_Handle (*Dart_NewSendPortType)(Dart_Port);
 typedef Dart_Handle (*Dart_NewSendPortExType)(Dart_PortEx);
 typedef Dart_Handle (*Dart_SendPortGetIdType)(Dart_Handle, Dart_Port*);
 typedef Dart_Handle (*Dart_SendPortGetIdExType)(Dart_Handle, Dart_PortEx*);
+typedef void (*Dart_SetCurrentThreadOwnsIsolateType)();
+typedef bool (*Dart_GetCurrentThreadOwnsIsolateType)(Dart_Port);
 typedef void (*Dart_EnterScopeType)();
 typedef void (*Dart_ExitScopeType)();
 typedef uint8_t* (*Dart_ScopeAllocateType)(intptr_t);
@@ -544,6 +546,10 @@ static Dart_NewSendPortType Dart_NewSendPortFn = NULL;
 static Dart_NewSendPortExType Dart_NewSendPortExFn = NULL;
 static Dart_SendPortGetIdType Dart_SendPortGetIdFn = NULL;
 static Dart_SendPortGetIdExType Dart_SendPortGetIdExFn = NULL;
+static Dart_SetCurrentThreadOwnsIsolateType Dart_SetCurrentThreadOwnsIsolateFn =
+    NULL;
+static Dart_GetCurrentThreadOwnsIsolateType Dart_GetCurrentThreadOwnsIsolateFn =
+    NULL;
 static Dart_EnterScopeType Dart_EnterScopeFn = NULL;
 static Dart_ExitScopeType Dart_ExitScopeFn = NULL;
 static Dart_ScopeAllocateType Dart_ScopeAllocateFn = NULL;
@@ -936,6 +942,12 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
         (Dart_SendPortGetIdType)GetProcAddress(process, "Dart_SendPortGetId");
     Dart_SendPortGetIdExFn = (Dart_SendPortGetIdExType)GetProcAddress(
         process, "Dart_SendPortGetIdEx");
+    Dart_SetCurrentThreadOwnsIsolateFn =
+        (Dart_SetCurrentThreadOwnsIsolateType)GetProcAddress(
+            process, "Dart_SetCurrentThreadOwnsIsolate");
+    Dart_GetCurrentThreadOwnsIsolateFn =
+        (Dart_GetCurrentThreadOwnsIsolateType)GetProcAddress(
+            process, "Dart_GetCurrentThreadOwnsIsolate");
     Dart_EnterScopeFn =
         (Dart_EnterScopeType)GetProcAddress(process, "Dart_EnterScope");
     Dart_ExitScopeFn =
@@ -1730,6 +1742,14 @@ Dart_Handle Dart_SendPortGetId(Dart_Handle port, Dart_Port* port_id) {
 
 Dart_Handle Dart_SendPortGetIdEx(Dart_Handle port, Dart_PortEx* portex_id) {
   return Dart_SendPortGetIdExFn(port, portex_id);
+}
+
+void Dart_SetCurrentThreadOwnsIsolate() {
+  Dart_SetCurrentThreadOwnsIsolateFn();
+}
+
+bool Dart_GetCurrentThreadOwnsIsolate(Dart_Port port) {
+  return Dart_GetCurrentThreadOwnsIsolateFn(port);
 }
 
 void Dart_EnterScope() {

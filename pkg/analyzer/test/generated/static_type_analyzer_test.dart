@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -120,13 +121,12 @@ late B b;
     // No code needs to be analyzed but we still need to call
     // assertNoErrorsInCode to get the typeProvider initialized.
     await assertNoErrorsInCode('');
-    InterfaceType intType = typeProvider.intType;
-    DartType dynamicType = typeProvider.dynamicType;
-    InterfaceType futureDynamicType = typeProvider.futureDynamicType;
-    InterfaceType futureIntType = typeProvider.futureType(intType);
-    InterfaceType futureFutureDynamicType =
-        typeProvider.futureType(futureDynamicType);
-    InterfaceType futureFutureIntType = typeProvider.futureType(futureIntType);
+    var intType = typeProvider.intType;
+    var dynamicType = typeProvider.dynamicType;
+    var futureDynamicType = typeProvider.futureDynamicType;
+    var futureIntType = typeProvider.futureType(intType);
+    var futureFutureDynamicType = typeProvider.futureType(futureDynamicType);
+    var futureFutureIntType = typeProvider.futureType(futureIntType);
     // flatten(int) = int
     expect(_flatten(intType), intType);
     // flatten(dynamic) = dynamic
@@ -405,5 +405,5 @@ test() => throw 0;
     expect(node.staticType, same(typeProvider.bottomType));
   }
 
-  DartType _flatten(DartType type) => typeSystem.flatten(type);
+  TypeImpl _flatten(TypeImpl type) => typeSystem.flatten(type);
 }

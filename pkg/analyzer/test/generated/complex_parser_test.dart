@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'simple_parser_test.dart';
+library;
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';

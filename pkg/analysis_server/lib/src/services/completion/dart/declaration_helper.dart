@@ -403,6 +403,8 @@ class DeclarationHelper {
     if (parent is ClassMember) {
       assert(node is CommentReference);
       parent = parent.parent;
+    } else if (parent is Directive) {
+      parent = parent.parent;
     } else if (parent is CompilationUnit) {
       parent = containingMember;
     }
@@ -1247,6 +1249,7 @@ class DeclarationHelper {
         _suggestProperty(
           accessor: accessor,
           referencingInterface: referencingInterface,
+          isInDeclaration: true,
         );
       }
     }
@@ -1256,13 +1259,18 @@ class DeclarationHelper {
         _suggestProperty(
           accessor: accessor,
           referencingInterface: referencingInterface,
+          isInDeclaration: true,
         );
       }
     }
 
     for (var field in element.fields2) {
       if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
-        _suggestField(field: field, referencingInterface: referencingInterface);
+        _suggestField(
+          field: field,
+          referencingInterface: referencingInterface,
+          isInDeclaration: true,
+        );
       }
     }
 
@@ -1777,6 +1785,7 @@ class DeclarationHelper {
   void _suggestField({
     required FieldElement2 field,
     InterfaceElement2? referencingInterface,
+    bool isInDeclaration = false,
   }) {
     if (visibilityTracker.isVisible(element: field, importData: null)) {
       if ((mustBeAssignable && field.setter2 == null) ||
@@ -1789,6 +1798,7 @@ class DeclarationHelper {
           element: field,
           matcherScore: matcherScore,
           referencingInterface: referencingInterface,
+          isInDeclaration: isInDeclaration,
         );
         collector.addSuggestion(suggestion);
       }
@@ -1933,6 +1943,7 @@ class DeclarationHelper {
     bool ignoreVisibility = false,
     ImportData? importData,
     InterfaceElement2? referencingInterface,
+    bool isInDeclaration = false,
   }) {
     if (ignoreVisibility ||
         visibilityTracker.isVisible(
@@ -1959,6 +1970,7 @@ class DeclarationHelper {
                 element: variable,
                 matcherScore: matcherScore,
                 referencingInterface: referencingInterface,
+                isInDeclaration: isInDeclaration,
               );
               collector.addSuggestion(suggestion);
             }
@@ -2043,6 +2055,7 @@ class DeclarationHelper {
                     element: variable,
                     matcherScore: matcherScore,
                     referencingInterface: null,
+                    isInDeclaration: false,
                   );
                   collector.addSuggestion(suggestion);
                 }

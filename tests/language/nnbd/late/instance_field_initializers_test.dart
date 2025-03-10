@@ -22,14 +22,9 @@ class Foo {
   late int c = log(-1);
   late final int d = log(-2);
 
-  Foo.withC()
-      : a = log(1),
-        b = log(2),
-        c = log(3);
+  Foo.withC() : a = log(1), b = log(2), c = log(3);
 
-  Foo.withoutC()
-      : a = log(1),
-        b = log(2);
+  Foo.withoutC() : a = log(1), b = log(2);
 }
 
 void testInitializerList() {

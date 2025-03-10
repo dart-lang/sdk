@@ -35,7 +35,7 @@ main() {
     Platform.isMacOS ? "--extern-only" : "--dynamic",
     "--defined-only",
     "--format=just-symbols",
-    Platform.executable
+    Platform.executable,
   ]);
   if (result.exitCode != 0) {
     print("nm failed");
@@ -138,6 +138,7 @@ main() {
     "Dart_GetPeer",
     "Dart_GetStaticMethodClosure",
     "Dart_GetStickyError",
+    "Dart_GetCurrentThreadOwnsIsolate",
     "Dart_GetType",
     "Dart_GetTypeOfExternalTypedData",
     "Dart_GetTypeOfTypedData",
@@ -236,6 +237,7 @@ main() {
     "Dart_NewBoolean",
     "Dart_NewByteBuffer",
     "Dart_NewCompilationError",
+    "Dart_NewConcurrentNativePort",
     "Dart_NewDouble",
     "Dart_NewExternalTypedData",
     "Dart_NewExternalTypedDataWithFinalizer",
@@ -247,7 +249,6 @@ main() {
     "Dart_NewListOfType",
     "Dart_NewListOfTypeFilled",
     "Dart_NewNativePort",
-    "Dart_NewConcurrentNativePort",
     "Dart_NewPersistentHandle",
     "Dart_NewSendPort",
     "Dart_NewSendPortEx",
@@ -315,6 +316,7 @@ main() {
     "Dart_SetShouldPauseOnStart",
     "Dart_SetStickyError",
     "Dart_SetThreadName",
+    "Dart_SetCurrentThreadOwnsIsolate",
     "Dart_SetTimelineRecorderCallback",
     "Dart_SetVMFlags",
     "Dart_SetWeakHandleReturnValue",
@@ -359,9 +361,7 @@ main() {
       "Dart_UnloadELF",
     ]);
     if (!Platform.isMacOS) {
-      expectedSymbols.addAll([
-        "Dart_LoadELF_Fd",
-      ]);
+      expectedSymbols.addAll(["Dart_LoadELF_Fd"]);
     }
   }
 

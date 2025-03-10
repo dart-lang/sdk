@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -239,7 +239,7 @@ void f() {
   void _createRefactoring(String search) {
     var directive = findNode.import(search);
     createRenameRefactoringForElement2(
-      directive.libraryImport as LibraryImportElementImpl,
+      MockLibraryImportElement(directive.libraryImport!),
     );
   }
 }

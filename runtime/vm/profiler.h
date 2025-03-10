@@ -56,7 +56,8 @@ class Profiler : public AllStatic {
   static void Cleanup();
 
   static void SetSampleDepth(intptr_t depth);
-  static void SetSamplePeriod(intptr_t period);
+  // Sets |FLAG_profile_period| to |max(period, 50)|.
+  static void UpdateFlagProfilePeriod(intptr_t period);
   // Restarts sampling with a given profile period. This is called after the
   // profile period is changed via the service protocol.
   static void UpdateSamplePeriod();

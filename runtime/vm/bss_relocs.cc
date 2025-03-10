@@ -29,10 +29,10 @@ void BSS::InitializeBSSEntry(BSS::Relocation relocation,
 
 void BSS::Initialize(Thread* current, uword* bss_start, bool vm) {
   // TODO(https://dartbug.com/52579): Remove.
-  InitializeBSSEntry(Relocation::DRT_GetFfiCallbackMetadata,
+  InitializeBSSEntry(Relocation::DLRT_GetFfiCallbackMetadata,
                      reinterpret_cast<uword>(DLRT_GetFfiCallbackMetadata),
                      bss_start);
-  InitializeBSSEntry(Relocation::DRT_ExitTemporaryIsolate,
+  InitializeBSSEntry(Relocation::DLRT_ExitTemporaryIsolate,
                      reinterpret_cast<uword>(DLRT_ExitTemporaryIsolate),
                      bss_start);
 }

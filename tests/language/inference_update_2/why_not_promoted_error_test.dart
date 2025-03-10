@@ -18,9 +18,7 @@ class C {
   //   ^^^^^^^^^^^^^^
   // [context 3] '_nonFinalField' refers to a non-final field so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-final-field
   // [context 6] '_nonFinalField' refers to a non-final field so it couldn't be promoted.
-  C(int? i)
-      : publicField = i,
-        _nonFinalField = i;
+  C(int? i) : publicField = i, _nonFinalField = i;
 }
 
 void notAField(C c) {

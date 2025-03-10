@@ -7,7 +7,6 @@
 // should be left at 2.19.
 // @dart=2.19
 
-
 // Introduce an aliased type.
 
 typedef T = Object;
@@ -17,7 +16,7 @@ typedef T = Object;
 abstract class C {
   T? v10;
   final T v12;
-  C(): v12 = T();
+  C() : v12 = T();
   C.name1(this.v10, this.v12);
   factory C.name2(T arg1, T arg2) = C1.name1;
 }
@@ -29,28 +28,31 @@ class C1 implements C {
 
 abstract class D2 extends C with T {}
 //             ^
-// [analyzer] unspecified
 // [cfe] Can't use 'Object' as a mixin because it has constructors.
+//                               ^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
 
 abstract class D3 implements T {}
 //             ^
-// [analyzer] unspecified
 // [cfe] 'Object' can't be used in both 'extends' and 'implements' clauses.
+//                           ^
+// [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_SUPER_CLASS
 
 abstract class D4 = C with T;
 //             ^
-// [analyzer] unspecified
 // [cfe] Can't use 'Object' as a mixin because it has constructors.
+//                         ^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
 
 main() {
   T.named();
 //  ^^^^^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
 // [cfe] Member not found: 'Object.named'.
 
   T.staticMethod<T>();
 //  ^^^^^^^^^^^^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
 // [cfe] A constructor invocation can't have type arguments after the constructor name.
 // [cfe] Member not found: 'Object.staticMethod'.
 }

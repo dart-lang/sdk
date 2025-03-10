@@ -595,7 +595,7 @@ class _SelectionAnalyzer {
 
   Future<AstNode?> _elementDeclaration(ExecutableElement2 element) async {
     var helper = refactoringContext.sessionHelper;
-    var nodeResult = await helper.getElementDeclaration(element.firstFragment);
+    var nodeResult = await helper.getFragmentDeclaration(element.firstFragment);
     return nodeResult?.node;
   }
 }
@@ -668,7 +668,7 @@ class _SignatureUpdater {
   /// Returns the [MethodDeclaration] for a [MethodElement2].
   Future<AstNode?> elementDeclaration(ExecutableElement2 element) async {
     var helper = sessionHelper;
-    var result = await helper.getElementDeclaration(element.firstFragment);
+    var result = await helper.getFragmentDeclaration(element.firstFragment);
     return result?.node;
   }
 
@@ -684,7 +684,7 @@ class _SignatureUpdater {
 
   /// Returns the resolved unit with [reference].
   Future<ResolvedUnitResult?> referenceUnitResult(SearchMatch reference) async {
-    var element = reference.element2;
+    var element = reference.element;
     return await sessionHelper.getResolvedUnitByElement(element);
   }
 

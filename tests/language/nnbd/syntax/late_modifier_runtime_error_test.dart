@@ -38,34 +38,44 @@ bool isValidError(error, String message) =>
 main() {
   // Static fields.
 
-  Expect.throws(() => A.sf1,
-      (e) => isValidError(e, "Field 'sf1' has not been initialized."));
-  Expect.throws(() => A.sf2,
-      (e) => isValidError(e, "Field 'sf2' has not been initialized."));
+  Expect.throws(
+    () => A.sf1,
+    (e) => isValidError(e, "Field 'sf1' has not been initialized."),
+  );
+  Expect.throws(
+    () => A.sf2,
+    (e) => isValidError(e, "Field 'sf2' has not been initialized."),
+  );
   A.sf2 = 42;
   Expect.throws(() {
     A.sf2 = 2;
   }, (e) => isValidError(e, "Field 'sf2' has already been initialized."));
   Expect.throws(
-      () => A.sf3,
-      (e) => isValidError(
-          e, "Field 'sf3' has been assigned during initialization."));
+    () => A.sf3,
+    (e) =>
+        isValidError(e, "Field 'sf3' has been assigned during initialization."),
+  );
 
   // Instance fields.
 
   A obj = A();
-  Expect.throws(() => obj.f1,
-      (e) => isValidError(e, "Field 'f1' has not been initialized."));
-  Expect.throws(() => obj.f2,
-      (e) => isValidError(e, "Field 'f2' has not been initialized."));
+  Expect.throws(
+    () => obj.f1,
+    (e) => isValidError(e, "Field 'f1' has not been initialized."),
+  );
+  Expect.throws(
+    () => obj.f2,
+    (e) => isValidError(e, "Field 'f2' has not been initialized."),
+  );
   obj.f2 = 42;
   Expect.throws(() {
     obj.f2 = 2;
   }, (e) => isValidError(e, "Field 'f2' has already been initialized."));
   Expect.throws(
-      () => obj.f3,
-      (e) => isValidError(
-          e, "Field 'f3' has been assigned during initialization."));
+    () => obj.f3,
+    (e) =>
+        isValidError(e, "Field 'f3' has been assigned during initialization."),
+  );
 
   // Local variables.
   late int local1;
@@ -89,10 +99,14 @@ main() {
     local1 = -1;
   }
 
-  Expect.throws(() => local1,
-      (e) => isValidError(e, "Local 'local1' has not been initialized."));
-  Expect.throws(() => local2,
-      (e) => isValidError(e, "Local 'local2' has not been initialized."));
+  Expect.throws(
+    () => local1,
+    (e) => isValidError(e, "Local 'local1' has not been initialized."),
+  );
+  Expect.throws(
+    () => local2,
+    (e) => isValidError(e, "Local 'local2' has not been initialized."),
+  );
   // Assignment is conditional to avoid compile-time error "Late final variable
   // 'local2' definitely assigned."
   if (int.parse('1') == 1) {
@@ -102,7 +116,10 @@ main() {
     local2 = 2;
   }, (e) => isValidError(e, "Local 'local2' has already been initialized."));
   Expect.throws(
-      () => local3,
-      (e) => isValidError(
-          e, "Local 'local3' has been assigned during initialization."));
+    () => local3,
+    (e) => isValidError(
+      e,
+      "Local 'local3' has been assigned during initialization.",
+    ),
+  );
 }

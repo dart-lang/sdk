@@ -17,31 +17,27 @@ class C<T> {
 
   /// Check instance tests in isolation
   const C.test1(dynamic x)
-      : isT = x is T,
-        isListT = x is List<T>,
-        t = null,
-        l = null;
+    : isT = x is T,
+      isListT = x is List<T>,
+      t = null,
+      l = null;
 
   /// Check casts to T in isolation
-  const C.test2(dynamic x)
-      : isT = true,
-        isListT = false,
-        t = x as T,
-        l = null;
+  const C.test2(dynamic x) : isT = true, isListT = false, t = x as T, l = null;
 
   /// Check casts to List<T> in isolation
   const C.test3(dynamic x)
-      : isT = false,
-        isListT = true,
-        t = null,
-        l = x as List<T>;
+    : isT = false,
+      isListT = true,
+      t = null,
+      l = x as List<T>;
 
   /// Combine instance checks with casts, conditional expressions, promotion
   const C.test4(dynamic x)
-      : isT = x is T,
-        isListT = x is List<T>,
-        t = (x is T) ? x : null,
-        l = (x is List<T>) ? x : null;
+    : isT = x is T,
+      isListT = x is List<T>,
+      t = (x is T) ? x : null,
+      l = (x is List<T>) ? x : null;
 }
 
 void main() {

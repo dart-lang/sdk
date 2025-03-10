@@ -59,7 +59,9 @@ void simpleTypeTests() {
 
   // FutureOr<T>? is FutureOr<T> if T is nullable
   checkTypeEqualities(
-      $OrNull($FutureOr($OrNull($int))), $FutureOr($OrNull($int)));
+    $OrNull($FutureOr($OrNull($int))),
+    $FutureOr($OrNull($int)),
+  );
 
   // FutureOr<T>? is not FutureOr<T> if T is not nullable
   checkTypeInequalities($OrNull($FutureOr($int)), $FutureOr($int));
@@ -80,33 +82,48 @@ void simpleTypeTests() {
 
   // B Function(A) is D Function(C) if A is C and B is D
   checkTypeEqualities(
-      $Function1(
-          $OrNull($FutureOr($OrNull($Null))), $FutureOr($FutureOr($Object))),
-      $Function1($OrNull($Future($Null)), $Object));
+    $Function1(
+      $OrNull($FutureOr($OrNull($Null))),
+      $FutureOr($FutureOr($Object)),
+    ),
+    $Function1($OrNull($Future($Null)), $Object),
+  );
 
   // B Function({A a}) is D Function({C a}) if A is C and B is D
   checkTypeEqualities(
-      $FunctionOptionalNamedA(
-          $OrNull($FutureOr($OrNull($Null))), $FutureOr($FutureOr($Object))),
-      $FunctionOptionalNamedA($OrNull($Future($Null)), $Object));
+    $FunctionOptionalNamedA(
+      $OrNull($FutureOr($OrNull($Null))),
+      $FutureOr($FutureOr($Object)),
+    ),
+    $FunctionOptionalNamedA($OrNull($Future($Null)), $Object),
+  );
 
   // B Function({A a}) is not D Function({C b}) even if A is C and B is D
   checkTypeInequalities(
-      $FunctionOptionalNamedA(
-          $OrNull($FutureOr($OrNull($Null))), $FutureOr($FutureOr($Object))),
-      $FunctionOptionalNamedB($OrNull($Future($Null)), $Object));
+    $FunctionOptionalNamedA(
+      $OrNull($FutureOr($OrNull($Null))),
+      $FutureOr($FutureOr($Object)),
+    ),
+    $FunctionOptionalNamedB($OrNull($Future($Null)), $Object),
+  );
 
   // B Function({required A a}) is D Function({required C a}) if A is C and B is D
   checkTypeEqualities(
-      $FunctionRequiredNamedA(
-          $OrNull($FutureOr($OrNull($Null))), $FutureOr($FutureOr($Object))),
-      $FunctionRequiredNamedA($OrNull($Future($Null)), $Object));
+    $FunctionRequiredNamedA(
+      $OrNull($FutureOr($OrNull($Null))),
+      $FutureOr($FutureOr($Object)),
+    ),
+    $FunctionRequiredNamedA($OrNull($Future($Null)), $Object),
+  );
 
   // B Function({required A a}) is not D Function({C a}) even if A is C and B is D
   checkTypeInequalities(
-      $FunctionRequiredNamedA(
-          $OrNull($FutureOr($OrNull($Null))), $FutureOr($FutureOr($Object))),
-      $FunctionOptionalNamedA($OrNull($Future($Null)), $Object));
+    $FunctionRequiredNamedA(
+      $OrNull($FutureOr($OrNull($Null))),
+      $FutureOr($FutureOr($Object)),
+    ),
+    $FunctionOptionalNamedA($OrNull($Future($Null)), $Object),
+  );
 }
 
 void main() {

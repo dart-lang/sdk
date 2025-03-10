@@ -4,13 +4,12 @@
 
 library;
 
+import 'package:collection/collection.dart';
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'commandline_options.dart' show Flags;
 import 'util/util.dart';
-
-enum NullSafetyMode { unsound, sound }
 
 enum FeatureStatus { shipped, shipping, canary }
 
@@ -126,8 +125,7 @@ enum CompilerStage {
     return CompilerStage.values.map((p) => '`${p._stageFlag}`').join(', ');
   }
 
-  static CompilerStage fromFlag(String? stageFlag) {
-    if (stageFlag == null) return CompilerStage.all;
+  static CompilerStage _fromFlagString(String stageFlag) {
     for (final stage in CompilerStage.values) {
       if (stageFlag == stage._stageFlag) {
         return stage;
@@ -137,6 +135,24 @@ enum CompilerStage {
       'Invalid stage: $stageFlag. '
       'Supported values are: $validFlagValuesString',
     );
+  }
+
+  /// Can be used from outside the compiler to determine which stage will run
+  /// based on provided flag.
+  ///
+  /// Used for internal build systems.
+  static CompilerStage fromFlag(String? stageFlag) {
+    return stageFlag == null ? CompilerStage.all : _fromFlagString(stageFlag);
+  }
+
+  static CompilerStage fromOptions(CompilerOptions options) {
+    final stageFlag = options._stageFlag;
+    if (stageFlag == null) {
+      return options._dumpInfoFormatOption != null
+          ? CompilerStage.dumpInfoAll
+          : CompilerStage.all;
+    }
+    return _fromFlagString(stageFlag);
   }
 }
 
@@ -289,6 +305,8 @@ abstract class DiagnosticOptions {
   /// Returns `true` if warnings should be should for [uri].
   bool showPackageWarningsFor(Uri uri);
 }
+
+enum DumpInfoFormat { binary, json }
 
 /// Object for passing options to the compiler. Superclasses are used to select
 /// subsets of these options, enabling each part of the compiler to depend on
@@ -470,9 +488,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// a standalone task (without re-emitting JS).
   Uri? _dumpInfoDataUri;
 
-  /// Whether to use the new dump-info binary format. This will be the default
-  /// after a transitional period.
-  bool useDumpInfoBinaryFormat = false;
+  /// Which format the user has chosen to emit dump info in if any.
+  DumpInfoFormat? _dumpInfoFormatOption;
+  DumpInfoFormat get dumpInfoFormat =>
+      _dumpInfoFormatOption ?? DumpInfoFormat.json;
 
   /// If set, SSA intermediate form is dumped for methods with names matching
   /// this RegExp pattern.
@@ -512,13 +531,6 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to generate code containing user's `assert` statements.
   bool enableUserAssertions = false;
-
-  /// Whether to generate code asserting that non-nullable parameters in opt-in
-  /// code are not null. In mixed mode code (some opting into non-nullable, some
-  /// not), null-safety is unsound, allowing `null` values to be assigned to
-  /// variables with non-nullable types. This assertion lets the opt-in code
-  /// operate with a stronger guarantee.
-  bool enableNullAssertions = false;
 
   /// Whether to generate code asserting that non-nullable return values of
   /// `@Native` methods or `JS()` invocations are checked for being non-null.
@@ -657,22 +669,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// migrated to null safety (but before sound null safety is enabled).
   bool experimentNullSafetyChecks = false;
 
-  /// Whether the compiler should emit code with unsound or sound semantics.
-  /// Since Dart 3.0 this is no longer inferred from sources, but defaults to
-  /// sound semantics.
-  ///
-  /// This option should rarely need to be accessed directly. Consider using
-  /// [useLegacySubtyping] instead.
-  NullSafetyMode nullSafetyMode = NullSafetyMode.sound;
-  bool _soundNullSafety = false;
-  bool _noSoundNullSafety = false;
-
   /// Whether to use legacy subtype semantics rather than null-safe semantics.
   /// This is `true` if unsound null-safety semantics are being used, since
   /// dart2js does not emit warnings for unsound null-safety.
-  bool get useLegacySubtyping {
-    return nullSafetyMode == NullSafetyMode.unsound;
-  }
+  bool get useLegacySubtyping => false;
 
   /// If specified, a bundle of optimizations to enable (or disable).
   int? optimizationLevel;
@@ -712,7 +712,7 @@ class CompilerOptions implements DiagnosticOptions {
   late final CompilerStage stage = _calculateStage();
 
   CompilerStage _calculateStage() =>
-      _cfeOnly ? CompilerStage.cfe : CompilerStage.fromFlag(_stageFlag);
+      _cfeOnly ? CompilerStage.cfe : CompilerStage.fromOptions(this);
 
   Uri? _outputUri;
   Uri? outputUri;
@@ -895,9 +895,11 @@ class CompilerOptions implements DiagnosticOptions {
         options,
         '${Flags.dumpInfoDataUri}=',
       )
-      ..useDumpInfoBinaryFormat = _hasOption(
+      .._dumpInfoFormatOption = _extractEnumOption(
         options,
-        "${Flags.dumpInfo}=binary",
+        Flags.dumpInfo,
+        DumpInfoFormat.values,
+        emptyValue: DumpInfoFormat.binary,
       )
       ..dumpSsaPattern = _extractStringOption(
         options,
@@ -914,9 +916,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..enableUserAssertions =
           _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
-      ..enableNullAssertions =
-          _hasOption(options, Flags.enableCheckedMode) ||
-          _hasOption(options, Flags.enableNullAssertions)
       ..nativeNullAssertions = _hasOption(options, Flags.nativeNullAssertions)
       .._noNativeNullAssertions = _hasOption(
         options,
@@ -991,8 +990,6 @@ class CompilerOptions implements DiagnosticOptions {
       .._cfeOnly = _hasOption(options, Flags.cfeOnly)
       .._stageFlag = _extractStringOption(options, '${Flags.stage}=', null)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
-      .._soundNullSafety = _hasOption(options, Flags.soundNullSafety)
-      .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety)
       .._mergeFragmentsThreshold = _extractIntOption(
         options,
         '${Flags.mergeFragmentsThreshold}=',
@@ -1071,12 +1068,6 @@ class CompilerOptions implements DiagnosticOptions {
         equalMaps(experimentalFlags, fe.defaultExperimentalFlags)) {
       throw ArgumentError("Missing required ${Flags.platformBinaries}");
     }
-    if (_soundNullSafety && _noSoundNullSafety) {
-      throw ArgumentError(
-        "'${Flags.soundNullSafety}' is incompatible with "
-        "'${Flags.noSoundNullSafety}'",
-      );
-    }
     if (nativeNullAssertions && _noNativeNullAssertions) {
       throw ArgumentError(
         "'${Flags.nativeNullAssertions}' is incompatible with "
@@ -1089,7 +1080,7 @@ class CompilerOptions implements DiagnosticOptions {
         "'${Flags.noInteropNullAssertions}'",
       );
     }
-    if (nullSafetyMode == NullSafetyMode.sound && experimentNullSafetyChecks) {
+    if (experimentNullSafetyChecks) {
       throw ArgumentError(
         '${Flags.experimentNullSafetyChecks} is incompatible '
         'with sound null safety.',
@@ -1111,9 +1102,6 @@ class CompilerOptions implements DiagnosticOptions {
       // TODO(sra): Use this for some null safety variant.
       features.forceCanary();
     }
-
-    if (_soundNullSafety) nullSafetyMode = NullSafetyMode.sound;
-    if (_noSoundNullSafety) nullSafetyMode = NullSafetyMode.unsound;
 
     if (optimizationLevel != null) {
       if (optimizationLevel == 0) {
@@ -1164,12 +1152,7 @@ class CompilerOptions implements DiagnosticOptions {
       omitLateNames = false;
     }
 
-    if (nullSafetyMode != NullSafetyMode.sound) {
-      // Technically, we should still assert if the user passed in a flag to
-      // assert, but this was not the behavior before, so to avoid a breaking
-      // change, we don't assert in unsound mode.
-      nativeNullAssertions = false;
-    } else if (_noNativeNullAssertions) {
+    if (_noNativeNullAssertions) {
       // Never assert if the user tells us not to.
       nativeNullAssertions = false;
     } else if (!nativeNullAssertions &&
@@ -1268,6 +1251,22 @@ Uri? _extractUriOption(List<String> options, String prefix) {
 int? _extractIntOption(List<String> options, String prefix) {
   String? option = _extractStringOption(options, prefix, null);
   return (option == null) ? null : int.parse(option);
+}
+
+/// Extracts an enum value for the flag given by [prefix].
+///
+/// [emptyValue] is used to provide a default value when the flag is given but
+/// with no '=' value provided.
+T? _extractEnumOption<T extends Enum>(
+  List<String> options,
+  String prefix,
+  List<T> values, {
+  T? emptyValue,
+}) {
+  if (emptyValue != null && _hasOption(options, prefix)) return emptyValue;
+  String? option = _extractStringOption(options, '$prefix=', null);
+  if (option == null) return null;
+  return values.firstWhereOrNull((e) => e.name == option);
 }
 
 bool _hasOption(List<String> options, String option) {

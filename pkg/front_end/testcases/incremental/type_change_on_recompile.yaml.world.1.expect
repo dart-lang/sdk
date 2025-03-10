@@ -17,6 +17,15 @@ library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///lib.dart";
 
+  class A extends main::_A&B&C&D {
+    constructor •(lib::E parameter) → main::A
+      : super main::_A&B&C&D::named(parameter)
+      ;
+  }
+  abstract class C extends dart.core::Object /*isMixinDeclaration*/  {
+  }
+  abstract class D extends dart.core::Object /*isMixinDeclaration*/  {
+  }
   abstract class _A&B&C extends lib::B implements main::C /*isAnonymousMixin,isEliminatedMixin*/  {
     synthetic constructor named(lib::E _field) → main::_A&B&C
       : super lib::B::named(_field)
@@ -26,14 +35,5 @@ library from "org-dartlang-test:///main.dart" as main {
     synthetic constructor named(lib::E _field) → main::_A&B&C&D
       : super main::_A&B&C::named(_field)
       ;
-  }
-  class A extends main::_A&B&C&D {
-    constructor •(lib::E parameter) → main::A
-      : super main::_A&B&C&D::named(parameter)
-      ;
-  }
-  abstract class C extends dart.core::Object /*isMixinDeclaration*/  {
-  }
-  abstract class D extends dart.core::Object /*isMixinDeclaration*/  {
   }
 }

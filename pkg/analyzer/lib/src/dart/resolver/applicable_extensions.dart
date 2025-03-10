@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -18,7 +17,7 @@ import 'package:analyzer/src/generated/inference_log.dart';
 class InstantiatedExtensionWithMember {
   final _NotInstantiatedExtensionWithMember candidate;
   final MapSubstitution substitution;
-  final DartType extendedType;
+  final TypeImpl extendedType;
 
   InstantiatedExtensionWithMember(
     this.candidate,
@@ -43,7 +42,7 @@ class InstantiatedExtensionWithMember {
     return ExecutableMember.from(getter, substitution);
   }
 
-  ExecutableElement2? get setter {
+  ExecutableElement2OrMember? get setter {
     var setter = candidate.setter;
     if (setter == null) {
       return null;
@@ -71,7 +70,7 @@ abstract class _NotInstantiatedExtension<R> {
 
   R instantiate({
     required MapSubstitution substitution,
-    required DartType extendedType,
+    required TypeImpl extendedType,
   });
 }
 
@@ -87,7 +86,7 @@ class _NotInstantiatedExtensionWithMember
   @override
   InstantiatedExtensionWithMember instantiate({
     required MapSubstitution substitution,
-    required DartType extendedType,
+    required TypeImpl extendedType,
   }) {
     return InstantiatedExtensionWithMember(this, substitution, extendedType);
   }

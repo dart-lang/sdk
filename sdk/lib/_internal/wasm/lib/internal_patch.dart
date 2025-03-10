@@ -4,25 +4,35 @@
 
 import 'dart:async';
 import "dart:_js_helper"
-    show JS, JSAnyToExternRef, jsStringFromDartString, jsStringToDartString;
+    show
+        JS,
+        JSAnyToExternRef,
+        jsStringFromDartString,
+        jsStringToDartString,
+        jsUint8ArrayFromDartUint8List;
 import "dart:_js_types" show JSStringImpl;
 import 'dart:_string';
 import 'dart:js_interop'
     show
+        ByteBufferToJSArrayBuffer,
         JSArray,
+        JSFunction,
+        JSFunctionUtilExtension,
         JSString,
         JSArrayToList,
         JSStringToString,
         JSPromise,
         JSPromiseToFuture,
         StringToJSString;
-import 'dart:_js_helper' show JSValue;
+import 'dart:_js_helper' show dartifyRaw, JSValue;
 import 'dart:_js_types';
 import 'dart:_wasm';
+import 'dart:math';
 import 'dart:typed_data' show Uint8List;
 
 part "class_id.dart";
 part "deferred.dart";
+part "dynamic_module.dart";
 part "print_patch.dart";
 part "symbol_patch.dart";
 
@@ -57,9 +67,6 @@ class Lists {
 
 // Base class for any wasm-backed typed data implementation class.
 abstract class WasmTypedDataBase {}
-
-// Base class for any wasm-backed string implementation class.
-abstract class WasmStringBase implements String {}
 
 // This function can be used to skip implicit or explicit checked down casts in
 // the parts of the core library implementation where we know by construction
@@ -200,9 +207,14 @@ external bool get checkBounds;
 /// evaluator, and its value depends on `--minify`.
 external bool get minify;
 
-@patch
-Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
-    throw 'Unsupported operation';
+/// Whether dynamic module support is enabled for this build.
+///
+/// Enables shortcuts in some runtime logic if it is known that no support is
+/// needed for dynamic modules.
+///
+/// Reads of this variable is evaluated before the TFA by the constant
+/// evaluator, and its value depends on `--dynamic-module-main`.
+external bool get hasDynamicModuleSupport;
 
 /// Compiler intrinsic to push an element to a Wasm array in a class field or
 /// variable.

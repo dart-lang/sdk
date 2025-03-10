@@ -3,14 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertIntoGetter extends ResolvedCorrectionProducer {
+  String _memberName = '';
+
   ConvertIntoGetter({required super.context});
 
   @override
@@ -20,7 +24,16 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
           .singleLocation;
 
   @override
+  List<String>? get assistArguments => [_memberName];
+
+  @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_GETTER;
+
+  @override
+  List<String>? get fixArguments => assistArguments;
+
+  @override
+  FixKind get fixKind => DartFixKind.CONVERT_INTO_GETTER;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -43,18 +56,18 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
     if (fieldDeclaration == null) {
       return;
     }
-    // The field must be final and have only one variable.
+    // The field must have only one variable.
     var fieldList = fieldDeclaration.fields;
-    var finalKeyword = fieldList.keyword;
-    if (finalKeyword == null || fieldList.variables.length != 1) {
+    if (fieldList.variables.length != 1) {
       return;
     }
     var field = fieldList.variables.first;
-    // Prepare the initializer.
-    var initializer = field.initializer;
-    if (initializer == null) {
+    _memberName = field.name.lexeme;
+    if (_memberName.isEmpty) {
       return;
     }
+    // Prepare the initializer.
+    var initializer = field.initializer;
     // Add proposal.
     var code = '';
     var typeAnnotation = fieldList.type;
@@ -63,13 +76,25 @@ class ConvertIntoGetter extends ResolvedCorrectionProducer {
     }
     code += 'get';
     code += ' ${field.name.lexeme}';
-    code += ' => ${utils.getNodeText(initializer)}';
-    code += ';';
+    code += ' => ';
 
-    var startingKeyword = fieldList.lateKeyword ?? finalKeyword;
+    var startingKeyword =
+        fieldList.lateKeyword ??
+        fieldList.keyword ??
+        fieldList.type ??
+        field.name;
+
     var replacementRange = range.startEnd(startingKeyword, fieldDeclaration);
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(replacementRange, code);
+      builder.addReplacement(replacementRange, (builder) {
+        builder.write(code);
+        if (initializer == null) {
+          builder.addSimpleLinkedEdit('initializer', 'null');
+          builder.write(';');
+        } else {
+          builder.write('${utils.getNodeText(initializer)};');
+        }
+      });
     });
   }
 }

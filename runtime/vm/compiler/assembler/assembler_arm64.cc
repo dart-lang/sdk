@@ -807,7 +807,11 @@ void Assembler::AddImmediate(Register dest,
     // TODO(zra): Try adding top 12 bits, then bottom 12 bits.
     ASSERT(rn != TMP2);
     LoadImmediate(TMP2, imm);
-    add(dest, rn, Operand(TMP2), sz);
+    if ((dest == CSP) || (rn == CSP)) {
+      add(dest, rn, Operand(TMP2, UXTX, 0), sz);
+    } else {
+      add(dest, rn, Operand(TMP2), sz);
+    }
   }
 }
 
@@ -1560,10 +1564,10 @@ void Assembler::EnterFullSafepoint(Register state) {
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldxr(state, addr);
-  cmp(state, Operand(target::Thread::full_safepoint_state_unacquired()));
+  cmp(state, Operand(target::Thread::native_safepoint_state_unacquired()));
   b(&slow_path, NE);
 
-  movz(state, Immediate(target::Thread::full_safepoint_state_acquired()), 0);
+  movz(state, Immediate(target::Thread::native_safepoint_state_acquired()), 0);
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
@@ -1591,6 +1595,7 @@ void Assembler::TransitionGeneratedToNative(Register destination,
                 target::Thread::exit_through_ffi_offset());
   Register tmp = new_exit_through_ffi;
 
+  VerifyInGenerated(tmp);
   // Mark that the thread is executing native code.
   StoreToOffset(destination, THR, target::Thread::vm_tag_offset());
   LoadImmediate(tmp, target::Thread::native_execution_state());
@@ -1632,10 +1637,11 @@ void Assembler::ExitFullSafepoint(Register state,
   add(addr, THR, Operand(addr));
   Bind(&retry);
   ldxr(state, addr);
-  cmp(state, Operand(target::Thread::full_safepoint_state_acquired()));
+  cmp(state, Operand(target::Thread::native_safepoint_state_acquired()));
   b(&slow_path, NE);
 
-  movz(state, Immediate(target::Thread::full_safepoint_state_unacquired()), 0);
+  movz(state, Immediate(target::Thread::native_safepoint_state_unacquired()),
+       0);
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
@@ -1669,8 +1675,8 @@ void Assembler::TransitionNativeToGenerated(Register state,
     ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
-    ASSERT(target::Thread::full_safepoint_state_acquired() != 0);
-    LoadImmediate(state, target::Thread::full_safepoint_state_acquired());
+    ASSERT(target::Thread::native_safepoint_state_acquired() != 0);
+    LoadImmediate(state, target::Thread::native_safepoint_state_acquired());
     ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
     and_(TMP, TMP, Operand(state));
     Label ok;
@@ -1680,6 +1686,7 @@ void Assembler::TransitionNativeToGenerated(Register state,
 #endif
   }
 
+  VerifyNotInGenerated(TMP);
   // Mark that the thread is executing Dart code.
   if (set_tag) {
     LoadImmediate(state, target::Thread::vm_tag_dart_id());
@@ -1692,6 +1699,32 @@ void Assembler::TransitionNativeToGenerated(Register state,
   StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
   LoadImmediate(state, 0);
   StoreToOffset(state, THR, target::Thread::exit_through_ffi_offset());
+}
+
+void Assembler::VerifyInGenerated(Register scratch) {
+#if defined(DEBUG)
+  // Verify the thread is in generated.
+  Comment("VerifyInGenerated");
+  ldr(scratch, Address(THR, target::Thread::execution_state_offset()));
+  Label ok;
+  CompareImmediate(scratch, target::Thread::generated_execution_state());
+  BranchIf(EQUAL, &ok, Assembler::kNearJump);
+  Breakpoint();
+  Bind(&ok);
+#endif
+}
+
+void Assembler::VerifyNotInGenerated(Register scratch) {
+#if defined(DEBUG)
+  // Verify the thread is in native or VM.
+  Comment("VerifyNotInGenerated");
+  ldr(scratch, Address(THR, target::Thread::execution_state_offset()));
+  CompareImmediate(scratch, target::Thread::generated_execution_state());
+  Label ok;
+  BranchIf(NOT_EQUAL, &ok, Assembler::kNearJump);
+  Breakpoint();
+  Bind(&ok);
+#endif
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,

@@ -229,6 +229,11 @@ void Thread::set_active_exception(const Object& value) {
   active_exception_ = value.ptr();
 }
 
+void Thread::set_active_exception(LocalHandle* value) {
+  active_exception_ = ObjectPtr(reinterpret_cast<uword>(value));
+  ASSERT(active_exception_.IsImmediateObject());  // GC won't try to visit this.
+}
+
 void Thread::set_active_stacktrace(const Object& value) {
   active_stacktrace_ = value.ptr();
 }
@@ -304,7 +309,7 @@ void Thread::AssertEmptyStackInvariants() {
 void Thread::AssertEmptyThreadInvariants() {
   AssertEmptyStackInvariants();
 
-  ASSERT(top_ == 0);
+  ASSERT(top() == 0);
   ASSERT(end_ == 0);
   ASSERT(true_end_ == 0);
   ASSERT(isolate_ == nullptr);
@@ -364,7 +369,7 @@ void Thread::EnterIsolate(Isolate* isolate) {
 
   auto group = isolate->group();
   if (!(is_nested_reenter && isolate->mutator_thread()->OwnsSafepoint())) {
-    group->IncreaseMutatorCount(isolate, is_nested_reenter);
+    group->IncreaseMutatorCount(nullptr, is_nested_reenter, false);
   }
 
   // Two threads cannot enter isolate at same time.
@@ -435,6 +440,8 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
   }
 
   isolate->scheduled_mutator_thread_ = nullptr;
+
+  ASSERT(!ActiveMutatorStolenField::decode(thread->safepoint_state_.load()));
 
   // Right now we keep the [Thread] object across the isolate's lifetime. This
   // makes entering/exiting quite fast as it mainly boils down to safepoint
@@ -1356,6 +1363,11 @@ void Thread::UnwindScopes(uword stack_marker) {
     delete scope;
     scope = api_top_scope_;
   }
+}
+
+void Thread::HandleStolen() {
+  isolate_group()->IncreaseMutatorCount(this, /*is_nested_reenter=*/false,
+                                        /*was_stolen=*/true);
 }
 
 void Thread::EnterSafepointUsingLock() {

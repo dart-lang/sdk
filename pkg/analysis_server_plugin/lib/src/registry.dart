@@ -4,6 +4,7 @@
 
 import 'package:analysis_server_plugin/registry.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -15,6 +16,15 @@ final class PluginRegistryImpl implements PluginRegistry {
   @override
   void registerFixForRule(LintCode code, ProducerGenerator generator) {
     registeredFixGenerators.registerFixForLint(code, generator);
+  }
+
+  /// Registers the "ignore diagnostic" producer generators.
+  void registerIgnoreProducerGenerators() {
+    registeredFixGenerators.ignoreProducerGenerators.addAll([
+      IgnoreDiagnosticOnLine.new,
+      IgnoreDiagnosticInFile.new,
+      IgnoreDiagnosticInAnalysisOptionsFile.new,
+    ]);
   }
 
   @override

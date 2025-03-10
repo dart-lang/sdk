@@ -17,6 +17,7 @@ class FieldFragment
   final int nameOffset;
 
   final int endOffset;
+
   Token? _initializerToken;
   Token? _constInitializerToken;
 
@@ -32,23 +33,31 @@ class FieldFragment
   // fields.
   final bool isPrimaryConstructorField;
 
+  final LookupScope enclosingScope;
+
+  final DeclarationFragment? enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
   SourcePropertyBuilder? _builder;
 
   late final _FieldEncoding _encoding;
 
-  FieldFragment(
-      {required this.name,
-      required this.fileUri,
-      required this.nameOffset,
-      required this.endOffset,
-      required Token? initializerToken,
-      required Token? constInitializerToken,
-      required this.metadata,
-      required this.type,
-      required this.isTopLevel,
-      required this.modifiers,
-      required this.isPrimaryConstructorField})
-      : _initializerToken = initializerToken,
+  FieldFragment({
+    required this.name,
+    required this.fileUri,
+    required this.nameOffset,
+    required this.endOffset,
+    required Token? initializerToken,
+    required Token? constInitializerToken,
+    required this.metadata,
+    required this.type,
+    required this.isTopLevel,
+    required this.modifiers,
+    required this.isPrimaryConstructorField,
+    required this.enclosingScope,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  })  : _initializerToken = initializerToken,
         _constInitializerToken = constInitializerToken;
 
   @override
@@ -209,22 +218,20 @@ class FieldFragment
               .thisInterfaceType(
                   declarationBuilder.cls, libraryBuilder.library.nonNullable)
           : null;
+      LookupScope scope = enclosingScope;
       TypeInferrer typeInferrer =
           libraryBuilder.loader.typeInferenceEngine.createTopLevelTypeInferrer(
               fileUri,
               enclosingClassThisType,
               libraryBuilder,
+              scope,
               builder
                   .dataForTesting
                   // Coverage-ignore(suite): Not run.
                   ?.inferenceData);
       BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
       BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
-          libraryBuilder,
-          bodyBuilderContext,
-          declarationBuilder?.scope ?? libraryBuilder.scope,
-          typeInferrer,
-          fileUri);
+          libraryBuilder, bodyBuilderContext, scope, typeInferrer, fileUri);
       bodyBuilder.constantContext =
           modifiers.isConst ? ConstantContext.inferred : ConstantContext.none;
       bodyBuilder.inFieldInitializer = true;
@@ -286,13 +293,12 @@ class FieldFragment
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       List<Annotatable> annotatables,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
-      _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
+      _buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
           bodyBuilderContext, annotatable, metadata,
           fileUri: fileUri, createFileUriExpression: createFileUriExpression);
     }
@@ -306,7 +312,7 @@ class FieldFragment
                 (declarationBuilder as SourceClassBuilder)
                     .declaresConstConstructor)) &&
         token != null) {
-      LookupScope scope = declarationBuilder?.scope ?? libraryBuilder.scope;
+      LookupScope scope = enclosingScope;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
               libraryBuilder, createBodyBuilderContext(), scope, fileUri);

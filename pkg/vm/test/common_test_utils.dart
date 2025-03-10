@@ -27,33 +27,39 @@ const kUpdateExpectations = 'updateExpectations';
 /// Environment define to dump actual results alongside expectations.
 const kDumpActualResult = 'dump.actual.result';
 
-Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
-    {required Target target,
-    List<String>? experimentalFlags,
-    Map<String, String>? environmentDefines,
-    Uri? packagesFileUri,
-    List<Uri>? linkedDependencies}) async {
+Future<Component> compileTestCaseToKernelProgram(
+  Uri sourceUri, {
+  required Target target,
+  List<String>? experimentalFlags,
+  Map<String, String>? environmentDefines,
+  Uri? packagesFileUri,
+  List<Uri>? linkedDependencies,
+}) async {
   Directory? tempDirectory;
   try {
-    final platformFileName = (target is WasmTarget)
-        ? target.platformFile
-        : 'vm_platform_strong.dill';
-    final platformKernel =
-        computePlatformBinariesLocation().resolve(platformFileName);
+    final platformFileName =
+        (target is WasmTarget)
+            ? target.platformFile
+            : 'vm_platform_strong.dill';
+    final platformKernel = computePlatformBinariesLocation().resolve(
+      platformFileName,
+    );
     environmentDefines ??= <String, String>{};
-    final options = new CompilerOptions()
-      ..target = target
-      ..additionalDills = <Uri>[platformKernel]
-      ..environmentDefines = environmentDefines
-      ..packagesFileUri = packagesFileUri
-      ..explicitExperimentalFlags =
-          parseExperimentalFlags(parseExperimentalArguments(experimentalFlags),
-              onError: (String message) {
-        throw message;
-      })
-      ..onDiagnostic = (DiagnosticMessage message) {
-        fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
-      };
+    final options =
+        new CompilerOptions()
+          ..target = target
+          ..additionalDills = <Uri>[platformKernel]
+          ..environmentDefines = environmentDefines
+          ..packagesFileUri = packagesFileUri
+          ..explicitExperimentalFlags = parseExperimentalFlags(
+            parseExperimentalArguments(experimentalFlags),
+            onError: (String message) {
+              throw message;
+            },
+          )
+          ..onDiagnostic = (DiagnosticMessage message) {
+            fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
+          };
     if (linkedDependencies != null) {
       final Component component =
           (await kernelForModule(linkedDependencies, options)).component!;
@@ -87,8 +93,10 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
 /// Extra libraries apart from the main library are passed to the front-end as
 /// additional dills, which places them last in the library list, causing them
 /// to have very high (and often changing) selector IDs.
-String kernelLibraryToString(Library library,
-    {bool removeSelectorIds = false}) {
+String kernelLibraryToString(
+  Library library, {
+  bool removeSelectorIds = false,
+}) {
   final StringBuffer buffer = new StringBuffer();
   final printer = new Printer(buffer, showMetadata: true);
   printer.writeLibraryFile(library);
@@ -110,9 +118,10 @@ String kernelComponentToString(Component component) {
   final StringBuffer buffer = new StringBuffer();
   new Printer(buffer, showMetadata: true).writeComponentFile(component);
   final mainLibrary = component.mainMethod!.enclosingLibrary;
-  return buffer
-      .toString()
-      .replaceAll(mainLibrary.importUri.toString(), mainLibrary.name!);
+  return buffer.toString().replaceAll(
+    mainLibrary.importUri.toString(),
+    mainLibrary.name!,
+  );
 }
 
 class DevNullSink<T> implements Sink<T> {
@@ -145,9 +154,10 @@ Difference findFirstDifference(String actual, String expected) {
     }
   }
   return new Difference(
-      i + 1,
-      i < actualLines.length ? actualLines[i] : '<END>',
-      i < expectedLines.length ? expectedLines[i] : '<END>');
+    i + 1,
+    i < actualLines.length ? actualLines[i] : '<END>',
+    i < expectedLines.length ? expectedLines[i] : '<END>',
+  );
 }
 
 void compareResultWithExpectationsFile(

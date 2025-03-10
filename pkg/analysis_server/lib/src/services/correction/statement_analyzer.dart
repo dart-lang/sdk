@@ -6,6 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/iterable.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -95,8 +96,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   void visitDoStatement(DoStatement node) {
     super.visitDoStatement(node);
-    var selectedNodes = this.selectedNodes;
-    if (_contains(selectedNodes, node.body)) {
+    if (selectedNodes.contains(node.body)) {
       invalidSelection(
         "Operation not applicable to a 'do' statement's body and expression.",
       );
@@ -111,17 +111,17 @@ class StatementAnalyzer extends SelectionAnalyzer {
       var selectedNodes = this.selectedNodes;
       bool containsInit;
       if (forLoopParts is ForPartsWithExpression) {
-        containsInit = _contains(selectedNodes, forLoopParts.initialization);
+        containsInit = selectedNodes.contains(forLoopParts.initialization);
       } else if (forLoopParts is ForPartsWithDeclarations) {
-        containsInit = _contains(selectedNodes, forLoopParts.variables);
+        containsInit = selectedNodes.contains(forLoopParts.variables);
       } else if (forLoopParts is ForPartsWithPattern) {
-        containsInit = _contains(selectedNodes, forLoopParts.variables);
+        containsInit = selectedNodes.contains(forLoopParts.variables);
       } else {
         throw StateError('Unrecognized for loop parts');
       }
-      var containsCondition = _contains(selectedNodes, forLoopParts.condition);
-      var containsUpdaters = _containsAny(selectedNodes, forLoopParts.updaters);
-      var containsBody = _contains(selectedNodes, node.body);
+      var containsCondition = selectedNodes.contains(forLoopParts.condition);
+      var containsUpdaters = selectedNodes.containsAny(forLoopParts.updaters);
+      var containsBody = selectedNodes.contains(node.body);
       if (containsInit && containsCondition) {
         invalidSelection(
           "Operation not applicable to a 'for' statement's initializer and condition.",
@@ -181,9 +181,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   void visitWhileStatement(WhileStatement node) {
     super.visitWhileStatement(node);
-    var selectedNodes = this.selectedNodes;
-    if (_contains(selectedNodes, node.condition) &&
-        _contains(selectedNodes, node.body)) {
+    if (selectedNodes.contains(node.condition) &&
+        selectedNodes.contains(node.body)) {
       invalidSelection(
         "Operation not applicable to a while statement's expression and body.",
       );
@@ -230,20 +229,6 @@ class StatementAnalyzer extends SelectionAnalyzer {
     var fullText = resolveResult.content;
     var rangeText = fullText.substring(range.offset, range.end);
     return _getTokens(rangeText, resolveResult.unit.featureSet).isNotEmpty;
-  }
-
-  /// Returns `true` if [nodes] contains [node].
-  static bool _contains(List<AstNode> nodes, AstNode? node) =>
-      nodes.contains(node);
-
-  /// Returns `true` if [nodes] contains one of the [otherNodes].
-  static bool _containsAny(List<AstNode> nodes, List<AstNode> otherNodes) {
-    for (var otherNode in otherNodes) {
-      if (nodes.contains(otherNode)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

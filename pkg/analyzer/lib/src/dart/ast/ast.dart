@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -51,6 +50,7 @@ import 'package:meta/meta.dart';
 ///
 ///    adjacentStrings ::=
 ///        [StringLiteral] [StringLiteral]+
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AdjacentStrings implements StringLiteral {
   /// The strings that are implicitly concatenated.
   NodeList<StringLiteral> get strings;
@@ -108,6 +108,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
 
 /// An AST node that can be annotated with either a documentation comment, a
 /// list of annotations (metadata), or both.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AnnotatedNode implements AstNode {
   /// The documentation comment associated with this node, or `null` if this
   /// node doesn't have a documentation comment associated with it.
@@ -194,6 +195,7 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl with _AnnotatedNodeMixin {
 ///        [Identifier]
 ///      | qualifiedName
 ///      | constructorDesignation argumentPart
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Annotation implements AstNode {
   /// The arguments to the constructor being invoked, or `null` if this
   /// annotation isn't the invocation of a constructor.
@@ -208,6 +210,7 @@ abstract final class Annotation implements AstNode {
 
   /// The element associated with this annotation, or `null` if the AST
   /// structure hasn't been resolved or if this annotation couldn't be resolved.
+  @Deprecated('Use element2 instead')
   Element? get element;
 
   /// The element associated with this annotation.
@@ -259,7 +262,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   ArgumentListImpl? _arguments;
 
-  Element? _element;
+  Element2? _element2;
 
   @override
   ElementAnnotationImpl? elementAnnotation;
@@ -308,30 +311,24 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     _constructorName = _becomeParentOf(name);
   }
 
+  @Deprecated('Use element2 instead')
   @override
   Element? get element {
-    if (_element case var element?) {
-      return element;
-    } else if (_constructorName == null) {
-      return _name.staticElement;
-    }
-    return null;
+    return element2?.asElement;
   }
 
-  set element(Element? element) {
-    _element = element;
-  }
-
-  @experimental
   @override
   Element2? get element2 {
-    var element = this.element;
-    if (element case Fragment fragment) {
-      return fragment.element;
-    } else if (element case Element2 element) {
+    if (_element2 case var element?) {
       return element;
+    } else if (_constructorName == null) {
+      return _name.element;
     }
     return null;
+  }
+
+  set element2(Element2? value) {
+    _element2 = value;
   }
 
   @override
@@ -393,6 +390,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 ///    arguments ::=
 ///        [NamedExpression] (',' [NamedExpression])*
 ///      | [Expression] (',' [Expression])* (',' [NamedExpression])*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ArgumentList implements AstNode {
   /// The expressions producing the values of the arguments.
   ///
@@ -455,10 +453,15 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     _correspondingStaticParameters = parameters;
   }
 
-  List<FormalParameterElement?>? get correspondingStaticParameters2 =>
+  List<FormalParameterElementMixin?>? get correspondingStaticParameters2 =>
       _correspondingStaticParameters
           ?.map((parameter) => parameter?.asElement2)
           .toList();
+
+  set correspondingStaticParameters2(
+      List<FormalParameterElementMixin?>? value) {
+    _correspondingStaticParameters = value?.map((e) => e?.asElement).toList();
+  }
 
   @override
   Token get endToken => rightParenthesis;
@@ -507,6 +510,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 ///
 ///    asExpression ::=
 ///        [Expression] 'as' [TypeAnnotation]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AsExpression implements Expression {
   /// The `as` operator.
   Token get asOperator;
@@ -585,6 +589,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 ///
 ///    assertInitializer ::=
 ///        'assert' '(' [Expression] (',' [Expression])? ')'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssertInitializer
     implements Assertion, ConstructorInitializer {}
 
@@ -660,6 +665,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
 }
 
 /// An assertion, either in a block or in the initializer list of a constructor.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Assertion implements AstNode {
   /// The token representing the `assert` keyword.
   Token get assertKeyword;
@@ -686,6 +692,7 @@ abstract final class Assertion implements AstNode {
 ///
 ///    assertStatement ::=
 ///        'assert' '(' [Expression] (',' [Expression])? ')' ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssertStatement implements Assertion, Statement {
   /// The semicolon terminating the statement.
   Token get semicolon;
@@ -770,12 +777,14 @@ final class AssertStatementImpl extends StatementImpl
 /// A variable pattern in [PatternAssignment].
 ///
 ///    variablePattern ::= identifier
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssignedVariablePattern implements VariablePattern {
   /// The element referenced by this pattern, or `null` if either [name] doesn't
   /// resolve to an element or the AST structure hasn't been resolved.
   ///
   /// In valid code this is either a [LocalVariableElement] or a
   /// [ParameterElement].
+  @Deprecated('Use element2 instead')
   Element? get element;
 
   /// The element referenced by this pattern.
@@ -792,7 +801,7 @@ abstract final class AssignedVariablePattern implements VariablePattern {
 final class AssignedVariablePatternImpl extends VariablePatternImpl
     implements AssignedVariablePattern {
   @override
-  Element? element;
+  Element2? element2;
 
   AssignedVariablePatternImpl({
     required super.name,
@@ -801,10 +810,10 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   @override
   Token get beginToken => name;
 
-  @experimental
+  @Deprecated('Use element2 instead')
   @override
-  Element2? get element2 {
-    return element.asElement2;
+  Element? get element {
+    return element2.asElement;
   }
 
   @override
@@ -851,6 +860,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 ///
 ///    assignmentExpression ::=
 ///        [Expression] operator [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssignmentExpression
     implements
         NullShortableExpression,
@@ -877,7 +887,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   ExpressionImpl _rightHandSide;
 
   @override
-  MethodElement? staticElement;
+  MethodElementOrMember? staticElement;
 
   /// Initializes a newly created assignment expression.
   AssignmentExpressionImpl({
@@ -895,9 +905,9 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => staticElement?.asElement2;
+  MethodElement2OrMember? get element => staticElement?.asElement2;
 
-  set element(MethodElement2? element) {
+  set element(MethodElement2OrMember? element) {
     staticElement = element?.asElement;
   }
 
@@ -933,25 +943,25 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// right operand is bound, or `null` if the AST structure is not resolved or
   /// the function being invoked is not known based on static type information.
-  ParameterElementMixin? get _staticParameterElementForRightHandSide {
-    Element? executableElement;
+  FormalParameterElementMixin? get _staticParameterElementForRightHandSide {
+    Element2? executableElement;
     if (operator.type != TokenType.EQ) {
-      executableElement = staticElement;
+      executableElement = element;
     } else {
-      executableElement = writeElement;
+      executableElement = writeElement2;
     }
 
-    if (executableElement is ExecutableElement) {
-      List<ParameterElement> parameters = executableElement.parameters;
-      if (parameters.isEmpty) {
+    if (executableElement is ExecutableElement2) {
+      var formalParameters = executableElement.formalParameters;
+      if (formalParameters.isEmpty) {
         return null;
       }
       if (operator.type == TokenType.EQ && leftHandSide is IndexExpression) {
-        return parameters.length == 2
-            ? (parameters[1] as ParameterElementMixin)
+        return formalParameters.length == 2
+            ? (formalParameters[1] as FormalParameterElementMixin)
             : null;
       }
-      return parameters[0] as ParameterElementMixin;
+      return formalParameters[0] as FormalParameterElementMixin;
     }
 
     return null;
@@ -978,6 +988,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 }
 
 /// A node in the AST structure for a Dart program.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AstNode implements SyntacticEntity {
   /// A comparator that can be used to sort AST nodes in lexical order.
   ///
@@ -1192,6 +1203,7 @@ base mixin AstNodeWithNameScopeMixin on AstNodeImpl {
 ///   and
 /// - ThrowingAstVisitor which implements every visit method by throwing an
 ///   exception.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract class AstVisitor<R> {
   R? visitAdjacentStrings(AdjacentStrings node);
 
@@ -1548,38 +1560,40 @@ abstract class AstVisitor<R> {
 ///
 /// Augmenting getters: `augmented` invokes the getter and evaluates to the
 /// return value.
-/// The [element] is the augmented getter.
+/// The [fragment] is the augmented getter.
 /// The [staticType] is the return type of the getter.
 ///
 /// Augmenting setters: `augmented` must be followed by an `=`, and will
 /// directly invoke the augmented setter.
-/// The [element] is the augmented setter.
+/// The [fragment] is the augmented setter.
 /// The [staticType] is meaningless, and set to `null`.
 ///
 /// Augmenting fields: `augmented` can only be used in an initializer
 /// expression, and refers to the original field's initializer expression.
-/// The [element] is the augmented field.
+/// The [fragment] is the augmented field.
 /// The [staticType] is the type of the field.
 ///
 /// Augmenting binary operators: `augmented` must be the LHS, and followed by
 /// the argument, e.g. `augmented + 1`.
-/// The [element] is the augmented [MethodElement].
+/// The [fragment] is the augmented [MethodFragment].
 /// The [staticType] is the type of `this`.
 ///
 /// Augmenting index operators: `augmented` must be the index target,
 /// e.g. `augmented[0]`.
-/// The [element] is the augmented [MethodElement].
+/// The [fragment] is the augmented [MethodFragment].
 /// The [staticType] is the type of `this`.
 ///
 /// Augmenting prefix operators: `augmented` must be the target, e.g.
 /// `~augmented`.
-/// The [element] is the augmented [MethodElement].
+/// The [fragment] is the augmented [MethodFragment].
 /// The [staticType] is the type of `this`.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AugmentedExpression implements Expression {
   /// The 'augmented' keyword.
   Token get augmentedKeyword;
 
   /// The referenced augmented element: getter, setter, variable.
+  @Deprecated('Use fragment instead')
   Element? get element;
 
   /// The referenced augmented fragment: getter, setter, variable.
@@ -1593,7 +1607,7 @@ final class AugmentedExpressionImpl extends ExpressionImpl
   final Token augmentedKeyword;
 
   @override
-  Element? element;
+  Fragment? fragment;
 
   AugmentedExpressionImpl({
     required this.augmentedKeyword,
@@ -1602,16 +1616,12 @@ final class AugmentedExpressionImpl extends ExpressionImpl
   @override
   Token get beginToken => augmentedKeyword;
 
+  @Deprecated('Use fragment instead')
+  @override
+  Element? get element => fragment as Element?;
+
   @override
   Token get endToken => augmentedKeyword;
-
-  @experimental
-  @override
-  Fragment? get fragment => element as Fragment?;
-
-  set fragment(Fragment? value) {
-    element = value as Element?;
-  }
 
   @override
   bool get isAssignable => true;
@@ -1641,6 +1651,7 @@ final class AugmentedExpressionImpl extends ExpressionImpl
 ///
 ///    augmentedInvocation ::=
 ///        'augmented' [TypeArgumentList]? [ArgumentList]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AugmentedInvocation implements Expression {
   /// The list of value arguments.
   ArgumentList get arguments;
@@ -1649,16 +1660,15 @@ abstract final class AugmentedInvocation implements Expression {
   Token get augmentedKeyword;
 
   /// The referenced augmented element: function, constructor, or method.
+  @Deprecated('Use fragment instead')
   ExecutableElement? get element;
 
   /// The referenced augmented element: function, constructor, or method.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// fragment is the first fragment in the chain.
-  // TODO(brianwilkerson): Consider resolving this to a fragment rather than an
-  //  element. In this case I think that's closer to the right semantics.
   @experimental
-  ExecutableElement2? get element2;
+  ExecutableFragment? get fragment;
 
   /// The list of type arguments.
   ///
@@ -1672,7 +1682,7 @@ final class AugmentedInvocationImpl extends ExpressionImpl
   final Token augmentedKeyword;
 
   @override
-  ExecutableElement? element;
+  ExecutableFragment? fragment;
 
   @override
   final TypeArgumentListImpl? typeArguments;
@@ -1692,9 +1702,9 @@ final class AugmentedInvocationImpl extends ExpressionImpl
   @override
   Token get beginToken => augmentedKeyword;
 
-  @experimental
+  @Deprecated('Use fragment instead')
   @override
-  ExecutableElement2? get element2 => (element as ExecutableFragment?)?.element;
+  ExecutableElement? get element => fragment as ExecutableElement?;
 
   @override
   Token get endToken => arguments.endToken;
@@ -1729,6 +1739,7 @@ final class AugmentedInvocationImpl extends ExpressionImpl
 ///
 ///    awaitExpression ::=
 ///        'await' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AwaitExpression implements Expression {
   /// The `await` keyword.
   Token get awaitKeyword;
@@ -1793,6 +1804,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
 ///
 ///    binaryExpression ::=
 ///        [Expression] [Token] [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BinaryExpression
     implements Expression, MethodReferenceExpression {
   /// The expression used to compute the left operand.
@@ -1819,10 +1831,10 @@ final class BinaryExpressionImpl extends ExpressionImpl
   ExpressionImpl _rightOperand;
 
   @override
-  MethodElement? staticElement;
+  MethodElement2? element;
 
   @override
-  FunctionType? staticInvokeType;
+  FunctionTypeImpl? staticInvokeType;
 
   /// Initializes a newly created binary expression.
   BinaryExpressionImpl({
@@ -1837,10 +1849,6 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken => _leftOperand.beginToken;
-
-  @experimental
-  @override
-  MethodElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => _rightOperand.endToken;
@@ -1861,6 +1869,10 @@ final class BinaryExpressionImpl extends ExpressionImpl
   set rightOperand(ExpressionImpl expression) {
     _rightOperand = _becomeParentOf(expression);
   }
+
+  @Deprecated('Use element instead')
+  @override
+  MethodElement? get staticElement => element?.asElement;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -1887,6 +1899,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
 ///
 ///    block ::=
 ///        '{' statement* '}'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Block implements Statement {
   /// The left curly bracket.
   Token get leftBracket;
@@ -1902,6 +1915,7 @@ abstract final class Block implements Statement {
 ///
 ///    blockFunctionBody ::=
 ///        ('async' | 'async' '*' | 'sync' '*')? [Block]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BlockFunctionBody implements FunctionBody {
   /// The block representing the body of the function.
   Block get block;
@@ -1969,7 +1983,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitBlockFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -2026,6 +2040,7 @@ final class BlockImpl extends StatementImpl
 ///
 ///    booleanLiteral ::=
 ///        'false' | 'true'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BooleanLiteral implements Literal {
   /// The token representing the literal.
   Token get literal;
@@ -2078,6 +2093,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 ///
 ///    breakStatement ::=
 ///        'break' [SimpleIdentifier]? ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BreakStatement implements Statement {
   /// The token representing the `break` keyword.
   Token get breakKeyword;
@@ -2170,6 +2186,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 ///    cascadeSelector ::=
 ///        '[ ' expression '] '
 ///      | identifier
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CascadeExpression
     implements Expression, NullShortableExpression {
   /// The cascade sections sharing the common target.
@@ -2258,6 +2275,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
 ///
 ///    caseClause ::=
 ///        'case' [GuardedPattern]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CaseClause implements AstNode {
   /// The token representing the `case` keyword.
   Token get caseKeyword;
@@ -2308,6 +2326,7 @@ sealed class CaseNodeImpl implements AstNode {
 ///
 ///    castPattern ::=
 ///        [DartPattern] 'as' [TypeAnnotation]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CastPattern implements DartPattern {
   /// The `as` token.
   Token get asToken;
@@ -2406,6 +2425,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
 ///
 ///    catchPart ::=
 ///        'catch' '(' [CatchClauseParameter] (',' [CatchClauseParameter])? ')'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CatchClause implements AstNode {
   /// The body of the catch block.
   Block get body;
@@ -2563,8 +2583,10 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 }
 
 /// An 'exception' or 'stackTrace' parameter in [CatchClause].
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CatchClauseParameter extends AstNode {
   /// The declared element, or `null` if the AST hasn't been resolved.
+  @Deprecated('Use declaredElement2 instead')
   LocalVariableElement? get declaredElement;
 
   /// The declared element.
@@ -2572,6 +2594,12 @@ abstract final class CatchClauseParameter extends AstNode {
   /// Returns `null` if the AST hasn't been resolved.
   @experimental
   LocalVariableElement2? get declaredElement2;
+
+  /// The declared fragment.
+  ///
+  /// Returns `null` if the AST hasn't been resolved.
+  @experimental
+  LocalVariableFragment? get declaredFragment;
 
   /// The name of the parameter.
   Token get name;
@@ -2583,7 +2611,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   final Token name;
 
   @override
-  LocalVariableElementImpl? declaredElement;
+  LocalVariableElementImpl? declaredFragment;
 
   CatchClauseParameterImpl({
     required this.name,
@@ -2592,10 +2620,15 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   @override
   Token get beginToken => name;
 
-  @experimental
+  @Deprecated('Use fragment instead')
+  @override
+  LocalVariableElementImpl? get declaredElement {
+    return declaredFragment;
+  }
+
   @override
   LocalVariableElementImpl2? get declaredElement2 {
-    return declaredElement.asElement2 as LocalVariableElementImpl2?;
+    return declaredFragment?.element;
   }
 
   @override
@@ -2702,6 +2735,7 @@ class ChildEntity {
 ///    classModifiers ::= 'sealed'
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
 ///      | 'abstract'? 'base'? 'mixin'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   /// The `abstract` keyword, or `null` if the keyword was absent.
   Token? get abstractKeyword;
@@ -2716,6 +2750,7 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   /// The token representing the `class` keyword.
   Token get classKeyword;
 
+  @Deprecated('Use declaredFragment instead')
   @override
   ClassElement? get declaredElement;
 
@@ -2824,7 +2859,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  ClassElementImpl? declaredElement;
+  ClassElementImpl? declaredFragment;
 
   ClassDeclarationImpl({
     required super.comment,
@@ -2856,9 +2891,10 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     this.members._initialize(this, members);
   }
 
+  @Deprecated('Use declaredFragment instead')
   @experimental
   @override
-  ClassElementImpl? get declaredFragment => declaredElement;
+  ClassElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken => rightBracket;
@@ -2913,6 +2949,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 
 /// A node that declares a name within the scope of a class, enum, extension,
 /// extension type, or mixin declaration.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassMember implements Declaration {}
 
 sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
@@ -2938,6 +2975,7 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
 ///
 ///    mixinApplication ::=
 ///        [NamedType] [WithClause] [ImplementsClause]? ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ClassTypeAlias implements TypeAlias {
   /// The token for the `abstract` keyword, or `null` if this isn't defining an
   /// abstract class.
@@ -2946,6 +2984,7 @@ abstract final class ClassTypeAlias implements TypeAlias {
   /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
 
+  @Deprecated('Use declaredFragment instead')
   @override
   ClassElement? get declaredElement;
 
@@ -3014,7 +3053,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   ImplementsClauseImpl? _implementsClause;
 
   @override
-  ClassElementImpl? declaredElement;
+  ClassElementImpl? declaredFragment;
 
   /// Initializes a newly created class type alias.
   ///
@@ -3056,9 +3095,9 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     _becomeParentOf(_implementsClause);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  ClassElementImpl? get declaredFragment => declaredElement;
+  ClassElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -3131,6 +3170,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 }
 
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class CollectionElement implements AstNode {}
 
 sealed class CollectionElementImpl extends AstNodeImpl
@@ -3146,6 +3186,7 @@ sealed class CollectionElementImpl extends AstNodeImpl
 ///    combinator ::=
 ///        [HideCombinator]
 ///      | [ShowCombinator]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Combinator implements AstNode {
   /// The `hide` or `show` keyword specifying what kind of processing is to be
   /// done on the names.
@@ -3181,6 +3222,7 @@ sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
 ///    documentationComment ::=
 ///        '/ **' (CHARACTER | [CommentReference])* '&#42;/'
 ///      | ('///' (CHARACTER - EOL)* EOL)+
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Comment implements AstNode {
   /// The markdown code blocks (both fenced and indented) contained in this
   /// comment.
@@ -3280,6 +3322,7 @@ final class CommentImpl extends AstNodeImpl
 /// This interface should align closely with dartdoc's notion of
 /// comment-referable expressions at:
 /// https://github.com/dart-lang/dartdoc/blob/master/lib/src/comment_references/parser.dart
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CommentReferableExpression implements Expression {}
 
 sealed class CommentReferableExpressionImpl extends ExpressionImpl
@@ -3289,6 +3332,7 @@ sealed class CommentReferableExpressionImpl extends ExpressionImpl
 ///
 ///    commentReference ::=
 ///        '[' 'new'? [CommentReferableExpression] ']'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CommentReference implements AstNode {
   /// The comment-referable expression being referenced.
   CommentReferableExpression get expression;
@@ -3367,6 +3411,7 @@ final class CommentReferenceImpl extends AstNodeImpl
 ///
 ///    declarations ::=
 ///        [CompilationUnitMember]*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CompilationUnit implements AstNode {
   /// The first (non-EOF) token in the token stream that was parsed to form this
   /// compilation unit.
@@ -3378,6 +3423,7 @@ abstract final class CompilationUnit implements AstNode {
 
   /// The element associated with this compilation unit, or `null` if the AST
   /// structure hasn't been resolved.
+  @Deprecated('Use declaredFragment instead')
   CompilationUnitElement? get declaredElement;
 
   /// The fragment associated with this compilation unit.
@@ -3439,7 +3485,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   final Token endToken;
 
   @override
-  CompilationUnitElementImpl? declaredElement;
+  CompilationUnitElementImpl? declaredFragment;
 
   @override
   final LineInfo lineInfo;
@@ -3487,9 +3533,11 @@ final class CompilationUnitImpl extends AstNodeImpl
   @override
   NodeListImpl<CompilationUnitMemberImpl> get declarations => _declarations;
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  LibraryFragment? get declaredFragment => declaredElement as LibraryFragment?;
+  CompilationUnitElementImpl? get declaredElement {
+    return declaredFragment;
+  }
 
   @override
   NodeListImpl<DirectiveImpl> get directives => _directives;
@@ -3584,6 +3632,7 @@ final class CompilationUnitImpl extends AstNodeImpl
 ///      | [TypeAlias]
 ///      | [FunctionDeclaration]
 ///      | [TopLevelVariableDeclaration]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CompilationUnitMember implements Declaration {}
 
 sealed class CompilationUnitMemberImpl extends DeclarationImpl
@@ -3606,6 +3655,7 @@ sealed class CompilationUnitMemberImpl extends DeclarationImpl
 /// happens in an [AssignmentExpression] when the assignment operator is a
 /// compound assignment operator, and in a [PrefixExpression] or
 /// [PostfixExpression] when the operator is an increment operator.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CompoundAssignmentExpression implements Expression {
   /// The element that is used to read the value, or `null` if this node isn't a
   /// compound assignment, if the AST structure hasn't been resolved, or if the
@@ -3617,6 +3667,7 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// In invalid code this element is `null`. For example, in `int += 2`, for
   /// recovery purposes, [writeElement] is filled, and can be used for
   /// navigation.
+  @Deprecated('Use readElement2 instead')
   Element? get readElement;
 
   /// The element that is used to read the value.
@@ -3628,12 +3679,12 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// [FormalParameterElement], or a [GetterElement].
   ///
   /// In invalid code this element is `null`. For example, in `int += 2`. In
-  /// such cases, for recovery purposes, [writeElement] is filled, and can be
+  /// such cases, for recovery purposes, [writeElement2] is filled, and can be
   /// used for navigation.
   @experimental
   Element2? get readElement2;
 
-  /// The type of the value read with the [readElement], or `null` if this node
+  /// The type of the value read with the [readElement2], or `null` if this node
   /// isn't a compound assignment.
   ///
   /// Returns the type `dynamic` if the code is invalid, if the AST structure
@@ -3653,6 +3704,7 @@ abstract final class CompoundAssignmentExpression implements Expression {
   ///
   /// If this node is a compound assignment, e. g. `x += 2`, both [readElement]
   /// and [writeElement] could be non-`null`.
+  @Deprecated('Use writeElement2 instead')
   Element? get writeElement;
 
   /// The element that is used to write the result.
@@ -3669,7 +3721,7 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// add the corresponding setter.
   ///
   /// If this node is a compound assignment, such as `x += y`, both
-  /// [readElement] and [writeElement] could be non-`null`.
+  /// [readElement2] and [writeElement2] could be non-`null`.
   @experimental
   Element2? get writeElement2;
 
@@ -3684,10 +3736,10 @@ abstract final class CompoundAssignmentExpression implements Expression {
 base mixin CompoundAssignmentExpressionImpl
     implements CompoundAssignmentExpression {
   @override
-  Element? readElement;
+  Element2? readElement2;
 
   @override
-  Element? writeElement;
+  Element2? writeElement2;
 
   @override
   TypeImpl? readType;
@@ -3695,26 +3747,22 @@ base mixin CompoundAssignmentExpressionImpl
   @override
   TypeImpl? writeType;
 
-  @experimental
+  @Deprecated('Use readElement2 instead')
   @override
-  Element2? get readElement2 {
-    if (readElement is Fragment) {
-      return (readElement as Fragment).element;
-    } else if (readElement is Element2) {
-      return readElement as Element2;
-    }
-    return null;
+  Element? get readElement {
+    return readElement2?.asElement;
   }
 
-  @experimental
+  @Deprecated('Use readElement2 instead')
   @override
-  Element2? get writeElement2 => writeElement.asElement2;
+  Element? get writeElement => writeElement2.asElement;
 }
 
 /// A conditional expression.
 ///
 ///    conditionalExpression ::=
 ///        [Expression] '?' [Expression] ':' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConditionalExpression implements Expression {
   /// The token used to separate the then expression from the else expression.
   Token get colon;
@@ -3826,6 +3874,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
 ///
 ///    dottedName ::=
 ///        identifier ('.' identifier)*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Configuration implements AstNode {
   /// The token for the equal operator, or `null` if the condition doesn't
   /// include an equality test.
@@ -3943,7 +3992,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
 }
 
 final class ConstantContextForExpressionImpl extends AstNodeImpl {
-  final Element variable;
+  final Fragment variable;
   final ExpressionImpl expression;
 
   ConstantContextForExpressionImpl(this.variable, this.expression) {
@@ -3975,6 +4024,7 @@ final class ConstantContextForExpressionImpl extends AstNodeImpl {
 ///
 ///    constantPattern ::=
 ///        'const'? [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstantPattern implements DartPattern {
   /// The `const` keyword, or `null` if the expression isn't preceded by the
   /// keyword `const`.
@@ -4070,6 +4120,7 @@ final class ConstantPatternImpl extends DartPatternImpl
 ///
 ///    initializerList ::=
 ///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorDeclaration implements ClassMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
@@ -4081,6 +4132,7 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// const constructor.
   Token? get constKeyword;
 
+  @Deprecated('Use declaredFragment instead')
   @override
   ConstructorElement? get declaredElement;
 
@@ -4161,7 +4213,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   FunctionBodyImpl _body;
 
   @override
-  ConstructorElementImpl? declaredElement;
+  ConstructorElementImpl? declaredFragment;
 
   /// Initializes a newly created constructor declaration.
   ///
@@ -4221,10 +4273,9 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     _body = _becomeParentOf(functionBody);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  ConstructorElementImpl? get declaredFragment =>
-      declaredElement as ConstructorElementImpl;
+  ConstructorElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken {
@@ -4309,6 +4360,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 ///
 ///    fieldInitializer ::=
 ///        ('this' '.')? [SimpleIdentifier] '=' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorFieldInitializer
     implements ConstructorInitializer {
   /// The token for the equal sign between the field name and the expression.
@@ -4410,6 +4462,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 ///        [SuperConstructorInvocation]
 ///      | [ConstructorFieldInitializer]
 ///      | [RedirectingConstructorInvocation]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ConstructorInitializer implements AstNode {}
 
 sealed class ConstructorInitializerImpl extends AstNodeImpl
@@ -4419,6 +4472,7 @@ sealed class ConstructorInitializerImpl extends AstNodeImpl
 ///
 ///    constructorName ::=
 ///        type ('.' identifier)?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorName
     implements AstNode, ConstructorReferenceNode {
   /// The name of the constructor, or `null` if the specified constructor is the
@@ -4442,7 +4496,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   SimpleIdentifierImpl? _name;
 
   @override
-  ConstructorElement? staticElement;
+  ConstructorElementMixin2? element;
 
   /// Initializes a newly created constructor name.
   ///
@@ -4461,14 +4515,6 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @override
   Token get beginToken => _type.beginToken;
 
-  @experimental
-  @override
-  ConstructorElement2? get element => staticElement?.asElement2;
-
-  set element(ConstructorElement2? element) {
-    staticElement = element?.asElement;
-  }
-
   @override
   Token get endToken {
     if (name case var name?) {
@@ -4483,6 +4529,10 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   set name(SimpleIdentifierImpl? name) {
     _name = _becomeParentOf(name);
   }
+
+  @Deprecated('Use element instead')
+  @override
+  ConstructorElementMixin? get staticElement => element?.asElement;
 
   @override
   NamedTypeImpl get type => _type;
@@ -4514,6 +4564,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 /// Objects of this type aren't produced directly by the parser (because the
 /// parser can't tell whether an identifier refers to a type); they are
 /// produced at resolution time.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorReference
     implements Expression, CommentReferableExpression {
   /// The constructor being referenced.
@@ -4566,6 +4617,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
 }
 
 /// An AST node that makes reference to a constructor.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorReferenceNode implements AstNode {
   /// The element associated with the referenced constructor based on static
   /// type information.
@@ -4578,6 +4630,7 @@ abstract final class ConstructorReferenceNode implements AstNode {
   /// The element associated with the referenced constructor based on static
   /// type information, or `null` if the AST structure hasn't been resolved or
   /// if the constructor couldn't be resolved.
+  @Deprecated('Use element instead')
   ConstructorElement? get staticElement;
 }
 
@@ -4585,6 +4638,7 @@ abstract final class ConstructorReferenceNode implements AstNode {
 ///
 ///    constructorSelector ::=
 ///        '.' identifier
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorSelector implements AstNode {
   /// The constructor name.
   SimpleIdentifier get name;
@@ -4632,6 +4686,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 ///
 ///    continueStatement ::=
 ///        'continue' [SimpleIdentifier]? ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ContinueStatement implements Statement {
   /// The token representing the `continue` keyword.
   Token get continueKeyword;
@@ -4724,6 +4779,7 @@ final class ContinueStatementImpl extends StatementImpl
 ///      | [ParenthesizedPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class DartPattern implements AstNode, ListPatternElement {
   /// The matched value type, or `null` if the node isn't resolved yet.
   DartType? get matchedValueType;
@@ -4802,10 +4858,12 @@ sealed class DartPatternImpl extends AstNodeImpl
 /// A node that represents the declaration of one or more names.
 ///
 /// Each declared name is visible within a name scope.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Declaration implements AnnotatedNode {
   /// The element associated with this declaration, or `null` if either this
   /// node corresponds to a list of declarations or if the AST structure hasn't
   /// been resolved.
+  @Deprecated('Use declaredFragment instead')
   Element? get declaredElement;
 
   /// The fragment declared by this declaration.
@@ -4830,7 +4888,9 @@ sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
 ///
 ///    declaredIdentifier ::=
 ///        [Annotation] finalConstVarOrType [SimpleIdentifier]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DeclaredIdentifier implements Declaration {
+  @Deprecated('Use declaredFragment instead')
   @override
   LocalVariableElement? get declaredElement;
 
@@ -4876,7 +4936,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   final Token name;
 
   @override
-  LocalVariableElementImpl? declaredElement;
+  LocalVariableElementImpl? declaredFragment;
 
   /// Initializes a newly created formal parameter.
   ///
@@ -4896,14 +4956,15 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
     _becomeParentOf(_type);
   }
 
+  @Deprecated('Use declaredFragment instead')
+  @override
+  LocalVariableElementImpl? get declaredElement => declaredFragment;
+
   @experimental
   @override
   LocalVariableElementImpl2? get declaredElement2 {
-    return declaredElement.asElement2 as LocalVariableElementImpl2?;
+    return declaredFragment?.element;
   }
-
-  @override
-  LocalVariableFragment? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => name;
@@ -4946,9 +5007,11 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 ///
 ///    variablePattern ::=
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class DeclaredVariablePattern implements VariablePattern {
   /// The element associated with this declaration, or `null` if the AST
   /// structure hasn't been resolved.
+  @Deprecated('Use declaredFragment instead')
   BindPatternVariableElement? get declaredElement;
 
   /// The element declared by this declaration.
@@ -4956,6 +5019,11 @@ sealed class DeclaredVariablePattern implements VariablePattern {
   /// Returns `null` if the AST structure hasn't been resolved.
   @experimental
   BindPatternVariableElement2? get declaredElement2;
+
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  BindPatternVariableFragment? get declaredFragment;
 
   /// The `var` or `final` keyword.
   Token? get keyword;
@@ -4968,7 +5036,7 @@ sealed class DeclaredVariablePattern implements VariablePattern {
 final class DeclaredVariablePatternImpl extends VariablePatternImpl
     implements DeclaredVariablePattern {
   @override
-  BindPatternVariableElementImpl? declaredElement;
+  BindPatternVariableElementImpl? declaredFragment;
 
   @override
   final Token? keyword;
@@ -4987,10 +5055,16 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   @override
   Token get beginToken => keyword ?? type?.beginToken ?? name;
 
+  @Deprecated('Use declaredFragment instead')
+  @override
+  BindPatternVariableElementImpl? get declaredElement {
+    return declaredFragment;
+  }
+
   @experimental
   @override
   BindPatternVariableElementImpl2? get declaredElement2 {
-    return declaredElement?.element;
+    return declaredFragment?.element;
   }
 
   @override
@@ -5036,9 +5110,9 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
         context,
         this,
         declaredElement2!,
-        declaredElement!.name,
+        declaredFragment!.name3!,
         type?.typeOrThrow.wrapSharedTypeView());
-    declaredElement!.type = result.staticType.unwrapTypeView();
+    declaredElement2!.type = result.staticType.unwrapTypeView();
 
     resolverVisitor.checkPatternNeverMatchesValueType(
       context: context,
@@ -5067,6 +5141,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 ///
 ///    defaultNamedParameter ::=
 ///        [NormalFormalParameter] (':' [Expression])?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DefaultFormalParameter implements FormalParameter {
   /// The expression computing the default value for the parameter, or `null` if
   /// there's no default value.
@@ -5113,12 +5188,13 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
   @override
   Token? get covariantKeyword => null;
 
+  @Deprecated('Use declaredFragment instead')
   @override
   ParameterElementImpl? get declaredElement => _parameter.declaredElement;
 
   @experimental
   @override
-  FormalParameterFragment? get declaredFragment => _parameter.declaredFragment;
+  ParameterElementImpl? get declaredFragment => _parameter.declaredFragment;
 
   @override
   ExpressionImpl? get defaultValue => _defaultValue;
@@ -5185,9 +5261,11 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 ///      | [LibraryDirective]
 ///      | [PartDirective]
 ///      | [PartOfDirective]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Directive implements AnnotatedNode {
   /// The element associated with this directive, or `null` if the AST structure
   /// hasn't been resolved or if this directive couldn't be resolved.
+  @Deprecated('Use directive specific getters')
   Element? get element;
 }
 
@@ -5215,6 +5293,7 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
 ///
 ///    doStatement ::=
 ///        'do' [Statement] 'while' '(' [Expression] ')' ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DoStatement implements Statement {
   /// The body of the loop.
   Statement get body;
@@ -5317,6 +5396,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 ///
 ///    dottedName ::=
 ///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DottedName implements AstNode {
   /// The components of the identifier.
   NodeList<SimpleIdentifier> get components;
@@ -5365,6 +5445,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
 ///
 ///    exponent ::=
 ///        ('e' | 'E') ('+' | '-')? decimalDigit+
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DoubleLiteral implements Literal {
   /// The token representing the literal.
   Token get literal;
@@ -5416,6 +5497,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
 ///
 ///    emptyFunctionBody ::=
 ///        ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EmptyFunctionBody implements FunctionBody {
   /// The token representing the semicolon that marks the end of the function
   /// body.
@@ -5446,7 +5528,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitEmptyFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -5459,6 +5541,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
 ///
 ///    emptyStatement ::=
 ///        ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EmptyStatement implements Statement {
   /// The semicolon terminating the statement.
   Token get semicolon;
@@ -5499,6 +5582,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 ///
 ///    enumConstantArguments ::=
 ///        [TypeArgumentList]? [ConstructorSelector]? [ArgumentList]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EnumConstantArguments implements AstNode {
   /// The explicit arguments (there are always implicit `index` and `name`
   /// leading arguments) to the invoked constructor.
@@ -5561,6 +5645,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 }
 
 /// The declaration of an enum constant.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EnumConstantDeclaration implements Declaration {
   /// The explicit arguments (there are always implicit `index` and `name`
   /// leading arguments) to the invoked constructor, or `null` if this constant
@@ -5574,6 +5659,7 @@ abstract final class EnumConstantDeclaration implements Declaration {
   /// The constructor that is invoked by this enum constant, or `null` if the
   /// AST structure hasn't been resolved, or if the constructor couldn't be
   /// resolved.
+  @Deprecated('Use constructorElement2 instead')
   ConstructorElement? get constructorElement;
 
   /// The constructor that's invoked by this enum constant.
@@ -5583,6 +5669,7 @@ abstract final class EnumConstantDeclaration implements Declaration {
   @experimental
   ConstructorElement2? get constructorElement2;
 
+  @Deprecated('Use constructorElement2 instead')
   @override
   FieldElement? get declaredElement;
 
@@ -5603,13 +5690,13 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   final Token name;
 
   @override
-  FieldElementImpl? declaredElement;
+  FieldElementImpl? declaredFragment;
 
   @override
   final EnumConstantArgumentsImpl? arguments;
 
   @override
-  ConstructorElement? constructorElement;
+  ConstructorElementMixin2? constructorElement2;
 
   /// Initializes a newly created enum constant declaration.
   ///
@@ -5625,14 +5712,14 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
     _becomeParentOf(arguments);
   }
 
-  @experimental
+  @Deprecated('Use constructorElement2 instead')
   @override
-  ConstructorElement2? get constructorElement2 =>
-      constructorElement?.asElement2;
+  ConstructorElementMixin? get constructorElement =>
+      constructorElement2?.asElement;
 
-  @experimental
+  @Deprecated('Use constructorElement2 instead')
   @override
-  FieldFragment? get declaredFragment => declaredElement as FieldFragment?;
+  FieldElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken => arguments?.endToken ?? name;
@@ -5663,6 +5750,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 ///        metadata 'enum' name [TypeParameterList]?
 ///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EnumDeclaration implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
@@ -5671,6 +5759,7 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
   /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
 
+  @Deprecated('Use declaredFragment instead')
   @override
   EnumElement? get declaredElement;
 
@@ -5735,7 +5824,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  EnumElementImpl? declaredElement;
+  EnumElementImpl? declaredFragment;
 
   /// Initializes a newly created enumeration declaration.
   ///
@@ -5770,9 +5859,9 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   NodeListImpl<EnumConstantDeclarationImpl> get constants => _constants;
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  EnumElementImpl? get declaredFragment => declaredElement;
+  EnumElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken => rightBracket;
@@ -5837,9 +5926,11 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 ///
 ///    exportDirective ::=
 ///        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExportDirective implements NamespaceDirective {
   /// The element associated with this directive, or `null` if the AST structure
   /// hasn't been resolved.
+  @Deprecated('Use libraryExport instead')
   @override
   LibraryExportElement? get element;
 
@@ -5874,6 +5965,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
     required super.semicolon,
   });
 
+  @Deprecated('Use libraryExport instead')
   @override
   LibraryExportElementImpl? get element {
     return super.element as LibraryExportElementImpl?;
@@ -5884,7 +5976,9 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @experimental
   @override
-  LibraryExport? get libraryExport => element as LibraryExport?;
+  LibraryExportElementImpl? get libraryExport {
+    return _element as LibraryExportElementImpl?;
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -5911,6 +6005,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 ///        [AssignmentExpression]
 ///      | [ConditionalExpression] cascadeSection*
 ///      | [ThrowExpression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Expression implements CollectionElement {
   /// The parameter element representing the parameter to which the value of
   /// this expression is bound.
@@ -5969,6 +6064,7 @@ abstract final class Expression implements CollectionElement {
   /// - the function being invoked is known based on static type information
   /// - this expression corresponds to one of the parameters of the function
   ///   being invoked
+  @Deprecated('Use correspondingParameter instead')
   ParameterElement? get staticParameterElement;
 
   /// The static type of this expression, or `null` if the AST structure hasn't
@@ -5985,6 +6081,7 @@ abstract final class Expression implements CollectionElement {
 ///
 ///    expressionFunctionBody ::=
 ///        'async'? '=>' [Expression] ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExpressionFunctionBody implements FunctionBody {
   /// The expression representing the body of the function.
   Expression get expression;
@@ -6086,7 +6183,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
       visitor.visitExpressionFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitExpressionFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -6101,9 +6198,9 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @experimental
   @override
-  FormalParameterElement? get correspondingParameter {
+  FormalParameterElementMixin? get correspondingParameter {
     return switch (staticParameterElement) {
-      FormalParameterFragment(:var element) => element,
+      ParameterElementImpl(:var element) => element,
       ParameterMember member => member,
       _ => null,
     };
@@ -6124,31 +6221,29 @@ sealed class ExpressionImpl extends AstNodeImpl
       return parent._getStaticParameterElementFor(this);
     } else if (parent is IndexExpressionImpl) {
       if (identical(parent.index, this)) {
-        return parent._staticParameterElementForIndex;
+        return parent._staticParameterElementForIndex?.asElement;
       }
     } else if (parent is BinaryExpressionImpl) {
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49102
       if (identical(parent.rightOperand, this)) {
         var parameters = parent.staticInvokeType?.parameters;
         if (parameters != null && parameters.isNotEmpty) {
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `BinaryExpressionImpl.staticInvokeType` to `FunctionTypeImpl`.
-          return parameters[0] as ParameterElementMixin;
+          return parameters[0];
         }
         return null;
       }
     } else if (parent is AssignmentExpressionImpl) {
       if (identical(parent.rightHandSide, this)) {
-        return parent._staticParameterElementForRightHandSide;
+        return parent._staticParameterElementForRightHandSide?.asElement;
       }
     } else if (parent is PrefixExpressionImpl) {
       // TODO(scheglov): This doesn't look right, there's no element for
       // the operand, for `a++` we invoke `a = a + 1`, so the parameter
       // is for `1`, not for `a`.
-      return parent._staticParameterElementForOperand;
+      return parent._staticParameterElementForOperand2?.asElement;
     } else if (parent is PostfixExpressionImpl) {
       // TODO(scheglov): The same as above.
-      return parent._staticParameterElementForOperand;
+      return parent._staticParameterElementForOperand2?.asElement;
     }
     return null;
   }
@@ -6271,6 +6366,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 ///
 ///    expressionStatement ::=
 ///        [Expression]? ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExpressionStatement implements Statement {
   /// The expression that comprises the statement.
   Expression get expression;
@@ -6335,6 +6431,7 @@ final class ExpressionStatementImpl extends StatementImpl
 ///
 ///    extendsClause ::=
 ///        'extends' [NamedType]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtendsClause implements AstNode {
   /// The token representing the `extends` keyword.
   Token get extendsKeyword;
@@ -6390,11 +6487,13 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///        'extension' [SimpleIdentifier]? [TypeParameterList]?
 ///        'on' [TypeAnnotation] [ShowClause]? [HideClause]?
 ///        '{' [ClassMember]* '}'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
   Token? get augmentKeyword;
 
+  @Deprecated('Use declaredFragment instead')
   @override
   ExtensionElement? get declaredElement;
 
@@ -6457,7 +6556,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  ExtensionElementImpl? declaredElement;
+  ExtensionElementImpl? declaredFragment;
 
   ExtensionDeclarationImpl({
     required super.comment,
@@ -6477,10 +6576,9 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     _members._initialize(this, members);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  ExtensionFragment? get declaredFragment =>
-      declaredElement as ExtensionFragment?;
+  ExtensionElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken => rightBracket;
@@ -6526,6 +6624,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 /// The `on` clause in an extension declaration.
 ///
 ///    onClause ::= 'on' [TypeAnnotation]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionOnClause implements AstNode {
   /// The extended type.
   TypeAnnotation get extendedType;
@@ -6576,6 +6675,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
 ///
 ///    extensionOverride ::=
 ///        [Identifier] [TypeArgumentList]? [ArgumentList]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionOverride implements Expression {
   /// The list of arguments to the override.
   ///
@@ -6584,6 +6684,7 @@ abstract final class ExtensionOverride implements Expression {
   ArgumentList get argumentList;
 
   /// The forced extension element.
+  @Deprecated('Use element2 instead')
   ExtensionElement get element;
 
   /// The extension that resolution will use to resolve member references.
@@ -6625,7 +6726,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   final Token name;
 
   @override
-  final ExtensionElement element;
+  final ExtensionElementImpl2 element2;
 
   TypeArgumentListImpl? _typeArguments;
 
@@ -6635,14 +6736,14 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   List<DartType>? typeArgumentTypes;
 
   @override
-  DartType? extendedType;
+  TypeImpl? extendedType;
 
   ExtensionOverrideImpl({
     required this.importPrefix,
     required this.name,
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
-    required this.element,
+    required this.element2,
   })  : _typeArguments = typeArguments,
         _argumentList = argumentList {
     _becomeParentOf(importPrefix);
@@ -6660,10 +6761,9 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   Token get beginToken => importPrefix?.name ?? name;
 
-  @experimental
+  @Deprecated('Use element2 instead')
   @override
-  ExtensionElementImpl2 get element2 =>
-      (element as ExtensionElementImpl).element;
+  ExtensionElementImpl get element => element2.firstFragment;
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -6719,6 +6819,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 ///            (<metadata> <extensionTypeMemberDeclaration>)*
 ///        '}'
 @experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionTypeDeclaration
     implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -6728,6 +6829,7 @@ abstract final class ExtensionTypeDeclaration
   /// The `const` keyword.
   Token? get constKeyword;
 
+  @Deprecated('Use declaredFragment instead')
   @override
   ExtensionTypeElement? get declaredElement;
 
@@ -6794,7 +6896,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  ExtensionTypeElementImpl? declaredElement;
+  ExtensionTypeElementImpl? declaredFragment;
 
   ExtensionTypeDeclarationImpl({
     required super.comment,
@@ -6817,9 +6919,9 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     this.members._initialize(this, members);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  ExtensionTypeElementImpl? get declaredFragment => declaredElement;
+  ExtensionTypeElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken => rightBracket;
@@ -6875,6 +6977,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
 /// (Note: there's no `<fieldDeclaration>` production in the grammar; this is a
 /// subset of the grammar production `<declaration>`, which encompasses
 /// everything that can appear inside a class declaration except methods).
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FieldDeclaration implements ClassMember {
   /// The `abstract` keyword, or `null` if the keyword isn't used.
   Token? get abstractKeyword;
@@ -6945,6 +7048,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
     _becomeParentOf(_fieldList);
   }
 
+  @Deprecated('Use declaredFragment instead')
   @override
   Element? get declaredElement => null;
 
@@ -6997,6 +7101,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 ///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' |
 ///        [TypeAnnotation])?
 ///        'this' '.' name ([TypeParameterList]? [FormalParameterList])?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FieldFormalParameter implements NormalFormalParameter {
   @experimental
   @override
@@ -7171,6 +7276,7 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
 }
 
 /// The parts of a for-each loop that control the iteration.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ForEachParts implements ForLoopParts {
   /// The token representing the `in` keyword.
   Token get inKeyword;
@@ -7223,6 +7329,7 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
 ///
 ///   forLoopParts ::=
 ///       [DeclaredIdentifier] 'in' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForEachPartsWithDeclaration implements ForEachParts {
   /// The declaration of the loop variable.
   DeclaredIdentifier get loopVariable;
@@ -7273,6 +7380,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 ///
 ///   forLoopParts ::=
 ///       [SimpleIdentifier] 'in' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForEachPartsWithIdentifier implements ForEachParts {
   /// The loop variable.
   SimpleIdentifier get identifier;
@@ -7322,6 +7430,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 ///
 ///    forEachPartsWithPattern ::=
 ///        ( 'final' | 'var' ) [DartPattern] 'in' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForEachPartsWithPattern implements ForEachParts {
   /// The `var` or `final` keyword introducing the pattern.
   Token get keyword;
@@ -7397,6 +7506,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 }
 
 /// The basic structure of a for element.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForElement implements CollectionElement {
   /// The token representing the `await` keyword, or `null` if there was no
   /// `await` keyword.
@@ -7507,6 +7617,7 @@ final class ForElementImpl extends CollectionElementImpl
 ///
 ///   expressionList ::=
 ///       [Expression] (',' [Expression])*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ForLoopParts implements AstNode {}
 
 sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
@@ -7516,12 +7627,14 @@ sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 ///    formalParameter ::=
 ///        [NormalFormalParameter]
 ///      | [DefaultFormalParameter]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class FormalParameter implements AstNode {
   /// The `covariant` keyword, or `null` if the keyword isn't used.
   Token? get covariantKeyword;
 
   /// The element representing this parameter, or `null` if this parameter
   /// hasn't been resolved.
+  @Deprecated('Use declaredFragment instead')
   ParameterElement? get declaredElement;
 
   ///The fragment declared by this parameter.
@@ -7594,13 +7707,13 @@ sealed class FormalParameter implements AstNode {
 
 sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
-  @override
-  ParameterElementImpl? declaredElement;
-
   @experimental
   @override
-  FormalParameterFragment? get declaredFragment =>
-      declaredElement as FormalParameterFragment?;
+  ParameterElementImpl? declaredFragment;
+
+  @Deprecated('Use declaredFragment instead')
+  @override
+  ParameterElementImpl? get declaredElement => declaredFragment;
 
   @override
   bool get isNamed => kind.isNamed;
@@ -7659,6 +7772,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
 ///
 ///    namedFormalParameters ::=
 ///        '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FormalParameterList implements AstNode {
   /// The left square bracket ('[') or left curly brace ('{') introducing the
   /// optional or named parameters, or `null` if there are neither optional nor
@@ -7672,6 +7786,7 @@ abstract final class FormalParameterList implements AstNode {
   ///
   /// The list contains `null`s if the parameters in this list haven't been
   /// resolved.
+  @Deprecated('Use parameterFragments instead')
   List<ParameterElement?> get parameterElements;
 
   /// A list containing the fragments representing the parameters in this list.
@@ -7731,11 +7846,11 @@ final class FormalParameterListImpl extends AstNodeImpl
   Token get endToken => rightParenthesis;
 
   @override
-  List<ParameterElement?> get parameterElements {
+  List<ParameterElementImpl?> get parameterElements {
     int count = _parameters.length;
-    var types = <ParameterElement?>[];
+    var types = <ParameterElementImpl?>[];
     for (int i = 0; i < count; i++) {
-      types.add(_parameters[i].declaredElement);
+      types.add(_parameters[i].declaredFragment);
     }
     return types;
   }
@@ -7781,6 +7896,7 @@ final class FormalParameterListImpl extends AstNodeImpl
 ///   forLoopParts ::=
 ///       [VariableDeclaration] ';' [Expression]? ';' expressionList?
 ///     | [Expression]? ';' [Expression]? ';' expressionList?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ForParts implements ForLoopParts {
   /// The condition used to determine when to terminate the loop, or `null` if
   /// there's no condition.
@@ -7856,6 +7972,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
 ///
 ///   forLoopParts ::=
 ///       [VariableDeclarationList] ';' [Expression]? ';' expressionList?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForPartsWithDeclarations implements ForParts {
   /// The declaration of the loop variables.
   VariableDeclarationList get variables;
@@ -7911,6 +8028,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
 ///
 ///   forLoopParts ::=
 ///       [Expression]? ';' [Expression]? ';' expressionList?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForPartsWithExpression implements ForParts {
   /// The initialization expression, or `null` if there's no initialization
   /// expression.
@@ -7969,6 +8087,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
 ///
 ///   forLoopParts ::=
 ///       [PatternVariableDeclaration] ';' [Expression]? ';' expressionList?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForPartsWithPattern implements ForParts {
   /// The declaration of the loop variables.
   PatternVariableDeclaration get variables;
@@ -8017,6 +8136,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
 ///     | [Expression]? ';' [Expression]? ';' expressionList?
 ///     | [DeclaredIdentifier] 'in' [Expression]
 ///     | [SimpleIdentifier] 'in' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForStatement implements Statement {
   /// The token representing the `await` keyword, or `null` if there's no
   /// `await` keyword.
@@ -8117,6 +8237,7 @@ final class ForStatementImpl extends StatementImpl
 ///      | [EmptyFunctionBody]
 ///      | [ExpressionFunctionBody]
 ///      | [NativeFunctionBody]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class FunctionBody implements AstNode {
   /// Whether this function body is asynchronous.
   bool get isAsynchronous;
@@ -8144,6 +8265,7 @@ sealed class FunctionBody implements AstNode {
   /// level function or method containing this [FunctionBody], return `false`.
   ///
   /// Throws an exception if resolution hasn't been performed.
+  @Deprecated('Use isPotentiallyMutatedInScope2 instead')
   bool isPotentiallyMutatedInScope(VariableElement variable);
 
   /// If [variable] is a local variable or parameter declared anywhere within
@@ -8184,33 +8306,26 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   @override
   Token? get star => null;
 
+  @Deprecated('Use isPotentiallyMutatedInScope2 instead')
   @override
   bool isPotentiallyMutatedInScope(VariableElement variable) {
+    var v2 = (variable as VariableElementImpl).element;
+    return isPotentiallyMutatedInScope2(v2);
+  }
+
+  @override
+  bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
     if (localVariableInfo == null) {
       throw StateError('Resolution has not been performed');
     }
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
   }
 
-  @experimental
-  @override
-  bool isPotentiallyMutatedInScope2(VariableElement2 variable) {
-    return switch (variable) {
-      LocalVariableElementImpl2() =>
-        isPotentiallyMutatedInScope(variable.wrappedElement),
-      VariableElement() =>
-        isPotentiallyMutatedInScope(variable as VariableElement),
-      FormalParameterElement(:VariableElement firstFragment) =>
-        isPotentiallyMutatedInScope(firstFragment),
-      _ => false,
-    };
-  }
-
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
   /// return type context for `return` statements.
   ///
   /// Returns value is the actual return type of the method.
-  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType);
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType);
 }
 
 /// A function declaration.
@@ -8228,6 +8343,7 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 //  augmented and declarations that can't be augmented. This results in getters
 //  that are only sometimes applicable. Consider changing the class hierarchy so
 //  that these two kinds of variables can be distinguished.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if there is no `augment` keyword.
   @experimental
@@ -8237,6 +8353,7 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents a top-level function.
+  @Deprecated('Use declaredFragment instead')
   @override
   ExecutableElement? get declaredElement;
 
@@ -8286,7 +8403,7 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   FunctionExpressionImpl _functionExpression;
 
   @override
-  ExecutableElementImpl? declaredElement;
+  ExecutableElementImpl? declaredFragment;
 
   /// Initializes a newly created function declaration.
   ///
@@ -8315,13 +8432,10 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     _becomeParentOf(_functionExpression);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  ExecutableFragment? get declaredFragment {
-    if (declaredElement case ExecutableFragment fragment) {
-      return fragment;
-    }
-    return null;
+  ExecutableElementImpl? get declaredElement {
+    return declaredFragment;
   }
 
   @override
@@ -8377,6 +8491,7 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
 }
 
 /// A [FunctionDeclaration] used as a statement.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionDeclarationStatement implements Statement {
   /// The function declaration being wrapped.
   FunctionDeclaration get functionDeclaration;
@@ -8424,12 +8539,14 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
 ///
 ///    functionExpression ::=
 ///        [TypeParameterList]? [FormalParameterList] [FunctionBody]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionExpression implements Expression {
   /// The body of the function.
   FunctionBody get body;
 
   /// The element associated with the function, or `null` if the AST structure
   /// hasn't been resolved.
+  @Deprecated('Use declaredFragment instead')
   ExecutableElement? get declaredElement;
 
   /// The fragment declared by this function expression.
@@ -8465,9 +8582,6 @@ final class FunctionExpressionImpl extends ExpressionImpl
   bool wasFunctionTypeSupplied = false;
 
   @override
-  ExecutableElementImpl? declaredElement;
-
-  @override
   ExecutableElementImpl? declaredFragment;
 
   /// Initializes a newly created function declaration.
@@ -8499,6 +8613,10 @@ final class FunctionExpressionImpl extends ExpressionImpl
   set body(FunctionBodyImpl functionBody) {
     _body = _becomeParentOf(functionBody);
   }
+
+  @Deprecated('Use declaredFragment instead')
+  @override
+  ExecutableElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken {
@@ -8552,6 +8670,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 ///
 ///    functionExpressionInvocation ::=
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionExpressionInvocation
     implements NullShortableExpression, InvocationExpression {
   /// The element associated with the function being invoked based on static
@@ -8569,6 +8688,7 @@ abstract final class FunctionExpressionInvocation
   /// The element associated with the function being invoked based on static
   /// type information, or `null` if the AST structure hasn't been resolved or
   /// the function couldn't be resolved.
+  @Deprecated('Use element instead')
   ExecutableElement? get staticElement;
 }
 
@@ -8578,7 +8698,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   ExpressionImpl _function;
 
   @override
-  ExecutableElement? staticElement;
+  ExecutableElement2? element;
 
   /// Initializes a newly created function expression invocation.
   FunctionExpressionInvocationImpl({
@@ -8592,12 +8712,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @override
   Token get beginToken => _function.beginToken;
 
-  @experimental
-  @override
-  ExecutableElement2? get element {
-    return staticElement?.asElement2;
-  }
-
   @override
   Token get endToken => _argumentList.endToken;
 
@@ -8610,6 +8724,12 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @override
   Precedence get precedence => Precedence.postfix;
+
+  @Deprecated('Use element instead')
+  @override
+  ExecutableElement? get staticElement {
+    return element?.asElement;
+  }
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -8645,6 +8765,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 /// arguments applied to it.
 ///
 /// For example, the expression `print` in `var x = print;`.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionReference
     implements Expression, CommentReferableExpression {
   /// The function being referenced.
@@ -8677,7 +8798,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   TypeArgumentListImpl? _typeArguments;
 
   @override
-  List<DartType>? typeArgumentTypes;
+  List<TypeImpl>? typeArgumentTypes;
 
   FunctionReferenceImpl({
     required ExpressionImpl function,
@@ -8740,7 +8861,9 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 ///
 ///    functionPrefix ::=
 ///        [TypeAnnotation]? [SimpleIdentifier]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionTypeAlias implements TypeAlias {
+  @Deprecated('Use declaredFragment instead')
   @override
   TypeAliasElement? get declaredElement;
 
@@ -8769,7 +8892,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   FormalParameterListImpl _parameters;
 
   @override
-  TypeAliasElementImpl? declaredElement;
+  TypeAliasElementImpl? declaredFragment;
 
   /// Initializes a newly created function type alias.
   ///
@@ -8797,9 +8920,9 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
     _becomeParentOf(_parameters);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  TypeAliasElementImpl? get declaredFragment => declaredElement;
+  TypeAliasElementImpl? get declaredElement => declaredFragment;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -8849,6 +8972,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 ///    functionSignature ::=
 ///        [TypeAnnotation]? name [TypeParameterList]?
 ///        [FormalParameterList] '?'?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionTypedFormalParameter
     implements NormalFormalParameter {
   @override
@@ -8994,7 +9118,13 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 ///        optionalPositionalParameterTypes | namedParameterTypes
 ///    optionalPositionalParameterTypes ::=
 ///        [ normalParameterTypes ,? ]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class GenericFunctionType implements TypeAnnotation {
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  GenericFunctionTypeFragment? get declaredFragment;
+
   /// The `Function` keyword.
   Token get functionKeyword;
 
@@ -9030,7 +9160,8 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   /// The element associated with the function type, or `null` if the AST
   /// structure hasn't been resolved.
-  GenericFunctionTypeElementImpl? declaredElement;
+  @override
+  GenericFunctionTypeElementImpl? declaredFragment;
 
   /// Initializes a newly created generic function type.
   GenericFunctionTypeImpl({
@@ -9100,6 +9231,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 ///    functionTypeAlias ::=
 ///        'typedef' [SimpleIdentifier] [TypeParameterList]? =
 ///        [FunctionType] ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class GenericTypeAlias implements TypeAlias {
   /// The equal sign separating the name being defined from the function type.
   Token get equals;
@@ -9128,7 +9260,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   final Token equals;
 
   @override
-  TypeAliasElementImpl? declaredElement;
+  TypeAliasElementImpl? declaredFragment;
 
   /// Initializes a newly created generic type alias.
   ///
@@ -9152,9 +9284,9 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     _becomeParentOf(_type);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  TypeAliasElementImpl? get declaredFragment => declaredElement;
+  TypeAliasElementImpl? get declaredElement => declaredFragment;
 
   @override
   GenericFunctionType? get functionType {
@@ -9207,6 +9339,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 ///
 ///    guardedPattern ::=
 ///        [DartPattern] [WhenClause]?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class GuardedPattern implements AstNode {
   /// The pattern controlling whether the statements are executed.
   DartPattern get pattern;
@@ -9260,6 +9393,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 ///
 ///    hideCombinator ::=
 ///        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class HideCombinator implements Combinator {
   /// The list of names from the library that are hidden by this combinator.
   NodeList<SimpleIdentifier> get hiddenNames;
@@ -9302,6 +9436,7 @@ final class HideCombinatorImpl extends CombinatorImpl
 ///    identifier ::=
 ///        [SimpleIdentifier]
 ///      | [PrefixedIdentifier]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Identifier implements Expression, CommentReferableExpression {
   /// The element associated with this identifier based on static type
   /// information.
@@ -9319,6 +9454,7 @@ sealed class Identifier implements Expression, CommentReferableExpression {
   /// information, or `null` if the AST structure hasn't been resolved or if
   /// this identifier couldn't be resolved. One example of the latter case is an
   /// identifier that isn't defined within the scope in which it appears.
+  @Deprecated('Use element instead')
   Element? get staticElement;
 
   /// Returns `true` if the given [name] is visible only within the library in
@@ -9328,17 +9464,18 @@ sealed class Identifier implements Expression, CommentReferableExpression {
 
 sealed class IdentifierImpl extends CommentReferableExpressionImpl
     implements Identifier {
-  @experimental
-  @override
-  Element2? get element {
-    return staticElement.asElement2;
-  }
-
   @override
   bool get isAssignable => true;
+
+  @Deprecated('Use element instead')
+  @override
+  Element? get staticElement {
+    return element?.asElement;
+  }
 }
 
 /// The basic structure of an if element.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IfElement implements CollectionElement {
   /// The `case` clause used to match a pattern against the [expression].
   CaseClause? get caseClause;
@@ -9496,6 +9633,7 @@ sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
 ///    ifStatement ::=
 ///        'if' '(' [Expression] [CaseClause]? ')'[Statement]
 ///        ('else' [Statement])?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IfStatement implements Statement {
   /// The `case` clause used to match a pattern against the [expression].
   CaseClause? get caseClause;
@@ -9637,6 +9775,7 @@ final class IfStatementImpl extends StatementImpl
 ///
 ///    implementsClause ::=
 ///        'implements' [NamedType] (',' [NamedType])*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ImplementsClause implements AstNode {
   /// The token representing the `implements` keyword.
   Token get implementsKeyword;
@@ -9689,6 +9828,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
 /// Objects of this type aren't produced directly by the parser (because the
 /// parser can't tell whether an expression refers to a callable type); they
 /// are produced at resolution time.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ImplicitCallReference
     implements MethodReferenceExpression {
   /// The expression from which a `call` method is being referenced.
@@ -9696,6 +9836,7 @@ abstract final class ImplicitCallReference
 
   /// The element associated with the implicit `call` reference based on the
   /// static types.
+  @Deprecated('Use element instead')
   @override
   MethodElement get staticElement;
 
@@ -9750,7 +9891,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   Precedence get precedence =>
       typeArguments == null ? expression.precedence : Precedence.postfix;
 
-  @experimental
+  @Deprecated('Use element instead')
   @override
   MethodElement get staticElement => element.asElement;
 
@@ -9790,6 +9931,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 ///        [Combinator]* ';'
 ///      | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier
 ///        [Combinator]* ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ImportDirective implements NamespaceDirective {
   /// The token representing the `as` keyword, or `null` if the imported names
   /// aren't prefixed.
@@ -9801,6 +9943,7 @@ abstract final class ImportDirective implements NamespaceDirective {
 
   /// The element associated with this directive, or `null` if the AST structure
   /// hasn't been resolved.
+  @Deprecated('Use libraryImport instead')
   @override
   LibraryImportElement? get element;
 
@@ -9857,6 +10000,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     _becomeParentOf(_prefix);
   }
 
+  @Deprecated('Use element instead')
   @override
   LibraryImportElementImpl? get element =>
       super.element as LibraryImportElementImpl?;
@@ -9866,7 +10010,9 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   @experimental
   @override
-  LibraryImport? get libraryImport => element as LibraryImport?;
+  LibraryImportElementImpl? get libraryImport {
+    return _element as LibraryImportElementImpl?;
+  }
 
   @override
   SimpleIdentifierImpl? get prefix => _prefix;
@@ -9955,10 +10101,12 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 }
 
 /// Reference to an import prefix name.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ImportPrefixReference implements AstNode {
   /// The element to which [name] is resolved.
   ///
   /// Usually a [PrefixElement], but can be anything in invalid code.
+  @Deprecated('Use element2 instead')
   Element? get element;
 
   /// The element to which [name] is resolved.
@@ -9983,7 +10131,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   final Token period;
 
   @override
-  Element? element;
+  Element2? element2;
 
   ImportPrefixReferenceImpl({
     required this.name,
@@ -9993,18 +10141,10 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   @override
   Token get beginToken => name;
 
-  @experimental
+  @Deprecated('Use element2 instead')
   @override
-  Element2? get element2 {
-    var element = this.element;
-    if (element case PrefixElementImpl element) {
-      return element.element2;
-    } else if (element case Fragment fragment) {
-      return fragment.element;
-    } else if (element case Element2 element) {
-      return element;
-    }
-    return null;
+  Element? get element {
+    return element2?.asElement;
   }
 
   @override
@@ -10028,6 +10168,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 ///
 ///    indexExpression ::=
 ///        [Expression] '[' [Expression] ']'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexExpression
     implements NullShortableExpression, MethodReferenceExpression {
   /// The expression used to compute the index.
@@ -10115,7 +10256,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// target, or `null` if the AST structure hasn't been resolved or if the
   /// operator couldn't be resolved.
   @override
-  MethodElement? staticElement;
+  MethodElement2? element;
 
   /// Initializes a newly created index expression that is a child of a cascade
   /// expression.
@@ -10150,10 +10291,6 @@ final class IndexExpressionImpl extends ExpressionImpl
     }
     return period!;
   }
-
-  @experimental
-  @override
-  MethodElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => rightBracket;
@@ -10193,6 +10330,10 @@ final class IndexExpressionImpl extends ExpressionImpl
     return _target!;
   }
 
+  @Deprecated('Use element instance')
+  @override
+  MethodElement? get staticElement => element?.asElement;
+
   @override
   ExpressionImpl? get target => _target;
 
@@ -10227,23 +10368,20 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// index expression is bound, or `null` if the AST structure is not resolved,
   /// or the function being invoked is not known based on static type
   /// information.
-  ParameterElementMixin? get _staticParameterElementForIndex {
-    Element? element = staticElement;
+  FormalParameterElementMixin? get _staticParameterElementForIndex {
+    Element2? element = this.element;
 
     var parent = this.parent;
     if (parent is CompoundAssignmentExpression) {
-      element = parent.writeElement ?? parent.readElement;
+      element = parent.writeElement2 ?? parent.readElement2;
     }
 
-    if (element is ExecutableElementOrMember) {
-      List<ParameterElement> parameters = element.parameters;
-      if (parameters.isEmpty) {
+    if (element is ExecutableElement2OrMember) {
+      var formalParameters = element.formalParameters;
+      if (formalParameters.isEmpty) {
         return null;
       }
-      // TODO(paulberry): eliminate this cast by changing the type of
-      // `ExecutableElementOrMember.parameters` to
-      // `List<ParameterElementMixin>`.
-      return parameters[0] as ParameterElementMixin;
+      return formalParameters[0];
     }
     return null;
   }
@@ -10300,6 +10438,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 ///    newExpression ::=
 ///        ('new' | 'const')? [NamedType] ('.' [SimpleIdentifier])?
 ///        [ArgumentList]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InstanceCreationExpression implements Expression {
   /// The list of arguments to the constructor.
   ArgumentList get argumentList;
@@ -10435,6 +10574,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 ///    hexadecimalIntegerLiteral ::=
 ///        '0x' hexadecimalDigit+
 ///      | '0X' hexadecimalDigit+
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IntegerLiteral implements Literal {
   /// The token representing the literal.
   Token get literal;
@@ -10553,6 +10693,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
 ///    interpolationElement ::=
 ///        [InterpolationExpression]
 ///      | [InterpolationString]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class InterpolationElement implements AstNode {}
 
 sealed class InterpolationElementImpl extends AstNodeImpl
@@ -10563,6 +10704,7 @@ sealed class InterpolationElementImpl extends AstNodeImpl
 ///    interpolationExpression ::=
 ///        '$' [SimpleIdentifier]
 ///      | '$' '{' [Expression] '}'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InterpolationExpression implements InterpolationElement {
   /// The expression to be evaluated for the value to be converted into a
   /// string.
@@ -10631,6 +10773,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
 ///
 ///    interpolationString ::=
 ///        characters
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InterpolationString implements InterpolationElement {
   /// The characters that are added to the string.
   Token get contents;
@@ -10696,6 +10839,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
 ///
 /// This will either be a [FunctionExpressionInvocation] or a
 /// [MethodInvocation].
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvocationExpression implements Expression {
   /// The list of arguments to the method.
   ArgumentList get argumentList;
@@ -10741,10 +10885,10 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
   TypeArgumentListImpl? _typeArguments;
 
   @override
-  List<DartType>? typeArgumentTypes;
+  List<TypeImpl>? typeArgumentTypes;
 
   @override
-  DartType? staticInvokeType;
+  TypeImpl? staticInvokeType;
 
   /// Initializes a newly created invocation.
   InvocationExpressionImpl({
@@ -10775,6 +10919,7 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
 ///
 ///    isExpression ::=
 ///        [Expression] 'is' '!'? [TypeAnnotation]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IsExpression implements Expression {
   /// The expression used to compute the value whose type is being tested.
   Expression get expression;
@@ -10863,9 +11008,15 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 ///
 ///    label ::=
 ///        [SimpleIdentifier] ':'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Label implements AstNode {
   /// The colon that separates the label from the statement.
   Token get colon;
+
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  LabelFragment? get declaredFragment;
 
   /// The label being associated with the statement.
   SimpleIdentifier get label;
@@ -10875,6 +11026,7 @@ abstract final class Label implements AstNode {
 ///
 ///    labeledStatement ::=
 ///       [Label]+ [Statement]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class LabeledStatement implements Statement {
   /// The labels being associated with the statement.
   NodeList<Label> get labels;
@@ -10955,6 +11107,10 @@ final class LabelImpl extends AstNodeImpl implements Label {
   Token get beginToken => _label.beginToken;
 
   @override
+  LabelElementImpl? get declaredFragment =>
+      (label.element as LabelElementImpl2?)?.firstFragment;
+
+  @override
   Token get endToken => colon;
 
   @override
@@ -10982,7 +11138,9 @@ final class LabelImpl extends AstNodeImpl implements Label {
 ///
 ///    libraryDirective ::=
 ///        [Annotation] 'library' [LibraryIdentifier]? ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class LibraryDirective implements Directive {
+  @Deprecated('Use element2 instead')
   @override
   LibraryElement? get element;
 
@@ -11027,14 +11185,15 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     _becomeParentOf(_name);
   }
 
+  @Deprecated('Use element2 instead')
   @override
   LibraryElementImpl? get element {
-    return super.element as LibraryElementImpl?;
+    return element2;
   }
 
   @experimental
   @override
-  LibraryElement2? get element2 => element as LibraryElement2?;
+  LibraryElementImpl? get element2 => _element as LibraryElementImpl?;
 
   @override
   Token get endToken => semicolon;
@@ -11069,6 +11228,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 ///
 ///    libraryIdentifier ::=
 ///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class LibraryIdentifier implements Identifier {
   /// The components of the identifier.
   NodeList<SimpleIdentifier> get components;
@@ -11092,6 +11252,9 @@ final class LibraryIdentifierImpl extends IdentifierImpl
   NodeListImpl<SimpleIdentifierImpl> get components => _components;
 
   @override
+  Element2? get element => null;
+
+  @override
   Token get endToken => _components.endToken!;
 
   @override
@@ -11113,9 +11276,6 @@ final class LibraryIdentifierImpl extends IdentifierImpl
 
   @override
   Precedence get precedence => Precedence.postfix;
-
-  @override
-  Element? get staticElement => null;
 
   @override
   // TODO(paulberry): add "." tokens.
@@ -11143,6 +11303,7 @@ final class LibraryIdentifierImpl extends IdentifierImpl
 ///
 ///    elements ::=
 ///        [CollectionElement] (',' [CollectionElement])* ','?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ListLiteral implements TypedLiteral {
   /// The syntactic elements used to compute the elements of the list.
   NodeList<CollectionElement> get elements;
@@ -11224,6 +11385,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 ///
 ///    listPattern ::=
 ///        [TypeArgumentList]? '[' [DartPattern] (',' [DartPattern])* ','? ']'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ListPattern implements DartPattern {
   /// The elements in this pattern.
   NodeList<ListPatternElement> get elements;
@@ -11244,6 +11406,7 @@ abstract final class ListPattern implements DartPattern {
 }
 
 /// An element of a list pattern.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ListPatternElement implements AstNode {}
 
 abstract final class ListPatternElementImpl
@@ -11336,6 +11499,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
 ///      | [NullLiteral]
 ///      | [SetOrMapLiteral]
 ///      | [StringLiteral]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Literal implements Expression {}
 
 sealed class LiteralImpl extends ExpressionImpl implements Literal {
@@ -11348,13 +11512,14 @@ sealed class LiteralImpl extends ExpressionImpl implements Literal {
 class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
-  final Set<VariableElement> potentiallyMutatedInScope = <VariableElement>{};
+  final Set<VariableElement2> potentiallyMutatedInScope = {};
 }
 
 /// A logical-and pattern.
 ///
 ///    logicalAndPattern ::=
 ///        [DartPattern] '&&' [DartPattern]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class LogicalAndPattern implements DartPattern {
   /// The left sub-pattern.
   DartPattern get leftOperand;
@@ -11434,6 +11599,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
 ///
 ///    logicalOrPattern ::=
 ///        [DartPattern] '||' [DartPattern]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class LogicalOrPattern implements DartPattern {
   /// The left sub-pattern.
   DartPattern get leftOperand;
@@ -11514,6 +11680,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 ///
 ///    mapLiteralEntry ::=
 ///        '?'? [Expression] ':' '?'? [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MapLiteralEntry implements CollectionElement {
   /// The expression computing the key with which the value is associated.
   Expression get key;
@@ -11611,6 +11778,7 @@ final class MapLiteralEntryImpl extends CollectionElementImpl
 ///    mapPattern ::=
 ///        [TypeArgumentList]? '{' [MapPatternEntry] (',' [MapPatternEntry])*
 ///        ','? '}'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MapPattern implements DartPattern {
   /// The elements in this pattern.
   NodeList<MapPatternElement> get elements;
@@ -11630,6 +11798,7 @@ abstract final class MapPattern implements DartPattern {
 }
 
 /// An element of a map pattern.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class MapPatternElement implements AstNode {}
 
 sealed class MapPatternElementImpl implements AstNodeImpl, MapPatternElement {}
@@ -11638,6 +11807,7 @@ sealed class MapPatternElementImpl implements AstNodeImpl, MapPatternElement {}
 ///
 ///    mapPatternEntry ::=
 ///        [Expression] ':' [DartPattern]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MapPatternEntry implements AstNode, MapPatternElement {
   /// The expression computing the key of the entry to be matched.
   Expression get key;
@@ -11793,6 +11963,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 /// Prior to the 'extension-methods' experiment, these nodes were always
 /// children of a class declaration. When the experiment is enabled, these nodes
 /// can also be children of an extension declaration.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MethodDeclaration implements ClassMember {
   /// The token for the `augment` keyword.
   Token? get augmentKeyword;
@@ -11800,6 +11971,7 @@ abstract final class MethodDeclaration implements ClassMember {
   /// The body of the method.
   FunctionBody get body;
 
+  @Deprecated('Use declaredFragment instead')
   @override
   ExecutableElement? get declaredElement;
 
@@ -11888,7 +12060,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   final FunctionBodyImpl body;
 
   @override
-  ExecutableElementImpl? declaredElement;
+  ExecutableElementImpl? declaredFragment;
 
   MethodDeclarationImpl({
     required super.comment,
@@ -11910,10 +12082,9 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     _becomeParentOf(body);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  ExecutableFragment? get declaredFragment =>
-      declaredElement as ExecutableFragment?;
+  ExecutableElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken => body.endToken;
@@ -11982,6 +12153,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 ///    methodInvocation ::=
 ///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]?
 ///        [ArgumentList]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MethodInvocation
     implements NullShortableExpression, InvocationExpression {
   /// Whether this expression is cascaded.
@@ -12090,11 +12262,11 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   /// The invoke type of the [methodName].
   ///
-  /// If the target element is a [MethodElement], this is the same as the
+  /// If the target element is a [MethodElement2], this is the same as the
   /// [staticInvokeType].
   ///
   /// If the target element is a getter, presumably returning an
-  /// [ExecutableElement] so that it can be invoked in this [MethodInvocation],
+  /// [ExecutableElement2] so that it can be invoked in this [MethodInvocation],
   /// then this type is the type of the getter, and the [staticInvokeType] is
   /// the invoked type of the returned element.
   DartType? get methodNameType => _methodNameType ?? staticInvokeType;
@@ -12166,6 +12338,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 }
 
 /// An expression that implicitly makes reference to a method.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MethodReferenceExpression implements Expression {
   /// The element associated with the expression based on the static types.
   ///
@@ -12181,6 +12354,7 @@ abstract final class MethodReferenceExpression implements Expression {
   /// static element to return. The latter case can occur, for example, when
   /// this is a non-compound assignment expression, or when the method referred
   /// to couldn't be resolved.
+  @Deprecated('Use element instead')
   MethodElement? get staticElement;
 }
 
@@ -12189,6 +12363,7 @@ abstract final class MethodReferenceExpression implements Expression {
 ///    mixinDeclaration ::=
 ///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MixinDeclaration implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
@@ -12196,6 +12371,7 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
   /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
 
+  @Deprecated('Use declaredFragment instead')
   @override
   MixinElement? get declaredElement;
 
@@ -12259,7 +12435,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  MixinElementImpl? declaredElement;
+  MixinElementImpl? declaredFragment;
 
   MixinDeclarationImpl({
     required super.comment,
@@ -12281,9 +12457,9 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     this.members._initialize(this, members);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  MixinElementImpl? get declaredFragment => declaredElement;
+  MixinElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken => rightBracket;
@@ -12323,6 +12499,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 ///
 ///    onClause ::=
 ///        'on' [NamedType] (',' [NamedType])*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MixinOnClause implements AstNode {
   /// The token representing the `on` keyword.
   Token get onKeyword;
@@ -12370,6 +12547,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
 }
 
 /// A node that declares a single name within the scope of a compilation unit.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NamedCompilationUnitMember
     implements CompilationUnitMember {
   /// The name of the member being declared.
@@ -12398,10 +12576,12 @@ sealed class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
 ///
 ///    namedExpression ::=
 ///        [Label] [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NamedExpression implements Expression {
   /// The element representing the parameter being named by this expression, or
   /// `null` if the AST structure hasn't been resolved or if there's no
   /// parameter with the same name as this expression.
+  @Deprecated('Use element2 instead')
   ParameterElement? get element;
 
   /// The element representing the parameter being named by this expression.
@@ -12437,19 +12617,16 @@ final class NamedExpressionImpl extends ExpressionImpl
   @override
   Token get beginToken => _name.beginToken;
 
+  @Deprecated('Use element2 instead')
   @override
-  ParameterElement? get element {
-    var element = _name.label.staticElement;
-    if (element is ParameterElement) {
-      return element;
-    }
-    return null;
+  ParameterElementMixin? get element {
+    return element2?.asElement;
   }
 
   @experimental
   @override
-  FormalParameterElement? get element2 {
-    return element?.asElement2;
+  FormalParameterElementMixin? get element2 {
+    return _name.label.element?.ifTypeOrNull();
   }
 
   @override
@@ -12496,15 +12673,17 @@ final class NamedExpressionImpl extends ExpressionImpl
 ///
 ///    namedType ::=
 ///        [ImportPrefixReference]? name typeArguments?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NamedType implements TypeAnnotation {
   /// The element of [name2] considering [importPrefix] for example a
-  /// [ClassElement], or [TypeAliasElement], or `null` if [name2] can't be
+  /// [ClassElement2], or [TypeAliasElement2], or `null` if [name2] can't be
   /// resolved, or there's no element for the type name, such as for `void`.
+  @Deprecated('Use element2 instead')
   Element? get element;
 
   /// The element of [name2] considering [importPrefix].
   ///
-  /// This could be a [ClassElement], [TypeAliasElement], or other type defining
+  /// This could be a [ClassElement2], [TypeAliasElement2], or other type defining
   /// element.
   ///
   /// Returns `null` if [name2] can't be resolved, or there's no element for the
@@ -12571,6 +12750,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   Token get beginToken => importPrefix?.beginToken ?? name2;
 
+  @Deprecated('Use element2 instead')
   @override
   Element? get element {
     return element2.asElement;
@@ -12591,13 +12771,10 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @override
   bool get isDeferred {
-    var importPrefixElement = importPrefix?.element;
-    if (importPrefixElement is PrefixElement) {
-      var imports = importPrefixElement.imports;
-      if (imports.length != 1) {
-        return false;
-      }
-      return imports[0].prefix is DeferredImportElementPrefix;
+    var importPrefixElement = importPrefix?.element2;
+    if (importPrefixElement is PrefixElement2) {
+      return importPrefixElement.fragments
+          .any((fragment) => fragment.isDeferred);
     }
     return false;
   }
@@ -12627,6 +12804,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 ///    directive ::=
 ///        [ExportDirective]
 ///      | [ImportDirective]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class NamespaceDirective implements UriBasedDirective {
   /// The combinators used to control how names are imported or exported.
   NodeList<Combinator> get combinators;
@@ -12680,6 +12858,7 @@ sealed class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 ///
 ///    nativeClause ::=
 ///        'native' [StringLiteral]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NativeClause implements AstNode {
   /// The name of the native object that implements the class.
   StringLiteral? get name;
@@ -12730,6 +12909,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
 ///
 ///    nativeFunctionBody ::=
 ///        'native' [SimpleStringLiteral] ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NativeFunctionBody implements FunctionBody {
   /// The token representing 'native' that marks the start of the function body.
   Token get nativeKeyword;
@@ -12785,7 +12965,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
 
   @override
-  DartType resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
+  TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
       resolver.visitNativeFunctionBody(this, imposedType: imposedType);
 
   @override
@@ -12795,6 +12975,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
 }
 
 /// A list of AST nodes that have a common parent.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NodeList<E extends AstNode> implements List<E> {
   /// The first token included in this node list's source range, or `null` if
   /// the list is empty.
@@ -12960,6 +13141,7 @@ final class NodeListImpl<E extends AstNode>
 ///        [FunctionTypedFormalParameter]
 ///      | [FieldFormalParameter]
 ///      | [SimpleFormalParameter]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class NormalFormalParameter implements FormalParameter, AnnotatedNode {}
 
 sealed class NormalFormalParameterImpl extends FormalParameterImpl
@@ -13024,6 +13206,7 @@ sealed class NormalFormalParameterImpl extends FormalParameterImpl
 ///
 ///    nullAssertPattern ::=
 ///        [DartPattern] '!'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NullAssertPattern implements DartPattern {
   /// The `!` token.
   Token get operator;
@@ -13099,6 +13282,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
 /// A null-aware element in a list or set literal.
 ///
 ///    <nullAwareExpressionElement> ::= '?' <expression>
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NullAwareElement implements CollectionElement {
   /// The question mark before the expression.
   Token get question;
@@ -13160,6 +13344,7 @@ final class NullAwareElementImpl extends CollectionElementImpl
 ///
 ///    nullCheckPattern ::=
 ///        [DartPattern] '?'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NullCheckPattern implements DartPattern {
   /// The `?` token.
   Token get operator;
@@ -13236,6 +13421,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
 ///
 ///    nullLiteral ::=
 ///        'null'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NullLiteral implements Literal {
   /// The token representing the literal.
   Token get literal;
@@ -13275,6 +13461,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 }
 
 /// Abstract interface for expressions that may participate in null-shorting.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NullShortableExpression implements Expression {
   /// The expression that terminates any null shorting that might occur in this
   /// expression.
@@ -13325,6 +13512,7 @@ base mixin NullShortableExpressionImpl implements NullShortableExpression {
 ///
 ///    objectPattern ::=
 ///        [Identifier] [TypeArgumentList]? '(' [PatternField] ')'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ObjectPattern implements DartPattern {
   /// The patterns matching the properties of the object.
   NodeList<PatternField> get fields;
@@ -13427,6 +13615,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
 ///
 ///    parenthesizedExpression ::=
 ///        '(' [Expression] ')'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ParenthesizedExpression implements Expression {
   /// The expression within the parentheses.
   Expression get expression;
@@ -13509,6 +13698,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
 ///
 ///    parenthesizedPattern ::=
 ///        '(' [DartPattern] ')'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ParenthesizedPattern implements DartPattern {
   /// The left parenthesis.
   Token get leftParenthesis;
@@ -13598,10 +13788,12 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 ///
 ///    partDirective ::=
 ///        [Annotation] 'part' [StringLiteral] ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PartDirective implements UriBasedDirective {
   /// The configurations that control which file is actually included.
   NodeList<Configuration> get configurations;
 
+  @Deprecated('Use partInclude instead')
   @override
   PartElement? get element;
 
@@ -13644,6 +13836,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     this.configurations._initialize(this, configurations);
   }
 
+  @Deprecated('Use partInclude instead')
   @override
   PartElementImpl? get element {
     return super.element as PartElementImpl?;
@@ -13657,7 +13850,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @experimental
   @override
-  PartInclude? get partInclude => element as PartInclude?;
+  PartElementImpl? get partInclude => _element as PartElementImpl?;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -13680,6 +13873,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 ///
 ///    partOfDirective ::=
 ///        [Annotation] 'part' 'of' [Identifier] ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PartOfDirective implements Directive {
   /// The name of the library that the containing compilation unit is part of,
   /// or `null` if no name was given (typically because a library URI was
@@ -13776,6 +13970,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 ///
 ///    patternAssignment ::=
 ///        [DartPattern] '=' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PatternAssignment implements Expression {
   /// The equal sign separating the pattern from the expression.
   Token get equals;
@@ -13853,6 +14048,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
 ///
 ///    patternField ::=
 ///        [PatternFieldName]? [DartPattern]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PatternField implements AstNode {
   /// The effective name of the field, or `null` if [name] is `null` and
   /// [pattern] isn't a variable pattern.
@@ -13864,6 +14060,7 @@ abstract final class PatternField implements AstNode {
   /// The element referenced by [effectiveName], or `null` if not resolved yet,
   /// non-`null` inside valid [ObjectPattern]s, always `null` inside
   /// [RecordPattern]s.
+  @Deprecated('Use element2 instead')
   Element? get element;
 
   /// The element referenced by [effectiveName].
@@ -13884,7 +14081,7 @@ abstract final class PatternField implements AstNode {
 
 final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   @override
-  Element? element;
+  Element2? element2;
 
   @override
   final PatternFieldNameImpl? name;
@@ -13910,16 +14107,10 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
     return null;
   }
 
-  @experimental
+  @Deprecated('Use element2 instead')
   @override
-  Element2? get element2 {
-    var element = this.element;
-    if (element case Fragment fragment) {
-      return fragment.element;
-    } else if (element case Element2 element) {
-      return element;
-    }
-    return null;
+  Element? get element {
+    return element2?.asElement;
   }
 
   @override
@@ -13944,6 +14135,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
 ///
 ///    patternFieldName ::=
 ///        [Token]? ':'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PatternFieldName implements AstNode {
   /// The colon following the name.
   Token get colon;
@@ -13986,6 +14178,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
 ///
 ///    patternDeclaration ::=
 ///        ( 'final' | 'var' ) [DartPattern] '=' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PatternVariableDeclaration implements AnnotatedNode {
   /// The equal sign separating the pattern from the expression.
   Token get equals;
@@ -14018,7 +14211,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   TypeImpl? patternTypeSchema;
 
   /// Variables declared in [pattern].
-  late final List<BindPatternVariableElementImpl> elements;
+  late final List<BindPatternVariableElementImpl2> elements;
 
   PatternVariableDeclarationImpl({
     required this.keyword,
@@ -14076,6 +14269,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
 ///
 ///    patternDeclaration ::=
 ///        [PatternVariableDeclaration] ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PatternVariableDeclarationStatement implements Statement {
   /// The pattern declaration.
   PatternVariableDeclaration get declaration;
@@ -14124,12 +14318,19 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
 ///
 ///    postfixExpression ::=
 ///        [Expression] [Token]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PostfixExpression
     implements
         Expression,
         NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
+  /// The element associated with the operator based on the static type of the
+  /// operand, or `null` if the AST structure hasn't been resolved, if the
+  /// operator isn't user definable, or if the operator couldn't be resolved.
+  @override
+  MethodElement2? get element;
+
   /// The expression computing the operand for the operator.
   Expression get operand;
 
@@ -14139,6 +14340,7 @@ abstract final class PostfixExpression
   /// The element associated with the operator based on the static type of the
   /// operand, or `null` if the AST structure hasn't been resolved, if the
   /// operator isn't user definable, or if the operator couldn't be resolved.
+  @Deprecated('Use element instead')
   @override
   MethodElement? get staticElement;
 }
@@ -14152,7 +14354,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   final Token operator;
 
   @override
-  MethodElement? staticElement;
+  MethodElement2? element;
 
   /// Initializes a newly created postfix expression.
   PostfixExpressionImpl({
@@ -14164,14 +14366,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken => _operand.beginToken;
-
-  @experimental
-  @override
-  MethodElement2? get element => staticElement?.asElement2;
-
-  set element(MethodElement2? value) {
-    staticElement = value?.asElement;
-  }
 
   @override
   Token get endToken => operator;
@@ -14186,6 +14380,10 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
+  @Deprecated('Use element2 instead')
+  @override
+  MethodElement? get staticElement => element?.asElement;
+
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('operand', operand)
@@ -14197,17 +14395,17 @@ final class PostfixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` ff the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  ParameterElementMixin? get _staticParameterElementForOperand {
-    if (staticElement == null) {
+  FormalParameterElementMixin? get _staticParameterElementForOperand2 {
+    if (element == null) {
       return null;
     }
-    List<ParameterElement> parameters = staticElement!.parameters;
+    var parameters = element!.formalParameters;
     if (parameters.isEmpty) {
       return null;
     }
     // TODO(paulberry): eliminate this cast by changing the type of
-    // `staticElement` to `MethodElementOrMember?`.
-    return parameters[0] as ParameterElementMixin;
+    // `staticElement` to `MethodElement2OrMember?`.
+    return parameters[0] as FormalParameterElementMixin;
   }
 
   @override
@@ -14233,6 +14431,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
 ///
 ///    prefixedIdentifier ::=
 ///        [SimpleIdentifier] '.' [SimpleIdentifier]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PrefixedIdentifier implements Identifier {
   /// The identifier being prefixed.
   SimpleIdentifier get identifier;
@@ -14276,6 +14475,11 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   Token get beginToken => _prefix.beginToken;
 
   @override
+  Element2? get element {
+    return _identifier.element;
+  }
+
+  @override
   Token get endToken => _identifier.endToken;
 
   @override
@@ -14287,13 +14491,9 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @override
   bool get isDeferred {
-    Element? element = _prefix.staticElement;
-    if (element is PrefixElement) {
-      var imports = element.imports;
-      if (imports.length != 1) {
-        return false;
-      }
-      return imports[0].prefix is DeferredImportElementPrefix;
+    var element = _prefix.element;
+    if (element is PrefixElement2) {
+      return element.fragments.any((fragment) => fragment.isDeferred);
     }
     return false;
   }
@@ -14309,11 +14509,6 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   set prefix(SimpleIdentifierImpl identifier) {
     _prefix = _becomeParentOf(identifier);
-  }
-
-  @override
-  Element? get staticElement {
-    return _identifier.staticElement;
   }
 
   @override
@@ -14341,6 +14536,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 ///
 ///    prefixExpression ::=
 ///        [Token] [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PrefixExpression
     implements
         Expression,
@@ -14351,13 +14547,20 @@ abstract final class PrefixExpression
   /// operand, or `null` if the AST structure hasn't been resolved, if the
   /// operator isn't user definable, or if the operator couldn't be resolved.
   @override
-  MethodElement? staticElement;
+  MethodElement2? get element;
 
   /// The expression computing the operand for the operator.
   Expression get operand;
 
   /// The prefix operator being applied to the operand.
   Token get operator;
+
+  /// The element associated with the operator based on the static type of the
+  /// operand, or `null` if the AST structure hasn't been resolved, if the
+  /// operator isn't user definable, or if the operator couldn't be resolved.
+  @Deprecated('Use element instead')
+  @override
+  MethodElement? get staticElement;
 }
 
 final class PrefixExpressionImpl extends ExpressionImpl
@@ -14369,7 +14572,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   ExpressionImpl _operand;
 
   @override
-  MethodElement? staticElement;
+  MethodElement2? element;
 
   /// Initializes a newly created prefix expression.
   PrefixExpressionImpl({
@@ -14381,14 +14584,6 @@ final class PrefixExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken => operator;
-
-  @experimental
-  @override
-  MethodElement2? get element => staticElement?.asElement2;
-
-  set element(MethodElement2? element) {
-    staticElement = element?.asElement;
-  }
 
   @override
   Token get endToken => _operand.endToken;
@@ -14403,6 +14598,10 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.prefix;
 
+  @Deprecated('Use element instead')
+  @override
+  MethodElement? get staticElement => element?.asElement;
+
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('operator', operator)
@@ -14414,17 +14613,17 @@ final class PrefixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` if the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  ParameterElementMixin? get _staticParameterElementForOperand {
-    if (staticElement == null) {
+  FormalParameterElementMixin? get _staticParameterElementForOperand2 {
+    if (element == null) {
       return null;
     }
-    List<ParameterElement> parameters = staticElement!.parameters;
+    var parameters = element!.formalParameters;
     if (parameters.isEmpty) {
       return null;
     }
     // TODO(paulberry): eliminate this cast by changing the type of
     // `staticElement` to `MethodElementOrMember?`.
-    return parameters[0] as ParameterElementMixin;
+    return parameters[0] as FormalParameterElementMixin;
   }
 
   @override
@@ -14453,6 +14652,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
 ///
 ///    propertyAccess ::=
 ///        [Expression] '.' [SimpleIdentifier]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyAccess
     implements NullShortableExpression, CommentReferableExpression {
   /// Whether this expression is cascaded.
@@ -14604,6 +14804,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 ///    recordLiteral ::= '(' recordField (',' recordField)* ','? ')'
 ///
 ///    recordField  ::= (identifier ':')? [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RecordLiteral implements Literal {
   /// The token representing the `const` keyword, or `null` if the literal isn't
   /// a constant.
@@ -14686,6 +14887,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 ///
 ///    recordPattern ::=
 ///        '(' [PatternField] (',' [PatternField])* ')'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RecordPattern implements DartPattern {
   /// The fields of the record pattern.
   NodeList<PatternField> get fields;
@@ -14799,6 +15001,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
 ///     ( ',' recordTypeNamedField )* ','? '}'
 ///
 /// recordTypeNamedField ::= metadata type identifier
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RecordTypeAnnotation implements TypeAnnotation {
   /// The left parenthesis.
   Token get leftParenthesis;
@@ -14814,6 +15017,7 @@ abstract final class RecordTypeAnnotation implements TypeAnnotation {
 }
 
 /// A field in a [RecordTypeAnnotation].
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class RecordTypeAnnotationField implements AstNode {
   /// The annotations associated with the field.
   NodeList<Annotation> get metadata;
@@ -14919,6 +15123,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
 }
 
 /// A named field in a [RecordTypeAnnotation].
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RecordTypeAnnotationNamedField
     implements RecordTypeAnnotationField {
   @override
@@ -14944,6 +15149,7 @@ final class RecordTypeAnnotationNamedFieldImpl
 }
 
 /// The portion of a [RecordTypeAnnotation] with named fields.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RecordTypeAnnotationNamedFields implements AstNode {
   /// The fields contained in the block.
   NodeList<RecordTypeAnnotationNamedField> get fields;
@@ -14999,6 +15205,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
 }
 
 /// A positional field in a [RecordTypeAnnotation].
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RecordTypeAnnotationPositionalField
     implements RecordTypeAnnotationField {}
 
@@ -15025,6 +15232,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
 ///
 ///    redirectingConstructorInvocation ::=
 ///        'this' ('.' identifier)? arguments
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RedirectingConstructorInvocation
     implements ConstructorInitializer, ConstructorReferenceNode {
   /// The list of arguments to the constructor.
@@ -15037,12 +15245,6 @@ abstract final class RedirectingConstructorInvocation
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
   Token? get period;
-
-  /// The element associated with the constructor based on static type
-  /// information, or `null` if the AST structure hasn't been resolved or if the
-  /// constructor couldn't be resolved.
-  @override
-  ConstructorElement? get staticElement;
 
   /// The token for the `this` keyword.
   Token get thisKeyword;
@@ -15062,7 +15264,7 @@ final class RedirectingConstructorInvocationImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElement? staticElement;
+  ConstructorElementMixin? staticElement;
 
   /// Initializes a newly created redirecting invocation to invoke the
   /// constructor with the given name with the given arguments.
@@ -15099,7 +15301,11 @@ final class RedirectingConstructorInvocationImpl
 
   @experimental
   @override
-  ConstructorElement2? get element => staticElement?.asElement2;
+  ConstructorElementMixin2? get element => staticElement?.asElement2;
+
+  set element(ConstructorElementMixin2? value) {
+    staticElement = value?.asElement;
+  }
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -15126,8 +15332,10 @@ final class RedirectingConstructorInvocationImpl
 ///
 ///    relationalPattern ::=
 ///        (equalityOperator | relationalOperator) [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RelationalPattern implements DartPattern {
   /// The element of the [operator] for the matched type.
+  @Deprecated('Use element2 instead')
   MethodElement? get element;
 
   /// The element of the [operator] for the matched type.
@@ -15152,7 +15360,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   final Token operator;
 
   @override
-  MethodElement? element;
+  MethodElement2? element2;
 
   RelationalPatternImpl({
     required this.operator,
@@ -15164,13 +15372,10 @@ final class RelationalPatternImpl extends DartPatternImpl
   @override
   Token get beginToken => operator;
 
-  @experimental
+  @Deprecated('Use element2 instead')
   @override
-  MethodElement2? get element2 {
-    if (element case MethodFragment fragment) {
-      return fragment.element;
-    }
-    return null;
+  MethodElement? get element {
+    return element2?.asElement;
   }
 
   @override
@@ -15222,6 +15427,7 @@ final class RelationalPatternImpl extends DartPatternImpl
 
 /// The name of the primary constructor of an extension type.
 @experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RepresentationConstructorName implements AstNode {
   /// The name of the primary constructor.
   Token get name;
@@ -15270,8 +15476,10 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
 ///    <representationDeclaration> ::=
 ///        ('.' <identifierOrNew>)? '(' <metadata> <type> <identifier> ')'
 @experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RepresentationDeclaration implements AstNode {
   /// The element of the primary constructor.
+  @Deprecated('Use constructorFragment instead')
   ConstructorElement? get constructorElement;
 
   /// The fragment of the primary constructor contained in this declaration.
@@ -15282,6 +15490,7 @@ abstract final class RepresentationDeclaration implements AstNode {
   RepresentationConstructorName? get constructorName;
 
   /// The element for [fieldName] with [fieldType].
+  @Deprecated('Use fieldFragment instead')
   FieldElement? get fieldElement;
 
   /// The fragment for [fieldName] with [fieldType] contained in this
@@ -15311,7 +15520,7 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   final RepresentationConstructorNameImpl? constructorName;
 
   @override
-  ConstructorElementImpl? constructorElement;
+  ConstructorElementImpl? constructorFragment;
 
   @override
   final Token leftParenthesis;
@@ -15326,7 +15535,7 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   final Token fieldName;
 
   @override
-  FieldElementImpl? fieldElement;
+  FieldElementImpl? fieldFragment;
 
   @override
   final Token rightParenthesis;
@@ -15347,17 +15556,16 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
   @override
   Token get beginToken => constructorName?.beginToken ?? leftParenthesis;
 
-  @experimental
+  @Deprecated('Use constructorFragment instead')
   @override
-  ConstructorFragment? get constructorFragment =>
-      constructorElement as ConstructorFragment?;
+  ConstructorElementImpl? get constructorElement => constructorFragment;
 
   @override
   Token get endToken => rightParenthesis;
 
-  @experimental
+  @Deprecated('Use fieldFragment instead')
   @override
-  FieldFragment? get fieldFragment => fieldElement as FieldFragment?;
+  FieldElementImpl? get fieldElement => fieldFragment;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -15384,6 +15592,7 @@ final class RepresentationDeclarationImpl extends AstNodeImpl
 /// A rest pattern element.
 ///
 ///    restPatternElement ::= '...' [DartPattern]?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RestPatternElement
     implements ListPatternElement, MapPatternElement {
   /// The operator token '...'.
@@ -15437,6 +15646,7 @@ final class RestPatternElementImpl extends AstNodeImpl
 ///
 ///    rethrowExpression ::=
 ///        'rethrow'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RethrowExpression implements Expression {
   /// The token representing the `rethrow` keyword.
   Token get rethrowKeyword;
@@ -15483,6 +15693,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
 ///
 ///    returnStatement ::=
 ///        'return' [Expression]? ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ReturnStatement implements Statement {
   /// The expression computing the value to be returned, or `null` if no
   /// explicit value was provided.
@@ -15549,6 +15760,7 @@ final class ReturnStatementImpl extends StatementImpl
 ///
 ///    scriptTag ::=
 ///        '#!' (~NEWLINE)* NEWLINE
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ScriptTag implements AstNode {
   /// The token representing this script tag.
   Token get scriptTag;
@@ -15595,6 +15807,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
 /// are enabled. If neither of those experiments are enabled, then `MapLiteral`
 /// is used to represent a map literal and `SetLiteral` is used for set
 /// literals.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SetOrMapLiteral implements TypedLiteral {
   /// The syntactic elements used to compute the elements of the set or map.
   NodeList<CollectionElement> get elements;
@@ -15743,6 +15956,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 ///
 ///    showCombinator ::=
 ///        'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ShowCombinator implements Combinator {
   /// The list of names from the library that are made visible by this
   /// combinator.
@@ -15787,6 +16001,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
 ///    simpleFormalParameter ::=
 ///        ('final' [TypeAnnotation] | 'var' | [TypeAnnotation])?
 ///        [SimpleIdentifier]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SimpleFormalParameter implements NormalFormalParameter {
   /// The token representing either the `final`, `const` or `var` keyword, or
   /// `null` if no keyword was used.
@@ -15876,6 +16091,7 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 ///    initialCharacter ::= '_' | '$' | letter
 ///
 ///    internalCharacter ::= '_' | '$' | letter | digit
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SimpleIdentifier implements Identifier {
   /// Whether this identifier is the "name" part of a prefixed identifier or a
   /// method invocation.
@@ -15921,10 +16137,11 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   /// The element associated with this identifier based on static type
   /// information, or `null` if the AST structure hasn't been resolved or if
   /// this identifier couldn't be resolved.
-  Element? _staticElement;
+  @override
+  Element2? element;
 
   @override
-  List<DartType>? tearOffTypeArgumentTypes;
+  List<TypeImpl>? tearOffTypeArgumentTypes;
 
   /// If this identifier is meant to be looked up in the enclosing scope, the
   /// raw result the scope lookup, prior to figuring out whether a write or a
@@ -15950,10 +16167,6 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   Token get beginToken => token;
-
-  set element(Element2? element) {
-    staticElement = element?.asElement;
-  }
 
   @override
   Token get endToken => token;
@@ -16009,14 +16222,8 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   /// All three of [readElement], [writeElement], and [referenceElement] can be
   /// `null` when the AST structure hasn't been resolved, or this identifier
   /// couldn't be resolved.
+  @Deprecated('Use more specific elements of nodes')
   Element? get referenceElement => null;
-
-  @override
-  Element? get staticElement => _staticElement;
-
-  set staticElement(Element? element) {
-    _staticElement = element;
-  }
 
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('token', token);
@@ -16143,6 +16350,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 ///    singleLineStringLiteral ::=
 ///        "'" characters "'"
 ///      | '"' characters '"'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SimpleStringLiteral implements SingleStringLiteral {
   /// The token representing the literal.
   Token get literal;
@@ -16221,6 +16429,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 ///    singleStringLiteral ::=
 ///        [SimpleStringLiteral]
 ///      | [StringInterpolation]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class SingleStringLiteral implements StringLiteral {
   /// The offset of the after-last contents character.
   int get contentsEnd;
@@ -16250,6 +16459,7 @@ sealed class SingleStringLiteralImpl extends StringLiteralImpl
 ///
 ///    spreadElement:
 ///        ( '...' | '...?' ) [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SpreadElement implements CollectionElement {
   /// The expression used to compute the collection being spread.
   Expression get expression;
@@ -16332,6 +16542,7 @@ final class SpreadElementImpl extends AstNodeImpl
 ///      | [ReturnStatement]
 ///      | [ExpressionStatement]
 ///      | [FunctionDeclarationStatement]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Statement implements AstNode {
   /// If this is a labeled statement, returns the statement being labeled,
   /// otherwise returns the statement itself.
@@ -16348,6 +16559,7 @@ sealed class StatementImpl extends AstNodeImpl implements Statement {
 ///    stringInterpolation ::=
 ///        ''' [InterpolationElement]* '''
 ///      | '"' [InterpolationElement]* '"'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class StringInterpolation implements SingleStringLiteral {
   /// The elements that are composed to produce the resulting string.
   ///
@@ -16557,6 +16769,7 @@ class StringLexemeHelper {
 ///        [SimpleStringLiteral]
 ///      | [AdjacentStrings]
 ///      | [StringInterpolation]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class StringLiteral implements Literal {
   /// The value of the string literal, or `null` if the string isn't a constant
   /// string without any string interpolation.
@@ -16587,6 +16800,7 @@ sealed class StringLiteralImpl extends LiteralImpl implements StringLiteral {
 ///
 ///    superInvocation ::=
 ///        'super' ('.' [SimpleIdentifier])? [ArgumentList]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SuperConstructorInvocation
     implements ConstructorInitializer, ConstructorReferenceNode {
   /// The list of arguments to the constructor.
@@ -16617,7 +16831,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElement? staticElement;
+  ConstructorElementMixin2? element;
 
   /// Initializes a newly created super invocation to invoke the inherited
   /// constructor with the given name with the given arguments.
@@ -16652,12 +16866,12 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     _constructorName = _becomeParentOf(identifier);
   }
 
-  @experimental
-  @override
-  ConstructorElement2? get element => staticElement?.asElement2;
-
   @override
   Token get endToken => _argumentList.endToken;
+
+  @Deprecated('Use element instead')
+  @override
+  ConstructorElementMixin? get staticElement => element?.asElement;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -16681,6 +16895,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 ///
 ///    superExpression ::=
 ///        'super'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SuperExpression implements Expression {
   /// The token representing the `super` keyword.
   Token get superKeyword;
@@ -16729,6 +16944,7 @@ final class SuperExpressionImpl extends ExpressionImpl
 ///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' |
 ///        [TypeAnnotation])?
 ///        'super' '.' name ([TypeParameterList]? [FormalParameterList])?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SuperFormalParameter implements NormalFormalParameter {
   /// The token representing either the `final`, `const` or `var` keyword, or
   /// `null` if no keyword was used.
@@ -16895,6 +17111,7 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
 ///
 ///    switchCase ::=
 ///        [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SwitchCase implements SwitchMember {
   /// The expression controlling whether the statements are executed.
   Expression get expression;
@@ -16946,6 +17163,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
 ///
 ///    switchDefault ::=
 ///        [SimpleIdentifier]* 'default' ':' [Statement]*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SwitchDefault implements SwitchMember {}
 
 final class SwitchDefaultImpl extends SwitchMemberImpl
@@ -16982,6 +17200,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
 ///    switchExpression ::=
 ///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]
 ///        (',' [SwitchExpressionCase])* ','? '}'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SwitchExpression implements Expression {
   /// The cases that can be selected by the expression.
   NodeList<SwitchExpressionCase> get cases;
@@ -17009,6 +17228,7 @@ abstract final class SwitchExpression implements Expression {
 ///
 ///    switchExpressionCase ::=
 ///        [GuardedPattern] '=>' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SwitchExpressionCase implements AstNode {
   /// The arrow separating the pattern from the expression.
   Token get arrow;
@@ -17163,6 +17383,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
 /// tokens.
 // TODO(brianwilkerson): Consider renaming `SwitchMember`, `SwitchCase`, and
 //  `SwitchDefault` to start with `SwitchStatement` for consistency.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class SwitchMember implements AstNode {
   /// The colon separating the keyword or the expression from the statements.
   Token get colon;
@@ -17230,6 +17451,7 @@ sealed class SwitchMemberImpl extends AstNodeImpl
 ///
 ///    switchPatternCase ::=
 ///        [Label]* 'case' [DartPattern] [WhenClause]? ':' [Statement]*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SwitchPatternCase implements SwitchMember {
   /// The pattern controlling whether the statements is executed.
   GuardedPattern get guardedPattern;
@@ -17273,6 +17495,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
 ///
 ///    switchStatement ::=
 ///        'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SwitchStatement implements Statement {
   /// The expression used to determine which of the switch members is selected.
   Expression get expression;
@@ -17413,6 +17636,7 @@ final class SwitchStatementImpl extends StatementImpl
 ///
 ///    symbolLiteral ::=
 ///        '#' (operator | (identifier ('.' identifier)*))
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SymbolLiteral implements Literal {
   /// The components of the literal.
   List<Token> get components;
@@ -17480,6 +17704,7 @@ final class SyntheticIdentifier implements SimpleIdentifier {
 ///
 ///    thisExpression ::=
 ///        'this'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ThisExpression implements Expression {
   /// The token representing the `this` keyword.
   Token get thisKeyword;
@@ -17526,6 +17751,7 @@ final class ThisExpressionImpl extends ExpressionImpl
 ///
 ///    throwExpression ::=
 ///        'throw' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ThrowExpression implements Expression {
   /// The expression computing the exception to be thrown.
   Expression get expression;
@@ -17598,6 +17824,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
 /// this is a subset of the grammar production `<topLevelDeclaration>`, which
 /// encompasses everything that can appear inside a Dart file after part
 /// directives).
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TopLevelVariableDeclaration
     implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -17642,6 +17869,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     _becomeParentOf(_variableList);
   }
 
+  @Deprecated('Use declaredFragment instead')
   @override
   Element? get declaredElement => null;
 
@@ -17687,6 +17915,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 ///
 ///    finallyClause ::=
 ///        'finally' [Block]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TryStatement implements Statement {
   /// The body of the statement.
   Block get body;
@@ -17793,6 +18022,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 ///        [ClassTypeAlias]
 ///      | [FunctionTypeAlias]
 ///      | [GenericTypeAlias]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeAlias implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   @experimental
@@ -17844,6 +18074,7 @@ sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
 ///        [NamedType]
 ///      | [GenericFunctionType]
 ///      | [RecordTypeAnnotation]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class TypeAnnotation implements AstNode {
   /// The question mark indicating that the type is nullable, or `null` if
   /// there's no question mark.
@@ -17862,6 +18093,7 @@ sealed class TypeAnnotationImpl extends AstNodeImpl implements TypeAnnotation {
 ///
 ///    typeArguments ::=
 ///        '<' typeName (',' typeName)* '>'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeArgumentList implements AstNode {
   /// The type arguments associated with the type.
   NodeList<TypeAnnotation> get arguments;
@@ -17922,6 +18154,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
 ///    typedLiteral ::=
 ///        [ListLiteral]
 ///      | [SetOrMapLiteral]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class TypedLiteral implements Literal {
   /// The token representing the `const` keyword, or `null` if the literal isn't
   /// a constant.
@@ -17990,6 +18223,7 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
 /// The `.staticType` getter returns the type of the expression (which is
 /// always the type `Type`). To get the type represented by the type literal
 /// use `.typeName.type`.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeLiteral
     implements Expression, CommentReferableExpression {
   /// The type represented by this literal.
@@ -18051,11 +18285,13 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 ///
 ///    typeParameter ::=
 ///        name ('extends' [TypeAnnotation])?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeParameter implements Declaration {
   /// The upper bound for legal arguments, or `null` if there's no explicit
   /// upper bound.
   TypeAnnotation? get bound;
 
+  @Deprecated('Use declaredFragment instead')
   @override
   TypeParameterElement? get declaredElement;
 
@@ -18085,7 +18321,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   TypeAnnotationImpl? _bound;
 
   @override
-  TypeParameterElementImpl? declaredElement;
+  TypeParameterElementImpl? declaredFragment;
 
   /// Initializes a newly created type parameter.
   ///
@@ -18112,9 +18348,9 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
     _bound = _becomeParentOf(type);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  TypeParameterElementImpl? get declaredFragment => declaredElement;
+  TypeParameterElementImpl? get declaredElement => declaredFragment;
 
   @override
   Token get endToken {
@@ -18144,6 +18380,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 ///
 ///    typeParameterList ::=
 ///        '<' [TypeParameter] (',' [TypeParameter])* '>'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeParameterList implements AstNode {
   /// The left angle bracket.
   Token get leftBracket;
@@ -18205,6 +18442,7 @@ final class TypeParameterListImpl extends AstNodeImpl
 ///        [ExportDirective]
 ///      | [ImportDirective]
 ///      | [PartDirective]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class UriBasedDirective implements Directive {
   /// The URI referenced by this directive.
   StringLiteral get uri;
@@ -18300,11 +18538,13 @@ class UriValidationCode {
 //  augmented and declarations that can't be augmented. This results in getters
 //  that are only sometimes applicable. Consider changing the class hierarchy so
 //  that these two kinds of variables can be distinguished.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclaration implements Declaration {
   /// The element declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents the declaration of a top-level variable or a field.
+  @Deprecated('Use declaredFragment instead')
   @override
   VariableElement? get declaredElement;
 
@@ -18353,7 +18593,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   final Token name;
 
   @override
-  VariableElementImpl? declaredElement;
+  VariableElementImpl? declaredFragment;
 
   @override
   final Token? equals;
@@ -18378,16 +18618,16 @@ final class VariableDeclarationImpl extends DeclarationImpl
     _becomeParentOf(_initializer);
   }
 
-  @experimental
+  @Deprecated('Use declaredFragment instead')
   @override
-  LocalVariableElement2? get declaredElement2 {
-    return declaredElement.asElement2.ifTypeOrNull<LocalVariableElement2>();
+  VariableElementImpl? get declaredElement {
+    return declaredFragment;
   }
 
   @experimental
   @override
-  VariableElementImpl? get declaredFragment {
-    return declaredElement;
+  LocalVariableElementImpl2? get declaredElement2 {
+    return declaredFragment?.element.ifTypeOrNull<LocalVariableElementImpl2>();
   }
 
   /// This overridden implementation of [documentationComment] looks in the
@@ -18477,6 +18717,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
 ///      | 'const' [TypeAnnotation]?
 ///      | 'var'
 ///      | 'late'? [TypeAnnotation]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclarationList implements AnnotatedNode {
   /// Whether the variables in this list were declared with the 'const'
   /// modifier.
@@ -18595,6 +18836,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
 ///
 ///    variableDeclarationStatement ::=
 ///        [VariableDeclarationList] ';'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclarationStatement implements Statement {
   /// The semicolon terminating the statement.
   Token get semicolon;
@@ -18648,6 +18890,7 @@ final class VariableDeclarationStatementImpl extends StatementImpl
 
 /// The shared interface of [AssignedVariablePattern] and
 /// [DeclaredVariablePattern].
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class VariablePattern implements DartPattern {
   /// The name of the variable declared or referenced by the pattern.
   Token get name;
@@ -18675,6 +18918,7 @@ sealed class VariablePatternImpl extends DartPatternImpl
 ///
 ///    switchCase ::=
 ///        'when' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class WhenClause implements AstNode {
   /// The condition that is evaluated when the pattern matches, that must
   /// evaluate to `true` in order for the [expression] to be executed.
@@ -18728,6 +18972,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
 ///
 ///    whileStatement ::=
 ///        'while' '(' [Expression] ')' [Statement]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class WhileStatement implements Statement {
   /// The body of the loop.
   Statement get body;
@@ -18814,6 +19059,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
 ///
 ///    wildcardPattern ::=
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? '_'
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class WildcardPattern implements DartPattern {
   /// The `var` or `final` keyword.
   Token? get keyword;
@@ -18914,6 +19160,7 @@ final class WildcardPatternImpl extends DartPatternImpl
 ///
 ///    withClause ::=
 ///        'with' [NamedType] (',' [NamedType])*
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class WithClause implements AstNode {
   /// The names of the mixins that were specified.
   NodeList<NamedType> get mixinTypes;
@@ -18964,6 +19211,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
 ///
 ///    yieldStatement ::=
 ///        'yield' '*'? [Expression] ‘;’
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class YieldStatement implements Statement {
   /// The expression whose value is yielded.
   Expression get expression;

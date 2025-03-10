@@ -76,25 +76,26 @@ void _buildFormalsForOutlineExpressions(
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder,
     List<FormalParameterBuilder>? formals,
-    {required bool isClassInstanceMember}) {
+    {required LookupScope scope,
+    required bool isClassInstanceMember}) {
   if (formals != null) {
     for (FormalParameterBuilder formal in formals) {
       _buildFormalForOutlineExpressions(
           libraryBuilder, declarationBuilder, formal,
-          isClassInstanceMember: isClassInstanceMember);
+          scope: scope, isClassInstanceMember: isClassInstanceMember);
     }
   }
 }
 
 void _buildFormalForOutlineExpressions(SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, FormalParameterBuilder formal,
-    {required bool isClassInstanceMember}) {
+    {required LookupScope scope, required bool isClassInstanceMember}) {
   // For const constructors we need to include default parameter values
   // into the outline. For all other formals we need to call
   // buildOutlineExpressions to clear initializerToken to prevent
   // consuming too much memory.
   formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
-      buildDefaultValue: isClassInstanceMember);
+      scope: scope, buildDefaultValue: isClassInstanceMember);
 }
 
 /// Common interface for fragments that can declare a field.
@@ -112,7 +113,6 @@ abstract class FieldDeclaration {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       List<Annotatable> annotatables,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression});
@@ -364,8 +364,13 @@ class ExtensionInstancePropertyEncodingStrategy
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
-        declarationBuilder, unboundNominalParameters,
-        fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+        declarationBuilder: declarationBuilder,
+        extensionTypeParameterFragments:
+            fragment.enclosingDeclaration!.typeParameters,
+        unboundNominalParameters: unboundNominalParameters,
+        onTypeBuilder: declarationBuilder.onType,
+        fileUri: fragment.fileUri,
+        fileOffset: fragment.nameOffset);
     return new _ExtensionInstanceGetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }
@@ -378,8 +383,13 @@ class ExtensionInstancePropertyEncodingStrategy
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
-        declarationBuilder, unboundNominalParameters,
-        fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+        declarationBuilder: declarationBuilder,
+        extensionTypeParameterFragments:
+            fragment.enclosingDeclaration!.typeParameters,
+        unboundNominalParameters: unboundNominalParameters,
+        onTypeBuilder: declarationBuilder.onType,
+        fileUri: fragment.fileUri,
+        fileOffset: fragment.nameOffset);
     return new _ExtensionInstanceSetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }
@@ -419,8 +429,12 @@ class ExtensionTypeInstancePropertyEncodingStrategy
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
         new SynthesizedExtensionTypeSignature(
-            declarationBuilder, unboundNominalParameters,
-            fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+            extensionTypeDeclarationBuilder: declarationBuilder,
+            extensionTypeTypeParameters:
+                fragment.enclosingDeclaration!.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            fileUri: fragment.fileUri,
+            fileOffset: fragment.nameOffset);
     return new _ExtensionTypeInstanceGetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }
@@ -434,8 +448,12 @@ class ExtensionTypeInstancePropertyEncodingStrategy
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
         new SynthesizedExtensionTypeSignature(
-            declarationBuilder, unboundNominalParameters,
-            fileUri: fragment.fileUri, fileOffset: fragment.nameOffset);
+            extensionTypeDeclarationBuilder: declarationBuilder,
+            extensionTypeTypeParameters:
+                fragment.enclosingDeclaration!.typeParameters,
+            unboundNominalParameters: unboundNominalParameters,
+            fileUri: fragment.fileUri,
+            fileOffset: fragment.nameOffset);
     return new _ExtensionTypeInstanceSetterEncoding(fragment,
         signature.clonedDeclarationTypeParameters, signature.thisFormal);
   }

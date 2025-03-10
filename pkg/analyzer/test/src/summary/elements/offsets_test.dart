@@ -1780,31 +1780,31 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::withInit
               element: <testLibraryFragment>::@class::C::@setter::withInit#element
               formalParameters
-                <null-name>
+                _withInit
                   element: <testLibraryFragment>::@class::C::@setter::withInit::@parameter::_withInit#element
             synthetic set withoutInit
               reference: <testLibraryFragment>::@class::C::@setter::withoutInit
               element: <testLibraryFragment>::@class::C::@setter::withoutInit#element
               formalParameters
-                <null-name>
+                _withoutInit
                   element: <testLibraryFragment>::@class::C::@setter::withoutInit::@parameter::_withoutInit#element
             synthetic set multiWithInit
               reference: <testLibraryFragment>::@class::C::@setter::multiWithInit
               element: <testLibraryFragment>::@class::C::@setter::multiWithInit#element
               formalParameters
-                <null-name>
+                _multiWithInit
                   element: <testLibraryFragment>::@class::C::@setter::multiWithInit::@parameter::_multiWithInit#element
             synthetic set multiWithoutInit
               reference: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
               element: <testLibraryFragment>::@class::C::@setter::multiWithoutInit#element
               formalParameters
-                <null-name>
+                _multiWithoutInit
                   element: <testLibraryFragment>::@class::C::@setter::multiWithoutInit::@parameter::_multiWithoutInit#element
             synthetic set multiWithInit2
               reference: <testLibraryFragment>::@class::C::@setter::multiWithInit2
               element: <testLibraryFragment>::@class::C::@setter::multiWithInit2#element
               formalParameters
-                <null-name>
+                _multiWithInit2
                   element: <testLibraryFragment>::@class::C::@setter::multiWithInit2::@parameter::_multiWithInit2#element
   classes
     class C
@@ -2309,61 +2309,61 @@ library
               reference: <testLibraryFragment>::@class::C::@setter::hasDocComment
               element: <testLibraryFragment>::@class::C::@setter::hasDocComment#element
               formalParameters
-                <null-name>
+                _hasDocComment
                   element: <testLibraryFragment>::@class::C::@setter::hasDocComment::@parameter::_hasDocComment#element
             synthetic set hasDocComment2
               reference: <testLibraryFragment>::@class::C::@setter::hasDocComment2
               element: <testLibraryFragment>::@class::C::@setter::hasDocComment2#element
               formalParameters
-                <null-name>
+                _hasDocComment2
                   element: <testLibraryFragment>::@class::C::@setter::hasDocComment2::@parameter::_hasDocComment2#element
             synthetic set hasAnnotation
               reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation
               element: <testLibraryFragment>::@class::C::@setter::hasAnnotation#element
               formalParameters
-                <null-name>
+                _hasAnnotation
                   element: <testLibraryFragment>::@class::C::@setter::hasAnnotation::@parameter::_hasAnnotation#element
             synthetic set hasAnnotation2
               reference: <testLibraryFragment>::@class::C::@setter::hasAnnotation2
               element: <testLibraryFragment>::@class::C::@setter::hasAnnotation2#element
               formalParameters
-                <null-name>
+                _hasAnnotation2
                   element: <testLibraryFragment>::@class::C::@setter::hasAnnotation2::@parameter::_hasAnnotation2#element
             synthetic set annotationThenComment
               reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment
               element: <testLibraryFragment>::@class::C::@setter::annotationThenComment#element
               formalParameters
-                <null-name>
+                _annotationThenComment
                   element: <testLibraryFragment>::@class::C::@setter::annotationThenComment::@parameter::_annotationThenComment#element
             synthetic set annotationThenComment2
               reference: <testLibraryFragment>::@class::C::@setter::annotationThenComment2
               element: <testLibraryFragment>::@class::C::@setter::annotationThenComment2#element
               formalParameters
-                <null-name>
+                _annotationThenComment2
                   element: <testLibraryFragment>::@class::C::@setter::annotationThenComment2::@parameter::_annotationThenComment2#element
             synthetic set commentThenAnnotation
               reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation
               element: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation#element
               formalParameters
-                <null-name>
+                _commentThenAnnotation
                   element: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation::@parameter::_commentThenAnnotation#element
             synthetic set commentThenAnnotation2
               reference: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2
               element: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2#element
               formalParameters
-                <null-name>
+                _commentThenAnnotation2
                   element: <testLibraryFragment>::@class::C::@setter::commentThenAnnotation2::@parameter::_commentThenAnnotation2#element
             synthetic set commentAroundAnnotation
               reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation
               element: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation#element
               formalParameters
-                <null-name>
+                _commentAroundAnnotation
                   element: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation::@parameter::_commentAroundAnnotation#element
             synthetic set commentAroundAnnotation2
               reference: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2
               element: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2#element
               formalParameters
-                <null-name>
+                _commentAroundAnnotation2
                   element: <testLibraryFragment>::@class::C::@setter::commentAroundAnnotation2::@parameter::_commentAroundAnnotation2#element
   classes
     class C
@@ -3173,12 +3173,20 @@ library
             default a @10
               reference: <testLibraryFragment>::@function::main::@parameter::a
               element: <testLibraryFragment>::@function::main::@parameter::a#element
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 1 @14
+                  staticType: int
             default b @21
               reference: <testLibraryFragment>::@function::main::@parameter::b
               element: <testLibraryFragment>::@function::main::@parameter::b#element
             default c @28
               reference: <testLibraryFragment>::@function::main::@parameter::c
               element: <testLibraryFragment>::@function::main::@parameter::c#element
+              initializer: expression_1
+                IntegerLiteral
+                  literal: 2 @32
+                  staticType: int
   functions
     main
       reference: <testLibrary>::@function::main
@@ -3187,12 +3195,18 @@ library
         optionalNamed a
           firstFragment: <testLibraryFragment>::@function::main::@parameter::a
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::main::@parameter::a
+            expression: expression_0
         optionalNamed b
           firstFragment: <testLibraryFragment>::@function::main::@parameter::b
           type: int
         optionalNamed c
           firstFragment: <testLibraryFragment>::@function::main::@parameter::c
           type: int
+          constantInitializer
+            fragment: <testLibraryFragment>::@function::main::@parameter::c
+            expression: expression_1
       returnType: dynamic
 ''');
   }
@@ -3498,31 +3512,31 @@ library
           reference: <testLibraryFragment>::@setter::withInit
           element: <testLibraryFragment>::@setter::withInit#element
           formalParameters
-            <null-name>
+            _withInit
               element: <testLibraryFragment>::@setter::withInit::@parameter::_withInit#element
         synthetic set withoutInit
           reference: <testLibraryFragment>::@setter::withoutInit
           element: <testLibraryFragment>::@setter::withoutInit#element
           formalParameters
-            <null-name>
+            _withoutInit
               element: <testLibraryFragment>::@setter::withoutInit::@parameter::_withoutInit#element
         synthetic set multiWithInit
           reference: <testLibraryFragment>::@setter::multiWithInit
           element: <testLibraryFragment>::@setter::multiWithInit#element
           formalParameters
-            <null-name>
+            _multiWithInit
               element: <testLibraryFragment>::@setter::multiWithInit::@parameter::_multiWithInit#element
         synthetic set multiWithoutInit
           reference: <testLibraryFragment>::@setter::multiWithoutInit
           element: <testLibraryFragment>::@setter::multiWithoutInit#element
           formalParameters
-            <null-name>
+            _multiWithoutInit
               element: <testLibraryFragment>::@setter::multiWithoutInit::@parameter::_multiWithoutInit#element
         synthetic set multiWithInit2
           reference: <testLibraryFragment>::@setter::multiWithInit2
           element: <testLibraryFragment>::@setter::multiWithInit2#element
           formalParameters
-            <null-name>
+            _multiWithInit2
               element: <testLibraryFragment>::@setter::multiWithInit2::@parameter::_multiWithInit2#element
   topLevelVariables
     hasInitializer withInit
@@ -4116,61 +4130,61 @@ library
           reference: <testLibraryFragment>::@setter::hasDocComment
           element: <testLibraryFragment>::@setter::hasDocComment#element
           formalParameters
-            <null-name>
+            _hasDocComment
               element: <testLibraryFragment>::@setter::hasDocComment::@parameter::_hasDocComment#element
         synthetic set hasDocComment2
           reference: <testLibraryFragment>::@setter::hasDocComment2
           element: <testLibraryFragment>::@setter::hasDocComment2#element
           formalParameters
-            <null-name>
+            _hasDocComment2
               element: <testLibraryFragment>::@setter::hasDocComment2::@parameter::_hasDocComment2#element
         synthetic set hasAnnotation
           reference: <testLibraryFragment>::@setter::hasAnnotation
           element: <testLibraryFragment>::@setter::hasAnnotation#element
           formalParameters
-            <null-name>
+            _hasAnnotation
               element: <testLibraryFragment>::@setter::hasAnnotation::@parameter::_hasAnnotation#element
         synthetic set hasAnnotation2
           reference: <testLibraryFragment>::@setter::hasAnnotation2
           element: <testLibraryFragment>::@setter::hasAnnotation2#element
           formalParameters
-            <null-name>
+            _hasAnnotation2
               element: <testLibraryFragment>::@setter::hasAnnotation2::@parameter::_hasAnnotation2#element
         synthetic set annotationThenComment
           reference: <testLibraryFragment>::@setter::annotationThenComment
           element: <testLibraryFragment>::@setter::annotationThenComment#element
           formalParameters
-            <null-name>
+            _annotationThenComment
               element: <testLibraryFragment>::@setter::annotationThenComment::@parameter::_annotationThenComment#element
         synthetic set annotationThenComment2
           reference: <testLibraryFragment>::@setter::annotationThenComment2
           element: <testLibraryFragment>::@setter::annotationThenComment2#element
           formalParameters
-            <null-name>
+            _annotationThenComment2
               element: <testLibraryFragment>::@setter::annotationThenComment2::@parameter::_annotationThenComment2#element
         synthetic set commentThenAnnotation
           reference: <testLibraryFragment>::@setter::commentThenAnnotation
           element: <testLibraryFragment>::@setter::commentThenAnnotation#element
           formalParameters
-            <null-name>
+            _commentThenAnnotation
               element: <testLibraryFragment>::@setter::commentThenAnnotation::@parameter::_commentThenAnnotation#element
         synthetic set commentThenAnnotation2
           reference: <testLibraryFragment>::@setter::commentThenAnnotation2
           element: <testLibraryFragment>::@setter::commentThenAnnotation2#element
           formalParameters
-            <null-name>
+            _commentThenAnnotation2
               element: <testLibraryFragment>::@setter::commentThenAnnotation2::@parameter::_commentThenAnnotation2#element
         synthetic set commentAroundAnnotation
           reference: <testLibraryFragment>::@setter::commentAroundAnnotation
           element: <testLibraryFragment>::@setter::commentAroundAnnotation#element
           formalParameters
-            <null-name>
+            _commentAroundAnnotation
               element: <testLibraryFragment>::@setter::commentAroundAnnotation::@parameter::_commentAroundAnnotation#element
         synthetic set commentAroundAnnotation2
           reference: <testLibraryFragment>::@setter::commentAroundAnnotation2
           element: <testLibraryFragment>::@setter::commentAroundAnnotation2#element
           formalParameters
-            <null-name>
+            _commentAroundAnnotation2
               element: <testLibraryFragment>::@setter::commentAroundAnnotation2::@parameter::_commentAroundAnnotation2#element
   topLevelVariables
     hasDocComment
@@ -4692,7 +4706,7 @@ library
               reference: <testLibraryFragment>::@class::A::@setter::foo
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               formalParameters
-                <null-name>
+                _foo
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
   classes
     class A

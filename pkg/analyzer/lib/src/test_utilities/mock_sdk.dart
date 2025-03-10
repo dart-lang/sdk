@@ -1668,7 +1668,7 @@ final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_WASM,
 ];
 
-/// Create a reduced approximation of Dart SDK in the [path].
+/// Creates a reduced approximation of Dart SDK in the [root].
 ///
 /// It has enough libraries to run analyzer and analysis server tests,
 /// but some libraries, classes, and methods are missing.

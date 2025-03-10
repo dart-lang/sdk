@@ -79,7 +79,7 @@ import 'a.dart';
 class A {}
 ''');
     var element = findElement2.class_('A');
-    var result = (await helper.getElementDeclaration(element.firstFragment))!;
+    var result = (await helper.getFragmentDeclaration(element.firstFragment))!;
     var node = result.node as ClassDeclaration;
     expect(node.name.lexeme, 'A');
   }

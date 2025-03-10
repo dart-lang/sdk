@@ -41,6 +41,7 @@ ImplementsClause
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_implements_2times_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -129,6 +130,7 @@ ImplementsClause
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_implements_2times_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -218,6 +220,7 @@ ImplementsClause
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_implements_2times_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -284,6 +287,7 @@ mixin M implements A, A {}
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_implements_2times_augmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

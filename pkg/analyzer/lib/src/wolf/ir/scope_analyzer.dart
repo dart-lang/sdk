@@ -58,7 +58,7 @@ base class ScopeAnalyzerEventListener {
   /// This call back is invoked before more specific callbacks like [onAlloc].
   void onInstruction(int address) {}
 
-  /// Called when [scopeAnalyzer] is about to process a "begin" instruction.
+  /// Called when [_scopeAnalyzer] is about to process a "begin" instruction.
   void onPushScope({required int address, required int scope}) {}
 
   /// Records that the value of a state variable was potentially affected.
@@ -110,7 +110,7 @@ class Scopes {
   /// Computes the innermost ancestor of [scope] (or [scope] itself), whose
   /// [endAddress] is greater than or equal to [address].
   ///
-  /// This method may be used in conjunction with [lastScopeBefore] to find the
+  /// This method may be used in conjunction with `lastScopeBefore` to find the
   /// innermost scope containing an instruction, according to the formula:
   ///
   ///     var scope = ancestorContainingAddress(

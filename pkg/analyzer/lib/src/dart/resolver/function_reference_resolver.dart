@@ -10,7 +10,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -115,7 +114,7 @@ class FunctionReferenceResolver {
     return false;
   }
 
-  List<DartType> _checkTypeArguments(
+  List<TypeImpl> _checkTypeArguments(
     TypeArgumentList typeArgumentList,
     String? name,
     List<TypeParameterElement2> typeParameters,
@@ -324,7 +323,7 @@ class FunctionReferenceResolver {
       element.typeParameters2,
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
     );
-    var type = element.instantiate(
+    var type = element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );

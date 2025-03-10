@@ -20,16 +20,24 @@ class ListLiteralsLowering {
   final Procedure _defaultFactory;
 
   // Specialized _GrowableList._literalN(e1, ..., eN) factories.
-  final List<Procedure?> _specializedFactories =
-      List<Procedure?>.filled(numSpecializedFactories, null);
+  final List<Procedure?> _specializedFactories = List<Procedure?>.filled(
+    numSpecializedFactories,
+    null,
+  );
 
   ListLiteralsLowering(this.coreTypes)
-      : _defaultFactory =
-            coreTypes.index.getProcedure('dart:core', '_GrowableList', '');
+    : _defaultFactory = coreTypes.index.getProcedure(
+        'dart:core',
+        '_GrowableList',
+        '',
+      );
 
   Procedure getSpecializedFactory(int length) =>
-      (_specializedFactories[length - 1] ??= coreTypes.index
-          .getProcedure('dart:core', '_GrowableList', '_literal$length'));
+      (_specializedFactories[length - 1] ??= coreTypes.index.getProcedure(
+        'dart:core',
+        '_GrowableList',
+        '_literal$length',
+      ));
 
   Expression transformListLiteral(ListLiteral node) {
     if (node.isConst) {
@@ -38,14 +46,16 @@ class ListLiteralsLowering {
     }
     final int length = node.expressions.length;
     if (length == 0) {
-      return StaticInvocation(_defaultFactory,
-          Arguments([IntLiteral(0)], types: [node.typeArgument]))
-        ..fileOffset = node.fileOffset;
+      return StaticInvocation(
+        _defaultFactory,
+        Arguments([IntLiteral(0)], types: [node.typeArgument]),
+      )..fileOffset = node.fileOffset;
     } else if (length <= numSpecializedFactories) {
       final factory = getSpecializedFactory(length);
       return StaticInvocation(
-          factory, Arguments(node.expressions, types: [node.typeArgument]))
-        ..fileOffset = node.fileOffset;
+        factory,
+        Arguments(node.expressions, types: [node.typeArgument]),
+      )..fileOffset = node.fileOffset;
     }
     return node;
   }

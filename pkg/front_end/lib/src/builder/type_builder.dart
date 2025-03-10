@@ -600,9 +600,11 @@ class PredefinedTypeName implements TypeName {
   const PredefinedTypeName(this.name);
 
   @override
+  // Coverage-ignore(suite): Not run.
   String? get qualifier => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get nameOffset => TreeNode.noOffset;
 
   @override

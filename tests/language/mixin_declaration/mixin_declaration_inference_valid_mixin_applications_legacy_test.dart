@@ -15,10 +15,10 @@ import "package:expect/expect.dart";
 class I<X> {}
 
 class C0<T> extends I<T> {}
+
 class C1<T> implements I<T> {}
 
-mixin M0<T> on I<T> {
-}
+mixin M0<T> on I<T> {}
 
 mixin M1<T> on I<T> {
   T Function(T) get value => (param) => param;
@@ -29,7 +29,9 @@ mixin M2<T> implements I<T> {}
 mixin M3<T> on I<T> {}
 
 class J<X> {}
+
 class C2 extends C1<int> implements J<double> {}
+
 class C3 extends J<double> {}
 
 mixin M4<S, T> on I<S>, J<T> {
@@ -283,11 +285,9 @@ mixin C13Mixin on M2<int>, M3<int>, M1<int> {
 // M1 is inferred as M1<int>
 class C13 = Object with M2<int>, M3, M1, C13Mixin;
 
-
 ///////////////////////////////////////////////////////
 // Inference from multiple constraints works
 ///////////////////////////////////////////////////////
-
 
 mixin A20Mixin on C2, M4<int, double> {
   void check() {

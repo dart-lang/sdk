@@ -13,12 +13,6 @@ import "dart:core" as core;
 abstract class HasSomeField extends core::Object /*isMixinDeclaration*/  {
   abstract get someField() → core::String;
 }
-abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with self2::HasSomeField /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •(core::int index, core::String _name) → self2::_SomeEnum&_Enum&HasSomeField
-    : super core::_Enum::•(index, _name)
-    ;
-  abstract mixin-stub get someField() → core::String; -> self2::HasSomeField::someField
-}
 class SomeEnum extends self2::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
   enum-element static const field self2::SomeEnum value = const self2::SomeEnum::•(0, "value");
   static const field core::List<self2::SomeEnum> values = const <self2::SomeEnum>[self2::SomeEnum::value];
@@ -30,6 +24,12 @@ class SomeEnum extends self2::_SomeEnum&_Enum&HasSomeField /*isEnum*/  {
   @core::override
   get someField() → core::String
     ;
+}
+abstract class _SomeEnum&_Enum&HasSomeField = core::_Enum with self2::HasSomeField /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self2::_SomeEnum&_Enum&HasSomeField
+    : super core::_Enum::•(index, _name)
+    ;
+  abstract mixin-stub get someField() → core::String; -> self2::HasSomeField::someField
 }
 
 

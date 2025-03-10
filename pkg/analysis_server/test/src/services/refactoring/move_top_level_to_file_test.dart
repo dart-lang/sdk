@@ -1820,6 +1820,53 @@ part of 'containing_library.dart';
     );
   }
 
+  /// https://github.com/dart-lang/sdk/issues/59968#issuecomment-2622191812
+  Future<void> test_single_topLevelVariable_withReferenceToGetter() async {
+    var originalSource = '''
+class A {}
+
+
+int variableT^oMove = 3;
+
+class B {}
+''';
+    var otherFilePath = '$projectFolderPath/lib/other.dart';
+    var otherFileContent = '''
+import "main.dart";
+
+void f() {
+  print(variableToMove);
+}
+''';
+
+    var declarationName = 'variableToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class B {}
+>>>>>>>>>> lib/other.dart
+import "package:test/variable_to_move.dart";
+
+import "main.dart";
+
+void f() {
+  print(variableToMove);
+}
+>>>>>>>>>> lib/variable_to_move.dart created
+int variableToMove = 3;
+''';
+
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
+  }
+
   Future<void> test_single_typedef() async {
     var originalSource = '''
 class A {}

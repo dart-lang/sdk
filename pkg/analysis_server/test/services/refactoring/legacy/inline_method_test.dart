@@ -1163,6 +1163,48 @@ void f() {
     expect(refactoring.inlineAll, false);
   }
 
+  Future<void> test_inner_bodyClosure() async {
+    await indexTestUnit('''
+int test() {
+  var c = () {
+    return 1;
+  };
+  return c();
+}
+void f() {
+  var res = test();
+}
+''');
+    _createRefactoring('test() {');
+    return _assertSuccessfulRefactoring('''
+void f() {
+  var c = () {
+    return 1;
+  };
+  var res = c();
+}
+''');
+  }
+
+  Future<void> test_inner_expressionClosure() async {
+    await indexTestUnit('''
+int test() {
+  var c = () => 1;
+  return c();
+}
+void f() {
+  var res = test();
+}
+''');
+    _createRefactoring('test() {');
+    return _assertSuccessfulRefactoring('''
+void f() {
+  var c = () => 1;
+  var res = c();
+}
+''');
+  }
+
   Future<void> test_intoStringInterpolation2_integerLiteral() async {
     await indexTestUnit(r'''
 void f() {

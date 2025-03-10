@@ -22,12 +22,15 @@ struct InterruptedThreadState {
 
 class ThreadInterrupter : public AllStatic {
  public:
-  static void Init();
+  static void Init(intptr_t period);
 
   static void Startup();
   static void Cleanup();
 
   // Delay between interrupts.
+  //
+  // Warning: This method will have no effect if
+  // |ThreadInterrupter::initialized_| is false.
   static void SetInterruptPeriod(intptr_t period);
 
   // Wake up the thread interrupter thread.

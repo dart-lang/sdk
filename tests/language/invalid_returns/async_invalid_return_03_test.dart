@@ -10,9 +10,9 @@ import 'dart:async';
 
 Future<Object?> test1() async {
   return;
-//^
-// [analyzer] unspecified
-// [cfe] A value must be explicitly returned from a non-void async function.
+  // [error column 3, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_WITHOUT_VALUE
+  // [cfe] A value must be explicitly returned from a non-void async function.
 }
 
 // Inferred return type of function literal is `Future<Null>`, no error.

@@ -14,9 +14,9 @@ test() {
   // - Logical-and: The greatest lower bound of the context type schemas of the
   //   branches.
   {
-    var (void Function(int) x && void Function(double) y) =
-        contextType((n) => n.expectStaticType<Exactly<num>>())
-          ..expectStaticType<Exactly<void Function(num)>>();
+    var (void Function(int) x && void Function(double) y) = contextType(
+      (n) => n.expectStaticType<Exactly<num>>(),
+    )..expectStaticType<Exactly<void Function(num)>>();
   }
 
   // - Null-assert: A context type schema `E?` where `E` is the context type
@@ -80,9 +80,10 @@ test() {
 
   //   ii. Else if `p` has no elements then `E` is `_`.
   {
-    var [] = [1]
-      ..expectStaticType<Exactly<List<int>>>()
-      ..removeLast();
+    var [] =
+        [1]
+          ..expectStaticType<Exactly<List<int>>>()
+          ..removeLast();
   }
 
   //   iii. Else, infer the type schema from the elements:
@@ -95,12 +96,10 @@ test() {
   //              context type schema of `s` is an `Iterable<T>` for some type
   //              schema `T`, then add `T` to es.
   {
-    var [
-      ...Iterable<int> x
-    ] = contextType(<int>[])..expectStaticType<Exactly<List<int>>>();
-    var [
-      ...List<int> y
-    ] = contextType(<int>[])..expectStaticType<Exactly<List<int>>>();
+    var [...Iterable<int> x] = contextType(<int>[])
+      ..expectStaticType<Exactly<List<int>>>();
+    var [...List<int> y] = contextType(<int>[])
+      ..expectStaticType<Exactly<List<int>>>();
   }
 
   //           b. Else if `e` is not a rest element, add the context type schema
@@ -119,9 +118,8 @@ test() {
   {
     var [void Function(int) x, void Function(double) y] = contextType([
       (n) => n.expectStaticType<Exactly<num>>(),
-      (n) => n.expectStaticType<Exactly<num>>()
-    ])
-      ..expectStaticType<Exactly<List<void Function(num)>>>();
+      (n) => n.expectStaticType<Exactly<num>>(),
+    ])..expectStaticType<Exactly<List<void Function(num)>>>();
   }
 
   // - Map: A type schema `Map<K, V>` where:
@@ -137,7 +135,7 @@ test() {
   {
     var {1: void Function(int) x, 2: void Function(double) y} = {
       (1 as num): (n) => n.expectStaticType<Exactly<num>>(),
-      (2 as num): (n) => n.expectStaticType<Exactly<num>>()
+      (2 as num): (n) => n.expectStaticType<Exactly<num>>(),
     }..expectStaticType<Exactly<Map<num, void Function(num)>>>();
   }
 
@@ -158,9 +156,8 @@ test() {
   // are specified, then instantiate to bounds is used to fill in provisional
   // type arguments for the purpose of determining the context type schema.
   {
-    var List(
-      first: x
-    ) = contextType([1])..expectStaticType<Exactly<List<dynamic>>>();
+    var List(first: x) = contextType([1])
+      ..expectStaticType<Exactly<List<dynamic>>>();
     var List(first: y) = <int>[1];
     y.expectStaticType<Exactly<int>>();
   }

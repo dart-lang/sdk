@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../base/problems.dart';
+import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
@@ -15,7 +16,10 @@ import 'source_library_builder.dart';
 /// as a regular class declaration and an extension type declaration.
 // TODO(johnniwinther): Should this be renamed now that inline classes are
 //  renamed to extension type declarations?
-abstract class ClassDeclaration
+// TODO(johnniwinther): Merge this with [IDeclarationBuilder]? Extensions are
+// the only declarations without constructors, this might come with the static
+// extension feature.
+abstract class ClassDeclarationBuilder
     implements IDeclarationBuilder, ClassMemberAccess {
   @override
   SourceLibraryBuilder get libraryBuilder;
@@ -79,41 +83,60 @@ abstract class ClassDeclaration
   Iterator<T> localConstructorIterator<T extends MemberBuilder>();
 }
 
-mixin ClassDeclarationMixin implements ClassDeclaration {
-  List<ConstructorReferenceBuilder>? get constructorReferences;
+mixin ClassDeclarationBuilderMixin implements ClassDeclarationBuilder {
+  List<ConstructorReferenceBuilder> get constructorReferences;
 
-  @override
-  int resolveConstructors(SourceLibraryBuilder library) {
-    if (constructorReferences == null) return 0;
-    for (ConstructorReferenceBuilder ref in constructorReferences!) {
-      ref.resolveIn(scope, library);
+  List<ClassDeclarationBuilderMixin>? get augmentations;
+
+  LookupScope get bodyScope;
+
+  int resolveConstructorReferences(SourceLibraryBuilder library) {
+    int count = 0;
+    if (constructorReferences.isNotEmpty) {
+      for (ConstructorReferenceBuilder ref in constructorReferences) {
+        ref.resolveIn(bodyScope, library);
+      }
     }
-    int count = constructorReferences!.length;
-    if (count != 0) {
-      Iterator<MemberBuilder> iterator = nameSpace.filteredConstructorIterator(
-          parent: this, includeDuplicates: true, includeAugmentations: true);
-      while (iterator.moveNext()) {
-        MemberBuilder declaration = iterator.current;
-        if (declaration.declarationBuilder?.origin != origin) {
-          unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
-              fileOffset, fileUri);
-        }
-        if (declaration is SourceFactoryBuilder) {
-          declaration.resolveRedirectingFactory();
-        }
+    List<ClassDeclarationBuilderMixin>? augmentations = this.augmentations;
+    if (augmentations != null) {
+      for (ClassDeclarationBuilderMixin augmentation in augmentations) {
+        count += augmentation.resolveConstructorReferences(library);
       }
     }
     return count;
   }
+
+  void resolveConstructorRedirections() {
+    Iterator<MemberBuilder> iterator = nameSpace.filteredConstructorIterator(
+        parent: null, includeDuplicates: true, includeAugmentations: false);
+    while (iterator.moveNext()) {
+      MemberBuilder declaration = iterator.current;
+      if (declaration.declarationBuilder?.origin != origin) {
+        unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
+            fileOffset, fileUri);
+      }
+      if (declaration is SourceFactoryBuilder) {
+        declaration.resolveRedirectingFactory();
+      }
+    }
+  }
+
+  @override
+  int resolveConstructors(SourceLibraryBuilder library) {
+    int count = resolveConstructorReferences(library);
+    resolveConstructorRedirections();
+    return count;
+  }
 }
 
-abstract class ClassDeclarationAugmentationAccess<D extends ClassDeclaration> {
+abstract class ClassDeclarationAugmentationAccess<
+    D extends ClassDeclarationBuilder> {
   D getOrigin(D classDeclaration);
 
   Iterable<D>? getAugmentations(D classDeclaration);
 }
 
-class ClassDeclarationMemberIterator<D extends ClassDeclaration,
+class ClassDeclarationMemberIterator<D extends ClassDeclarationBuilder,
     T extends Builder> implements Iterator<T> {
   Iterator<T>? _iterator;
   Iterator<D>? augmentationBuilders;
@@ -171,7 +194,7 @@ class ClassDeclarationMemberIterator<D extends ClassDeclaration,
 }
 
 // Coverage-ignore(suite): Not run.
-class ClassDeclarationMemberNameIterator<D extends ClassDeclaration,
+class ClassDeclarationMemberNameIterator<D extends ClassDeclarationBuilder,
     T extends Builder> implements NameIterator<T> {
   NameIterator<T>? _iterator;
   Iterator<D>? augmentationBuilders;
@@ -224,7 +247,7 @@ class ClassDeclarationMemberNameIterator<D extends ClassDeclaration,
   String get name => _iterator?.name ?? (throw new StateError('No element'));
 }
 
-class ClassDeclarationConstructorIterator<D extends ClassDeclaration,
+class ClassDeclarationConstructorIterator<D extends ClassDeclarationBuilder,
     T extends MemberBuilder> implements Iterator<T> {
   Iterator<T>? _iterator;
   Iterator<D>? augmentationBuilders;
@@ -283,7 +306,7 @@ class ClassDeclarationConstructorIterator<D extends ClassDeclaration,
       (throw new StateError('No element'));
 }
 
-class ClassDeclarationConstructorNameIterator<D extends ClassDeclaration,
+class ClassDeclarationConstructorNameIterator<D extends ClassDeclarationBuilder,
     T extends MemberBuilder> implements NameIterator<T> {
   NameIterator<T>? _iterator;
   Iterator<D>? augmentationBuilders;

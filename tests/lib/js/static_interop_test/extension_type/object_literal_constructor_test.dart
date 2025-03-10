@@ -6,8 +6,7 @@ library object_literal_constructor_test;
 
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
-
-import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/expect.dart';
 
 extension type Literal._(JSObject _) implements JSObject {
   external Literal({double? a, String b, bool? c});
@@ -20,22 +19,22 @@ extension type Literal._(JSObject _) implements JSObject {
 // This is not guaranteed to be the same across different backends.
 void testProperties(JSObject literal, {double? a, String? b, bool? c}) {
   if (a != null) {
-    expect(literal.has('a'), true);
-    expect((literal['a'] as JSNumber).toDartDouble, a);
+    Expect.isTrue(literal.has('a'));
+    Expect.equals(a, (literal['a'] as JSNumber).toDartDouble);
   } else {
-    expect(literal.has('a'), false);
+    Expect.isFalse(literal.has('a'));
   }
   if (b != null) {
-    expect(literal.has('b'), true);
-    expect((literal['b'] as JSString).toDart, b);
+    Expect.isTrue(literal.has('b'));
+    Expect.equals(b, (literal['b'] as JSString).toDart);
   } else {
-    expect(literal.has('b'), false);
+    Expect.isFalse(literal.has('b'));
   }
   if (c != null) {
-    expect(literal.has('c'), true);
-    expect((literal['c'] as JSBoolean).toDart, c);
+    Expect.isTrue(literal.has('c'));
+    Expect.equals(c, (literal['c'] as JSBoolean).toDart);
   } else {
-    expect(literal.has('c'), false);
+    Expect.isFalse(literal.has('c'));
   }
 }
 

@@ -42,13 +42,6 @@ class Response<T extends core::Object? = dynamic> extends core::Object {
     : self::Response::data = data, super core::Object::•()
     ;
 }
-abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self::Response<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Class1&Object&TestMixin
-    : super core::Object::•()
-    ;
-  mixin-super-stub method test(covariant-by-class asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String>
-    return super.{self::TestMixin::test}(fetch);
-}
 class Class1 extends self::_Class1&Object&TestMixin {
   synthetic constructor •() → self::Class1
     : super self::_Class1&Object&TestMixin::•()
@@ -58,13 +51,6 @@ class Class1 extends self::_Class1&Object&TestMixin {
     this.{self::_Class1&Object&TestMixin::test}(asy::Future::value<self::Response<core::String>>(response)){(asy::Future<self::Response<core::String>>) → asy::Future<core::String>};
   }
 }
-abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self::PagingResponse<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Class2&Object&TestMixin
-    : super core::Object::•()
-    ;
-  mixin-super-stub method test(covariant-by-class asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String>
-    return super.{self::TestMixin::test}(fetch);
-}
 class Class2 extends self::_Class2&Object&TestMixin {
   synthetic constructor •() → self::Class2
     : super self::_Class2&Object&TestMixin::•()
@@ -73,5 +59,19 @@ class Class2 extends self::_Class2&Object&TestMixin {
     final self::PagingResponse<core::String> response = new self::PagingResponse::•<core::String>(new self::PagingResponseData::•<core::String>(<core::String>["test"]));
     this.{self::_Class2&Object&TestMixin::test}(asy::Future::value<self::PagingResponse<core::String>>(response)){(asy::Future<self::PagingResponse<core::String>>) → asy::Future<core::String>};
   }
+}
+abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self::Response<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class1&Object&TestMixin
+    : super core::Object::•()
+    ;
+  mixin-super-stub method test(covariant-by-class asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String>
+    return super.{self::TestMixin::test}(fetch);
+}
+abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self::PagingResponse<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class2&Object&TestMixin
+    : super core::Object::•()
+    ;
+  mixin-super-stub method test(covariant-by-class asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String>
+    return super.{self::TestMixin::test}(fetch);
 }
 static method main() → dynamic {}

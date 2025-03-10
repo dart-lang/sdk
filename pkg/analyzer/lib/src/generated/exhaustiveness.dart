@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/exhaustiveness/dart_template_buffer.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
@@ -16,15 +14,14 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
     show Variance;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -33,7 +30,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// can be written latter into Dart code that considers imports. It also
 /// accumulates fragments of text, such as syntax `(`, or names of properties.
 class AnalyzerDartTemplateBuffer
-    implements DartTemplateBuffer<DartObject, FieldElement, DartType> {
+    implements DartTemplateBuffer<DartObject, FieldElement2, TypeImpl> {
   final List<MissingPatternPart> parts = [];
   bool isComplete = true;
 
@@ -59,17 +56,17 @@ class AnalyzerDartTemplateBuffer
   }
 
   @override
-  void writeEnumValue(FieldElement value, String name) {
-    var enumElement = value.enclosingElement3;
-    if (enumElement is! EnumElement) {
+  void writeEnumValue(FieldElement2 value, String name) {
+    var enumElement = value.enclosingElement2;
+    if (enumElement is! EnumElement2) {
       isComplete = false;
       return;
     }
 
     parts.add(
       MissingPatternEnumValuePart(
-        enumElement: enumElement,
-        value: value,
+        enumElement2: enumElement,
+        value2: value,
       ),
     );
   }
@@ -80,7 +77,7 @@ class AnalyzerDartTemplateBuffer
   }
 
   @override
-  void writeGeneralType(DartType type, String name) {
+  void writeGeneralType(TypeImpl type, String name) {
     parts.add(
       MissingPatternTypePart(type),
     );
@@ -88,26 +85,27 @@ class AnalyzerDartTemplateBuffer
 }
 
 class AnalyzerEnumOperations
-    implements EnumOperations<DartType, EnumElement, FieldElement, DartObject> {
+    implements
+        EnumOperations<TypeImpl, EnumElement2, FieldElement2, DartObject> {
   const AnalyzerEnumOperations();
 
   @override
-  EnumElement? getEnumClass(DartType type) {
-    Element? element = type.element;
-    if (element is EnumElement) {
+  EnumElement2? getEnumClass(TypeImpl type) {
+    var element = type.element3;
+    if (element is EnumElement2) {
       return element;
     }
     return null;
   }
 
   @override
-  String getEnumElementName(FieldElement enumField) {
-    return '${enumField.enclosingElement3.name}.${enumField.name}';
+  String getEnumElementName(FieldElement2 enumField) {
+    return '${enumField.enclosingElement2.name3}.${enumField.name3}';
   }
 
   @override
-  Iterable<FieldElement> getEnumElements(EnumElement enumClass) sync* {
-    for (FieldElement field in enumClass.fields) {
+  Iterable<FieldElement2> getEnumElements(EnumElement2 enumClass) sync* {
+    for (var field in enumClass.fields2) {
       if (field.isEnumConstant) {
         yield field;
       }
@@ -115,21 +113,21 @@ class AnalyzerEnumOperations
   }
 
   @override
-  InterfaceType getEnumElementType(FieldElement enumField) {
-    return enumField.type as InterfaceType;
+  InterfaceTypeImpl getEnumElementType(FieldElement2 enumField) {
+    return enumField.type as InterfaceTypeImpl;
   }
 
   @override
-  DartObject? getEnumElementValue(FieldElement enumField) {
+  DartObject? getEnumElementValue(FieldElement2 enumField) {
     return enumField.computeConstantValue();
   }
 }
 
-class AnalyzerExhaustivenessCache extends ExhaustivenessCache<DartType,
-    InterfaceElement, EnumElement, FieldElement, DartObject> {
+class AnalyzerExhaustivenessCache extends ExhaustivenessCache<TypeImpl,
+    InterfaceElement2, EnumElement2, FieldElement2, DartObject> {
   final TypeSystemImpl typeSystem;
 
-  AnalyzerExhaustivenessCache(this.typeSystem, LibraryElement enclosingLibrary)
+  AnalyzerExhaustivenessCache(this.typeSystem, LibraryElement2 enclosingLibrary)
       : super(
             AnalyzerTypeOperations(typeSystem, enclosingLibrary),
             const AnalyzerEnumOperations(),
@@ -137,23 +135,24 @@ class AnalyzerExhaustivenessCache extends ExhaustivenessCache<DartType,
 }
 
 class AnalyzerSealedClassOperations
-    implements SealedClassOperations<DartType, InterfaceElement> {
+    implements SealedClassOperations<TypeImpl, InterfaceElementImpl2> {
   final TypeSystemImpl _typeSystem;
 
   AnalyzerSealedClassOperations(this._typeSystem);
 
   @override
-  List<InterfaceElement> getDirectSubclasses(InterfaceElement sealedClass) {
-    List<InterfaceElement> subclasses = [];
-    LibraryElement library = sealedClass.library;
+  List<InterfaceElementImpl2> getDirectSubclasses(
+      InterfaceElementImpl2 sealedClass) {
+    List<InterfaceElementImpl2> subclasses = [];
+    var library = sealedClass.library2;
     outer:
-    for (Element declaration in library.topLevelElements) {
-      if (declaration is ExtensionTypeElement) {
+    for (var declaration in library.children2) {
+      if (declaration is ExtensionTypeElement2) {
         continue;
       }
-      if (declaration != sealedClass && declaration is InterfaceElement) {
-        bool checkType(InterfaceType? type) {
-          if (type?.element == sealedClass) {
+      if (declaration != sealedClass && declaration is InterfaceElementImpl2) {
+        bool checkType(InterfaceTypeImpl? type) {
+          if (type?.element3 == sealedClass) {
             subclasses.add(declaration);
             return true;
           }
@@ -163,17 +162,17 @@ class AnalyzerSealedClassOperations
         if (checkType(declaration.supertype)) {
           continue outer;
         }
-        for (InterfaceType mixin in declaration.mixins) {
+        for (var mixin in declaration.mixins) {
           if (checkType(mixin)) {
             continue outer;
           }
         }
-        for (InterfaceType interface in declaration.interfaces) {
+        for (var interface in declaration.interfaces) {
           if (checkType(interface)) {
             continue outer;
           }
         }
-        if (declaration is MixinElement) {
+        if (declaration is MixinElementImpl2) {
           for (var type in declaration.superclassConstraints) {
             if (checkType(type)) {
               continue outer;
@@ -186,20 +185,19 @@ class AnalyzerSealedClassOperations
   }
 
   @override
-  ClassElement? getSealedClass(DartType type) {
-    Element? element = type.element;
-    if (element is ClassElement && element.isSealed) {
+  ClassElementImpl2? getSealedClass(TypeImpl type) {
+    var element = type.element3;
+    if (element is ClassElementImpl2 && element.isSealed) {
       return element;
     }
     return null;
   }
 
   @override
-  DartType? getSubclassAsInstanceOf(
-      InterfaceElement subClass, covariant InterfaceType sealedClassType) {
-    InterfaceType thisType = subClass.thisType;
-    InterfaceType asSealedClass =
-        thisType.asInstanceOf(sealedClassType.element)!;
+  TypeImpl? getSubclassAsInstanceOf(InterfaceElementImpl2 subClass,
+      covariant InterfaceTypeImpl sealedClassType) {
+    var thisType = subClass.thisType;
+    var asSealedClass = thisType.asInstanceOf2(sealedClassType.element3)!;
     if (thisType.typeArguments.isEmpty) {
       return thisType;
     }
@@ -212,10 +210,10 @@ class AnalyzerSealedClassOperations
         }
       }
       if (trivialSubstitution) {
-        Substitution substitution = Substitution.fromPairs(
-            subClass.typeParameters, sealedClassType.typeArguments);
-        for (int i = 0; i < subClass.typeParameters.length; i++) {
-          DartType? bound = subClass.typeParameters[i].bound;
+        Substitution substitution = Substitution.fromPairs2(
+            subClass.typeParameters2, sealedClassType.typeArguments);
+        for (int i = 0; i < subClass.typeParameters2.length; i++) {
+          var bound = subClass.typeParameters2[i].bound;
           if (bound != null &&
               !_typeSystem.isSubtypeOf(sealedClassType.typeArguments[i],
                   substitution.substituteType(bound))) {
@@ -228,7 +226,7 @@ class AnalyzerSealedClassOperations
       trivialSubstitution = false;
     }
     if (trivialSubstitution) {
-      return subClass.instantiate(
+      return subClass.instantiateImpl(
           typeArguments: sealedClassType.typeArguments,
           nullabilitySuffix: NullabilitySuffix.none);
     } else {
@@ -237,40 +235,41 @@ class AnalyzerSealedClassOperations
   }
 }
 
-class AnalyzerTypeOperations implements TypeOperations<DartType> {
+class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   final TypeSystemImpl _typeSystem;
-  final LibraryElement _enclosingLibrary;
+  final LibraryElement2 _enclosingLibrary;
 
-  final Map<InterfaceType, Map<Key, DartType>> _interfaceFieldTypesCaches = {};
+  final Map<InterfaceTypeImpl, Map<Key, TypeImpl>> _interfaceFieldTypesCaches =
+      {};
 
   AnalyzerTypeOperations(this._typeSystem, this._enclosingLibrary);
 
   @override
-  DartType get boolType => _typeSystem.typeProvider.boolType;
+  TypeImpl get boolType => _typeSystem.typeProvider.boolType;
 
   @override
-  DartType get nonNullableObjectType => _typeSystem.objectNone;
+  TypeImpl get nonNullableObjectType => _typeSystem.objectNone;
 
   @override
-  DartType get nullableObjectType => _typeSystem.objectQuestion;
+  TypeImpl get nullableObjectType => _typeSystem.objectQuestion;
 
   @override
-  DartType getExtensionTypeErasure(DartType type) {
+  TypeImpl getExtensionTypeErasure(TypeImpl type) {
     return type.extensionTypeErasure;
   }
 
   @override
-  Map<Key, DartType> getFieldTypes(DartType type) {
-    if (type is InterfaceType) {
+  Map<Key, TypeImpl> getFieldTypes(TypeImpl type) {
+    if (type is InterfaceTypeImpl) {
       return _getInterfaceFieldTypes(type);
-    } else if (type is RecordType) {
-      Map<Key, DartType> fieldTypes = {};
+    } else if (type is RecordTypeImpl) {
+      Map<Key, TypeImpl> fieldTypes = {};
       fieldTypes.addAll(getFieldTypes(_typeSystem.typeProvider.objectType));
       for (int index = 0; index < type.positionalFields.length; index++) {
-        RecordTypePositionalField field = type.positionalFields[index];
+        var field = type.positionalFields[index];
         fieldTypes[RecordIndexKey(index)] = field.type;
       }
-      for (RecordTypeNamedField field in type.namedFields) {
+      for (var field in type.namedFields) {
         fieldTypes[RecordNameKey(field.name)] = field.type;
       }
       return fieldTypes;
@@ -279,14 +278,13 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
-  DartType? getFutureOrTypeArgument(DartType type) {
+  TypeImpl? getFutureOrTypeArgument(TypeImpl type) {
     return type.isDartAsyncFutureOr ? _typeSystem.futureOrBase(type) : null;
   }
 
   @override
-  DartType? getListElementType(DartType type) {
-    InterfaceType? listType =
-        type.asInstanceOf(_typeSystem.typeProvider.listElement);
+  TypeImpl? getListElementType(TypeImpl type) {
+    var listType = type.asInstanceOf(_typeSystem.typeProvider.listElement);
     if (listType != null) {
       return listType.typeArguments[0];
     }
@@ -294,14 +292,13 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
-  DartType? getListType(DartType type) {
+  TypeImpl? getListType(TypeImpl type) {
     return type.asInstanceOf(_typeSystem.typeProvider.listElement);
   }
 
   @override
-  DartType? getMapValueType(DartType type) {
-    InterfaceType? mapType =
-        type.asInstanceOf(_typeSystem.typeProvider.mapElement);
+  TypeImpl? getMapValueType(TypeImpl type) {
+    var mapType = type.asInstanceOf(_typeSystem.typeProvider.mapElement);
     if (mapType != null) {
       return mapType.typeArguments[1];
     }
@@ -309,116 +306,124 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
-  DartType getNonNullable(DartType type) {
+  TypeImpl getNonNullable(TypeImpl type) {
     return _typeSystem.promoteToNonNull(type);
   }
 
   @override
-  DartType? getTypeVariableBound(DartType type) {
-    if (type is TypeParameterType) {
+  TypeImpl? getTypeVariableBound(TypeImpl type) {
+    if (type is TypeParameterTypeImpl) {
       return type.bound;
     }
     return null;
   }
 
   @override
-  bool hasSimpleName(DartType type) {
-    return type is InterfaceType ||
-        type is DynamicType ||
-        type is VoidType ||
-        type is NeverType ||
+  bool hasSimpleName(TypeImpl type) {
+    return type is InterfaceTypeImpl ||
+        type is DynamicTypeImpl ||
+        type is VoidTypeImpl ||
+        type is NeverTypeImpl ||
         // TODO(johnniwinther): What about intersection types?
-        type is TypeParameterType;
+        type is TypeParameterTypeImpl;
   }
 
   @override
-  DartType instantiateFuture(DartType type) {
+  TypeImpl instantiateFuture(TypeImpl type) {
     return _typeSystem.typeProvider.futureType(type);
   }
 
   @override
-  bool isBoolType(DartType type) {
+  bool isBoolType(TypeImpl type) {
     return type.isDartCoreBool && !isNullable(type);
   }
 
   @override
-  bool isDynamic(DartType type) {
-    return type is DynamicType;
+  bool isDynamic(TypeImpl type) {
+    return type is DynamicTypeImpl;
   }
 
   @override
-  bool isGeneric(DartType type) {
-    return type is InterfaceType && type.typeArguments.isNotEmpty;
+  bool isGeneric(TypeImpl type) {
+    return type is InterfaceTypeImpl && type.typeArguments.isNotEmpty;
   }
 
   @override
-  bool isNeverType(DartType type) {
-    return type is NeverType;
+  bool isNeverType(TypeImpl type) {
+    return type is NeverTypeImpl;
   }
 
   @override
-  bool isNonNullableObject(DartType type) {
+  bool isNonNullableObject(TypeImpl type) {
     return type.isDartCoreObject && !isNullable(type);
   }
 
   @override
-  bool isNullable(DartType type) {
+  bool isNullable(TypeImpl type) {
     return type.nullabilitySuffix == NullabilitySuffix.question;
   }
 
   @override
-  bool isNullableObject(DartType type) {
+  bool isNullableObject(TypeImpl type) {
     return type.isDartCoreObject && isNullable(type);
   }
 
   @override
-  bool isNullType(DartType type) {
+  bool isNullType(TypeImpl type) {
     return type.isDartCoreNull;
   }
 
   @override
-  bool isPotentiallyNullable(DartType type) =>
+  bool isPotentiallyNullable(TypeImpl type) =>
       _typeSystem.isPotentiallyNullable(type);
 
   @override
-  bool isRecordType(DartType type) {
-    return type is RecordType && !isNullable(type);
+  bool isRecordType(TypeImpl type) {
+    return type is RecordTypeImpl && !isNullable(type);
   }
 
   @override
-  bool isSubtypeOf(DartType s, DartType t) {
+  bool isSubtypeOf(TypeImpl s, TypeImpl t) {
     return _typeSystem.isSubtypeOf(s, t);
   }
 
   @override
-  DartType overapproximate(DartType type) {
+  TypeImpl overapproximate(TypeImpl type) {
     return TypeParameterReplacer.replaceTypeVariables(_typeSystem, type);
   }
 
   @override
-  String typeToString(DartType type) => type.toString();
+  String typeToString(TypeImpl type) => type.toString();
 
-  Map<Key, DartType> _getInterfaceFieldTypes(InterfaceType type) {
-    Map<Key, DartType>? fieldTypes = _interfaceFieldTypesCaches[type];
+  Map<Key, TypeImpl> _getInterfaceFieldTypes(InterfaceTypeImpl type) {
+    var fieldTypes = _interfaceFieldTypesCaches[type];
     if (fieldTypes == null) {
       _interfaceFieldTypesCaches[type] = fieldTypes = {};
-      for (InterfaceType supertype in type.allSupertypes) {
+      for (var supertype in type.allSupertypes) {
         fieldTypes.addAll(_getInterfaceFieldTypes(supertype));
       }
-      for (PropertyAccessorElement accessor in type.accessors) {
-        if (accessor.isPrivate && accessor.library != _enclosingLibrary) {
+      for (var getter in type.getters) {
+        if (getter.isPrivate && getter.library2 != _enclosingLibrary) {
           continue;
         }
-        if (accessor.isGetter && !accessor.isStatic) {
-          fieldTypes[NameKey(accessor.name)] = accessor.type.returnType;
+        var name = getter.name3;
+        if (name == null) {
+          continue;
+        }
+        if (!getter.isStatic) {
+          fieldTypes[NameKey(name)] = getter.type.returnType;
         }
       }
-      for (MethodElement method in type.methods) {
-        if (method.isPrivate && method.library != _enclosingLibrary) {
+      for (var method in type.methods2) {
+        if (method.isPrivate && method.library2 != _enclosingLibrary) {
+          continue;
+        }
+        var name = method.name3;
+        if (name == null) {
           continue;
         }
         if (!method.isStatic) {
-          fieldTypes[NameKey(method.name)] = method.type;
+          fieldTypes[NameKey(name)] = method.type;
         }
       }
     }
@@ -455,24 +460,16 @@ class ExhaustivenessDataForTesting {
 }
 
 class MissingPatternEnumValuePart extends MissingPatternPart {
-  final EnumElement enumElement;
-  final FieldElement value;
+  final EnumElement2 enumElement2;
+  final FieldElement2 value2;
 
   MissingPatternEnumValuePart({
-    required this.enumElement,
-    required this.value,
+    required this.enumElement2,
+    required this.value2,
   });
 
-  EnumElement2 get enumElement2 {
-    return (enumElement as EnumElementImpl).element;
-  }
-
-  FieldElement2 get value2 {
-    return (value as FieldElementImpl).element;
-  }
-
   @override
-  String toString() => value.name;
+  String toString() => value2.name3!;
 }
 
 abstract class MissingPatternPart {}
@@ -487,7 +484,7 @@ class MissingPatternTextPart extends MissingPatternPart {
 }
 
 class MissingPatternTypePart extends MissingPatternPart {
-  final DartType type;
+  final TypeImpl type;
 
   MissingPatternTypePart(this.type);
 
@@ -497,7 +494,7 @@ class MissingPatternTypePart extends MissingPatternPart {
   }
 }
 
-class PatternConverter with SpaceCreator<DartPattern, DartType> {
+class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
   final Version languageVersion;
   final FeatureSet featureSet;
   final AnalyzerExhaustivenessCache cache;
@@ -520,23 +517,23 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
   ObjectPropertyLookup get objectFieldLookup => cache;
 
   @override
-  TypeOperations<DartType> get typeOperations => cache.typeOperations;
+  TypeOperations<TypeImpl> get typeOperations => cache.typeOperations;
 
   @override
   StaticType createListType(
-      DartType type, ListTypeRestriction<DartType> restriction) {
+      TypeImpl type, ListTypeRestriction<TypeImpl> restriction) {
     return cache.getListStaticType(type, restriction);
   }
 
   @override
   StaticType createMapType(
-      DartType type, MapTypeRestriction<DartType> restriction) {
+      TypeImpl type, MapTypeRestriction<TypeImpl> restriction) {
     return cache.getMapStaticType(type, restriction);
   }
 
   @override
-  StaticType createStaticType(DartType type) {
-    hasInvalidType |= type is InvalidType;
+  StaticType createStaticType(TypeImpl type) {
+    hasInvalidType |= type is InvalidTypeImpl;
     return cache.getStaticType(type);
   }
 
@@ -550,11 +547,11 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
       {required bool nonNull}) {
     if (pattern is DeclaredVariablePatternImpl) {
       return createVariableSpace(
-          path, contextType, pattern.declaredElement!.type,
+          path, contextType, pattern.declaredElement2!.type,
           nonNull: nonNull);
     } else if (pattern is ObjectPattern) {
       var properties = <String, DartPattern>{};
-      var extensionPropertyTypes = <String, DartType>{};
+      var extensionPropertyTypes = <String, TypeImpl>{};
       for (var field in pattern.fields) {
         var name = field.effectiveName;
         if (name == null) {
@@ -562,15 +559,15 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           continue;
         }
         properties[name] = field.pattern;
-        Element? element = field.element;
-        DartType? extensionPropertyType;
-        if (element is PropertyAccessorElement &&
-            (element.enclosingElement3 is ExtensionElement ||
-                element.enclosingElement3 is ExtensionTypeElement)) {
+        var element = field.element2;
+        TypeImpl? extensionPropertyType;
+        if (element is PropertyAccessorElement2OrMember &&
+            (element.enclosingElement2 is ExtensionElementImpl2 ||
+                element.enclosingElement2 is ExtensionTypeElementImpl2)) {
           extensionPropertyType = element.returnType;
-        } else if (element is ExecutableElement &&
-            (element.enclosingElement3 is ExtensionElement ||
-                element.enclosingElement3 is ExtensionTypeElement)) {
+        } else if (element is ExecutableElement2OrMember &&
+            (element.enclosingElement2 is ExtensionElementImpl2 ||
+                element.enclosingElement2 is ExtensionTypeElementImpl2)) {
           extensionPropertyType = element.type;
         }
         if (extensionPropertyType != null) {
@@ -584,9 +581,9 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
       return createWildcardSpace(path, contextType, pattern.type?.typeOrThrow,
           nonNull: nonNull);
     } else if (pattern is RecordPatternImpl) {
-      var positionalTypes = <DartType>[];
+      var positionalTypes = <TypeImpl>[];
       var positionalPatterns = <DartPattern>[];
-      var namedTypes = <String, DartType>{};
+      var namedTypes = <String, TypeImpl>{};
       var namedPatterns = <String, DartPattern>{};
       for (var field in pattern.fields) {
         var nameNode = field.name;
@@ -604,7 +601,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           }
         }
       }
-      var recordType = RecordType(
+      var recordType = RecordTypeImpl.fromApi(
         positional: positionalTypes,
         named: namedTypes,
         nullabilitySuffix: NullabilitySuffix.none,
@@ -633,10 +630,10 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
     } else if (pattern is RelationalPattern) {
       return createRelationalSpace(path);
     } else if (pattern is ListPattern) {
-      InterfaceType type = pattern.requiredType as InterfaceType;
-      assert(type.element == cache.typeSystem.typeProvider.listElement &&
+      var type = pattern.requiredType as InterfaceTypeImpl;
+      assert(type.element3 == cache.typeSystem.typeProvider.listElement2 &&
           type.typeArguments.length == 1);
-      DartType elementType = type.typeArguments[0];
+      var elementType = type.typeArguments[0];
       List<DartPattern> headElements = [];
       DartPattern? restElement;
       List<DartPattern> tailElements = [];
@@ -660,11 +657,11 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
           hasRest: hasRest,
           hasExplicitTypeArgument: pattern.typeArguments != null);
     } else if (pattern is MapPattern) {
-      InterfaceType type = pattern.requiredType as InterfaceType;
-      assert(type.element == cache.typeSystem.typeProvider.mapElement &&
+      var type = pattern.requiredType as InterfaceTypeImpl;
+      assert(type.element3 == cache.typeSystem.typeProvider.mapElement2 &&
           type.typeArguments.length == 2);
-      DartType keyType = type.typeArguments[0];
-      DartType valueType = type.typeArguments[1];
+      var keyType = type.typeArguments[0];
+      var valueType = type.typeArguments[1];
       Map<MapKey, DartPattern> entries = {};
       for (MapPatternElement entry in pattern.elements) {
         if (entry is RestPatternElement) {
@@ -705,6 +702,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
   }
 
   Space _convertConstantValue(DartObjectImpl value, Path path) {
+    var type = value.type;
     var state = value.state;
     if (value.isNull) {
       return Space(path, StaticType.nullType);
@@ -724,13 +722,11 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         var key = RecordNameKey(entry.key);
         properties[key] = _convertConstantValue(entry.value, path.add(key));
       }
-      return Space(path, cache.getStaticType(value.type),
-          properties: properties);
+      return Space(path, cache.getStaticType(type), properties: properties);
     }
-    var type = value.type;
-    if (type is InterfaceType) {
-      var element = type.element;
-      if (element is EnumElement) {
+    if (type is InterfaceTypeImpl) {
+      var element = type.element3;
+      if (element is EnumElementImpl2) {
         return Space(path, cache.getEnumElementStaticType(element, value));
       }
     }
@@ -765,31 +761,31 @@ class TypeParameterReplacer extends ReplacementVisitor {
   }
 
   @override
-  DartType? visitTypeParameterBound(DartType type) {
+  TypeImpl? visitTypeParameterBound(covariant TypeImpl type) {
     Variance savedVariance = _variance;
     _variance = Variance.invariant;
-    DartType? result = type.accept(this);
+    var result = type.accept(this);
     _variance = savedVariance;
     return result;
   }
 
   @override
-  DartType? visitTypeParameterType(TypeParameterType node) {
+  TypeImpl? visitTypeParameterType(covariant TypeParameterTypeImpl node) {
     if (_variance == Variance.contravariant) {
       return _replaceTypeParameterTypes(_typeSystem.typeProvider.neverType);
     } else {
-      var element = node.element as TypeParameterElementImpl;
+      var element = node.element3;
       var defaultType = element.defaultType!;
       return _replaceTypeParameterTypes(defaultType);
     }
   }
 
-  DartType _replaceTypeParameterTypes(DartType type) {
+  TypeImpl _replaceTypeParameterTypes(TypeImpl type) {
     return type.accept(this) ?? type;
   }
 
-  static DartType replaceTypeVariables(
-      TypeSystemImpl typeSystem, DartType type) {
+  static TypeImpl replaceTypeVariables(
+      TypeSystemImpl typeSystem, TypeImpl type) {
     return TypeParameterReplacer(typeSystem)._replaceTypeParameterTypes(type);
   }
 }

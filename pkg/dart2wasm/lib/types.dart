@@ -12,6 +12,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'code_generator.dart';
 import 'dispatch_table.dart' show Row, buildRowDisplacementTable;
+import 'dynamic_modules.dart';
 import 'translator.dart';
 
 /// Values for the `_kind` field in `_TopType`. Must match the definitions in
@@ -43,6 +44,10 @@ class Types {
   /// Class info for `_Type`
   late final ClassInfo typeClassInfo =
       translator.classInfo[translator.typeClass]!;
+
+  /// Class info for `_NamedParameter`
+  late final ClassInfo namedParameterClassInfo =
+      translator.classInfo[translator.namedParameterClass]!;
 
   /// Wasm value type of `List<_Type>`
   late final w.ValueType typeListExpectedType =
@@ -193,7 +198,7 @@ class Types {
     final b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
     b.i32_const(encodedNullability(type));
-    b.i32_const(typeInfo.classId);
+    b.pushClassIdToStack(translator, typeInfo.classId);
     _makeTypeArray(codeGen, type.typeArguments);
   }
 
@@ -346,7 +351,7 @@ class Types {
     }
 
     translator.functions.recordClassAllocation(info.classId);
-    b.pushObjectHeaderFields(info);
+    b.pushObjectHeaderFields(translator, info);
     if (type is InterfaceType) {
       _makeInterfaceType(codeGen, type);
     } else if (type is FunctionType) {
@@ -422,7 +427,7 @@ class Types {
           codeGen.call(translator.isNullabilityCheck.reference);
         } else {
           b.i32_const(encodedNullability(testedAgainstType));
-          b.i32_const(typeClassInfo.classId);
+          b.pushClassIdToStack(translator, typeClassInfo.classId);
           if (typeArguments.isEmpty) {
             codeGen.call(translator.isInterfaceSubtype0.reference);
           } else if (typeArguments.length == 1) {
@@ -500,7 +505,7 @@ class Types {
       final typeClassInfo = translator.classInfo[testedAgainstType.classNode]!;
       final typeArguments = testedAgainstType.typeArguments;
       b.i32_const(encodedNullability(testedAgainstType));
-      b.i32_const(typeClassInfo.classId);
+      b.pushClassIdToStack(translator, typeClassInfo.classId);
       if (typeArguments.isEmpty) {
         outputsToDrop = codeGen.call(translator.asInterfaceSubtype0.reference);
       } else if (typeArguments.length == 1) {
@@ -549,6 +554,10 @@ abstract class _TypeCheckers {
       DartType testedAgainstType, DartType operandType) {
     // The is/as check helpers are for cid-range checks of interface types.
     if (testedAgainstType is! InterfaceType) {
+      return (null, checkArguments: false);
+    }
+    if (testedAgainstType.classNode
+        .isDynamicModuleExtendable(rtt.translator.coreTypes)) {
       return (null, checkArguments: false);
     }
 
@@ -726,7 +735,9 @@ class IsCheckerCallTarget extends CallTarget {
       this.testedAgainstType,
       this.operandIsNullable,
       this.checkArguments,
-      this.argumentCount);
+      this.argumentCount)
+      : assert(!testedAgainstType.classNode
+            .isDynamicModuleExtendable(translator.coreTypes));
 
   @override
   String get name {
@@ -755,8 +766,8 @@ class IsCheckerCallTarget extends CallTarget {
 
     // Always inline single class-id range checks (no branching, simply loads,
     // arithmetic and unsigned compare).
-    final ranges =
-        translator.classIdNumbering.getConcreteClassIdRanges(interfaceClass);
+    final ranges = translator.classIdNumbering
+        .getConcreteClassIdRangeForCurrentModule(interfaceClass);
     return ranges.length <= 1;
   }
 
@@ -872,7 +883,7 @@ class IsCheckerCodeGenerator implements CodeGenerator {
         b.ref_test(translator.closureInfo.nonNullableType);
       } else {
         final ranges = translator.classIdNumbering
-            .getConcreteClassIdRanges(interfaceClass);
+            .getConcreteClassIdRangeForCurrentModule(interfaceClass);
         b.local_get(operand);
         b.struct_get(translator.topInfo.struct, FieldIndex.classId);
         b.emitClassIdRangeCheck(ranges);
@@ -955,7 +966,9 @@ class AsCheckerCodeGenerator implements CodeGenerator {
       this.testedAgainstType,
       this.operandIsNullable,
       this.checkArguments,
-      this.argumentCount);
+      this.argumentCount)
+      : assert(!testedAgainstType.classNode
+            .isDynamicModuleExtendable(translator.coreTypes));
 
   @override
   void generate(w.InstructionsBuilder b, List<w.Local> paramLocals,
@@ -984,7 +997,7 @@ class AsCheckerCodeGenerator implements CodeGenerator {
           translator.classInfo[testedAgainstType.classNode]!.classId;
       b.local_get(b.locals[0]);
       b.i32_const(encodedNullability(testedAgainstType));
-      b.i32_const(testedAgainstClassId);
+      b.pushClassIdToStack(translator, testedAgainstClassId);
       if (argumentCount == 1) {
         b.local_get(b.locals[1]);
         translator.callReference(
@@ -1039,15 +1052,6 @@ class RuntimeTypeInformation {
   /// not have to substitute anything.
   static const int noSubstitutionIndex = 0;
 
-  /// Table of type names indexed by class id.
-  late final InstanceConstant typeNames;
-
-  /// See sdk/lib/_internal/wasm/lib/type.dart:_typeRowDisplacement*
-  /// for what this contains and how it's used for substitution.
-  late final InstanceConstant typeRowDisplacementOffsets;
-  late final InstanceConstant typeRowDisplacementTable;
-  late final InstanceConstant typeRowDisplacementSubstTable;
-
   CoreTypes get coreTypes => translator.coreTypes;
   Types get types => translator.types;
 
@@ -1056,24 +1060,25 @@ class RuntimeTypeInformation {
   late final Map<InstanceConstant, int> _substitutionTable;
   late final List<InstanceConstant> _substitutionTableByIndex;
 
+  /// Object containing RTT info for the main module. See
+  /// sdk/lib/_internal/wasm/lib/type.dart for what this contains and how it's
+  /// used.
+  late final InstanceConstant mainModuleRtt = getModuleRtt(isMainModule: true);
+
   final Map<int, bool> _requiresSubstitutionForSubclasses = {};
 
   RuntimeTypeInformation(this.translator) {
     _buildTypeRules();
-
-    // Data structure to tell whether two types are related and if so how to
-    // translate type arguments from one class to that of a super class.
-    _initTypeRowDiplacementTable();
-
-    // The class name table of type WasmArray<String>
-    _initTypeNames();
   }
 
   bool requiresTypeArgumentSubstitution(Class superclass) {
     final superclassId = translator.classIdNumbering.classIds[superclass]!;
-    return _requiresSubstitutionForSubclasses.putIfAbsent(superclassId, () {
-      final subclassSubstitutions =
-          _substitutionSuperclassToSubclass[superclassId];
+    final id = switch (superclassId) {
+      RelativeClassId() => superclassId.relativeValue,
+      AbsoluteClassId() => superclassId.value,
+    };
+    return _requiresSubstitutionForSubclasses.putIfAbsent(id, () {
+      final subclassSubstitutions = _substitutionSuperclassToSubclass[id];
 
       if (subclassSubstitutions == null) return false;
       for (final entry in subclassSubstitutions.entries) {
@@ -1146,11 +1151,22 @@ class RuntimeTypeInformation {
           substitutionIndex = index;
         }
 
-        final subclassId = translator.classInfo[subtype.classNode]!.classId;
-        (_substitutionSubclassToSuperclass[subclassId] ??=
-            {})[superclassInfo.classId] = substitutionIndex;
-        (_substitutionSuperclassToSubclass[superclassInfo.classId] ??=
-            {})[subclassId] = substitutionIndex;
+        final subclassIdWrapped =
+            translator.classInfo[subtype.classNode]!.classId;
+        final subclassId = switch (subclassIdWrapped) {
+          RelativeClassId() => subclassIdWrapped.relativeValue,
+          AbsoluteClassId() => subclassIdWrapped.value,
+        };
+        final superclassIdWrapped = superclassInfo.classId;
+        final superclassId = switch (superclassIdWrapped) {
+          RelativeClassId() => superclassIdWrapped.relativeValue,
+          AbsoluteClassId() => superclassIdWrapped.value,
+        };
+
+        (_substitutionSubclassToSuperclass[subclassId] ??= {})[superclassId] =
+            substitutionIndex;
+        (_substitutionSuperclassToSubclass[superclassId] ??= {})[subclassId] =
+            substitutionIndex;
       }
     }
   }
@@ -1184,7 +1200,7 @@ class RuntimeTypeInformation {
     return true;
   }
 
-  void _initTypeRowDiplacementTable() {
+  InstanceConstant getModuleRtt({required bool isMainModule}) {
     final rowForSuperclass = List<Row?>.filled(translator.classes.length, null);
     final rows = <Row<(int, int)>>[];
     final ranges = _buildRanges(_substitutionSuperclassToSubclass);
@@ -1217,41 +1233,60 @@ class RuntimeTypeInformation {
 
     rows.sort((Row a, Row b) => -weight(a).compareTo(weight(b)));
     final table = buildRowDisplacementTable(rows, firstAvailable: 1);
-    typeRowDisplacementTable = translator.constants.makeArrayOf(wasmI32, [
+    final typeRowDisplacementTable = translator.constants.makeArrayOf(wasmI32, [
       for (final entry in table)
-        IntConstant(entry == null
+        translator.constants.makeWasmI32(entry == null
             ? 0
             : (entry.$2 == noSubstitutionIndex ? -entry.$1 : entry.$1)),
     ]);
-
-    typeRowDisplacementSubstTable =
+    final typeRowDisplacementSubstTable =
         translator.constants.makeArrayOf(arrayOfType, [
       for (final entry in table)
         _substitutionTableByIndex[
             entry == null ? noSubstitutionIndex : entry.$2],
     ]);
 
-    typeRowDisplacementOffsets = translator.constants.makeArrayOf(wasmI32, [
+    final typeRowDisplacementOffsets =
+        translator.constants.makeArrayOf(wasmI32, [
       for (int classId = 0; classId < translator.classes.length; ++classId)
-        IntConstant(rowForSuperclass[classId]?.offset ?? -1),
+        translator.constants
+            .makeWasmI32(rowForSuperclass[classId]?.offset ?? -1),
     ]);
+
+    final typeNames = translator.options.minify
+        ? NullConstant()
+        : _getTypeNames(isMainModule);
+
+    return InstanceConstant(translator.moduleRtt.reference, const [], {
+      translator.moduleRttOffsets.fieldReference: typeRowDisplacementOffsets,
+      translator.moduleRttDisplacementTable.fieldReference:
+          typeRowDisplacementTable,
+      translator.moduleRttSubstTable.fieldReference:
+          typeRowDisplacementSubstTable,
+      translator.moduleRttTypeNames.fieldReference: typeNames,
+    });
   }
 
-  void _initTypeNames() {
+  InstanceConstant _getTypeNames(bool isMainModule) {
     final stringType =
         translator.coreTypes.stringRawType(Nullability.nonNullable);
 
     final emptyString = StringConstant('');
     List<StringConstant> nameConstants = [];
+    List<StringConstant> dynamicModuleNameConstants = [];
     for (ClassInfo classInfo in translator.classes) {
       Class? cls = classInfo.cls;
       if (cls == null || cls.isAnonymousMixin) {
         nameConstants.add(emptyString);
       } else {
-        nameConstants.add(StringConstant(cls.name));
+        final constantList = classInfo.classId is RelativeClassId
+            ? dynamicModuleNameConstants
+            : nameConstants;
+        constantList.add(StringConstant(cls.name));
       }
     }
-    typeNames = translator.constants.makeArrayOf(stringType, nameConstants);
+    return translator.constants.makeArrayOf(
+        stringType, isMainModule ? nameConstants : dynamicModuleNameConstants);
   }
 
   Map<int, List<(Range, int)>> _buildRanges(Map<int, Map<int, int>> map) {

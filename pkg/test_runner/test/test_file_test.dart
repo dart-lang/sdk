@@ -336,35 +336,20 @@ num j = "str";
     makeError(line: 10, column: 9, cfeError: "No length.")
   ]);
 
-  // Multi-line error message.
+  // Comment after error message.
   expectParseErrorExpectations("""
 int i = "s";
 /\/      ^^^
 /\/ [analyzer] CompileTimeErrorCode.WRONG_TYPE
-/\/ [cfe] First line.
-/\/Second line.
-    /\/     Third line.
-/\/ [web] Web first line.
-/\/Web second line.
-    /\/     Web third line.
-
-/\/ The preceding blank line ends the message.
+/\/ [cfe] Error message.
+/\/ Unrelated comment.
 """, [
     makeError(
         line: 1,
         column: 9,
         length: 3,
         analyzerError: "CompileTimeErrorCode.WRONG_TYPE"),
-    makeError(
-        line: 1,
-        column: 9,
-        length: 3,
-        cfeError: "First line.\nSecond line.\nThird line."),
-    makeError(
-        line: 1,
-        column: 9,
-        length: 3,
-        webError: "Web first line.\nWeb second line.\nWeb third line.")
+    makeError(line: 1, column: 9, length: 3, cfeError: "Error message."),
   ]);
 
   // Multiple errors attached to same line.
@@ -425,16 +410,14 @@ int n = "s";
 int i = "s";
 /\/      ^^^ /\/# 0: ok
 /\/ [analyzer] ErrorCode.BAD_THING /\/# 123: continued
-/\/ [cfe] Message.  /\/# named: compile-time error
-/\/ More message.  /\/#   another: ok
+/\/ [cfe] Message 1.  /\/# named: compile-time error
 /\/ [error line 12, column 34, length 56]  /\/# 3: continued
-/\/ [cfe] Message.
+/\/ [cfe] Message 2.
 """, [
     makeError(
         line: 1, column: 9, length: 3, analyzerError: "ErrorCode.BAD_THING"),
-    makeError(
-        line: 1, column: 9, length: 3, cfeError: "Message.\nMore message."),
-    makeError(line: 12, column: 34, length: 56, cfeError: "Message."),
+    makeError(line: 1, column: 9, length: 3, cfeError: "Message 1."),
+    makeError(line: 12, column: 34, length: 56, cfeError: "Message 2."),
   ]);
 
   // Allow front ends in any order.

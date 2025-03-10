@@ -143,16 +143,11 @@ library;
 //                  ^
 //
 import self as self;
-import "dart:core" as core;
 import "main_lib.dart" as mai;
+import "dart:core" as core;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
-abstract class _Mixin1&Super1&Super2 extends core::Object implements mai::Super1, mai::Super2 /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_Mixin1&Super1&Super2
-    : super core::Object::•()
-    ;
-}
 abstract class Mixin1 extends self::_Mixin1&Super1&Super2 /*isMixinDeclaration*/  {
   late field core::int field1 = (() → core::int {
     return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
@@ -180,6 +175,78 @@ abstract class Class1a extends mai::Super1 implements mai::Super2 {
     : super mai::Super1::•()
     ;
 }
+class Class1b extends self::_Class1b&Class1a&Mixin1 {
+  synthetic constructor •() → self::Class1b
+    : super self::_Class1b&Class1a&Mixin1::•()
+    ;
+  static method _#new#tearOff() → self::Class1b
+    return new self::Class1b::•();
+}
+abstract class Class2a extends mai::Super2 implements mai::Super1 {
+  synthetic constructor •() → self::Class2a
+    : super mai::Super2::•()
+    ;
+}
+class Class2b extends self::_Class2b&Class2a&Mixin1 {
+  synthetic constructor •() → self::Class2b
+    : super self::_Class2b&Class2a&Mixin1::•()
+    ;
+  static method _#new#tearOff() → self::Class2b
+    return new self::Class2b::•();
+}
+abstract class Class3a extends core::Object implements mai::Super1, mai::Super2 {
+  synthetic constructor •() → self::Class3a
+    : super core::Object::•()
+    ;
+}
+class Class3b extends self::_Class3b&Class3a&Mixin1 {
+  synthetic constructor •() → self::Class3b
+    : super self::_Class3b&Class3a&Mixin1::•()
+    ;
+  static method _#new#tearOff() → self::Class3b
+    return new self::Class3b::•();
+}
+abstract class Class4a extends mai::Super1 implements mai::Super2 {
+  synthetic constructor •() → self::Class4a
+    : super mai::Super1::•()
+    ;
+}
+class Class4b extends self::_Class4b&Class4a&Mixin2 {
+  synthetic constructor •() → self::Class4b
+    : super self::_Class4b&Class4a&Mixin2::•()
+    ;
+  static method _#new#tearOff() → self::Class4b
+    return new self::Class4b::•();
+}
+abstract class Class5a extends mai::Super2 implements mai::Super1 {
+  synthetic constructor •() → self::Class5a
+    : super mai::Super2::•()
+    ;
+}
+class Class5b extends self::_Class5b&Class5a&Mixin2 {
+  synthetic constructor •() → self::Class5b
+    : super self::_Class5b&Class5a&Mixin2::•()
+    ;
+  static method _#new#tearOff() → self::Class5b
+    return new self::Class5b::•();
+}
+abstract class Class6a extends core::Object implements mai::Super1, mai::Super2 {
+  synthetic constructor •() → self::Class6a
+    : super core::Object::•()
+    ;
+}
+class Class6b extends self::_Class6b&Class6a&Mixin2 {
+  synthetic constructor •() → self::Class6b
+    : super self::_Class6b&Class6a&Mixin2::•()
+    ;
+  static method _#new#tearOff() → self::Class6b
+    return new self::Class6b::•();
+}
+abstract class _Mixin1&Super1&Super2 extends core::Object implements mai::Super1, mai::Super2 /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Mixin1&Super1&Super2
+    : super core::Object::•()
+    ;
+}
 abstract class _Class1b&Class1a&Mixin1 = self::Class1a with self::Mixin1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class1b&Class1a&Mixin1
     : super self::Class1a::•()
@@ -204,18 +271,6 @@ abstract class _Class1b&Class1a&Mixin1 = self::Class1a with self::Mixin1 /*isAno
     return super.{self::Mixin1::property2};
   mixin-super-stub set property2(core::int value) → void
     return super.{self::Mixin1::property2} = value;
-}
-class Class1b extends self::_Class1b&Class1a&Mixin1 {
-  synthetic constructor •() → self::Class1b
-    : super self::_Class1b&Class1a&Mixin1::•()
-    ;
-  static method _#new#tearOff() → self::Class1b
-    return new self::Class1b::•();
-}
-abstract class Class2a extends mai::Super2 implements mai::Super1 {
-  synthetic constructor •() → self::Class2a
-    : super mai::Super2::•()
-    ;
 }
 abstract class _Class2b&Class2a&Mixin1 = self::Class2a with self::Mixin1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class2b&Class2a&Mixin1
@@ -242,18 +297,6 @@ abstract class _Class2b&Class2a&Mixin1 = self::Class2a with self::Mixin1 /*isAno
   mixin-super-stub set property2(core::int value) → void
     return super.{self::Mixin1::property2} = value;
 }
-class Class2b extends self::_Class2b&Class2a&Mixin1 {
-  synthetic constructor •() → self::Class2b
-    : super self::_Class2b&Class2a&Mixin1::•()
-    ;
-  static method _#new#tearOff() → self::Class2b
-    return new self::Class2b::•();
-}
-abstract class Class3a extends core::Object implements mai::Super1, mai::Super2 {
-  synthetic constructor •() → self::Class3a
-    : super core::Object::•()
-    ;
-}
 abstract class _Class3b&Class3a&Mixin1 = self::Class3a with self::Mixin1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class3b&Class3a&Mixin1
     : super self::Class3a::•()
@@ -278,18 +321,6 @@ abstract class _Class3b&Class3a&Mixin1 = self::Class3a with self::Mixin1 /*isAno
     return super.{self::Mixin1::property2};
   mixin-super-stub set property2(core::int value) → void
     return super.{self::Mixin1::property2} = value;
-}
-class Class3b extends self::_Class3b&Class3a&Mixin1 {
-  synthetic constructor •() → self::Class3b
-    : super self::_Class3b&Class3a&Mixin1::•()
-    ;
-  static method _#new#tearOff() → self::Class3b
-    return new self::Class3b::•();
-}
-abstract class Class4a extends mai::Super1 implements mai::Super2 {
-  synthetic constructor •() → self::Class4a
-    : super mai::Super1::•()
-    ;
 }
 abstract class _Class4b&Class4a&Mixin2 = self::Class4a with mai::Mixin2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class4b&Class4a&Mixin2
@@ -324,18 +355,6 @@ abstract class _Class4b&Class4a&Mixin2 = self::Class4a with mai::Mixin2 /*isAnon
   mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
     return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
 }
-class Class4b extends self::_Class4b&Class4a&Mixin2 {
-  synthetic constructor •() → self::Class4b
-    : super self::_Class4b&Class4a&Mixin2::•()
-    ;
-  static method _#new#tearOff() → self::Class4b
-    return new self::Class4b::•();
-}
-abstract class Class5a extends mai::Super2 implements mai::Super1 {
-  synthetic constructor •() → self::Class5a
-    : super mai::Super2::•()
-    ;
-}
 abstract class _Class5b&Class5a&Mixin2 = self::Class5a with mai::Mixin2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class5b&Class5a&Mixin2
     : super self::Class5a::•()
@@ -368,18 +387,6 @@ abstract class _Class5b&Class5a&Mixin2 = self::Class5a with mai::Mixin2 /*isAnon
     return super.{mai::Mixin2::_#Mixin2#field2#AI};
   mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
     return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
-}
-class Class5b extends self::_Class5b&Class5a&Mixin2 {
-  synthetic constructor •() → self::Class5b
-    : super self::_Class5b&Class5a&Mixin2::•()
-    ;
-  static method _#new#tearOff() → self::Class5b
-    return new self::Class5b::•();
-}
-abstract class Class6a extends core::Object implements mai::Super1, mai::Super2 {
-  synthetic constructor •() → self::Class6a
-    : super core::Object::•()
-    ;
 }
 abstract class _Class6b&Class6a&Mixin2 = self::Class6a with mai::Mixin2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class6b&Class6a&Mixin2
@@ -414,13 +421,6 @@ abstract class _Class6b&Class6a&Mixin2 = self::Class6a with mai::Mixin2 /*isAnon
   mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
     return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
 }
-class Class6b extends self::_Class6b&Class6a&Mixin2 {
-  synthetic constructor •() → self::Class6b
-    : super self::_Class6b&Class6a&Mixin2::•()
-    ;
-  static method _#new#tearOff() → self::Class6b
-    return new self::Class6b::•();
-}
 
 library;
 import self as mai;
@@ -446,11 +446,6 @@ class Super2 extends core::Object {
   method method2() → void {}
   static method _#new#tearOff() → mai::Super2
     return new mai::Super2::•();
-}
-abstract class _Mixin2&Super1&Super2 extends core::Object implements mai::Super1, mai::Super2 /*isAnonymousMixin*/  {
-  synthetic constructor •() → mai::_Mixin2&Super1&Super2
-    : super core::Object::•()
-    ;
 }
 abstract class Mixin2 extends mai::_Mixin2&Super1&Super2 /*isMixinDeclaration*/  {
   field core::int _#Mixin2#field1#AI = _in::createSentinel<core::int>();
@@ -489,4 +484,9 @@ abstract class Mixin2 extends mai::_Mixin2&Super1&Super2 /*isMixinDeclaration*/ 
   }
   set field2(synthesized core::int value) → void
     this.{mai::Mixin2::_#Mixin2#field2#AI} = value;
+}
+abstract class _Mixin2&Super1&Super2 extends core::Object implements mai::Super1, mai::Super2 /*isAnonymousMixin*/  {
+  synthetic constructor •() → mai::_Mixin2&Super1&Super2
+    : super core::Object::•()
+    ;
 }

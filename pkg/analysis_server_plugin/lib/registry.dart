@@ -7,6 +7,8 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
 abstract class PluginRegistry {
+  /// Register this fix [generator] for the given lint [code] with the
+  /// analyzer's rule registry.
   void registerFixForRule(LintCode code, ProducerGenerator generator);
 
   /// Register this [rule] with the analyzer's rule registry.

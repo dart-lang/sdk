@@ -110,7 +110,7 @@ class CompletionDocumentationResolutionTest extends AbstractCompletionTest {
     newFile(join(projectFolderPath, 'my_class.dart'), '''
 /// Class.
 class MyClass {}
-      ''');
+''');
 
     content = '''
 void f() {
@@ -133,7 +133,7 @@ class MyClass {
   /// Constructor.
   MyClass();
 }
-      ''');
+''');
 
     content = '''
 void f() {
@@ -156,7 +156,7 @@ class MyClass {
   /// Named Constructor.
   MyClass.named();
 }
-      ''');
+''');
 
     content = '''
 void f() {
@@ -177,7 +177,7 @@ void f() {
     newFile(join(projectFolderPath, 'my_enum.dart'), '''
 /// Enum.
 enum MyEnum {}
-      ''');
+''');
 
     content = '''
 void f() {
@@ -200,14 +200,14 @@ void f() {
     newFile(join(projectFolderPath, 'lib', 'func.dart'), '''
 import 'my_enum.dart';
 void enumFunc(MyEnum e) {}
-      ''');
+''');
 
     newFile(join(projectFolderPath, 'lib', 'my_enum.dart'), '''
 enum MyEnum {
   /// Enum Member.
   one,
 }
-      ''');
+''');
 
     content = '''
 import 'func.dart';
@@ -891,7 +891,7 @@ A^
       ///
       /// Full.
       class InOtherFile {}
-      ''');
+''');
 
     var content = '''
 void f() {
@@ -1112,8 +1112,8 @@ var a = Colors.redAcce^
 
   Future<void> test_comment() async {
     var content = '''
-    // foo ^
-    void f() {}
+// foo ^
+void f() {}
 ''';
 
     await initialize();
@@ -1183,148 +1183,162 @@ var a = Colors.redAcce^
     expect(options.allCommitCharacters, equals(dartCompletionCommitCharacters));
   }
 
-  Future<void> test_completeFunctionCalls_constructor() =>
-      checkCompleteFunctionCallInsertText(
-        '''
-        class Aaaaa {
-          Aaaaa(int a);
-        }
-        void f(int aaa) {
-          var a = new [!Aaa^!]
-        }
-        ''',
-        'Aaaaa(…)',
-        insertTextFormat: InsertTextFormat.Snippet,
-        editText: r'Aaaaa(${0:a})',
-      );
+  Future<void> test_completeFunctionCalls_constructor() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
+class Aaaaa {
+  Aaaaa(int a);
+}
+void f(int aaa) {
+  var a = new [!Aaa^!]
+}
+''',
+      'Aaaaa(…)',
+      insertTextFormat: InsertTextFormat.Snippet,
+      editText: r'Aaaaa(${0:a})',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_escapesDollarArgs() =>
-      checkCompleteFunctionCallInsertText(
-        r'''
+  Future<void> test_completeFunctionCalls_escapesDollarArgs() async {
+    await checkCompleteFunctionCallInsertText(
+      r'''
         int myFunction(String a$a, int b, {String c}) {
           var a = [!myFu^!]
         }
-        ''',
-        'myFunction(…)',
-        insertTextFormat: InsertTextFormat.Snippet,
-        // The dollar should have been escaped.
-        editText: r'myFunction(${1:a\$a}, ${2:b})',
-      );
+''',
+      'myFunction(…)',
+      insertTextFormat: InsertTextFormat.Snippet,
+      // The dollar should have been escaped.
+      editText: r'myFunction(${1:a\$a}, ${2:b})',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_escapesDollarName() =>
-      checkCompleteFunctionCallInsertText(
-        r'''
+  Future<void> test_completeFunctionCalls_escapesDollarName() async {
+    await checkCompleteFunctionCallInsertText(
+      r'''
         int myFunc$tion(String a, int b, {String c}) {
           var a = [!myFu^!]
         }
-        ''',
-        r'myFunc$tion(…)',
-        insertTextFormat: InsertTextFormat.Snippet,
-        // The dollar should have been escaped.
-        editText: r'myFunc\$tion(${1:a}, ${2:b})',
-      );
+''',
+      r'myFunc$tion(…)',
+      insertTextFormat: InsertTextFormat.Snippet,
+      // The dollar should have been escaped.
+      editText: r'myFunc\$tion(${1:a}, ${2:b})',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_existingArgList_constructor() =>
-      checkCompleteFunctionCallInsertText(
-        '''
-        class Aaaaa {
-          Aaaaa(int a);
-        }
-        void f(int aaa) {
-          var a = new [!Aaa^!]()
-        }
-        ''',
-        'Aaaaa(…)',
-        editText: 'Aaaaa',
-      );
+  Future<void> test_completeFunctionCalls_existingArgList_constructor() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
+class Aaaaa {
+  Aaaaa(int a);
+}
+void f(int aaa) {
+  var a = new [!Aaa^!]()
+}
+''',
+      'Aaaaa(…)',
+      editText: 'Aaaaa',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_existingArgList_expression() =>
-      checkCompleteFunctionCallInsertText(
-        '''
+  Future<void> test_completeFunctionCalls_existingArgList_expression() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
         int myFunction(String a, int b, {String c}) {
           var a = [!myFu^!]()
         }
-        ''',
-        'myFunction(…)',
-        editText: 'myFunction',
-      );
+''',
+      'myFunction(…)',
+      editText: 'myFunction',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_existingArgList_member_noPrefix() =>
-  // https://github.com/Dart-Code/Dart-Code/issues/3672
-  checkCompleteFunctionCallInsertText(
-    '''
-        class Aaaaa {
-          static foo(int a) {}
-        }
-        void f() {
-          Aaaaa.[!^!]()
-        }
-        ''',
-    'foo(…)',
-    editText: 'foo',
-  );
+  Future<void>
+  test_completeFunctionCalls_existingArgList_member_noPrefix() async {
+    // https://github.com/Dart-Code/Dart-Code/issues/3672
+    await checkCompleteFunctionCallInsertText(
+      '''
+class Aaaaa {
+  static foo(int a) {}
+}
+void f() {
+  Aaaaa.[!^!]()
+}
+''',
+      'foo(…)',
+      editText: 'foo',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_existingArgList_namedConstructor() =>
-      checkCompleteFunctionCallInsertText(
-        '''
-        class Aaaaa {
-          Aaaaa.foo(int a);
-        }
-        void f() {
-          var a = new Aaaaa.[!foo^!]()
-        }
-        ''',
-        'foo(…)',
-        editText: 'foo',
-      );
+  Future<void>
+  test_completeFunctionCalls_existingArgList_namedConstructor() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
+class Aaaaa {
+  Aaaaa.foo(int a);
+}
+void f() {
+  var a = new Aaaaa.[!foo^!]()
+}
+''',
+      'foo(…)',
+      editText: 'foo',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_existingArgList_statement() =>
-      checkCompleteFunctionCallInsertText(
-        '''
-        void f(int a) {
-          [!f^!]()
-        }
-        ''',
-        'f(…)',
-        editText: 'f',
-      );
+  Future<void> test_completeFunctionCalls_existingArgList_statement() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
+void f(int a) {
+  [!f^!]()
+}
+''',
+      'f(…)',
+      editText: 'f',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_existingArgList_suggestionSets() =>
-      checkCompleteFunctionCallInsertText(
-        '''
-        void f(int a) {
-          [!pri^!]()
-        }
-        ''',
-        'print(…)',
-        editText: 'print',
-      );
+  Future<void>
+  test_completeFunctionCalls_existingArgList_suggestionSets() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
+void f(int a) {
+  [!pri^!]()
+}
+''',
+      'print(…)',
+      editText: 'print',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_existingPartialArgList() =>
-      checkCompleteFunctionCallInsertText(
-        '''
-        class Aaaaa {
-          Aaaaa(int a);
-        }
-        void f(int aaa) {
-          var a = new [!Aaa^!](
-        }
-        ''',
-        'Aaaaa(…)',
-        editText: 'Aaaaa',
-      );
+  Future<void> test_completeFunctionCalls_existingPartialArgList() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
+class Aaaaa {
+  Aaaaa(int a);
+}
+void f(int aaa) {
+  var a = new [!Aaa^!](
+}
+''',
+      'Aaaaa(…)',
+      editText: 'Aaaaa',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_expression() =>
-      checkCompleteFunctionCallInsertText(
-        '''
-        int myFunction(String a, int b, {String c}) {
-          var a = [!myFu^!]
-        }
-        ''',
-        'myFunction(…)',
-        insertTextFormat: InsertTextFormat.Snippet,
-        editText: r'myFunction(${1:a}, ${2:b})',
-      );
+  Future<void> test_completeFunctionCalls_expression() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
+int myFunction(String a, int b, {String c}) {
+  var a = [!myFu^!]
+}
+''',
+      'myFunction(…)',
+      insertTextFormat: InsertTextFormat.Snippet,
+      editText: r'myFunction(${1:a}, ${2:b})',
+    );
+  }
 
   Future<void> test_completeFunctionCalls_flutterSetState() async {
     // Flutter's setState method has special handling inside SuggestionBuilder
@@ -1367,28 +1381,29 @@ class _MyWidgetState extends State<MyWidget> {
     expect(textEdit.range, equals(code.range.range));
   }
 
-  Future<void> test_completeFunctionCalls_namedConstructor() =>
-      checkCompleteFunctionCallInsertText(
-        '''
-        class Aaaaa {
-          Aaaaa.foo(int a);
-        }
-        void f() {
-          var a = new Aaaaa.[!foo^!]
-        }
-        ''',
-        'foo(…)',
-        insertTextFormat: InsertTextFormat.Snippet,
-        editText: r'foo(${0:a})',
-      );
+  Future<void> test_completeFunctionCalls_namedConstructor() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
+class Aaaaa {
+  Aaaaa.foo(int a);
+}
+void f() {
+  var a = new Aaaaa.[!foo^!]
+}
+''',
+      'foo(…)',
+      insertTextFormat: InsertTextFormat.Snippet,
+      editText: r'foo(${0:a})',
+    );
+  }
 
   Future<void> test_completeFunctionCalls_noParameters() async {
     var content = '''
-    void myFunction() {}
+void myFunction() {}
 
-    void f() {
-      [!myFu^!]
-    }
+void f() {
+  [!myFu^!]
+}
 ''';
 
     await checkCompleteFunctionCallInsertText(
@@ -1401,11 +1416,11 @@ class _MyWidgetState extends State<MyWidget> {
 
   Future<void> test_completeFunctionCalls_optionalParameters() async {
     var content = '''
-    void myFunction({int a}) {}
+void myFunction({int a}) {}
 
-    void f() {
-      [!myFu^!]
-    }
+void f() {
+  [!myFu^!]
+}
 ''';
 
     await checkCompleteFunctionCallInsertText(
@@ -1419,11 +1434,11 @@ class _MyWidgetState extends State<MyWidget> {
 
   Future<void> test_completeFunctionCalls_requiredNamed() async {
     var content = '''
-    void myFunction(String a, int b, {required String c, String d = ''}) {}
+void myFunction(String a, int b, {required String c, String d = ''}) {}
 
-    void f() {
-      [!myFu^!]
-    }
+void f() {
+  [!myFu^!]
+}
 ''';
 
     setCompletionItemSnippetSupport();
@@ -1448,9 +1463,9 @@ class _MyWidgetState extends State<MyWidget> {
       "void myFunction(String a, int b, {required String c, String d = ''}) {}",
     );
     var content = '''
-    void f() {
-      [!myFu^!]
-    }
+void f() {
+  [!myFu^!]
+}
 ''';
 
     setCompletionItemSnippetSupport();
@@ -1520,7 +1535,7 @@ final a = Stri^
 
   Future<void> test_completeFunctionCalls_show() async {
     var content = '''
-    import 'dart:math' show mi^
+import 'dart:math' show mi^
 ''';
 
     setCompletionItemSnippetSupport();
@@ -1537,29 +1552,31 @@ final a = Stri^
     expect(textEdit.newText, r'min');
   }
 
-  Future<void> test_completeFunctionCalls_statement() =>
-      checkCompleteFunctionCallInsertText(
-        '''
-        void f(int a) {
-          [!f^!]
-        }
-        ''',
-        'f(…)',
-        insertTextFormat: InsertTextFormat.Snippet,
-        editText: r'f(${0:a})',
-      );
+  Future<void> test_completeFunctionCalls_statement() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
+void f(int a) {
+  [!f^!]
+}
+''',
+      'f(…)',
+      insertTextFormat: InsertTextFormat.Snippet,
+      editText: r'f(${0:a})',
+    );
+  }
 
-  Future<void> test_completeFunctionCalls_suggestionSets() =>
-      checkCompleteFunctionCallInsertText(
-        '''
-        void f(int a) {
-          [!pri^!]
-        }
-        ''',
-        'print(…)',
-        insertTextFormat: InsertTextFormat.Snippet,
-        editText: r'print(${0:object})',
-      );
+  Future<void> test_completeFunctionCalls_suggestionSets() async {
+    await checkCompleteFunctionCallInsertText(
+      '''
+void f(int a) {
+  [!pri^!]
+}
+''',
+      'print(…)',
+      insertTextFormat: InsertTextFormat.Snippet,
+      editText: r'print(${0:object})',
+    );
+  }
 
   Future<void> test_completionKinds_default() async {
     newFile(join(projectFolderPath, 'file.dart'), '');
@@ -1610,14 +1627,14 @@ final a = Stri^
     setCompletionItemKinds([CompletionItemKind.Field]);
 
     var content = '''
-    class MyClass {
-      String abcdefghij;
-    }
+class MyClass {
+  String abcdefghij;
+}
 
-    void f() {
-      MyClass a;
-      a.abc^
-    }
+void f() {
+  MyClass a;
+  a.abc^
+}
 ''';
 
     await initialize();
@@ -1636,7 +1653,7 @@ final a = Stri^
   Future<void> test_completionTrigger_brace_block() async {
     // Brace should not trigger completion if a normal code block.
     var content = r'''
-    main () {^}
+main () {^}
 ''';
     await _checkResultsForTriggerCharacters(content, ['{'], isEmpty);
   }
@@ -1645,7 +1662,7 @@ final a = Stri^
   test_completionTrigger_brace_interpolatedStringExpression() async {
     // Brace should trigger completion if at the start of an interpolated expression
     var content = r'''
-    var a = '${^';
+var a = '${^';
 ''';
     await _checkResultsForTriggerCharacters(content, [r'{'], isNotEmpty);
   }
@@ -1653,7 +1670,7 @@ final a = Stri^
   Future<void> test_completionTrigger_brace_rawString() async {
     // Brace should not trigger completion if in a raw string.
     var content = r'''
-    var a = r'${^';
+var a = r'${^';
 ''';
     await _checkResultsForTriggerCharacters(content, [r'{'], isEmpty);
   }
@@ -1662,7 +1679,7 @@ final a = Stri^
     // Brace should not trigger completion if not at the start of an interpolated
     // expression.
     var content = r'''
-    var a = '{^';
+var a = '{^';
 ''';
     await _checkResultsForTriggerCharacters(content, [r'{'], isEmpty);
   }
@@ -1745,7 +1762,7 @@ import 'package:^';
   Future<void> test_completionTrigger_slash_divide() async {
     // Slashes should not trigger completion when typing in a normal expression.
     var content = r'''
-    var a = 1 /^
+var a = 1 /^
 ''';
     await _checkResultsForTriggerCharacters(content, [r'/'], isEmpty);
   }
@@ -1817,21 +1834,34 @@ import 'package:^';
     }
   }
 
-  Future<void> test_dartDocPreference_full() =>
-      assertDocumentation('full', includesSummary: true, includesFull: true);
+  Future<void> test_dartDocPreference_full() async {
+    await assertDocumentation(
+      'full',
+      includesSummary: true,
+      includesFull: true,
+    );
+  }
 
-  Future<void> test_dartDocPreference_none() =>
-      assertDocumentation('none', includesSummary: false, includesFull: false);
+  Future<void> test_dartDocPreference_none() async {
+    await assertDocumentation(
+      'none',
+      includesSummary: false,
+      includesFull: false,
+    );
+  }
 
-  Future<void> test_dartDocPreference_summary() => assertDocumentation(
-    'summary',
-    includesSummary: true,
-    includesFull: false,
-  );
+  Future<void> test_dartDocPreference_summary() async {
+    await assertDocumentation(
+      'summary',
+      includesSummary: true,
+      includesFull: false,
+    );
+  }
 
   /// No preference should result in full docs.
-  Future<void> test_dartDocPreference_unset() =>
-      assertDocumentation(null, includesSummary: true, includesFull: true);
+  Future<void> test_dartDocPreference_unset() async {
+    await assertDocumentation(null, includesSummary: true, includesFull: true);
+  }
 
   Future<void> test_filterText_constructorParens() async {
     // Constructor parens should not be included in filterText.
@@ -1938,17 +1968,17 @@ abstract class MyItem implements NotNullableName, NullableName {}
 
   Future<void> test_gettersAndSetters() async {
     var content = '''
-    class MyClass {
-      String get justGetter => '';
-      set justSetter(String value) {}
-      String get getterAndSetter => '';
-      set getterAndSetter(String value) {}
-    }
+class MyClass {
+  String get justGetter => '';
+  set justSetter(String value) {}
+  String get getterAndSetter => '';
+  set getterAndSetter(String value) {}
+}
 
-    void f() {
-      MyClass a;
-      a.^
-    }
+void f() {
+  MyClass a;
+  a.^
+}
 ''';
 
     await initialize();
@@ -2042,14 +2072,14 @@ import 'dart:^';
     setCompletionItemInsertReplaceSupport();
 
     var content = '''
-    class MyClass {
-      String abcdefghij;
-    }
+class MyClass {
+  String abcdefghij;
+}
 
-    void f() {
-      MyClass a;
-      a.abc^def
-    }
+void f() {
+  MyClass a;
+  a.abc^def
+}
 ''';
 
     await initialize();
@@ -2075,15 +2105,15 @@ import 'dart:^';
   Future<void> test_insertTextMode_multiline() async {
     setCompletionItemInsertTextModeSupport();
     var content = '''
-    import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-    class _MyWidgetState extends State<MyWidget> {
-      @override
-      Widget build(BuildContext context) {
-        [!setSt^!]
-        return const Placeholder();
-      }
-    }
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    [!setSt^!]
+    return const Placeholder();
+  }
+}
 ''';
 
     await initialize();
@@ -2103,9 +2133,9 @@ import 'dart:^';
     setCompletionItemInsertTextModeSupport();
 
     var content = '''
-    void foo() {
-      ^
-    }
+void foo() {
+  ^
+}
 ''';
 
     await initialize();
@@ -2151,7 +2181,7 @@ class MyClass {
 
   Future<void> test_insideString() async {
     var content = '''
-    var a = "This is ^a test"
+var a = "This is ^a test"
 ''';
 
     await initialize();
@@ -2163,15 +2193,15 @@ class MyClass {
 
   Future<void> test_isDeprecated_notSupported() async {
     var content = '''
-    class MyClass {
-      @deprecated
-      String abcdefghij;
-    }
+class MyClass {
+  @deprecated
+  String abcdefghij;
+}
 
-    void f() {
-      MyClass a;
-      a.abc^
-    }
+void f() {
+  MyClass a;
+  a.abc^
+}
 ''';
 
     await initialize();
@@ -2188,15 +2218,15 @@ class MyClass {
   Future<void> test_isDeprecated_supportedFlag() async {
     setCompletionItemDeprecatedFlagSupport();
     var content = '''
-    class MyClass {
-      @deprecated
-      String abcdefghij;
-    }
+class MyClass {
+  @deprecated
+  String abcdefghij;
+}
 
-    void f() {
-      MyClass a;
-      a.abc^
-    }
+void f() {
+  MyClass a;
+  a.abc^
+}
 ''';
 
     await initialize();
@@ -2214,15 +2244,15 @@ class MyClass {
     setCompletionItemTagSupport([CompletionItemTag.Deprecated]);
 
     var content = '''
-    class MyClass {
-      @deprecated
-      String abcdefghij;
-    }
+class MyClass {
+  @deprecated
+  String abcdefghij;
+}
 
-    void f() {
-      MyClass a;
-      a.abc^
-    }
+void f() {
+  MyClass a;
+  a.abc^
+}
 ''';
 
     await initialize();
@@ -2628,14 +2658,14 @@ void f() { }
     // other symbol.
     // https://github.com/Dart-Code/Dart-Code/issues/2672#issuecomment-666085575
     var content = '''
-    void f() {
-      myFunction(
-        ^
-        aaaa: '',
-      );
-    }
+void f() {
+  myFunction(
+    ^
+    aaaa: '',
+  );
+}
 
-    void myFunction({String aaaa, String aaab, String aaac}) {}
+void myFunction({String aaaa, String aaab, String aaac}) {}
 ''';
 
     await initialize();
@@ -2647,9 +2677,9 @@ void f() { }
 
   Future<void> test_namedArg_plainText() async {
     var content = '''
-    class A { const A({int one}); }
-    @A(^)
-    void f() { }
+class A { const A({int one}); }
+@A(^)
+void f() { }
 ''';
 
     await initialize();
@@ -2671,9 +2701,9 @@ void f() { }
 
   Future<void> test_namedArg_snippetStringSelection_endOfString() async {
     var content = '''
-    class A { const A({int one}); }
-    @A(^)
-    void f() { }
+class A { const A({int one}); }
+@A(^)
+void f() { }
 ''';
 
     setCompletionItemSnippetSupport();
@@ -2699,12 +2729,12 @@ void f() { }
   Future<void>
   test_namedArgTrailing_snippetStringSelection_insideString() async {
     var content = '''
-    void f({int one, int two}) {
-      f(
-        ^
-        two: 2,
-      );
-    }
+void f({int one, int two}) {
+  f(
+    ^
+    two: 2,
+  );
+}
 ''';
 
     setCompletionItemSnippetSupport();
@@ -2740,11 +2770,11 @@ void f() { }
 
   Future<void> test_nullableTypes() async {
     var content = '''
-    String? foo(int? a, [int b = 1]) {}
+String? foo(int? a, [int b = 1]) {}
 
-    void f() {
-      fo^
-    }
+void f() {
+  fo^
+}
 ''';
 
     await initialize();
@@ -2759,14 +2789,14 @@ void f() { }
 
   Future<void> test_plainText() async {
     var content = '''
-    class MyClass {
-      String abcdefghij;
-    }
+class MyClass {
+  String abcdefghij;
+}
 
-    void f() {
-      MyClass a;
-      a.abc^
-    }
+void f() {
+  MyClass a;
+  a.abc^
+}
 ''';
 
     await initialize();
@@ -2807,14 +2837,14 @@ void main() {
 
   Future<void> test_prefixFilter_endOfSymbol() async {
     var content = '''
-    class UniqueNamedClassForLspOne {}
-    class UniqueNamedClassForLspTwo {}
-    class UniqueNamedClassForLspThree {}
+class UniqueNamedClassForLspOne {}
+class UniqueNamedClassForLspTwo {}
+class UniqueNamedClassForLspThree {}
 
-    void f() {
-      // Should match only Two and Three
-      UniqueNamedClassForLspT^
-    }
+void f() {
+  // Should match only Two and Three
+  UniqueNamedClassForLspT^
+}
 ''';
 
     await initialize();
@@ -2828,14 +2858,14 @@ void main() {
 
   Future<void> test_prefixFilter_midSymbol() async {
     var content = '''
-    class UniqueNamedClassForLspOne {}
-    class UniqueNamedClassForLspTwo {}
-    class UniqueNamedClassForLspThree {}
+class UniqueNamedClassForLspOne {}
+class UniqueNamedClassForLspTwo {}
+class UniqueNamedClassForLspThree {}
 
-    void f() {
-      // Should match only Two and Three
-      UniqueNamedClassForLspT^hree
-    }
+void f() {
+  // Should match only Two and Three
+  UniqueNamedClassForLspT^hree
+}
 ''';
 
     await initialize();
@@ -2849,14 +2879,14 @@ void main() {
 
   Future<void> test_prefixFilter_startOfSymbol() async {
     var content = '''
-    class UniqueNamedClassForLspOne {}
-    class UniqueNamedClassForLspTwo {}
-    class UniqueNamedClassForLspThree {}
+class UniqueNamedClassForLspOne {}
+class UniqueNamedClassForLspTwo {}
+class UniqueNamedClassForLspThree {}
 
-    void f() {
-      // Should match all three
-      ^UniqueNamedClassForLspT
-    }
+void f() {
+  // Should match all three
+  ^UniqueNamedClassForLspT
+}
 ''';
 
     await initialize();
@@ -2870,17 +2900,17 @@ void main() {
 
   Future<void> test_setters() async {
     var content = '''
-    class MyClass {
-      set stringSetter(String a) {}
-      set noArgSetter() {}
-      set multiArgSetter(a, b) {}
-      set functionSetter(String Function(int a, int b) foo) {}
-    }
+class MyClass {
+  set stringSetter(String a) {}
+  set noArgSetter() {}
+  set multiArgSetter(a, b) {}
+  set functionSetter(String Function(int a, int b) foo) {}
+}
 
-    void f() {
-      MyClass a;
-      a.^
-    }
+void f() {
+  MyClass a;
+  a.^
+}
 ''';
 
     await initialize();
@@ -2951,9 +2981,9 @@ final a = UniquePrefixab^
 
   Future<void> test_unimportedSymbols() async {
     newFile(join(projectFolderPath, 'other_file.dart'), '''
-      /// This class is in another file.
-      class InOtherFile {}
-      ''');
+/// This class is in another file.
+class InOtherFile {}
+''');
 
     var content = '''
 void f() {
@@ -3020,48 +3050,52 @@ void f() {
     );
   }
 
-  Future<void> test_unimportedSymbols_dartDocPreference_full() =>
-      assertResolvedDocumentation(
-        'full',
-        includesSummary: true,
-        includesFull: true,
-      );
+  Future<void> test_unimportedSymbols_dartDocPreference_full() async {
+    await assertResolvedDocumentation(
+      'full',
+      includesSummary: true,
+      includesFull: true,
+    );
+  }
 
-  Future<void> test_unimportedSymbols_dartDocPreference_none() =>
-      assertResolvedDocumentation(
-        'none',
-        includesSummary: false,
-        includesFull: false,
-      );
+  Future<void> test_unimportedSymbols_dartDocPreference_none() async {
+    await assertResolvedDocumentation(
+      'none',
+      includesSummary: false,
+      includesFull: false,
+    );
+  }
 
-  Future<void> test_unimportedSymbols_dartDocPreference_summary() =>
-      assertResolvedDocumentation(
-        'summary',
-        includesSummary: true,
-        includesFull: false,
-      );
+  Future<void> test_unimportedSymbols_dartDocPreference_summary() async {
+    await assertResolvedDocumentation(
+      'summary',
+      includesSummary: true,
+      includesFull: false,
+    );
+  }
 
   /// No preference should result in full docs.
-  Future<void> test_unimportedSymbols_dartDocPreference_unset() =>
-      assertResolvedDocumentation(
-        null,
-        includesSummary: true,
-        includesFull: true,
-      );
+  Future<void> test_unimportedSymbols_dartDocPreference_unset() async {
+    await assertResolvedDocumentation(
+      null,
+      includesSummary: true,
+      includesFull: true,
+    );
+  }
 
   Future<void>
   test_unimportedSymbols_doesNotDuplicate_importedViaMultipleLibraries() async {
     // An item that's already imported through multiple libraries that
     // export it should not result in multiple entries.
     newFile(join(projectFolderPath, 'lib/source_file.dart'), '''
-      class MyExportedClass {}
-      ''');
+class MyExportedClass {}
+''');
     newFile(join(projectFolderPath, 'lib/reexport1.dart'), '''
-      export 'source_file.dart';
-      ''');
+export 'source_file.dart';
+''');
     newFile(join(projectFolderPath, 'lib/reexport2.dart'), '''
-      export 'source_file.dart';
-      ''');
+export 'source_file.dart';
+''');
 
     var content = '''
 import 'reexport1.dart';
@@ -3086,14 +3120,14 @@ void f() {
     // An item that's already imported through a library that exports it
     // should not result in multiple entries.
     newFile(join(projectFolderPath, 'lib/source_file.dart'), '''
-      class MyExportedClass {}
-      ''');
+class MyExportedClass {}
+''');
     newFile(join(projectFolderPath, 'lib/reexport1.dart'), '''
-      export 'source_file.dart';
-      ''');
+export 'source_file.dart';
+''');
     newFile(join(projectFolderPath, 'lib/reexport2.dart'), '''
-      export 'source_file.dart';
-      ''');
+export 'source_file.dart';
+''');
 
     var content = '''
 import 'reexport1.dart';
@@ -3158,12 +3192,12 @@ void f() {
     // extra files - one with the Enum definition, and one with a function that
     // accepts the Enum type that is imported into the test files.
     newFile(join(projectFolderPath, 'lib', 'enum.dart'), '''
-        enum MyExportedEnum { One, Two }
-      ''');
+enum MyExportedEnum { One, Two }
+''');
     newFile(join(projectFolderPath, 'lib', 'function_x.dart'), '''
-        import 'package:test/enum.dart';
-        void x(MyExportedEnum e) {}
-      ''');
+import 'package:test/enum.dart';
+void x(MyExportedEnum e) {}
+''');
 
     var content = '''
 import 'package:test/function_x.dart';
@@ -3234,16 +3268,16 @@ void f() {
 
   Future<void> test_unimportedSymbols_enumValuesAlreadyImported() async {
     newFile(join(projectFolderPath, 'lib', 'enum.dart'), '''
-      enum MyExportedEnum { One, Two }
-      ''');
+enum MyExportedEnum { One, Two }
+''');
     newFile(join(projectFolderPath, 'lib', 'reexport1.dart'), '''
-      import 'enum.dart';
-      export 'enum.dart';
-      void x(MyExportedEnum e) {}
-      ''');
+import 'enum.dart';
+export 'enum.dart';
+void x(MyExportedEnum e) {}
+''');
     newFile(join(projectFolderPath, 'lib', 'reexport2.dart'), '''
-      export 'enum.dart';
-      ''');
+export 'enum.dart';
+''');
 
     var content = '''
 import 'reexport1.dart';
@@ -3327,14 +3361,14 @@ void f(String a) {
 
   Future<void> test_unimportedSymbols_filtersOutAlreadyImportedSymbols() async {
     newFile(join(projectFolderPath, 'lib', 'source_file.dart'), '''
-      class MyExportedClass {}
-      ''');
+class MyExportedClass {}
+''');
     newFile(join(projectFolderPath, 'lib', 'reexport1.dart'), '''
-      export 'source_file.dart';
-      ''');
+export 'source_file.dart';
+''');
     newFile(join(projectFolderPath, 'lib', 'reexport2.dart'), '''
-      export 'source_file.dart';
-      ''');
+export 'source_file.dart';
+''');
 
     var content = '''
 import 'reexport1.dart';
@@ -3393,7 +3427,7 @@ void f() {
 extension MyExtension on String {
   void myExtensionMethod() {}
 }
-      ''');
+''');
 
     var content = '''
 void f() {
@@ -3421,14 +3455,14 @@ void f() {
   Future<void>
   test_unimportedSymbols_includesReexportedSymbolsForEachFile() async {
     newFile(join(projectFolderPath, 'source_file.dart'), '''
-      class MyExportedClass {}
-      ''');
+class MyExportedClass {}
+''');
     newFile(join(projectFolderPath, 'reexport1.dart'), '''
-      export 'source_file.dart';
-      ''');
+export 'source_file.dart';
+''');
     newFile(join(projectFolderPath, 'reexport2.dart'), '''
-      export 'source_file.dart';
-      ''');
+export 'source_file.dart';
+''');
 
     var content = '''
 void f() {
@@ -3459,9 +3493,9 @@ void f() {
     setCompletionItemInsertReplaceSupport();
 
     newFile(join(projectFolderPath, 'other_file.dart'), '''
-      /// This class is in another file.
-      class InOtherFile {}
-      ''');
+/// This class is in another file.
+class InOtherFile {}
+''');
 
     var content = '''
 void f() {
@@ -3823,11 +3857,11 @@ void f() {
 
   Future<void> test_unimportedSymbols_namedConstructors() async {
     newFile(join(projectFolderPath, 'other_file.dart'), '''
-      /// This class is in another file.
-      class InOtherFile {
-        InOtherFile.fromJson() {}
-      }
-      ''');
+/// This class is in another file.
+class InOtherFile {
+  InOtherFile.fromJson() {}
+}
+''');
 
     var content = '''
 void f() {
@@ -3894,7 +3928,7 @@ import 'd.dart';
 abstract class Base {
   D? myMethod(A a, B b, C c) => null;
 }
-      ''');
+''');
 
     // A will already be imported
     // B will already be imported but with a prefix
@@ -4091,14 +4125,14 @@ void f() {
 
   Future<void> test_unopenFile() async {
     var content = '''
-    class MyClass {
-      String abcdefghij;
-    }
+class MyClass {
+  String abcdefghij;
+}
 
-    void f() {
-      MyClass a;
-      a.abc^
-    }
+void f() {
+  MyClass a;
+  a.abc^
+}
 ''';
     var code = TestCode.parse(content);
 
@@ -4562,6 +4596,8 @@ void f() {
     );
 
     expect(updated, r'''
+import 'package:test/test.dart';
+
 void f() {
   test('${1:test name}', () {
     $0
@@ -4586,6 +4622,8 @@ void f() {
     );
 
     expect(updated, r'''
+import 'package:test/test.dart';
+
 void f() {
   group('${1:group name}', () {
     $0

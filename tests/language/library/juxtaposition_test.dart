@@ -3,8 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "" "juxtaposition_" "lib.dart";
-export "" "juxtaposition_" "lib.dart";
+import ""
+    "juxtaposition_"
+    "lib.dart";
+export ""
+    "juxtaposition_"
+    "lib.dart";
 
 main() {
   Expect.equals(c, 47);

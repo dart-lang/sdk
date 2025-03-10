@@ -904,10 +904,6 @@ Future<void> runEnvTest(
         },
         environment: Environment(env),
         supportReevaluationForTesting: true,
-        evaluationMode:
-            compiler.options.useLegacySubtyping
-                ? ir.EvaluationMode.weak
-                : ir.EvaluationMode.strong,
       );
       ir.Constant evaluatedConstant = evaluator.evaluate(
         ir.StaticTypeContext(node, typeEnvironment),

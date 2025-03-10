@@ -5,8 +5,6 @@
 // `super._` will pass on the given actual argument to the corresponding
 // superconstructor parameter.
 
-// SharedOptions=--enable-experiment=wildcard-variables
-
 import 'package:expect/expect.dart';
 
 void main() {

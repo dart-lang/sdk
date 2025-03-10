@@ -1760,6 +1760,8 @@ class MinifyRenamer implements LocalNamer {
 /// Like [BaseVisitor], but calls [declare] for [Identifier] declarations, and
 /// [visitIdentifier] otherwise.
 abstract class VariableDeclarationVisitor extends BaseVisitorVoid {
+  bool _inImportDeclaration = false;
+
   void declare(Identifier node);
 
   @override
@@ -1826,5 +1828,30 @@ abstract class VariableDeclarationVisitor extends BaseVisitorVoid {
     for (Property element in node.properties) {
       element.accept(this);
     }
+  }
+
+  @override
+  void visitImportDeclaration(ImportDeclaration node) {
+    if (node.defaultBinding != null) {
+      declare(node.defaultBinding!);
+    }
+    if (node.namedImports != null) {
+      _inImportDeclaration = true;
+      for (var namedImport in node.namedImports!) {
+        namedImport.accept(this);
+      }
+      _inImportDeclaration = false;
+    }
+  }
+
+  @override
+  void visitNameSpecifier(NameSpecifier node) {
+    final asName = node.asName;
+    // The specified 'as' name only declares a local name in the context of an
+    // import.
+    if (_inImportDeclaration && asName != null) {
+      declare(asName);
+    }
+    node.name?.accept(this);
   }
 }

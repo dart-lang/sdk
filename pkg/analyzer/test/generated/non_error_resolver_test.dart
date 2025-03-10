@@ -1126,19 +1126,19 @@ Iterable<int> f() sync* {
 ''');
   }
 
+  test_extraPositionalArguments_Function() async {
+    await assertNoErrorsInCode(r'''
+f(Function a) {
+  a(1, 2);
+}
+''');
+  }
+
   test_extraPositionalArguments_function() async {
     await assertNoErrorsInCode(r'''
 f(p1, p2) {}
 main() {
   f(1, 2);
-}
-''');
-  }
-
-  test_extraPositionalArguments_Function() async {
-    await assertNoErrorsInCode(r'''
-f(Function a) {
-  a(1, 2);
 }
 ''');
   }

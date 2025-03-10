@@ -48,6 +48,33 @@ class PluginServerTest extends PluginServerTestBase {
     await startPlugin();
   }
 
+  Future<void> test_diagnosticsCanBeIgnored() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, '''
+// ignore: no_literals/no_bools
+bool b = false;
+''');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  Future<void> test_diagnosticsCanBeIgnored_forFile() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, '''
+bool b = false;
+
+// ignore_for_file: no_literals/no_bools
+''');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
   Future<void> test_handleAnalysisSetContextRoots() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
@@ -67,12 +94,9 @@ class PluginServerTest extends PluginServerTestBase {
 
     var result = await pluginServer.handleEditGetFixes(
         protocol.EditGetFixesParams(filePath, 'bool b = '.length));
-    var fixes = result.fixes;
-    // We expect 1 fix because neither `IgnoreDiagnosticOnLine` nor
-    // `IgnoreDiagnosticInFile` are registered by the plugin.
-    // TODO(srawlins): Investigate whether they should be.
-    expect(fixes, hasLength(1));
-    expect(fixes[0].fixes, hasLength(1));
+    var fixes = result.fixes.single;
+    // The WrapInQuotes fix plus three "ignore diagnostic" fixes.
+    expect(fixes.fixes, hasLength(4));
   }
 
   Future<void> test_lintDiagnosticsAreDisabledByDefault() async {

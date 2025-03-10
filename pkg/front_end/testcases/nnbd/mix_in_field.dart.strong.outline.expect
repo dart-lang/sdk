@@ -7,6 +7,12 @@ import "dart:async";
 abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   field FutureOr<Null>m;
 }
+class Class extends self::_Class&Object&Mixin {
+  synthetic constructor •() → self::Class
+    ;
+  method test(dynamic t1) → dynamic
+    ;
+}
 abstract class _Class&Object&Mixin = core::Object with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class&Object&Mixin
     : super core::Object::•()
@@ -15,12 +21,6 @@ abstract class _Class&Object&Mixin = core::Object with self::Mixin /*isAnonymous
     return super.{self::Mixin::m};
   mixin-super-stub set m(FutureOr<Null>value) → void
     return super.{self::Mixin::m} = value;
-}
-class Class extends self::_Class&Object&Mixin {
-  synthetic constructor •() → self::Class
-    ;
-  method test(dynamic t1) → dynamic
-    ;
 }
 static method main() → dynamic
   ;

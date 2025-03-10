@@ -1,6 +1,3 @@
-// TODO(multitest): This was automatically migrated from a multitest and may
-// contain strange or dead code.
-
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10,7 +7,6 @@
 import "package:expect/expect.dart";
 
 // Default values are not allowed on typedefs.
-
 
 typedef functype({x, y, z});
 
@@ -28,17 +24,14 @@ class A {
 
   // Default values are not allowed on redirecting factory constructors.
 
-
-
   int get value => x * y * z;
 
   static int staticF({x = 3, y = 5, z}) => x * y * (z ?? 2);
   int instanceF({x = 3, y = 5, z}) => x * y * (z ?? 2);
 }
 
-main() {
+void main() {
   // Reference the type, or dart2js won't see that the declaration is invalid
-
 
   var a = new A();
 

@@ -123,8 +123,13 @@ mixin class Mixin extends core::Object {
   abstract set extendedConcreteMixedInAbstractSetter(core::int i) → void;
   abstract set extendedAbstractMixedInAbstractSetter(core::int i) → void;
 }
-abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_ClassMixin&Super&Mixin
+class ClassMixin extends self::_ClassMixin&Super&Mixin {
+  synthetic constructor •() → self::ClassMixin
+    : super self::_ClassMixin&Super&Mixin::•()
+    ;
+}
+class NamedMixin extends self::Super implements self::Mixin /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::NamedMixin
     : super self::Super::•()
     ;
   set mixedInConcreteSetter(core::int i) → void {}
@@ -134,13 +139,8 @@ abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixi
   abstract set mixedInAbstractSetter(core::int i) → void;
   abstract set extendedAbstractMixedInAbstractSetter(core::int i) → void;
 }
-class ClassMixin extends self::_ClassMixin&Super&Mixin {
-  synthetic constructor •() → self::ClassMixin
-    : super self::_ClassMixin&Super&Mixin::•()
-    ;
-}
-class NamedMixin extends self::Super implements self::Mixin /*isEliminatedMixin*/  {
-  synthetic constructor •() → self::NamedMixin
+abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_ClassMixin&Super&Mixin
     : super self::Super::•()
     ;
   set mixedInConcreteSetter(core::int i) → void {}

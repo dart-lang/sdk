@@ -35,10 +35,11 @@ class FunctionLiteralsTest {
     Expect.equals(7, a(5));
 
     Expect.equals(
-        10,
-        apply((k) {
-          return k << 1;
-        }, 5));
+      10,
+      apply((k) {
+        return k << 1;
+      }, 5),
+    );
     Expect.equals(20, apply((k) => k << 1, 10));
 
     a = new A(3);
@@ -96,16 +97,20 @@ class B {
     n = z;
   }
   B.withZ(z)
-      : f = ((x) {
-          return x * x + 1;
-        }) {
+    : f = ((x) {
+        return x * x + 1;
+      }) {
     n = z;
   }
 }
 
 class C {
   String s;
-  C(x) : s = "2*x is ${() { return 2*x; }()}";
+  C(x)
+    : s =
+          "2*x is ${() {
+            return 2 * x;
+          }()}";
 }
 
 main() {

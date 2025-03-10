@@ -734,12 +734,10 @@ class TestTargetFlags extends TargetFlags {
       this.forceStaticFieldLoweringForTesting,
       this.forceNoExplicitGetterCallsForTesting,
       this.forceConstructorTearOffLoweringForTesting,
-      bool soundNullSafety = false,
       this.supportedDartLibraries = const {},
       this.unsupportedDartLibraries = const {}})
       : super(
-            trackWidgetCreation: trackWidgetCreation,
-            soundNullSafety: soundNullSafety);
+            trackWidgetCreation: trackWidgetCreation);
 }
 
 mixin TestTargetMixin on Target {

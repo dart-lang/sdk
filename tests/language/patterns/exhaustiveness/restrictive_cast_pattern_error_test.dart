@@ -27,13 +27,13 @@ class C implements A, B {
 int? value = 1;
 
 int? method(S s) => switch (s) {
-//                  ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
-//                          ^
-// [cfe] The type 'S' is not exhaustively matched by the switch cases since it doesn't match 'A(b: false)'.
-      A(b: true) as A => 0,
-      B(b: true) as B => value,
-    };
+  //                ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NON_EXHAUSTIVE_SWITCH_EXPRESSION
+  //                        ^
+  // [cfe] The type 'S' is not exhaustively matched by the switch cases since it doesn't match 'A(b: false)'.
+  A(b: true) as A => 0,
+  B(b: true) as B => value,
+};
 
 main() {
   print(method(C()));

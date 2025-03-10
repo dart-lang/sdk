@@ -8,7 +8,6 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
-import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -103,6 +102,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAugmentation => _modifiers.isAugment;
 
   @override
@@ -138,19 +138,25 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
         invokeTarget as Annotatable,
       ];
 
+  // Coverage-ignore(suite): Not run.
   // TODO(johnniwinther): Remove this. This is only needed for detecting patches
   // and macro annotations and we should use the fragment directly once
   // augmentations are fragments.
   List<MetadataBuilder>? get metadata => _introductory.metadata;
 
   @override
-  void applyAugmentation(Builder augmentation) {
+  void addAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
+  }
+
+  void _addAugmentation(Builder augmentation) {
     if (augmentation is SourceMethodBuilder) {
       if (checkAugmentation(
           augmentationLibraryBuilder: augmentation.libraryBuilder,
           origin: this,
           augmentation: augmentation)) {
         augmentation._origin = this;
+
         SourceMethodBuilder augmentedBuilder =
             _augmentations == null ? this : _augmentations!.last;
         augmentation._augmentedBuilder = augmentedBuilder;
@@ -165,6 +171,12 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
           origin: this,
           augmentation: augmentation);
     }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void applyAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
   }
 
   @override
@@ -183,13 +195,13 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   Map<SourceMethodBuilder, AugmentSuperTarget?> _augmentedMethods = {};
 
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? _createAugmentSuperTarget(
       SourceMethodBuilder? targetBuilder) {
     if (targetBuilder == null) return null;
 
     Procedure declaredMethod = targetBuilder._introductory.invokeTarget;
     if (declaredMethod.isAbstract || declaredMethod.isExternal) {
-      // Coverage-ignore-block(suite): Not run.
       return targetBuilder._augmentedBuilder != null
           ? _getAugmentSuperTarget(targetBuilder._augmentedBuilder!)
           : null;
@@ -213,12 +225,14 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
         writeTarget: null);
   }
 
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? _getAugmentSuperTarget(SourceMethodBuilder augmentation) {
     return _augmentedMethods[augmentation] ??=
         _createAugmentSuperTarget(augmentation._augmentedBuilder);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget =>
       origin._getAugmentSuperTarget(this);
 
@@ -229,6 +243,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
       void addAugmentedMethod(SourceMethodBuilder builder) {
         Procedure? augmentedMethod = builder._augmentedMethod;
         if (augmentedMethod != null) {
+          // Coverage-ignore-block(suite): Not run.
           augmentedMethod
             ..fileOffset = builder._introductory.invokeTarget.fileOffset
             ..fileEndOffset = builder._introductory.invokeTarget.fileEndOffset
@@ -258,6 +273,17 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
         reference: _reference,
         tearOffReference: _tearOffReference,
         classTypeParameters: classBuilder?.cls.typeParameters);
+    List<SourceMethodBuilder>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (SourceMethodBuilder augmentation in augmentations) {
+        augmentation.buildOutlineNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          // Don't add augmentations.
+        });
+      }
+    }
   }
 
   bool hasBuiltOutlineExpressions = false;
@@ -266,12 +292,17 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      LookupScope parentScope =
-          declarationBuilder?.scope ?? libraryBuilder.scope;
       _introductory.buildOutlineExpressions(classHierarchy, libraryBuilder,
-          declarationBuilder, parentScope, invokeTarget as Annotatable,
+          declarationBuilder, invokeTarget as Annotatable,
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
+      List<SourceMethodBuilder>? augmentations = _augmentations;
+      if (augmentations != null) {
+        for (SourceMethodBuilder augmentation in augmentations) {
+          augmentation.buildOutlineExpressions(
+              classHierarchy, delayedDefaultValueCloners);
+        }
+      }
       hasBuiltOutlineExpressions = true;
     }
   }
@@ -325,8 +356,11 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Name get memberName => _memberName.name;
 
   @override
-  Member? get readTarget =>
-      isAugmenting ? _origin!.readTarget : _introductory.readTarget;
+  Member? get readTarget => isAugmenting
+      ?
+      // Coverage-ignore(suite): Not run.
+      _origin!.readTarget
+      : _introductory.readTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -353,7 +387,17 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
-    return _introductory.computeDefaultTypes(context);
+    int count = _introductory.computeDefaultTypes(context);
+    if (declarationBuilder == null) {
+      List<SourceMethodBuilder>? augmentations = _augmentations;
+      if (augmentations != null) {
+        for (SourceMethodBuilder augmentation in augmentations) {
+          count += augmentation.computeDefaultTypes(context,
+              inErrorRecovery: inErrorRecovery);
+        }
+      }
+    }
+    return count;
   }
 
   @override

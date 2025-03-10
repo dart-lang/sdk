@@ -33,7 +33,6 @@ abstract class TypeEnvironment extends Types {
   Class get functionClass => coreTypes.functionClass;
   Class get objectClass => coreTypes.objectClass;
 
-  InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
   InterfaceType get objectNonNullableRawType =>
       coreTypes.objectNonNullableRawType;
   InterfaceType get objectNullableRawType => coreTypes.objectNullableRawType;
@@ -293,11 +292,7 @@ abstract class TypeEnvironment extends Types {
       {required DartType expressionStaticType,
       required DartType checkTargetType,
       required SubtypeCheckMode subtypeCheckMode}) {
-    if (!IsSubtypeOf.basedSolelyOnNullabilities(
-            expressionStaticType, checkTargetType)
-        .inMode(subtypeCheckMode)) {
-      return TypeShapeCheckSufficiency.insufficient;
-    } else if (checkTargetType is InterfaceType &&
+    if (checkTargetType is InterfaceType &&
         expressionStaticType is InterfaceType) {
       // Analyze if an interface shape check is sufficient.
 
@@ -410,7 +405,7 @@ abstract class TypeEnvironment extends Types {
       // `E1`. The first type argument of `E2<num, dynamic>` is the same in all
       // such types, and the second type argument is the default type for the
       // second parameter of `E2`, so condition (2*) is satisfied. We conclude
-      // that the shape check is sufficient in `e is E2<enum, dynamic>`.
+      // that the shape check is sufficient in `e is E2<num, dynamic>`.
 
       // First, we compute `B<Q1, ..., Qk>`, which is `A<T1, ..., Tn>` taken as
       // an instance of `B` in `e is/as A<T1, ..., Tn>`, where `B<S1, ..., Sk>`
@@ -473,7 +468,8 @@ abstract class TypeEnvironment extends Types {
           // Condition (2*) is satisfied. We need to check condition (1).
           return isSubtypeOf(
                   expressionStaticType,
-                  testedAgainstTypeAsOperandClass,
+                  testedAgainstTypeAsOperandClass
+                      .withDeclaredNullability(Nullability.nullable),
                   SubtypeCheckMode.withNullabilities)
               ? TypeShapeCheckSufficiency.interfaceShape
               : TypeShapeCheckSufficiency.insufficient;

@@ -47,7 +47,7 @@ abstract class Workspace {
 
   /// Find the [WorkspacePackage] where the library at [filePath] is defined.
   ///
-  /// Separate from [Packages] or [packageMap], this method is designed to find
+  /// Separate from [Packages] or package maps, this method is designed to find
   /// the package, by its root, in which a library at an arbitrary path is
   /// defined.
   WorkspacePackage? findPackageFor(String filePath);
@@ -60,8 +60,8 @@ abstract class Workspace {
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a Workspace.
 abstract class WorkspacePackage {
-  /// Return `true` if this package can have public apis, that is, the package
-  /// has marker files like pubspec.yaml or BUILD.
+  /// Whether this package can have public APIs, that is, the package has marker
+  /// files like 'pubspec.yaml' or 'BUILD'.
   bool get canHavePublicApi => true;
 
   /// Return the experiments enabled for all files in the package.
@@ -82,10 +82,9 @@ abstract class WorkspacePackage {
 
   Workspace get workspace;
 
-  /// Return `true` if this compilation unit [node] is not within the `lib` and
-  /// `bin` directories in the given [package]'s directory tree, and hence the
-  /// import's can be listed in the dev_dependencies section of the pubspec.yaml
-  /// file.
+  /// Whether this compilation unit [source] is not within the `lib` or `bin`
+  /// directories in [root]'s directory tree, and hence the imports can be
+  /// listed in the 'dev_dependencies' section of the 'pubspec.yaml' file.
   bool canBeDevDependency(Source source) {
     var cuPath = source.fullName;
     var libDir = path.join(root, 'lib');

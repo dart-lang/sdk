@@ -3,12 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/ast.dart' // ignore: implementation_imports
+    show FunctionDeclarationImpl;
+import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_imports
     show InvalidTypeImpl;
 import 'package:collection/collection.dart';
@@ -309,6 +312,16 @@ extension DartTypeExtension on DartType? {
           _extendsClass(type.superclass, seenElements, className, library));
 }
 
+extension ElementAnnotationExtension on ElementAnnotation {
+  bool get isReflectiveTest => switch (element2) {
+    GetterElement(:var name3, :var library2) =>
+      name3 == 'reflectiveTest' &&
+          library2.uri.toString() ==
+              'package:test_reflective_loader/test_reflective_loader.dart',
+    _ => false,
+  };
+}
+
 extension ElementExtension on Element2? {
   Element2? get canonicalElement2 => switch (this) {
     PropertyAccessorElement2(:var variable3?) => variable3,
@@ -477,6 +490,12 @@ extension InhertanceManager3Extension on InheritanceManager3 {
   }
 }
 
+extension InstanceElementExtension on InstanceElement2 {
+  bool get isReflectiveTest =>
+      this is ClassElement2 &&
+      metadata2.annotations.any((a) => a.isReflectiveTest);
+}
+
 extension InterfaceElementExtension on InterfaceElement2 {
   /// Whether this element has the exact [name] and defined in the file with
   /// the given [uri].
@@ -570,7 +589,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
         var methodName = Name.forElement(declaredElement);
         if (methodName == null) return null;
         var inherited = inheritanceManager.getInherited4(parent, methodName);
-        if (inherited is MethodElement2) return inherited;
+        if (inherited is MethodElement2OrMember) return inherited;
       }
     }
     return null;

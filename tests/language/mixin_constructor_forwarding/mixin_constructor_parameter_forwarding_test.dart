@@ -13,15 +13,9 @@ import "mixin_constructor_parameter_forwarding_helper.dart"
 class B<T> {
   final T x;
   final Object y;
-  const B(T x, [Object y = 0])
-      : x = x,
-        y = y;
-  const B.b1(T x, {Object y = 0})
-      : x = x,
-        y = y;
-  const B.b2(T x, [Object y = const <int>[0]])
-      : x = x,
-        y = y;
+  const B(T x, [Object y = 0]) : x = x, y = y;
+  const B.b1(T x, {Object y = 0}) : x = x, y = y;
+  const B.b2(T x, [Object y = const <int>[0]]) : x = x, y = y;
 }
 
 mixin M1 on B<int> {

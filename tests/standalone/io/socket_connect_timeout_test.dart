@@ -15,12 +15,16 @@ import "package:expect/expect.dart";
 
 void main() {
   asyncStart();
-  Duration timeout = new Duration(milliseconds: 20);
-  Socket.connect("8.8.8.7", 80, timeout: timeout).then((socket) {
-    Expect.fail("Unexpected connection made.");
-    asyncEnd();
-  }).catchError((e) {
-    Expect.isTrue(e is SocketException);
-    asyncEnd();
-  });
+  Duration timeout = new Duration(milliseconds: 0);
+  // TODO(https://github.com/dart-lang/sdk/issues/60246): ensure that the
+  // exception was really caused by a timeout.
+  Socket.connect("8.8.8.7", 80, timeout: timeout)
+      .then((socket) {
+        Expect.fail("Unexpected connection made.");
+        asyncEnd();
+      })
+      .catchError((e) {
+        Expect.isTrue(e is SocketException);
+        asyncEnd();
+      });
 }

@@ -308,6 +308,8 @@ class QemuConfig {
         QemuConfig('qemu-arm', ['-L', '/usr/arm-linux-gnueabihf/']),
     Architecture.arm64:
         QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
+    Architecture.simarm64_arm64:
+        QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
     Architecture.arm64c:
         QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
     Architecture.riscv32:

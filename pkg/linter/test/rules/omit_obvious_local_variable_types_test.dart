@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OmitObviousLocalVariableTypesTest);
   });
@@ -81,7 +81,7 @@ f() {
   test_forEach_noDeclaredType() async {
     await assertNoDiagnostics(r'''
 f() {
-  for (var i in [1, 2, 3]) { }
+  for (var i in [1, -2, 3]) { }
 }
 ''');
   }
@@ -91,7 +91,7 @@ f() {
 f() {
   for (int i in list) { }
 }
-var list = [1, 2, 3];
+var list = [1, -2, 3];
 ''');
   }
 
@@ -99,7 +99,7 @@ var list = [1, 2, 3];
     await assertDiagnostics(
       r'''
 f() {
-  for (int i in <int>[1, 2, 3]) { }
+  for (int i in <int>[1, -2, 3]) { }
 }
 ''',
       [lint(13, 3)],

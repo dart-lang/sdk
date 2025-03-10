@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
@@ -20,20 +19,20 @@ main() {
 class GreatestClosureTest extends AbstractTypeSystemTest {
   late final TypeParameterElementImpl2 T;
   late final TypeParameterTypeImpl T_none;
-  late final TypeParameterType T_question;
+  late final TypeParameterTypeImpl T_question;
 
   @override
   void setUp() {
     super.setUp();
 
-    T = typeParameter2('T') as TypeParameterElementImpl2;
-    T_none = typeParameterTypeNone2(T);
-    T_question = typeParameterTypeQuestion2(T);
+    T = typeParameter('T');
+    T_none = typeParameterTypeNone(T);
+    T_question = typeParameterTypeQuestion(T);
   }
 
   test_contravariant() {
     _check(
-      functionTypeNone(returnType: voidNone, parameters: [
+      functionTypeNone(returnType: voidNone, formalParameters: [
         requiredParameter(type: T_none),
       ]),
       greatest: 'void Function(Never)',
@@ -44,7 +43,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
       functionTypeNone(
         returnType: functionTypeNone(
           returnType: voidNone,
-          parameters: [
+          formalParameters: [
             requiredParameter(type: T_none),
           ],
         ),
@@ -65,9 +64,9 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     );
 
     _check(
-        functionTypeNone(returnType: voidNone, parameters: [
+        functionTypeNone(returnType: voidNone, formalParameters: [
           requiredParameter(
-            type: functionTypeNone(returnType: intNone, parameters: [
+            type: functionTypeNone(returnType: intNone, formalParameters: [
               requiredParameter(type: T_none),
             ]),
           ),
@@ -79,9 +78,9 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
   test_function() {
     // void Function<U extends T>()
     _check(
-      functionTypeNone2(
-        typeFormals: [
-          typeParameter2('U', bound: T_none),
+      functionTypeNone(
+        typeParameters: [
+          typeParameter('U', bound: T_none),
         ],
         returnType: voidNone,
       ),
@@ -106,22 +105,22 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     _check1(dynamicType, 'dynamic');
 
     _check1(
-      functionTypeNone(returnType: stringNone, parameters: [
+      functionTypeNone(returnType: stringNone, formalParameters: [
         requiredParameter(type: intNone),
       ]),
       'String Function(int)',
     );
 
     _check1(
-      typeParameterTypeNone2(
-        typeParameter2('U'),
+      typeParameterTypeNone(
+        typeParameter('U'),
       ),
       'U',
     );
   }
 
   void _check(
-    DartType type, {
+    TypeImpl type, {
     required String greatest,
     required String least,
   }) {
@@ -138,7 +137,7 @@ class GreatestClosureTest extends AbstractTypeSystemTest {
     );
   }
 
-  void _check1(DartType type, String expected) {
+  void _check1(TypeImpl type, String expected) {
     _check(type, greatest: expected, least: expected);
   }
 }

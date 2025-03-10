@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
@@ -25,8 +24,8 @@ class TypeReferencesAnyTest extends AbstractTypeSystemTest {
   void setUp() {
     super.setUp();
 
-    T = typeParameter2('T') as TypeParameterElementImpl2;
-    T_none = typeParameterTypeNone2(T);
+    T = typeParameter('T');
+    T_none = typeParameterTypeNone(T);
   }
 
   test_false() {
@@ -46,14 +45,14 @@ class TypeReferencesAnyTest extends AbstractTypeSystemTest {
     _checkTrue(functionTypeNone(returnType: T_none));
 
     _checkTrue(
-      functionTypeNone(returnType: voidNone, parameters: [
+      functionTypeNone(returnType: voidNone, formalParameters: [
         requiredParameter(type: T_none),
       ]),
     );
 
     _checkTrue(
       functionTypeNone(
-        typeFormals: [
+        typeParameters: [
           typeParameter('U', bound: T_none),
         ],
         returnType: voidNone,
@@ -61,13 +60,13 @@ class TypeReferencesAnyTest extends AbstractTypeSystemTest {
     );
   }
 
-  void _checkFalse(DartType type) {
-    var actual = (type as TypeImpl).referencesAny2({T});
+  void _checkFalse(TypeImpl type) {
+    var actual = type.referencesAny2({T});
     expect(actual, isFalse);
   }
 
-  void _checkTrue(DartType type) {
-    var actual = (type as TypeImpl).referencesAny2({T});
+  void _checkTrue(TypeImpl type) {
+    var actual = type.referencesAny2({T});
     expect(actual, isTrue);
   }
 }

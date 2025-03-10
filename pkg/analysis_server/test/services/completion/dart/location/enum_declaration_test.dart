@@ -377,4 +377,25 @@ suggestions
     selection: 6
 ''');
   }
+
+  Future<void> test_values() async {
+    allowedIdentifiers = {'first', 'last'};
+    includeKeywords = false;
+    await computeSuggestions('''
+enum E {
+  first,
+  last;
+
+  List<E> get all => [^];
+}
+''');
+
+    assertResponse(r'''
+suggestions
+  first
+    kind: enumConstant
+  last
+    kind: enumConstant
+''');
+  }
 }

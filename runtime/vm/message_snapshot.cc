@@ -3483,7 +3483,7 @@ ObjectPtr ReadMessage(Thread* thread, Message* message) {
   } else {
     RELEASE_ASSERT(message->IsSnapshot());
     LongJumpScope jump(thread);
-    if (setjmp(*jump.Set()) == 0) {
+    if (DART_SETJMP(*jump.Set()) == 0) {
       MessageDeserializer deserializer(thread, message);
       return deserializer.Deserialize();
     } else {

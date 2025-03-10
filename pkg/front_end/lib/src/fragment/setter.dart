@@ -33,7 +33,12 @@ class SetterFragment implements Fragment, FunctionFragment {
   ///
   /// This is only non-null in erroneous cases since setters don't have type
   /// parameters.
-  final List<NominalParameterBuilder>? declaredTypeParameters;
+  final List<TypeParameterFragment>? declaredTypeParameters;
+
+  /// The scope in which the setter is declared.
+  ///
+  /// This is the scope used for resolving the [metadata].
+  final LookupScope enclosingScope;
 
   /// The scope that introduces type parameters on this setter.
   ///
@@ -49,27 +54,34 @@ class SetterFragment implements Fragment, FunctionFragment {
   final AsyncMarker asyncModifier;
   final String? nativeMethodName;
 
+  final DeclarationFragment? enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
   SourcePropertyBuilder? _builder;
 
   late final _SetterEncoding _encoding;
 
-  SetterFragment(
-      {required this.name,
-      required this.fileUri,
-      required this.startOffset,
-      required this.nameOffset,
-      required this.formalsOffset,
-      required this.endOffset,
-      required this.isTopLevel,
-      required this.metadata,
-      required this.modifiers,
-      required this.returnType,
-      required this.declaredTypeParameters,
-      required this.typeParameterNameSpace,
-      required this.typeParameterScope,
-      required this.declaredFormals,
-      required this.asyncModifier,
-      required this.nativeMethodName});
+  SetterFragment({
+    required this.name,
+    required this.fileUri,
+    required this.startOffset,
+    required this.nameOffset,
+    required this.formalsOffset,
+    required this.endOffset,
+    required this.isTopLevel,
+    required this.metadata,
+    required this.modifiers,
+    required this.returnType,
+    required this.declaredTypeParameters,
+    required this.typeParameterNameSpace,
+    required this.enclosingScope,
+    required this.typeParameterScope,
+    required this.declaredFormals,
+    required this.asyncModifier,
+    required this.nativeMethodName,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  });
 
   @override
   SourcePropertyBuilder get builder {
@@ -103,17 +115,11 @@ class SetterFragment implements Fragment, FunctionFragment {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _encoding.buildOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        declarationBuilder,
-        parentScope,
-        createBodyBuilderContext(),
-        annotatable,
+    _encoding.buildOutlineExpressions(classHierarchy, libraryBuilder,
+        declarationBuilder, createBodyBuilderContext(), annotatable,
         isClassInstanceMember: isClassInstanceMember,
         createFileUriExpression: createFileUriExpression);
   }
@@ -242,7 +248,6 @@ sealed class _SetterEncoding {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
@@ -328,9 +333,16 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
         asyncMarker: _fragment.asyncModifier)
       ..fileOffset = _fragment.formalsOffset
       ..fileEndOffset = _fragment.endOffset;
-    buildTypeParametersAndFormals(libraryBuilder, function,
-        _fragment.declaredTypeParameters, _fragment.declaredFormals,
-        classTypeParameters: classTypeParameters, supportsTypeParameters: true);
+    buildTypeParametersAndFormals(
+        libraryBuilder,
+        function,
+        _fragment
+            .declaredTypeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders,
+        _fragment.declaredFormals,
+        classTypeParameters: classTypeParameters,
+        supportsTypeParameters: true);
     if (_fragment.returnType is! InferableTypeBuilder) {
       function.returnType =
           _fragment.returnType.build(libraryBuilder, TypeUse.returnType);
@@ -371,13 +383,16 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
+    _buildMetadataForOutlineExpressions(
+        libraryBuilder,
+        _fragment.enclosingScope,
+        bodyBuilderContext,
+        annotatable,
+        _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
 
@@ -386,9 +401,13 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
         libraryBuilder,
         bodyBuilderContext,
         _fragment.typeParameterScope,
-        _fragment.declaredTypeParameters);
+        _fragment
+            .declaredTypeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders);
     _buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
   }
 
@@ -401,8 +420,10 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
   void checkTypes(
       SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment,
       {required bool isAbstract, required bool isExternal}) {
-    List<TypeParameterBuilder>? typeParameters =
-        _fragment.declaredTypeParameters;
+    List<TypeParameterBuilder>? typeParameters = _fragment
+        .declaredTypeParameters
+        // Coverage-ignore(suite): Not run.
+        ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
       libraryBuilder.checkTypeParameterDependencies(typeParameters);
@@ -416,7 +437,11 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     sourceClassBuilder.checkVarianceInTypeParameters(
-        typeEnvironment, _fragment.declaredTypeParameters);
+        typeEnvironment,
+        _fragment
+            .declaredTypeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders);
     sourceClassBuilder.checkVarianceInFormals(
         typeEnvironment, _fragment.declaredFormals);
     sourceClassBuilder.checkVarianceInReturnType(
@@ -426,8 +451,10 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
 
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
-    bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-        _fragment.declaredTypeParameters);
+    bool hasErrors = context.reportSimplicityIssuesForTypeParameters(_fragment
+        .declaredTypeParameters
+        // Coverage-ignore(suite): Not run.
+        ?.builders);
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
       hasErrors |=
@@ -436,7 +463,10 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
           _fragment.returnType);
     }
     return context.computeDefaultTypesForVariables(
-        _fragment.declaredTypeParameters,
+        _fragment
+            .declaredTypeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders,
         inErrorRecovery: hasErrors);
   }
 
@@ -456,7 +486,10 @@ mixin _DirectSetterEncodingMixin implements _SetterEncoding {
 
   @override
   List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
-      _fragment.declaredTypeParameters;
+      _fragment
+          .declaredTypeParameters
+          // Coverage-ignore(suite): Not run.
+          ?.builders;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -565,9 +598,16 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
         asyncMarker: _fragment.asyncModifier)
       ..fileOffset = _fragment.formalsOffset
       ..fileEndOffset = _fragment.endOffset;
-    buildTypeParametersAndFormals(libraryBuilder, function,
-        _fragment.declaredTypeParameters, _fragment.declaredFormals,
-        classTypeParameters: classTypeParameters, supportsTypeParameters: true);
+    buildTypeParametersAndFormals(
+        libraryBuilder,
+        function,
+        _fragment
+            .declaredTypeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders,
+        _fragment.declaredFormals,
+        classTypeParameters: classTypeParameters,
+        supportsTypeParameters: true);
     // TODO(johnniwinther): We should have a consistent normalization strategy.
     // We ensure that setters have 1 parameter, but for getters we include all
     // declared parameters.
@@ -614,13 +654,16 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
       ClassHierarchy classHierarchy,
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? declarationBuilder,
-      LookupScope parentScope,
       BodyBuilderContext bodyBuilderContext,
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _buildMetadataForOutlineExpressions(libraryBuilder, parentScope,
-        bodyBuilderContext, annotatable, _fragment.metadata,
+    _buildMetadataForOutlineExpressions(
+        libraryBuilder,
+        _fragment.enclosingScope,
+        bodyBuilderContext,
+        annotatable,
+        _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
 
@@ -629,9 +672,13 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
         libraryBuilder,
         bodyBuilderContext,
         _fragment.typeParameterScope,
-        _fragment.declaredTypeParameters);
+        _fragment
+            .declaredTypeParameters
+            // Coverage-ignore(suite): Not run.
+            ?.builders);
     _buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
 
     _buildTypeParametersForOutlineExpressions(
@@ -642,6 +689,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
         _clonedDeclarationTypeParameters);
     _buildFormalForOutlineExpressions(
         libraryBuilder, declarationBuilder, _thisFormal,
+        scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
   }
 
@@ -655,8 +703,10 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
   void checkTypes(
       SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment,
       {required bool isAbstract, required bool isExternal}) {
-    List<TypeParameterBuilder>? typeParameters =
-        _fragment.declaredTypeParameters;
+    List<TypeParameterBuilder>? typeParameters = _fragment
+        .declaredTypeParameters
+        // Coverage-ignore(suite): Not run.
+        ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
       libraryBuilder.checkTypeParameterDependencies(typeParameters);
@@ -671,7 +721,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     sourceClassBuilder.checkVarianceInTypeParameters(
-        typeEnvironment, _fragment.declaredTypeParameters);
+        typeEnvironment, _fragment.declaredTypeParameters?.builders);
     sourceClassBuilder.checkVarianceInFormals(
         typeEnvironment, _fragment.declaredFormals);
     sourceClassBuilder.checkVarianceInReturnType(
@@ -700,8 +750,10 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
 
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
-    bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-        _fragment.declaredTypeParameters);
+    bool hasErrors = context.reportSimplicityIssuesForTypeParameters(_fragment
+        .declaredTypeParameters
+        // Coverage-ignore(suite): Not run.
+        ?.builders);
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
       hasErrors |=
@@ -719,7 +771,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
         //  required and unnecessary.
         // ignore: unnecessary_non_null_assertion
         ..._clonedDeclarationTypeParameters!,
-        ..._fragment.declaredTypeParameters!
+        ..._fragment.declaredTypeParameters!.builders
       ], inErrorRecovery: hasErrors);
     } else if (_clonedDeclarationTypeParameters != null) {
       return context.computeDefaultTypesForVariables(
@@ -727,7 +779,10 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
           inErrorRecovery: hasErrors);
     } else {
       return context.computeDefaultTypesForVariables(
-          _fragment.declaredTypeParameters,
+          _fragment
+              .declaredTypeParameters
+              // Coverage-ignore(suite): Not run.
+              ?.builders,
           inErrorRecovery: hasErrors);
     }
   }
@@ -763,7 +818,10 @@ mixin _ExtensionInstanceSetterEncodingMixin implements _SetterEncoding {
               _fragment.declaredTypeParameters != null
           ? [
               ...?_clonedDeclarationTypeParameters,
-              ...?_fragment.declaredTypeParameters
+              ...?_fragment
+                  .declaredTypeParameters
+                  // Coverage-ignore(suite): Not run.
+                  ?.builders
             ]
           : null;
 
@@ -875,7 +933,7 @@ class _SetterFragmentBodyBuilderContext extends BodyBuilderContext {
   TypeBuilder get returnType => _fragment.returnType;
 
   @override
-  void setBody(Statement body) {
+  void registerFunctionBody(Statement body) {
     function.body = body..parent = function;
   }
 
@@ -898,6 +956,7 @@ class _SetterFragmentBodyBuilderContext extends BodyBuilderContext {
   VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   AugmentSuperTarget? get augmentSuperTarget {
     if (_fragment.builder.isAugmentation) {
       return _fragment.builder.augmentSuperTarget;

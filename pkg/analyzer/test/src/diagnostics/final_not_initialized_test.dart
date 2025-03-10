@@ -92,6 +92,7 @@ abstract class A {
     ]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_field_unnamedConstructor_augmentationDeclares_constructorInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

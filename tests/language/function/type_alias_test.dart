@@ -24,7 +24,9 @@ typedef void Test();
 typedef ParameterizedFun1<T, U extends bool, V>(T t, U u);
 
 typedef List<T> ParameterizedFun2<T, U, V extends Map<T, int>>(
-    Map<T, int> t, U u);
+  Map<T, int> t,
+  U u,
+);
 
 typedef void BoundsCheck<T extends num>(T arg);
 

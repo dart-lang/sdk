@@ -41,17 +41,6 @@ abstract class ClassEqMixinClass extends self::Super implements self::MixinClass
   abstract method abstractExtendsAbstractMixin() → void;
   abstract method abstractMixin() → void;
 }
-abstract class _ClassExtendsMixinClass&Super&MixinClass extends self::Super implements self::MixinClass /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_ClassExtendsMixinClass&Super&MixinClass
-    : super self::Super::•()
-    ;
-  method concreteExtendsConcreteMixin() → void {}
-  abstract method concreteExtendsAbstractMixin() → void;
-  method concreteMixin() → void {}
-  method abstractExtendsConcreteMixin() → void {}
-  abstract method abstractExtendsAbstractMixin() → void;
-  abstract method abstractMixin() → void;
-}
 abstract class ClassExtendsMixinClass extends self::_ClassExtendsMixinClass&Super&MixinClass {
   synthetic constructor •() → self::ClassExtendsMixinClass
     : super self::_ClassExtendsMixinClass&Super&MixinClass::•()
@@ -59,17 +48,6 @@ abstract class ClassExtendsMixinClass extends self::_ClassExtendsMixinClass&Supe
 }
 abstract class ClassEqMixin extends self::Super implements self::Mixin /*isEliminatedMixin*/  {
   synthetic constructor •() → self::ClassEqMixin
-    : super self::Super::•()
-    ;
-  method concreteExtendsConcreteMixin() → void {}
-  abstract method concreteExtendsAbstractMixin() → void;
-  method concreteMixin() → void {}
-  method abstractExtendsConcreteMixin() → void {}
-  abstract method abstractExtendsAbstractMixin() → void;
-  abstract method abstractMixin() → void;
-}
-abstract class _ClassExtendsMixin&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_ClassExtendsMixin&Super&Mixin
     : super self::Super::•()
     ;
   method concreteExtendsConcreteMixin() → void {}
@@ -151,5 +129,27 @@ abstract class SubclassExtendsMixin extends self::ClassExtendsMixin {
     super.{self::_ClassExtendsMixin&Super&Mixin::concreteMixin}();
     super.{self::_ClassExtendsMixin&Super&Mixin::abstractExtendsConcreteMixin}();
   }
+}
+abstract class _ClassExtendsMixinClass&Super&MixinClass extends self::Super implements self::MixinClass /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_ClassExtendsMixinClass&Super&MixinClass
+    : super self::Super::•()
+    ;
+  method concreteExtendsConcreteMixin() → void {}
+  abstract method concreteExtendsAbstractMixin() → void;
+  method concreteMixin() → void {}
+  method abstractExtendsConcreteMixin() → void {}
+  abstract method abstractExtendsAbstractMixin() → void;
+  abstract method abstractMixin() → void;
+}
+abstract class _ClassExtendsMixin&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_ClassExtendsMixin&Super&Mixin
+    : super self::Super::•()
+    ;
+  method concreteExtendsConcreteMixin() → void {}
+  abstract method concreteExtendsAbstractMixin() → void;
+  method concreteMixin() → void {}
+  method abstractExtendsConcreteMixin() → void {}
+  abstract method abstractExtendsAbstractMixin() → void;
+  abstract method abstractMixin() → void;
 }
 static method main() → dynamic {}

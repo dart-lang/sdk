@@ -16,7 +16,8 @@ void main() {
       Expect.equals(1, a);
       Expect.equals("a", b);
       Expect.equals(true, c);
-    case _: Expect.fail("Didn't match full record pattern");
+    case _:
+      Expect.fail("Didn't match full record pattern");
   }
 
   switch (dynamicRecord) {
@@ -25,7 +26,8 @@ void main() {
       Expect.equals(1, $1);
       Expect.equals("a", $2);
       Expect.equals(true, $5);
-    case _: Expect.fail("Didn't match Object pattern");
+    case _:
+      Expect.fail("Didn't match Object pattern");
   }
 
   switch (dynamicRecord) {
@@ -33,18 +35,24 @@ void main() {
     case R3<int, String, bool>(:var $1, :var $5):
       Expect.equals(1, $1);
       Expect.equals(true, $5);
-    case _: Expect.fail("Didn't match partial Object pattern");
+    case _:
+      Expect.fail("Didn't match partial Object pattern");
   }
 
   switch (dynamicRecord) {
     // Object pattern with extension getters.
     case R3<int, String, bool>(
-        :var $1, :var $3, :var $5, :var $18446744073709551617):
+      :var $1,
+      :var $3,
+      :var $5,
+      :var $18446744073709551617,
+    ):
       Expect.equals(1, $1);
       Expect.equals("3", $3);
       Expect.equals(true, $5);
       Expect.equals("2p64+1", $18446744073709551617);
-    case _: Expect.fail("Didn't match object pattern with extension getters");
+    case _:
+      Expect.fail("Didn't match object pattern with extension getters");
   }
 }
 

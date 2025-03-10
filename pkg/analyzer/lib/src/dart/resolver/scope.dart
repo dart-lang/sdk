@@ -2,24 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
+// ignore_for_file: analyzer_use_new_elements, as_much_as_we_can
 
-import 'dart:collection';
-
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The scope defined by a block.
 class BlockScope {
   /// Return the elements that are declared directly in the given [statements].
   /// This does not include elements declared in nested blocks.
-  static Iterable<Element> elementsInStatements(
+  static Iterable<Element2> elementsInStatements(
     List<Statement> statements,
   ) sync* {
     int statementCount = statements.length;
@@ -36,10 +35,10 @@ class BlockScope {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {
-          yield variables[j].declaredElement!;
+          yield variables[j].declaredFragment!.element;
         }
       } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.declaredElement!;
+        yield statement.functionDeclaration.declaredFragment!.element;
       }
     }
   }
@@ -92,7 +91,7 @@ class LabelScope {
   final String _label;
 
   /// The element to which the label resolves.
-  final LabelElement element;
+  final LabelElement2 element;
 
   /// The AST node to which the label resolves.
   final AstNode node;
@@ -114,33 +113,34 @@ class LabelScope {
 
 /// A mapping of identifiers to the elements represented by those identifiers.
 /// Namespaces are the building blocks for scopes.
+@AnalyzerPublicApi(message: 'exposed from elements')
 class Namespace {
   /// An empty namespace.
-  static Namespace EMPTY = Namespace(HashMap<String, Element>());
+  static Namespace EMPTY = Namespace({});
 
   /// A table mapping names that are defined in this namespace to the element
   /// representing the thing declared with that name.
-  final Map<String, Element> _definedNames;
+  final Map<String, Element2> _definedNames;
 
   /// Initialize a newly created namespace to have the [_definedNames].
   Namespace(this._definedNames);
 
   /// Return a table containing the same mappings as those defined by this
   /// namespace.
-  Map<String, Element> get definedNames => _definedNames;
+  Map<String, Element> get definedNames =>
+      _definedNames.mapValue((e) => e.asElement!);
 
   /// Return a table containing the same mappings as those defined by this
   /// namespace.
-  Map<String, Element2> get definedNames2 =>
-      _definedNames.map((name, element) => MapEntry(name, _convert(element)!));
+  Map<String, Element2> get definedNames2 => _definedNames;
 
   /// Return the element in this namespace that is available to the containing
   /// scope using the given name, or `null` if there is no such element.
-  Element? get(String name) => _definedNames[name];
+  Element? get(String name) => _definedNames[name]?.asElement;
 
   /// Return the element in this namespace that is available to the containing
   /// scope using the given name, or `null` if there is no such element.
-  Element2? get2(String name) => _convert(_definedNames[name]);
+  Element2? get2(String name) => _definedNames[name];
 
   /// Return the element in this namespace whose name is the result of combining
   /// the [prefix] and the [name], separated by a period, or `null` if there is
@@ -151,23 +151,16 @@ class Namespace {
   /// the [prefix] and the [name], separated by a period, or `null` if there is
   /// no such element.
   Element2? getPrefixed2(String prefix, String name) => null;
-
-  /// Return the new element that is equivalent to the old [element].
-  static Element2? _convert(Element? element) {
-    if (element is Fragment) {
-      return (element as Fragment).element;
-    }
-    return element as Element2?;
-  }
 }
 
 /// The builder used to build a namespace. Namespace builders are thread-safe
 /// and re-usable.
 class NamespaceBuilder {
   /// Create a namespace representing the export namespace of the given
-  /// [element].
-  Namespace createExportNamespaceForDirective(LibraryExportElement element) {
-    var exportedLibrary = element.exportedLibrary;
+  /// [export].
+  Namespace createExportNamespaceForDirective2(
+      LibraryExportElementImpl export) {
+    var exportedLibrary = export.exportedLibrary2;
     if (exportedLibrary == null) {
       //
       // The exported library will be null if the URI does not reference a valid
@@ -175,39 +168,63 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    Map<String, Element> exportedNames = _getExportMapping(exportedLibrary);
-    exportedNames = _applyCombinators(exportedNames, element.combinators);
+    var exportedNames = _getExportMapping(exportedLibrary);
+    exportedNames = _applyCombinators(exportedNames, export.combinators);
     return Namespace(exportedNames);
   }
 
   /// Create a namespace representing the export namespace of the given
   /// [library].
-  Namespace createExportNamespaceForLibrary(LibraryElement2 library) {
-    Map<String, Element> exportedNames = _getExportMapping(library.asElement);
+  Namespace createExportNamespaceForLibrary(LibraryElementImpl library) {
+    var exportedNames = _getExportMapping(library);
     return Namespace(exportedNames);
   }
 
   /// Create a namespace representing the import namespace of the given
   /// [importedLibrary].
   Namespace createImportNamespaceForDirective({
-    required LibraryElement importedLibrary,
+    required LibraryElementImpl importedLibrary,
     required List<NamespaceCombinator> combinators,
-    required PrefixElement? prefix,
+    required PrefixFragment? prefix,
   }) {
-    Map<String, Element> exportedNames = _getExportMapping(importedLibrary);
+    var exportedNames = _getExportMapping(importedLibrary);
     exportedNames = _applyCombinators(exportedNames, combinators);
-    if (prefix != null) {
-      return PrefixedNamespace(prefix.name, exportedNames);
+    if (prefix?.name2 case var name?) {
+      return PrefixedNamespace(name, exportedNames);
     }
     return Namespace(exportedNames);
   }
 
   /// Create a namespace representing the public namespace of the given
   /// [library].
-  Namespace createPublicNamespaceForLibrary(LibraryElement library) {
-    Map<String, Element> definedNames = HashMap<String, Element>();
-    for (var unitElement in library.units) {
-      _addPublicNames(definedNames, unitElement);
+  Namespace createPublicNamespaceForLibrary(LibraryElementImpl library) {
+    var definedNames = <String, Element2>{};
+    for (var element in library.classes) {
+      _addIfPublic(definedNames, element);
+    }
+    for (var element in library.enums) {
+      _addIfPublic(definedNames, element);
+    }
+    for (var element in library.extensions) {
+      _addIfPublic(definedNames, element);
+    }
+    for (var element in library.extensionTypes) {
+      _addIfPublic(definedNames, element);
+    }
+    for (var element in library.getters) {
+      _addIfPublic(definedNames, element);
+    }
+    for (var element in library.mixins) {
+      _addIfPublic(definedNames, element);
+    }
+    for (var element in library.setters) {
+      _addIfPublic(definedNames, element);
+    }
+    for (var element in library.topLevelFunctions) {
+      _addIfPublic(definedNames, element);
+    }
+    for (var element in library.typeAliases) {
+      _addIfPublic(definedNames, element);
     }
 
     // For libraries that import `dart:core` with a prefix, we have to add
@@ -216,7 +233,7 @@ class NamespaceBuilder {
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
       definedNames['dynamic'] = DynamicElementImpl.instance;
-      definedNames['Never'] = NeverTypeImpl.instance.element;
+      definedNames['Never'] = NeverElementImpl2.instance;
     }
 
     return Namespace(definedNames);
@@ -224,47 +241,16 @@ class NamespaceBuilder {
 
   /// Add the given [element] to the table of [definedNames] if it has a
   /// publicly visible name.
-  void _addIfPublic(Map<String, Element> definedNames, Element element) {
-    var name = element.name;
+  void _addIfPublic(Map<String, Element2> definedNames, Element2 element) {
+    var name = element.name3;
     if (name != null && name.isNotEmpty && !Identifier.isPrivateName(name)) {
       definedNames[name] = element;
     }
   }
 
-  /// Add to the table of [definedNames] all of the public top-level names that
-  /// are defined in the given [compilationUnit].
-  ///          namespace
-  void _addPublicNames(Map<String, Element> definedNames,
-      CompilationUnitElement compilationUnit) {
-    for (PropertyAccessorElement element in compilationUnit.accessors) {
-      _addIfPublic(definedNames, element);
-    }
-    for (ClassElement element in compilationUnit.classes) {
-      _addIfPublic(definedNames, element);
-    }
-    for (var element in compilationUnit.enums) {
-      _addIfPublic(definedNames, element);
-    }
-    for (ExtensionElement element in compilationUnit.extensions) {
-      _addIfPublic(definedNames, element);
-    }
-    for (var element in compilationUnit.extensionTypes) {
-      _addIfPublic(definedNames, element);
-    }
-    for (FunctionElement element in compilationUnit.functions) {
-      _addIfPublic(definedNames, element);
-    }
-    for (var element in compilationUnit.mixins) {
-      _addIfPublic(definedNames, element);
-    }
-    for (TypeAliasElement element in compilationUnit.typeAliases) {
-      _addIfPublic(definedNames, element);
-    }
-  }
-
   /// Apply the given [combinators] to all of the names in the given table of
   /// [definedNames].
-  Map<String, Element> _applyCombinators(Map<String, Element> definedNames,
+  Map<String, Element2> _applyCombinators(Map<String, Element2> definedNames,
       List<NamespaceCombinator> combinators) {
     for (NamespaceCombinator combinator in combinators) {
       if (combinator is HideElementCombinator) {
@@ -280,15 +266,15 @@ class NamespaceBuilder {
     return definedNames;
   }
 
-  Map<String, Element> _getExportMapping(LibraryElement library) {
-    return library.exportNamespace.definedNames;
+  Map<String, Element2> _getExportMapping(LibraryElementImpl library) {
+    return library.exportNamespace.definedNames2;
   }
 
   /// Return a new map of names which has all the names from [definedNames]
   /// with exception of [hiddenNames].
-  Map<String, Element> _hide(
-      Map<String, Element> definedNames, List<String> hiddenNames) {
-    Map<String, Element> newNames = HashMap<String, Element>.from(definedNames);
+  Map<String, Element2> _hide(
+      Map<String, Element2> definedNames, List<String> hiddenNames) {
+    var newNames = {...definedNames};
     for (String name in hiddenNames) {
       newNames.remove(name);
       newNames.remove("$name=");
@@ -297,9 +283,9 @@ class NamespaceBuilder {
   }
 
   /// Return a new map of names which has only [shownNames] from [definedNames].
-  Map<String, Element> _show(
-      Map<String, Element> definedNames, List<String> shownNames) {
-    Map<String, Element> newNames = HashMap<String, Element>();
+  Map<String, Element2> _show(
+      Map<String, Element2> definedNames, List<String> shownNames) {
+    var newNames = <String, Element2>{};
     for (String name in shownNames) {
       var element = definedNames[name];
       if (element != null) {
@@ -327,7 +313,7 @@ class PrefixedNamespace implements Namespace {
   /// A table mapping names that are defined in this namespace to the element
   /// representing the thing declared with that name.
   @override
-  final Map<String, Element> _definedNames;
+  final Map<String, Element2> _definedNames;
 
   /// Initialize a newly created namespace to have the names resulting from
   /// prefixing each of the [_definedNames] with the given [_prefix] (and a
@@ -338,19 +324,25 @@ class PrefixedNamespace implements Namespace {
 
   @override
   Map<String, Element> get definedNames {
-    Map<String, Element> definedNames = <String, Element>{};
-    _definedNames.forEach((String name, Element element) {
-      definedNames["$_prefix.$name"] = element;
+    var definedNames = <String, Element>{};
+    _definedNames.forEach((name, element) {
+      definedNames["$_prefix.$name"] = element.asElement!;
     });
     return definedNames;
   }
 
   @override
-  Map<String, Element2> get definedNames2 => _definedNames
-      .map((name, element) => MapEntry(name, Namespace._convert(element)!));
+  Map<String, Element2> get definedNames2 {
+    return _definedNames;
+  }
 
   @override
   Element? get(String name) {
+    return get2(name)?.asElement;
+  }
+
+  @override
+  Element2? get2(String name) {
     if (name.length > _length && name.startsWith(_prefix)) {
       if (name.codeUnitAt(_length) == '.'.codeUnitAt(0)) {
         return _definedNames[name.substring(_length + 1)];
@@ -360,20 +352,14 @@ class PrefixedNamespace implements Namespace {
   }
 
   @override
-  Element2? get2(String name) => Namespace._convert(get(name));
-
-  @override
   Element? getPrefixed(String prefix, String name) {
-    if (prefix == _prefix) {
-      return _definedNames[name];
-    }
-    return null;
+    return getPrefixed2(prefix, name)?.asElement;
   }
 
   @override
   Element2? getPrefixed2(String prefix, String name) {
     if (prefix == _prefix) {
-      return Namespace._convert(_definedNames[name]);
+      return _definedNames[name];
     }
     return null;
   }

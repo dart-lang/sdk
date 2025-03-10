@@ -388,7 +388,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
         // If DDS is serving DevTools, install the DevTools handlers and
         // forward any unhandled HTTP requests to the VM service.
         final String buildDir =
-            _devToolsConfiguration!.customBuildDirectoryPath.toFilePath();
+            _devToolsConfiguration.customBuildDirectoryPath.toFilePath();
         return defaultHandler(
           dds: this,
           buildDir: buildDir,

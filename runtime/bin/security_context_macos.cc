@@ -146,7 +146,8 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
       CFArrayCreateMutable(nullptr, 0, nullptr));
   ASSERT(store != nullptr);
 
-  for (const X509_OBJECT* obj : X509_STORE_get0_objects(store)) {
+  bssl::UniquePtr<STACK_OF(X509_OBJECT)> objs(X509_STORE_get1_objects(store));
+  for (const X509_OBJECT* obj : objs.get()) {
     X509* ca = X509_OBJECT_get0_X509(obj);
     ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
     if (cert == nullptr) {

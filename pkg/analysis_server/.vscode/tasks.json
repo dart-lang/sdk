@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "generate files",
+			"type": "shell",
+			"command": "tool/spec/generate_files",
+			"problemMatcher": []
+		}
+	]
+}

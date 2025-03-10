@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -25,9 +22,6 @@ class UnknownInferredType extends TypeImpl implements SharedUnknownType {
   static const UnknownInferredType instance = UnknownInferredType._();
 
   const UnknownInferredType._();
-
-  @override
-  Element? get element => null;
 
   @override
   Element2? get element3 => null;
@@ -91,7 +85,13 @@ class UnknownInferredType extends TypeImpl implements SharedUnknownType {
 
     if (type is FunctionType) {
       return isUnknown(type.returnType) ||
-          type.parameters.any((p) => isUnknown(p.type));
+          type.typeParameters.any((typeParameter) {
+            var bound = typeParameter.bound;
+            return bound != null && isUnknown(bound);
+          }) ||
+          type.formalParameters.any((formalParameter) {
+            return isUnknown(formalParameter.type);
+          });
     }
 
     if (type is RecordType) {

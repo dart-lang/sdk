@@ -5,8 +5,8 @@
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,10 +20,8 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
-  // Keep track of any added rules so they can be unregistered in `tearDown`.
-  var addedRules = <LintRule>[];
-
+class AnalysisOptionsGeneratorTest extends YamlGeneratorTest
+    with LintRegistrationMixin {
   @override
   String get fileName => 'analysis_options.yaml';
 
@@ -31,19 +29,12 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
   AnalysisOptionsGenerator get generator =>
       AnalysisOptionsGenerator(resourceProvider);
 
-  void registerRule(LintRule rule) {
-    addedRules.add(rule);
-    Registry.ruleRegistry.registerLintRule(rule);
-  }
-
   void setUp() {
     registerLintRules();
   }
 
   void tearDown() {
-    for (var rule in addedRules) {
-      Registry.ruleRegistry.unregisterLintRule(rule);
-    }
+    unregisterLintRules();
   }
 
   void test_analyzer() {
@@ -107,6 +98,36 @@ analyzer:
     assertSuggestion('error');
   }
 
+  void test_analyzer_language_strictCasts() {
+    getCompletions('''
+analyzer:
+  language:
+    strict-casts: ^
+''');
+    assertSuggestion('false');
+    assertSuggestion('true');
+  }
+
+  void test_analyzer_language_strictInference() {
+    getCompletions('''
+analyzer:
+  language:
+    strict-inference: ^
+''');
+    assertSuggestion('false');
+    assertSuggestion('true');
+  }
+
+  void test_analyzer_language_strictRawTypes() {
+    getCompletions('''
+analyzer:
+  language:
+    strict-raw-types: ^
+''');
+    assertSuggestion('false');
+    assertSuggestion('true');
+  }
+
   void test_codeStyle() {
     getCompletions('''
 code-style:
@@ -161,7 +182,7 @@ linter:
   }
 
   void test_linter_rules_internal() {
-    registerRule(InternalRule());
+    registerLintRule(InternalRule());
 
     getCompletions('''
 linter:
@@ -236,7 +257,7 @@ linter:
   }
 
   void test_linter_rules_removed() {
-    registerRule(_RemovedLint());
+    registerLintRule(_RemovedLint());
 
     getCompletions('''
 linter:

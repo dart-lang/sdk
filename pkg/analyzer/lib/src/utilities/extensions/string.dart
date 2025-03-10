@@ -11,6 +11,8 @@ extension IntExtension on int {
   /// character.
   bool get isEOL => this == 0x0D || this == 0x0A;
 
+  bool get isEqual => this == 0x3D;
+
   bool get isLetter =>
       (this >= 0x41 && this <= 0x5A) || (this >= 0x61 && this <= 0x7A);
 
@@ -18,12 +20,16 @@ extension IntExtension on int {
 
   bool get isLetterOrDigitOrUnderscore => isLetter || isDigit || this == 0x5F;
 
+  bool get isSlash => this == 0x2F;
+
   /// Whether this, as an ASCII character, is a space or tab character.
   bool get isSpace => this == 0x20 || this == 0x09;
 
   /// Whether this, as an ASCII character, is a space (as per [isSpace]) or EOL
   /// character (as per [isEOL]).
   bool get isWhitespace => isSpace || isEOL;
+
+  int? get nullIfNegative => isNegative ? null : this;
 }
 
 extension IterableOfStringExtension on Iterable<String> {

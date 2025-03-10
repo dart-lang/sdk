@@ -11,6 +11,10 @@ import 'dart:collection' show ListMixin;
 
 import 'dart:typed_data' show Uint16List, Uint32List;
 
+import 'internal_utils.dart' show isIdentifierChar;
+
+import 'keyword_state.dart' show KeywordState, KeywordStateHelper;
+
 import 'token.dart'
     show
         BeginToken,
@@ -44,8 +48,6 @@ import 'error_token.dart'
         UnsupportedOperator,
         UnterminatedString,
         UnterminatedToken;
-
-import 'keyword_state.dart' show KeywordState;
 
 import 'token_impl.dart' show DartDocToken, StringTokenImpl;
 
@@ -97,17 +99,17 @@ abstract class AbstractScanner implements Scanner {
    * is not exposed to clients of the scanner, which are expected to invoke
    * [firstToken] to access the token stream.
    */
-  final Token tokens = new Token.eof(/* offset = */ -1);
+  final Token tokens;
 
   /**
    * A pointer to the last scanned token.
    */
-  late Token tail;
+  Token tail;
 
   /**
    * A pointer to the last prepended error token.
    */
-  late Token errorTail;
+  Token errorTail;
 
   @override
   bool hasErrors = false;
@@ -138,26 +140,40 @@ abstract class AbstractScanner implements Scanner {
   int recoveryCount = 0;
   final bool allowLazyStrings;
 
-  AbstractScanner(ScannerConfiguration? config, this.includeComments,
-      this.languageVersionChanged,
+  AbstractScanner(ScannerConfiguration? config, bool includeComments,
+      LanguageVersionChanged? languageVersionChanged,
+      {required int numberOfBytesHint, bool allowLazyStrings = true})
+      : this._(config, includeComments, languageVersionChanged,
+            new Token.eof(/* offset = */ -1),
+            numberOfBytesHint: numberOfBytesHint,
+            allowLazyStrings: allowLazyStrings);
+
+  AbstractScanner._(ScannerConfiguration? config, this.includeComments,
+      this.languageVersionChanged, Token newEofToken,
       {required int numberOfBytesHint, this.allowLazyStrings = true})
       : lineStarts = new LineStarts(numberOfBytesHint),
-        inRecoveryOption = false {
-    this.tail = this.tokens;
-    this.errorTail = this.tokens;
+        inRecoveryOption = false,
+        tokens = newEofToken,
+        tail = newEofToken,
+        errorTail = newEofToken {
     this.configuration = config;
   }
 
   AbstractScanner createRecoveryOptionScanner();
 
   AbstractScanner.recoveryOptionScanner(AbstractScanner copyFrom)
+      : this._recoveryOptionScanner(copyFrom, new Token.eof(/* offset = */ -1));
+
+  AbstractScanner._recoveryOptionScanner(
+      AbstractScanner copyFrom, Token newEofToken)
       : lineStarts = [],
         includeComments = false,
         languageVersionChanged = null,
         inRecoveryOption = true,
-        allowLazyStrings = true {
-    this.tail = this.tokens;
-    this.errorTail = this.tokens;
+        allowLazyStrings = true,
+        tokens = newEofToken,
+        tail = newEofToken,
+        errorTail = newEofToken {
     this._enableTripleShift = copyFrom._enableTripleShift;
     this.tokenStart = copyFrom.tokenStart;
     this.groupingStack = copyFrom.groupingStack;
@@ -344,19 +360,6 @@ abstract class AbstractScanner implements Scanner {
       groupingStack = groupingStack.tail!;
     }
     appendToken(new Token.eof(tokenStart, comments));
-  }
-
-  /**
-   * Notifies scanning a whitespace character. Note that [appendWhiteSpace] is
-   * not always invoked for [$SPACE] characters.
-   *
-   * This method is used by the scanners to track line breaks and create the
-   * [lineStarts] map.
-   */
-  void appendWhiteSpace(int next) {
-    if (next == $LF) {
-      lineStarts.add(stringOffset + 1); // +1, the line starts after the $LF.
-    }
   }
 
   /**
@@ -814,18 +817,18 @@ abstract class AbstractScanner implements Scanner {
     return tokenizeLanguageVersionOrSingleLineComment(next);
   }
 
+  /// Skip past spaces. Returns the latest character not consumed
+  /// (i.e. the latest character that is not a space).
+  int skipSpaces();
+
   int bigSwitch(int next) {
     beginToken();
-    if (next == $SPACE || next == $TAB || next == $LF || next == $CR) {
-      appendWhiteSpace(next);
-      next = advance();
-      // Sequences of spaces are common, so advance through them fast.
-      while (next == $SPACE) {
-        // We don't invoke [:appendWhiteSpace(next):] here for efficiency,
-        // assuming that it does not do anything for space characters.
-        next = advance();
-      }
-      return next;
+    if (next == $SPACE || next == $TAB || next == $CR) {
+      return skipSpaces();
+    }
+    if (next == $LF) {
+      lineStarts.add(stringOffset + 1); // +1, the line starts after the $LF.
+      return skipSpaces();
     }
 
     int nextLower = next | 0x20;
@@ -1264,6 +1267,8 @@ abstract class AbstractScanner implements Scanner {
           }
           int nextnext = peek();
           if ($0 <= nextnext && nextnext <= $9) {
+            // Use the peeked character.
+            advance();
             return tokenizeFractionPart(nextnext, start, hasSeparators);
           } else {
             TokenType tokenType =
@@ -1479,8 +1484,10 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeLanguageVersionOrSingleLineComment(int next) {
+    assert(next == $SLASH);
     int start = scanOffset;
     next = advance();
+    assert(next == $SLASH);
 
     // Dart doc
     if ($SLASH == peek()) {
@@ -1572,25 +1579,38 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeSingleLineComment(int next, int start) {
-    bool dartdoc = $SLASH == peek();
     next = advance();
+    bool dartdoc = $SLASH == next;
     return tokenizeSingleLineCommentRest(next, start, dartdoc);
   }
 
+  /// Scan until line end (or eof). Returns true if the skipped data is ascii
+  /// only and false otherwise. To get the end-of-line (or eof) character call
+  /// [current].
+  bool scanUntilLineEnd();
+
+  /// Get the current character, i.e. the latest response from [advance].
+  int current();
+
   int tokenizeSingleLineCommentRest(int next, int start, bool dartdoc) {
     bool asciiOnly = true;
-    while (true) {
-      if (next > 127) asciiOnly = false;
-      if ($LF == next || $CR == next || $EOF == next) {
-        if (!asciiOnly) handleUnicode(start);
-        if (dartdoc) {
-          appendDartDoc(start, TokenType.SINGLE_LINE_COMMENT, asciiOnly);
-        } else {
-          appendComment(start, TokenType.SINGLE_LINE_COMMENT, asciiOnly);
-        }
-        return next;
-      }
-      next = advance();
+    if (next > 127) asciiOnly = false;
+    if ($LF == next || $CR == next || $EOF == next) {
+      _tokenizeSingleLineCommentAppend(asciiOnly, start, dartdoc);
+      return next;
+    }
+    asciiOnly &= scanUntilLineEnd();
+    _tokenizeSingleLineCommentAppend(asciiOnly, start, dartdoc);
+    return current();
+  }
+
+  void _tokenizeSingleLineCommentAppend(
+      bool asciiOnly, int start, bool dartdoc) {
+    if (!asciiOnly) handleUnicode(start);
+    if (dartdoc) {
+      appendDartDoc(start, TokenType.SINGLE_LINE_COMMENT, asciiOnly);
+    } else {
+      appendComment(start, TokenType.SINGLE_LINE_COMMENT, asciiOnly);
     }
   }
 
@@ -1705,23 +1725,18 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
-    KeywordState? state = KeywordState.KEYWORD_STATE;
+    KeywordState state = KeywordStateHelper.table;
     int start = scanOffset;
     // We allow a leading capital character.
-    if ($A <= next && next <= $Z) {
-      state = state.nextCapital(next);
-      next = advance();
-    } else if ($a <= next && next <= $z) {
-      // Do the first next call outside the loop to avoid an additional test
-      // and to make the loop monomorphic.
+    if ($A <= next && next <= $z) {
       state = state.next(next);
       next = advance();
     }
-    while (state != null && $a <= next && next <= $z) {
+    while (!state.isNull && $a <= next && next <= $z) {
       state = state.next(next);
       next = advance();
     }
-    if (state == null) {
+    if (state.isNull) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
     Keyword? keyword = state.keyword;
@@ -1742,14 +1757,19 @@ abstract class AbstractScanner implements Scanner {
     }
   }
 
+  int passIdentifierCharAllowDollar();
+
   /**
    * [allowDollar] can exclude '$', which is not allowed as part of a string
    * interpolation identifier.
    */
   int tokenizeIdentifier(int next, int start, bool allowDollar) {
-    while (true) {
-      if (_isIdentifierChar(next, allowDollar)) {
-        next = advance();
+    if (allowDollar) {
+      // Normal case is to allow dollar.
+      if (isIdentifierChar(next, /* allowDollar = */ true)) {
+        next = passIdentifierCharAllowDollar();
+        appendSubstringToken(
+            TokenType.IDENTIFIER, start, /* asciiOnly = */ true);
       } else {
         // Identifier ends here.
         if (start == scanOffset) {
@@ -1758,7 +1778,21 @@ abstract class AbstractScanner implements Scanner {
           appendSubstringToken(
               TokenType.IDENTIFIER, start, /* asciiOnly = */ true);
         }
-        break;
+      }
+    } else {
+      while (true) {
+        if (isIdentifierChar(next, /* allowDollar = */ false)) {
+          next = advance();
+        } else {
+          // Identifier ends here.
+          if (start == scanOffset) {
+            return unexpected(next);
+          } else {
+            appendSubstringToken(
+                TokenType.IDENTIFIER, start, /* asciiOnly = */ true);
+          }
+          break;
+        }
       }
     }
     return next;
@@ -2010,7 +2044,7 @@ abstract class AbstractScanner implements Scanner {
       codeUnits.add(errorToken.character);
       prependErrorToken(errorToken);
       int next = advanceAfterError();
-      while (_isIdentifierChar(next, /* allowDollar = */ true)) {
+      while (isIdentifierChar(next, /* allowDollar = */ true)) {
         codeUnits.add(next);
         next = advance();
       }
@@ -2158,12 +2192,4 @@ class ScannerConfiguration {
     this.enableTripleShift = false,
     this.forAugmentationLibrary = false,
   });
-}
-
-bool _isIdentifierChar(int next, bool allowDollar) {
-  return ($a <= next && next <= $z) ||
-      ($A <= next && next <= $Z) ||
-      ($0 <= next && next <= $9) ||
-      next == $_ ||
-      (next == $$ && allowDollar);
 }

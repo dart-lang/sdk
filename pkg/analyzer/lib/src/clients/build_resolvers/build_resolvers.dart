@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -41,6 +42,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
   required ResourceProvider resourceProvider,
   required Uint8List sdkSummaryBytes,
   required AnalysisOptions analysisOptions,
+  FileContentCache? fileContentCache,
   required List<UriResolver> uriResolvers,
   required Packages packages,
   ByteStore? byteStore,
@@ -57,6 +59,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
   dataStore.addBundle('', sdkBundle);
 
   var logger = PerformanceLog(null);
+  byteStore ??= MemoryByteStore();
   var scheduler = AnalysisDriverScheduler(logger);
   var sharedOptions = analysisOptions as AnalysisOptionsImpl;
   var optionsMap = AnalysisOptionsMap.forSharedOptions(sharedOptions);
@@ -64,9 +67,10 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
     scheduler: scheduler,
     logger: logger,
     resourceProvider: resourceProvider,
-    byteStore: byteStore ?? MemoryByteStore(),
+    byteStore: byteStore,
     sourceFactory: sourceFactory,
     analysisOptionsMap: optionsMap,
+    fileContentCache: fileContentCache,
     externalSummaries: dataStore,
     packages: packages,
     shouldReportInconsistentAnalysisException: false,

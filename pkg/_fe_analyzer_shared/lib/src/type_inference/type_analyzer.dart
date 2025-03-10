@@ -271,6 +271,9 @@ mixin TypeAnalyzer<
         TypeDeclarationType extends Object,
         TypeDeclaration extends Object>
     implements TypeAnalysisNullShortingInterface<Expression, SharedTypeView> {
+  /// Cached context types used to resolve dot shorthand heads.
+  final _dotShorthands = <SharedTypeSchemaView>[];
+
   TypeAnalyzerErrors<Node, Statement, Expression, Variable, SharedTypeView,
       Pattern, Error> get errors;
 
@@ -429,17 +432,13 @@ mixin TypeAnalyzer<
     if (!options.patternsEnabled) {
       Expression? switchScrutinee = context.switchScrutinee;
       if (switchScrutinee != null) {
-        bool nullSafetyEnabled = options.nullSafetyEnabled;
-        bool matches = nullSafetyEnabled
-            ? operations.isSubtypeOf(expressionType, matchedValueType)
-            : operations.isAssignableTo(expressionType, matchedValueType);
+        bool matches = operations.isSubtypeOf(expressionType, matchedValueType);
         if (!matches) {
           caseExpressionTypeMismatchError = errors.caseExpressionTypeMismatch(
               caseExpression: expression,
               scrutinee: switchScrutinee,
               caseExpressionType: expressionType,
-              scrutineeType: matchedValueType,
-              nullSafetyEnabled: nullSafetyEnabled);
+              scrutineeType: matchedValueType);
         }
       }
     }
@@ -533,6 +532,17 @@ mixin TypeAnalyzer<
     return declaredType == null
         ? operations.unknownType
         : operations.typeToSchema(declaredType);
+  }
+
+  /// Analyzes a dot shorthand.
+  /// Saves the [context] for when we resolve the dot shorthand head.
+  SharedTypeView analyzeDotShorthand(
+      Expression node, SharedTypeSchemaView context) {
+    _dotShorthands.add(context);
+    ExpressionTypeAnalysisResult analysisResult =
+        dispatchExpression(node, context);
+    _dotShorthands.removeLast();
+    return analysisResult.type;
   }
 
   /// Analyzes an expression.  [node] is the expression to analyze, and
@@ -1960,7 +1970,6 @@ mixin TypeAnalyzer<
       //         n * Statement), where n = body.length
       lastCaseTerminates = !flow.switchStatement_afterCase();
       if (caseIndex < numCases - 1 &&
-          options.nullSafetyEnabled &&
           !options.patternsEnabled &&
           !lastCaseTerminates) {
         (switchCaseCompletesNormallyErrors ??= {})[caseIndex] = errors
@@ -2145,6 +2154,9 @@ mixin TypeAnalyzer<
     required bool isFinal,
     required SharedTypeView type,
   });
+
+  /// Returns the most recently cached dot shorthand context type.
+  SharedTypeSchemaView getDotShorthandContext() => _dotShorthands.last;
 
   /// If the [element] is a map pattern entry, returns it.
   MapPatternEntry<Expression, Pattern>? getMapPatternEntry(Node element);
@@ -2563,8 +2575,7 @@ abstract class TypeAnalyzerErrors<
       {required Expression scrutinee,
       required Expression caseExpression,
       required Type scrutineeType,
-      required Type caseExpressionType,
-      required bool nullSafetyEnabled});
+      required Type caseExpressionType});
 
   /// Called for variable that is assigned more than once.
   ///
@@ -2710,14 +2721,10 @@ abstract class TypeAnalyzerErrorsBase {
 ///
 /// The client is free to `implement` or `extend` this class.
 class TypeAnalyzerOptions {
-  final bool nullSafetyEnabled;
-
   final bool patternsEnabled;
 
   final bool inferenceUpdate3Enabled;
 
   TypeAnalyzerOptions(
-      {required this.nullSafetyEnabled,
-      required this.patternsEnabled,
-      required this.inferenceUpdate3Enabled});
+      {required this.patternsEnabled, required this.inferenceUpdate3Enabled});
 }

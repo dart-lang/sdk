@@ -16,13 +16,6 @@ class Offset extends core::Object {
   synthetic constructor •() → self::Offset
     ;
 }
-abstract class _PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin = mai::RenderBox with self::_PlatformViewGestureMixin /*isAnonymousMixin*/  {
-  synthetic constructor •() → self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin
-    : super mai::RenderBox::•()
-    ;
-  mixin-super-stub method hitTestSelf(self::Offset position) → core::bool
-    return super.{self::_PlatformViewGestureMixin::hitTestSelf}(position);
-}
 class PlatformViewRenderBox extends self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin {
   synthetic constructor •() → self::PlatformViewRenderBox
     ;
@@ -30,6 +23,13 @@ class PlatformViewRenderBox extends self::_PlatformViewRenderBox&RenderBox&_Plat
 abstract class _PlatformViewGestureMixin extends mai::RenderBox /*isMixinDeclaration*/  {
   method hitTestSelf(self::Offset position) → core::bool
     ;
+}
+abstract class _PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin = mai::RenderBox with self::_PlatformViewGestureMixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin
+    : super mai::RenderBox::•()
+    ;
+  mixin-super-stub method hitTestSelf(self::Offset position) → core::bool
+    return super.{self::_PlatformViewGestureMixin::hitTestSelf}(position);
 }
 static method main() → dynamic
   ;

@@ -128,11 +128,7 @@ testRemovalOfStatementBodies() {
   }
 }
 
-enum TestPlatform {
-  linux,
-  macos,
-  windows,
-}
+enum TestPlatform { linux, macos, windows }
 
 const switchTestString = "noMatch";
 const switchTestInt = 23;

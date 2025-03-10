@@ -7,10 +7,9 @@ main() {
   {
     for (var i in []) {
       continue L;
-//    ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONTINUE_LABEL_INVALID
-//    ^^^^^^^^
-// [cfe] A 'continue' label must be on a loop or a switch member.
+      // [error column 7, length 11]
+      // [analyzer] COMPILE_TIME_ERROR.CONTINUE_LABEL_INVALID
+      // [cfe] A 'continue' label must be on a loop or a switch member.
     }
   }
   1;

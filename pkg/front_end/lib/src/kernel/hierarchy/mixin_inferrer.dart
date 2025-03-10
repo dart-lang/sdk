@@ -11,18 +11,18 @@ import 'package:kernel/type_algebra.dart';
 import '../../base/messages.dart'
     show Message, templateMixinInferenceNoMatchingClass;
 import '../../base/problems.dart' show unexpected, unsupported;
-import '../../builder/declaration_builders.dart';
+import '../../source/source_class_builder.dart';
 import '../../type_inference/type_schema.dart';
 
 class BuilderMixinInferrer {
   final CoreTypes coreTypes;
   final _MixinInferenceSolution _mixinInferenceSolution;
   final List<TypeParameter> typeParametersToSolveFor;
-  final ClassBuilder cls;
+  final SourceClassBuilder classBuilder;
   final ClassHierarchyBase classHierarchyBase;
 
   BuilderMixinInferrer(
-      this.cls, this.classHierarchyBase, this.typeParametersToSolveFor)
+      this.classBuilder, this.classHierarchyBase, this.typeParametersToSolveFor)
       : coreTypes = classHierarchyBase.coreTypes,
         _mixinInferenceSolution =
             new _MixinInferenceSolution(typeParametersToSolveFor);
@@ -181,13 +181,16 @@ class BuilderMixinInferrer {
 
   // Coverage-ignore(suite): Not run.
   void reportProblem(Message message, Class kernelClass) {
-    int length = cls.isMixinApplication ? 1 : cls.fullNameForErrors.length;
-    cls.addProblem(message, cls.fileOffset, length);
+    int length = classBuilder.isMixinApplication
+        ? 1
+        : classBuilder.fullNameForErrors.length;
+    classBuilder.addProblem(message, classBuilder.fileOffset, length);
   }
 
   // Coverage-ignore(suite): Not run.
   Never reportUnsupportedProblem(String operation) {
-    return unsupported(operation, cls.fileOffset, cls.fileUri);
+    return unsupported(
+        operation, classBuilder.fileOffset, classBuilder.fileUri);
   }
 }
 

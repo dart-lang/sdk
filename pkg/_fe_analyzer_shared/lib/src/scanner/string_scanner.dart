@@ -4,7 +4,9 @@
 
 library dart2js.scanner.string_scanner;
 
-import 'characters.dart' show $EOF;
+import 'characters.dart' show $CR, $EOF, $LF, $SPACE;
+
+import 'internal_utils.dart' show isIdentifierChar;
 
 import 'token.dart'
     show
@@ -76,6 +78,49 @@ class StringScanner extends AbstractScanner {
     ++scanOffset;
     if (scanOffset > _stringLengthMinusOne) return $EOF;
     return _string.codeUnitAt(scanOffset);
+  }
+
+  @override
+  @pragma('vm:unsafe:no-bounds-checks')
+  int current() {
+    if (scanOffset > _stringLengthMinusOne) return $EOF;
+    return _string.codeUnitAt(scanOffset);
+  }
+
+  @override
+  int passIdentifierCharAllowDollar() {
+    while (true) {
+      int next = advance();
+      if (!isIdentifierChar(next, /* allowDollar = */ true)) {
+        return next;
+      }
+    }
+  }
+
+  @override
+  bool scanUntilLineEnd() {
+    bool asciiOnly = true;
+    int next = advance();
+    while (true) {
+      if (next > 127) asciiOnly = false;
+      if ($LF == next || $CR == next || $EOF == next) {
+        return asciiOnly;
+      }
+      next = advance();
+    }
+  }
+
+  @override
+  @pragma("vm:prefer-inline")
+  int skipSpaces() {
+    int next = advance();
+    // Sequences of spaces are common, so advance through them fast.
+    while (next == $SPACE) {
+      // We don't invoke [:appendWhiteSpace(next):] here for efficiency,
+      // assuming that it does not do anything for space characters.
+      next = advance();
+    }
+    return next;
   }
 
   @override

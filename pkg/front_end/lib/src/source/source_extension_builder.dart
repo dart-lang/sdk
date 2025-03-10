@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import '../base/common.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
@@ -19,6 +18,8 @@ import '../codes/cfe_codes.dart'
     show
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
+        messagePatchExtensionOrigin,
+        messagePatchExtensionTypeParametersMismatch,
         noLength;
 import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
@@ -44,17 +45,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   late final Extension _extension;
 
   SourceExtensionBuilder? _origin;
-  SourceExtensionBuilder? augmentationForTesting;
+  SourceExtensionBuilder? _augmentation;
 
   MergedClassMemberScope? _mergedScope;
 
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
-  late final LookupScope _scope;
-
   late final DeclarationNameSpace _nameSpace;
-
-  late final ConstructorScope _constructorScope;
 
   @override
   final List<NominalParameterBuilder>? typeParameters;
@@ -88,7 +85,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         parent = enclosingLibraryBuilder,
         _modifiers = fragment.modifiers,
         extensionName = fragment.extensionName,
-        typeParameters = fragment.typeParameters,
+        typeParameters = fragment.typeParameters?.builders,
         typeParameterScope = fragment.typeParameterScope,
         onType = fragment.onType,
         _nameSpaceBuilder = fragment.toDeclarationNameSpaceBuilder() {
@@ -108,6 +105,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     extensionName.attachExtension(_extension);
   }
 
+  // Coverage-ignore(suite): Not run.
   // TODO(johnniwinther): Avoid exposing this. Annotations for macros and
   //  patches should be computing from within the builder.
   Iterable<MetadataBuilder>? get metadata => _introductory.metadata;
@@ -119,14 +117,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   String get name => extensionName.name;
 
   @override
-  LookupScope get scope => _scope;
-
-  @override
   DeclarationNameSpace get nameSpace => _nameSpace;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ConstructorScope get constructorScope => _constructorScope;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -139,8 +130,15 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   @override
   bool get isAugment => _modifiers.isAugment;
 
+  // Coverage-ignore(suite): Not run.
+  SourceExtensionBuilder? get augmentationForTesting => _augmentation;
+
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
+    SourceExtensionBuilder? augmentation = _augmentation;
+    if (augmentation != null) {
+      _nameSpaceBuilder.includeBuilders(augmentation._nameSpaceBuilder);
+    }
     _nameSpace = _nameSpaceBuilder.buildNameSpace(
         loader: libraryBuilder.loader,
         problemReporting: libraryBuilder,
@@ -153,11 +151,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         containerType: ContainerType.Extension,
         containerName: extensionName,
         includeConstructors: false);
-    _scope = new NameSpaceLookupScope(
-        _nameSpace, ScopeKind.declaration, "extension ${extensionName.name}",
-        parent: typeParameterScope);
-    _constructorScope =
-        new DeclarationNameSpaceConstructorScope(name, _nameSpace);
+    if (augmentation != null) {
+      augmentation.buildScopes(coreLibrary);
+      _applyAugmentation(augmentation);
+    }
   }
 
   @override
@@ -216,9 +213,15 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         createBodyBuilderContext(),
         libraryBuilder,
         _introductory.fileUri,
-        libraryBuilder.scope);
+        _introductory.enclosingScope);
 
     super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
+
+    SourceExtensionBuilder? augmentation = _augmentation;
+    if (augmentation != null) {
+      augmentation.buildOutlineExpressions(
+          classHierarchy, delayedDefaultValueCloners);
+    }
   }
 
   @override
@@ -285,32 +288,15 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  void applyAugmentation(Builder augmentation) {
+  void addAugmentation(Builder augmentation) {
+    _addAugmentation(augmentation);
+  }
+
+  SourceExtensionBuilder? _addAugmentation(Builder augmentation) {
     if (augmentation is SourceExtensionBuilder) {
       augmentation._origin = this;
-      if (retainDataForTesting) {
-        // Coverage-ignore-block(suite): Not run.
-        augmentationForTesting = augmentation;
-      }
-      // TODO(johnniwinther): Check that type parameters and on-type match
-      // with origin declaration.
-
-      nameSpace.forEachLocalMember((String name, Builder member) {
-        Builder? memberAugmentation =
-            augmentation.nameSpace.lookupLocalMember(name, setter: false);
-        if (memberAugmentation != null) {
-          member.applyAugmentation(memberAugmentation);
-        }
-      });
-      nameSpace.forEachLocalSetter(
-          // Coverage-ignore(suite): Not run.
-          (String name, Builder member) {
-        Builder? memberAugmentation =
-            augmentation.nameSpace.lookupLocalMember(name, setter: true);
-        if (memberAugmentation != null) {
-          member.applyAugmentation(memberAugmentation);
-        }
-      });
+      _augmentation = augmentation;
+      return augmentation;
     } else {
       // Coverage-ignore-block(suite): Not run.
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
@@ -318,6 +304,51 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         messagePatchDeclarationOrigin.withLocation(
             fileUri, fileOffset, noLength)
       ]);
+      return null;
+    }
+  }
+
+  void _applyAugmentation(SourceExtensionBuilder augmentation) {
+    // TODO(johnniwinther): Check that on-type match with origin declaration.
+
+    int originLength = typeParameters?.length ?? 0;
+    int augmentationLength = augmentation.typeParameters?.length ?? 0;
+    if (originLength != augmentationLength) {
+      // Coverage-ignore-block(suite): Not run.
+      augmentation.addProblem(messagePatchExtensionTypeParametersMismatch,
+          augmentation.fileOffset, noLength, context: [
+        messagePatchExtensionOrigin.withLocation(fileUri, fileOffset, noLength)
+      ]);
+    } else if (typeParameters != null) {
+      int count = 0;
+      for (NominalParameterBuilder t in augmentation.typeParameters!) {
+        typeParameters![count++].applyAugmentation(t);
+      }
+    }
+    nameSpace.forEachLocalMember((String name, Builder member) {
+      Builder? memberAugmentation =
+          augmentation.nameSpace.lookupLocalMember(name, setter: false);
+      if (memberAugmentation != null) {
+        // Coverage-ignore-block(suite): Not run.
+        member.applyAugmentation(memberAugmentation);
+      }
+    });
+    nameSpace.forEachLocalSetter((String name, Builder member) {
+      Builder? memberAugmentation =
+          augmentation.nameSpace.lookupLocalMember(name, setter: true);
+      if (memberAugmentation != null) {
+        // Coverage-ignore-block(suite): Not run.
+        member.applyAugmentation(memberAugmentation);
+      }
+    });
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void applyAugmentation(Builder augmentation) {
+    SourceExtensionBuilder? extensionBuilder = _addAugmentation(augmentation);
+    if (extensionBuilder != null) {
+      _applyAugmentation(extensionBuilder);
     }
   }
 }

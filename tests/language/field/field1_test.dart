@@ -9,17 +9,17 @@ class C {
   var a;
 
   get a {
-  //  ^
-  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] 'a' is already declared in this scope.
+    //^
+    // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+    // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
+    // [cfe] 'a' is already declared in this scope.
     return 1;
   }
 
   set a(int val) {
-  //  ^
-  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] Conflicts with the implicit setter of the field 'a'.
+    //^
+    // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+    // [cfe] Conflicts with the implicit setter of the field 'a'.
     var x = val;
   }
 

@@ -16,6 +16,7 @@ main() {
 @reflectiveTest
 class FinalInitializedInDeclarationAndConstructorTest
     extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation() async {
     newFile(testFile.path, r'''
 part 'a.dart';

@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -90,12 +91,19 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       optionsFile: optionsFile,
       packagesFile: packagesFile,
     );
+
+    byteStore ??= MemoryByteStore();
+    var linkedBundleProvider = LinkedBundleProvider(
+      byteStore: byteStore,
+    );
+
     var contextBuilder = ContextBuilderImpl(
       resourceProvider: this.resourceProvider,
     );
     for (var root in roots) {
       var context = contextBuilder.createContext(
         byteStore: byteStore,
+        linkedBundleProvider: linkedBundleProvider,
         contextRoot: root,
         definedOptionsFile: optionsFile != null,
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
