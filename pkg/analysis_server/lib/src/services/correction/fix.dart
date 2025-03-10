@@ -210,7 +210,7 @@ abstract final class DartFixKind {
   static const ADD_MISSING_REQUIRED_ARGUMENT = FixKind(
     'dart.fix.add.missingRequiredArgument',
     70,
-    "Add required argument '{0}'",
+    'Add {0} required argument{1}',
   );
   static const ADD_MISSING_SWITCH_CASES = FixKind(
     'dart.fix.add.missingSwitchCases',
