@@ -71,16 +71,6 @@ abstract interface class SharedRecordType implements SharedType {
 }
 
 /// Common interface for data structures used by the implementations to
-/// represent a generic type parameter.
-abstract interface class SharedTypeParameter {
-  /// The bound of the type parameter.
-  SharedType? get boundShared;
-
-  /// The name of the type parameter, for display to the user.
-  String get displayName;
-}
-
-/// Common interface for data structures used by the implementations to
 /// represent a type.
 abstract interface class SharedType {
   /// If this type ends in a suffix (`?` or `*`), the suffix it ends with;
@@ -95,6 +85,16 @@ abstract interface class SharedType {
   String getDisplayString();
 
   bool isStructurallyEqualTo(covariant SharedType other);
+}
+
+/// Common interface for data structures used by the implementations to
+/// represent a generic type parameter.
+abstract interface class SharedTypeParameter {
+  /// The bound of the type parameter.
+  SharedType? get boundShared;
+
+  /// The name of the type parameter, for display to the user.
+  String get displayName;
 }
 
 /// Common interface for data structures used by the implementations to
@@ -154,6 +154,13 @@ extension type SharedRecordTypeView(SharedRecordType _typeStructure)
   }
 }
 
+extension type SharedTypeParameterView(SharedTypeParameter _typeParameter)
+    implements Object {
+  TypeParameter unwrapTypeParameterViewAsTypeParameterStructure<
+          TypeParameter extends SharedTypeParameter>() =>
+      _typeParameter as TypeParameter;
+}
+
 extension type SharedTypeSchemaView(SharedType _typeStructure)
     implements Object {
   NullabilitySuffix get nullabilitySuffix => _typeStructure.nullabilitySuffix;
@@ -177,13 +184,6 @@ extension type SharedTypeView(SharedType _typeStructure) implements Object {
 
   TypeStructure unwrapTypeView<TypeStructure extends SharedType>() =>
       _typeStructure as TypeStructure;
-}
-
-extension type SharedTypeParameterView(SharedTypeParameter _typeParameter)
-    implements Object {
-  TypeParameter unwrapTypeParameterViewAsTypeParameterStructure<
-          TypeParameter extends SharedTypeParameter>() =>
-      _typeParameter as TypeParameter;
 }
 
 /// Note that there is no `SharedUnknownTypeView`, only
