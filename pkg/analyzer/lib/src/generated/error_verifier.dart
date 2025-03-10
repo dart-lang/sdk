@@ -697,7 +697,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       if (!declaredFragment.isAugmentation) {
-        if (element.constants.isEmpty) {
+        if (element.constants2.isEmpty) {
           errorReporter.atToken(
             node.name,
             CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS,

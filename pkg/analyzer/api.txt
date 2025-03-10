@@ -2992,31 +2992,6 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  AugmentedClassElement (class extends Object implements AugmentedInterfaceElement):
-    new (constructor: AugmentedClassElement Function())
-    firstFragment (getter: ClassElement)
-  AugmentedEnumElement (class extends Object implements AugmentedInterfaceElement):
-    new (constructor: AugmentedEnumElement Function())
-    constants (getter: List<FieldElement>)
-    firstFragment (getter: EnumElement)
-  AugmentedExtensionElement (class extends Object implements AugmentedInstanceElement):
-    new (constructor: AugmentedExtensionElement Function())
-    extendedType (getter: DartType)
-  AugmentedExtensionTypeElement (class extends Object implements AugmentedInterfaceElement):
-    new (constructor: AugmentedExtensionTypeElement Function())
-    firstFragment (getter: ExtensionTypeElement)
-  AugmentedInstanceElement (class extends Object):
-    new (constructor: AugmentedInstanceElement Function())
-    firstFragment (getter: InstanceElement)
-    metadata (getter: List<ElementAnnotation>)
-    thisType (getter: DartType)
-  AugmentedInterfaceElement (class extends Object implements AugmentedInstanceElement):
-    new (constructor: AugmentedInterfaceElement Function())
-    firstFragment (getter: InterfaceElement)
-    thisType (getter: InterfaceType)
-  AugmentedMixinElement (class extends AugmentedInterfaceElement):
-    new (constructor: AugmentedMixinElement Function())
-    superclassConstraints (getter: List<InterfaceType>)
   BindPatternVariableElement (class extends Object implements PatternVariableElement):
     new (constructor: BindPatternVariableElement Function())
   ClassElement (class extends Object implements InterfaceElement):

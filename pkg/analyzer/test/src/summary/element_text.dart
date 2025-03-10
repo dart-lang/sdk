@@ -2054,10 +2054,6 @@ class _ElementWriter extends _AbstractElementWriter {
         case EnumElementImpl2():
           _elementPrinter.writeTypeList('mixins', element.mixins);
           _elementPrinter.writeTypeList('interfaces', element.interfaces);
-          _elementPrinter.writeElementList(
-            'constants',
-            element.constants.sortedBy((e) => e.name),
-          );
         case ExtensionElementImpl2():
           break;
         case ExtensionTypeElementImpl2():

@@ -585,8 +585,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 }
 
-class ClassElementImpl2 extends InterfaceElementImpl2
-    implements AugmentedClassElement, ClassElement2 {
+class ClassElementImpl2 extends InterfaceElementImpl2 implements ClassElement2 {
   @override
   final Reference reference;
 
@@ -3709,8 +3708,7 @@ class EnumElementImpl extends InterfaceElementImpl
   }
 }
 
-class EnumElementImpl2 extends InterfaceElementImpl2
-    implements AugmentedEnumElement, EnumElement2 {
+class EnumElementImpl2 extends InterfaceElementImpl2 implements EnumElement2 {
   @override
   final Reference reference;
 
@@ -3720,11 +3718,6 @@ class EnumElementImpl2 extends InterfaceElementImpl2
   EnumElementImpl2(this.reference, this.firstFragment) {
     reference.element2 = this;
     firstFragment.augmentedInternal = this;
-  }
-
-  @override
-  List<FieldElementOrMember> get constants {
-    return constants2.map((e) => e.asElement).toList();
   }
 
   @override
@@ -4135,7 +4128,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
 class ExtensionElementImpl2 extends InstanceElementImpl2
     with _HasSinceSdkVersionMixin
-    implements AugmentedExtensionElement, ExtensionElement2 {
+    implements ExtensionElement2 {
   @override
   final Reference reference;
 
@@ -4241,7 +4234,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 }
 
 class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
-    implements AugmentedExtensionTypeElement, ExtensionTypeElement2 {
+    implements ExtensionTypeElement2 {
   @override
   final Reference reference;
 
@@ -5832,10 +5825,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 }
 
 abstract class InstanceElementImpl2 extends ElementImpl2
-    implements
-        AugmentedInstanceElement,
-        InstanceElement2,
-        TypeParameterizedElement2 {
+    implements InstanceElement2, TypeParameterizedElement2 {
   @override
   InstanceElement2 get baseElement => this;
 
@@ -5899,9 +5889,6 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   LibraryElementImpl get library2 => firstFragment.library2!;
-
-  @override
-  List<ElementAnnotation> get metadata => firstFragment.metadata;
 
   @override
   Metadata get metadata2 => firstFragment.metadata2;
@@ -6547,7 +6534,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
 abstract class InterfaceElementImpl2 extends InstanceElementImpl2
     with _HasSinceSdkVersionMixin
-    implements AugmentedInterfaceElement, InterfaceElement2 {
+    implements InterfaceElement2 {
   /// The non-nullable instance of this element, without alias.
   /// Should be used only when the element has no type parameters.
   InterfaceTypeImpl? _nonNullableInstance;
@@ -8653,8 +8640,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   }
 }
 
-class MixinElementImpl2 extends InterfaceElementImpl2
-    implements AugmentedMixinElement, MixinElement2 {
+class MixinElementImpl2 extends InterfaceElementImpl2 implements MixinElement2 {
   @override
   final Reference reference;
 
