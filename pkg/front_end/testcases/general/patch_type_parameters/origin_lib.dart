@@ -5,5 +5,5 @@
 class Bound {}
 
 class Class<T extends Bound> {
-  external void method<S extends Object>();
+  external void method<S extends Bound>();
 }

@@ -24,11 +24,12 @@ class Class<T extends self2::Bound> extends core::Object {
   synthetic constructor •() → self2::Class<self2::Class::T>
     ;
   @_in::patch
-  external method method<S extends core::Object>() → void;
+  method /* from org-dartlang-testcase:///patch_lib.dart */ method<T extends self2::Bound>() → void
+    ;
 }
 
 
 Extra constant evaluation status:
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:10:4 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 2, effectively constant: 2

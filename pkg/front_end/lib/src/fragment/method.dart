@@ -164,10 +164,8 @@ class MethodFragment implements Fragment, FunctionFragment {
   }
 
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment,
-      {required bool isAbstract, required bool isExternal}) {
-    _encoding.checkTypes(libraryBuilder, typeEnvironment,
-        isAbstract: isAbstract, isExternal: isExternal);
+      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
+    _encoding.checkTypes(libraryBuilder, typeEnvironment);
   }
 
   void checkVariance(
@@ -393,8 +391,7 @@ sealed class _MethodEncoding implements InferredTypeListener {
   VariableDeclaration? getTearOffParameter(int index);
 
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment,
-      {required bool isAbstract, required bool isExternal});
+      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment);
 
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
@@ -568,8 +565,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
 
   @override
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment,
-      {required bool isAbstract, required bool isExternal}) {
+      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
     List<TypeParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters;
     if (typeParameters != null && typeParameters.isNotEmpty) {
@@ -577,7 +573,8 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
-        isAbstract: isAbstract, isExternal: isExternal);
+        isAbstract: _fragment.modifiers.isAbstract,
+        isExternal: _fragment.modifiers.isExternal);
   }
 
   @override
@@ -622,7 +619,6 @@ class _RegularOperatorEncoding extends _MethodEncoding
   bool get _isExtensionTypeMember => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Procedure? get readTarget => null;
 }
 
@@ -1009,8 +1005,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
 
   @override
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment,
-      {required bool isAbstract, required bool isExternal}) {
+      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
     List<TypeParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters;
     if (typeParameters != null && typeParameters.isNotEmpty) {
@@ -1018,7 +1013,8 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
-        isAbstract: isAbstract, isExternal: isExternal);
+        isAbstract: _fragment.modifiers.isAbstract,
+        isExternal: _fragment.modifiers.isExternal);
   }
 
   @override

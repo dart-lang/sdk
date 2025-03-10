@@ -35,7 +35,7 @@ class Error {
 
   @patch
   @pragma("wasm:intrinsic")
-  external Never _throw(Object object, StackTrace stackTrace);
+  external static Never _throw(Object object, StackTrace stackTrace);
 }
 
 class _Error extends Error {

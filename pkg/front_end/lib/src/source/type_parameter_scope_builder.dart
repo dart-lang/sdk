@@ -1676,19 +1676,43 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                     .name);
           }
         }
+
+        Modifiers modifiers = fragment.modifiers;
+        List<MethodFragment> augmentationFragments = [];
+        if (augmentations != null) {
+          for (Fragment augmentation in augmentations) {
+            // Promote [augmentation] to [MethodFragment].
+            augmentation as MethodFragment;
+
+            augmentationFragments.add(augmentation);
+            if (!(augmentation.modifiers.isAbstract ||
+                augmentation.modifiers.isExternal)) {
+              modifiers -= Modifiers.Abstract;
+              modifiers -= Modifiers.External;
+            }
+          }
+          augmentations = null;
+        }
+
         SourceMethodBuilder methodBuilder = new SourceMethodBuilder(
             fileUri: fragment.fileUri,
             fileOffset: fragment.nameOffset,
             name: name,
             libraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
-            isStatic: fragment.modifiers.isStatic,
-            fragment: fragment,
+            isStatic: modifiers.isStatic,
+            modifiers: modifiers,
+            introductory: fragment,
+            augmentations: augmentationFragments,
             nameScheme: nameScheme,
             reference: procedureReference,
             tearOffReference: tearOffReference);
         fragment.setBuilder(problemReporting, methodBuilder, encodingStrategy,
             unboundNominalParameters);
+        for (MethodFragment augmentation in augmentationFragments) {
+          augmentation.setBuilder(problemReporting, methodBuilder,
+              encodingStrategy, unboundNominalParameters);
+        }
         builders.add(new _AddBuilder(
             fragment.name, methodBuilder, fragment.fileUri, fragment.nameOffset,
             inPatch: fragment.enclosingDeclaration?.isPatch ??

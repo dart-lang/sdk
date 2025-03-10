@@ -16,7 +16,6 @@ import 'package:front_end/src/source/source_class_builder.dart';
 import 'package:front_end/src/source/source_constructor_builder.dart';
 import 'package:front_end/src/source/source_factory_builder.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
-import 'package:front_end/src/source/source_method_builder.dart';
 import 'package:front_end/src/source/source_property_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -163,9 +162,6 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
         lookupMemberBuilder(compilerResult, member, required: false)
             as SourceMemberBuilder?;
     List<MemberBuilder>? patchMembers;
-    if (memberBuilder is SourceMethodBuilder) {
-      patchMembers = memberBuilder.augmentationsForTesting;
-    }
     if (memberBuilder is SourcePropertyBuilder) {
       patchMembers = memberBuilder.augmentationsForTesting;
     }

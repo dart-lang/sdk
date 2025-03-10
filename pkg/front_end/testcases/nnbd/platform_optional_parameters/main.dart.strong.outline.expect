@@ -53,20 +53,22 @@ class Class extends core::Object {
   method method([core::int i = null]) → void
     ;
   @_in::patch
-  external method patchedMethod([core::int i = null]) → void;
+  method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([core::int i = null]) → void
+    ;
   method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i = null]) → void
     ;
 }
 static method method([core::int i]) → void
   ;
 @_in::patch
-external static method patchedMethod([core::int i]) → void;
+static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([core::int i]) → void
+  ;
 static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i]) → void
   ;
 
 
 Extra constant evaluation status:
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:11:2 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:10:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:2 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 3, effectively constant: 3

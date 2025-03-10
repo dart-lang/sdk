@@ -8,5 +8,5 @@
 import 'dart:_internal';
 
 @patch
-/*member: method:patch*/
+/*member: method:*/
 int method(int? i) => i!;
