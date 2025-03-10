@@ -21,8 +21,8 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
+import 'package:analyzer/utilities/extensions/uri.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
-import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -369,8 +369,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
       // If both files are in the same package's 'lib' folder, also include a
       // relative import.
-      var includeRelativeUri = canBeRelativeImport(
-        librarySource.uri,
+      var includeRelativeUri = librarySource.uri.isSamePackageAs(
         libraryElement2.uri,
       );
       // Add the fix(es).
@@ -388,6 +387,10 @@ class ImportLibrary extends MultiCorrectionProducer {
     return producers;
   }
 
+  /// Whether [path] appears to be a package-implementation source file.
+  ///
+  /// Note that this is approximate; without knowing the containing package's
+  /// location, this can give false positives.
   bool _isLibSrcPath(String path) {
     var parts = resourceProvider.pathContext.split(path);
     for (var i = 0; i < parts.length - 2; i++) {

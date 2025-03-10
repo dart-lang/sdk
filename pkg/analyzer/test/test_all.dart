@@ -11,6 +11,7 @@ import 'generated/test_all.dart' as generated;
 import 'instrumentation/test_all.dart' as instrumentation;
 import 'source/test_all.dart' as source;
 import 'src/test_all.dart' as src;
+import 'utilities/test_all.dart' as utilities;
 import 'verify_diagnostics_test.dart' as verify_diagnostics;
 import 'verify_docs_test.dart' as verify_docs;
 import 'verify_tests_test.dart' as verify_tests;
@@ -24,6 +25,7 @@ main() {
     instrumentation.main();
     source.main();
     src.main();
+    utilities.main();
     verify_diagnostics.main();
     verify_docs.main();
     verify_tests.main();
