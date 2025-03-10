@@ -802,6 +802,7 @@ class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
         'completion',
         'Code Completion',
         description: 'Latency statistics for code completion.',
+        indentInNav: true,
       );
 
   path.Context get pathContext => server.resourceProvider.pathContext;
@@ -1316,8 +1317,6 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     if (server != null) {
       pages.add(PluginsPage(this, server));
     }
-    pages.add(CompletionPage(this));
-    pages.add(GetFixesPage(this));
     if (server is LegacyAnalysisServer) {
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
@@ -1325,7 +1324,7 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
       pages.add(LspCapabilitiesPage(this, server));
       pages.add(LspRegistrationsPage(this, server));
     }
-    pages.add(TimingPage(this));
+
     pages.add(ByteStoreTimingPage(this));
     pages.add(AnalysisDriverTimingsPage(this));
     pages.add(AnalysisPerformanceLogPage(this));
@@ -1349,6 +1348,12 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     pages.add(AstPage(this));
     pages.add(ElementModelPage(this));
     pages.add(ContentsPage(this));
+
+    // Add timing pages
+    pages.add(TimingPage(this));
+    // (Nested)
+    pages.add(CompletionPage(this));
+    pages.add(GetFixesPage(this));
   }
 
   @override
@@ -1545,6 +1550,7 @@ class GetFixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
         'getFixes',
         'Get Fixes',
         description: 'Latency statistics for getting fixes.',
+        indentInNav: true,
       );
 
   path.Context get pathContext => server.resourceProvider.pathContext;
