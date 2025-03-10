@@ -1543,6 +1543,7 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onInstanceGetter() async {
     addTestFile('''
 class C {
@@ -1553,6 +1554,7 @@ class C {
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onInstanceMethod() async {
     addTestFile('''
 class C {
@@ -1563,6 +1565,7 @@ class C {
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onInstanceSetter() async {
     addTestFile('''
 class C {
@@ -1573,6 +1576,7 @@ class C {
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onStaticMethod() async {
     addTestFile('''
 class C {
@@ -1583,6 +1587,7 @@ class C {
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onTopLevelFunction() async {
     addTestFile('''
 augment int f(int x) => augmented(x);
@@ -1591,6 +1596,7 @@ augment int f(int x) => augmented(x);
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onTopLevelGetter() async {
     addTestFile('''
 augment int get g => augmented;
@@ -1599,6 +1605,7 @@ augment int get g => augmented;
     assertHasRegion(HighlightRegionType.KEYWORD, 'augmented');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_KEYWORD_augmented_onTopLevelSetter() async {
     addTestFile('''
 augment set s(int x) { augmented = x; }

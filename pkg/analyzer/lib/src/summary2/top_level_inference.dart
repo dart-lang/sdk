@@ -84,7 +84,6 @@ class ConstantInitializersResolver {
       _unitElement,
       _scope,
       analysisOptions,
-      enclosingAugmentation: element.ifTypeOrNull(),
     );
     astResolver.resolveExpression(() => variable.initializer!,
         contextType: element.type);
