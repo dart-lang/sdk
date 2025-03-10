@@ -1990,25 +1990,6 @@ class _ElementWriter extends _AbstractElementWriter {
     expect(element.nonSynthetic, same(element));
   }
 
-  void _validateAugmentedInstanceElement(InstanceElementImpl e) {
-    InstanceElementImpl? current = e;
-    while (current != null) {
-      expect(current.element, same(e.element));
-      expect(current.thisType, same(e.thisType));
-      switch (e) {
-        case ExtensionElementImpl():
-          current as ExtensionElementImpl;
-          expect(current.extendedType, same(e.extendedType));
-        case ExtensionTypeElementImpl():
-          current as ExtensionTypeElementImpl;
-          expect(current.primaryConstructor, same(e.primaryConstructor));
-          expect(current.representation, same(e.representation));
-          expect(current.typeErasure, same(e.typeErasure));
-      }
-      current = current.augmentationTarget;
-    }
-  }
-
   void _writeAugmentation(ElementImpl e) {
     if (e case AugmentableElement(:var augmentation?)) {
       _elementPrinter.writeNamedElement('augmentation', augmentation);
@@ -2029,46 +2010,6 @@ class _ElementWriter extends _AbstractElementWriter {
         );
       }
     }
-  }
-
-  void _writeAugmented(InstanceElementImpl e) {
-    if (e.augmentationTarget != null) {
-      return;
-    }
-
-    // No augmentation, not interesting.
-    if (e.augmentation == null) {
-      if (!configuration.withAugmentedWithoutAugmentation) {
-        return;
-      }
-    }
-
-    var element = e.element;
-
-    _sink.writelnWithIndent('augmented');
-    _sink.withIndent(() {
-      switch (element) {
-        case ClassElementImpl2():
-          _elementPrinter.writeTypeList('mixins', element.mixins);
-          _elementPrinter.writeTypeList('interfaces', element.interfaces);
-        case EnumElementImpl2():
-          _elementPrinter.writeTypeList('mixins', element.mixins);
-          _elementPrinter.writeTypeList('interfaces', element.interfaces);
-        case ExtensionElementImpl2():
-          break;
-        case ExtensionTypeElementImpl2():
-          _elementPrinter.writeTypeList('interfaces', element.interfaces);
-        case MixinElementImpl2():
-          _elementPrinter.writeTypeList(
-            'superclassConstraints',
-            element.superclassConstraints,
-          );
-          _elementPrinter.writeTypeList('interfaces', element.interfaces);
-        default:
-          // TODO(scheglov): Add other types and properties
-          throw UnimplementedError('${e.runtimeType}');
-      }
-    });
   }
 
   void _writeBodyModifiers(ExecutableElement e) {
@@ -2259,8 +2200,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeMethods(e.methods);
-      _validateAugmentedInstanceElement(e);
-      _writeAugmented(e);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -2405,9 +2344,6 @@ class _ElementWriter extends _AbstractElementWriter {
 
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeMethods(e.methods);
-
-      _validateAugmentedInstanceElement(e);
-      _writeAugmented(e);
     });
 
     _assertNonSyntheticElementSelf(e);

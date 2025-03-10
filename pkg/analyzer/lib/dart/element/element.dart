@@ -70,14 +70,6 @@ abstract class BindPatternVariableElement implements PatternVariableElement {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassElement implements InterfaceElement {
-  @experimental
-  @override
-  ClassElement? get augmentation;
-
-  @experimental
-  @override
-  ClassElement? get augmentationTarget;
-
   /// Whether the class or its superclass declares a non-final instance field.
   bool get hasNonFinalField;
 
@@ -267,14 +259,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ConstructorElement
     implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
-  @experimental
-  @override
-  ConstructorElement? get augmentation;
-
-  @experimental
-  @override
-  ConstructorElement? get augmentationTarget;
-
   @override
   ConstructorElement get declaration;
 
@@ -1077,37 +1061,13 @@ abstract class ElementVisitor<R> {
 /// An element that represents an enum.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class EnumElement implements InterfaceElement {
-  @experimental
-  @override
-  EnumElement? get augmentation;
-
-  @experimental
-  @override
-  EnumElement? get augmentationTarget;
-}
+abstract class EnumElement implements InterfaceElement {}
 
 /// An element representing an executable object, including functions, methods,
 /// constructors, getters, and setters.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExecutableElement implements FunctionTypedElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [ExecutableElement.augmentationTarget] will point back at this element.
-  @experimental
-  ExecutableElement? get augmentation;
-
-  /// The element that is augmented by this augmentation.
-  ///
-  /// The chain of augmentations normally ends with a [ExecutableElement] that
-  /// is not an augmentation, but might end with `null` immediately or after a
-  /// few intermediate [ExecutableElement]s in case of invalid code when an
-  /// augmentation is declared without the corresponding declaration.
-  @experimental
-  ExecutableElement? get augmentationTarget;
-
   @override
   ExecutableElement get declaration;
 
@@ -1170,14 +1130,6 @@ abstract class ExecutableElement implements FunctionTypedElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionElement implements InstanceElement {
-  @experimental
-  @override
-  ExtensionElement? get augmentation;
-
-  @experimental
-  @override
-  ExtensionElement? get augmentationTarget;
-
   /// The type that is extended by this extension.
   DartType get extendedType;
 
@@ -1207,14 +1159,6 @@ abstract class ExtensionElement implements InstanceElement {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class ExtensionTypeElement implements InterfaceElement {
-  @experimental
-  @override
-  ExtensionTypeElement? get augmentation;
-
-  @experimental
-  @override
-  ExtensionTypeElement? get augmentationTarget;
-
   /// The primary constructor of this extension.
   ConstructorElement get primaryConstructor;
 
@@ -1232,14 +1176,6 @@ abstract class ExtensionTypeElement implements InterfaceElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldElement
     implements ClassMemberElement, PropertyInducingElement {
-  @experimental
-  @override
-  FieldElement? get augmentation;
-
-  @experimental
-  @override
-  FieldElement? get augmentationTarget;
-
   @override
   FieldElement get declaration;
 
@@ -1298,14 +1234,6 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// The name of the method that will be invoked if an attempt is made to
   /// invoke an undefined method on an object.
   static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
-
-  @experimental
-  @override
-  FunctionElement? get augmentation;
-
-  @experimental
-  @override
-  FunctionElement? get augmentationTarget;
 
   /// Whether the function represents `identical` from the `dart:core` library.
   bool get isDartCoreIdentical;
@@ -1370,24 +1298,6 @@ abstract class InstanceElement
   /// The declared accessors (getters and setters).
   List<PropertyAccessorElement> get accessors;
 
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [InstanceElement.augmentationTarget] will point back at this element.
-  @experimental
-  InstanceElement? get augmentation;
-
-  /// The element that is augmented by this augmentation; or `null` if
-  /// [isAugmentation] is `false`, or there is no corresponding element to be
-  /// augmented.
-  ///
-  /// The chain of augmentations should normally end with a not augmentation
-  /// [InstanceElement], but might end with `null` immediately or after a few
-  /// intermediate elements in case of invalid code when an augmentation is
-  /// declared without the corresponding declaration.
-  @experimental
-  InstanceElement? get augmentationTarget;
-
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -1416,9 +1326,6 @@ abstract class InterfaceElement implements InstanceElement {
   ///
   /// This includes superclasses, mixins, interfaces, and superclass constraints.
   List<InterfaceType> get allSupertypes;
-
-  @override
-  InterfaceElement? get augmentationTarget;
 
   /// The declared constructors.
   ///
@@ -1875,14 +1782,6 @@ abstract class LocalVariableElement implements PromotableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
-  @experimental
-  @override
-  MethodElement? get augmentation;
-
-  @experimental
-  @override
-  MethodElement? get augmentationTarget;
-
   @override
   MethodElement get declaration;
 }
@@ -1891,14 +1790,6 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinElement implements InterfaceElement {
-  @experimental
-  @override
-  MixinElement? get augmentation;
-
-  @experimental
-  @override
-  MixinElement? get augmentationTarget;
-
   /// Whether the mixin is a base mixin.
   ///
   /// A mixin is a base mixin if it has an explicit `base` modifier.
@@ -2106,14 +1997,6 @@ abstract class PromotableElement implements LocalElement, VariableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyAccessorElement implements ExecutableElement {
-  @experimental
-  @override
-  PropertyAccessorElement? get augmentation;
-
-  @experimental
-  @override
-  PropertyAccessorElement? get augmentationTarget;
-
   /// The accessor representing the getter that corresponds to (has the same
   /// name as) this setter, or `null` if this accessor is not a setter or
   /// if there is no corresponding getter.
@@ -2164,23 +2047,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement implements VariableElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [PropertyInducingElement.augmentationTarget] points back at this element.
-  @experimental
-  PropertyInducingElement? get augmentation;
-
-  /// The element that is augmented by this augmentation.
-  ///
-  /// The chain of augmentations normally ends with a [PropertyInducingElement]
-  /// that is not an augmentation, but might end with `null` immediately or
-  /// after a few intermediate [PropertyInducingElement]s in case of invalid
-  /// code when an augmentation is declared without the corresponding
-  /// declaration.
-  @experimental
-  PropertyInducingElement? get augmentationTarget;
-
   @override
   String get displayName;
 
@@ -2250,14 +2116,6 @@ abstract class SuperFormalParameterElement implements ParameterElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelVariableElement implements PropertyInducingElement {
-  @experimental
-  @override
-  TopLevelVariableElement? get augmentation;
-
-  @experimental
-  @override
-  TopLevelVariableElement? get augmentationTarget;
-
   @override
   TopLevelVariableElement get declaration;
 

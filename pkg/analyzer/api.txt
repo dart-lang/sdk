@@ -2996,8 +2996,6 @@ package:analyzer/dart/element/element.dart:
     new (constructor: BindPatternVariableElement Function())
   ClassElement (class extends Object implements InterfaceElement):
     new (constructor: ClassElement Function())
-    augmentation (getter: ClassElement?, experimental)
-    augmentationTarget (getter: ClassElement?, experimental)
     hasNonFinalField (getter: bool)
     isAbstract (getter: bool)
     isBase (getter: bool)
@@ -3042,8 +3040,6 @@ package:analyzer/dart/element/element.dart:
     getEnum (method: EnumElement? Function(String))
   ConstructorElement (class extends Object implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget):
     new (constructor: ConstructorElement Function())
-    augmentation (getter: ConstructorElement?, experimental)
-    augmentationTarget (getter: ConstructorElement?, experimental)
     declaration (getter: ConstructorElement)
     displayName (getter: String)
     enclosingElement3 (getter: InterfaceElement)
@@ -3251,12 +3247,8 @@ package:analyzer/dart/element/element.dart:
     visitTypeParameterElement (method: R? Function(TypeParameterElement))
   EnumElement (class extends Object implements InterfaceElement):
     new (constructor: EnumElement Function())
-    augmentation (getter: EnumElement?, experimental)
-    augmentationTarget (getter: EnumElement?, experimental)
   ExecutableElement (class extends Object implements FunctionTypedElement):
     new (constructor: ExecutableElement Function())
-    augmentation (getter: ExecutableElement?, experimental)
-    augmentationTarget (getter: ExecutableElement?, experimental)
     declaration (getter: ExecutableElement)
     displayName (getter: String)
     enclosingElement3 (getter: Element)
@@ -3273,8 +3265,6 @@ package:analyzer/dart/element/element.dart:
     name (getter: String)
   ExtensionElement (class extends Object implements InstanceElement):
     new (constructor: ExtensionElement Function())
-    augmentation (getter: ExtensionElement?, experimental)
-    augmentationTarget (getter: ExtensionElement?, experimental)
     extendedType (getter: DartType)
     getField (method: FieldElement? Function(String))
     getGetter (method: PropertyAccessorElement? Function(String))
@@ -3282,15 +3272,11 @@ package:analyzer/dart/element/element.dart:
     getSetter (method: PropertyAccessorElement? Function(String))
   ExtensionTypeElement (class extends Object implements InterfaceElement, experimental):
     new (constructor: ExtensionTypeElement Function())
-    augmentation (getter: ExtensionTypeElement?, experimental)
-    augmentationTarget (getter: ExtensionTypeElement?, experimental)
     primaryConstructor (getter: ConstructorElement)
     representation (getter: FieldElement)
     typeErasure (getter: DartType)
   FieldElement (class extends Object implements ClassMemberElement, PropertyInducingElement):
     new (constructor: FieldElement Function())
-    augmentation (getter: FieldElement?, experimental)
-    augmentationTarget (getter: FieldElement?, experimental)
     declaration (getter: FieldElement)
     isAbstract (getter: bool)
     isCovariant (getter: bool)
@@ -3307,8 +3293,6 @@ package:analyzer/dart/element/element.dart:
     MAIN_FUNCTION_NAME (static getter: String)
     NO_SUCH_METHOD_METHOD_NAME (static getter: String)
     new (constructor: FunctionElement Function())
-    augmentation (getter: FunctionElement?, experimental)
-    augmentationTarget (getter: FunctionElement?, experimental)
     isDartCoreIdentical (getter: bool)
     isEntryPoint (getter: bool)
   FunctionTypedElement (class extends Object implements TypeParameterizedElement):
@@ -3329,8 +3313,6 @@ package:analyzer/dart/element/element.dart:
   InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement):
     new (constructor: InstanceElement Function())
     accessors (getter: List<PropertyAccessorElement>)
-    augmentation (getter: InstanceElement?, experimental)
-    augmentationTarget (getter: InstanceElement?, experimental)
     enclosingElement3 (getter: CompilationUnitElement)
     fields (getter: List<FieldElement>)
     isAugmentation (getter: bool)
@@ -3339,7 +3321,6 @@ package:analyzer/dart/element/element.dart:
   InterfaceElement (class extends Object implements InstanceElement):
     new (constructor: InterfaceElement Function())
     allSupertypes (getter: List<InterfaceType>)
-    augmentationTarget (getter: InterfaceElement?)
     constructors (getter: List<ConstructorElement>)
     interfaces (getter: List<InterfaceType>)
     mixins (getter: List<InterfaceType>)
@@ -3422,13 +3403,9 @@ package:analyzer/dart/element/element.dart:
     name (getter: String)
   MethodElement (class extends Object implements ClassMemberElement, ExecutableElement):
     new (constructor: MethodElement Function())
-    augmentation (getter: MethodElement?, experimental)
-    augmentationTarget (getter: MethodElement?, experimental)
     declaration (getter: MethodElement)
   MixinElement (class extends Object implements InterfaceElement):
     new (constructor: MixinElement Function())
-    augmentation (getter: MixinElement?, experimental)
-    augmentationTarget (getter: MixinElement?, experimental)
     isBase (getter: bool)
     superclassConstraints (getter: List<InterfaceType>)
     isImplementableIn (method: bool Function(LibraryElement))
@@ -3475,8 +3452,6 @@ package:analyzer/dart/element/element.dart:
     name (getter: String)
   PropertyAccessorElement (class extends Object implements ExecutableElement):
     new (constructor: PropertyAccessorElement Function())
-    augmentation (getter: PropertyAccessorElement?, experimental)
-    augmentationTarget (getter: PropertyAccessorElement?, experimental)
     correspondingGetter (getter: PropertyAccessorElement?)
     correspondingSetter (getter: PropertyAccessorElement?)
     declaration (getter: PropertyAccessorElement)
@@ -3486,8 +3461,6 @@ package:analyzer/dart/element/element.dart:
     variable2 (getter: PropertyInducingElement?)
   PropertyInducingElement (class extends Object implements VariableElement):
     new (constructor: PropertyInducingElement Function())
-    augmentation (getter: PropertyInducingElement?, experimental)
-    augmentationTarget (getter: PropertyInducingElement?, experimental)
     displayName (getter: String)
     getter (getter: PropertyAccessorElement?)
     hasInitializer (getter: bool)
@@ -3505,8 +3478,6 @@ package:analyzer/dart/element/element.dart:
     superConstructorParameter (getter: ParameterElement?)
   TopLevelVariableElement (class extends Object implements PropertyInducingElement):
     new (constructor: TopLevelVariableElement Function())
-    augmentation (getter: TopLevelVariableElement?, experimental)
-    augmentationTarget (getter: TopLevelVariableElement?, experimental)
     declaration (getter: TopLevelVariableElement)
     isExternal (getter: bool)
   TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement):

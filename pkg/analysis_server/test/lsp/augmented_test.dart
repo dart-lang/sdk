@@ -18,6 +18,7 @@ void main() {
 
 @reflectiveTest
 class AugmentedTest extends AbstractLspAnalysisServerTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_class_body_augmentationToAugmentation() async {
     await verifyGoToAugmented('''
 class A {}
@@ -30,6 +31,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_class_body_augmentationToDeclaration() async {
     await verifyGoToAugmented('''
 class [!A!] {}
@@ -40,6 +42,7 @@ augment class A {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_class_name_augmentationToAugmentation() async {
     await verifyGoToAugmented('''
 class A {}
@@ -50,6 +53,7 @@ augment class A^ {}
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_class_name_augmentationToDeclaration() async {
     await verifyGoToAugmented('''
 class [!A!] {}

@@ -10910,7 +10910,6 @@ library
               returnType: int
               id: getter_1
               variable: field_1
-          augmented
 ----------------------------------------
 library
   reference: <testLibrary>
@@ -11046,7 +11045,6 @@ library
               returnType: void
               id: setter_1
               variable: field_1
-          augmented
 ----------------------------------------
 library
   reference: <testLibrary>

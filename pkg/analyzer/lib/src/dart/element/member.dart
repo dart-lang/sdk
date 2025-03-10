@@ -35,16 +35,6 @@ class ConstructorMember extends ExecutableMember
             const <TypeParameterElement>[]);
 
   @override
-  ConstructorElement? get augmentation {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  ConstructorElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
-
-  @override
   ConstructorElementImpl2 get baseElement => _element2;
 
   @override
@@ -540,16 +530,6 @@ class FieldMember extends VariableMember
     super.augmentationSubstitution,
     super.substitution,
   );
-
-  @override
-  FieldElement? get augmentation {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  FieldElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
 
   @override
   FieldElement2 get baseElement => _element2;
@@ -1085,17 +1065,6 @@ class MethodMember extends ExecutableMember
   );
 
   @override
-  MethodElement? get augmentation {
-    // TODO(scheglov): implement
-    throw UnimplementedError();
-  }
-
-  @override
-  MethodElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
-
-  @override
   MethodElement2 get baseElement => _element2;
 
   @override
@@ -1432,16 +1401,6 @@ abstract class PropertyAccessorMember extends ExecutableMember
   );
 
   @override
-  PropertyAccessorElement? get augmentation {
-    return declaration.augmentation;
-  }
-
-  @override
-  PropertyAccessorElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
-
-  @override
   PropertyAccessorElement? get correspondingGetter {
     var baseGetter = declaration.correspondingGetter;
     if (baseGetter == null) {
@@ -1657,16 +1616,6 @@ class TopLevelVariableMember extends VariableMember
     super.augmentationSubstitution,
     super.substitution,
   );
-
-  @override
-  TopLevelVariableElement? get augmentation {
-    return declaration.augmentationTarget;
-  }
-
-  @override
-  TopLevelVariableElement? get augmentationTarget {
-    return declaration.augmentationTarget;
-  }
 
   @override
   TopLevelVariableElementImpl get declaration =>

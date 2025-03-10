@@ -328,27 +328,25 @@ class InstanceMemberInferrer {
       //
       // TODO(scheglov): get other members from the container
       currentInterfaceElement = classFragment;
-      for (var container in classFragment.withAugmentations) {
-        for (var field in classFragment.fields) {
-          _inferAccessorOrField(
-            field: field,
-          );
-        }
-        for (var accessor in classFragment.accessors) {
-          _inferAccessorOrField(
-            accessor: accessor,
-          );
-        }
-        for (var method in container.methods) {
-          _inferExecutable(method);
-        }
-        //
-        // Infer initializing formal parameter types. This must happen after
-        // field types are inferred.
-        //
-        for (var constructor in container.constructors) {
-          _inferConstructor(constructor);
-        }
+      for (var field in classFragment.fields) {
+        _inferAccessorOrField(
+          field: field,
+        );
+      }
+      for (var accessor in classFragment.accessors) {
+        _inferAccessorOrField(
+          accessor: accessor,
+        );
+      }
+      for (var method in classFragment.methods) {
+        _inferExecutable(method);
+      }
+      //
+      // Infer initializing formal parameter types. This must happen after
+      // field types are inferred.
+      //
+      for (var constructor in classFragment.constructors) {
+        _inferConstructor(constructor);
       }
       classFragment.hasBeenInferred = true;
     } finally {

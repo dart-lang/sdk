@@ -270,26 +270,6 @@ extension Element2OrNullExtension on Element2? {
   }
 }
 
-extension ElementExtension on Element {
-  // TODO(scheglov): Maybe just add to `Element`?
-  Element? get augmentation {
-    if (this case AugmentableElement augmentable) {
-      return augmentable.augmentation;
-    }
-    return null;
-  }
-
-  List<Element> get withAugmentations {
-    var result = <Element>[];
-    Element? current = this;
-    while (current != null) {
-      result.add(current);
-      current = current.augmentation;
-    }
-    return result;
-  }
-}
-
 extension ElementImplExtension on ElementImpl {
   AnnotationImpl annotationAst(int index) {
     return metadata[index].annotationAst;
