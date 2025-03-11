@@ -159,6 +159,9 @@ class DartCompletionManager {
     required OperationPerformanceImpl performance,
     required DartCompletionRequest request,
   }) async {
+    // TODO(FMorschel): move deduplication logic from `suggestFromCandidates`
+    // that uses a map with `CompletionItem` as a key. Probably best if we
+    // make the deduplication over at `CandidateSuggestion` level.
     var collector = await computeCandidateSuggestions(
       maxSuggestions: maxSuggestions,
       performance: performance,

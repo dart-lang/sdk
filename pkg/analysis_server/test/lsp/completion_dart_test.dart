@@ -150,6 +150,26 @@ void f() {
     expectDocumentation(resolved, contains('Constructor.'));
   }
 
+  Future<void> test_class_constructor_not_duplicated() async {
+    // https://github.com/dart-lang/sdk/issues/60188
+    content = '''
+class C {
+  /// This is a constructor.
+  C.c1();
+}
+
+void g(void Function() _) {}
+
+void f() {
+  g(C.^c1);
+}
+''';
+    await initializeServer();
+
+    var completion = await getCompletionItem('c1()');
+    expectDocumentation(completion, equals('This is a constructor.'));
+  }
+
   Future<void> test_class_constructorNamed() async {
     newFile(join(projectFolderPath, 'my_class.dart'), '''
 class MyClass {
