@@ -1636,6 +1636,31 @@ class B {}
     );
   }
 
+  Future<void> test_single_extensionType() async {
+    var originalSource = '''
+class A {}
+
+extension type ExtensionTypeToMo^ve(String _) {}
+
+class B {}
+''';
+    var declarationName = 'ExtensionTypeToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/extension_type_to_move.dart created
+extension type ExtensionTypeToMove(String _) {}
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class B {}
+''';
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+  }
+
   Future<void> test_single_function_endOfName() async {
     var originalSource = '''
 class A {}
