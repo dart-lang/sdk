@@ -50,6 +50,17 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// Returns the unknown type schema (`_`) used in type inference.
   SharedTypeSchemaView get unknownType;
 
+  TypeConstraintGenerator<Variable, TypeDeclarationType, TypeDeclaration,
+          Object>
+      createTypeConstraintGenerator(
+          {required TypeConstraintGenerationDataForTesting<Variable, Object>?
+              typeConstraintGenerationDataForTesting,
+          required List<SharedTypeParameterView> typeParametersToInfer,
+          required TypeAnalyzerOperations<Variable, TypeDeclarationType,
+                  TypeDeclaration>
+              typeAnalyzerOperations,
+          required bool inferenceUsingBoundsIsEnabled});
+
   /// Returns the type `Future` with omitted nullability and type argument
   /// [argumentType].
   ///
@@ -538,6 +549,20 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   SharedTypeSchemaView? matchTypeSchemaFutureOr(
       SharedTypeSchemaView typeSchema);
 
+  MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+      mergeInConstraintsFromBound(
+          {required SharedTypeParameter typeParameterToInfer,
+          required List<SharedTypeParameterView> typeParametersToInfer,
+          required SharedType lower,
+          required Map<
+                  SharedTypeParameter,
+                  MergedTypeConstraint<Variable, TypeDeclarationType,
+                      TypeDeclaration>>
+              inferencePhaseConstraints,
+          required TypeConstraintGenerationDataForTesting<Variable, Object>?
+              dataForTesting,
+          required bool inferenceUsingBoundsIsEnabled});
+
   /// Computes `NORM` of [type].
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/normalization.md`
@@ -671,31 +696,6 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// Returns [type] suffixed with the [suffix].
   SharedType withNullabilitySuffixInternal(
       covariant SharedType type, NullabilitySuffix suffix);
-
-  TypeConstraintGenerator<Variable, TypeDeclarationType, TypeDeclaration,
-          Object>
-      createTypeConstraintGenerator(
-          {required TypeConstraintGenerationDataForTesting<Variable, Object>?
-              typeConstraintGenerationDataForTesting,
-          required List<SharedTypeParameterView> typeParametersToInfer,
-          required TypeAnalyzerOperations<Variable, TypeDeclarationType,
-                  TypeDeclaration>
-              typeAnalyzerOperations,
-          required bool inferenceUsingBoundsIsEnabled});
-
-  MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
-      mergeInConstraintsFromBound(
-          {required SharedTypeParameter typeParameterToInfer,
-          required List<SharedTypeParameterView> typeParametersToInfer,
-          required SharedType lower,
-          required Map<
-                  SharedTypeParameter,
-                  MergedTypeConstraint<Variable, TypeDeclarationType,
-                      TypeDeclaration>>
-              inferencePhaseConstraints,
-          required TypeConstraintGenerationDataForTesting<Variable, Object>?
-              dataForTesting,
-          required bool inferenceUsingBoundsIsEnabled});
 }
 
 mixin TypeAnalyzerOperationsMixin<Variable extends Object,
@@ -811,66 +811,6 @@ mixin TypeAnalyzerOperationsMixin<Variable extends Object,
   }
 
   @override
-  SharedTypeView recordType(
-      {required List<SharedTypeView> positional,
-      required List<(String, SharedTypeView)> named}) {
-    return new SharedTypeView(recordTypeInternal(
-        positional: positional.cast<SharedType>(),
-        named: named.cast<(String, SharedType)>()));
-  }
-
-  @override
-  SharedTypeSchemaView recordTypeSchema(
-      {required List<SharedTypeSchemaView> positional,
-      required List<(String, SharedTypeSchemaView)> named}) {
-    return new SharedTypeSchemaView(recordTypeInternal(
-        positional: positional.cast<SharedType>(),
-        named: named.cast<(String, SharedType)>()));
-  }
-
-  @override
-  bool typeIsSubtypeOfTypeSchema(
-      SharedTypeView leftType, SharedTypeSchemaView rightSchema) {
-    return isSubtypeOfInternal(
-        leftType.unwrapTypeView(), rightSchema.unwrapTypeSchemaView());
-  }
-
-  @override
-  SharedTypeSchemaView typeSchemaGlb(
-      SharedTypeSchemaView typeSchema1, SharedTypeSchemaView typeSchema2) {
-    return new SharedTypeSchemaView(glbInternal(
-        typeSchema1.unwrapTypeSchemaView(),
-        typeSchema2.unwrapTypeSchemaView()));
-  }
-
-  @override
-  bool typeSchemaIsSubtypeOfType(
-      SharedTypeSchemaView leftSchema, SharedTypeView rightType) {
-    return isSubtypeOfInternal(
-        leftSchema.unwrapTypeSchemaView(), rightType.unwrapTypeView());
-  }
-
-  @override
-  bool typeSchemaIsSubtypeOfTypeSchema(
-      SharedTypeSchemaView leftSchema, SharedTypeSchemaView rightSchema) {
-    return isSubtypeOfInternal(
-        leftSchema.unwrapTypeSchemaView(), rightSchema.unwrapTypeSchemaView());
-  }
-
-  @override
-  SharedTypeSchemaView typeSchemaLub(
-      SharedTypeSchemaView typeSchema1, SharedTypeSchemaView typeSchema2) {
-    return new SharedTypeSchemaView(lubInternal(
-        typeSchema1.unwrapTypeSchemaView(),
-        typeSchema2.unwrapTypeSchemaView()));
-  }
-
-  @override
-  SharedTypeSchemaView typeToSchema(SharedTypeView type) {
-    return new SharedTypeSchemaView(type.unwrapTypeView());
-  }
-
-  @override
   MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
       mergeInConstraintsFromBound(
           {required SharedTypeParameter typeParameterToInfer,
@@ -945,6 +885,66 @@ mixin TypeAnalyzerOperationsMixin<Variable extends Object,
     }
     return constraintsPerTypeVariable[typeParameterToInfer]!;
   }
+
+  @override
+  SharedTypeView recordType(
+      {required List<SharedTypeView> positional,
+      required List<(String, SharedTypeView)> named}) {
+    return new SharedTypeView(recordTypeInternal(
+        positional: positional.cast<SharedType>(),
+        named: named.cast<(String, SharedType)>()));
+  }
+
+  @override
+  SharedTypeSchemaView recordTypeSchema(
+      {required List<SharedTypeSchemaView> positional,
+      required List<(String, SharedTypeSchemaView)> named}) {
+    return new SharedTypeSchemaView(recordTypeInternal(
+        positional: positional.cast<SharedType>(),
+        named: named.cast<(String, SharedType)>()));
+  }
+
+  @override
+  bool typeIsSubtypeOfTypeSchema(
+      SharedTypeView leftType, SharedTypeSchemaView rightSchema) {
+    return isSubtypeOfInternal(
+        leftType.unwrapTypeView(), rightSchema.unwrapTypeSchemaView());
+  }
+
+  @override
+  SharedTypeSchemaView typeSchemaGlb(
+      SharedTypeSchemaView typeSchema1, SharedTypeSchemaView typeSchema2) {
+    return new SharedTypeSchemaView(glbInternal(
+        typeSchema1.unwrapTypeSchemaView(),
+        typeSchema2.unwrapTypeSchemaView()));
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfType(
+      SharedTypeSchemaView leftSchema, SharedTypeView rightType) {
+    return isSubtypeOfInternal(
+        leftSchema.unwrapTypeSchemaView(), rightType.unwrapTypeView());
+  }
+
+  @override
+  bool typeSchemaIsSubtypeOfTypeSchema(
+      SharedTypeSchemaView leftSchema, SharedTypeSchemaView rightSchema) {
+    return isSubtypeOfInternal(
+        leftSchema.unwrapTypeSchemaView(), rightSchema.unwrapTypeSchemaView());
+  }
+
+  @override
+  SharedTypeSchemaView typeSchemaLub(
+      SharedTypeSchemaView typeSchema1, SharedTypeSchemaView typeSchema2) {
+    return new SharedTypeSchemaView(lubInternal(
+        typeSchema1.unwrapTypeSchemaView(),
+        typeSchema2.unwrapTypeSchemaView()));
+  }
+
+  @override
+  SharedTypeSchemaView typeToSchema(SharedTypeView type) {
+    return new SharedTypeSchemaView(type.unwrapTypeView());
+  }
 }
 
 /// Abstract interface of a type constraint generator.
@@ -990,6 +990,11 @@ abstract class TypeConstraintGenerator<
   void addUpperConstraintForParameter(
       covariant SharedTypeParameter typeParameter, covariant SharedType upper,
       {required AstNode? astNodeForTesting});
+
+  /// Returns the set of type constraints that was gathered.
+  Map<SharedTypeParameter,
+          MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>>
+      computeConstraints();
 
   /// Iterates over all of the type constraints generated since
   /// [eliminationStartState] and eliminates the type variables in them using
@@ -1864,11 +1869,6 @@ abstract class TypeConstraintGenerator<
 
     return false;
   }
-
-  /// Returns the set of type constraints that was gathered.
-  Map<SharedTypeParameter,
-          MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>>
-      computeConstraints();
 }
 
 mixin TypeConstraintGeneratorMixin<
