@@ -7,8 +7,8 @@
 Xref is a reference of form [`symbol`][] or [text][`symbol`], where symbol
 is expected to be one of the following:
 
-   * package:-scheme URI - it will be resolved using .packages file in the
-     root directory
+   * package:-scheme URI - it will be resolved using the
+     .dart_tool/package_config.json file in the root directory
    * file path
    * C++ symbol - will be resolved through xref.json file (see README.md)
 
@@ -85,7 +85,7 @@ class _XrefPattern(InlineProcessor):
 
     def _resolve_ref(self, ref: str) -> Optional[str]:
         if ref.startswith('package:'):
-            # Resolve as package uri via .packages.
+            # Resolve as package uri via package_config.json.
             uri = urlparse(ref)
             (package_name, *path_to_file) = uri.path.split('/', 1)
             package_path = self.packages[package_name]
