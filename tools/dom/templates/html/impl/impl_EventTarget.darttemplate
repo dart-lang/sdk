@@ -90,8 +90,44 @@ class ElementEvents extends Events {
  */
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  // Custom element created callback.
-  EventTarget._created();
+  // A private constructor to act as super-constructor for mixin-applications.
+  //
+  // The `dart:html` library predates the class modifiers feature, and it
+  // effectively seals many of its classes by using private and factory
+  // constructors. This allows the classes to be extended within the library,
+  // but seals them to code outside the SDK.
+  //
+  // Currently a mixin application on a class with no generative constructors
+  // will get a default constructor which tries to forward to the unnamed
+  // constructor of the superclass. That superclass constructor either doesn't
+  // exist or is not generative, so that's always an invalid default constructor.
+  //
+  // For now, this makes sure that the class has a private generative
+  // constructor that a mixin application *inside this library* can forward to,
+  // to avoid getting an invalid default constructor.
+  //
+  // Here is a simple example to illustrate the kind of error this constructor
+  // prevents:
+  // ```
+  //    class A { // Equivalent to `EventTarget` here
+  //      // Adding A._unused(); fixes the errors below
+  //      factory A._() => throw '';
+  //    }
+  //
+  //    abstract mixin class M {
+  //      get y;
+  //    }
+  //
+  //    abstract class B extends A with M {
+  //                // ^ Error because A&M's default constructor needs a
+  //                // superclass constructor to forward to.
+  //      factory B._() => throw '';
+  //
+  //      @override
+  //      get y => 3;
+  //    }
+  // ```
+  EventTarget._unused();
 
   /**
    * This is an ease-of-use accessor for event streams which should only be

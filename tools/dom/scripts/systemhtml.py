@@ -858,27 +858,12 @@ class HtmlDartInterfaceGenerator(object):
                                       factory_constructor_name,
                                       class_members_emitter)
 
-        isElement = False
-        for parent in self._database.Hierarchy(self._interface):
-            if parent.id == 'Element':
-                isElement = True
-
         # Write out the JsInterop code.
         if (implementation_members_emitter and
                 self._options.templates._conditions['DARTIUM'] and
                 self._options.dart_js_interop and
                 not IsPureInterface(self._interface.id, self._database)):
             implementation_members_emitter.Emit(js_interop_wrapper)
-
-        if isElement and self._interface.id != 'Element':
-            implementation_members_emitter.Emit(
-                '  /**\n'
-                '   * Constructor instantiated by the DOM when a custom element has been created.\n'
-                '   *\n'
-                '   * This can only be called by subclasses from their created constructor.\n'
-                '   */\n'
-                '  $CLASSNAME.created() : super.created();\n',
-                CLASSNAME=self._interface_type_info.implementation_name())
 
         self._backend.EmitSupportCheck()
 
