@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class ClassElementBuilder
     extends InstanceElementBuilder<ClassElementImpl2, ClassElementImpl> {
@@ -22,7 +21,7 @@ class ClassElementBuilder
     if (identical(fragment, firstFragment)) {
       _addFirstFragment();
     } else {
-      lastFragment.augmentation = fragment;
+      lastFragment.nextFragment = fragment;
       lastFragment = fragment;
 
       fragment.augmentedInternal = element;
@@ -46,7 +45,7 @@ class EnumElementBuilder
     if (identical(fragment, firstFragment)) {
       _addFirstFragment();
     } else {
-      lastFragment.augmentation = fragment;
+      lastFragment.nextFragment = fragment;
       lastFragment = fragment;
 
       fragment.augmentedInternal = element;
@@ -69,7 +68,7 @@ class ExtensionElementBuilder extends InstanceElementBuilder<
     if (identical(fragment, firstFragment)) {
       _addFirstFragment();
     } else {
-      lastFragment.augmentation = fragment;
+      lastFragment.nextFragment = fragment;
       lastFragment = fragment;
 
       fragment.augmentedInternal = element;
@@ -93,7 +92,7 @@ class ExtensionTypeElementBuilder extends InstanceElementBuilder<
     if (identical(fragment, firstFragment)) {
       _addFirstFragment();
     } else {
-      lastFragment.augmentation = fragment;
+      lastFragment.nextFragment = fragment;
       lastFragment = fragment;
 
       fragment.augmentedInternal = element;
@@ -119,14 +118,7 @@ class FragmentedElementBuilder<E extends Element2, F extends Fragment> {
   /// the name of [fragment], even if it is not a correct builder for this
   /// [fragment]. So, the [lastFragment] might have a wrong type, but we still
   /// want to remember it for generating the corresponding diagnostic.
-  void setPreviousFor(AugmentableElement fragment) {
-    if (fragment.isAugmentation) {
-      // TODO(scheglov): hopefully the type check can be removed in the future.
-      if (lastFragment case ElementImpl lastFragment) {
-        fragment.augmentationTargetAny = lastFragment;
-      }
-    }
-  }
+  void setPreviousFor(Object fragment) {}
 }
 
 class GetterElementBuilder
@@ -138,7 +130,7 @@ class GetterElementBuilder
 
   void addFragment(GetterFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
-      lastFragment.augmentation = fragment;
+      lastFragment.nextFragment = fragment;
       lastFragment = fragment;
       fragment.element = element;
     }
@@ -169,22 +161,16 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
         case GetterFragmentImpl():
           if (fragment.isAugmentation) {
             if (getters[name] case var target?) {
-              target.augmentation = fragment;
-              fragment.augmentationTargetAny = target;
-            } else {
-              var target = _recoveryAugmentationTarget(name);
-              fragment.augmentationTargetAny = target;
+              target.nextFragment = fragment;
+              fragment.previousFragment = target;
             }
           }
           getters[name] = fragment;
         case SetterFragmentImpl():
           if (fragment.isAugmentation) {
             if (setters[name] case var target?) {
-              target.augmentation = fragment;
-              fragment.augmentationTargetAny = target;
-            } else {
-              var target = _recoveryAugmentationTarget(name);
-              fragment.augmentationTargetAny = target;
+              target.nextFragment = fragment;
+              fragment.previousFragment = target;
             }
           }
           setters[name] = fragment;
@@ -197,11 +183,8 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
       var name = fragment.name;
       if (fragment.isAugmentation) {
         if (constructors[name] case var target?) {
-          target.augmentation = fragment;
-          fragment.augmentationTargetAny = target;
-        } else {
-          var target = _recoveryAugmentationTarget(name);
-          fragment.augmentationTargetAny = target;
+          target.nextFragment = fragment;
+          fragment.previousFragment = target;
         }
       }
       constructors[name] = fragment;
@@ -213,11 +196,8 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
       var name = fragment.name;
       if (fragment.isAugmentation) {
         if (fields[name] case var target?) {
-          target.augmentation = fragment;
-          fragment.augmentationTargetAny = target;
-        } else {
-          var target = _recoveryAugmentationTarget(name);
-          fragment.augmentationTargetAny = target;
+          target.nextFragment = fragment;
+          fragment.previousFragment = target;
         }
       }
       fields[name] = fragment;
@@ -229,11 +209,8 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
       var name = fragment.name;
       if (fragment.isAugmentation) {
         if (methods[name] case var target?) {
-          target.augmentation = fragment;
-          fragment.augmentationTargetAny = target;
-        } else {
-          var target = _recoveryAugmentationTarget(name);
-          fragment.augmentationTargetAny = target;
+          target.nextFragment = fragment;
+          fragment.previousFragment = target;
         }
       }
       methods[name] = fragment;
@@ -267,17 +244,6 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
       }
     }
   }
-
-  ElementImpl? _recoveryAugmentationTarget(String name) {
-    name = name.removeSuffix('=') ?? name;
-
-    ElementImpl? target;
-    target ??= getters[name];
-    target ??= setters['$name='];
-    target ??= constructors[name];
-    target ??= methods[name];
-    return target;
-  }
 }
 
 class MixinElementBuilder
@@ -295,7 +261,7 @@ class MixinElementBuilder
     if (identical(fragment, firstFragment)) {
       _addFirstFragment();
     } else {
-      lastFragment.augmentation = fragment;
+      lastFragment.nextFragment = fragment;
       lastFragment = fragment;
 
       fragment.augmentedInternal = element;
@@ -312,7 +278,7 @@ class SetterElementBuilder
 
   void addFragment(SetterFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
-      lastFragment.augmentation = fragment;
+      lastFragment.nextFragment = fragment;
       lastFragment = fragment;
       fragment.element = element;
     }
@@ -328,7 +294,7 @@ class TopLevelFunctionElementBuilder extends FragmentedElementBuilder<
 
   void addFragment(TopLevelFunctionFragmentImpl fragment) {
     if (!identical(fragment, firstFragment)) {
-      lastFragment.augmentation = fragment;
+      lastFragment.nextFragment = fragment;
       lastFragment = fragment;
       fragment.element = element;
     }
@@ -344,7 +310,7 @@ class TopLevelVariableElementBuilder extends FragmentedElementBuilder<
 
   void addFragment(TopLevelVariableElementImpl fragment) {
     if (!identical(fragment, firstFragment)) {
-      lastFragment.augmentation = fragment;
+      lastFragment.nextFragment = fragment;
       lastFragment = fragment;
       fragment.element = element;
     }
@@ -360,7 +326,7 @@ class TypeAliasElementBuilder extends FragmentedElementBuilder<
 
   void addFragment(TypeAliasElementImpl fragment) {
     if (!identical(fragment, firstFragment)) {
-      lastFragment.augmentation = fragment;
+      lastFragment.nextFragment = fragment;
       lastFragment = fragment;
       fragment.element = element;
     }

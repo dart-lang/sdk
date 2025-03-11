@@ -412,84 +412,62 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     // Build the 'values' field.
-    if (fragment.augmentationTarget == null) {
-      var valuesField = ConstFieldElementImpl('values', -1)
-        ..isConst = true
-        ..isStatic = true
-        ..isSynthetic = true
-        ..name2 = 'values';
-      var initializer = ListLiteralImpl(
-        constKeyword: null,
-        typeArguments: null,
-        leftBracket: Tokens.openSquareBracket(),
-        elements: valuesElements,
-        rightBracket: Tokens.closeSquareBracket(),
-      );
-      valuesField.constantInitializer = initializer;
+    var valuesField = ConstFieldElementImpl('values', -1)
+      ..isConst = true
+      ..isStatic = true
+      ..isSynthetic = true
+      ..name2 = 'values';
+    var initializer = ListLiteralImpl(
+      constKeyword: null,
+      typeArguments: null,
+      leftBracket: Tokens.openSquareBracket(),
+      elements: valuesElements,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    valuesField.constantInitializer = initializer;
 
-      var variableDeclaration = VariableDeclarationImpl(
-        name: StringToken(TokenType.STRING, 'values', -1),
-        equals: Tokens.eq(),
-        initializer: initializer,
-      );
-      var valuesTypeNode = NamedTypeImpl(
-        importPrefix: null,
-        name2: StringToken(TokenType.STRING, 'List', -1),
-        typeArguments: TypeArgumentListImpl(
-          leftBracket: Tokens.lt(),
-          arguments: [
-            NamedTypeImpl(
-              importPrefix: null,
-              name2: StringToken(TokenType.STRING, fragment.name, -1),
-              typeArguments: null,
-              question: null,
-            )..element2 = fragment.asElement2,
-          ],
-          rightBracket: Tokens.gt(),
-        ),
-        question: null,
-      );
-      VariableDeclarationListImpl(
-        comment: null,
-        metadata: null,
-        lateKeyword: null,
-        keyword: Tokens.const_(),
-        variables: [variableDeclaration],
-        type: valuesTypeNode,
-      );
-      _linker.elementNodes[valuesField] = variableDeclaration;
+    var variableDeclaration = VariableDeclarationImpl(
+      name: StringToken(TokenType.STRING, 'values', -1),
+      equals: Tokens.eq(),
+      initializer: initializer,
+    );
+    var valuesTypeNode = NamedTypeImpl(
+      importPrefix: null,
+      name2: StringToken(TokenType.STRING, 'List', -1),
+      typeArguments: TypeArgumentListImpl(
+        leftBracket: Tokens.lt(),
+        arguments: [
+          NamedTypeImpl(
+            importPrefix: null,
+            name2: StringToken(TokenType.STRING, fragment.name, -1),
+            typeArguments: null,
+            question: null,
+          )..element2 = fragment.asElement2,
+        ],
+        rightBracket: Tokens.gt(),
+      ),
+      question: null,
+    );
+    VariableDeclarationListImpl(
+      comment: null,
+      metadata: null,
+      lateKeyword: null,
+      keyword: Tokens.const_(),
+      variables: [variableDeclaration],
+      type: valuesTypeNode,
+    );
+    _linker.elementNodes[valuesField] = variableDeclaration;
 
-      holder.addNonSyntheticField('values', valuesField);
+    holder.addNonSyntheticField('values', valuesField);
 
-      _libraryBuilder.implicitEnumNodes[fragment] = ImplicitEnumNodes(
-        element: fragment,
-        valuesTypeNode: valuesTypeNode,
-        valuesNode: variableDeclaration,
-        valuesElement: valuesField,
-        valuesNames: valuesNames,
-        valuesInitializer: initializer,
-      );
-    } else {
-      var declaration = elementBuilder.firstFragment;
-      var implicitNodes = _libraryBuilder.implicitEnumNodes[declaration];
-      if (implicitNodes != null) {
-        var mergedValuesElements = [
-          ...implicitNodes.valuesInitializer.elements,
-          for (var value in valuesElements)
-            if (implicitNodes.valuesNames.add(value.name)) value,
-        ];
-        var initializer = ListLiteralImpl(
-          constKeyword: null,
-          typeArguments: null,
-          leftBracket: Tokens.openSquareBracket(),
-          elements: mergedValuesElements,
-          rightBracket: Tokens.closeSquareBracket(),
-        );
-        implicitNodes.valuesElement.constantInitializer = initializer;
-        implicitNodes.valuesNode.initializer = initializer;
-        implicitNodes.valuesInitializer = initializer;
-      }
-    }
+    _libraryBuilder.implicitEnumNodes[fragment] = ImplicitEnumNodes(
+      element: fragment,
+      valuesTypeNode: valuesTypeNode,
+      valuesNode: variableDeclaration,
+      valuesElement: valuesField,
+      valuesNames: valuesNames,
+      valuesInitializer: initializer,
+    );
 
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -638,7 +616,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         element: element,
       );
 
-      fragment.isAugmentationChainStart = true;
       _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
     }
 
@@ -1236,15 +1213,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       reference = _enclosingContext.addMethod(refName, fragment);
       executableFragment = fragment;
-
-      {
-        var enclosingBuilder = _enclosingContext.instanceElementBuilder!;
-
-        var lastFragment = enclosingBuilder.replaceGetter(fragment);
-        if (fragment.isAugmentation) {
-          fragment.augmentationTargetAny = lastFragment;
-        }
-      }
     }
     executableFragment.hasImplicitReturnType = node.returnType == null;
     executableFragment.invokesSuperSelf = node.invokesSuperSelf;
@@ -1735,10 +1703,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     required ExtensionTypeDeclarationImpl extensionNode,
     required RepresentationDeclarationImpl representation,
   }) {
-    if (extensionFragment.augmentationTarget != null) {
-      return;
-    }
-
     var fieldNameToken = representation.fieldName;
     var fieldName = fieldNameToken.lexeme.ifNotEmptyOrElse('<empty>');
 

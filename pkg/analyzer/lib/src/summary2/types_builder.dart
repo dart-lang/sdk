@@ -232,13 +232,9 @@ class TypesBuilder {
 
   void _extensionDeclaration(ExtensionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    if (fragment.augmentationTarget == null) {
-      if (node.onClause case var onClause?) {
-        var extendedType = onClause.extendedType.typeOrThrow;
-        fragment.element.extendedType = extendedType;
-      }
-    } else {
-      _updatedAugmented(fragment);
+    if (node.onClause case var onClause?) {
+      var extendedType = onClause.extendedType.typeOrThrow;
+      fragment.element.extendedType = extendedType;
     }
   }
 

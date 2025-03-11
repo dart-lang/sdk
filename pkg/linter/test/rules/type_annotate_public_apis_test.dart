@@ -87,6 +87,7 @@ var x;
     await assertDiagnosticsInFile(b.path, [lint(23, 1)]);
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedField() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

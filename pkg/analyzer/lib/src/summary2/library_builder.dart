@@ -144,7 +144,6 @@ class LibraryBuilder {
     for (var classFragment in element.topLevelElements) {
       if (classFragment is! ClassElementImpl) continue;
       if (classFragment.isMixinApplication) continue;
-      if (classFragment.augmentationTarget != null) continue;
       if (classFragment.constructors.isNotEmpty) continue;
 
       var constructor = ConstructorElementImpl('', -1)..isSynthetic = true;
@@ -210,7 +209,6 @@ class LibraryBuilder {
 
     for (var enumFragment in element.topLevelElements) {
       if (enumFragment is! EnumElementImpl) continue;
-      if (enumFragment.augmentationTarget != null) continue;
       if (hasConstructor(enumFragment)) continue;
 
       var constructor = ConstructorElementImpl('', -1)
@@ -345,14 +343,12 @@ class LibraryBuilder {
     for (var interfaceFragment in element.topLevelElements) {
       switch (interfaceFragment) {
         case ClassElementImpl():
-          if (interfaceFragment.augmentationTarget != null) continue;
           if (interfaceFragment.isDartCoreObject) continue;
           if (interfaceFragment.supertype == null) {
             shouldResetClassHierarchies = true;
             interfaceFragment.supertype = objectType;
           }
         case MixinElementImpl():
-          if (interfaceFragment.augmentationTarget != null) continue;
           var element = interfaceFragment.element;
           if (element.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
@@ -930,11 +926,9 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
       // Private representation fields of extension types are always promotable.
       // They also don't affect promotability of any other fields.
       for (var extensionType in unitElement.extensionTypes) {
-        if (extensionType.augmentationTarget == null) {
-          var representation = extensionType.representation;
-          if (representation.name.startsWith('_')) {
-            representation.isPromotable = true;
-          }
+        var representation = extensionType.representation;
+        if (representation.name.startsWith('_')) {
+          representation.isPromotable = true;
         }
       }
     }
