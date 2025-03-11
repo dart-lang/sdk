@@ -1,5 +1,7 @@
 ## 3.7.2
 
+**Released on:** 2025-03-12
+
 This is a patch release that:
 
  - Fixes a bug in dart2wasm that imports a `js-string` builtin function with a
@@ -7,8 +9,8 @@ This is a patch release that:
 
 [#59899]: https://github.com/dart-lang/sdk/issues/59899
 
-
 ## 3.7.1
+
 **Released on:** 2025-02-26
 
 This is a patch release that:
