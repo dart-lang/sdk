@@ -213,6 +213,8 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
 
   var labelDetails = _getCompletionDetail(
     suggestion,
+    isCallable: isCallable,
+    isInvocation: isInvocation,
     supportsDeprecated:
         supportsCompletionDeprecatedFlag || supportsDeprecatedTag,
   );
@@ -525,6 +527,8 @@ List<lsp.CompletionItemKind> _elementToCompletionItemKind(
 CompletionDetail _getCompletionDetail(
   CandidateSuggestion suggestion, {
   required bool supportsDeprecated,
+  required bool isCallable,
+  required bool isInvocation,
 }) {
   String? returnType;
   if (suggestion is FunctionCall) {
@@ -541,7 +545,8 @@ CompletionDetail _getCompletionDetail(
   // same text. This is not the case for overrides because they will insert
   // getter or setter stub code. To make this clear, we'll include get/set in
   // the signature.
-  bool isGetterOverride = false, isSetterOverride = false;
+  var isOverride = suggestion is OverrideSuggestion;
+  var isGetterOverride = false, isSetterOverride = false;
   if (suggestion is OverrideSuggestion) {
     isGetterOverride = element is GetterElement;
     isSetterOverride = element is SetterElement;
@@ -594,14 +599,21 @@ CompletionDetail _getCompletionDetail(
     returnType,
     isGetterOverride,
     isSetterOverride,
+    // When not callable/invocation/override, signatures will have a leading
+    // space, so that they are not formatted like calls, but the signature is
+    // instead just informational.
+    (isCallable && isInvocation) || isOverride,
   )) {
     // Include a leading space when no parameters so return type isn't right
     // against the completion label.
-    (_, var returnType?, true, _) => ' $returnType get',
-    (_, var returnType?, _, true) => ' set ($returnType)',
-    (null, var returnType?, _, _) => ' $returnType',
-    (_, null || '', _, _) => truncatedParameters,
-    (_, var returnType?, _, _) => '$truncatedParameters → $returnType',
+    (_, var returnType?, true, _, _) => ' $returnType get',
+    (_, var returnType?, _, true, _) => ' set ($returnType)',
+    (null, var returnType?, _, _, _) => ' $returnType',
+    (null || '', _, _, _, _) => '',
+    (_, null || '', _, _, true) => truncatedParameters,
+    (_, null || '', _, _, false) => ' $truncatedParameters',
+    (_, var returnType?, _, _, true) => '$truncatedParameters → $returnType',
+    (_, var returnType?, _, _, false) => ' $truncatedParameters → $returnType',
   };
 
   // Use the full signature in the details popup.

@@ -359,6 +359,21 @@ class CompletionLabelDetailsTest extends AbstractCompletionTest {
     setCompletionItemLabelDetailsSupport();
   }
 
+  Future<void> test_combinator_function() async {
+    var content = '''
+import 'dart:math' show min^
+''';
+
+    await expectLabel(
+      content,
+      label: 'min',
+      labelDetail: ' (…) → T',
+      labelDescription: null,
+      filterText: null,
+      detail: '(T a, T b) → T',
+    );
+  }
+
   Future<void> test_constructor_argument() async {
     var content = '''
 var a = Foo(^);
