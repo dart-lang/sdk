@@ -379,10 +379,18 @@ abstract class AstCodeGenerator
         canSafelyOmitImplicitChecks: !translator.needToCheckTypesFor(member));
   }
 
+  void setupParametersForCheckedEntry(Member member) {
+    assert(member.isInstanceMember);
+    assert(translator.needToCheckTypesFor(member));
+    setupParameters(member.checkedEntryReference,
+        canSafelyOmitImplicitChecks: false);
+  }
+
   void setupParametersForUncheckedEntry(Member member) {
     assert(member.isInstanceMember);
     assert(translator.needToCheckTypesFor(member));
-    setupParameters(member.reference, canSafelyOmitImplicitChecks: true);
+    setupParameters(member.uncheckedEntryReference,
+        canSafelyOmitImplicitChecks: true);
   }
 
   void setupContexts(Member member) {
@@ -3299,7 +3307,7 @@ class SynchronousProcedureCodeGenerator extends AstCodeGenerator {
     final function = member.function;
     final signature = translator.signatureForDirectCall(member.bodyReference);
     if (checked) {
-      setupParametersForNormalEntry(member);
+      setupParametersForCheckedEntry(member);
     } else {
       setupParametersForUncheckedEntry(member);
     }
