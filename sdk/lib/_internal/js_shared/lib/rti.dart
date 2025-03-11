@@ -576,14 +576,19 @@ Rti _rtiBind(Rti environment, Rti types) {
 /// app (such as after a hot reload).
 void resetRtiSubtypeCaches() {
   var universe = _theUniverse();
-  var cache = _Universe.evalCache(universe);
-  var values = _Utils.mapValues(cache);
-  var length = _Utils.arrayLength(values);
+  var evalCache = _Universe.evalCache(universe);
+  var cacheValues = _Utils.mapValues(evalCache);
+  var length = _Utils.arrayLength(cacheValues);
   for (int i = 0; i < length; i++) {
-    Rti rti = _Utils.asRti(_Utils.arrayAt(values, i));
+    Rti rti = _Utils.asRti(_Utils.arrayAt(cacheValues, i));
     var sCache = Rti._getRawIsSubtypeCache(rti);
     if (sCache != null) {
       _Utils.mapClear(sCache);
+    }
+    // Clear eval caches on RTIs that are type environments.
+    var rtiCache = Rti._getEvalCache(rti);
+    if (rtiCache != null) {
+      _Utils.mapClear(rtiCache);
     }
   }
 }
