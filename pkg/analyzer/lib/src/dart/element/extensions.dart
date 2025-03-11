@@ -84,6 +84,13 @@ extension Element2Extension on Element2 {
   }
 }
 
+extension Element2OrNullExtension on Element2? {
+  /// Return true if this element is a wildcard variable.
+  bool get isWildcardVariable {
+    return this?.isWildcardVariable ?? false;
+  }
+}
+
 extension ElementAnnotationExtensions on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {
     for (var kind in TargetKind.values) kind.name: kind,
@@ -174,32 +181,6 @@ extension ElementExtension on Element {
           this_ is PropertyAccessorElement && !this_.isStatic;
     }
     return false;
-  }
-
-  /// Return true if this element is a wildcard variable.
-  bool get isWildcardVariable {
-    return name == '_' &&
-        (this is LocalVariableElement ||
-            this is PrefixElement ||
-            this is TypeParameterElement ||
-            (this is ParameterElement &&
-                this is! FieldFormalParameterElement &&
-                this is! SuperFormalParameterElement)) &&
-        library.asElement2.hasWildcardVariablesFeatureEnabled;
-  }
-}
-
-extension ElementImplExtension on ElementImpl {
-  /// Return true if this element is a wildcard variable.
-  bool get isWildcardVariable {
-    return name == '_' &&
-        (this is LocalVariableElement ||
-            this is PrefixElement ||
-            this is TypeParameterElement ||
-            (this is ParameterElement &&
-                this is! FieldFormalParameterElement &&
-                this is! SuperFormalParameterElement)) &&
-        library.asElement2.hasWildcardVariablesFeatureEnabled;
   }
 }
 

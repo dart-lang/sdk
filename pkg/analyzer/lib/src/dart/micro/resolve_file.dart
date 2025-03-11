@@ -9,7 +9,6 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -259,24 +258,14 @@ class FileResolver {
   ///  cached by the resolver are searched, generated files are ignored.
   Future<List<CiderSearchMatch>> findReferences(Element2 element,
       {OperationPerformanceImpl? performance}) {
-    return findReferences2(
-      element.asElement!,
-      performance: performance,
-    );
-  }
-
-  /// Looks for references to the given Element. All the files currently
-  ///  cached by the resolver are searched, generated files are ignored.
-  Future<List<CiderSearchMatch>> findReferences2(Element element,
-      {OperationPerformanceImpl? performance}) {
-    return logger.runAsync('findReferences for ${element.name}', () async {
+    return logger.runAsync('findReferences for ${element.name3}', () async {
       var references = <CiderSearchMatch>[];
 
       Future<void> collectReferences2(
           String path, OperationPerformanceImpl performance) async {
         await performance.runAsync('collectReferences', (_) async {
           var resolved = await resolve(path: path);
-          var collector = ReferencesCollector(element);
+          var collector = ReferencesCollector(element.asElement!);
           resolved.unit.accept(collector);
           var matches = collector.references;
           if (matches.isNotEmpty) {
@@ -295,10 +284,13 @@ class FileResolver {
 
       performance ??= OperationPerformanceImpl('<default>');
       // TODO(keertip): check if element is named constructor.
-      if (element is LocalVariableElement ||
-          (element is ParameterElement && !element.isNamed)) {
-        await collectReferences2(element.source!.fullName, performance!);
-      } else if (element is LibraryImportElementImpl) {
+      if (element is LocalVariableElement2 ||
+          (element is FormalParameterElement && !element.isNamed)) {
+        await collectReferences2(
+          element.firstFragment.libraryFragment!.source.fullName,
+          performance!,
+        );
+      } else if (element is MockLibraryImportElement) {
         return await _searchReferences_Import(element);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
@@ -892,13 +884,14 @@ class FileResolver {
   }
 
   Future<List<CiderSearchMatch>> _searchReferences_Import(
-      LibraryImportElementImpl element) async {
+      MockLibraryImportElement element) async {
     var results = <CiderSearchMatch>[];
-    var libraryElement = element.library;
-    for (var unitElement in libraryElement.units) {
-      String unitPath = unitElement.source.fullName;
+    var libraryElement = element.library2;
+    for (var libraryFragment in libraryElement.fragments) {
+      String unitPath = libraryFragment.source.fullName;
       var unitResult = await resolve(path: unitPath);
-      var visitor = ImportElementReferencesVisitor(element, unitElement);
+      var visitor =
+          ImportElementReferencesVisitor(element.import, libraryFragment);
       unitResult.unit.accept(visitor);
       var lineInfo = unitResult.lineInfo;
       var infos = visitor.results

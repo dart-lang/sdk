@@ -78,7 +78,10 @@ mixin AugmentableFragment on ElementImpl {
 }
 
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
-    implements BindPatternVariableElement, BindPatternVariableFragment {
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        BindPatternVariableElement,
+        BindPatternVariableFragment {
   final DeclaredVariablePatternImpl node;
 
   /// This flag is set to `true` if this variable clashes with another
@@ -1357,7 +1360,7 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   }
 }
 
-/// A [LocalVariableElement] for a local 'const' variable that has an
+/// A `LocalVariableElement` for a local 'const' variable that has an
 /// initializer.
 class ConstLocalVariableElementImpl extends LocalVariableElementImpl
     with ConstVariableElement {
@@ -6738,7 +6741,10 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 }
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
-    implements JoinPatternVariableElement, JoinPatternVariableFragment {
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        JoinPatternVariableElement,
+        JoinPatternVariableFragment {
   @override
   final List<PatternVariableElementImpl> variables;
 
@@ -7611,7 +7617,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
   LibraryElementImpl get library2 => super.library2 as LibraryElementImpl;
 
   @override
-  LibraryFragment get libraryFragment => enclosingElement3;
+  CompilationUnitElementImpl get libraryFragment => enclosingElement3;
 
   @override
   Namespace get namespace {
@@ -7786,9 +7792,9 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
   }
 }
 
-/// A concrete implementation of a [LocalVariableElement].
 class LocalVariableElementImpl extends NonParameterVariableElementImpl
     implements
+        // ignore: deprecated_member_use_from_same_package
         LocalVariableElement,
         LocalVariableFragment,
         VariableElementOrMember {
@@ -9677,7 +9683,10 @@ class PartElementImpl extends _ExistingElementImpl
 }
 
 class PatternVariableElementImpl extends LocalVariableElementImpl
-    implements PatternVariableElement, PatternVariableFragment {
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        PatternVariableElement,
+        PatternVariableFragment {
   @override
   JoinPatternVariableElementImpl? join;
 
