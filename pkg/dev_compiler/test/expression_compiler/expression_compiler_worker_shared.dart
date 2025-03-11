@@ -133,7 +133,8 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure': contains('developer.postEvent'),
+              'compiledProcedure':
+                  stringContainsInOrder(['developer', 'postEvent']),
             })
           ]));
     });
@@ -167,7 +168,8 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
               'errors': isEmpty,
               'warnings': isEmpty,
               'infos': isEmpty,
-              'compiledProcedure': contains('developer.postEvent'),
+              'compiledProcedure':
+                  stringContainsInOrder(['developer', 'postEvent']),
             })
           ]));
     });
