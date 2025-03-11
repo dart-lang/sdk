@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,6 +18,81 @@ void main() {
 
 @reflectiveTest
 class DocumentLinkTest extends AbstractLspAnalysisServerTest {
+  static const _pubBase = 'https://pub.dev/packages/';
+  static const _lintBase = 'https://dart.dev/tools/linter-rules/';
+
+  @override
+  void setUp() {
+    registerLintRules();
+    super.setUp();
+  }
+
+  Future<void> test_analysisOptions_empty() async {
+    var content = '';
+
+    await _test_analysisOptions_links(content, isEmpty);
+  }
+
+  Future<void> test_analysisOptions_lint_links_list() async {
+    var content = '''
+linter:
+  rules:
+    - prefer_relative_imports
+    - prefer_single_quotes
+    - prefer_int_literals
+''';
+
+    var expectedLinks = {
+      'prefer_relative_imports': '${_lintBase}prefer_relative_imports',
+      'prefer_single_quotes': '${_lintBase}prefer_single_quotes',
+      'prefer_int_literals': '${_lintBase}prefer_int_literals',
+    };
+
+    await _test_analysisOptions_links(content, equals(expectedLinks));
+  }
+
+  Future<void> test_analysisOptions_lint_links_map() async {
+    var content = '''
+linter:
+  rules:
+    prefer_relative_imports: true
+    prefer_single_quotes: true
+    prefer_int_literals: false
+''';
+
+    var expectedLinks = {
+      'prefer_relative_imports': '${_lintBase}prefer_relative_imports',
+      'prefer_single_quotes': '${_lintBase}prefer_single_quotes',
+      'prefer_int_literals': '${_lintBase}prefer_int_literals',
+    };
+
+    await _test_analysisOptions_links(content, equals(expectedLinks));
+  }
+
+  Future<void> test_analysisOptions_linterRules_empty() async {
+    var content = '''
+linter:
+  rules:
+''';
+
+    await _test_pubspec_links(content, isEmpty);
+  }
+
+  Future<void> test_analysisOptions_undefinedLint() async {
+    var content = '''
+linter:
+  rules:
+    - undefined
+    - prefer_single_quotes
+''';
+
+    var expectedLinks = {
+      'prefer_single_quotes': '${_lintBase}prefer_single_quotes',
+    };
+
+    await _test_analysisOptions_links(content, equals(expectedLinks));
+  }
+
   Future<void> test_exampleLink() async {
     var exampleFolderPath = join(projectFolderPath, 'examples', 'api');
     var exampleFileUri = Uri.file(join(exampleFolderPath, 'foo.dart'));
@@ -102,10 +178,10 @@ dependencies:
 ''';
 
     var expectedLinks = {
-      'pub_package_1': 'https://pub.dev/packages/pub_package_1',
-      'pub_package_2': 'https://pub.dev/packages/pub_package_2',
-      'pub_package_3': 'https://pub.dev/packages/pub_package_3',
-      'pub_package_4': 'https://pub.dev/packages/pub_package_4',
+      'pub_package_1': '${_pubBase}pub_package_1',
+      'pub_package_2': '${_pubBase}pub_package_2',
+      'pub_package_3': '${_pubBase}pub_package_3',
+      'pub_package_4': '${_pubBase}pub_package_4',
     };
 
     await _test_pubspec_links(content, equals(expectedLinks));
@@ -135,18 +211,35 @@ dev_dependencies:
 ''';
 
     var expectedLinks = {
-      'dep_package': 'https://pub.dev/packages/dep_package',
-      'dev_dep_package': 'https://pub.dev/packages/dev_dep_package',
+      'dep_package': '${_pubBase}dep_package',
+      'dev_dep_package': '${_pubBase}dev_dep_package',
     };
 
     await _test_pubspec_links(content, equals(expectedLinks));
   }
 
-  Future<void> _test_pubspec_links(String content, Matcher expected) async {
-    newFile(pubspecFilePath, content);
+  Future<void> _test_analysisOptions_links(
+    String content,
+    Matcher expected,
+  ) async {
+    await _test_file_links(
+      analysisOptionsUri,
+      analysisOptionsPath,
+      content,
+      expected,
+    );
+  }
+
+  Future<void> _test_file_links(
+    Uri fileUri,
+    String filePath,
+    String content,
+    Matcher expected,
+  ) async {
+    newFile(filePath, content);
 
     await initialize();
-    var links = await getDocumentLinks(pubspecFileUri);
+    var links = await getDocumentLinks(fileUri);
 
     // Build a map of the links and their text from the document for easy
     // comparison.
@@ -156,5 +249,9 @@ dev_dependencies:
     };
 
     expect(linkMap, expected);
+  }
+
+  Future<void> _test_pubspec_links(String content, Matcher expected) async {
+    await _test_file_links(pubspecFileUri, pubspecFilePath, content, expected);
   }
 }
