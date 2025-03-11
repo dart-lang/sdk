@@ -173,7 +173,7 @@ The test can then be written in a method that looks something like this:
 ```dart
 Future<void> test_positive() async {
   await resolveTestCode('''
-var c = /*caret*/42;
+var c = ^42;
 ''');
   await assertHasAssist('''
 var c = 0x2a;
@@ -181,7 +181,7 @@ var c = 0x2a;
 }
 ```
 
-The test framework will look for the marker `/*caret*/`, remember it's offset,
+The test framework will look for the marker `^`, remember it's offset,
 create a file containing the first piece of code with the marker removed, run
 the assist over the code, use our correction producer to build an edit, apply
 the edit to the file, and textually compare the results with the second piece of

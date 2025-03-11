@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -62,7 +63,7 @@ void f() {
     _assertHasChange('Insert a newline at the end of the current line', '''
 void f() {
   int v = 1;
-  /*caret*/
+  ^
 }
 ''');
   }
@@ -78,7 +79,7 @@ void f() {
     _assertHasChange('Insert a newline at the end of the current line', '''
 void f() {
   int v = 1;
-  /*caret*/
+  ^
 }
 ''');
   }
@@ -92,38 +93,25 @@ void f() {
     await waitForTasksFinished();
     var match = 'v =';
     await _prepareCompletion(match, atEnd: true);
-    _assertHasChange(
-      'Insert a newline at the end of the current line',
-      '''
+    _assertHasChange('Insert a newline at the end of the current line', '''
 void f() {
-  int v =
+  int v =^
   x
 }
-''',
-      (s) => s.indexOf(match) + match.length,
-    ); // Ensure cursor after '='.
+''');
   }
 
-  void _assertHasChange(
-    String message,
-    String expectedCode, [
-    int Function(String)? cmp,
-  ]) {
+  void _assertHasChange(String message, String expectedCode) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
         var resultCode = SourceEdit.applySequence(
           testFileContent,
           change.edits[0].edits,
         );
-        expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
-        if (cmp != null) {
-          var offset = cmp(resultCode);
-          expect(change.selection!.offset, offset);
-        }
-      } else {
-        if (cmp != null) {
-          var offset = cmp(testFileContent);
-          expect(change.selection!.offset, offset);
+        var parsedExpected = TestCode.parse(expectedCode);
+        expect(resultCode, parsedExpected.code);
+        if (parsedExpected.positions.isNotEmpty) {
+          expect(change.selection!.offset, parsedExpected.position.offset);
         }
       }
       return;
