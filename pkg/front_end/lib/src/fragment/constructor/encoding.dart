@@ -28,10 +28,14 @@ class RegularConstructorEncoding {
 
   final bool _isExternal;
 
+  final bool _isEnumConstructor;
+
   Statement? bodyInternal;
 
-  RegularConstructorEncoding({required bool isExternal})
-      : _isExternal = isExternal;
+  RegularConstructorEncoding(
+      {required bool isExternal, required bool isEnumConstructor})
+      : _isExternal = isExternal,
+        _isEnumConstructor = isEnumConstructor;
 
   Member get readTarget =>
       _constructorTearOff ??
@@ -223,6 +227,20 @@ class RegularConstructorEncoding {
 
   void becomeNative() {
     _constructor.isExternal = true;
+  }
+
+  VariableDeclaration getFormalParameter(int index) {
+    if (_isEnumConstructor) {
+      // Skip synthetic parameters for index and name.
+      index += 2;
+    }
+    if (index < function.positionalParameters.length) {
+      return function.positionalParameters[index];
+    } else {
+      index -= function.positionalParameters.length;
+      assert(index < function.namedParameters.length);
+      return function.namedParameters[index];
+    }
   }
 
   VariableDeclaration? getTearOffParameter(int index) {
@@ -521,6 +539,16 @@ class ExtensionTypeConstructorEncoding {
 
   void prependInitializer(Initializer initializer) {
     initializers.insert(0, initializer);
+  }
+
+  VariableDeclaration getFormalParameter(int index) {
+    if (index < function.positionalParameters.length) {
+      return function.positionalParameters[index];
+    } else {
+      index -= function.positionalParameters.length;
+      assert(index < function.namedParameters.length);
+      return function.namedParameters[index];
+    }
   }
 
   VariableDeclaration? getTearOffParameter(int index) {

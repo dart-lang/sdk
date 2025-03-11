@@ -9,7 +9,6 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
-import '../base/identifiers.dart';
 import '../base/local_scope.dart';
 import '../base/messages.dart'
     show
@@ -32,6 +31,7 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/constructor/body_builder_context.dart';
 import '../fragment/constructor/declaration.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
@@ -45,7 +45,6 @@ import '../type_inference/inference_results.dart';
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
-import 'source_enum_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart'
@@ -305,19 +304,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     return _fieldTypeSubstitution.substituteType(fieldType);
   }
 
-  void registerFunctionBody(Statement value) {
-    _introductory.registerFunctionBody(value);
-  }
-
-  void registerNoBodyConstructor() {
-    _introductory.registerNoBodyConstructor();
-  }
-
-  @override
-  VariableDeclaration? getTearOffParameter(int index) {
-    return _introductory.getTearOffParameter(index);
-  }
-
   LocalScope computeFormalParameterScope(LookupScope parent) {
     if (formals == null) return new FormalParameterScope(parent: parent);
     Map<String, Builder> local = <String, Builder>{};
@@ -362,27 +348,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
         debugName: "formal parameter initializer",
         kind: ScopeKind.initializers,
         local: local);
-  }
-
-  @override
-  FormalParameterBuilder? getFormal(Identifier identifier) {
-    if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
-        if (formal.isWildcard &&
-            identifier.name == '_' &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-        if (formal.name == identifier.name &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-      }
-      // Coverage-ignore(suite): Not run.
-      // If we have any formals we should find the one we're looking for.
-      assert(false, "$identifier not found in $formals");
-    }
-    return null;
   }
 
   final String? nativeMethodName;
@@ -766,6 +731,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isDeclarationInstanceMember => false;
 
   @override
@@ -798,15 +764,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
       }
     }
     return isRedirecting;
-  }
-
-  @override
-  VariableDeclaration getFormalParameter(int index) {
-    if (declarationBuilder is SourceEnumBuilder) {
-      return formals![index + 2].variable!;
-    } else {
-      return formals![index].variable!;
-    }
   }
 
   ConstructorBuilder? _computeSuperTargetBuilder(
@@ -1079,7 +1036,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   }
 
   BodyBuilderContext createBodyBuilderContext() {
-    return new ConstructorBodyBuilderContext(this, invokeTarget);
+    return new ConstructorBodyBuilderContext(this, _introductory, invokeTarget);
   }
 }
 
