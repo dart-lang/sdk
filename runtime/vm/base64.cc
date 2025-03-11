@@ -38,7 +38,7 @@ static const char PAD = '=';
 
 uint8_t* DecodeBase64(const char* str, intptr_t* out_decoded_len) {
   intptr_t len = strlen(str);
-  if (len == 0 || (len % 4 != 0)) {
+  if (len == 0 || (len % 4 != 0) || str[len - 3] == PAD) {
     return nullptr;
   }
 
