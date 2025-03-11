@@ -6,21 +6,26 @@ import '../language_server_benchmark.dart';
 import '../legacy_messages.dart';
 import 'utils.dart';
 
-/// Hovering over an import with ctrl down in IntelliJ sends getHover requests
-/// for the import uri at position 0 every ~8 ms and never cancels old requests.
-/// This benchmark does this 500 times (roughly equal to hovering for 4 seconds)
-/// and reports how long it takes before the analysis server is responsive again
-/// (measured by when it responds to a completion request).
+/// In reports of the analyzer being slow we've seen `edit.getFixes` causing a
+/// long queue because they take longer to execute than the wait before the next
+/// one comes in.
+/// While we haven't been able to reproduce that we can surely fire a whole lot
+/// of them very fast, being able to meassure that we "debounce" them is we get
+/// too many at once.
+/// Here we'll fire both `edit.getFixes` (seen in reports from users)
+/// and `edit.getAssists` (which seems, locally at least, to happen every time
+/// the cursor moves).
 Future<void> main() async {
   await runHelper(
-    LegacyManyHoverRequestsBenchmark.new,
+    LegacyManyGetFixesAndGetAssisstRequestsBenchmark.new,
     runAsLsp: false,
     // The number of files doesn't seem to be important on this one.
     numberOfFileOptions: [4],
   );
 }
 
-class LegacyManyHoverRequestsBenchmark extends DartLanguageServerBenchmark {
+class LegacyManyGetFixesAndGetAssisstRequestsBenchmark
+    extends DartLanguageServerBenchmark {
   @override
   final Uri rootUri;
   @override
@@ -28,7 +33,7 @@ class LegacyManyHoverRequestsBenchmark extends DartLanguageServerBenchmark {
 
   final RunDetails runDetails;
 
-  LegacyManyHoverRequestsBenchmark(
+  LegacyManyGetFixesAndGetAssisstRequestsBenchmark(
     this.rootUri,
     this.cacheFolder,
     this.runDetails,
@@ -42,21 +47,27 @@ class LegacyManyHoverRequestsBenchmark extends DartLanguageServerBenchmark {
     await send(
       LegacyMessages.setPriorityFiles(largestIdSeen + 1, [
         runDetails.mainFile.uri,
+        runDetails.orderedFileCopies.first.uri,
       ]),
     );
 
-    // Hovering over an import with ctrl down in IntelliJ send getHover for the
-    // import uri at position 0 every ~8 ms and never cancels old requests.
-    // 500 times is roughly equal to hovering for 4 seconds.
-    for (var i = 0; i < 500; i++) {
+    // This is probably not realistic, but not being able to reproduce fewer
+    // requests, each taking longer, for now this is better than nothing.
+    for (var i = 0; i < 2000; i++) {
       await send(
-        LegacyMessages.getHover(
+        LegacyMessages.getFixes(
           largestIdSeen + 1,
           runDetails.orderedFileCopies.first.uri,
-          0,
+          i,
         ),
       );
-      await Future.delayed(const Duration(milliseconds: 8));
+      await send(
+        LegacyMessages.getAssists(
+          largestIdSeen + 1,
+          runDetails.orderedFileCopies.first.uri,
+          i,
+        ),
+      );
     }
 
     // Type 'ge' in the empty line in main.

@@ -85,6 +85,9 @@ abstract class DartLanguageServerBenchmark {
         print('Sending message with id $possibleId');
       }
     }
+    if (verbosity > 3) {
+      print('Sending message: $jsonEncodedBody');
+    }
 
     if (_lsp) {
       // Header is always ascii, body is always utf8!
@@ -295,6 +298,16 @@ abstract class DartLanguageServerBenchmark {
         String messageString = utf8.decode(_buffer);
         _buffer.clear();
         _headerContentLength = null;
+
+        if (messageString.startsWith('The Dart VM service')) {
+          print('\n\n$messageString\n\n');
+          continue;
+        }
+        if (messageString.startsWith('The Dart DevTools')) {
+          print('\n\n$messageString\n\n');
+          continue;
+        }
+
         Map<String, dynamic> message =
             json.decode(messageString) as Map<String, dynamic>;
 
