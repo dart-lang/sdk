@@ -9,6 +9,29 @@ String _uriToStringWithoutEndingSlash(Uri uri) {
 }
 
 class LegacyMessages {
+  static Map<String, dynamic> getAssists(
+    int id,
+    Uri file,
+    int offset, {
+    int length = 0,
+  }) {
+    return {
+      'id': '$id',
+      'method': 'edit.getAssists',
+      'params': {'file': '$file', 'offset': offset, 'length': length},
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
+  static Map<String, dynamic> getFixes(int id, Uri file, int offset) {
+    return {
+      'id': '$id',
+      'method': 'edit.getFixes',
+      'params': {'file': '$file', 'offset': offset},
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
   static Map<String, dynamic> getHover(int id, Uri file, int offset) {
     return {
       'id': '$id',

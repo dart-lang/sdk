@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import '../base/identifiers.dart';
 import '../base/messages.dart'
     show
         messagePatchDeclarationMismatch,
@@ -57,24 +56,7 @@ abstract class SourceFunctionBuilder
   @override
   bool get isFactory;
 
-  FormalParameterBuilder? getFormal(Identifier identifier);
-
   bool get isNative;
-
-  /// Returns the [index]th parameter of this function.
-  ///
-  /// The index is the syntactical index, including both positional and named
-  /// parameter in the order they are declared, and excluding the synthesized
-  /// this parameter on extension instance members.
-  VariableDeclaration getFormalParameter(int index);
-
-  /// If this is an extension instance method or constructor with lowering
-  /// enabled, the tear off parameter corresponding to the [index]th parameter
-  /// on the instance method or constructor is returned.
-  ///
-  /// This is used to update the default value for the closure parameter when
-  /// it has been computed for the original parameter.
-  VariableDeclaration? getTearOffParameter(int index);
 
   /// Returns the parameter for 'this' synthetically added to extension
   /// instance members.

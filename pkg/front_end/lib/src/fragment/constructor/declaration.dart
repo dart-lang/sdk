@@ -6,7 +6,10 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 
+import '../../base/identifiers.dart';
+import '../../base/local_scope.dart';
 import '../../base/scope.dart';
+import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
@@ -89,7 +92,20 @@ abstract class ConstructorDeclaration {
 
   void becomeNative();
 
+  /// Returns the [VariableDeclaration] for the [index]th formal parameter
+  /// declared in the constructor.
+  ///
+  /// The synthetic parameters of enum constructor are *not* included, so index
+  /// 0 zero of an enum constructor is the first user defined parameter.
+  VariableDeclaration getFormalParameter(int index);
+
+  /// Returns the [VariableDeclaration] for the tear off, if any, of the
+  /// [index]th formal parameter declared in the constructor.
   VariableDeclaration? getTearOffParameter(int index);
+
+  FormalParameterBuilder? getFormal(Identifier identifier);
+
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent);
 
   void finishAugmentation(SourceConstructorBuilder origin);
 
@@ -97,6 +113,10 @@ abstract class ConstructorDeclaration {
       DeclarationBuilder declarationBuilder);
 
   void buildBody();
+
+  bool get isConst;
+
+  bool get isExternal;
 
   bool get isRedirecting;
 
@@ -108,6 +128,61 @@ abstract class ConstructorDeclaration {
       required List<int?>? positionalSuperParameters,
       required List<String>? namedSuperParameters,
       required SourceLibraryBuilder libraryBuilder});
+}
+
+mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
+  @override
+  FormalParameterBuilder? getFormal(Identifier identifier) {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.isWildcard &&
+            identifier.name == '_' &&
+            formal.fileOffset == identifier.nameOffset) {
+          return formal;
+        }
+        if (formal.name == identifier.name &&
+            formal.fileOffset == identifier.nameOffset) {
+          return formal;
+        }
+      }
+      // Coverage-ignore(suite): Not run.
+      // If we have any formals we should find the one we're looking for.
+      assert(false, "$identifier not found in $formals");
+    }
+    return null;
+  }
+
+  @override
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
+    // From
+    // [dartLangSpec.tex](../../../../../../docs/language/dartLangSpec.tex) at
+    // revision 94b23d3b125e9d246e07a2b43b61740759a0dace:
+    //
+    // When the formal parameter list of a non-redirecting generative
+    // constructor contains any initializing formals, a new scope is
+    // introduced, the _formal parameter initializer scope_, which is the
+    // current scope of the initializer list of the constructor, and which is
+    // enclosed in the scope where the constructor is declared.  Each
+    // initializing formal in the formal parameter list introduces a final
+    // local variable into the formal parameter initializer scope, but not into
+    // the formal parameter scope; every other formal parameter introduces a
+    // local variable into both the formal parameter scope and the formal
+    // parameter initializer scope.
+
+    if (formals == null) return parent;
+    Map<String, Builder> local = {};
+    for (FormalParameterBuilder formal in formals!) {
+      // Wildcard initializing formal parameters do not introduce a local
+      // variable in the initializer list.
+      if (formal.isWildcard) continue;
+
+      local[formal.name] = formal.forFormalParameterInitializerScope();
+    }
+    return parent.createNestedFixedScope(
+        debugName: "formal parameter initializer",
+        kind: ScopeKind.initializers,
+        local: local);
+  }
 }
 
 mixin RegularConstructorDeclarationMixin implements ConstructorDeclaration {
@@ -170,6 +245,11 @@ mixin RegularConstructorDeclarationMixin implements ConstructorDeclaration {
   @override
   void becomeNative() {
     _encoding.becomeNative();
+  }
+
+  @override
+  VariableDeclaration getFormalParameter(int index) {
+    return _encoding.getFormalParameter(index);
   }
 
   @override
@@ -250,7 +330,7 @@ mixin RegularConstructorDeclarationMixin implements ConstructorDeclaration {
 }
 
 class RegularConstructorDeclaration
-    with RegularConstructorDeclarationMixin
+    with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
     implements ConstructorDeclaration {
   final ConstructorFragment _fragment;
   final List<FormalParameterBuilder>? _syntheticFormals;
@@ -263,10 +343,14 @@ class RegularConstructorDeclaration
 
   RegularConstructorDeclaration(this._fragment,
       {required List<FormalParameterBuilder>? syntheticFormals,
-      required this.typeParameters})
+      required this.typeParameters,
+      // TODO(johnniwinther): Create a separate [ConstructorDeclaration] for
+      // enum constructors.
+      required bool isEnumConstructor})
       : _syntheticFormals = syntheticFormals,
         _encoding = new RegularConstructorEncoding(
-            isExternal: _fragment.modifiers.isExternal);
+            isExternal: _fragment.modifiers.isExternal,
+            isEnumConstructor: isEnumConstructor);
 
   @override
   LookupScope get typeParameterScope => _fragment.typeParameterScope;
@@ -282,6 +366,12 @@ class RegularConstructorDeclaration
   late final List<FormalParameterBuilder>? formals = _syntheticFormals != null
       ? [..._syntheticFormals, ...?_fragment.formals]
       : _fragment.formals;
+
+  @override
+  bool get isConst => _fragment.modifiers.isConst;
+
+  @override
+  bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
   void createNode(
@@ -354,7 +444,7 @@ class RegularConstructorDeclaration
 
 // Coverage-ignore(suite): Not run.
 class PrimaryConstructorDeclaration
-    with RegularConstructorDeclarationMixin
+    with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
     implements ConstructorDeclaration {
   final PrimaryConstructorFragment _fragment;
 
@@ -363,7 +453,9 @@ class PrimaryConstructorDeclaration
 
   PrimaryConstructorDeclaration(this._fragment)
       : _encoding = new RegularConstructorEncoding(
-            isExternal: _fragment.modifiers.isExternal);
+            isExternal: _fragment.modifiers.isExternal,
+            isEnumConstructor: false);
+
   @override
   LookupScope get typeParameterScope => _fragment.typeParameterScope;
 
@@ -378,6 +470,12 @@ class PrimaryConstructorDeclaration
 
   @override
   List<NominalParameterBuilder>? get typeParameters => null;
+
+  @override
+  bool get isConst => _fragment.modifiers.isConst;
+
+  @override
+  bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
   void createNode(
@@ -441,7 +539,7 @@ class PrimaryConstructorDeclaration
 }
 
 class DefaultEnumConstructorDeclaration
-    with RegularConstructorDeclarationMixin
+    with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
     implements ConstructorDeclaration {
   final Uri _fileUri;
   final int _fileOffset;
@@ -453,8 +551,8 @@ class DefaultEnumConstructorDeclaration
   final List<FormalParameterBuilder> formals;
 
   @override
-  final RegularConstructorEncoding _encoding =
-      new RegularConstructorEncoding(isExternal: false);
+  final RegularConstructorEncoding _encoding = new RegularConstructorEncoding(
+      isExternal: false, isEnumConstructor: true);
 
   /// The scope in which to build the formal parameters.
   final LookupScope _lookupScope;
@@ -478,6 +576,12 @@ class DefaultEnumConstructorDeclaration
 
   @override
   List<NominalParameterBuilder>? get typeParameters => null;
+
+  @override
+  bool get isConst => true;
+
+  @override
+  bool get isExternal => false;
 
   @override
   void createNode(
@@ -603,6 +707,11 @@ mixin ExtensionTypeConstructorDeclarationMixin
   }
 
   @override
+  VariableDeclaration getFormalParameter(int index) {
+    return _encoding.getFormalParameter(index);
+  }
+
+  @override
   VariableDeclaration? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
   }
@@ -689,7 +798,7 @@ mixin ExtensionTypeConstructorDeclarationMixin
 }
 
 class ExtensionTypeConstructorDeclaration
-    with ExtensionTypeConstructorDeclarationMixin
+    with ConstructorDeclarationMixin, ExtensionTypeConstructorDeclarationMixin
     implements ConstructorDeclaration {
   final ConstructorFragment _fragment;
 
@@ -703,6 +812,7 @@ class ExtensionTypeConstructorDeclaration
       {required this.typeParameters})
       : _encoding = new ExtensionTypeConstructorEncoding(
             isExternal: _fragment.modifiers.isExternal);
+
   @override
   LookupScope get typeParameterScope => _fragment.typeParameterScope;
 
@@ -715,6 +825,12 @@ class ExtensionTypeConstructorDeclaration
 
   @override
   List<FormalParameterBuilder>? get formals => _fragment.formals;
+
+  @override
+  bool get isConst => _fragment.modifiers.isConst;
+
+  @override
+  bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
   void createNode(
@@ -785,7 +901,7 @@ class ExtensionTypeConstructorDeclaration
 }
 
 class ExtensionTypePrimaryConstructorDeclaration
-    with ExtensionTypeConstructorDeclarationMixin
+    with ConstructorDeclarationMixin, ExtensionTypeConstructorDeclarationMixin
     implements ConstructorDeclaration {
   final PrimaryConstructorFragment _fragment;
 
@@ -799,6 +915,7 @@ class ExtensionTypePrimaryConstructorDeclaration
       {required this.typeParameters})
       : _encoding = new ExtensionTypeConstructorEncoding(
             isExternal: _fragment.modifiers.isExternal);
+
   @override
   LookupScope get typeParameterScope => _fragment.typeParameterScope;
 
@@ -811,6 +928,12 @@ class ExtensionTypePrimaryConstructorDeclaration
 
   @override
   List<FormalParameterBuilder>? get formals => _fragment.formals;
+
+  @override
+  bool get isConst => _fragment.modifiers.isConst;
+
+  @override
+  bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
   void createNode(

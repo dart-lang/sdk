@@ -149,7 +149,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isAssignable => false;
 
-  @override
   FormalParameterBuilder? getFormal(Identifier identifier) =>
       _encoding.getFormal(identifier);
 
@@ -161,7 +160,11 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isNative => _encoding.isNative;
 
-  @override
+  /// Returns the [index]th parameter of this function.
+  ///
+  /// The index is the syntactical index, including both positional and named
+  /// parameter in the order they are declared, and excluding the synthesized
+  /// this parameter on extension instance members.
   VariableDeclaration getFormalParameter(int index) =>
       _introductory.formals![index].variable!;
 
@@ -260,7 +263,12 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 
-  @override
+  /// If this is an extension instance method or constructor with lowering
+  /// enabled, the tear off parameter corresponding to the [index]th parameter
+  /// on the instance method or constructor is returned.
+  ///
+  /// This is used to update the default value for the closure parameter when
+  /// it has been computed for the original parameter.
   VariableDeclaration? getTearOffParameter(int index) =>
       _encoding.getTearOffParameter(index);
 

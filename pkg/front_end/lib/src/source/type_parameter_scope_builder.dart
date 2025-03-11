@@ -1816,7 +1816,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             ConstructorDeclaration constructorDeclaration =
                 new RegularConstructorDeclaration(fragment,
                     typeParameters: typeParameters,
-                    syntheticFormals: syntheticFormals);
+                    syntheticFormals: syntheticFormals,
+                    isEnumConstructor: declarationBuilder.isEnum);
             constructorBuilder = new SourceConstructorBuilderImpl(
                 modifiers: fragment.modifiers,
                 name: fragment.name,
@@ -1858,7 +1859,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 ownerName: fragment.name, allowNameConflict: true);
             ConstructorDeclaration constructorDeclaration =
                 new RegularConstructorDeclaration(fragment,
-                    typeParameters: typeParameters, syntheticFormals: null);
+                    typeParameters: typeParameters,
+                    syntheticFormals: null,
+                    isEnumConstructor: false);
             constructorBuilder = new SourceConstructorBuilderImpl(
                 modifiers: fragment.modifiers,
                 name: fragment.name,

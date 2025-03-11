@@ -84,14 +84,25 @@ String get$i() {
 import '${getFilenameFor(1)}';
 
 void main(List<String> arguments) {
-  
+
 }
 """;
   File.fromUri(mainFileUri).writeAsStringSync(mainFileContent);
+  var typing = '  ge';
+  var mainFileTypingContent = """
+import '${getFilenameFor(1)}';
+
+void main(List<String> arguments) {
+$typing
+}
+""";
+  var typingAtOffset = mainFileTypingContent.indexOf(typing) + typing.length;
 
   return RunDetails(
     libDirUri: libDirUri,
     mainFile: FileContentPair(mainFileUri, mainFileContent),
+    mainFileTypingContent: mainFileTypingContent,
+    typingAtOffset: typingAtOffset,
     orderedFileCopies: orderedFileCopies,
     numFiles: numFiles,
   );
@@ -178,12 +189,16 @@ class FileContentPair {
 class RunDetails {
   final Uri libDirUri;
   final FileContentPair mainFile;
+  final String mainFileTypingContent;
+  final int typingAtOffset;
   final List<FileContentPair> orderedFileCopies;
   final int numFiles;
 
   RunDetails({
     required this.libDirUri,
     required this.mainFile,
+    required this.mainFileTypingContent,
+    required this.typingAtOffset,
     required this.orderedFileCopies,
     required this.numFiles,
   });
