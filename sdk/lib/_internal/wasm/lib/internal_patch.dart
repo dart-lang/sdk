@@ -133,22 +133,6 @@ void _invokeCallback(void Function() callback) {
   }
 }
 
-@pragma("wasm:export", "\$invokeCallback1")
-void _invokeCallback1(void Function(dynamic) callback, dynamic arg) {
-  try {
-    callback(arg);
-  } catch (e, s) {
-    print(e);
-    print(s);
-    // FIXME: Chrome/V8 bug makes errors from `rethrow`s not being reported to
-    // `window.onerror`. Please change this back to `rethrow` once the chrome
-    // bug is fixed.
-    //
-    // https://g-issues.chromium.org/issues/327155548
-    throw e;
-  }
-}
-
 // Will be patched in `pkg/dart2wasm/lib/compile.dart` right before TFA.
 external Function get mainTearOff;
 
@@ -175,9 +159,6 @@ void _invokeMain(WasmExternRef jsArrayRef) {
     rethrow;
   }
 }
-
-@pragma("wasm:export", "\$listAdd")
-void _listAdd(List<dynamic> list, dynamic item) => list.add(item);
 
 String jsonEncode(String object) => jsStringToDartString(
   JSStringImpl(
