@@ -55,6 +55,7 @@ void f(Random r) {}
   Future<void> test_createChange_add() async {
     await indexTestUnit('''
 import 'dart:async';
+// ignore: multiple_combinators
 import 'dart:math' show Random, min hide max;
 void f() {
   Future f;
@@ -69,6 +70,7 @@ void f() {
     // validate change
     return assertSuccessfulRefactoring('''
 import 'dart:async';
+// ignore: multiple_combinators
 import 'dart:math' as newName show Random, min hide max;
 void f() {
   Future f;

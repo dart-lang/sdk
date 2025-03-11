@@ -23,9 +23,7 @@ library;
 import 'dart:async' show Future, ZoneSpecification, runZoned;
 import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:convert' show utf8;
-import 'dart:io'
-    show Directory, File, Platform, stderr, stdout
-    hide FileSystemEntity;
+import 'dart:io' show Directory, File, Platform, stderr, stdout;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
@@ -47,9 +45,9 @@ import 'package:vm/http_filesystem.dart';
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart'
     show createLoadedLibrariesSet, ErrorDetector;
+import 'package:vm/modular/target/vm.dart' show VmTarget;
 import 'package:vm/native_assets/diagnostic_message.dart';
 import 'package:vm/native_assets/synthesizer.dart';
-import 'package:vm/modular/target/vm.dart' show VmTarget;
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 final bool dumpKernel = new bool.fromEnvironment('DFE_DUMP_KERNEL');

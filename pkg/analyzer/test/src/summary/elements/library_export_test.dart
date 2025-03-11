@@ -1008,6 +1008,7 @@ library
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_exportScope_part_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -1429,6 +1430,7 @@ library
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_exportScope_part_mixin() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

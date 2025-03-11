@@ -398,11 +398,14 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  ClassElementImpl? get nextFragment => super.nextFragment as ClassElementImpl?;
+  ClassElementImpl? get nextFragment {
+    return super.nextFragment as ClassElementImpl?;
+  }
 
   @override
-  ClassFragment? get previousFragment =>
-      super.previousFragment as ClassFragment?;
+  ClassElementImpl? get previousFragment {
+    return super.previousFragment as ClassElementImpl?;
+  }
 
   @Deprecated('Use Element2 and accept2() instead')
   @override
@@ -5706,6 +5709,12 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   @override
   int? nameOffset2;
 
+  @override
+  InstanceElementImpl? previousFragment;
+
+  @override
+  InstanceElementImpl? nextFragment;
+
   List<FieldElementImpl> _fields = _Sentinel.fieldElement;
 
   List<PropertyAccessorElementImpl> _accessors =
@@ -5731,12 +5740,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
     }
     _accessors = accessors;
   }
-
-  @override
-  InstanceElementImpl? get augmentation;
-
-  @override
-  InstanceElementImpl? get augmentationTarget;
 
   @override
   InstanceElementImpl2 get element;
@@ -5774,7 +5777,13 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
       accessors.where((e) => e.isGetter).cast<GetterFragment>().toList();
 
   @override
-  bool get isAugmentation => augmentationTarget != null;
+  bool get isAugmentation {
+    return hasModifier(Modifier.AUGMENTATION);
+  }
+
+  set isAugmentation(bool value) {
+    setModifier(Modifier.AUGMENTATION, value);
+  }
 
   @override
   List<ElementAnnotationImpl> get metadata {
@@ -5803,14 +5812,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   List<MethodFragment> get methods2 => methods.cast<MethodFragment>();
 
   @override
-  InstanceFragment? get nextFragment => augmentation as InstanceFragment?;
-
-  @override
   int get offset => _nameOffset;
-
-  @override
-  InstanceFragment? get previousFragment =>
-      augmentationTarget as InstanceFragment?;
 
   @override
   List<SetterFragment> get setters =>
@@ -6122,12 +6124,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  InterfaceElementImpl? get augmentation;
-
-  @override
-  InterfaceElementImpl? get augmentationTarget;
-
-  @override
   List<Element> get children => [
         ...super.children,
         ...accessors,
@@ -6225,7 +6221,14 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  InterfaceElementImpl? get nextFragment;
+  InterfaceElementImpl? get nextFragment {
+    return super.nextFragment as InterfaceElementImpl?;
+  }
+
+  @override
+  InterfaceElementImpl? get previousFragment {
+    return super.previousFragment as InterfaceElementImpl?;
+  }
 
   @override
   InterfaceTypeImpl? get supertype {
@@ -6247,15 +6250,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   ConstructorElementMixin? get unnamedConstructor {
     return constructors.firstWhereOrNull((element) => element.name.isEmpty);
-  }
-
-  /// This element and all its augmentations, in order.
-  Iterable<InterfaceElementImpl> get withAugmentations sync* {
-    InterfaceElementImpl? current = this;
-    while (current != null) {
-      yield current;
-      current = current.augmentation;
-    }
   }
 
   @override
@@ -10357,6 +10351,12 @@ abstract class PropertyInducingElementImpl
   @override
   int? nameOffset2;
 
+  @override
+  PropertyInducingElementImpl? previousFragment;
+
+  @override
+  PropertyInducingElementImpl? nextFragment;
+
   /// The getter associated with this element.
   @override
   GetterFragmentImpl? getter;
@@ -10421,10 +10421,6 @@ abstract class PropertyInducingElementImpl
       thisOrAncestorOfType<CompilationUnitElementImpl>()!;
 
   @override
-  PropertyInducingElementImpl? get nextFragment =>
-      augmentation as PropertyInducingElementImpl?;
-
-  @override
   Element get nonSynthetic {
     if (isSynthetic) {
       if (enclosingElement3 is EnumElementImpl) {
@@ -10438,13 +10434,6 @@ abstract class PropertyInducingElementImpl
       return this;
     }
   }
-
-  @override
-  PropertyInducingFragment? get previousFragment =>
-      augmentationTarget as PropertyInducingFragment?;
-
-  // @override
-  // bool get hasInitializer;
 
   @override
   SetterFragment? get setter2 => setter as SetterFragment?;

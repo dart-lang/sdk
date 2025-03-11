@@ -539,48 +539,7 @@ class _ClassVerifier {
       }
     }
 
-    if (hasError) {
-      return true;
-    }
-
-    // The code below should return `true` to indicate that even though
-    // the declaration itself does not have sub-typing violations, the merged
-    // augmentation does. So that we stop other verifications in this case.
-
-    // We are interested only in declarations.
-    if (classElement.isAugmentation) {
-      return false;
-    }
-
-    // If no augmentations, we have seen it all.
-    if (classElement.augmentation == null) {
-      return false;
-    }
-
-    if (classElement case ClassElement classElement) {
-      var supertype = classElement.supertype;
-      if (supertype != null) {
-        if (_checkDirectSuperType(type: supertype)) {
-          return true;
-        }
-      }
-    }
-
-    var element = classElement.element;
-
-    for (var type in element.interfaces) {
-      if (_checkDirectSuperType(type: type)) {
-        return true;
-      }
-    }
-
-    for (var type in element.mixins) {
-      if (_checkDirectSuperType(type: type)) {
-        return true;
-      }
-    }
-
-    return false;
+    return hasError;
   }
 
   /// Check that [classElement] is not a superinterface to itself.

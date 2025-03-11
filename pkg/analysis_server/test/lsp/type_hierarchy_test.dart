@@ -179,6 +179,7 @@ import 'main.dart';
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augment_extends() async {
     var content = '''
 part 'other.dart';
@@ -344,6 +345,7 @@ class MyCla^ss2 extends MyClass1 {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augment_extends() async {
     var content = '''
 part 'other.dart';

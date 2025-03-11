@@ -177,9 +177,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// `null` if the current node is not contained in a function.
   ExecutableElementImpl2? enclosingFunction;
 
-  /// The element that can be referenced by the `augmented` expression.
-  AugmentableElement? enclosingAugmentation;
-
   /// The manager for the inheritance mappings.
   @override
   final InheritanceManager3 inheritance;
@@ -1281,12 +1278,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void prepareEnclosingDeclarations({
     InterfaceElementImpl2? enclosingClassElement,
     ExecutableElementImpl2? enclosingExecutableElement,
-    AugmentableElement? enclosingAugmentation,
   }) {
     enclosingClass = enclosingClassElement;
     _setupThisType();
     enclosingFunction = enclosingExecutableElement;
-    this.enclosingAugmentation = enclosingAugmentation;
   }
 
   /// We are going to resolve [node], without visiting its parent.
@@ -1397,24 +1392,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required bool hasRead,
   }) {
     inferenceLogWriter?.enterLValue(node);
-    if (node is AugmentedExpressionImpl) {
-      var augmentation = enclosingAugmentation;
-      var augmentationTarget = augmentation?.augmentationTarget;
-      if (augmentation is SetterFragmentImpl &&
-          augmentationTarget is SetterFragmentImpl) {
-        node.fragment = augmentationTarget;
-        inferenceLogWriter?.exitLValue(node);
-        return PropertyElementResolverResult(
-          writeElementRequested2: augmentationTarget.asElement2,
-        );
-      }
-      errorReporter.atNode(
-        node,
-        CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER,
-      );
-      inferenceLogWriter?.exitLValue(node);
-      return PropertyElementResolverResult();
-    } else if (node is IndexExpressionImpl) {
+    if (node is IndexExpressionImpl) {
       var target = node.target;
       if (target != null) {
         analyzeExpression(
@@ -1911,37 +1889,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAugmentedExpression(covariant AugmentedExpressionImpl node,
-      {TypeImpl contextType = UnknownInferredType.instance}) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    if (enclosingAugmentation case var augmentation?) {
-      var augmentedFragment = augmentation.augmentationTarget;
-      if (augmentation is GetterFragmentImpl &&
-          augmentedFragment is PropertyAccessorElementImpl &&
-          augmentedFragment.isGetter) {
-        node.fragment = augmentedFragment;
-        node.recordStaticType(augmentedFragment.returnType, resolver: this);
-        inferenceLogWriter?.exitExpression(node);
-        return;
-      }
-      if (augmentation is PropertyInducingElementImpl &&
-          augmentedFragment is PropertyInducingElementImpl) {
-        node.fragment = augmentedFragment;
-        var augmentedNode =
-            libraryResolutionContext._variableNodes[augmentedFragment];
-        if (augmentedNode != null) {
-          if (augmentedNode.initializer case var augmentedInitializer?) {
-            node.recordStaticType(augmentedInitializer.staticType!,
-                resolver: this);
-            inferenceLogWriter?.exitExpression(node);
-            return;
-          }
-        }
-      }
-    }
-
-    node.recordStaticType(InvalidTypeImpl.instance, resolver: this);
-    inferenceLogWriter?.exitExpression(node);
+  void visitAugmentedExpression(
+    covariant AugmentedExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    super.visitAugmentedExpression(node);
   }
 
   @override
@@ -1949,101 +1901,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant AugmentedInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    checkUnreachableNode(node);
-    var whyNotPromotedArguments =
-        <Map<SharedTypeView, NonPromotionReason> Function()>[];
-
-    var augmentation = enclosingAugmentation;
-    var augmentationTarget = augmentation?.augmentationTarget;
-
-    void resolveArgumentsOfInvalid() {
-      for (var argument in node.arguments.arguments) {
-        analyzeExpression(
-            argument, SharedTypeSchemaView(InvalidTypeImpl.instance));
-        popRewrite();
-      }
-    }
-
-    // Rewrite invocation of a function-typed getter.
-    if (augmentationTarget is PropertyAccessorElementImpl) {
-      if (augmentationTarget.isSetter) {
-        errorReporter.atToken(
-          node.augmentedKeyword,
-          CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER,
-        );
-        node.fragment = augmentationTarget;
-        node.recordStaticType(InvalidTypeImpl.instance, resolver: this);
-        resolveArgumentsOfInvalid();
-        inferenceLogWriter?.exitExpression(node);
-        return;
-      }
-
-      var result = typePropertyResolver.resolve(
-        receiver: null,
-        receiverType: augmentationTarget.returnType,
-        name: MethodElement2.CALL_METHOD_NAME,
-        propertyErrorEntity: node.augmentedKeyword,
-        nameErrorEntity: node.augmentedKeyword,
-      );
-      var callElement = result.getter2;
-      var functionType = callElement?.type ?? result.callFunctionType;
-
-      if (functionType == null) {
-        errorReporter.atToken(
-          node.augmentedKeyword,
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-        );
-        node.fragment = augmentationTarget;
-        node.recordStaticType(InvalidTypeImpl.instance, resolver: this);
-        resolveArgumentsOfInvalid();
-        inferenceLogWriter?.exitExpression(node);
-        return;
-      }
-
-      var augmentedExpression = AugmentedExpressionImpl(
-        augmentedKeyword: node.augmentedKeyword,
-      );
-      augmentedExpression.fragment = augmentationTarget;
-      augmentedExpression.setPseudoExpressionStaticType(functionType);
-      var rewrite = FunctionExpressionInvocationImpl(
-        function: augmentedExpression,
-        typeArguments: node.typeArguments,
-        argumentList: node.arguments,
-      );
-      replaceExpression(node, rewrite);
-      rewrite.element = callElement;
-      flowAnalysis.transferTestData(node, rewrite);
-      _resolveRewrittenFunctionExpressionInvocation(
-          rewrite, whyNotPromotedArguments,
-          contextType: contextType);
-      inferenceLogWriter?.exitExpression(node);
-      return;
-    }
-
-    FunctionType? rawType;
-    if (augmentationTarget is ExecutableElementImpl) {
-      node.fragment = augmentationTarget;
-      rawType = augmentationTarget.type;
-    }
-
-    var returnType = AugmentedInvocationInferrer(
-      resolver: this,
-      node: node,
-      argumentList: node.arguments,
-      contextType: contextType,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(
-        // TODO(paulberry): eliminate this cast by changing the type of
-        // `rawType`.
-        rawType: rawType as FunctionTypeImpl?);
-
-    node.recordStaticType(
-        augmentationTarget is ExecutableElementImpl
-            ? returnType
-            : InvalidTypeImpl.instance,
-        resolver: this);
-    inferenceLogWriter?.exitExpression(node);
+    super.visitAugmentedInvocation(node);
   }
 
   @override
@@ -2289,11 +2147,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var element = fragment.element;
     var returnType = element.type.returnType;
     var outerFunction = enclosingFunction;
-    var outerAugmentation = enclosingAugmentation;
 
     try {
       enclosingFunction = element;
-      enclosingAugmentation = fragment;
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -2322,7 +2178,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
       enclosingFunction = outerFunction;
-      enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
   }
@@ -2749,15 +2604,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var element = fragment.element;
     var functionType = element.type;
     var outerFunction = enclosingFunction;
-    var outerAugmentation = enclosingAugmentation;
 
     try {
       enclosingFunction = element;
-      if (!isLocal) {
-        if (fragment case AugmentableElement augmentation) {
-          enclosingAugmentation = augmentation;
-        }
-      }
       checkUnreachableNode(node);
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
@@ -2798,7 +2647,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
       enclosingFunction = outerFunction;
-      enclosingAugmentation = outerAugmentation;
     }
   }
 
@@ -3156,13 +3004,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var element = fragment.element;
     var returnType = element.returnType;
     var outerFunction = enclosingFunction;
-    var outerAugmentation = enclosingAugmentation;
 
     try {
       enclosingFunction = element;
-      if (fragment case AugmentableElement augmentation) {
-        enclosingAugmentation = augmentation;
-      }
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -3190,7 +3034,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
       enclosingFunction = outerFunction;
-      enclosingAugmentation = outerAugmentation;
       _thisType = null;
     }
   }
@@ -3846,16 +3689,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     var fragment = node.declaredFragment!;
 
-    var outerAugmentation = enclosingAugmentation;
-    try {
-      if (fragment case AugmentableElement augmentation) {
-        enclosingAugmentation = augmentation;
-      }
-      libraryResolutionContext._variableNodes[fragment] = node;
-      _variableDeclarationResolver.resolve(node);
-    } finally {
-      enclosingAugmentation = outerAugmentation;
-    }
+    libraryResolutionContext._variableNodes[fragment] = node;
+    _variableDeclarationResolver.resolve(node);
 
     var initializer = node.initializer;
     if (initializer != null) {

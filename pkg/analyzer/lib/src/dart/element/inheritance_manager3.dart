@@ -239,9 +239,6 @@ class InheritanceManager3 {
     // TODO(paulberry): eliminate this cast by changing the type of the
     // parameter `element`.
     element as InterfaceElementImpl;
-    if (element.augmentationTarget != null) {
-      throw ArgumentError('Interfaces can only be asked for declarations');
-    }
 
     var result = _interfaces[element];
     if (result != null) {
