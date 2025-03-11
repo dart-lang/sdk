@@ -4499,12 +4499,8 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     FATAL("Cannot invoke native callback from a leaf call.");
   }
 
-  // Set the execution state to VM while waiting for the safepoint to end.
-  // This isn't strictly necessary but enables tests to check that we're not
-  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
-  current_thread->set_execution_state(Thread::kThreadInVM);
-
   current_thread->ExitSafepointFromNative();
+  current_thread->set_execution_state(Thread::kThreadInVM);
 
   current_thread->set_unboxed_int64_runtime_arg(metadata.context());
 
