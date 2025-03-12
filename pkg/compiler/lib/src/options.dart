@@ -705,6 +705,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool disableDiagnosticByteCache = false;
 
   bool enableProtoShaking = false;
+  bool enableProtoMixinShaking = false;
 
   bool get producesModifiedDill =>
       stage == CompilerStage.closedWorld && enableProtoShaking;
@@ -959,6 +960,10 @@ class CompilerOptions implements DiagnosticOptions {
         Flags.laxRuntimeTypeToString,
       )
       ..enableProtoShaking = _hasOption(options, Flags.enableProtoShaking)
+      ..enableProtoMixinShaking = _hasOption(
+        options,
+        Flags.enableProtoMixinShaking,
+      )
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
       ..useFrequencyNamer =
@@ -1170,6 +1175,10 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_mergeFragmentsThreshold != null) {
       mergeFragmentsThreshold = _mergeFragmentsThreshold;
+    }
+
+    if (enableProtoMixinShaking) {
+      enableProtoShaking = true;
     }
 
     environment['dart.web.assertions_enabled'] = '$enableUserAssertions';
