@@ -3568,33 +3568,60 @@ SwitchDispatch:
     ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
     FunctionPtr target = Function::RawCast(data->untag()->parent_function());
 
-    const intptr_t type_args_len =
-        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    intptr_t type_args_len = InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
     const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
     const intptr_t argc =
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
     ObjectPtr* argv = FrameArguments(FP, argc);
 
-    if (type_args_len > 0) {
-      // Replace closure receiver with type arguments.
-      argv[1] = argv[0];
-    } else if (Function::KindOf(target) == UntaggedFunction::kConstructor) {
-      // Factory constructors always take type arguments.
-      FunctionTypePtr signature =
-          FunctionType::RawCast(function->untag()->signature());
-      TypeParametersPtr type_params = signature->untag()->type_parameters();
-      TypeArgumentsPtr type_args = (type_params == null_value)
-                                       ? TypeArguments::null()
-                                       : type_params->untag()->defaults();
-      argv[0] = type_args;
+    TypeParametersPtr type_params =
+        FunctionType::RawCast(function->untag()->signature())
+            ->untag()
+            ->type_parameters();
+    if (type_params == null_value) {
+      if (type_args_len > 0) {
+        SP[1] = function;
+        goto NoSuchMethodFromPrologue;
+      }
+      if (Function::KindOf(target) == UntaggedFunction::kConstructor) {
+        // Factory constructors always take type arguments.
+        // Replace closure receiver with type arguments.
+        argv[0] = TypeArguments::null();
+      }
+    } else {
+      TypeArgumentsPtr delayed_type_arguments =
+          Closure::RawCast(argv[receiver_idx])
+              ->untag()
+              ->delayed_type_arguments();
+      if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
+        if (type_args_len > 0) {
+          SP[1] = function;
+          goto NoSuchMethodFromPrologue;
+        }
+        // Replace closure receiver with type arguments.
+        argv[0] = delayed_type_arguments;
+        type_args_len =
+            Smi::Value(type_params->untag()->names()->untag()->length());
+      } else if (type_args_len > 0) {
+        // Replace closure receiver with type arguments.
+        argv[1] = argv[0];
+      } else if (Function::KindOf(target) == UntaggedFunction::kConstructor) {
+        // Factory constructors always take type arguments.
+        // Replace closure receiver with type arguments.
+        argv[0] = type_params->untag()->defaults();
+        type_args_len =
+            Smi::Value(type_params->untag()->names()->untag()->length());
+      }
     }
+
     SP[1] = target;
     SP[2] = 0;  // Space for result.
     SP[3] = argdesc_;
     SP[4] = target;
-    Exit(thread, FP, SP + 5, pc);
+    SP[5] = Smi::New(type_args_len);
+    Exit(thread, FP, SP + 6, pc);
     INVOKE_RUNTIME(DRT_AdjustArgumentsDesciptorForImplicitClosure,
-                   NativeArguments(thread, 2, SP + 3, SP + 2));
+                   NativeArguments(thread, 3, SP + 3, SP + 2));
     argdesc_ = Array::RawCast(SP[2]);
 
     goto TailCallSP1;
@@ -3703,9 +3730,10 @@ SwitchDispatch:
       SP[2] = 0;  // Space for result.
       SP[3] = argdesc_;
       SP[4] = SP[1];  // Target.
-      Exit(thread, FP, SP + 5, pc);
+      SP[5] = 0;      // New type_args_len.
+      Exit(thread, FP, SP + 6, pc);
       INVOKE_RUNTIME(DRT_AdjustArgumentsDesciptorForImplicitClosure,
-                     NativeArguments(thread, 2, SP + 3, SP + 2));
+                     NativeArguments(thread, 3, SP + 3, SP + 2));
       argdesc_ = Array::RawCast(SP[2]);
     }
 

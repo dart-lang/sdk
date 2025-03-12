@@ -931,14 +931,15 @@ DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
 // into an arguments descriptor for the target function.
 // Arg0: implicit closure arguments descriptor
 // Arg1: target function
+// Arg2: new type args length
 // Return value: target arguments descriptor
-DEFINE_RUNTIME_ENTRY(AdjustArgumentsDesciptorForImplicitClosure, 2) {
+DEFINE_RUNTIME_ENTRY(AdjustArgumentsDesciptorForImplicitClosure, 3) {
 #if defined(DART_DYNAMIC_MODULES)
   const auto& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(0));
   const auto& target = Function::CheckedHandle(zone, arguments.ArgAt(1));
+  intptr_t type_args_len = Smi::CheckedHandle(zone, arguments.ArgAt(2)).Value();
 
   const ArgumentsDescriptor args_desc(descriptor);
-  intptr_t type_args_len = args_desc.TypeArgsLen();
   intptr_t num_arguments = args_desc.Count();
 
   if (target.is_static()) {
