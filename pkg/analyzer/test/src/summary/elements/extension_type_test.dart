@@ -660,19 +660,6 @@ library
               formalParameters
                 a @47
                   element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
-              constantInitializers
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: it @52
-                    staticElement: <testLibraryFragment>::@extensionType::A::@field::it
-                    element: <testLibraryFragment>::@extensionType::A::@field::it#element
-                    staticType: null
-                  equals: = @55
-                  expression: SimpleIdentifier
-                    token: a @57
-                    staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
-                    element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
-                    staticType: int
           getters
             synthetic get it
               reference: <testLibraryFragment>::@extensionType::A::@getter::it
@@ -700,6 +687,19 @@ library
           formalParameters
             requiredPositional a
               type: int
+          constantInitializers
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: it @52
+                staticElement: <testLibraryFragment>::@extensionType::A::@field::it
+                element: <testLibraryFragment>::@extensionType::A::@field::it#element
+                staticType: null
+              equals: = @55
+              expression: SimpleIdentifier
+                token: a @57
+                staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
+                element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
+                staticType: int
       getters
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it

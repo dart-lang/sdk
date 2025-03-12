@@ -743,7 +743,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class S @40
           reference: <testLibraryFragment>::@class::S
           element: <testLibrary>::@class::S
@@ -1015,7 +1014,6 @@ library
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
-              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
       topLevelVariables
         hasInitializer a @111
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -2873,7 +2871,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
           getters
             synthetic get v
               reference: <testLibraryFragment>::@class::C::@getter::v
@@ -3360,9 +3357,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::D::@constructor::new
-                substitution: {U: int, V: T}
           getters
             synthetic get v
               reference: <testLibraryFragment>::@class::C::@getter::v
@@ -3647,9 +3641,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::D::@constructor::new
-                substitution: {V: U, W: int}
           methods
             f @41
               reference: <testLibraryFragment>::@class::C::@method::f
@@ -3787,7 +3778,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: package:test/a.dart::<fragment>::@class::D::@constructor::new
           methods
             f @44
               reference: <testLibraryFragment>::@class::C::@method::f
@@ -3882,7 +3872,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
           methods
             f @25
               reference: <testLibraryFragment>::@class::C::@method::f
@@ -4235,7 +4224,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
           setters
             set f @29
               reference: <testLibraryFragment>::@class::C::@setter::f
@@ -4364,7 +4352,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new
           methods
             m @39
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -4958,7 +4945,6 @@ library
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
-              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
           getters
             synthetic get f
               reference: <testLibraryFragment>::@class::D::@getter::f
@@ -6219,23 +6205,6 @@ library
               formalParameters
                 value
                   element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value#element
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    arguments
-                      SimpleIdentifier
-                        token: value @-1
-                        staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value
-                        element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value#element
-                        staticType: T
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: T}
         class C @78
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -6306,6 +6275,20 @@ library
           formalParameters
             requiredPositional final value
               type: T
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                arguments
+                  SimpleIdentifier
+                    token: value @-1
+                    staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value
+                    element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value#element
+                    staticType: T
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
     class C
       reference: <testLibrary>::@class::C
@@ -7414,7 +7397,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class C @40
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C

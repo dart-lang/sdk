@@ -69,7 +69,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -139,7 +138,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -209,7 +207,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -279,7 +276,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -349,7 +345,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -934,7 +929,6 @@ library
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
-              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
   classes
     class C
       reference: <testLibrary>::@class::C

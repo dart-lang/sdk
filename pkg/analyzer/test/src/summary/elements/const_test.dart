@@ -1616,9 +1616,6 @@ library
               element: <testLibraryFragment>::@class::P1::@constructor::new#element
               typeName: P1
               typeNameOffset: 64
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::P::@constructor::new
-                substitution: {T: T}
         class P2 @79
           reference: <testLibraryFragment>::@class::P2
           element: <testLibrary>::@class::P2
@@ -1631,9 +1628,6 @@ library
               element: <testLibraryFragment>::@class::P2::@constructor::new#element
               typeName: P2
               typeNameOffset: 108
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::P::@constructor::new
-                substitution: {T: T}
       topLevelVariables
         hasInitializer values @131
           reference: <testLibraryFragment>::@topLevelVariable::values
@@ -2066,16 +2060,6 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
               typeNameOffset: 19
-              constantInitializers
-                AssertInitializer
-                  assertKeyword: assert @25
-                  leftParenthesis: ( @31
-                  condition: SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    staticElement: <null>
-                    element: <null>
-                    staticType: null
-                  rightParenthesis: ) @46
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2083,6 +2067,16 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          constantInitializers
+            AssertInitializer
+              assertKeyword: assert @25
+              leftParenthesis: ( @31
+              condition: SimpleIdentifier
+                token: _notSerializableExpression @-1
+                staticElement: <null>
+                element: <null>
+                staticType: null
+              rightParenthesis: ) @46
 ''');
   }
 
@@ -2139,22 +2133,6 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
               typeNameOffset: 19
-              constantInitializers
-                AssertInitializer
-                  assertKeyword: assert @25
-                  leftParenthesis: ( @31
-                  condition: SimpleIdentifier
-                    token: b @32
-                    staticElement: <null>
-                    element: <null>
-                    staticType: InvalidType
-                  comma: , @33
-                  message: SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    staticElement: <null>
-                    element: <null>
-                    staticType: null
-                  rightParenthesis: ) @42
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2162,6 +2140,22 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          constantInitializers
+            AssertInitializer
+              assertKeyword: assert @25
+              leftParenthesis: ( @31
+              condition: SimpleIdentifier
+                token: b @32
+                staticElement: <null>
+                element: <null>
+                staticType: InvalidType
+              comma: , @33
+              message: SimpleIdentifier
+                token: _notSerializableExpression @-1
+                staticElement: <null>
+                element: <null>
+                staticType: null
+              rightParenthesis: ) @42
 ''');
   }
 
@@ -2231,19 +2225,6 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
               typeNameOffset: 39
-              constantInitializers
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: foo @45
-                    staticElement: <testLibraryFragment>::@class::A::@field::foo
-                    element: <testLibraryFragment>::@class::A::@field::foo#element
-                    staticType: null
-                  equals: = @49
-                  expression: SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    staticElement: <null>
-                    element: <null>
-                    staticType: null
           getters
             synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
@@ -2260,6 +2241,19 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          constantInitializers
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: foo @45
+                staticElement: <testLibraryFragment>::@class::A::@field::foo
+                element: <testLibraryFragment>::@class::A::@field::foo#element
+                staticType: null
+              equals: = @49
+              expression: SimpleIdentifier
+                token: _notSerializableExpression @-1
+                staticElement: <null>
+                element: <null>
+                staticType: null
       getters
         synthetic get foo
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
@@ -2407,24 +2401,6 @@ library
               typeName: A
               typeNameOffset: 49
               periodOffset: 50
-              constantInitializers
-                RedirectingConstructorInvocation
-                  thisKeyword: this @61
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @65
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @66
-                        staticType: int
-                      SimpleIdentifier
-                        token: _notSerializableExpression @-1
-                        staticElement: <null>
-                        element: <null>
-                        staticType: null
-                    rightParenthesis: ) @76
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              redirectedConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2439,6 +2415,23 @@ library
               type: Object
         const named
           firstFragment: <testLibraryFragment>::@class::A::@constructor::named
+          constantInitializers
+            RedirectingConstructorInvocation
+              thisKeyword: this @61
+              argumentList: ArgumentList
+                leftParenthesis: ( @65
+                arguments
+                  IntegerLiteral
+                    literal: 0 @66
+                    staticType: int
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    staticElement: <null>
+                    element: <null>
+                    staticType: null
+                rightParenthesis: ) @76
+              staticElement: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           redirectedConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
   }
@@ -2528,24 +2521,6 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
               typeNameOffset: 71
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @77
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @82
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @83
-                        staticType: int
-                      SimpleIdentifier
-                        token: _notSerializableExpression @-1
-                        staticElement: <null>
-                        element: <null>
-                        staticType: null
-                    rightParenthesis: ) @93
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2565,6 +2540,23 @@ library
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @77
+              argumentList: ArgumentList
+                leftParenthesis: ( @82
+                arguments
+                  IntegerLiteral
+                    literal: 0 @83
+                    staticType: int
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    staticElement: <null>
+                    element: <null>
+                    staticType: null
+                rightParenthesis: ) @93
+              staticElement: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
   }

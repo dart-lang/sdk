@@ -291,7 +291,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
           getters
             get f @24
               reference: <testLibraryFragment>::@class::C::@getter::f

@@ -354,9 +354,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: T}
           methods
             f @75
               reference: <testLibraryFragment>::@class::B::@method::f
@@ -480,7 +477,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @68
               reference: <testLibraryFragment>::@class::B::@method::m

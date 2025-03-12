@@ -3276,34 +3276,6 @@ library
               formalParameters
                 a @45
                   element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
-              constantInitializers
-                AssertInitializer
-                  assertKeyword: assert @50
-                  leftParenthesis: ( @56
-                  condition: IsExpression
-                    expression: SimpleIdentifier
-                      token: a @57
-                      staticElement: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
-                      element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
-                      staticType: T?
-                    isOperator: is @59
-                    type: NamedType
-                      name: T @62
-                      element: T@7
-                      element2: <not-implemented>
-                      type: T
-                    staticType: bool
-                  rightParenthesis: ) @63
-                ConstructorFieldInitializer
-                  fieldName: SimpleIdentifier
-                    token: x @66
-                    staticElement: <testLibraryFragment>::@enum::E::@field::x
-                    element: <testLibraryFragment>::@enum::E::@field::x#element
-                    staticType: null
-                  equals: = @68
-                  expression: IntegerLiteral
-                    literal: 0 @70
-                    staticType: int
           getters
             synthetic get v
               reference: <testLibraryFragment>::@enum::E::@getter::v
@@ -3346,6 +3318,34 @@ library
           formalParameters
             requiredPositional a
               type: T?
+          constantInitializers
+            AssertInitializer
+              assertKeyword: assert @50
+              leftParenthesis: ( @56
+              condition: IsExpression
+                expression: SimpleIdentifier
+                  token: a @57
+                  staticElement: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
+                  element: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
+                  staticType: T?
+                isOperator: is @59
+                type: NamedType
+                  name: T @62
+                  element: T@7
+                  element2: <not-implemented>
+                  type: T
+                staticType: bool
+              rightParenthesis: ) @63
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: x @66
+                staticElement: <testLibraryFragment>::@enum::E::@field::x
+                element: <testLibraryFragment>::@enum::E::@field::x#element
+                staticType: null
+              equals: = @68
+              expression: IntegerLiteral
+                literal: 0 @70
+                staticType: int
       getters
         synthetic static get v
           firstFragment: <testLibraryFragment>::@enum::E::@getter::v
@@ -8461,14 +8461,6 @@ library
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
@@ -8619,6 +8611,14 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
   enums
     enum E
       reference: <testLibrary>::@enum::E
