@@ -584,13 +584,7 @@ String? _getDartSymbolName(@notNull dynamic symbol) =>
         : _getDartName(_symbolDescription(symbol));
 
 String? _getDartName(String? name) {
-  if (name == null) return null;
-  if (name.startsWith('dartx.')) {
-    // 'toString' and 'noSuchMethod' are accessed through their extension
-    // property but should be visible.
-    if (name == 'dartx.toString' || name == 'dartx.noSuchMethod') {
-      return name.substring(6, name.length);
-    }
+  if (name == null || name.startsWith('dartx.')) {
     return null;
   }
   // Show late fields: '_#C#lateField'.

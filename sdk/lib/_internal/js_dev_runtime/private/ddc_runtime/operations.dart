@@ -51,12 +51,7 @@ class InvocationImpl extends Invocation {
 /// Encodes [property] as a valid JS member name.
 String stringNameForProperty(property) {
   if (JS<bool>('', 'typeof # === "symbol"', property)) {
-    var name = _toSymbolName(property);
-    // Remove extension method prefixes if necessary.
-    if (JS<bool>('', '#.startsWith("dartx.")', name)) {
-      return JS<String>('', '#.substring(6, #.length)', name, name);
-    }
-    return name;
+    return _toSymbolName(property);
   }
   if (JS<bool>('', 'typeof # === "string"', property)) {
     return '$property';
@@ -64,49 +59,30 @@ String stringNameForProperty(property) {
   throw Exception('Unable to construct a valid JS string name for $property.');
 }
 
-/// Used for canonicalizing tearoffs via a two-way lookup of enclosing method
-/// target label and member name.
-///
-/// TODO(markzipan): We can't use a JS WeakMap to key by method context because
-/// we sometimes wrap library objects in lazily-loaded proxy objects. We can
-/// avoid memory leaks if we handle proxy libraries natively.
-final tearoffCache = JS<Object>('!', 'new Map()');
+/// Used for canonicalizing tearoffs via a two-way lookup of enclosing object
+/// and member name.
+final tearoffCache = JS<Object>('!', 'new WeakMap()');
 
 /// Constructs a static tearoff, on `context[property]`.
 ///
-/// [immediateMethodTargetLabel] uniquely identifies the class from which this
-/// method is torn off. Static tearoffs provide this at tearoff time.
-///
-/// Static tearoffs are canonicalized at runtime via the `tearoffCache`. We
-/// avoid canonicalizing based on [context] to avoid comparing proxy-wrapped
-/// top level library objects.
-staticTearoff(context, String immediateMethodTargetLabel, property) {
+/// Static tearoffs are canonicalized at runtime via `tearoffCache`.
+staticTearoff(context, property) {
   if (context == null) context = jsNull;
-  var propertyMap = _lookupNonTerminal(
-    tearoffCache,
-    immediateMethodTargetLabel,
-  );
+  var propertyMap = _lookupNonTerminal(tearoffCache, context);
   var canonicalizedTearoff = JS<Object?>('', '#.get(#)', propertyMap, property);
   if (canonicalizedTearoff != null) return canonicalizedTearoff;
-  var tear = tearoff(context, immediateMethodTargetLabel, property);
+  var tear = tearoff(context, property);
   JS('', '#.set(#, #)', propertyMap, property, tear);
-  JS('', '#._isStaticTearoff = true', tear);
   return tear;
 }
 
 /// Constructs a new tearoff, on `context[property]`. Tearoffs are represented
 /// as a closure that resolves its underlying member late.
 ///
-/// [immediateMethodTargetLabel] uniquely identifies the class from which this
-/// method is torn off. Static tearoffs provide this at tearoff time. This is
-/// directly provided for static tearoffs. If null (such as in dynamic/instance
-/// tearoffs), we resolve this via this tearoff's method signature.
-///
 /// Note: We do not canonicalize instance tearoffs to be consistent with
 /// Dart2JS, but we should update this if the spec changes. See #3612.
-tearoff(context, String? immediateMethodTargetLabel, property) {
+tearoff(context, property) {
   if (context == null) context = jsNull;
-  property = _canonicalMember(context, property);
   var tear = JS('', '(...args) => #[#](...args)', context, property);
   var rtiName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
   // Type-resolving members on tearoffs must be resolved late. Static tearoffs
@@ -150,13 +126,6 @@ tearoff(context, String? immediateMethodTargetLabel, property) {
   );
   JS('', '#._boundObject = #', tear, context);
   JS('', '#._boundName = #', tear, stringNameForProperty(property));
-  JS(
-    '',
-    '#._boundMethodTarget = #',
-    tear,
-    immediateMethodTargetLabel ??
-        getMethodImmediateTarget(context, null, property),
-  );
   return tear;
 }
 
@@ -164,39 +133,26 @@ tearoff(context, String? immediateMethodTargetLabel, property) {
 /// Sets the runtime type of the torn off method appropriately,
 /// and also binds the object.
 ///
-/// [immediateMethodTarget] is the class at the exact point in the [obj]'s
-/// hierarchy where [name] is torn off. This field is only used when the
-/// immediate target cannot be resolved on [obj] (such as in super tearoffs).
-///
 /// If the optional `f` argument is passed in, it will be used as the method.
 /// This supports cases like `super.foo` where we need to tear off the method
 /// from the superclass, not from the `obj` directly.
-// TODO(60297): This function currently binds super tearoffs too early. This
-// should be updated to receive obj's supertype at runtime like we do for
-// mixin classes.
-bind(obj, immediateMethodTarget, name, method) {
+// TODO(leafp): Consider caching the tearoff on the object?
+bind(obj, name, method) {
   if (obj == null) obj = jsNull;
-  var property = _canonicalMember(obj, name);
-  if (method == null) method = JS('', '#[#]', obj, property);
+  if (method == null) method = JS('', '#[#]', obj, name);
   var f = JS('', '#.bind(#)', method, obj);
   // TODO(jmesserly): canonicalize tearoffs.
   JS('', '#._boundObject = #', f, obj);
   JS('', '#._boundName = #', f, stringNameForProperty(name));
   JS('', '#._boundMethod = #', f, method);
-  JS(
-    '',
-    '#._boundMethodTarget = #',
-    f,
-    getMethodImmediateTarget(obj, immediateMethodTarget, property),
-  );
-  var methodType = getMethodType(obj, property);
+  var methodType = getMethodType(obj, name);
   // Native JavaScript methods do not have Dart signatures attached that need
   // to be copied.
   if (methodType != null) {
     if (rti.isGenericFunctionType(methodType)) {
       // Attach the default type argument values to the new function in case
       // they are needed for a dynamic call.
-      var defaultTypeArgs = getMethodDefaultTypeArgs(obj, property);
+      var defaultTypeArgs = getMethodDefaultTypeArgs(obj, name);
       JS('', '#._defaultTypeArgs = #', f, defaultTypeArgs);
     }
     JS('', '#[#] = #', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME), methodType);
@@ -222,13 +178,6 @@ bindCall(obj, name) {
   // TODO(jmesserly): canonicalize tearoffs.
   JS('', '#._boundObject = #', f, obj);
   JS('', '#._boundMethod = #', f, method);
-  JS('', '#._boundName = #', f, stringNameForProperty(name));
-  JS(
-    '',
-    '#._boundMethodTarget = #',
-    f,
-    getMethodImmediateTarget(obj, obj, name),
-  );
   JS('', '#[#] = #', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME), ftype);
   if (rti.isGenericFunctionType(ftype)) {
     // Attach the default type argument values to the new function in case
@@ -284,7 +233,7 @@ dload(obj, field) {
 
     if (hasField(typeSigHolder, f) || hasGetter(typeSigHolder, f))
       return JS('', '#[#]', obj, f);
-    if (hasMethod(typeSigHolder, f)) return tearoff(obj, null, f);
+    if (hasMethod(typeSigHolder, f)) return tearoff(obj, f);
 
     // Handle record types by trying to access [f] via convenience getters.
     if (_jsInstanceOf(obj, RecordImpl) && f is String) {
@@ -1030,11 +979,11 @@ String _toString(obj) {
 /// interop value).
 @notNull
 String Function() toStringTearoff(obj) {
-  if (obj == null) obj = jsNull;
-  if (JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol('toString'))) {
+  if (obj == null ||
+      JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol('toString'))) {
     // The bind helper can handle finding the toString method for null or Dart
     // Objects.
-    return bind(obj, null, extensionSymbol('toString'), null);
+    return tearoff(obj, extensionSymbol('toString'));
   }
   // Otherwise bind the native JavaScript toString method.
   // This differs from dart2js to provide a more useful toString at development
@@ -1042,7 +991,7 @@ String Function() toStringTearoff(obj) {
   // If obj does not have a native toString method this will throw but that
   // matches the behavior of dart2js and it would be misleading to make this
   // work at development time but allow it to fail in production.
-  return bind(obj, null, 'toString', null);
+  return tearoff(obj, 'toString');
 }
 
 /// Converts to a non-null [String], equivalent to
@@ -1104,18 +1053,17 @@ noSuchMethod(obj, Invocation invocation) {
 /// JavaScript interop value).
 @notNull
 dynamic Function(Invocation) noSuchMethodTearoff(obj) {
-  if (obj == null) obj = jsNull;
-  if (JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol('noSuchMethod'))) {
+  if (obj == null ||
+      JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol('noSuchMethod'))) {
     // The bind helper can handle finding the toString method for null or Dart
     // Objects.
-    return bind(obj, null, extensionSymbol('noSuchMethod'), null);
+    return tearoff(obj, extensionSymbol('noSuchMethod'));
   }
   // Otherwise, manually pass the Dart Core Object noSuchMethod to the bind
   // helper.
   return bind(
     obj,
-    null,
-    'noSuchMethod',
+    extensionSymbol('noSuchMethod'),
     JS(
       '!',
       '#.prototype[#]',
@@ -1169,16 +1117,8 @@ _canonicalMember(obj, name) {
   // Private names are symbols and are already canonical.
   if (JS('!', 'typeof # === "symbol"', name)) return name;
 
-  // 'toString' and 'noSuchMethod' use their extension symbol when available.
-  if (obj != null &&
-      JS('!', '# === "toString" || # === "noSuchMethod"', name, name)) {
-    if (JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol(name))) {
-      return extensionSymbol(name);
-    }
-  }
-
   if (obj != null && JS<bool>('!', '#[#] != null', obj, _extensionType)) {
-    return extensionSymbol(name);
+    return JS('', 'dartx.#', name);
   }
 
   // Check for certain names that we can't use in JS

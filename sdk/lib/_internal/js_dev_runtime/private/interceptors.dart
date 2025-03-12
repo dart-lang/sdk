@@ -214,30 +214,12 @@ class JSFunction extends Interceptor {
         return JS<bool>('!', '# === #', originalFn, otherFn);
       }
     }
-    // This is a static tearoff. Static tearoffs always provide a bound
-    // enclosing method target string that should be compared instead of the
-    // original object (in case the original object is a proxied library).
-    if (JS<bool>('!', '#._isStaticTearoff', this)) {
-      return JS<bool>(
-        '!',
-        '#._boundMethodTarget === #._boundMethodTarget'
-            '&& #._boundName === #._boundName ',
-        originalFn,
-        otherFn,
-        originalFn,
-        otherFn,
-      );
-    }
     // This is an instance tearoff, test if the bound instances and methods
     // are equal.
     return JS<bool>(
       '!',
-      '# === #._boundObject '
-          '&& #._boundName === #._boundName '
-          '&& #._boundMethodTarget === #._boundMethodTarget',
+      '# === #._boundObject && #._boundMethod === #._boundMethod',
       boundObj,
-      otherFn,
-      originalFn,
       otherFn,
       originalFn,
       otherFn,
@@ -248,14 +230,9 @@ class JSFunction extends Interceptor {
     var boundObj = JS<Object?>('', '#._boundObject', this);
     if (boundObj == null) return identityHashCode(this);
 
-    var boundName = JS<Object>('!', '#._boundName', this);
-    var boundMethodTarget = JS<Object>('!', '#._boundMethodTarget', this);
-    int hash = (17 * 31 + identityHashCode(boundName)) & 0x1fffffff;
-    hash = (hash * 31 + identityHashCode(boundMethodTarget)) & 0x1fffffff;
-    if (!JS<bool>('!', '#._isStaticTearoff', this)) {
-      hash = (hash * 31 + boundObj.hashCode) & 0x1fffffff;
-    }
-    return hash;
+    var boundMethod = JS<Object>('!', '#._boundMethod', this);
+    int hash = (17 * 31 + boundObj.hashCode) & 0x1fffffff;
+    return (hash * 31 + identityHashCode(boundMethod)) & 0x1fffffff;
   }
 
   Type get runtimeType =>

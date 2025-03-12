@@ -13,18 +13,13 @@
 part of dart._runtime;
 
 /// Returns a new type that mixes members from base and the mixin.
-void applyMixin(
-  @notNull Object to,
-  @notNull Object from,
-  @notNull String mixinMethodTargetLabel,
-) {
+void applyMixin(@notNull Object to, @notNull Object from) {
   JS('', '#[#] = #', to, _mixin, from);
   var toProto = JS<Object>('!', '#.prototype', to);
   var fromProto = JS<Object>('!', '#.prototype', from);
   _copyMembers(toProto, fromProto);
   _mixinSignature(to, from, _methodSig);
   _mixinSignature(to, from, _methodsDefaultTypeArgSig);
-  _copyMixinMethodsImmediateTargetSignature(to, from, mixinMethodTargetLabel);
   _mixinSignature(to, from, _fieldSig);
   _mixinSignature(to, from, _getterSig);
   _mixinSignature(to, from, _setterSig);
@@ -119,31 +114,6 @@ void _mixinSignature(@notNull Object to, @notNull Object from, kind) {
   });
 }
 
-/// Mixins must update their methods' enclosing target labels in [from] to that
-/// of the [to] class when applied.
-void _copyMixinMethodsImmediateTargetSignature(
-  @notNull Object to,
-  @notNull Object from,
-  @notNull String mixinMethodTargetLabel,
-) {
-  // We set the descriptor's label in the [from] object to its new label during
-  // the mixin copy.
-  var labelTransform = (Object desc) {
-    JS('', '#.value = #', desc, mixinMethodTargetLabel);
-    return desc;
-  };
-  JS('', '#[#] = #', to, _methodsImmediateTargetSig, () {
-    var baseMembers = getMethodsImmediateTargets(jsObjectGetPrototypeOf(to));
-    // Coerce undefined to null.
-    baseMembers = baseMembers == null ? null : baseMembers;
-    var fromMembers = getMethodsImmediateTargets(from);
-    if (fromMembers == null) return baseMembers;
-    var toSignature = JS('', 'Object.create(#)', baseMembers);
-    copyProperties(toSignature, fromMembers, transform: labelTransform);
-    return toSignature;
-  });
-}
-
 final _mixin = JS('', 'Symbol("mixin")');
 
 getMixin(clazz) => JS(
@@ -166,7 +136,6 @@ Object instantiateClass(Object genericClass, List<Object> typeArgs) {
 final _constructorSig = JS('', 'Symbol("sigCtor")');
 final _methodSig = JS('', 'Symbol("sigMethod")');
 final _methodsDefaultTypeArgSig = JS('', 'Symbol("sigMethodDefaultTypeArgs")');
-final _methodsImmediateTargetSig = JS('', 'Symbol("sigMethodImmediateTarget")');
 final _fieldSig = JS('', 'Symbol("sigField")');
 final _getterSig = JS('', 'Symbol("sigGetter")');
 final _setterSig = JS('', 'Symbol("sigSetter")');
@@ -181,8 +150,6 @@ getConstructors(value) => _getMembers(value, _constructorSig);
 getMethods(value) => _getMembers(value, _methodSig);
 getMethodsDefaultTypeArgs(value) =>
     _getMembers(value, _methodsDefaultTypeArgSig);
-getMethodsImmediateTargets(value) =>
-    _getMembers(value, _methodsImmediateTargetSig);
 getFields(value) => _getMembers(value, _fieldSig);
 getGetters(value) => _getMembers(value, _getterSig);
 getSetters(value) => _getMembers(value, _setterSig);
@@ -272,14 +239,6 @@ getMethodType(obj, name) {
   return rtiFromSignature(obj, JS<Object?>('', '#[#]', m, name));
 }
 
-/// Returns the immediate target string for the method [name].
-String? getMethodImmediateTarget(obj, holder, name) {
-  var typeSigHolder = holder ?? getTypeSignatureContainer(obj);
-  var methodsImmediateTargets = getMethodsImmediateTargets(typeSigHolder);
-  if (methodsImmediateTargets == null) return null;
-  return JS<String>('', '#[#]', methodsImmediateTargets, name);
-}
-
 /// Returns the default type argument values for the instance method [name].
 JSArray<Object> getMethodDefaultTypeArgs(obj, name) {
   var typeSigHolder = getTypeSignatureContainer(obj);
@@ -347,8 +306,6 @@ classGetConstructorType(cls, name) {
 void setMethodSignature(f, sigF) => JS('', '#[#] = #', f, _methodSig, sigF);
 void setMethodsDefaultTypeArgSignature(f, sigF) =>
     JS('', '#[#] = #', f, _methodsDefaultTypeArgSig, sigF);
-void setMethodsImmediateTargetSignature(f, sigF) =>
-    JS('', '#[#] = #', f, _methodsImmediateTargetSig, sigF);
 void setFieldSignature(f, sigF) => JS('', '#[#] = #', f, _fieldSig, sigF);
 void setGetterSignature(f, sigF) => JS('', '#[#] = #', f, _getterSig, sigF);
 void setSetterSignature(f, sigF) => JS('', '#[#] = #', f, _setterSig, sigF);
@@ -475,14 +432,6 @@ void _applyExtension(jsType, dartExtType) {
     dartExtType,
     _methodsDefaultTypeArgSig,
   );
-  JS(
-    '',
-    '#[#] = #[#]',
-    jsType,
-    _methodsImmediateTargetSig,
-    dartExtType,
-    _methodsImmediateTargetSig,
-  );
   JS('', '#[#] = #[#]', jsType, _fieldSig, dartExtType, _fieldSig);
   JS('', '#[#] = #[#]', jsType, _getterSig, dartExtType, _getterSig);
   JS('', '#[#] = #[#]', jsType, _setterSig, dartExtType, _setterSig);
@@ -571,8 +520,7 @@ void defineExtensionAccessors(type, Iterable memberNames) {
     var member;
     Object? p = proto;
     for (; p != null; p = jsObjectGetPrototypeOf(p)) {
-      var property = _canonicalMember(p, name);
-      member = getOwnPropertyDescriptor(p, property);
+      member = getOwnPropertyDescriptor(p, name);
       if (member != null) break;
     }
     defineProperty(proto, JS('', 'dartx[#]', name), member);

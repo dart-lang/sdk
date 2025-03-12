@@ -15,9 +15,7 @@ void main() {
   // The print method is only used here because we know it is a member of the
   // dart:core library.
   var printMethod = JS('', '#.print', core);
-  // Tearoffs are wrapped, so we must extract their bound method.
-  var printTearoff = print;
-  Expect.equals(JS('', '#._boundMethod', printTearoff), printMethod);
+  Expect.equals(print, printMethod);
 
   // Test getLibraries()
   // Note that we call `getLibraries` after an access to `Expect` as DDC may
