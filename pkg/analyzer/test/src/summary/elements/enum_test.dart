@@ -3714,99 +3714,16 @@ enum E {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      enums
-        enum E @5
-          reference: <testLibraryFragment>::@enum::E
-          enclosingElement3: <testLibraryFragment>
-          supertype: Enum
-          fields
-            final promotable _foo @33
-              reference: <testLibraryFragment>::@enum::E::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@enum::E
-              type: int?
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      enums
-        enum E @5
-          reference: <testLibraryFragment>::@enum::E
-          element: <testLibrary>::@enum::E
-          fields
-            _foo @33
-              reference: <testLibraryFragment>::@enum::E::@field::_foo
-              element: <testLibraryFragment>::@enum::E::@field::_foo#element
-              getter2: <testLibraryFragment>::@enum::E::@getter::_foo
   enums
     enum E
       reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
-          firstFragment: <testLibraryFragment>::@enum::E::@field::v
-          type: E
-          constantInitializer
-            fragment: <testLibraryFragment>::@enum::E::@field::v
-            expression: expression_0
-              InstanceCreationExpression
-                constructorName: ConstructorName
-                  type: NamedType
-                    name: E @-1
-                    element: <testLibraryFragment>::@enum::E
-                    element2: <testLibrary>::@enum::E
-                    type: E
-                  staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                  element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                argumentList: ArgumentList
-                  leftParenthesis: ( @0
-                  arguments
-                    NullLiteral
-                      literal: null @13
-                      staticType: Null
-                  rightParenthesis: ) @0
-                staticType: E
-          getter: <testLibraryFragment>::@enum::E::@getter::v#element
-        synthetic static const values
-          firstFragment: <testLibraryFragment>::@enum::E::@field::values
-          type: List<E>
-          constantInitializer
-            fragment: <testLibraryFragment>::@enum::E::@field::values
-            expression: expression_1
-              ListLiteral
-                leftBracket: [ @0
-                elements
-                  SimpleIdentifier
-                    token: v @-1
-                    staticElement: <testLibraryFragment>::@enum::E::@getter::v
-                    element: <testLibraryFragment>::@enum::E::@getter::v#element
-                    staticType: E
-                rightBracket: ] @0
-                staticType: List<E>
-          getter: <testLibraryFragment>::@enum::E::@getter::values#element
         final promotable _foo
           firstFragment: <testLibraryFragment>::@enum::E::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@enum::E::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic static get v
-          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
-        synthetic static get values
-          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@enum::E::@getter::_foo
 ''');
   }
 

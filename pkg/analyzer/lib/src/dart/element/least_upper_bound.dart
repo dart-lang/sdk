@@ -790,7 +790,7 @@ class LeastUpperBoundHelper {
     return null;
   }
 
-  DartType _parameterType(
+  TypeImpl _parameterType(
       FormalParameterElementMixin a, FormalParameterElementMixin b) {
     return _typeSystem.greatestLowerBound(a.type, b.type);
   }

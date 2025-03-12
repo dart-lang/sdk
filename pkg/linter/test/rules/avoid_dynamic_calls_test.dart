@@ -55,10 +55,42 @@ void f(Function p) {
     );
   }
 
+  test_callInvocation_Function_nullAssert() async {
+    await assertDiagnostics(
+      r'''
+void f(Function? p) {
+  p!.call();
+}
+''',
+      [lint(27, 4)],
+    );
+  }
+
+  test_callInvocation_Function_nullAware() async {
+    await assertDiagnostics(
+      r'''
+void f(Function? p) {
+  p?.call();
+}
+''',
+      [lint(27, 4)],
+    );
+  }
+
   test_callInvocation_Function_tearoff() async {
     await assertNoDiagnostics(r'''
 void f(Function p) {
   p.call;
+}
+''');
+  }
+
+  test_callInvocation_FunctionBound() async {
+    // It is unclear whether this behavior was originally intended; this test
+    // indicates the current behavior.
+    await assertNoDiagnostics(r'''
+void f<T extends Function>(T p) {
+  p.call();
 }
 ''');
   }

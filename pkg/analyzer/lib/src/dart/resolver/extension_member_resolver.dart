@@ -40,7 +40,7 @@ class ExtensionMemberResolver {
   ///
   /// The context of the invocation that is made through the override does
   /// not affect the type inference of the override and the receiver.
-  DartType? computeOverrideReceiverContextType(ExtensionOverride node) {
+  TypeImpl? computeOverrideReceiverContextType(ExtensionOverride node) {
     var element = node.element2;
     var typeParameters = element.typeParameters2;
 
