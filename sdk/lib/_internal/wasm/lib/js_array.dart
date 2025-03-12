@@ -543,7 +543,7 @@ class JSArrayImpl<T extends JSAny?> implements List<T> {
         js.JS<WasmExternRef?>(
           '(a, t) => a.concat(t)',
           toExternRef,
-          other.toExternRef,
+          other.toJS.toExternRef,
         ),
       );
     } else {

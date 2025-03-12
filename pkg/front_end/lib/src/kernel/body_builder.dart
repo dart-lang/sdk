@@ -9991,9 +9991,13 @@ class BodyBuilder extends StackListenerImpl
       return;
     }
 
-    // TODO(kallentu): Possibly could be ProblemBuilder? Testing needed.
-    assert(checkState(token, [ValueKinds.Expression]));
-    Expression value = pop() as Expression;
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+      ]),
+    ]));
+    Expression value = popForValue();
     push(forest.createDotShorthandContext(token.charOffset, value));
   }
 
