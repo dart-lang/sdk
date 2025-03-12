@@ -4247,8 +4247,8 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
   }
 
   @override
-  FieldElement2OrMember get representation2 {
-    return firstFragment.representation.asElement2;
+  FieldElementImpl2 get representation2 {
+    return firstFragment.representation.element;
   }
 
   @override
