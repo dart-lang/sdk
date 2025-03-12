@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -4533,7 +4534,8 @@ class _InterfacePrinter {
   }
 
   bool _shouldWrite(ExecutableElement element) {
-    return _configuration.withObjectMembers || !element.isObjectMember;
+    return _configuration.withObjectMembers ||
+        !element.asElement2.isObjectMember;
   }
 
   List<MapEntry<Name, T>> _sortedEntries<T>(
@@ -4612,7 +4614,7 @@ class _InterfacePrinter {
   ) {
     var isEmpty = map.values.flattenedToList.where((element) {
       if (_configuration.withObjectMembers) return true;
-      return !element.isObjectMember;
+      return !element.asElement2.isObjectMember;
     }).isEmpty;
     if (isEmpty) return;
 

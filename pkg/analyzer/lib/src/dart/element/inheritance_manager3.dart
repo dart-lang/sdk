@@ -1066,9 +1066,9 @@ class InheritanceManager3 {
       );
       if (parameter.isCovariant != shouldBeCovariant) {
         transformedParameters ??= [
-          for (var parameter in parameters) parameter.toImpl()
+          for (var parameter in parameters) parameter.declaration
         ];
-        transformedParameters[index] = parameter.copyWith(
+        transformedParameters[index] = parameter.declaration.copyWith(
           isCovariant: shouldBeCovariant,
         );
       }
