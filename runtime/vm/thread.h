@@ -1016,6 +1016,11 @@ class Thread : public ThreadState {
   bool IsBlockedForSafepoint() const {
     return BlockedForSafepointField::decode(safepoint_state_);
   }
+  // Normally execution state is only accessed for the current thread.
+  NO_SANITIZE_THREAD
+  bool IsBlockedForSafepointCrossThreadForTesting() const {
+    return BlockedForSafepointField::decode(safepoint_state_);
+  }
   void SetBlockedForSafepoint(bool value) {
     ASSERT(thread_lock()->IsOwnedByCurrentThread());
     safepoint_state_ =
@@ -1055,11 +1060,6 @@ class Thread : public ThreadState {
   };
 
   ExecutionState execution_state() const {
-    return static_cast<ExecutionState>(execution_state_);
-  }
-  // Normally execution state is only accessed for the current thread.
-  NO_SANITIZE_THREAD
-  ExecutionState execution_state_cross_thread_for_testing() const {
     return static_cast<ExecutionState>(execution_state_);
   }
   void set_execution_state(ExecutionState state) {

@@ -2992,7 +2992,7 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  BindPatternVariableElement (class extends Object implements PatternVariableElement):
+  BindPatternVariableElement (class extends Object implements PatternVariableElement, deprecated):
     new (constructor: BindPatternVariableElement Function())
   ClassElement (class extends Object implements InterfaceElement):
     new (constructor: ClassElement Function())
@@ -3342,7 +3342,7 @@ package:analyzer/dart/element/element.dart:
     lookUpInheritedMethod (method: MethodElement? Function(String, LibraryElement))
     lookUpMethod (method: MethodElement? Function(String, LibraryElement), deprecated)
     lookUpSetter (method: PropertyAccessorElement? Function(String, LibraryElement), deprecated)
-  JoinPatternVariableElement (class extends Object implements PatternVariableElement):
+  JoinPatternVariableElement (class extends Object implements PatternVariableElement, deprecated):
     new (constructor: JoinPatternVariableElement Function())
     isConsistent (getter: bool)
     variables (getter: List<PatternVariableElement>)
@@ -3397,7 +3397,7 @@ package:analyzer/dart/element/element.dart:
     package (getter: Version)
   LocalElement (class extends Object implements Element):
     new (constructor: LocalElement Function())
-  LocalVariableElement (class extends Object implements PromotableElement):
+  LocalVariableElement (class extends Object implements PromotableElement, deprecated):
     new (constructor: LocalVariableElement Function())
     hasInitializer (getter: bool)
     name (getter: String)
@@ -3438,7 +3438,7 @@ package:analyzer/dart/element/element.dart:
   PartElement (class extends Object implements _ExistingElement):
     new (constructor: PartElement Function())
     uri (getter: DirectiveUri)
-  PatternVariableElement (class extends Object implements LocalVariableElement):
+  PatternVariableElement (class extends Object implements LocalVariableElement, deprecated):
     new (constructor: PatternVariableElement Function())
     join (getter: JoinPatternVariableElement?)
   PrefixElement (class extends Object implements _ExistingElement):

@@ -514,6 +514,7 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.omitAsCasts, passThrough),
     _OneOption(Flags.laxRuntimeTypeToString, passThrough),
     _OneOption(Flags.enableProtoShaking, passThrough),
+    _OneOption(Flags.enableProtoMixinShaking, passThrough),
     _OneOption(Flags.benchmarkingProduction, passThrough),
     _OneOption(Flags.benchmarkingExperiment, passThrough),
     _OneOption(Flags.soundNullSafety, passThrough),

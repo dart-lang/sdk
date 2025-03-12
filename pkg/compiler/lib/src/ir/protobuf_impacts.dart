@@ -73,11 +73,26 @@ import 'impact_data.dart';
 class ProtobufImpactHandler implements ConditionalImpactHandler {
   static const String protobufLibraryUri = 'package:protobuf/protobuf.dart';
 
+  static bool _hasGeneratedMessageSuperclass(
+    ir.Class protobufGeneratedMessageClass,
+    ir.Class enclosingClass,
+  ) {
+    ir.Class? current = enclosingClass;
+    while (current != null) {
+      if (current == protobufGeneratedMessageClass) return true;
+
+      current = current.superclass;
+    }
+    return false;
+  }
+
   static ProtobufImpactHandler? createIfApplicable(
     KernelToElementMap elementMap,
     ir.Member node,
   ) {
     if (!elementMap.options.enableProtoShaking) return null;
+
+    if (node.name.text != metadataFieldName) return null;
 
     // Not all programs will include the protobuf library. Ideally those
     // programs wouldn't enable proto shaking but we can be conservative and not
@@ -85,12 +100,28 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
     final protobufGeneratedMessageClass = elementMap.env.libraryIndex
         .tryGetClass(protobufLibraryUri, 'GeneratedMessage');
 
-    // Only applicable if the member is in a subclass of GeneratedMessage and
-    // the name matches the static metadata field.
-    if (protobufGeneratedMessageClass != null &&
-        node.enclosingClass?.superclass == protobufGeneratedMessageClass &&
-        node.name.text == metadataFieldName) {
-      return ProtobufImpactHandler._(elementMap, node.enclosingClass!);
+    if (protobufGeneratedMessageClass == null) return null;
+
+    final enclosingClass = node.enclosingClass;
+    if (enclosingClass == null) return null;
+
+    // Applicable if the member is in a subclass of GeneratedMessage.
+    if (enclosingClass.superclass == protobufGeneratedMessageClass) {
+      return ProtobufImpactHandler._(elementMap, enclosingClass);
+    }
+
+    // Applicable if the member is in a subclass of GeneratedMessage with mixins
+    // included.
+    if (elementMap.options.enableProtoMixinShaking) {
+      final superclass = enclosingClass.superclass;
+      if (superclass != null &&
+          superclass.isMixinApplication &&
+          _hasGeneratedMessageSuperclass(
+            protobufGeneratedMessageClass,
+            superclass,
+          )) {
+        return ProtobufImpactHandler._(elementMap, enclosingClass);
+      }
     }
     return null;
   }

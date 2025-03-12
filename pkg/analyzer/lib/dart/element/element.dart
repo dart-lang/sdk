@@ -62,6 +62,8 @@ import 'package:pub_semver/pub_semver.dart';
 /// A pattern variable that is explicitly declared.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated(
+    'Use BindPatternVariableFragment and BindPatternVariableElement2 instead')
 abstract class BindPatternVariableElement implements PatternVariableElement {}
 
 /// An element that represents a class or a mixin. The class can be defined by
@@ -1580,6 +1582,8 @@ abstract class InterfaceElement implements InstanceElement {
 /// for a logical-or patterns, or shared `case` bodies in `switch` statements.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated(
+    'Use JoinPatternVariableFragment and JoinPatternVariableElement2 instead')
 abstract class JoinPatternVariableElement implements PatternVariableElement {
   /// Whether the [variables] are consistent, present in all branches,
   /// and have the same type and finality.
@@ -1770,6 +1774,7 @@ abstract class LocalElement implements Element {}
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LocalVariableFragment and LocalVariableElement2 instead')
 abstract class LocalVariableElement implements PromotableElement {
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
@@ -1946,6 +1951,7 @@ abstract class PartElement implements _ExistingElement {
 /// A pattern variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PatternVariableFragment and PatternVariableElement2 instead')
 abstract class PatternVariableElement implements LocalVariableElement {
   /// The variable in which this variable joins with other pattern variables
   /// with the same name, in a logical-or pattern, or shared case scope.

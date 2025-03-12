@@ -77,6 +77,7 @@ class Flags {
   static const String laxRuntimeTypeToString = '--lax-runtime-type-to-string';
 
   static const String enableProtoShaking = '--enable-proto-shaking';
+  static const String enableProtoMixinShaking = '--enable-proto-mixin-shaking';
 
   static const String platformBinaries = '--platform-binaries=.+';
 

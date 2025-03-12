@@ -214,7 +214,7 @@ class DuplicateDefinitionVerifier {
   void _checkDuplicateIdentifier(
       Map<String, Element> getterScope, Token identifier,
       {required ElementImpl element, Map<String, Element>? setterScope}) {
-    if (identifier.isSynthetic || element.isWildcardVariable) {
+    if (identifier.isSynthetic || element.asElement2.isWildcardVariable) {
       return;
     }
 
@@ -506,7 +506,7 @@ class MemberDuplicateDefinitionVerifier {
   void _checkDuplicateIdentifier(
       Map<String, Element> getterScope, Token identifier,
       {required Element element, Map<String, Element>? setterScope}) {
-    if (identifier.isSynthetic || element.isWildcardVariable) {
+    if (identifier.isSynthetic || element.asElement2.isWildcardVariable) {
       return;
     }
 
