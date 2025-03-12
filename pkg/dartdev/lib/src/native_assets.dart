@@ -130,34 +130,26 @@ class DartNativeAssetsBuilder {
     }
   }
 
-  Future<BuildResult?> _buildNativeAssetsShared({
-    required bool linkingEnabled,
-  }) async {
-    final builder = await _nativeAssetsBuildRunner;
-    final buildResult = await builder.build(
-      inputCreator: () => BuildInputBuilder()
-        ..config.setupCode(
+  late final _extensions = [
+    CodeAssetExtension(
           targetOS: target.os,
           linkModePreference: LinkModePreference.dynamic,
           targetArchitecture: target.architecture,
           macOS: _macOSConfig,
           cCompiler: _cCompilerConfig,
         ),
-      inputValidator: (config) async => [
-        ...await validateDataAssetBuildInput(config),
-        ...await validateCodeAssetBuildInput(config),
-      ],
+    // TODO(dacoharkes,mosum): This should be gated behind a data-assets
+    // experiment flag.
+    DataAssetsExtension(),
+  ];
+
+  Future<BuildResult?> _buildNativeAssetsShared({
+    required bool linkingEnabled,
+  }) async {
+    final builder = await _nativeAssetsBuildRunner;
+    final buildResult = await builder.build(
+      extensions: _extensions,
       linkingEnabled: linkingEnabled,
-      buildAssetTypes: [
-        CodeAsset.type,
-      ],
-      buildValidator: (config, output) async => [
-        ...await validateDataAssetBuildOutput(config, output),
-        ...await validateCodeAssetBuildOutput(config, output),
-      ],
-      applicationAssetValidator: (assets) async => [
-        ...await validateCodeAssetInApplication(assets),
-      ],
     );
     return buildResult;
   }
@@ -172,31 +164,10 @@ class DartNativeAssetsBuilder {
   }) async {
     final builder = await _nativeAssetsBuildRunner;
     final linkResult = await builder.link(
-      inputCreator: () => LinkInputBuilder()
-        ..config.setupCode(
-          targetOS: target.os,
-          targetArchitecture: target.architecture,
-          linkModePreference: LinkModePreference.dynamic,
-          macOS: _macOSConfig,
-          cCompiler: _cCompilerConfig,
-        ),
-      inputValidator: (config) async => [
-        ...await validateDataAssetLinkInput(config),
-        ...await validateCodeAssetLinkInput(config),
-      ],
+      extensions: _extensions,
       resourceIdentifiers:
           recordedUsagesPath != null ? Uri.file(recordedUsagesPath) : null,
       buildResult: buildResult,
-      buildAssetTypes: [
-        CodeAsset.type,
-      ],
-      linkValidator: (config, output) async => [
-        ...await validateDataAssetLinkOutput(config, output),
-        ...await validateCodeAssetLinkOutput(config, output),
-      ],
-      applicationAssetValidator: (assets) async => [
-        ...await validateCodeAssetInApplication(assets),
-      ],
     );
     return linkResult;
   }
