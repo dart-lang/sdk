@@ -441,59 +441,54 @@ class InformativeDataApplier {
       info.typeParameters,
     );
 
-    if (element.isAugmentationChainStart) {
-      var representationField = element.fields.first;
-      var infoRep = info.representation;
-      representationField.nameOffset = infoRep.fieldNameOffset;
-      representationField.nameOffset2 = infoRep.fieldNameOffset2;
-      representationField.setCodeRange(
-        infoRep.fieldCodeOffset,
-        infoRep.fieldCodeLength,
-      );
+    var representationField = element.fields.first;
+    var infoRep = info.representation;
+    representationField.nameOffset = infoRep.fieldNameOffset;
+    representationField.nameOffset2 = infoRep.fieldNameOffset2;
+    representationField.setCodeRange(
+      infoRep.fieldCodeOffset,
+      infoRep.fieldCodeLength,
+    );
 
-      var fieldApplyOffsets = ApplyConstantOffsets(
-        infoRep.fieldConstantOffsets,
-        (applier) {
-          applier.applyToMetadata(representationField);
-        },
-      );
+    var fieldApplyOffsets = ApplyConstantOffsets(
+      infoRep.fieldConstantOffsets,
+      (applier) {
+        applier.applyToMetadata(representationField);
+      },
+    );
 
-      var fieldLinkedData = representationField.linkedData;
-      if (fieldLinkedData is FieldElementLinkedData) {
-        fieldLinkedData.applyConstantOffsets = fieldApplyOffsets;
-      } else {
-        fieldApplyOffsets.perform();
-      }
-
-      var primaryConstructor = element.constructors.first;
-      primaryConstructor.setCodeRange(
-        infoRep.constructorCodeOffset,
-        infoRep.constructorCodeLength,
-      );
-      primaryConstructor.typeNameOffset = infoRep.typeNameOffset;
-      primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
-      primaryConstructor.nameOffset = infoRep.constructorNameOffset;
-      primaryConstructor.nameEnd = infoRep.constructorNameEnd;
-      primaryConstructor.nameOffset2 = infoRep.constructorNameOffset2;
-
-      var primaryConstructorParameter = primaryConstructor
-          .parameters_unresolved.first as ParameterElementImpl;
-      primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
-      primaryConstructorParameter.nameOffset2 = infoRep.fieldNameOffset2;
-      primaryConstructorParameter.setCodeRange(
-        infoRep.fieldCodeOffset,
-        infoRep.fieldCodeLength,
-      );
-
-      var restFields = element.fields.skip(1).toList();
-      _applyToFields(restFields, info.fields);
-
-      var restConstructors = element.constructors.skip(1).toList();
-      _applyToConstructors(restConstructors, info.constructors);
+    var fieldLinkedData = representationField.linkedData;
+    if (fieldLinkedData is FieldElementLinkedData) {
+      fieldLinkedData.applyConstantOffsets = fieldApplyOffsets;
     } else {
-      _applyToFields(element.fields, info.fields);
-      _applyToConstructors(element.constructors, info.constructors);
+      fieldApplyOffsets.perform();
     }
+
+    var primaryConstructor = element.constructors.first;
+    primaryConstructor.setCodeRange(
+      infoRep.constructorCodeOffset,
+      infoRep.constructorCodeLength,
+    );
+    primaryConstructor.typeNameOffset = infoRep.typeNameOffset;
+    primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
+    primaryConstructor.nameOffset = infoRep.constructorNameOffset;
+    primaryConstructor.nameEnd = infoRep.constructorNameEnd;
+    primaryConstructor.nameOffset2 = infoRep.constructorNameOffset2;
+
+    var primaryConstructorParameter =
+        primaryConstructor.parameters_unresolved.first as ParameterElementImpl;
+    primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
+    primaryConstructorParameter.nameOffset2 = infoRep.fieldNameOffset2;
+    primaryConstructorParameter.setCodeRange(
+      infoRep.fieldCodeOffset,
+      infoRep.fieldCodeLength,
+    );
+
+    var restFields = element.fields.skip(1).toList();
+    _applyToFields(restFields, info.fields);
+
+    var restConstructors = element.constructors.skip(1).toList();
+    _applyToConstructors(restConstructors, info.constructors);
 
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);

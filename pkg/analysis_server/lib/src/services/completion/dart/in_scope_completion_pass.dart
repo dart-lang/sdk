@@ -792,9 +792,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (element is InterfaceElement2) {
         declarationHelper(
           preferNonInvocation: true,
-        ).addConstructorNamesForElement(element: element);
-        declarationHelper(
-          preferNonInvocation: true,
         ).addStaticMembersOfElement(element);
       }
     } else {

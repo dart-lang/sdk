@@ -1990,28 +1990,6 @@ class _ElementWriter extends _AbstractElementWriter {
     expect(element.nonSynthetic, same(element));
   }
 
-  void _writeAugmentation(ElementImpl e) {
-    if (e case AugmentableElement(:var augmentation?)) {
-      _elementPrinter.writeNamedElement('augmentation', augmentation);
-    }
-  }
-
-  void _writeAugmentationTarget(ElementImpl e) {
-    if (e is AugmentableElement && e.isAugmentation) {
-      if (e.augmentationTarget case var target?) {
-        _elementPrinter.writeNamedElement(
-          'augmentationTarget',
-          target,
-        );
-      } else if (e.augmentationTargetAny case var targetAny?) {
-        _elementPrinter.writeNamedElement(
-          'augmentationTargetAny',
-          targetAny,
-        );
-      }
-    }
-  }
-
   void _writeBodyModifiers(ExecutableElement e) {
     if (e.isAsynchronous) {
       expect(e.isSynchronous, isFalse);
@@ -2116,8 +2094,6 @@ class _ElementWriter extends _AbstractElementWriter {
       }
 
       _writeNonSyntheticElement(e);
-      _writeAugmentationTarget(e);
-      _writeAugmentation(e);
     });
 
     expect(e.isAsynchronous, isFalse);
@@ -2192,11 +2168,7 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
-      if (e.augmentationTarget == null) {
-        _writeType('extendedType', e.extendedType);
-      }
-      _writeAugmentationTarget(e);
-      _writeAugmentation(e);
+      _writeType('extendedType', e.extendedType);
       _writeElements('fields', e.fields, _writePropertyInducingElement);
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeMethods(e.methods);
@@ -2236,8 +2208,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
       _writeReturnType(e.returnType);
-      _writeAugmentationTarget(e);
-      _writeAugmentation(e);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -2298,8 +2268,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
-      _writeAugmentationTarget(e);
-      _writeAugmentation(e);
 
       if (!e.isAugmentation) {
         var supertype = e.supertype;
@@ -2310,12 +2278,10 @@ class _ElementWriter extends _AbstractElementWriter {
       }
 
       if (e is ExtensionTypeElementImpl) {
-        if (e.augmentationTarget == null) {
-          _elementPrinter.writeNamedElement('representation', e.representation);
-          _elementPrinter.writeNamedElement(
-              'primaryConstructor', e.primaryConstructor);
-          _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
-        }
+        _elementPrinter.writeNamedElement('representation', e.representation);
+        _elementPrinter.writeNamedElement(
+            'primaryConstructor', e.primaryConstructor);
+        _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
       }
 
       if (e is MixinElementImpl) {
@@ -2437,8 +2403,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeParameterElements(e.parameters);
       _writeReturnType(e.returnType);
       _writeNonSyntheticElement(e);
-      _writeAugmentationTarget(e);
-      _writeAugmentation(e);
     });
 
     if (e.isSynthetic && e.enclosingElement3 is EnumElementImpl) {
@@ -2653,8 +2617,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeReturnType(e.returnType);
       _writeNonSyntheticElement(e);
       writeLinking();
-      _writeAugmentationTarget(e);
-      _writeAugmentation(e);
     });
   }
 
@@ -2722,8 +2684,6 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
       writeLinking();
-      _writeAugmentationTarget(e);
-      _writeAugmentation(e);
     });
   }
 
@@ -2821,9 +2781,6 @@ class _ElementWriter extends _AbstractElementWriter {
           _writeReturnType(aliasedElement.returnType);
         });
       }
-
-      _writeAugmentationTarget(e);
-      _writeAugmentation(e);
     });
 
     _assertNonSyntheticElementSelf(e);

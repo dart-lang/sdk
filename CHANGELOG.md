@@ -8,6 +8,17 @@
 
 - Added `Iterable.withIterator` constructor.
 
+#### `dart:html`
+
+- **Breaking change**: Native classes in `dart:html`, like `HtmlElement`, can no
+  longer be extended. Long ago, to support custom elements, element classes
+  exposed a `.created` constructor that adhered to the v0.5 spec of web
+  components. On this release, those constructors has been removed and with that
+  change, the classes can no longer be extended. In a future change, they may be
+  marked as interface classes as well.  This is a follow up from an earlier
+  breaking change in 3.0.0 that removed the `registerElement` APIs. See
+  [#53264](https://github.com/dart-lang/sdk/issues/53264) for details.
+
 ### Tools
 
 #### Analyzer

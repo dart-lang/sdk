@@ -54,12 +54,6 @@ class AElement extends GraphicsElement implements UriReference {
 
   factory AElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("a") as AElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  AElement.created() : super.created();
 
   AnimatedString get target native;
 
@@ -125,12 +119,6 @@ class AnimateElement extends AnimationElement {
   factory AnimateElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("animate")
           as AnimateElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  AnimateElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -155,12 +143,6 @@ class AnimateMotionElement extends AnimationElement {
   factory AnimateMotionElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("animateMotion")
           as AnimateMotionElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  AnimateMotionElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -185,12 +167,6 @@ class AnimateTransformElement extends AnimationElement {
   factory AnimateTransformElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("animateTransform")
           as AnimateTransformElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  AnimateTransformElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -414,12 +390,6 @@ class AnimationElement extends SvgElement implements Tests {
   factory AnimationElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("animation")
           as AnimationElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  AnimationElement.created() : super.created();
 
   SvgElement? get targetElement native;
 
@@ -458,12 +428,6 @@ class CircleElement extends GeometryElement {
   factory CircleElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("circle")
           as CircleElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  CircleElement.created() : super.created();
 
   AnimatedLength? get cx native;
 
@@ -486,12 +450,6 @@ class ClipPathElement extends GraphicsElement {
   factory ClipPathElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("clipPath")
           as ClipPathElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  ClipPathElement.created() : super.created();
 
   AnimatedEnumeration? get clipPathUnits native;
 }
@@ -509,12 +467,6 @@ class DefsElement extends GraphicsElement {
 
   factory DefsElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("defs") as DefsElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  DefsElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -530,12 +482,6 @@ class DescElement extends SvgElement {
 
   factory DescElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("desc") as DescElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  DescElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -547,12 +493,6 @@ class DiscardElement extends SvgElement {
   factory DiscardElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  DiscardElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -569,12 +509,6 @@ class EllipseElement extends GeometryElement {
   factory EllipseElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("ellipse")
           as EllipseElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  EllipseElement.created() : super.created();
 
   AnimatedLength? get cx native;
 
@@ -604,12 +538,6 @@ class FEBlendElement extends SvgElement
   factory FEBlendElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feBlend")
           as FEBlendElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEBlendElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -666,12 +594,6 @@ class FEColorMatrixElement extends SvgElement
   factory FEColorMatrixElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix")
           as FEColorMatrixElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEColorMatrixElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -726,12 +648,6 @@ class FEComponentTransferElement extends SvgElement
   factory FEComponentTransferElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer")
           as FEComponentTransferElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEComponentTransferElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -764,12 +680,6 @@ class FECompositeElement extends SvgElement
   factory FECompositeElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FECompositeElement.created() : super.created();
 
   static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
@@ -831,12 +741,6 @@ class FEConvolveMatrixElement extends SvgElement
   factory FEConvolveMatrixElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix")
           as FEConvolveMatrixElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEConvolveMatrixElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -907,12 +811,6 @@ class FEDiffuseLightingElement extends SvgElement
   factory FEDiffuseLightingElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting")
           as FEDiffuseLightingElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEDiffuseLightingElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -961,12 +859,6 @@ class FEDisplacementMapElement extends SvgElement
   factory FEDisplacementMapElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap")
           as FEDisplacementMapElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEDisplacementMapElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1024,12 +916,6 @@ class FEDistantLightElement extends SvgElement {
   factory FEDistantLightElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight")
           as FEDistantLightElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEDistantLightElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1060,12 +946,6 @@ class FEFloodElement extends SvgElement
   factory FEFloodElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feFlood")
           as FEFloodElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEFloodElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1103,12 +983,6 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
   factory FEFuncAElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feFuncA")
           as FEFuncAElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEFuncAElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1134,12 +1008,6 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
   factory FEFuncBElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feFuncB")
           as FEFuncBElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEFuncBElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1165,12 +1033,6 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
   factory FEFuncGElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feFuncG")
           as FEFuncGElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEFuncGElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1196,12 +1058,6 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
   factory FEFuncRElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feFuncR")
           as FEFuncRElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEFuncRElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1228,12 +1084,6 @@ class FEGaussianBlurElement extends SvgElement
   factory FEGaussianBlurElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur")
           as FEGaussianBlurElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEGaussianBlurElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1280,12 +1130,6 @@ class FEImageElement extends SvgElement
   factory FEImageElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feImage")
           as FEImageElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEImageElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1330,12 +1174,6 @@ class FEMergeElement extends SvgElement
   factory FEMergeElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feMerge")
           as FEMergeElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEMergeElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1373,12 +1211,6 @@ class FEMergeNodeElement extends SvgElement {
   factory FEMergeNodeElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode")
           as FEMergeNodeElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEMergeNodeElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1403,12 +1235,6 @@ class FEMorphologyElement extends SvgElement
   factory FEMorphologyElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEMorphologyElement.created() : super.created();
 
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
@@ -1456,12 +1282,6 @@ class FEOffsetElement extends SvgElement
   factory FEOffsetElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feOffset")
           as FEOffsetElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEOffsetElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1505,12 +1325,6 @@ class FEPointLightElement extends SvgElement {
   factory FEPointLightElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("fePointLight")
           as FEPointLightElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FEPointLightElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1543,12 +1357,6 @@ class FESpecularLightingElement extends SvgElement
   factory FESpecularLightingElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting")
           as FESpecularLightingElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FESpecularLightingElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1598,12 +1406,6 @@ class FESpotLightElement extends SvgElement {
   factory FESpotLightElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight")
           as FESpotLightElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FESpotLightElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1646,12 +1448,6 @@ class FETileElement extends SvgElement
   factory FETileElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feTile")
           as FETileElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FETileElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1692,12 +1488,6 @@ class FETurbulenceElement extends SvgElement
   factory FETurbulenceElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence")
           as FETurbulenceElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FETurbulenceElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1759,12 +1549,6 @@ class FilterElement extends SvgElement implements UriReference {
   factory FilterElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("filter")
           as FilterElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  FilterElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1841,12 +1625,6 @@ class ForeignObjectElement extends GraphicsElement {
   factory ForeignObjectElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("foreignObject")
           as ForeignObjectElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  ForeignObjectElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -1875,12 +1653,6 @@ class GElement extends GraphicsElement {
 
   factory GElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("g") as GElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  GElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1892,12 +1664,6 @@ class GeometryElement extends GraphicsElement {
   factory GeometryElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  GeometryElement.created() : super.created();
 
   AnimatedNumber? get pathLength native;
 
@@ -1919,12 +1685,6 @@ class GraphicsElement extends SvgElement implements Tests {
   factory GraphicsElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  GraphicsElement.created() : super.created();
 
   SvgElement? get farthestViewportElement native;
 
@@ -1960,12 +1720,6 @@ class ImageElement extends GraphicsElement implements UriReference {
 
   factory ImageElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("image") as ImageElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  ImageElement.created() : super.created();
 
   String? get async native;
 
@@ -2130,12 +1884,6 @@ class LineElement extends GeometryElement {
 
   factory LineElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("line") as LineElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  LineElement.created() : super.created();
 
   AnimatedLength? get x1 native;
 
@@ -2160,12 +1908,6 @@ class LinearGradientElement extends _GradientElement {
   factory LinearGradientElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("linearGradient")
           as LinearGradientElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  LinearGradientElement.created() : super.created();
 
   AnimatedLength? get x1 native;
 
@@ -2190,12 +1932,6 @@ class MarkerElement extends SvgElement implements FitToViewBox {
   factory MarkerElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("marker")
           as MarkerElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  MarkerElement.created() : super.created();
 
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
@@ -2247,12 +1983,6 @@ class MaskElement extends SvgElement implements Tests {
 
   factory MaskElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("mask") as MaskElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  MaskElement.created() : super.created();
 
   AnimatedLength? get height native;
 
@@ -2341,12 +2071,6 @@ class MetadataElement extends SvgElement {
   factory MetadataElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  MetadataElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2455,12 +2179,6 @@ class PathElement extends GeometryElement {
 
   factory PathElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("path") as PathElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  PathElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2478,12 +2196,6 @@ class PatternElement extends SvgElement
   factory PatternElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("pattern")
           as PatternElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  PatternElement.created() : super.created();
 
   AnimatedLength? get height native;
 
@@ -2584,12 +2296,6 @@ class PolygonElement extends GeometryElement {
   factory PolygonElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("polygon")
           as PolygonElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  PolygonElement.created() : super.created();
 
   PointList? get animatedPoints native;
 
@@ -2610,12 +2316,6 @@ class PolylineElement extends GeometryElement {
   factory PolylineElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("polyline")
           as PolylineElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  PolylineElement.created() : super.created();
 
   PointList? get animatedPoints native;
 
@@ -2684,12 +2384,6 @@ class RadialGradientElement extends _GradientElement {
   factory RadialGradientElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("radialGradient")
           as RadialGradientElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  RadialGradientElement.created() : super.created();
 
   AnimatedLength? get cx native;
 
@@ -2745,12 +2439,6 @@ class RectElement extends GeometryElement {
 
   factory RectElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("rect") as RectElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  RectElement.created() : super.created();
 
   AnimatedLength? get height native;
 
@@ -2779,12 +2467,6 @@ class ScriptElement extends SvgElement implements UriReference {
   factory ScriptElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("script")
           as ScriptElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  ScriptElement.created() : super.created();
 
   String? get type native;
 
@@ -2811,12 +2493,6 @@ class SetElement extends AnimationElement {
 
   factory SetElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("set") as SetElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  SetElement.created() : super.created();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported =>
@@ -2837,12 +2513,6 @@ class StopElement extends SvgElement {
 
   factory StopElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("stop") as StopElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  StopElement.created() : super.created();
 
   @JSName('offset')
   AnimatedNumber get gradientOffset native;
@@ -2937,12 +2607,6 @@ class StyleElement extends SvgElement {
 
   factory StyleElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("style") as StyleElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  StyleElement.created() : super.created();
 
   bool? get disabled native;
 
@@ -3296,12 +2960,6 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   static const EventStreamProvider<WheelEvent> wheelEvent =
       const EventStreamProvider<WheelEvent>('wheel');
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  SvgElement.created() : super.created();
 
   // Shadowing definition.
   @JSName('className')
@@ -3473,12 +3131,6 @@ class SvgSvgElement extends GraphicsElement
   factory SvgSvgElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  SvgSvgElement.created() : super.created();
 
   num? get currentScale native;
 
@@ -3582,12 +3234,6 @@ class SwitchElement extends GraphicsElement {
   factory SwitchElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("switch")
           as SwitchElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  SwitchElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3604,12 +3250,6 @@ class SymbolElement extends SvgElement implements FitToViewBox {
   factory SymbolElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("symbol")
           as SymbolElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  SymbolElement.created() : super.created();
 
   // From SVGFitToViewBox
 
@@ -3631,12 +3271,6 @@ class TSpanElement extends TextPositioningElement {
 
   factory TSpanElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("tspan") as TSpanElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  TSpanElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3664,12 +3298,6 @@ class TextContentElement extends GraphicsElement {
   factory TextContentElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  TextContentElement.created() : super.created();
 
   static const int LENGTHADJUST_SPACING = 1;
 
@@ -3713,12 +3341,6 @@ class TextElement extends TextPositioningElement {
 
   factory TextElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("text") as TextElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  TextElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3731,12 +3353,6 @@ class TextPathElement extends TextContentElement implements UriReference {
   factory TextPathElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  TextPathElement.created() : super.created();
 
   static const int TEXTPATH_METHODTYPE_ALIGN = 1;
 
@@ -3771,12 +3387,6 @@ class TextPositioningElement extends TextContentElement {
   factory TextPositioningElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  TextPositioningElement.created() : super.created();
 
   AnimatedLengthList? get dx native;
 
@@ -3802,12 +3412,6 @@ class TitleElement extends SvgElement {
 
   factory TitleElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("title") as TitleElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  TitleElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3980,12 +3584,6 @@ class UseElement extends GraphicsElement implements UriReference {
 
   factory UseElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("use") as UseElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  UseElement.created() : super.created();
 
   AnimatedLength? get height native;
 
@@ -4013,12 +3611,6 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 
   factory ViewElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("view") as ViewElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  ViewElement.created() : super.created();
 
   // From SVGFitToViewBox
 
@@ -4064,12 +3656,6 @@ class _GradientElement extends SvgElement implements UriReference {
   factory _GradientElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _GradientElement.created() : super.created();
 
   static const int SVG_SPREADMETHOD_PAD = 1;
 
@@ -4100,12 +3686,6 @@ abstract class _SVGComponentTransferFunctionElement extends SvgElement {
   factory _SVGComponentTransferFunctionElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGComponentTransferFunctionElement.created() : super.created();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4118,12 +3698,6 @@ abstract class _SVGFEDropShadowElement extends SvgElement
   factory _SVGFEDropShadowElement._() {
     throw new UnsupportedError("Not supported");
   }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFEDropShadowElement.created() : super.created();
 
   // From SVGFilterPrimitiveStandardAttributes
 }
@@ -4142,12 +3716,6 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
   factory _SVGMPathElement() =>
       _SvgElementFactoryProvider.createSvgElement_tag("mpath")
           as _SVGMPathElement;
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGMPathElement.created() : super.created();
 
   // From SVGURIReference
 }

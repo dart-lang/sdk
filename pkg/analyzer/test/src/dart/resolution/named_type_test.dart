@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -16,10 +15,6 @@ main() {
 
 @reflectiveTest
 class NamedTypeResolutionTest extends PubPackageResolutionTest {
-  ImportFindElement get import_a {
-    return findElement.importFind('package:test/a.dart');
-  }
-
   test_class() async {
     await assertNoErrorsInCode(r'''
 class A {}

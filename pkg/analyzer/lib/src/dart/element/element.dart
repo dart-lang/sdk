@@ -61,33 +61,13 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// Shared implementation of `augmentation` and `augmentationTarget`.
-mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
-  T? _augmentation;
-  ElementImpl? _augmentationTargetAny;
+@Deprecated('This is an internal class, do not use it')
+// TODO(scheglov): remove it when DartDoc stops using it
+// https://github.com/dart-lang/dartdoc/issues/4015
+mixin AugmentableElement on ElementImpl2 {}
 
-  T? get augmentation {
-    linkedData?.read(this);
-    return _augmentation;
-  }
-
-  set augmentation(T? value) {
-    _augmentation = value;
-  }
-
-  T? get augmentationTarget {
-    return augmentationTargetAny.ifTypeOrNull();
-  }
-
-  ElementImpl? get augmentationTargetAny {
-    linkedData?.read(this);
-    return _augmentationTargetAny;
-  }
-
-  set augmentationTargetAny(ElementImpl? value) {
-    _augmentationTargetAny = value;
-  }
-
+/// Shared implementation for an augmentable [Fragment].
+mixin AugmentableFragment on ElementImpl {
   bool get isAugmentation {
     return hasModifier(Modifier.AUGMENTATION);
   }
@@ -95,16 +75,6 @@ mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
   set isAugmentation(bool value) {
     setModifier(Modifier.AUGMENTATION, value);
   }
-
-  bool get isAugmentationChainStart {
-    return hasModifier(Modifier.AUGMENTATION_CHAIN_START);
-  }
-
-  set isAugmentationChainStart(bool value) {
-    setModifier(Modifier.AUGMENTATION_CHAIN_START, value);
-  }
-
-  ElementLinkedData? get linkedData;
 }
 
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
@@ -167,7 +137,6 @@ class BindPatternVariableElementImpl2 extends PatternVariableElementImpl2
 
 /// An [InterfaceElementImpl] which is a class.
 class ClassElementImpl extends ClassOrMixinElementImpl
-    with AugmentableElement<ClassElementImpl>
     implements ClassElement, ClassFragment {
   late ClassElementImpl2 augmentedInternal;
 
@@ -1399,7 +1368,7 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 
 /// A concrete implementation of a [ConstructorElement].
 class ConstructorElementImpl extends ExecutableElementImpl
-    with AugmentableElement<ConstructorElementImpl>, ConstructorElementMixin
+    with ConstructorElementMixin
     implements ConstructorElement, ConstructorFragment {
   late final ConstructorElementImpl2 element =
       ConstructorElementImpl2(name.ifNotEmptyOrElse('new'), this);
@@ -1437,6 +1406,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   int? nameOffset2;
 
+  @override
+  ConstructorElementImpl? previousFragment;
+
+  @override
+  ConstructorElementImpl? nextFragment;
+
   /// For every constructor we initially set this flag to `true`, and then
   /// set it to `false` during computing constant values if we detect that it
   /// is a part of a cycle.
@@ -1448,14 +1423,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
   ConstructorElementImpl(super.name, super.offset);
-
-  ConstructorElementImpl? get augmentedDeclaration {
-    if (isAugmentation) {
-      return augmentationTarget?.augmentedDeclaration;
-    } else {
-      return this;
-    }
-  }
 
   @override
   List<Element2> get children2 {
@@ -1538,18 +1505,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ConstructorElementImpl? get nextFragment => augmentation;
-
-  @override
   Element get nonSynthetic {
     return isSynthetic ? enclosingElement3 : this;
   }
 
   @override
   int get offset => isSynthetic ? enclosingElement3.offset : _nameOffset;
-
-  @override
-  ConstructorFragment? get previousFragment => augmentationTarget;
 
   @override
   ConstructorElementMixin? get redirectedConstructor {
@@ -2668,9 +2629,6 @@ abstract class ElementImpl implements Element, Element2 {
     if (candidate is CompilationUnitElementImpl) {
       throw UnsupportedError('Cannot get an enclosingElement2 for a fragment');
     }
-    if (candidate is AugmentableElement) {
-      throw UnsupportedError('Cannot get an enclosingElement2 for a fragment');
-    }
     return candidate as Element2?;
   }
 
@@ -3141,10 +3099,6 @@ abstract class ElementImpl implements Element, Element2 {
   /// Whether to include the [nameOffset] in [identifier] to disambiguate
   /// elements that might otherwise have the same identifier.
   bool get _includeNameOffsetInIdentifier {
-    var element = this;
-    if (element is AugmentableElement) {
-      return element.isAugmentation;
-    }
     return false;
   }
 
@@ -3651,7 +3605,6 @@ class ElementLocationImpl implements ElementLocation {
 
 /// An [InterfaceElementImpl] which is an enum.
 class EnumElementImpl extends InterfaceElementImpl
-    with AugmentableElement<EnumElementImpl>
     implements EnumElement, EnumFragment {
   late EnumElementImpl2 augmentedInternal;
 
@@ -3759,7 +3712,7 @@ abstract class ExecutableElement2OrMember implements ExecutableElement2 {
 
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with AugmentableFragment, TypeParameterizedElementMixin
     implements ExecutableElementOrMember, ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -3831,9 +3784,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   set isAsynchronous(bool isAsynchronous) {
     setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
   }
-
-  @override
-  bool get isAugmentation => hasModifier(Modifier.AUGMENTATION);
 
   @override
   bool get isExtensionTypeMember {
@@ -4011,7 +3961,6 @@ abstract class ExecutableElementOrMember implements ExecutableElement {
 
 /// A concrete implementation of an [ExtensionElement].
 class ExtensionElementImpl extends InstanceElementImpl
-    with AugmentableElement<ExtensionElementImpl>
     implements ExtensionElement, ExtensionFragment {
   late ExtensionElementImpl2 augmentedInternal;
 
@@ -4166,7 +4115,6 @@ class ExtensionElementImpl2 extends InstanceElementImpl2
 }
 
 class ExtensionTypeElementImpl extends InterfaceElementImpl
-    with AugmentableElement<ExtensionTypeElementImpl>
     implements ExtensionTypeElement, ExtensionTypeFragment {
   late ExtensionTypeElementImpl2 augmentedInternal;
 
@@ -4309,7 +4257,6 @@ abstract class FieldElement2OrMember
 
 /// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
-    with AugmentableElement<FieldElementImpl>
     implements FieldElementOrMember, FieldFragment {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
@@ -5605,8 +5552,13 @@ class GetterElementImpl extends PropertyAccessorElementImpl2
 }
 
 class GetterFragmentImpl extends PropertyAccessorElementImpl
-    with AugmentableElement<GetterFragmentImpl>
     implements GetterFragment {
+  @override
+  GetterFragmentImpl? previousFragment;
+
+  @override
+  GetterFragmentImpl? nextFragment;
+
   /// The element corresponding to this fragment.
   GetterElementImpl? _element;
 
@@ -5614,16 +5566,6 @@ class GetterFragmentImpl extends PropertyAccessorElementImpl
 
   GetterFragmentImpl.forVariable(super.variable, {super.reference})
       : super.forVariable();
-
-  @override
-  GetterFragmentImpl? get augmentationTarget {
-    if (super.augmentationTarget case var target?) {
-      if (target.kind == kind) {
-        return target;
-      }
-    }
-    return null;
-  }
 
   @override
   PropertyAccessorElement? get correspondingGetter => null;
@@ -5654,12 +5596,6 @@ class GetterFragmentImpl extends PropertyAccessorElementImpl
 
   @override
   bool get isSetter => false;
-
-  @override
-  GetterFragmentImpl? get nextFragment => augmentation;
-
-  @override
-  GetterFragmentImpl? get previousFragment => augmentationTarget;
 }
 
 /// A concrete implementation of a [HideElementCombinator].
@@ -5698,7 +5634,7 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with AugmentableFragment, TypeParameterizedElementMixin
     implements InstanceElement, InstanceFragment {
   @override
   ElementLinkedData? linkedData;
@@ -5775,15 +5711,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   @override
   List<GetterFragment> get getters =>
       accessors.where((e) => e.isGetter).cast<GetterFragment>().toList();
-
-  @override
-  bool get isAugmentation {
-    return hasModifier(Modifier.AUGMENTATION);
-  }
-
-  set isAugmentation(bool value) {
-    setModifier(Modifier.AUGMENTATION, value);
-  }
 
   @override
   List<ElementAnnotationImpl> get metadata {
@@ -7825,11 +7752,16 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
 
 /// A concrete implementation of a [LocalFunctionFragment].
 class LocalFunctionFragmentImpl extends FunctionElementImpl
-    with AugmentableElement<LocalFunctionFragmentImpl>
     implements LocalFunctionFragment {
   /// The element corresponding to this fragment.
   @override
   late LocalFunctionElementImpl element;
+
+  @override
+  LocalFunctionFragmentImpl? previousFragment;
+
+  @override
+  LocalFunctionFragmentImpl? nextFragment;
 
   LocalFunctionFragmentImpl(super.name, super.offset);
 
@@ -7845,12 +7777,6 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
 
   @override
   bool get isEntryPoint => false;
-
-  @override
-  LocalFunctionFragmentImpl? get nextFragment => augmentation;
-
-  @override
-  LocalFunctionFragmentImpl? get previousFragment => augmentationTarget;
 
   @override
   bool get _includeNameOffsetInIdentifier {
@@ -8379,7 +8305,6 @@ abstract class MethodElement2OrMember
 
 /// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl
-    with AugmentableElement<MethodElementImpl>
     implements MethodElementOrMember, MethodFragment {
   @override
   late final MethodElementImpl2 element = MethodElementImpl2(name, this);
@@ -8389,6 +8314,12 @@ class MethodElementImpl extends ExecutableElementImpl
 
   @override
   int? nameOffset2;
+
+  @override
+  MethodElementImpl? previousFragment;
+
+  @override
+  MethodElementImpl? nextFragment;
 
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
@@ -8455,18 +8386,12 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  MethodElementImpl? get nextFragment => augmentation;
-
-  @override
   Element get nonSynthetic {
     if (isSynthetic && enclosingElement3 is EnumElementImpl) {
       return enclosingElement3;
     }
     return this;
   }
-
-  @override
-  MethodElementImpl? get previousFragment => augmentationTarget;
 
   @Deprecated('Use Element2 and accept2() instead')
   @override
@@ -8545,7 +8470,6 @@ abstract class MethodElementOrMember
 
 /// A [ClassElementImpl] representing a mixin declaration.
 class MixinElementImpl extends ClassOrMixinElementImpl
-    with AugmentableElement<MixinElementImpl>
     implements MixinElement, MixinFragment {
   List<InterfaceTypeImpl> _superclassConstraints = const [];
 
@@ -10105,8 +10029,6 @@ sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
-  set isAugmentation(bool isAugmentation);
-
   @override
   ElementKind get kind {
     if (isGetter) {
@@ -10344,6 +10266,7 @@ abstract class PropertyInducingElement2OrMember
 /// A concrete implementation of a [PropertyInducingElement].
 abstract class PropertyInducingElementImpl
     extends NonParameterVariableElementImpl
+    with AugmentableFragment
     implements PropertyInducingElementOrMember, PropertyInducingFragment {
   @override
   String? name2;
@@ -10654,25 +10577,20 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
 }
 
 class SetterFragmentImpl extends PropertyAccessorElementImpl
-    with AugmentableElement<SetterFragmentImpl>
     implements SetterFragment {
   /// The element corresponding to this fragment.
   SetterElementImpl? _element;
+
+  @override
+  SetterFragmentImpl? previousFragment;
+
+  @override
+  SetterFragmentImpl? nextFragment;
 
   SetterFragmentImpl(super.name, super.offset);
 
   SetterFragmentImpl.forVariable(super.variable, {super.reference})
       : super.forVariable();
-
-  @override
-  SetterFragmentImpl? get augmentationTarget {
-    if (super.augmentationTarget case var target?) {
-      if (target.kind == kind) {
-        return target;
-      }
-    }
-    return null;
-  }
 
   @override
   PropertyAccessorElement? get correspondingGetter => variable2?.getter;
@@ -10703,12 +10621,6 @@ class SetterFragmentImpl extends PropertyAccessorElementImpl
 
   @override
   bool get isSetter => true;
-
-  @override
-  SetterFragmentImpl? get nextFragment => augmentation;
-
-  @override
-  SetterFragmentImpl? get previousFragment => augmentationTarget;
 }
 
 /// A concrete implementation of a [ShowElementCombinator].
@@ -10909,11 +10821,16 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
 
 /// A concrete implementation of a [TopLevelFunctionFragment].
 class TopLevelFunctionFragmentImpl extends FunctionElementImpl
-    with AugmentableElement<TopLevelFunctionFragmentImpl>
     implements TopLevelFunctionFragment {
   /// The element corresponding to this fragment.
   @override
   late TopLevelFunctionElementImpl element;
+
+  @override
+  TopLevelFunctionFragmentImpl? previousFragment;
+
+  @override
+  TopLevelFunctionFragmentImpl? nextFragment;
 
   TopLevelFunctionFragmentImpl(super.name, super.offset);
 
@@ -10936,17 +10853,10 @@ class TopLevelFunctionFragmentImpl extends FunctionElementImpl
   bool get isEntryPoint {
     return displayName == FunctionElement.MAIN_FUNCTION_NAME;
   }
-
-  @override
-  TopLevelFunctionFragmentImpl? get nextFragment => augmentation;
-
-  @override
-  TopLevelFunctionFragmentImpl? get previousFragment => augmentationTarget;
 }
 
 /// A concrete implementation of a [TopLevelVariableElement].
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    with AugmentableElement<TopLevelVariableElementImpl>
     implements TopLevelVariableElement, TopLevelVariableFragment {
   @override
   late TopLevelVariableElementImpl2 element;
@@ -11081,13 +10991,19 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, AugmentableElement<TypeAliasElementImpl>
+    with AugmentableFragment, TypeParameterizedElementMixin
     implements TypeAliasElement, TypeAliasFragment {
   @override
   String? name2;
 
   @override
   int? nameOffset2;
+
+  @override
+  TypeAliasElementImpl? previousFragment;
+
+  @override
+  TypeAliasElementImpl? nextFragment;
 
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
@@ -11208,15 +11124,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   }
 
   @override
-  // TODO(augmentations): Support the fragment chain.
-  TypeAliasElementImpl? get nextFragment => null;
-
-  @override
   int get offset => nameOffset;
-
-  @override
-  // TODO(augmentations): Support the fragment chain.
-  TypeAliasElementImpl? get previousFragment => null;
 
   /// Instantiates this type alias with its type parameters as arguments.
   DartType get rawType {

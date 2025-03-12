@@ -947,12 +947,12 @@ class FieldElementImplTest extends PubPackageResolutionTest {
     await resolveTestCode(r'''
 enum B {B1, B2, B3}
 ''');
-    var B = findElement.enum_('B');
+    var B = findElement2.enum_('B');
 
-    FieldElement b2Element = B.getField('B2')!;
+    var b2Element = B.getField2('B2')!;
     expect(b2Element.isEnumConstant, isTrue);
 
-    FieldElement valuesElement = B.getField('values')!;
+    var valuesElement = B.getField2('values')!;
     expect(valuesElement.isEnumConstant, isFalse);
   }
 }

@@ -176,9 +176,6 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  // Custom element created callback.
-  Node._created() : super._created();
-
   /**
    * A modifiable list of this node's children.
    */

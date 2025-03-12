@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,10 +17,6 @@ main() {
 
 @reflectiveTest
 class MetadataResolutionTest extends PubPackageResolutionTest {
-  ImportFindElement get import_a {
-    return findElement.importFind('package:test/a.dart');
-  }
-
   test_at_genericFunctionType_formalParameter() async {
     await assertNoErrorsInCode(r'''
 const a = 42;

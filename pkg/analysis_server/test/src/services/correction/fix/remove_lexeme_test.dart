@@ -21,6 +21,7 @@ class RemoveLexemeMultiTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_LEXEME_MULTI;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_singleFile() async {
     newFile('$testPackageLibPath/a.dart', '''
 part 'test.dart';
@@ -360,6 +361,7 @@ class C {
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_it() async {
     newFile('$testPackageLibPath/a.dart', '''
 part 'test.dart';

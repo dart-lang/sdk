@@ -17,6 +17,7 @@ class ConstantIdentifierNamesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.constant_identifier_names;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationEnum() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -53,6 +54,7 @@ const PI = 3.14;
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedEnumValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

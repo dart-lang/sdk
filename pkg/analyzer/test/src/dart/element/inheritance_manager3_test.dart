@@ -48,7 +48,7 @@ class X extends B {
   void foo() {}
 }
 ''');
-    _assertGetInherited4(
+    _assertGetInherited(
       className: 'X',
       name: 'foo',
       expected: 'B.foo: void Function()',
@@ -69,7 +69,7 @@ class X implements I, J {
   void foo() {}
 }
 ''');
-    _assertGetInherited4(
+    _assertGetInherited(
       className: 'X',
       name: 'foo',
       expected: 'I.foo: void Function()',
@@ -90,7 +90,7 @@ class X extends A with M {
   void foo() {}
 }
 ''');
-    _assertGetInherited4(
+    _assertGetInherited(
       className: 'X',
       name: 'foo',
       expected: 'M.foo: void Function()',
@@ -111,7 +111,7 @@ class X extends A implements I {
   void foo() {}
 }
 ''');
-    _assertGetInherited4(
+    _assertGetInherited(
       className: 'X',
       name: 'foo',
       expected: 'A.foo: void Function()',
@@ -126,7 +126,7 @@ class A {
 
 class B extends A {}
 ''');
-    _assertInheritedConcreteMap2('B', r'''
+    _assertInheritedConcreteMap('B', r'''
 A.foo: int Function()
 ''');
   }
@@ -139,7 +139,7 @@ class A {
 
 abstract class B implements A {}
 ''');
-    _assertInheritedConcreteMap2('B', '');
+    _assertInheritedConcreteMap('B', '');
   }
 
   test_getInheritedConcreteMap_accessor_with() async {
@@ -150,7 +150,7 @@ mixin A {
 
 class B extends Object with A {}
 ''');
-    _assertInheritedConcreteMap2('B', r'''
+    _assertInheritedConcreteMap('B', r'''
 A.foo: int Function()
 ''');
   }
@@ -163,14 +163,14 @@ class B extends A {
   void f() {}
 }
 ''');
-    _assertInheritedConcreteMap2('B', '');
+    _assertInheritedConcreteMap('B', '');
   }
 
   test_getInheritedConcreteMap_implicitExtends() async {
     await resolveTestCode('''
 class A {}
 ''');
-    _assertInheritedConcreteMap2('A', '');
+    _assertInheritedConcreteMap('A', '');
   }
 
   test_getInheritedConcreteMap_method_extends() async {
@@ -181,7 +181,7 @@ class A {
 
 class B extends A {}
 ''');
-    _assertInheritedConcreteMap2('B', r'''
+    _assertInheritedConcreteMap('B', r'''
 A.foo: void Function()
 ''');
   }
@@ -194,7 +194,7 @@ abstract class A {
 
 class B extends A {}
 ''');
-    _assertInheritedConcreteMap2('B', '');
+    _assertInheritedConcreteMap('B', '');
   }
 
   test_getInheritedConcreteMap_method_extends_invalidForImplements() async {
@@ -210,7 +210,7 @@ class A {
 
 class C extends A implements I {}
 ''');
-    _assertInheritedConcreteMap2('C', r'''
+    _assertInheritedConcreteMap('C', r'''
 A.foo: void Function(int)
 ''');
   }
@@ -223,7 +223,7 @@ class A {
 
 abstract class B implements A {}
 ''');
-    _assertInheritedConcreteMap2('B', '');
+    _assertInheritedConcreteMap('B', '');
   }
 
   test_getInheritedConcreteMap_method_with() async {
@@ -234,7 +234,7 @@ mixin A {
 
 class B extends Object with A {}
 ''');
-    _assertInheritedConcreteMap2('B', r'''
+    _assertInheritedConcreteMap('B', r'''
 A.foo: void Function()
 ''');
   }
@@ -251,7 +251,7 @@ mixin B {
 
 class C extends Object with A, B {}
 ''');
-    _assertInheritedConcreteMap2('C', r'''
+    _assertInheritedConcreteMap('C', r'''
 A.foo: void Function()
 B.bar: void Function()
 ''');
@@ -267,7 +267,7 @@ class B extends A {
   void f() {}
 }
 ''');
-    _assertInheritedConcreteMap2('B', '''
+    _assertInheritedConcreteMap('B', '''
 A.f: void Function()
 ''');
   }
@@ -280,7 +280,7 @@ class A {
 
 class B extends A {}
 ''');
-    _assertInheritedMap2('B', r'''
+    _assertInheritedMap('B', r'''
 A.foo: int Function()
 ''');
   }
@@ -378,7 +378,7 @@ class B extends A {
   void f() {}
 }
 ''');
-    _assertInheritedMap2('B', '');
+    _assertInheritedMap('B', '');
   }
 
   test_getInheritedMap_implicitExtendsObject() async {
@@ -456,7 +456,7 @@ class B extends A {
   void f() {}
 }
 ''');
-    _assertInheritedMap2('B', '''
+    _assertInheritedMap('B', '''
 A.f: void Function()
 ''');
   }
@@ -723,7 +723,7 @@ abstract class I2 {
 
 abstract class C implements I1, I2 {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'C',
       name: 'f',
       expected: 'I2.f: void Function(Object)',
@@ -736,7 +736,7 @@ class A {
   void foo() {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'A',
       name: 'foo',
       concrete: true,
@@ -750,7 +750,7 @@ abstract class A {
   void foo();
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'A',
       name: 'foo',
       concrete: true,
@@ -765,7 +765,7 @@ class A {
 
 class X with A {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       concrete: true,
@@ -783,7 +783,7 @@ class B = Object with A;
 
 class X with B {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       concrete: true,
@@ -801,7 +801,7 @@ class B {}
 
 class X extends A with B {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'toString',
       concrete: true,
@@ -817,7 +817,7 @@ mixin M {
 
 class X with M {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       concrete: true,
@@ -835,14 +835,14 @@ class B extends A {}
 
 abstract class C extends B {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       concrete: true,
       expected: 'A.foo: void Function()',
     );
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'C',
       name: 'foo',
       concrete: true,
@@ -854,7 +854,7 @@ abstract class C extends B {}
     await resolveTestCode('''
 abstract class A {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'A',
       name: 'foo',
       concrete: true,
@@ -873,14 +873,14 @@ class B implements A {
 
 abstract class C extends B {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       concrete: true,
       expected: 'A.foo: void Function()',
     );
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'C',
       name: 'foo',
       concrete: true,
@@ -900,7 +900,7 @@ abstract class B extends Object with A {}
 ''');
 // noSuchMethod forwarders are not mixed-in.
     // https://github.com/dart-lang/sdk/issues/33553#issuecomment-424638320
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       concrete: true,
@@ -921,7 +921,7 @@ class C extends B {
   void foo([int a]);
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'C',
       name: 'foo',
       concrete: true,
@@ -935,7 +935,7 @@ abstract class B<E> {
   T foo<T>();
 }
 ''');
-    var B = (findElement.classOrMixin('B') as InterfaceFragment).element;
+    var B = findElement2.classOrMixin('B');
     var foo = manager.getMember4(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
@@ -956,9 +956,9 @@ abstract class A<XA> {
 }
 abstract class B<XB> extends A<XB> {}
 ''');
-    var XB = findElement.typeParameter('XB');
+    var XB = findElement2.typeParameter('XB');
     var typeXB = XB.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-    var B = (findElement.classOrMixin('B') as InterfaceFragment).element;
+    var B = findElement2.classOrMixin('B');
     var typeB = B.instantiate(
         typeArguments: [typeXB], nullabilitySuffix: NullabilitySuffix.none);
     var foo = manager.getMember3(typeB, Name(null, 'foo'))!;
@@ -985,9 +985,9 @@ abstract class B<X> extends A<X> {}
 typedef C<V> = B<List<V>>;
 abstract class D<XD> extends C<XD> {}
 ''');
-    var XD = findElement.typeParameter('XD');
+    var XD = findElement2.typeParameter('XD');
     var typeXD = XD.instantiate(nullabilitySuffix: NullabilitySuffix.none);
-    var D = (findElement.classOrMixin('D') as InterfaceFragment).element;
+    var D = findElement2.classOrMixin('D');
     var typeD = D.instantiate(
         typeArguments: [typeXD], nullabilitySuffix: NullabilitySuffix.none);
     var foo = manager.getMember3(typeD, Name(null, 'foo'))!;
@@ -1006,7 +1006,7 @@ abstract class A<E> {
 
 abstract class B<E> extends A<E> {}
 ''');
-    var B = (findElement.classOrMixin('B') as InterfaceFragment).element;
+    var B = findElement2.classOrMixin('B');
     var foo = manager.getMember4(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
@@ -1022,7 +1022,7 @@ abstract class A {
 
 abstract class B extends A {}
 ''');
-    var B = (findElement.classOrMixin('B') as InterfaceFragment).element;
+    var B = findElement2.classOrMixin('B');
     var foo = manager.getMember4(B, Name(null, 'foo'))!;
     var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
@@ -1040,7 +1040,7 @@ abstract class B extends A {
 }
 ''');
     var member = manager.getMember4(
-      (findElement.classOrMixin('B') as InterfaceFragment).element,
+      findElement2.classOrMixin('B'),
       Name(null, 'foo'),
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
@@ -1065,12 +1065,12 @@ class B {
 class C extends B implements A {}
 ''');
     var member = manager.getMember4(
-      (findElement.classOrMixin('C') as InterfaceFragment).element,
+      findElement2.classOrMixin('C'),
       Name(null, 'foo'),
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.baseElement, same(findElement.method('foo', of: 'B')));
+    expect(member.baseElement, same(findElement2.method('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
@@ -1087,12 +1087,12 @@ mixin M<T> {
 class X extends A<dynamic> with M<Object?> {}
 class Y extends A<Object?> with M<dynamic> {}
 ''');
-    _assertGetMember5(
+    _assertGetMember2(
       className: 'X',
       name: 'foo',
       expected: 'M.foo: Object? Function()',
     );
-    _assertGetMember5(
+    _assertGetMember2(
       className: 'Y',
       name: 'foo',
       expected: 'M.foo: dynamic Function()',
@@ -1111,12 +1111,12 @@ class B extends A {
   int? bar(int a) => 0;
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       expected: 'A.foo: int Function(int, int?)',
     );
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'bar',
       expected: 'B.bar: int? Function(int)',
@@ -1136,7 +1136,7 @@ class B {
 class X extends A implements B {}
 ''');
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'B.foo: Object? Function()',
@@ -1156,7 +1156,7 @@ abstract class B {
 abstract class X extends A implements B {}
 ''');
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'X.foo: Future<Object?> Function()',
@@ -1176,7 +1176,7 @@ class B {
 class X extends A implements B {}
 ''');
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'X.foo: Object? Function(Object?)',
@@ -1196,10 +1196,10 @@ class B {
 class X extends A implements B {}
 ''');
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo=',
-      expected: 'B.foo: void Function(Object?)',
+      expected: 'B.foo=: void Function(Object?)',
     );
   }
 
@@ -1216,10 +1216,10 @@ abstract class B {
 abstract class X extends A implements B {}
 ''');
 
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo=',
-      expected: 'X.foo: void Function(Future<Object?>)',
+      expected: 'X.foo=: void Function(Future<Object?>)',
     );
   }
 
@@ -1243,7 +1243,7 @@ abstract class I {
 
 class X extends A with M1, M2 implements I {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'M2.foo: void Function()',
@@ -1266,7 +1266,7 @@ abstract class I {
 
 class X extends B implements I {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'B.foo: void Function()',
@@ -1287,7 +1287,7 @@ class X extends A implements I {
   void foo() {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       expected: 'X.foo: void Function()',
@@ -1305,7 +1305,7 @@ abstract class B extends A {
 }
 ''');
     var member = manager.getMember4(
-      (findElement.classOrMixin('B') as InterfaceFragment).element,
+      findElement2.classOrMixin('B'),
       Name(null, 'foo='),
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
@@ -1330,12 +1330,12 @@ class B {
 class C extends B implements A {}
 ''');
     var member = manager.getMember4(
-      (findElement.classOrMixin('C') as InterfaceFragment).element,
+      findElement2.classOrMixin('C'),
       Name(null, 'foo='),
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.baseElement, same(findElement.setter('foo', of: 'B')));
+    expect(member.baseElement, same(findElement2.setter('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
@@ -1349,7 +1349,7 @@ class B extends A {
   noSuchMethod(_) {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       forSuper: true,
@@ -1364,7 +1364,7 @@ abstract class A {
 
 mixin M implements A {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'M',
       name: 'foo',
       forSuper: true,
@@ -1379,7 +1379,7 @@ abstract class A {
 
 mixin M on A {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'M',
       name: 'foo',
       forSuper: true,
@@ -1409,7 +1409,7 @@ class X extends Object with M {
   void foo() {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'X',
       name: 'foo',
       forSuper: true,
@@ -1427,7 +1427,7 @@ class B extends A {
   void foo() {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       forSuper: true,
@@ -1441,7 +1441,7 @@ class A {}
 
 class B extends A {}
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       forSuper: true,
@@ -1459,7 +1459,7 @@ class B extends A {
   void foo() {}
 }
 ''');
-    _assertGetMember4(
+    _assertGetMember(
       className: 'B',
       name: 'foo',
       forSuper: true,
@@ -2395,11 +2395,11 @@ abstract class B<E> {
   T foo<T>();
 }
 ''');
-    var B = findElement.classOrMixin('B');
-    var foo = manager.getMember2(B, Name(null, 'foo'))!;
-    var T = foo.typeParameters.single;
+    var B = findElement2.classOrMixin('B');
+    var foo = manager.getMember4(B, Name(null, 'foo'))!;
+    var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
-    expect(returnType.element, same(T));
+    expect(returnType.element3, same(T));
   }
 
   test_getMember_fromGenericSuper_method_bound() async {
@@ -2466,12 +2466,12 @@ abstract class A<E> {
 
 abstract class B<E> extends A<E> {}
 ''');
-    var B = findElement.classOrMixin('B');
-    var foo = manager.getMember2(B, Name(null, 'foo'))!;
-    var T = foo.typeParameters.single;
+    var B = findElement2.classOrMixin('B');
+    var foo = manager.getMember4(B, Name(null, 'foo'))!;
+    var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
     // Check that the return type uses the same `T` as `<T>`.
-    expect(returnType.element, same(T));
+    expect(returnType.element3, same(T));
   }
 
   test_getMember_fromNotGenericSuper_method_returnType() async {
@@ -2482,11 +2482,11 @@ abstract class A {
 
 abstract class B extends A {}
 ''');
-    var B = findElement.classOrMixin('B');
-    var foo = manager.getMember2(B, Name(null, 'foo'))!;
-    var T = foo.typeParameters.single;
+    var B = findElement2.classOrMixin('B');
+    var foo = manager.getMember4(B, Name(null, 'foo'))!;
+    var T = foo.typeParameters2.single;
     var returnType = foo.returnType;
-    expect(returnType.element, same(T));
+    expect(returnType.element3, same(T));
   }
 
   test_getMember_method_covariantAfterSubstitutedParameter_merged() async {
@@ -2501,14 +2501,14 @@ class C {
   void foo<U>(Object a, U b, covariant Object c) {}
 }
 ''');
-    var member = manager.getMember2(
-      findElement.classOrMixin('B'),
+    var member = manager.getMember4(
+      findElement2.classOrMixin('B'),
       Name(null, 'foo'),
       concrete: true,
     )!;
-    expect(member.parameters[0].isCovariant, isTrue);
-    expect(member.parameters[1].isCovariant, isFalse);
-    expect(member.parameters[2].isCovariant, isTrue);
+    expect(member.formalParameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[1].isCovariant, isFalse);
+    expect(member.formalParameters[2].isCovariant, isTrue);
   }
 
   test_getMember_method_covariantByDeclaration_inherited() async {
@@ -2521,14 +2521,14 @@ abstract class B extends A {
   void foo(int a);
 }
 ''');
-    var member = manager.getMember2(
-      findElement.classOrMixin('B'),
+    var member = manager.getMember4(
+      findElement2.classOrMixin('B'),
       Name(null, 'foo'),
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
-    expect(member.parameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
   test_getMember_method_covariantByDeclaration_merged() async {
@@ -2543,13 +2543,13 @@ class B {
 
 class C extends B implements A {}
 ''');
-    var member = manager.getMember2(
-      findElement.classOrMixin('C'),
+    var member = manager.getMember4(
+      findElement2.classOrMixin('C'),
       Name(null, 'foo'),
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.parameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
   test_getMember_mixin_notMerge_replace() async {
@@ -2782,14 +2782,14 @@ abstract class B extends A {
   set foo(int a);
 }
 ''');
-    var member = manager.getMember2(
-      findElement.classOrMixin('B'),
+    var member = manager.getMember4(
+      findElement2.classOrMixin('B'),
       Name(null, 'foo='),
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
-    expect(member.parameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
   test_getMember_setter_covariantByDeclaration_merged() async {
@@ -2804,13 +2804,13 @@ class B {
 
 class C extends B implements A {}
 ''');
-    var member = manager.getMember2(
-      findElement.classOrMixin('C'),
+    var member = manager.getMember4(
+      findElement2.classOrMixin('C'),
       Name(null, 'foo='),
       concrete: true,
     )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.parameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
   test_getMember_super_abstract() async {
@@ -4310,39 +4310,14 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     manager = InheritanceManager3();
   }
 
-  void _assertExecutable(ExecutableElement? element, String? expected) {
-    if (expected != null && element != null) {
-      var enclosingElement = element.enclosingElement3;
-
-      var type = element.type;
-      var typeStr = typeString(type);
-
-      var actual = '${enclosingElement.name}.${element.name}: $typeStr';
-      expect(actual, expected);
-
-      if (element is PropertyAccessorElement) {
-        var variable = element.variable2!;
-        expect(variable.enclosingElement3, same(element.enclosingElement3));
-        expect(variable.name, element.displayName);
-        if (element.isGetter) {
-          expect(variable.type, element.returnType);
-        } else {
-          expect(variable.type, element.parameters[0].type);
-        }
-      }
-    } else {
-      expect(element, isNull);
-    }
-  }
-
-  void _assertExecutable2(ExecutableElement2? element, String? expected) {
+  void _assertExecutable(ExecutableElement2? element, String? expected) {
     if (expected != null && element != null) {
       var enclosingElement = element.enclosingElement2;
 
       var type = element.type;
       var typeStr = typeString(type);
 
-      var actual = '${enclosingElement?.name3}.${element.name3}: $typeStr';
+      var actual = '${enclosingElement?.name3}.${element.lookupName}: $typeStr';
       expect(actual, expected);
 
       if (element is GetterElement) {
@@ -4361,13 +4336,13 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     }
   }
 
-  void _assertExecutable2List(
+  void _assertExecutableList(
       List<ExecutableElement2>? elements, String? expected) {
     var elementsString = elements == null
         ? null
         : [
             for (var element in elements)
-              '${element.enclosingElement2?.name3}.${element.name3}: '
+              '${element.enclosingElement2?.name3}.${element.lookupName}: '
                   '${typeString(element.type)}\n'
           ].sorted().join();
     expect(elementsString, expected);
@@ -4378,25 +4353,12 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     required String name,
     String? expected,
   }) {
-    var member = manager.getInherited2(
-      findElement.classOrMixin(className),
+    var member = manager.getInherited4(
+      findElement2.classOrMixin(className),
       Name(null, name),
     );
 
     _assertExecutable(member, expected);
-  }
-
-  void _assertGetInherited4({
-    required String className,
-    required String name,
-    String? expected,
-  }) {
-    var member = manager.getInherited4(
-      (findElement.classOrMixin(className) as InterfaceFragment).element,
-      Name(null, name),
-    );
-
-    _assertExecutable2(member, expected);
   }
 
   void _assertGetMember({
@@ -4406,8 +4368,8 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     bool concrete = false,
     bool forSuper = false,
   }) {
-    var member = manager.getMember2(
-      findElement.classOrMixin(className),
+    var member = manager.getMember4(
+      findElement2.classOrMixin(className),
       Name(null, name),
       concrete: concrete,
       forSuper: forSuper,
@@ -4435,81 +4397,32 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     );
   }
 
-  void _assertGetMember4({
-    required String className,
-    required String name,
-    String? expected,
-    bool concrete = false,
-    bool forSuper = false,
-  }) {
-    var member = manager.getMember4(
-      (findElement.classOrMixin(className) as InterfaceFragment).element,
-      Name(null, name),
-      concrete: concrete,
-      forSuper: forSuper,
-    );
-
-    _assertExecutable2(member, expected);
-  }
-
-  void _assertGetMember5({
-    required String className,
-    required String name,
-    String? expected,
-  }) {
-    _assertGetMember4(
-      className: className,
-      name: name,
-      expected: expected,
-    );
-
-    _assertGetMember4(
-      className: className,
-      name: name,
-      expected: expected,
-      concrete: true,
-    );
-  }
-
   void _assertGetOverridden4({
     required String className,
     required String name,
     String? expected,
   }) {
     var members = manager.getOverridden4(
-      (findElement.classOrMixin(className) as InterfaceFragment).element,
+      findElement2.classOrMixin(className),
       Name(null, name),
     );
 
-    _assertExecutable2List(members, expected);
+    _assertExecutableList(members, expected);
   }
 
   void _assertInheritedConcreteMap(String className, String expected) {
-    var element = findElement.classOrMixin(className);
-    var map = manager.getInheritedConcreteMap2(element);
+    var element = findElement2.classOrMixin(className);
+    var map = manager.getInheritedConcreteMap(element);
     _assertNameToExecutableMap(map, expected);
-  }
-
-  void _assertInheritedConcreteMap2(String className, String expected) {
-    var element = findElement.classOrMixin(className);
-    var map =
-        manager.getInheritedConcreteMap((element as InterfaceFragment).element);
-    _assertNameToExecutable2Map(map, expected);
   }
 
   void _assertInheritedMap(String className, String expected) {
-    var element = findElement.classOrMixin(className);
-    var map = manager.getInheritedMap2(element);
+    var element = findElement2.classOrMixin(className);
+    var map = manager.getInheritedMap(element);
     _assertNameToExecutableMap(map, expected);
   }
 
-  void _assertInheritedMap2(String className, String expected) {
-    var element = findElement.classOrMixin(className);
-    var map = manager.getInheritedMap((element as InterfaceFragment).element);
-    _assertNameToExecutable2Map(map, expected);
-  }
-
-  void _assertNameToExecutable2Map(
+  void _assertNameToExecutableMap(
       Map<Name, ExecutableElement2> map, String expected) {
     var lines = <String>[];
     for (var entry in map.entries) {
@@ -4520,30 +4433,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       if (enclosingElement?.name3 == 'Object') continue;
 
       var typeStr = type.getDisplayString();
-      lines.add('${enclosingElement?.name3}.${element.name3}: $typeStr');
-    }
-
-    lines.sort();
-    var actual = lines.isNotEmpty ? '${lines.join('\n')}\n' : '';
-
-    if (actual != expected) {
-      print(actual);
-    }
-    expect(actual, expected);
-  }
-
-  void _assertNameToExecutableMap(
-      Map<Name, ExecutableElement> map, String expected) {
-    var lines = <String>[];
-    for (var entry in map.entries) {
-      var element = entry.value;
-      var type = element.type;
-
-      var enclosingElement = element.enclosingElement3;
-      if (enclosingElement.name == 'Object') continue;
-
-      var typeStr = type.getDisplayString();
-      lines.add('${enclosingElement.name}.${element.name}: $typeStr');
+      lines.add('${enclosingElement?.name3}.${element.lookupName}: $typeStr');
     }
 
     lines.sort();

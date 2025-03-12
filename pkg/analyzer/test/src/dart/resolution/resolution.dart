@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -46,7 +45,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   late ResolvedUnitResultImpl result;
   late FindNode findNode;
-  late FindElement findElement;
   late FindElement2 findElement2;
 
   final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
@@ -435,7 +433,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     result = await resolveFile(file);
 
     findNode = FindNode(result.content, result.unit);
-    findElement = FindElement(result.unit);
     findElement2 = FindElement2(result.unit);
   }
 

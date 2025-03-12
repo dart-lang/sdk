@@ -442,32 +442,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     try {
       var declaredFragment = node.declaredFragment!;
-      var declaredElement = declaredFragment.element;
-      var firstFragment = declaredElement.firstFragment;
-
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: declaredFragment,
-      );
-
-      _checkClassAugmentationModifiers(
-        augmentKeyword: node.augmentKeyword,
-        augmentationNode: node,
-        augmentationElement: declaredFragment,
-      );
-
-      if (!identical(firstFragment, declaredFragment)) {
-        _checkAugmentationTypeParameters(
-          nameToken: node.name,
-          typeParameterList: node.typeParameters,
-          declarationTypeParameters: firstFragment.typeParameters,
-        );
-      }
-
-      _checkClassAugmentationTargetAlreadyHasExtendsClause(
-        node: node,
-        augmentationTarget: declaredFragment.augmentationTarget,
-      );
 
       _isInNativeClass = node.nativeClause != null;
 
@@ -601,10 +575,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         _checkForUndefinedConstructorInInitializerImplicit(node);
         _checkForReturnInGenerativeConstructor(node);
-        _checkAugmentations(
-          augmentKeyword: node.augmentKeyword,
-          element: fragment,
-        );
         super.visitConstructorDeclaration(node);
       },
       isAsynchronous: fragment.isAsynchronous,
@@ -652,14 +622,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitEnumConstantDeclaration(
-      covariant EnumConstantDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-
-    _checkAugmentations(
-      augmentKeyword: node.augmentKeyword,
-      element: fragment,
-    );
-
+    covariant EnumConstantDeclarationImpl node,
+  ) {
     _requiredParametersVerifier.visitEnumConstantDeclaration(node);
     _typeArgumentsVerifier.checkEnumConstantDeclaration(node);
     super.visitEnumConstantDeclaration(node);
@@ -671,19 +635,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var declaredFragment = node.declaredFragment!;
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
-
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: declaredFragment,
-      );
-
-      if (!identical(firstFragment, declaredFragment)) {
-        _checkAugmentationTypeParameters(
-          nameToken: node.name,
-          typeParameterList: node.typeParameters,
-          declarationTypeParameters: firstFragment.typeParameters,
-        );
-      }
 
       var element = declaredFragment.element;
       _enclosingClass = element;
@@ -755,22 +706,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element;
-    var firstFragment = declaredElement.firstFragment;
-
-    _checkAugmentations(
-      augmentKeyword: node.augmentKeyword,
-      element: declaredFragment,
-    );
-
-    if (!identical(firstFragment, declaredFragment)) {
-      if (node.name case var nameToken?) {
-        _checkAugmentationTypeParameters(
-          nameToken: nameToken,
-          typeParameterList: node.typeParameters,
-          declarationTypeParameters: firstFragment.typeParameters,
-        );
-      }
-    }
 
     _enclosingExtension = declaredFragment.asElement2;
     _checkForConflictingExtensionTypeVariableErrorCodes();
@@ -798,19 +733,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var declaredFragment = node.declaredFragment!;
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
-
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: declaredFragment,
-      );
-
-      if (!identical(firstFragment, declaredFragment)) {
-        _checkAugmentationTypeParameters(
-          nameToken: node.name,
-          typeParameterList: node.typeParameters,
-          declarationTypeParameters: firstFragment.typeParameters,
-        );
-      }
 
       _enclosingClass = firstFragment.asElement2;
 
@@ -877,15 +799,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInField(node);
       _checkForLateFinalFieldWithConstConstructor(node);
       _checkForNonFinalFieldInEnum(node);
-
-      for (var field in fields.variables) {
-        var fragment = field.declaredFragment;
-        fragment as FieldElementImpl;
-        _checkAugmentations(
-          augmentKeyword: node.augmentKeyword,
-          element: fragment,
-        );
-      }
 
       super.visitFieldDeclaration(node);
     } finally {
@@ -969,10 +882,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _returnTypeVerifier.verifyReturnType(returnType);
         _checkForMainFunction1(node.name, fragment);
         _checkForMainFunction2(node);
-        _checkAugmentations(
-          augmentKeyword: node.augmentKeyword,
-          element: fragment,
-        );
         super.visitFunctionDeclaration(node);
       },
       isAsynchronous: fragment.isAsynchronous,
@@ -1048,11 +957,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     var fragment = node.declaredFragment!;
-
-    _checkAugmentations(
-      augmentKeyword: node.augmentKeyword,
-      element: fragment,
-    );
 
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
@@ -1197,10 +1101,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkForTypeAnnotationDeferredClass(returnType);
         _returnTypeVerifier.verifyReturnType(returnType);
         _checkForWrongTypeParameterVarianceInMethod(node);
-        _checkAugmentations(
-          augmentKeyword: node.augmentKeyword,
-          element: fragment,
-        );
         super.visitMethodDeclaration(node);
       },
       isAsynchronous: fragment.isAsynchronous,
@@ -1235,25 +1135,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var declaredFragment = node.declaredFragment!;
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
-
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: declaredFragment,
-      );
-
-      _checkMixinAugmentationModifiers(
-        augmentKeyword: node.augmentKeyword,
-        augmentationNode: node,
-        augmentationElement: declaredFragment,
-      );
-
-      if (!identical(firstFragment, declaredFragment)) {
-        _checkAugmentationTypeParameters(
-          nameToken: node.name,
-          typeParameterList: node.typeParameters,
-          declarationTypeParameters: firstFragment.typeParameters,
-        );
-      }
 
       _enclosingClass = declaredElement;
 
@@ -1589,10 +1470,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var fragment = variable.declaredFragment;
       fragment as TopLevelVariableElementImpl;
       _checkForMainFunction1(variable.name, fragment);
-      _checkAugmentations(
-        augmentKeyword: node.augmentKeyword,
-        element: fragment,
-      );
     }
 
     super.visitTopLevelVariableDeclaration(node);
@@ -1665,228 +1542,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     super.visitVariableDeclarationStatement(node);
 
     _isInLateLocalVariable.removeLast();
-  }
-
-  void _checkAugmentations<T extends ElementImpl>({
-    required Token? augmentKeyword,
-    required T element,
-  }) {
-    if (augmentKeyword == null) {
-      return;
-    }
-
-    if (element is! AugmentableElement<T>) {
-      return;
-    }
-
-    // OK
-    if (element.augmentationTarget != null) {
-      return;
-    }
-
-    // Not the same kind.
-    if (element.augmentationTargetAny case var target?) {
-      errorReporter.atToken(
-        augmentKeyword,
-        CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
-        arguments: [
-          target.kind.displayName,
-          element.kind.displayName,
-        ],
-      );
-      return;
-    }
-
-    errorReporter.atToken(
-      augmentKeyword,
-      CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION,
-    );
-  }
-
-  void _checkAugmentationTypeParameters({
-    required Token nameToken,
-    required TypeParameterList? typeParameterList,
-    required List<TypeParameterElementImpl> declarationTypeParameters,
-  }) {
-    if (declarationTypeParameters.isEmpty) {
-      if (typeParameterList != null) {
-        errorReporter.atToken(
-          typeParameterList.leftBracket,
-          CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT,
-        );
-      }
-    } else {
-      if (typeParameterList == null) {
-        errorReporter.atToken(
-          nameToken,
-          CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT,
-        );
-      } else {
-        var declarationCount = declarationTypeParameters.length;
-        var typeParameters = typeParameterList.typeParameters;
-        switch (typeParameters.length.compareTo(declarationCount)) {
-          case < 0:
-            errorReporter.atToken(
-              typeParameterList.rightBracket,
-              CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT,
-            );
-          case > 0:
-            errorReporter.atToken(
-              typeParameters[declarationCount].name,
-              CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT,
-            );
-          default:
-            for (var index = 0; index < declarationCount; index++) {
-              var ofDeclaration = declarationTypeParameters[index];
-              var ofAugmentation = typeParameters[index];
-
-              if (ofAugmentation.name.lexeme != ofDeclaration.name) {
-                errorReporter.atToken(
-                  ofAugmentation.name,
-                  CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME,
-                );
-                continue;
-              }
-
-              var declarationBound = ofDeclaration.bound;
-              var augmentationBound = ofAugmentation.bound;
-              switch ((declarationBound, augmentationBound)) {
-                case (null, var augmentationBound?):
-                  errorReporter.atNode(
-                    augmentationBound,
-                    CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND,
-                  );
-                case (_?, null):
-                  errorReporter.atToken(
-                    ofAugmentation.name,
-                    CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND,
-                  );
-                case (var declarationBound?, var augmentationBound?):
-                  var augmentationType = augmentationBound.typeOrThrow;
-                  if (!typeSystem.isEqualTo(
-                    declarationBound,
-                    augmentationType,
-                  )) {
-                    errorReporter.atNode(
-                      augmentationBound,
-                      CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND,
-                    );
-                  }
-              }
-            }
-        }
-      }
-    }
-  }
-
-  void _checkClassAugmentationModifiers({
-    required Token? augmentKeyword,
-    required ClassDeclarationImpl augmentationNode,
-    required ClassElementImpl augmentationElement,
-  }) {
-    if (augmentKeyword == null) {
-      return;
-    }
-
-    var target = augmentationElement.augmentationTarget;
-    if (target == null) {
-      return;
-    }
-
-    var firstFragment = target.element.firstFragment;
-
-    void singleModifier({
-      required String modifierName,
-      required bool declarationFlag,
-      required Token? augmentationModifier,
-    }) {
-      if (declarationFlag) {
-        if (augmentationModifier == null) {
-          errorReporter.atToken(
-            augmentKeyword,
-            CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING,
-            arguments: [modifierName],
-          );
-        }
-      } else {
-        if (augmentationModifier != null) {
-          errorReporter.atToken(
-            augmentationModifier,
-            CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA,
-            arguments: [modifierName],
-          );
-        }
-      }
-    }
-
-    // Sealed classes are also abstract, report just `sealed` mismatch.
-    if (!firstFragment.isSealed) {
-      singleModifier(
-        modifierName: 'abstract',
-        declarationFlag: firstFragment.isAbstract,
-        augmentationModifier: augmentationNode.abstractKeyword,
-      );
-    }
-
-    singleModifier(
-      modifierName: 'base',
-      declarationFlag: firstFragment.isBase,
-      augmentationModifier: augmentationNode.baseKeyword,
-    );
-
-    singleModifier(
-      modifierName: 'final',
-      declarationFlag: firstFragment.isFinal,
-      augmentationModifier: augmentationNode.finalKeyword,
-    );
-
-    singleModifier(
-      modifierName: 'interface',
-      declarationFlag: firstFragment.isInterface,
-      augmentationModifier: augmentationNode.interfaceKeyword,
-    );
-
-    singleModifier(
-      modifierName: 'mixin',
-      declarationFlag: firstFragment.isMixinClass,
-      augmentationModifier: augmentationNode.mixinKeyword,
-    );
-
-    singleModifier(
-      modifierName: 'sealed',
-      declarationFlag: firstFragment.isSealed,
-      augmentationModifier: augmentationNode.sealedKeyword,
-    );
-  }
-
-  void _checkClassAugmentationTargetAlreadyHasExtendsClause({
-    required ClassDeclarationImpl node,
-    required ClassElementImpl? augmentationTarget,
-  }) {
-    var extendsClause = node.extendsClause;
-    if (extendsClause == null) {
-      return;
-    }
-
-    while (augmentationTarget != null) {
-      if (augmentationTarget.hasExtendsClause) {
-        errorReporter.atToken(
-          extendsClause.extendsKeyword,
-          CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT,
-          contextMessages: [
-            DiagnosticMessageImpl(
-              filePath: augmentationTarget.source.fullName,
-              offset: augmentationTarget.nameOffset,
-              length: augmentationTarget.nameLength,
-              message: 'The extends clause is included here.',
-              url: null,
-            ),
-          ],
-        );
-        return;
-      }
-      augmentationTarget = augmentationTarget.augmentationTarget;
-    }
   }
 
   /// Checks the class for problems with the superclass, mixins, or implemented
@@ -6088,53 +5743,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
     }
-  }
-
-  void _checkMixinAugmentationModifiers({
-    required Token? augmentKeyword,
-    required MixinDeclarationImpl augmentationNode,
-    required MixinElementImpl augmentationElement,
-  }) {
-    if (augmentKeyword == null) {
-      return;
-    }
-
-    var fragment = augmentationElement.augmentationTarget;
-    if (fragment == null) {
-      return;
-    }
-
-    var firstFragment = fragment.element.firstFragment;
-
-    void singleModifier({
-      required String modifierName,
-      required bool declarationFlag,
-      required Token? augmentationModifier,
-    }) {
-      if (declarationFlag) {
-        if (augmentationModifier == null) {
-          errorReporter.atToken(
-            augmentKeyword,
-            CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING,
-            arguments: [modifierName],
-          );
-        }
-      } else {
-        if (augmentationModifier != null) {
-          errorReporter.atToken(
-            augmentationModifier,
-            CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA,
-            arguments: [modifierName],
-          );
-        }
-      }
-    }
-
-    singleModifier(
-      modifierName: 'base',
-      declarationFlag: firstFragment.isBase,
-      augmentationModifier: augmentationNode.baseKeyword,
-    );
   }
 
   /// Checks the class for problems with the superclass, mixins, or implemented

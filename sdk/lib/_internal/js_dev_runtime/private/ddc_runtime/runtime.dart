@@ -267,6 +267,7 @@ void hotRestart() {
   JS('', '#.clear()', constantLists);
   JS('', '#.clear()', constantSets);
   JS('', '#.clear()', constantMaps);
+  JS('', '#.clear()', tearoffCache);
 
   JS('', '#.forEach((value) => value.fill(void 0))', moduleConstCaches);
 

@@ -41,6 +41,8 @@ class DocumentLinkHandler
         return _getDartDocumentLinks(path);
       } else if (isPubspecYaml(pathContext, path)) {
         return _getPubspecDocumentLinks(path);
+      } else if (isAnalysisOptionsYaml(pathContext, path)) {
+        return _getAnalysisOptionsDocumentLinks(path);
       } else {
         return success(const []);
       }
@@ -52,6 +54,32 @@ class DocumentLinkHandler
     return lsp.DocumentLink(
       range: toRange(lineInfo, link.offset, link.length),
       target: link.targetUri,
+    );
+  }
+
+  /// Get the [lsp.DocumentLink]s for a Analysis Options file.
+  Future<ErrorOr<List<lsp.DocumentLink>>> _getAnalysisOptionsDocumentLinks(
+    String filePath,
+  ) async {
+    // Read the current version of the document here. We need to ensure the
+    // content used by 'AnalysisOptionLinkComputer' and the 'LineInfo' we use
+    // to convert to LSP data are consistent.
+    var analysisOptionsContent = _safelyRead(
+      server.resourceProvider.getFile(filePath),
+    );
+    if (analysisOptionsContent == null) {
+      return success([]);
+    }
+
+    /// Helper to convert using LineInfo.
+    var lineInfo = LineInfo.fromContent(analysisOptionsContent);
+    lsp.DocumentLink convert(DocumentLink link) {
+      return _convert(link, lineInfo);
+    }
+
+    var visitor = AnalysisOptionLinkComputer();
+    return success(
+      visitor.findLinks(analysisOptionsContent).map(convert).toList(),
     );
   }
 

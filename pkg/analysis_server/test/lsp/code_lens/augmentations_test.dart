@@ -152,6 +152,7 @@ augment class [!A!] {}
     await expectNavigationCodeLens();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_getter() async {
     setLibraryContent(r'''
 class A {
@@ -168,6 +169,7 @@ augment class A {
     await expectNavigationCodeLens();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_method() async {
     setLibraryContent(r'''
 class A {
@@ -184,6 +186,7 @@ augment class A {
     await expectNavigationCodeLens();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_setter() async {
     setLibraryContent(r'''
 class A {
@@ -234,6 +237,7 @@ augment enum A {
     await expectNavigationCodeLens();
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_topLevel_function() async {
     setLibraryContent(r'''
 void [!f!]() {}

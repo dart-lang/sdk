@@ -749,8 +749,8 @@ extension ClassElementImpl2Extension on ClassElementImpl2 {
     var augmentationTarget = fragments.last;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTargetAny = augmentationTarget;
+      augmentationTarget.nextFragment = augmentation;
+      augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,
@@ -764,8 +764,8 @@ extension ClassElementImplExtension on ClassElementImpl {
     var augmentationTarget = this;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTargetAny = augmentationTarget;
+      augmentationTarget.nextFragment = augmentation;
+      augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,
@@ -779,8 +779,8 @@ extension MixinElementImpl2Extension on MixinElementImpl2 {
     var augmentationTarget = fragments.last;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTargetAny = augmentationTarget;
+      augmentationTarget.nextFragment = augmentation;
+      augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,
@@ -799,8 +799,8 @@ extension MixinElementImplExtension on MixinElementImpl {
     var augmentationTarget = this;
     for (var augmentation in augmentations) {
       expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.augmentation = augmentation;
-      augmentation.augmentationTargetAny = augmentationTarget;
+      augmentationTarget.nextFragment = augmentation;
+      augmentation.previousFragment = augmentationTarget;
       augmentationTarget = augmentation;
 
       expect(augmentation.typeParameters, isEmpty,

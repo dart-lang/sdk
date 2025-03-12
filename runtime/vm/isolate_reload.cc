@@ -639,8 +639,11 @@ static intptr_t CommonSuffixLength(const char* a, const char* b) {
 }
 
 static ObjectPtr AcceptCompilation(Thread* thread) {
-  TransitionVMToNative transition(thread);
-  Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
+  Dart_KernelCompilationResult result;
+  {
+    TransitionVMToNative transition(thread);
+    result = KernelIsolate::AcceptCompilation();
+  }
   if (result.status != Dart_KernelCompilationStatus_Ok) {
     if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
       FATAL(
