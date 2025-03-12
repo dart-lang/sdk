@@ -72,19 +72,6 @@ class CompiledApp {
       throw "Unable to print message: " + js;
     }
 
-    // Converts a Dart List to a JS array. Any Dart objects will be converted, but
-    // this will be cheap for JSValues.
-    function arrayFromDartList(constructor, list) {
-      const exports = dartInstance.exports;
-      const read = exports.$listRead;
-      const length = exports.$listLength(list);
-      const array = new constructor(length);
-      for (let i = 0; i < length; i++) {
-        array[i] = read(list, i);
-      }
-      return array;
-    }
-
     // A special symbol attached to functions that wrap Dart functions.
     const jsWrappedDartFunctionSymbol = Symbol("JSWrappedDartFunction");
 

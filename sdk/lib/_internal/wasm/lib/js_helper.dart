@@ -256,8 +256,14 @@ external WasmExternRef jsFloat64ArrayFromDartFloat64List(Float64List l);
 
 external WasmExternRef jsDataViewFromDartByteData(ByteData data, int length);
 
-WasmExternRef? jsArrayFromDartList(List<Object?> l) =>
-    JS<WasmExternRef?>('l => arrayFromDartList(Array, l)', l);
+WasmExternRef? _jsifyRawList(List<Object?> list) {
+  final length = list.length;
+  final result = JSArray<JSAny?>.withLength(length);
+  for (int i = 0; i < length; i++) {
+    result[i] = JSValue.box(jsifyRaw(list[i])) as JSAny?;
+  }
+  return (result as JSValue).toExternRef;
+}
 
 external JSStringImpl jsStringFromDartString(String s);
 external String jsStringToDartString(JSStringImpl s);
@@ -369,7 +375,7 @@ WasmExternRef? jsifyRaw(Object? o) {
     if (o is js_types.JSDataViewImpl) return o.toExternRef;
     if (o is ByteData) return jsDataViewFromDartByteData(o, o.lengthInBytes);
   } else if (o is List<Object?>) {
-    return jsArrayFromDartList(o);
+    return _jsifyRawList(o);
   } else if (o is ByteBuffer) {
     if (o is js_types.JSArrayBufferImpl) return o.toExternRef;
     return jsArrayBufferFromDartByteBuffer(o);
@@ -672,16 +678,3 @@ external T JS<T>(
   arg18,
   arg19,
 ]);
-
-/// Methods used by the wasm runtime.
-@pragma("wasm:export", "\$listLength")
-WasmI32 _listLength(WasmExternRef? ref) =>
-    unsafeCastOpaque<List>(
-      unsafeCast<WasmExternRef>(ref).internalize(),
-    ).length.toWasmI32();
-
-@pragma("wasm:export", "\$listRead")
-WasmExternRef? _listRead(WasmExternRef? ref, WasmI32 index) => jsifyRaw(
-  unsafeCastOpaque<List>(unsafeCast<WasmExternRef>(ref).internalize())[index
-      .toIntSigned()],
-);
