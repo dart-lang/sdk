@@ -103,23 +103,25 @@ class ElementTextConfiguration {
     Set<String> mixinNames = const {},
     Set<String> fieldNames = const {},
   }) {
-    filter = (e) {
-      if (e is ClassElement) {
-        return classNames.contains(e.name);
-      } else if (e is ConstructorElement) {
-        return false;
-      } else if (e is EnumElement) {
-        return enumNames.contains(e.name);
-      } else if (e is ExtensionTypeElement) {
-        return extensionTypeNames.contains(e.name);
-      } else if (e is FieldElement) {
-        return fieldNames.isEmpty || fieldNames.contains(e.name);
-      } else if (e is MixinElement) {
-        return mixinNames.contains(e.name);
-      } else if (e is PartElement) {
-        return false;
-      } else if (e is PropertyAccessorElement) {
-        return false;
+    withV1 = false;
+    filter = (o) {
+      switch (o) {
+        case LibraryFragment():
+          return false;
+        case ClassElement2():
+          return classNames.contains(o.name3);
+        case ConstructorElement2():
+          return false;
+        case EnumElement2():
+          return enumNames.contains(o.name3);
+        case ExtensionTypeElement2():
+          return extensionTypeNames.contains(o.name3);
+        case FieldElement2():
+          return fieldNames.isEmpty || fieldNames.contains(o.name3);
+        case MixinElement2():
+          return mixinNames.contains(o.name3);
+        case PropertyAccessorElement2():
+          return false;
       }
       return true;
     };

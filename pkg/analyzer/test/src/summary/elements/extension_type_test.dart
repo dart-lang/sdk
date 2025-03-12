@@ -2124,73 +2124,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensionTypes
-        A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          enclosingElement3: <testLibraryFragment>
-          representation: <testLibraryFragment>::@extensionType::A::@field::_it
-          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
-          typeErasure: int?
-          fields
-            final promotable _it @22
-              reference: <testLibraryFragment>::@extensionType::A::@field::_it
-              enclosingElement3: <testLibraryFragment>::@extensionType::A
-              type: int?
-  fieldNameNonPromotabilityInfo
-    _it
-      conflictingFields
-        <testLibraryFragment>::@class::B::@field::_it#element
-      conflictingGetters
-        <testLibraryFragment>::@class::C::@getter::_it#element
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      extensionTypes
-        extension type A @15
-          reference: <testLibraryFragment>::@extensionType::A
-          element: <testLibrary>::@extensionType::A
-          fields
-            _it @22
-              reference: <testLibraryFragment>::@extensionType::A::@field::_it
-              element: <testLibraryFragment>::@extensionType::A::@field::_it#element
-              getter2: <testLibraryFragment>::@extensionType::A::@getter::_it
-  classes
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        hasInitializer _it
-          firstFragment: <testLibraryFragment>::@class::B::@field::_it
-          type: int
-          getter: <testLibraryFragment>::@class::B::@getter::_it#element
-          setter: <testLibraryFragment>::@class::B::@setter::_it#element
-      getters
-        synthetic get _it
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_it
-      setters
-        synthetic set _it
-          firstFragment: <testLibraryFragment>::@class::B::@setter::_it
-          formalParameters
-            requiredPositional __it
-              type: int
-    class C
-      reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
-      fields
-        synthetic _it
-          firstFragment: <testLibraryFragment>::@class::C::@field::_it
-          type: int
-          getter: <testLibraryFragment>::@class::C::@getter::_it#element
-      getters
-        get _it
-          firstFragment: <testLibraryFragment>::@class::C::@getter::_it
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2203,9 +2136,6 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::_it
           type: int?
           getter: <testLibraryFragment>::@extensionType::A::@getter::_it#element
-      getters
-        synthetic get _it
-          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::_it
   fieldNameNonPromotabilityInfo
     _it
       conflictingFields

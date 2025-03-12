@@ -12895,38 +12895,6 @@ class B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-  fieldNameNonPromotabilityInfo
-    _foo
-      conflictingGetters
-        <testLibraryFragment>::@class::B::@getter::_foo#element
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -12936,29 +12904,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        synthetic _foo
-          firstFragment: <testLibraryFragment>::@class::B::@field::_foo
-          type: int?
-          getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
   fieldNameNonPromotabilityInfo
     _foo
       conflictingGetters
@@ -12982,34 +12927,6 @@ abstract class B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13019,29 +12936,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    abstract class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        synthetic promotable _foo
-          firstFragment: <testLibraryFragment>::@class::B::@field::_foo
-          type: int?
-          getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        abstract get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
 ''');
   }
 
@@ -13065,45 +12959,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @38
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-  fieldNameNonPromotabilityInfo
-    _foo
-      conflictingGetters
-        <testLibrary>::@fragment::package:test/a.dart::@class::B::@getter::_foo#element
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @38
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13113,29 +12968,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B
-      fields
-        synthetic _foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@field::_foo
-          type: int?
-          getter: <testLibrary>::@fragment::package:test/a.dart::@class::B::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-      getters
-        get _foo
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@getter::_foo
   fieldNameNonPromotabilityInfo
     _foo
       conflictingGetters
@@ -13159,34 +12991,6 @@ class B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13196,29 +13000,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        synthetic static _foo
-          firstFragment: <testLibraryFragment>::@class::B::@field::_foo
-          type: int?
-          getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        static get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
 ''');
   }
 
@@ -13238,38 +13019,6 @@ class B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-  fieldNameNonPromotabilityInfo
-    _foo
-      conflictingFields
-        <testLibraryFragment>::@class::B::@field::_foo#element
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13279,36 +13028,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        _foo
-          firstFragment: <testLibraryFragment>::@class::B::@field::_foo
-          type: int?
-          getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-          setter: <testLibraryFragment>::@class::B::@setter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
-      setters
-        synthetic set _foo
-          firstFragment: <testLibraryFragment>::@class::B::@setter::_foo
-          formalParameters
-            requiredPositional __foo
-              type: int?
   fieldNameNonPromotabilityInfo
     _foo
       conflictingFields
@@ -13332,34 +13051,6 @@ class B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13369,36 +13060,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        static _foo
-          firstFragment: <testLibraryFragment>::@class::B::@field::_foo
-          type: int?
-          getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-          setter: <testLibraryFragment>::@class::B::@setter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        synthetic static get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
-      setters
-        synthetic static set _foo
-          firstFragment: <testLibraryFragment>::@class::B::@setter::_foo
-          formalParameters
-            requiredPositional __foo
-              type: int?
 ''');
   }
 
@@ -13418,34 +13079,6 @@ class B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13455,32 +13088,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        synthetic _field
-          firstFragment: <testLibraryFragment>::@class::B::@field::_field
-          type: int?
-          setter: <testLibraryFragment>::@class::B::@setter::_field#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      setters
-        set _field
-          firstFragment: <testLibraryFragment>::@class::B::@setter::_field
-          formalParameters
-            requiredPositional _
-              type: int?
 ''');
   }
 
@@ -13497,34 +13104,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @22
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @39
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @22
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @39
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13534,15 +13113,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
 ''');
   }
 
@@ -13567,38 +13137,6 @@ class C implements B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-  fieldNameNonPromotabilityInfo
-    _foo
-      conflictingNsmClasses
-        <testLibrary>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13608,44 +13146,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        final hasInitializer _foo
-          firstFragment: <testLibraryFragment>::@class::B::@field::_foo
-          type: int?
-          getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
-    class C
-      reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
-      documentationComment: /// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
-      interfaces
-        B
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-      methods
-        noSuchMethod
-          firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
-          formalParameters
-            requiredPositional invocation
-              type: Invocation
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
@@ -13681,72 +13181,6 @@ class C with M implements B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-        class B @90
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @107
-              reference: <testLibraryFragment>::@class::B::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::B
-              type: int?
-              shouldUseTypeForInitializerInference: true
-      mixins
-        mixin M @54
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            final promotable _foo @71
-              reference: <testLibraryFragment>::@mixin::M::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int?
-              shouldUseTypeForInitializerInference: true
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
-        class B @90
-          reference: <testLibraryFragment>::@class::B
-          element: <testLibrary>::@class::B
-          fields
-            hasInitializer _foo @107
-              reference: <testLibraryFragment>::@class::B::@field::_foo
-              element: <testLibraryFragment>::@class::B::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::B::@getter::_foo
-      mixins
-        mixin M @54
-          reference: <testLibraryFragment>::@mixin::M
-          element: <testLibrary>::@mixin::M
-          fields
-            hasInitializer _foo @71
-              reference: <testLibraryFragment>::@mixin::M::@field::_foo
-              element: <testLibraryFragment>::@mixin::M::@field::_foo#element
-              getter2: <testLibraryFragment>::@mixin::M::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13756,15 +13190,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13773,30 +13198,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
-    class C
-      reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
-      documentationComment: /// `_foo` is implemented in [M].
-      supertype: Object
-      mixins
-        M
-      interfaces
-        B
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-      methods
-        noSuchMethod
-          firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
-          formalParameters
-            requiredPositional invocation
-              type: Invocation
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -13808,9 +13209,6 @@ library
           firstFragment: <testLibraryFragment>::@mixin::M::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@mixin::M::@getter::_foo#element
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@getter::_foo
 ''');
   }
 
@@ -13841,51 +13239,6 @@ class D extends B implements C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-        class B @54
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @71
-              reference: <testLibraryFragment>::@class::B::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::B
-              type: int?
-              shouldUseTypeForInitializerInference: true
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
-        class B @54
-          reference: <testLibraryFragment>::@class::B
-          element: <testLibrary>::@class::B
-          fields
-            hasInitializer _foo @71
-              reference: <testLibraryFragment>::@class::B::@field::_foo
-              element: <testLibraryFragment>::@class::B::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::B::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -13895,15 +13248,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -13912,43 +13256,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
-    class C
-      reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
-      fields
-        final promotable hasInitializer _foo
-          firstFragment: <testLibraryFragment>::@class::C::@field::_foo
-          type: int?
-          getter: <testLibraryFragment>::@class::C::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::C::@getter::_foo
-    class D
-      reference: <testLibrary>::@class::D
-      firstFragment: <testLibraryFragment>::@class::D
-      documentationComment: /// `_foo` is implemented in [B].
-      supertype: B
-      interfaces
-        C
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::D::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
-      methods
-        noSuchMethod
-          firstFragment: <testLibraryFragment>::@class::D::@method::noSuchMethod
-          formalParameters
-            requiredPositional invocation
-              type: Invocation
 ''');
   }
 
@@ -13975,38 +13282,6 @@ class E = Object with M implements B;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-  fieldNameNonPromotabilityInfo
-    _foo
-      conflictingNsmClasses
-        <testLibrary>::@class::E
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -14016,53 +13291,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        final hasInitializer _foo
-          firstFragment: <testLibraryFragment>::@class::B::@field::_foo
-          type: int?
-          getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
-    class alias E
-      reference: <testLibrary>::@class::E
-      firstFragment: <testLibraryFragment>::@class::E
-      documentationComment: /// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
-      supertype: Object
-      mixins
-        M
-      interfaces
-        B
-      constructors
-        synthetic const new
-          firstFragment: <testLibraryFragment>::@class::E::@constructor::new
-  mixins
-    mixin M
-      reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
-      superclassConstraints
-        Object
-      methods
-        noSuchMethod
-          firstFragment: <testLibraryFragment>::@mixin::M::@method::noSuchMethod
-          formalParameters
-            requiredPositional invocation
-              type: Invocation
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
@@ -14094,55 +13322,6 @@ enum E implements B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-        class B @54
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @71
-              reference: <testLibraryFragment>::@class::B::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::B
-              type: int?
-              shouldUseTypeForInitializerInference: true
-  fieldNameNonPromotabilityInfo
-    _foo
-      conflictingNsmClasses
-        <testLibrary>::@enum::E
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
-        class B @54
-          reference: <testLibraryFragment>::@class::B
-          element: <testLibrary>::@class::B
-          fields
-            hasInitializer _foo @71
-              reference: <testLibraryFragment>::@class::B::@field::_foo
-              element: <testLibraryFragment>::@class::B::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::B::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -14152,15 +13331,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
     class B
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
@@ -14169,72 +13339,6 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
-  enums
-    enum E
-      reference: <testLibrary>::@enum::E
-      firstFragment: <testLibraryFragment>::@enum::E
-      documentationComment: /// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
-      supertype: Enum
-      interfaces
-        B
-      fields
-        static const enumConstant hasInitializer v
-          firstFragment: <testLibraryFragment>::@enum::E::@field::v
-          type: E
-          constantInitializer
-            fragment: <testLibraryFragment>::@enum::E::@field::v
-            expression: expression_0
-              InstanceCreationExpression
-                constructorName: ConstructorName
-                  type: NamedType
-                    name: E @-1
-                    element: <testLibraryFragment>::@enum::E
-                    element2: <testLibrary>::@enum::E
-                    type: E
-                  staticElement: <testLibraryFragment>::@enum::E::@constructor::new
-                  element: <testLibraryFragment>::@enum::E::@constructor::new#element
-                argumentList: ArgumentList
-                  leftParenthesis: ( @0
-                  rightParenthesis: ) @0
-                staticType: E
-          getter: <testLibraryFragment>::@enum::E::@getter::v#element
-        synthetic static const values
-          firstFragment: <testLibraryFragment>::@enum::E::@field::values
-          type: List<E>
-          constantInitializer
-            fragment: <testLibraryFragment>::@enum::E::@field::values
-            expression: expression_1
-              ListLiteral
-                leftBracket: [ @0
-                elements
-                  SimpleIdentifier
-                    token: v @-1
-                    staticElement: <testLibraryFragment>::@enum::E::@getter::v
-                    element: <testLibraryFragment>::@enum::E::@getter::v#element
-                    staticType: E
-                rightBracket: ] @0
-                staticType: List<E>
-          getter: <testLibraryFragment>::@enum::E::@getter::values#element
-      constructors
-        synthetic const new
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
-      getters
-        synthetic static get v
-          firstFragment: <testLibraryFragment>::@enum::E::@getter::v
-        synthetic static get values
-          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
-      methods
-        noSuchMethod
-          firstFragment: <testLibraryFragment>::@enum::E::@method::noSuchMethod
-          formalParameters
-            requiredPositional invocation
-              type: Invocation
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
@@ -14263,38 +13367,6 @@ class C implements B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-  fieldNameNonPromotabilityInfo
-    _foo
-      conflictingNsmClasses
-        <testLibrary>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -14304,44 +13376,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    abstract class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      fields
-        synthetic _foo
-          firstFragment: <testLibraryFragment>::@class::B::@field::_foo
-          type: int?
-          getter: <testLibraryFragment>::@class::B::@getter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-      getters
-        abstract get _foo
-          firstFragment: <testLibraryFragment>::@class::B::@getter::_foo
-    class C
-      reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
-      documentationComment: /// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
-      interfaces
-        B
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-      methods
-        noSuchMethod
-          firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
-          formalParameters
-            requiredPositional invocation
-              type: Invocation
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
@@ -14378,39 +13412,6 @@ class C implements B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-      classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @41
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      libraryImports
-        package:test/a.dart
-      classes
-        class A @24
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @41
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -14420,30 +13421,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class C
-      reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
-      documentationComment: /// Has a noSuchMethod thrower for B._field, but since private names in\n/// different libraries are distinct, this has no effect on promotion of\n/// C._field.
-      interfaces
-        B
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-      methods
-        noSuchMethod
-          firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
-          formalParameters
-            requiredPositional invocation
-              type: Invocation
 ''');
   }
 
@@ -14468,38 +13445,6 @@ class C implements B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-  fieldNameNonPromotabilityInfo
-    _foo
-      conflictingNsmClasses
-        <testLibrary>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -14509,44 +13454,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      supertype: A
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-          superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
-      methods
-        abstract A
-          firstFragment: <testLibraryFragment>::@class::B::@method::A
-          formalParameters
-            requiredPositional final hasImplicitType value
-              type: dynamic
-    class C
-      reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
-      documentationComment: /// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
-      interfaces
-        B
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-      methods
-        noSuchMethod
-          firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
-          formalParameters
-            requiredPositional invocation
-              type: Invocation
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
@@ -14580,59 +13487,6 @@ class C implements B {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-      mixins
-        mixin M @54
-          reference: <testLibraryFragment>::@mixin::M
-          enclosingElement3: <testLibraryFragment>
-          superclassConstraints
-            Object
-          fields
-            final _foo @71
-              reference: <testLibraryFragment>::@mixin::M::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@mixin::M
-              type: int?
-              shouldUseTypeForInitializerInference: true
-  fieldNameNonPromotabilityInfo
-    _foo
-      conflictingNsmClasses
-        <testLibrary>::@class::C
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
-      mixins
-        mixin M @54
-          reference: <testLibraryFragment>::@mixin::M
-          element: <testLibrary>::@mixin::M
-          fields
-            hasInitializer _foo @71
-              reference: <testLibraryFragment>::@mixin::M::@field::_foo
-              element: <testLibraryFragment>::@mixin::M::@field::_foo#element
-              getter2: <testLibraryFragment>::@mixin::M::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -14642,39 +13496,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
-      supertype: Object
-      mixins
-        M
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
-    class C
-      reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
-      documentationComment: /// Implicitly implements `_foo` as a getter that forwards to [noSuchMethod].
-      interfaces
-        B
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
-      methods
-        noSuchMethod
-          firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
-          formalParameters
-            requiredPositional invocation
-              type: Invocation
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -14686,9 +13507,6 @@ library
           firstFragment: <testLibraryFragment>::@mixin::M::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@mixin::M::@getter::_foo#element
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@getter::_foo
   fieldNameNonPromotabilityInfo
     _foo
       conflictingNsmClasses
@@ -14718,34 +13536,6 @@ mixin M implements A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -14755,29 +13545,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::_foo
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-  mixins
-    mixin M
-      reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
-      superclassConstraints
-        Object
-      interfaces
-        A
-      methods
-        noSuchMethod
-          firstFragment: <testLibraryFragment>::@mixin::M::@method::noSuchMethod
-          formalParameters
-            requiredPositional invocation
-              type: Invocation
 ''');
   }
 
@@ -14792,39 +13559,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            _foo @17
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-  fieldNameNonPromotabilityInfo
-    _foo
-      conflictingFields
-        <testLibraryFragment>::@class::A::@field::_foo#element
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @17
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
-              setter2: <testLibraryFragment>::@class::A::@setter::_foo
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -14835,18 +13569,6 @@ library
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::_foo#element
           setter: <testLibraryFragment>::@class::A::@setter::_foo#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-      setters
-        synthetic set _foo
-          firstFragment: <testLibraryFragment>::@class::A::@setter::_foo
-          formalParameters
-            requiredPositional __foo
-              type: int?
   fieldNameNonPromotabilityInfo
     _foo
       conflictingFields
@@ -14865,35 +13587,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            field @17
-              reference: <testLibraryFragment>::@class::A::@field::field
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            field @17
-              reference: <testLibraryFragment>::@class::A::@field::field
-              element: <testLibraryFragment>::@class::A::@field::field#element
-              getter2: <testLibraryFragment>::@class::A::@getter::field
-              setter2: <testLibraryFragment>::@class::A::@setter::field
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -14904,18 +13597,6 @@ library
           type: int?
           getter: <testLibraryFragment>::@class::A::@getter::field#element
           setter: <testLibraryFragment>::@class::A::@setter::field#element
-      constructors
-        synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-      getters
-        synthetic get field
-          firstFragment: <testLibraryFragment>::@class::A::@getter::field
-      setters
-        synthetic set field
-          firstFragment: <testLibraryFragment>::@class::A::@setter::field
-          formalParameters
-            requiredPositional _field
-              type: int?
 ''');
   }
 
@@ -14933,43 +13614,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          fields
-            final promotable _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int?
-            final bar @37
-              reference: <testLibraryFragment>::@class::A::@field::bar
-              enclosingElement3: <testLibraryFragment>::@class::A
-              type: int
-              shouldUseTypeForInitializerInference: false
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          element: <testLibrary>::@class::A
-          fields
-            _foo @23
-              reference: <testLibraryFragment>::@class::A::@field::_foo
-              element: <testLibraryFragment>::@class::A::@field::_foo#element
-              getter2: <testLibraryFragment>::@class::A::@getter::_foo
-            hasInitializer bar @37
-              reference: <testLibraryFragment>::@class::A::@field::bar
-              element: <testLibraryFragment>::@class::A::@field::bar#element
-              getter2: <testLibraryFragment>::@class::A::@getter::bar
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -14983,17 +13627,6 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@field::bar
           type: int
           getter: <testLibraryFragment>::@class::A::@getter::bar#element
-      constructors
-        new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
-          formalParameters
-            requiredPositional final hasImplicitType _foo
-              type: int?
-      getters
-        synthetic get _foo
-          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
-        synthetic get bar
-          firstFragment: <testLibraryFragment>::@class::A::@getter::bar
 ''');
   }
 
