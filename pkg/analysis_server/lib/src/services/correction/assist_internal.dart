@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
+import 'package:analysis_server/src/services/correction/assist_generators.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
@@ -87,93 +88,104 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart'
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
+/// The set of built-in generators used to produce assists.
+const Set<ProducerGenerator> _builtInGenerators = {
+  AddDiagnosticPropertyReference.new,
+  AddDigitSeparatorEveryThreeDigits.new,
+  AddDigitSeparatorEveryTwoDigits.new,
+  AddReturnType.new,
+  AddTypeAnnotation.bulkFixable,
+  AssignToLocalVariable.new,
+  ConvertAddAllToSpread.new,
+  ConvertClassToEnum.new,
+  ConvertClassToMixin.new,
+  ConvertConditionalExpressionToIfElement.new,
+  ConvertDocumentationIntoBlock.new,
+  ConvertDocumentationIntoLine.new,
+  ConvertIfStatementToSwitchStatement.new,
+  ConvertIntoAsyncBody.new,
+  ConvertIntoBlockBody.missingBody,
+  ConvertIntoFinalField.new,
+  ConvertIntoForIndex.new,
+  ConvertIntoGetter.new,
+  ConvertIntoIsNot.new,
+  ConvertIntoIsNotEmpty.new,
+  ConvertMapFromIterableToForLiteral.new,
+  ConvertPartOfToUri.new,
+  ConvertSwitchExpressionToSwitchStatement.new,
+  ConvertToDoubleQuotes.new,
+  ConvertToExpressionFunctionBody.new,
+  ConvertToFieldParameter.new,
+  ConvertToGenericFunctionSyntax.new,
+  ConvertToIfCaseStatement.new,
+  ConvertToIfCaseStatementChain.new,
+  ConvertToIntLiteral.new,
+  ConvertToMapLiteral.new,
+  ConvertToMultilineString.new,
+  ConvertToNormalParameter.new,
+  ConvertToNullAware.new,
+  ConvertToPackageImport.new,
+  ConvertToRelativeImport.new,
+  ConvertToSetLiteral.new,
+  ConvertToSingleQuotes.new,
+  ConvertToSuperParameters.new,
+  ConvertToSwitchExpression.new,
+  DestructureLocalVariableAssignment.new,
+  EncapsulateField.new,
+  ExchangeOperands.new,
+  FlutterConvertToChildren.new,
+  FlutterConvertToStatefulWidget.new,
+  FlutterConvertToStatelessWidget.new,
+  FlutterMoveDown.new,
+  FlutterMoveUp.new,
+  FlutterRemoveWidget.new,
+  FlutterSwapWithChild.new,
+  FlutterSwapWithParent.new,
+  FlutterWrapBuilder.new,
+  FlutterWrapFutureBuilder.new,
+  FlutterWrapGeneric.new,
+  FlutterWrapStreamBuilder.new,
+  FlutterWrapValueListenableBuilder.new,
+  ImportAddShow.new,
+  InlineInvocation.new,
+  InvertConditionalExpression.new,
+  InvertIfStatement.new,
+  JoinElseWithIf.new,
+  JoinIfWithElse.new,
+  JoinIfWithInner.new,
+  JoinIfWithOuter.new,
+  JoinVariableDeclaration.new,
+  RemoveDigitSeparators.new,
+  RemoveTypeAnnotation.other,
+  ReplaceConditionalWithIfElse.new,
+  ReplaceIfElseWithConditional.new,
+  ReplaceWithVar.new,
+  ShadowField.new,
+  SortChildPropertyLast.new,
+  SplitAndCondition.new,
+  SplitVariableDeclaration.new,
+  UseCurlyBraces.new,
+};
+
+/// The set of built-in multi-generators used to produce assists.
+const Set<MultiProducerGenerator> _builtInMultiGenerators = {
+  FlutterWrap.new,
+  SurroundWith.new,
+};
+
+/// Registers each list of producer generators with [AssistProcessor].
+void registerBuiltInAssistGenerators() {
+  // This function can be called many times during test runs so these statements
+  // should not result in duplicate producers (i.e. they should only add to maps
+  // or sets or otherwise ensure producers that already exist are not added).
+  registeredAssistGenerators.producerGenerators.addAll(_builtInGenerators);
+  registeredAssistGenerators.multiProducerGenerators.addAll(
+    _builtInMultiGenerators,
+  );
+}
+
 /// The computer for Dart assists.
 class AssistProcessor {
-  /// A list of the generators used to produce assists.
-  static const List<ProducerGenerator> _generators = [
-    AddDiagnosticPropertyReference.new,
-    AddDigitSeparatorEveryThreeDigits.new,
-    AddDigitSeparatorEveryTwoDigits.new,
-    AddReturnType.new,
-    AddTypeAnnotation.bulkFixable,
-    AssignToLocalVariable.new,
-    ConvertAddAllToSpread.new,
-    ConvertClassToEnum.new,
-    ConvertClassToMixin.new,
-    ConvertConditionalExpressionToIfElement.new,
-    ConvertDocumentationIntoBlock.new,
-    ConvertDocumentationIntoLine.new,
-    ConvertIfStatementToSwitchStatement.new,
-    ConvertIntoAsyncBody.new,
-    ConvertIntoBlockBody.missingBody,
-    ConvertIntoFinalField.new,
-    ConvertIntoForIndex.new,
-    ConvertIntoGetter.new,
-    ConvertIntoIsNot.new,
-    ConvertIntoIsNotEmpty.new,
-    ConvertMapFromIterableToForLiteral.new,
-    ConvertPartOfToUri.new,
-    ConvertSwitchExpressionToSwitchStatement.new,
-    ConvertToDoubleQuotes.new,
-    ConvertToExpressionFunctionBody.new,
-    ConvertToFieldParameter.new,
-    ConvertToGenericFunctionSyntax.new,
-    ConvertToIfCaseStatement.new,
-    ConvertToIfCaseStatementChain.new,
-    ConvertToIntLiteral.new,
-    ConvertToMapLiteral.new,
-    ConvertToMultilineString.new,
-    ConvertToNormalParameter.new,
-    ConvertToNullAware.new,
-    ConvertToPackageImport.new,
-    ConvertToRelativeImport.new,
-    ConvertToSetLiteral.new,
-    ConvertToSingleQuotes.new,
-    ConvertToSuperParameters.new,
-    ConvertToSwitchExpression.new,
-    DestructureLocalVariableAssignment.new,
-    EncapsulateField.new,
-    ExchangeOperands.new,
-    FlutterConvertToChildren.new,
-    FlutterConvertToStatefulWidget.new,
-    FlutterConvertToStatelessWidget.new,
-    FlutterMoveDown.new,
-    FlutterMoveUp.new,
-    FlutterRemoveWidget.new,
-    FlutterSwapWithChild.new,
-    FlutterSwapWithParent.new,
-    FlutterWrapBuilder.new,
-    FlutterWrapFutureBuilder.new,
-    FlutterWrapGeneric.new,
-    FlutterWrapStreamBuilder.new,
-    FlutterWrapValueListenableBuilder.new,
-    ImportAddShow.new,
-    InlineInvocation.new,
-    InvertConditionalExpression.new,
-    InvertIfStatement.new,
-    JoinElseWithIf.new,
-    JoinIfWithElse.new,
-    JoinIfWithInner.new,
-    JoinIfWithOuter.new,
-    JoinVariableDeclaration.new,
-    RemoveDigitSeparators.new,
-    RemoveTypeAnnotation.other,
-    ReplaceConditionalWithIfElse.new,
-    ReplaceIfElseWithConditional.new,
-    ReplaceWithVar.new,
-    ShadowField.new,
-    SortChildPropertyLast.new,
-    SplitAndCondition.new,
-    SplitVariableDeclaration.new,
-    UseCurlyBraces.new,
-  ];
-
-  /// A list of the multi-generators used to produce assists.
-  static const List<MultiProducerGenerator> _multiGenerators = [
-    FlutterWrap.new,
-    SurroundWith.new,
-  ];
-
   final DartAssistContext _assistContext;
 
   final List<Assist> _assists = [];
@@ -232,17 +244,17 @@ class AssistProcessor {
       }
     }
 
-    for (var generator in _generators) {
+    for (var generator in registeredAssistGenerators.producerGenerators) {
       if (!_generatorAppliesToAnyLintRule(
         generator,
-        _assistContext.producerGeneratorsForLintRules[generator] ??
-            <LintCode>{},
+        _assistContext.producerGeneratorsForLintRules[generator] ?? {},
       )) {
         var producer = generator(context: context);
         await compute(producer);
       }
     }
-    for (var multiGenerator in _multiGenerators) {
+    for (var multiGenerator
+        in registeredAssistGenerators.multiProducerGenerators) {
       var multiProducer = multiGenerator(context: context);
       for (var producer in await multiProducer.producers) {
         await compute(producer);
@@ -279,8 +291,10 @@ class AssistProcessor {
     return false;
   }
 
+  /// Returns a map from registered _assist_ producer generators to the
+  /// [LintCode]s for which they may also act as a _fix_ producer generator.
   static Map<ProducerGenerator, Set<LintCode>> computeLintRuleMap() => {
-    for (var generator in _generators)
+    for (var generator in registeredAssistGenerators.producerGenerators)
       generator: {
         for (var MapEntry(key: lintName, value: generators)
             in registeredFixGenerators.lintProducers.entries)

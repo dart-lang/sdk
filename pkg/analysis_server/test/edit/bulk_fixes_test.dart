@@ -430,7 +430,7 @@ abstract class BulkFixesTest extends PubPackageAnalysisServerTest {
   Future<void> setUp() async {
     super.setUp();
     registerLintRules();
-    registerBuiltInProducers();
+    registerBuiltInFixGenerators();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 

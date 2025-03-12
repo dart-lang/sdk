@@ -50,7 +50,7 @@ String? verifyErrorFixStatus() {
   }
   statusInfo!; // This is non-null when `error` is `null`.
   registerLintRules();
-  registerBuiltInProducers();
+  registerBuiltInFixGenerators();
   var lintRuleCodes = {
     for (var rule in Registry.ruleRegistry.rules) ...rule.lintCodes,
   };

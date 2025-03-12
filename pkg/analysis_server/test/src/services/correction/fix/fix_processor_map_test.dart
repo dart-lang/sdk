@@ -29,7 +29,7 @@ class FixProcessorMapTest {
   ];
 
   void setUp() {
-    registerBuiltInProducers();
+    registerBuiltInFixGenerators();
   }
 
   void test_lintProducerMap() {
