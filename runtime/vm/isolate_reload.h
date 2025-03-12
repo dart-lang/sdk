@@ -454,7 +454,10 @@ class CallSiteResetter : public ValueObject {
                                                                                \
   /* The actual reload operation that will ensure all other mutators are */    \
   /* stopped at well-defined places where reload can happen.             */    \
-  ReloadSafepointOperationScope _safepoint_operation_(_thread_);
+  ReloadSafepointOperationScope _safepoint_operation_(_thread_);               \
+                                                                               \
+  /* Native calls during reload should not enter reload safepoints. */         \
+  NoReloadScope _no_reload_(_thread_);
 
 }  // namespace dart
 

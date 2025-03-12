@@ -1043,6 +1043,14 @@ class Thread : public ThreadState {
       safepoint_state_.fetch_and(~mask);
     }
   }
+  void SetNoReloadScope(bool value) {
+    const uword mask = NoReloadScopeField::mask_in_place();
+    if (value) {
+      safepoint_state_.fetch_or(mask);
+    } else {
+      safepoint_state_.fetch_and(~mask);
+    }
+  }
 
   bool OwnsGCSafepoint() const;
   bool OwnsReloadSafepoint() const;
@@ -1077,20 +1085,25 @@ class Thread : public ThreadState {
   static uword native_safepoint_state_unacquired() {
     return AtSafepointField::encode(false) |
            AtDeoptSafepointField::encode(false) |
-           ActiveMutatorStealableField::encode(false);
+#if !defined(PRODUCT)
+           AtReloadSafepointField::encode(false) |
+#endif
+           ActiveMutatorStealableField::encode(false) |
+           NoReloadScopeField::encode(false);
   }
   static uword native_safepoint_state_acquired() {
     return AtSafepointField::encode(true) |
            AtDeoptSafepointField::encode(true) |
-           ActiveMutatorStealableField::encode(true);
+#if !defined(PRODUCT)
+           AtReloadSafepointField::encode(true) |
+#endif
+           ActiveMutatorStealableField::encode(true) |
+           NoReloadScopeField::encode(false);
   }
 
   bool TryStealActiveMutator() {
     uword old_state = safepoint_state_.load();
     if (!ActiveMutatorStealableField::decode(old_state)) return false;
-    ASSERT(!ActiveMutatorStolenField::decode(old_state));
-    ASSERT(AtSafepointField::decode(old_state));
-    ASSERT(AtDeoptSafepointField::decode(old_state));
     uword new_state = old_state;
     new_state = ActiveMutatorStealableField::update(false, new_state);
     new_state = ActiveMutatorStolenField::update(true, new_state);
@@ -1099,9 +1112,8 @@ class Thread : public ThreadState {
   }
 
   bool TryEnterSafepointToNative() {
-    uword old_state = 0;
-    uword new_state = AtSafepointBits(current_safepoint_level()) |
-                      ActiveMutatorStealableField::encode(true);
+    uword old_state = native_safepoint_state_unacquired();
+    uword new_state = native_safepoint_state_acquired();
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
                                                     std::memory_order_release);
   }
@@ -1114,7 +1126,9 @@ class Thread : public ThreadState {
       // Fast update failed which means we could potentially be in the middle
       // of a safepoint operation.
       EnterSafepointUsingLock();
-      safepoint_state_.fetch_or(ActiveMutatorStealableField::encode(true));
+      if (!NoReloadScopeField::decode(safepoint_state_)) {
+        safepoint_state_.fetch_or(ActiveMutatorStealableField::encode(true));
+      }
     }
   }
 
@@ -1144,6 +1158,9 @@ class Thread : public ThreadState {
   }
 
   void ExitSafepoint() {
+    ASSERT(!ActiveMutatorStealableField::decode(safepoint_state_));
+    ASSERT(!ActiveMutatorStolenField::decode(safepoint_state_));
+
     // First try a fast update of the thread state to indicate it is not at a
     // safepoint anymore.
     if (!TryExitSafepoint()) {
@@ -1154,9 +1171,8 @@ class Thread : public ThreadState {
   }
 
   bool TryExitSafepointFromNative() {
-    uword old_state = AtSafepointBits(current_safepoint_level()) |
-                      ActiveMutatorStealableField::encode(true);
-    uword new_state = 0;
+    uword old_state = native_safepoint_state_acquired();
+    uword new_state = native_safepoint_state_unacquired();
     return safepoint_state_.compare_exchange_strong(old_state, new_state,
                                                     std::memory_order_acquire);
   }
@@ -1164,14 +1180,19 @@ class Thread : public ThreadState {
   void ExitSafepointFromNative() {
     if (!TryExitSafepointFromNative()) {
       ExitSafepointUsingLock();
-      uword old = safepoint_state_.fetch_and(
+      uword old_state = safepoint_state_.fetch_and(
           ~(ActiveMutatorStealableField::encode(true) |
             ActiveMutatorStolenField::encode(true)));
-      if (ActiveMutatorStolenField::decode(old)) {
+      if (ActiveMutatorStolenField::decode(old_state)) {
         set_execution_state(Thread::kThreadInVM);
+        allow_reload_scope_depth_++;
         HandleStolen();
+        allow_reload_scope_depth_--;
       }
     }
+
+    ASSERT(!ActiveMutatorStealableField::decode(safepoint_state_));
+    ASSERT(!ActiveMutatorStolenField::decode(safepoint_state_));
   }
   void HandleStolen();
 
@@ -1225,10 +1246,20 @@ class Thread : public ThreadState {
         RuntimeCallDeoptAbility::kCannotLazyDeopt) {
       return SafepointLevel::kGC;
     }
-    if (no_reload_scope_depth_ > 0 || allow_reload_scope_depth_ <= 0) {
+#if defined(PRODUCT)
+    return SafepointLevel::kGCAndDeopt;
+#else
+    if (no_reload_scope_depth_ > 0) {
+      return SafepointLevel::kGCAndDeopt;
+    }
+    if (execution_state_ == kThreadInNative) {
+      return SafepointLevel::kGCAndDeoptAndReload;
+    }
+    if (allow_reload_scope_depth_ <= 0) {
       return SafepointLevel::kGCAndDeopt;
     }
     return SafepointLevel::kGCAndDeoptAndReload;
+#endif
   }
 
 #if defined(DART_DYNAMIC_MODULES)
@@ -1367,6 +1398,11 @@ class Thread : public ThreadState {
    *     which requires enforced exit on a transition from native back to
    *     generated.
    *     [UnwindErrorInProgressField]
+   *
+   *   - whether a NoReloadScope is active (current thread sets these), this
+   *     causes transitions to native/FFI to take the slow path instead of
+   *     entering a reload safepoint
+   *     [NoReloadScopeField]
    */
   std::atomic<uword> safepoint_state_;
   uword exit_through_ffi_ = 0;
@@ -1455,6 +1491,8 @@ class Thread : public ThreadState {
       BitField<uword, bool, BlockedForSafepointField::kNextBit>;
   using UnwindErrorInProgressField =
       BitField<uword, bool, BypassSafepointsField::kNextBit>;
+  using NoReloadScopeField =
+      BitField<uword, bool, UnwindErrorInProgressField::kNextBit>;
 
   static uword AtSafepointBits(SafepointLevel level) {
     switch (level) {
@@ -1697,9 +1735,6 @@ class RawReloadParticipationScope {
  public:
   explicit RawReloadParticipationScope(Thread* thread) : thread_(thread) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    if (thread->allow_reload_scope_depth_ == 0) {
-      ASSERT(thread->current_safepoint_level() == SafepointLevel::kGCAndDeopt);
-    }
     thread->allow_reload_scope_depth_++;
     ASSERT(thread->allow_reload_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1709,9 +1744,6 @@ class RawReloadParticipationScope {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     thread_->allow_reload_scope_depth_ -= 1;
     ASSERT(thread_->allow_reload_scope_depth_ >= 0);
-    if (thread_->allow_reload_scope_depth_ == 0) {
-      ASSERT(thread_->current_safepoint_level() == SafepointLevel::kGCAndDeopt);
-    }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   }
 

@@ -240,11 +240,6 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   __ ReserveAlignedFrameSpace(0);
 
   __ VerifyNotInGenerated(TMP);
-  // Set the execution state to VM while waiting for the safepoint to end.
-  // This isn't strictly necessary but enables tests to check that we're not
-  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
-  __ LoadImmediate(TMP, target::Thread::vm_execution_state());
-  __ sx(TMP, Address(THR, target::Thread::execution_state_offset()));
 
   __ lx(TMP, Address(THR, runtime_entry_offset));
   __ jalr(TMP);

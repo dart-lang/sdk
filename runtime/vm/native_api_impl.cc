@@ -331,6 +331,7 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
                                       kBypassSafepoint);
     Thread* const thread = Thread::Current();
     {
+      NoReloadScope no_reload(thread);  // Reload can flip code protection.
       GcSafepointOperationScope scope(thread);
       isolate_group->heap()->WriteProtectCode(/*read_only=*/false);
       (*args->callback)();

@@ -811,7 +811,8 @@ ObjectPtr Compiler::CompileFunction(Thread* thread, const Function& function) {
         Function::KindToCString(function.kind()));
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-  VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
+  VMTagScope tag_scope(thread, VMTag::kCompileUnoptimizedTagId);
+  NoReloadScope no_reload_scope(thread);
 #if defined(SUPPORT_TIMELINE)
   const char* event_name;
   if (IsBackgroundCompilation()) {
@@ -860,6 +861,7 @@ ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
   VMTagScope tag_scope(thread, VMTag::kCompileOptimizedTagId);
+  NoReloadScope no_reload_scope(thread);
 
 #if defined(SUPPORT_TIMELINE)
   const char* event_name;

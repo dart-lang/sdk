@@ -1536,6 +1536,9 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
 
 NoReloadScope::NoReloadScope(Thread* thread) : ThreadStackResource(thread) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  if (thread->no_reload_scope_depth_ == 0) {
+    thread->SetNoReloadScope(true);
+  }
   thread->no_reload_scope_depth_++;
   ASSERT(thread->no_reload_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1549,6 +1552,8 @@ NoReloadScope::~NoReloadScope() {
   const intptr_t state = thread()->safepoint_state();
 
   if (thread()->no_reload_scope_depth_ == 0) {
+    thread()->SetNoReloadScope(false);
+
     // If we were asked to go to a reload safepoint & block for a reload
     // safepoint operation on another thread - *while* being inside
     // [NoReloadScope] - we may have handled & ignored the OOB message telling

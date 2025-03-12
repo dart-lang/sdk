@@ -669,38 +669,40 @@ ISOLATE_UNIT_TEST_CASE(ReloadScopes_Test) {
   {
     TransitionVMToNative transition(thread);
     IsolateExitScope isolate_leave_scope;
+#if !defined(PRODUCT)
     EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+#else
+    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+#endif
   }
 
   // Unscheduling an isolate with active [NoReloadScope] will enter a safepoint
   // that is not reloadable.
   {
-    // [NoReloadScope] only works if reload is supported.
-#if !defined(PRODUCT)
     NoReloadScope no_reload_scope(thread);
     TransitionVMToNative transition(thread);
     IsolateExitScope isolate_leave_scope;
-    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
-    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
-#endif  // !defined(PRODUCT)
-  }
-
-  // Transitioning to native doesn't mean we enter a safepoint that is
-  // reloadable.
-  // => We may want to allow this in the future (so e.g. isolates that perform
-  // blocking FFI call can be reloaded while being blocked).
-  {
-    TransitionVMToNative transition(thread);
-    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
     EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
   }
 
-  // Transitioning to native with explicit [ReloadParticipationScope] will
-  // enter a safepoint that is reloadable.
+  // Native/FFI calls are generally reloadable.
   {
-    ReloadParticipationScope enable_reload(thread);
     TransitionVMToNative transition(thread);
+#if !defined(PRODUCT)
     EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+#else
+    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
+#endif
+  }
+
+  // But in some contexts like compiling should not be reloadable.
+  {
+    NoReloadScope no_reload_scope(thread);
+    TransitionVMToNative transition(thread);
+    EXPECT(thread->IsAtSafepoint(SafepointLevel::kGCAndDeopt));
+    EXPECT(!thread->IsAtSafepoint(SafepointLevel::kGCAndDeoptAndReload));
   }
 }
 
