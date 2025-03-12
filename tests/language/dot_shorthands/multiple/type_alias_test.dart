@@ -41,13 +41,13 @@ extension type AExt<T>(T t) {
 void main() {
   // Class
   ClassAlias classAlias = .alias;
-  ClassAlias classAlias2 = .new('s').aliasGetter;
+  ClassAlias classAlias2 = .new(1).aliasGetter;
   ClassAlias classAliasMethod = .method();
   const ClassAlias constClassAlias = .constAlias;
 
   // Extension type
   ExtensionAlias extensionAlias = .alias;
-  ExtensionAlias extensionAliasCtor = .new('s').aliasGetter;
+  ExtensionAlias extensionAliasCtor = .new(1).aliasGetter;
   ExtensionAlias extensionAliasMethod = .method();
   const ExtensionAlias constExtensionAlias = .constAlias;
 }
