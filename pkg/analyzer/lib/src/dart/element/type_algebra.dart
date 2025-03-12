@@ -128,7 +128,7 @@ class FreshTypeParameters {
 
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
-  FunctionTypeImpl applyToFunctionType(FunctionType type) {
+  FunctionTypeImpl applyToFunctionType(FunctionTypeImpl type) {
     return FunctionTypeImpl.v2(
       typeParameters: freshTypeParameters,
       formalParameters: type.formalParameters.map((parameter) {

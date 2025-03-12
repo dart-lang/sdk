@@ -214,15 +214,15 @@ extension ExecutableElementOrMemberQuestionExtension
   }
 }
 
-extension FormalParameterElementExtension on FormalParameterElement {
+extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
   /// Returns [FormalParameterElementImpl] with the specified properties
   /// replaced.
   FormalParameterElementImpl copyWith({
-    DartType? type,
+    TypeImpl? type,
     ParameterKind? kind,
     bool? isCovariant,
   }) {
-    var firstFragment = this.firstFragment as ParameterElement;
+    var firstFragment = this.firstFragment as ParameterElementMixin;
     return FormalParameterElementImpl(
       firstFragment.copyWith(
         type: type,
@@ -244,17 +244,16 @@ extension LibraryExtension2 on LibraryElement2? {
       this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
 }
 
-extension ParameterElementExtension on ParameterElement {
+extension ParameterElementMixinExtension on ParameterElementMixin {
   /// Return [ParameterElement] with the specified properties replaced.
   ParameterElementImpl copyWith({
-    DartType? type,
+    TypeImpl? type,
     ParameterKind? kind,
     bool? isCovariant,
   }) {
     return ParameterElementImpl.synthetic(
       name.nullIfEmpty,
       type ?? this.type,
-      // ignore: deprecated_member_use_from_same_package
       kind ?? parameterKind,
     )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
   }

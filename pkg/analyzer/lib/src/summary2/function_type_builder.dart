@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -184,7 +183,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   /// Return the type of the [node] as is, possibly a [TypeBuilder].
-  static DartType _getParameterType(FormalParameterImpl node) {
+  static TypeImpl _getParameterType(FormalParameterImpl node) {
     if (node is DefaultFormalParameterImpl) {
       return _getParameterType(node.parameter);
     } else if (node is SimpleFormalParameterImpl) {

@@ -4572,7 +4572,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 
   /// Creates a synthetic parameter with [name], [type] and [parameterKind].
   factory FormalParameterElementImpl.synthetic(
-      String? name, DartType type, ParameterKind parameterKind) {
+      String? name, TypeImpl type, ParameterKind parameterKind) {
     var fragment = ParameterElementImpl.synthetic(name, type, parameterKind);
     return FormalParameterElementImpl(fragment);
   }
@@ -9365,7 +9365,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   /// Creates a synthetic parameter with [name2], [type] and [parameterKind].
   factory ParameterElementImpl.synthetic(
-      String? name2, DartType type, ParameterKind parameterKind) {
+      String? name2, TypeImpl type, ParameterKind parameterKind) {
     var element = ParameterElementImpl(
       name: name2 ?? '',
       nameOffset: -1,
@@ -9373,9 +9373,7 @@ class ParameterElementImpl extends VariableElementImpl
       nameOffset2: null,
       parameterKind: parameterKind,
     );
-    // TODO(paulberry): remove this cast by changing the type of the `type`
-    // parameter.
-    element.type = type as TypeImpl;
+    element.type = type;
     element.isSynthetic = true;
     return element;
   }

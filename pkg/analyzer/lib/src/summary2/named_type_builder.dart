@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -209,7 +208,7 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  DartType _buildFormalParameterType(FormalParameter node) {
+  TypeImpl _buildFormalParameterType(FormalParameter node) {
     if (node is DefaultFormalParameter) {
       return _buildFormalParameterType(node.parameter);
     } else if (node is FunctionTypedFormalParameterImpl) {
