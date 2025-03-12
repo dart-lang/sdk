@@ -101,7 +101,7 @@ vars = {
   "boringssl_rev": "5d4b8d99a14a64df946f48d87dbaf6691f3cdeaf",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "e4d5a4cf4ea9b85882dc1a505633b7f825777731",
+  "devtools_rev": "f10e8df8c517fb0412b9a66c626581867c9c267d",
   "icu_rev": "43953f57b037778a1b8005564afabe214834f7bd",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
@@ -137,7 +137,7 @@ vars = {
   "i18n_rev": "bdeec2590a1fda55d8ca95616aa8ff4c101765de",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "f08677646f9e5e9a8a233fed1ec324a003609260", # rolled manually while native assets are experimental
+  "native_rev": "2dba4f5f1a506185086666f6c3fcf5c03fb6ba9e", # rolled manually while native assets are experimental
   "protobuf_rev": "7838e4485a4bbcfd5c9f0be1d0c95d38bf720c1b",
   "pub_rev": "639536aa78f7382b4a948669bfdc283f830b2ae9", # rolled manually
   "shelf_rev": "2af8529640d10a247ebfa4e17e629a2ff5273656",
