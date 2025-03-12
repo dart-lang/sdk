@@ -83,11 +83,6 @@ extension StringToExternRef on String? {
           : jsStringFromDartString(this!).toExternRef;
 }
 
-extension ListOfObjectToExternRef on List<Object?>? {
-  WasmExternRef? get toExternRef =>
-      this == null ? WasmExternRef.nullRef : jsArrayFromDartList(this!);
-}
-
 extension JSValueToExternRef on JSValue? {
   WasmExternRef? get toExternRef => JSValue.unbox(this);
 }
@@ -533,7 +528,7 @@ ByteBuffer toDartByteBuffer(WasmExternRef? ref) =>
     toDartByteData(
       callConstructorVarArgsRaw(
         getConstructorString('DataView'),
-        [JSValue(ref)].toExternRef,
+        [JSValue(ref) as JSAny].toJS.toExternRef,
       ),
     ).buffer;
 
@@ -571,7 +566,48 @@ List<int> jsIntTypedArrayToDartIntTypedData(
 }
 
 JSArray<T> toJSArray<T extends JSAny?>(List<T> list) {
-  int length = list.length;
+  final length = list.length;
+
+  if (length <= 4) {
+    if (length == 0) {
+      return JSArray<T>.withLength(0);
+    }
+    final list0 = list[0].toExternRef;
+    if (length == 1) {
+      return JSValue(JS<WasmExternRef>("o => [o]", list0)) as JSArray<T>;
+    }
+    final list1 = list[1].toExternRef;
+    if (length == 2) {
+      return JSValue(JS<WasmExternRef>("(o0, o1) => [o0, o1]", list0, list1))
+          as JSArray<T>;
+    }
+    final list2 = list[2].toExternRef;
+    if (length == 3) {
+      return JSValue(
+            JS<WasmExternRef>(
+              "(o0, o1, o2) => [o0, o1, o2]",
+              list0,
+              list1,
+              list2,
+            ),
+          )
+          as JSArray<T>;
+    }
+    final list3 = list[3].toExternRef;
+    if (length == 4) {
+      return JSValue(
+            JS<WasmExternRef>(
+              "(o0, o1, o2, o3) => [o0, o1, o2, o3]",
+              list0,
+              list1,
+              list2,
+              list3,
+            ),
+          )
+          as JSArray<T>;
+    }
+  }
+
   JSArray<T> result = JSArray<T>.withLength(length);
   for (int i = 0; i < length; i++) {
     result[i] = list[i];

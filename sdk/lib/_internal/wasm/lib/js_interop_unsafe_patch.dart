@@ -49,7 +49,7 @@ extension JSObjectUnsafeUtilExtension on JSObject {
         if (arg2 != null) arg2,
         if (arg3 != null) arg3,
         if (arg4 != null) arg4,
-      ].toExternRef,
+      ].toJS.toExternRef,
     ),
   );
 
@@ -59,7 +59,7 @@ extension JSObjectUnsafeUtilExtension on JSObject {
         callMethodVarArgsRaw(
           toExternRef,
           method.toExternRef,
-          (arguments ?? <JSAny?>[]).toExternRef,
+          (arguments ?? <JSAny?>[]).toJS.toExternRef,
         ),
       );
 
@@ -89,7 +89,7 @@ extension JSFunctionUnsafeUtilExtension on JSFunction {
         if (arg2 != null) arg2,
         if (arg3 != null) arg3,
         if (arg4 != null) arg4,
-      ].toExternRef,
+      ].toJS.toExternRef,
     ),
   );
 
@@ -98,7 +98,7 @@ extension JSFunctionUnsafeUtilExtension on JSFunction {
       _box<JSObject>(
         callConstructorVarArgsRaw(
           toExternRef,
-          (arguments ?? <JSAny?>[]).toExternRef,
+          (arguments ?? <JSAny?>[]).toJS.toExternRef,
         ),
       );
 }
