@@ -7208,12 +7208,12 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  List<GetterElement2OrMember> get getters {
-    var declarations = <GetterElement2OrMember>{};
+  List<GetterElementImpl> get getters {
+    var declarations = <GetterElementImpl>{};
     for (var unit in units) {
       declarations.addAll(unit._accessors
           .where((accessor) => accessor.isGetter)
-          .map((accessor) => accessor.element as GetterElement2OrMember));
+          .map((accessor) => accessor.element as GetterElementImpl));
     }
     return declarations.toList();
   }
@@ -7306,12 +7306,12 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  List<SetterElement> get setters {
-    var declarations = <SetterElement>{};
+  List<SetterElementImpl> get setters {
+    var declarations = <SetterElementImpl>{};
     for (var unit in units) {
       declarations.addAll(unit._accessors
           .where((accessor) => accessor.isSetter)
-          .map((accessor) => (accessor as SetterFragment).element));
+          .map((accessor) => accessor.element as SetterElementImpl));
     }
     return declarations.toList();
   }

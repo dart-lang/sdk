@@ -726,6 +726,19 @@ extension PropertyAccessorElementOrMemberExtension
   }
 }
 
+extension PropertyInducingElementExtension on PropertyInducingElement2 {
+  bool get definesSetter {
+    if (isConst) {
+      return false;
+    }
+    if (isFinal) {
+      return isLate && !hasInitializer;
+    } else {
+      return true;
+    }
+  }
+}
+
 extension TopLevelFunctionElementExtension on TopLevelFunctionElement {
   FunctionElement get asElement {
     return (this as TopLevelFunctionElementImpl).lastFragment;
