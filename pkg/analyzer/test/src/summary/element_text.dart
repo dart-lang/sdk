@@ -537,10 +537,10 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeExportNamespace(LibraryElement2 e) {
-    var map = e.exportNamespace.definedNames;
+    var map = e.exportNamespace.definedNames2;
     var sortedEntries = map.entries.sortedBy((entry) => entry.key);
     for (var entry in sortedEntries) {
-      _elementPrinter.writeNamedElement(entry.key, entry.value);
+      _elementPrinter.writelnNamedElement2(entry.key, entry.value);
     }
   }
 
@@ -2118,6 +2118,7 @@ class _ElementWriter extends _AbstractElementWriter {
   }
 
   void _writeExportNamespace(LibraryElement e) {
+    // ignore:deprecated_member_use_from_same_package
     var map = e.exportNamespace.definedNames;
     var sortedEntries = map.entries.sortedBy((entry) => entry.key);
     for (var entry in sortedEntries) {

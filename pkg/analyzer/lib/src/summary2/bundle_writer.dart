@@ -118,7 +118,7 @@ class BundleWriter {
     // Write resolution data for the library.
     _sink.writeUInt30(_resolutionSink.offset);
     _resolutionSink._writeAnnotationList(libraryElement.metadata);
-    _resolutionSink.writeElement(libraryElement.entryPoint);
+    _resolutionSink.writeElement2(libraryElement.entryPoint2);
     _writeFieldNameNonPromotabilityInfo(
         libraryElement.fieldNameNonPromotabilityInfo);
 
