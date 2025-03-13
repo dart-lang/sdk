@@ -2553,7 +2553,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 }
 
 /// A base class for concrete implementations of an [Element] or [Element2].
-abstract class ElementImpl implements Element, Element2 {
+abstract class ElementImpl implements Element, Element2, ElementOrMember {
   static const _metadataFlag_isReady = 1 << 0;
   static const _metadataFlag_hasDeprecated = 1 << 1;
   static const _metadataFlag_hasOverride = 1 << 2;
@@ -3613,6 +3613,10 @@ class ElementLocationImpl implements ElementLocation {
   }
 }
 
+/// A shared internal interface of [Element] and [Member].
+/// Used during migration to avoid referencing [Element].
+abstract class ElementOrMember {}
+
 /// An [InterfaceElementImpl] which is an enum.
 class EnumElementImpl extends InterfaceElementImpl
     implements EnumElement, EnumFragment {
@@ -3958,7 +3962,8 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `ExecutableElement`.
-abstract class ExecutableElementOrMember implements ExecutableElement {
+abstract class ExecutableElementOrMember
+    implements ExecutableElement, ElementOrMember {
   @override
   List<ParameterElementMixin> get parameters;
 
