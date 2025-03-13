@@ -37,7 +37,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
-  variable: <testLibraryFragment>::@topLevelVariable::a
+  variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -115,7 +115,7 @@ Annotation
 E
   _name: String v
   index: int 0
-  variable: <testLibraryFragment>::@enum::E::@field::v
+  variable: <testLibraryFragment>::@enum::E::@field::v#element
 ''');
   }
 
@@ -557,7 +557,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
-  variable: <testLibraryFragment>::@class::A::@field::foo
+  variable: <testLibraryFragment>::@class::A::@field::foo#element
 ''');
   }
 
@@ -1727,7 +1727,7 @@ Annotation
 
     _assertAnnotationValueText(node, '''
 int 42
-  variable: package:test/a.dart::<fragment>::@class::A::@field::foo
+  variable: package:test/a.dart::<fragment>::@class::A::@field::foo#element
 ''');
   }
 
@@ -1820,7 +1820,7 @@ Annotation
 
     _assertAnnotationValueText(node, '''
 int 42
-  variable: package:test/a.dart::<fragment>::@topLevelVariable::foo
+  variable: package:test/a.dart::@topLevelVariable::foo
 ''');
   }
 
@@ -1869,7 +1869,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
-  variable: package:test/a.dart::<fragment>::@class::A::@field::foo
+  variable: package:test/a.dart::<fragment>::@class::A::@field::foo#element
 ''');
   }
 
@@ -2178,7 +2178,7 @@ Annotation
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
-  variable: <testLibraryFragment>::@class::A::@field::foo
+  variable: <testLibraryFragment>::@class::A::@field::foo#element
 ''');
   }
 
@@ -2732,7 +2732,7 @@ Annotation
     var element = node.elementAnnotation!;
     _assertElementAnnotationValueText(element, r'''
 int 42
-  variable: <testLibraryFragment>::@topLevelVariable::foo
+  variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 

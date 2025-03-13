@@ -185,7 +185,7 @@ C<double Function(int)>
       alias: package:test/a.dart::<fragment>::@typeAlias::F
         typeArguments
           double
-  variable: <testLibraryFragment>::@topLevelVariable::v
+  variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
