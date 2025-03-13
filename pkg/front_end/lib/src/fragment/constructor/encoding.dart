@@ -9,6 +9,7 @@ import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../kernel/body_builder_context.dart';
 import '../../kernel/constructor_tearoff_lowering.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
@@ -20,6 +21,8 @@ import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_member_builder.dart';
 import '../../type_inference/type_schema.dart';
+import 'body_builder_context.dart';
+import 'declaration.dart';
 
 class RegularConstructorEncoding {
   late final Constructor _constructor;
@@ -280,7 +283,7 @@ class RegularConstructorEncoding {
       // If this constructor formals are part of a cyclic dependency this
       // might be called more than once.
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          superTarget, invokeTarget,
+          superTarget, _constructor,
           positionalSuperParameters: positionalSuperParameters ?? const <int>[],
           namedSuperParameters: namedSuperParameters ?? const <String>[],
           isOutlineNode: true,
@@ -296,6 +299,13 @@ class RegularConstructorEncoding {
       }
       _hasAddedDefaultValueCloners = true;
     }
+  }
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourceConstructorBuilderImpl constructorBuilder,
+      ConstructorDeclaration constructorDeclaration) {
+    return new ConstructorBodyBuilderContext(
+        constructorBuilder, constructorDeclaration, _constructor);
   }
 }
 
@@ -588,5 +598,12 @@ class ExtensionTypeConstructorEncoding {
       registerFunctionBody(new Block(statements));
     }
     _hasBuiltBody = true;
+  }
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourceConstructorBuilderImpl constructorBuilder,
+      ConstructorDeclaration constructorDeclaration) {
+    return new ConstructorBodyBuilderContext(
+        constructorBuilder, constructorDeclaration, _constructor);
   }
 }

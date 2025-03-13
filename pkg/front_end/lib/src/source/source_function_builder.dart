@@ -16,7 +16,6 @@ import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../type_inference/type_inference_engine.dart'
@@ -27,10 +26,6 @@ import 'source_member_builder.dart';
 
 abstract class SourceFunctionBuilder
     implements FunctionBuilder, SourceMemberBuilder {
-  List<MetadataBuilder>? get metadata;
-
-  TypeBuilder get returnType;
-
   List<NominalParameterBuilder>? get typeParameters;
 
   List<FormalParameterBuilder>? get formals;

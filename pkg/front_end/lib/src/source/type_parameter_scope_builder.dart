@@ -1784,7 +1784,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 tearOffReference: tearOffReference,
                 nameScheme: nameScheme,
                 nativeMethodName: fragment.nativeMethodName,
-                beginInitializers: fragment.beginInitializers,
                 constructorDeclaration: constructorDeclaration);
           case ClassBuilder():
             List<FormalParameterBuilder>? syntheticFormals;
@@ -1829,7 +1828,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 tearOffReference: tearOffReference,
                 nameScheme: nameScheme,
                 nativeMethodName: fragment.nativeMethodName,
-                beginInitializers: fragment.beginInitializers,
                 constructorDeclaration: constructorDeclaration);
           case ExtensionBuilder():
             List<NominalParameterBuilder>? typeParameters = fragment
@@ -1873,7 +1871,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 tearOffReference: tearOffReference,
                 nameScheme: nameScheme,
                 nativeMethodName: fragment.nativeMethodName,
-                beginInitializers: fragment.beginInitializers,
                 constructorDeclaration: constructorDeclaration);
         }
         fragment.builder = constructorBuilder;
@@ -1940,7 +1937,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 constructorReference: constructorReference,
                 tearOffReference: tearOffReference,
                 nameScheme: nameScheme,
-                beginInitializers: fragment.beginInitializers,
                 constructorDeclaration: constructorDeclaration);
           // Coverage-ignore(suite): Not run.
           case ClassBuilder():
@@ -1956,7 +1952,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 constructorReference: constructorReference,
                 tearOffReference: tearOffReference,
                 nameScheme: nameScheme,
-                beginInitializers: fragment.beginInitializers,
                 constructorDeclaration: constructorDeclaration);
           // Coverage-ignore(suite): Not run.
           case ExtensionBuilder():

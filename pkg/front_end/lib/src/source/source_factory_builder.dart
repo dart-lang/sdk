@@ -102,13 +102,8 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<MetadataBuilder>? get metadata => _introductory.metadata;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get typeParameters => _encoding.typeParameters;
 
-  @override
   TypeBuilder get returnType => _encoding.returnType;
 
   @override
@@ -117,7 +112,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<MetadataBuilder>? get metadataForTesting => metadata;
+  Iterable<MetadataBuilder>? get metadataForTesting => _introductory.metadata;
 
   ConstructorReferenceBuilder? get redirectionTarget =>
       _introductory.redirectionTarget;

@@ -61,6 +61,7 @@ import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
+import 'constructor/declaration.dart';
 
 part 'class.dart';
 part 'class/declaration.dart';

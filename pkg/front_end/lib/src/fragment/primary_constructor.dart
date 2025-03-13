@@ -22,6 +22,8 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
 
   SourceConstructorBuilderImpl? _builder;
 
+  ConstructorDeclaration? _declaration;
+
   PrimaryConstructorFragment({
     required this.constructorName,
     required this.fileUri,
@@ -61,6 +63,18 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     _builder = value;
   }
 
+  ConstructorDeclaration get declaration {
+    assert(
+        _declaration != null, "Declaration has not been computed for $this.");
+    return _declaration!;
+  }
+
+  void set declaration(ConstructorDeclaration value) {
+    assert(_declaration == null,
+        "Declaration has already been computed for $this.");
+    _declaration = value;
+  }
+
   @override
   FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
     return new _PrimaryConstructorBodyBuildingContext(this);
@@ -88,7 +102,8 @@ class _PrimaryConstructorBodyBuildingContext
 
   @override
   LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
-    return _fragment.builder.computeFormalParameterScope(typeParameterScope);
+    return _fragment.declaration
+        .computeFormalParameterScope(typeParameterScope);
   }
 
   @override
@@ -98,7 +113,7 @@ class _PrimaryConstructorBodyBuildingContext
 
   @override
   BodyBuilderContext createBodyBuilderContext() {
-    return _fragment.builder.createBodyBuilderContext();
+    return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
   }
 
   @override
@@ -110,8 +125,8 @@ class _PrimaryConstructorBodyBuildingContext
 
   @override
   List<TypeParameter>? get thisTypeParameters =>
-      _fragment.builder.thisTypeParameters;
+      _fragment.declaration.thisTypeParameters;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.builder.thisVariable;
+  VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
 }
