@@ -732,7 +732,7 @@ bool dtest(obj) {
 asInt(obj) {
   // Note: null (and undefined) will fail this test.
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    castError(obj, JS('', '#', int));
+    castError(obj, TYPE_REF<int>());
   }
   return obj;
 }
