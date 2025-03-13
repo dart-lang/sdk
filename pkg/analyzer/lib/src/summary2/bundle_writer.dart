@@ -1006,8 +1006,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
     var enclosing = declaration.enclosingElement3;
     if (enclosing is InstanceElement) {
-      var typeParameters =
-          (enclosing.asElement2! as InstanceElement2).typeParameters2;
+      var typeParameters = enclosing.asElement2.typeParameters2;
       if (typeParameters.isEmpty) {
         return const <DartType>[];
       }
