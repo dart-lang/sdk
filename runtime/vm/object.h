@@ -7112,7 +7112,7 @@ class Code : public Object {
     UNREACHABLE();
     return nullptr;
 #else
-    return untag()->var_descriptors();
+    return untag()->var_descriptors<std::memory_order_acquire>();
 #endif
   }
   void set_var_descriptors(const LocalVarDescriptors& value) const {
@@ -7120,7 +7120,7 @@ class Code : public Object {
     UNREACHABLE();
 #else
     ASSERT(value.IsOld());
-    untag()->set_var_descriptors(value.ptr());
+    untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
 #endif
   }
 
