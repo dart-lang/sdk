@@ -991,15 +991,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::D::@constructor::new
-                  element: <testLibraryFragment>::@class::D::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @45
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -1039,6 +1030,14 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::D::@constructor::new
+              element: <testLibraryFragment>::@class::D::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
     class D
       reference: <testLibrary>::@class::D
@@ -1957,21 +1956,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::named
               element: <testLibraryFragment>::@class::C::@constructor::named#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  period: . @0
-                  constructorName: SimpleIdentifier
-                    token: named @-1
-                    staticElement: <testLibraryFragment>::@class::A::@constructor::named
-                    element: <testLibraryFragment>::@class::A::@constructor::named#element
-                    staticType: null
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::named
-                  element: <testLibraryFragment>::@class::A::@constructor::named#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::named
         class D @85
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -2002,6 +1986,20 @@ library
       constructors
         synthetic const named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @-1
+                staticElement: <testLibraryFragment>::@class::A::@constructor::named
+                element: <testLibraryFragment>::@class::A::@constructor::named#element
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::A::@constructor::named
+              element: <testLibraryFragment>::@class::A::@constructor::named#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::named#element
     class D
       reference: <testLibrary>::@class::D
@@ -2701,15 +2699,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class D @73
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -2740,6 +2729,14 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
     class D
       reference: <testLibrary>::@class::D
@@ -6997,15 +6994,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
       mixins
         mixin M @33
           reference: <testLibraryFragment>::@mixin::M
@@ -7051,6 +7039,14 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
   mixins
     mixin M
@@ -10174,7 +10170,6 @@ library
                         staticType: null
                       element: <testLibraryFragment>::@getter::a
                       element2: <testLibraryFragment>::@getter::a#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
       topLevelVariables
         hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
@@ -10589,15 +10584,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::D::@constructor::new
-                  element: <testLibraryFragment>::@class::D::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @48
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
@@ -10649,6 +10635,14 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::D::@constructor::new
+              element: <testLibraryFragment>::@class::D::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
     class D
       reference: <testLibrary>::@class::D

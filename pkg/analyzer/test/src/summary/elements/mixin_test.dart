@@ -719,9 +719,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
@@ -858,14 +855,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class C @51
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -874,17 +863,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -905,6 +883,14 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class alias C
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
@@ -914,6 +900,14 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
   }
@@ -1049,14 +1043,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class Base @75
           reference: <testLibraryFragment>::@class::Base
           element: <testLibrary>::@class::Base
@@ -1073,15 +1059,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::Base::@constructor::new
-                  element: <testLibraryFragment>::@class::Base::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::Base::@constructor::new
   classes
     class A1
       reference: <testLibrary>::@class::A1
@@ -1111,6 +1088,14 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class Base
       reference: <testLibrary>::@class::Base
       firstFragment: <testLibraryFragment>::@class::Base
@@ -1128,6 +1113,14 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::Base::@constructor::new
+              element: <testLibraryFragment>::@class::Base::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::Base::@constructor::new#element
 ''');
   }
@@ -1206,9 +1199,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int Function(String)}
       mixins
         mixin M @20
           reference: <testLibraryFragment>::@mixin::M
@@ -1321,9 +1311,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: List<int>}
       mixins
         mixin M @29
           reference: <testLibraryFragment>::@mixin::M
@@ -1452,17 +1439,6 @@ library
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::I::@constructor::new
-                  element: <testLibraryFragment>::@class::I::@constructor::new#element
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::I::@constructor::new
-                substitution: {X: int}
       mixins
         mixin M1 @20
           reference: <testLibraryFragment>::@mixin::M1
@@ -1495,6 +1471,14 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::I::@constructor::new
+              element: <testLibraryFragment>::@class::I::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::I::@constructor::new#element
   mixins
     mixin M1
@@ -1602,9 +1586,6 @@ library
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
               typeName: X
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::S::@constructor::new
-                substitution: {T3: String}
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M
@@ -1760,9 +1741,6 @@ library
               reference: <testLibraryFragment>::@class::X::@constructor::new
               element: <testLibraryFragment>::@class::X::@constructor::new#element
               typeName: X
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::S::@constructor::new
-                substitution: {T4: String}
       mixins
         mixin M @6
           reference: <testLibraryFragment>::@mixin::M

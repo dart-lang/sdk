@@ -5984,9 +5984,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
@@ -6087,9 +6084,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X
@@ -6336,9 +6330,6 @@ library
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
               typeName: D
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int?}
       typeAliases
         X @8
           reference: <testLibraryFragment>::@typeAlias::X

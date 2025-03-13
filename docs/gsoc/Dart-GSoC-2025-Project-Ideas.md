@@ -101,8 +101,8 @@ Inspired by this issue: https://github.com/dart-lang/native/issues/1240
 ## **Idea:** Secure Paste Custom Actions on iOS
 
  - **Possible Mentor(s)**: `huanlin@google.com`, `jmccandless@google.com`
- - **Difficulty**: Medium
- - **Project size**:  Medium (175 hours)
+ - **Difficulty**: Hard
+ - **Project size**:  Large (350 hours)
  - **Skills**: Dart, Objective-C
 
 **Description**: Support custom action items for native edit menu on iOS. It's a pretty impactful project requested by many developers (main issue here: https://github.com/flutter/flutter/issues/103163). This project is one of the key milestones: https://github.com/flutter/flutter/issues/140184.

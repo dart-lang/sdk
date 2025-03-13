@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -437,7 +438,8 @@ void f() {
   /// https://github.com/Dart-Code/Dart-Code/issues/5343
   Future<void> test_exportMissingFile_noDiagnosticInMissingFile() async {
     registerLintRules();
-    registerBuiltInProducers();
+    registerBuiltInAssistGenerators();
+    registerBuiltInFixGenerators();
     setSupportedCodeActionKinds([CodeActionKind.QuickFix]);
     newFile(mainFilePath, "export 'Danny.dart';");
     newFile('$testPackageRootPath/lib/analysis_options.yaml', '''

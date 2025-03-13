@@ -620,31 +620,6 @@ library
               formalParameters
                 c @52
                   element: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c#element
-              constantInitializers
-                RedirectingConstructorInvocation
-                  thisKeyword: this @57
-                  period: . @61
-                  constructorName: SimpleIdentifier
-                    token: named @62
-                    staticElement: <testLibraryFragment>::@class::D::@constructor::named
-                    element: <testLibraryFragment>::@class::D::@constructor::named#element
-                    staticType: null
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @67
-                    arguments
-                      ImplicitCallReference
-                        expression: SimpleIdentifier
-                          token: c @68
-                          staticElement: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c
-                          element: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c#element
-                          staticType: C
-                        staticElement: <testLibraryFragment>::@class::C::@method::call
-                        element: <testLibraryFragment>::@class::C::@method::call#element
-                        staticType: void Function()
-                    rightParenthesis: ) @69
-                  staticElement: <testLibraryFragment>::@class::D::@constructor::named
-                  element: <testLibraryFragment>::@class::D::@constructor::named#element
-              redirectedConstructor: <testLibraryFragment>::@class::D::@constructor::named
             const named @83
               reference: <testLibraryFragment>::@class::D::@constructor::named
               element: <testLibraryFragment>::@class::D::@constructor::named#element
@@ -673,6 +648,30 @@ library
           formalParameters
             requiredPositional c
               type: C
+          constantInitializers
+            RedirectingConstructorInvocation
+              thisKeyword: this @57
+              period: . @61
+              constructorName: SimpleIdentifier
+                token: named @62
+                staticElement: <testLibraryFragment>::@class::D::@constructor::named
+                element: <testLibraryFragment>::@class::D::@constructor::named#element
+                staticType: null
+              argumentList: ArgumentList
+                leftParenthesis: ( @67
+                arguments
+                  ImplicitCallReference
+                    expression: SimpleIdentifier
+                      token: c @68
+                      staticElement: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c
+                      element: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c#element
+                      staticType: C
+                    staticElement: <testLibraryFragment>::@class::C::@method::call
+                    element: <testLibraryFragment>::@class::C::@method::call#element
+                    staticType: void Function()
+                rightParenthesis: ) @69
+              staticElement: <testLibraryFragment>::@class::D::@constructor::named
+              element: <testLibraryFragment>::@class::D::@constructor::named#element
           redirectedConstructor: <testLibraryFragment>::@class::D::@constructor::named#element
         const named
           firstFragment: <testLibraryFragment>::@class::D::@constructor::named
@@ -1288,7 +1287,6 @@ library
               reference: <testLibraryFragment>::@class::X1::@constructor::new
               element: <testLibraryFragment>::@class::X1::@constructor::new#element
               typeName: X1
-              superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeDefault::@constructor::new
           methods
             == @74
               reference: <testLibraryFragment>::@class::X1::@method::==
@@ -1304,7 +1302,6 @@ library
               reference: <testLibraryFragment>::@class::X2::@constructor::new
               element: <testLibraryFragment>::@class::X2::@constructor::new#element
               typeName: X2
-              superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeObject::@constructor::new
           methods
             == @145
               reference: <testLibraryFragment>::@class::X2::@method::==
@@ -1320,7 +1317,6 @@ library
               reference: <testLibraryFragment>::@class::X3::@constructor::new
               element: <testLibraryFragment>::@class::X3::@constructor::new#element
               typeName: X3
-              superConstructor: package:test/nullSafe.dart::<fragment>::@class::NullSafeInt::@constructor::new
           methods
             == @213
               reference: <testLibraryFragment>::@class::X3::@method::==

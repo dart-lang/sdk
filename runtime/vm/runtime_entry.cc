@@ -4354,11 +4354,11 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
 
-  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   if (thread->is_unwind_in_progress()) {
     // Clean up safepoint unwind error marker to prevent safepoint tripping.
     // The safepoint marker will get restored just before jumping back
     // to generated code.
+    TransitionToVM transition(thread);
     thread->SetUnwindErrorInProgress(false);
     NoSafepointScope no_safepoint;
     Error unwind_error;
@@ -4366,7 +4366,12 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
         thread->isolate()->isolate_object_store()->preallocated_unwind_error();
     Exceptions::PropagateError(unwind_error);
   }
-  thread->ExitSafepointFromNative();
+  if (thread->execution_state() == Thread::kThreadInNative) {
+    thread->ExitSafepointFromNative();
+  } else {
+    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    thread->ExitSafepoint();
+  }
 
   TRACE_RUNTIME_CALL("%s", "ExitSafepoint done");
 }
@@ -4384,13 +4389,16 @@ extern "C" void DFLRT_ExitSafepointIgnoreUnwindInProgress(
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
 
-  ASSERT(thread->execution_state() == Thread::kThreadInVM);
-
   // Compared to ExitSafepoint above we are going to ignore
   // is_unwind_in_progress flag because this is called as part of JumpToFrame
   // exception handler - we want this transition to complete so that the next
   // safepoint check does error propagation.
-  thread->ExitSafepointFromNative();
+  if (thread->execution_state() == Thread::kThreadInNative) {
+    thread->ExitSafepointFromNative();
+  } else {
+    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    thread->ExitSafepoint();
+  }
 
   TRACE_RUNTIME_CALL("%s", "ExitSafepointIgnoreUnwindInProgress done");
 }

@@ -5354,7 +5354,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             foo @52
               reference: <testLibraryFragment>::@class::B::@method::foo
@@ -16595,9 +16594,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
           getters
             get x @114
               reference: <testLibraryFragment>::@class::B::@getter::x
@@ -17270,7 +17266,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @58
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -17427,7 +17422,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @100
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -17746,7 +17740,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @88
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -17915,9 +17908,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: int}
           methods
             m @112
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -18106,9 +18096,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {K: int, V: String}
           methods
             m @119
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -18247,7 +18234,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @53
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -18372,7 +18358,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @53
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -18493,7 +18478,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @44
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -18610,7 +18594,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @63
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -18747,7 +18730,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @48
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -18903,9 +18885,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {K: int, V: T}
         class C @70
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -18914,9 +18893,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::B::@constructor::new
-                substitution: {T: String}
           methods
             m @94
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -19066,7 +19042,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @55
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -19082,7 +19057,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::B::@constructor::new
           methods
             m @87
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -19248,7 +19222,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::B::@constructor::new
           methods
             m @90
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -19415,7 +19388,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::B::@constructor::new
           methods
             m @99
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -19565,9 +19537,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {K: int, V: String}
           methods
             m @77
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -19693,7 +19662,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @55
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -19819,7 +19787,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @67
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -19951,7 +19918,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @67
               reference: <testLibraryFragment>::@class::B::@method::m
@@ -20104,9 +20070,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {K: int, V: T}
         class C @70
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -20115,9 +20078,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::B::@constructor::new
-                substitution: {T: String}
           methods
             m @94
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -20524,9 +20484,6 @@ library
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {K: T2, V: T1}
         class C @91
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -20666,7 +20623,6 @@ library
               reference: <testLibraryFragment>::@class::A2::@constructor::new
               element: <testLibraryFragment>::@class::A2::@constructor::new#element
               typeName: A2
-              superConstructor: <testLibraryFragment>::@class::A1::@constructor::new
           methods
             _foo @77
               reference: <testLibraryFragment>::@class::A2::@method::_foo
@@ -20945,9 +20901,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {K: int, V: String}
           methods
             m @119
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -21118,7 +21071,6 @@ library
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
           methods
             m @101
               reference: <testLibraryFragment>::@class::C::@method::m

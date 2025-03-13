@@ -1613,6 +1613,13 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   @override
   ConstructorElementImpl2 get baseElement => this;
 
+  /// The constant initializers for this element, from all fragments.
+  List<ConstructorInitializer> get constantInitializers {
+    return fragments
+        .expand((fragment) => fragment.constantInitializers)
+        .toList(growable: false);
+  }
+
   @override
   String get displayName {
     var className = enclosingElement2.name3 ?? '<null>';
@@ -4240,8 +4247,8 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
   }
 
   @override
-  FieldElement2OrMember get representation2 {
-    return firstFragment.representation.asElement2;
+  FieldElementImpl2 get representation2 {
+    return firstFragment.representation.element;
   }
 
   @override

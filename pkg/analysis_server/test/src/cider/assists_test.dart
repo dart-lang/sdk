@@ -48,6 +48,7 @@ class CiderAssistsComputerTest extends CiderServiceTest {
   @override
   void setUp() {
     super.setUp();
+    registerBuiltInAssistGenerators();
     BlazeMockPackages.instance.addFlutter(resourceProvider);
     _producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap();
   }

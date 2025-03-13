@@ -23,7 +23,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class PropertyElementResolver with ScopeHelpers {
   final ResolverVisitor _resolver;
@@ -897,17 +896,17 @@ class PropertyElementResolver with ScopeHelpers {
     required bool hasRead,
     required bool hasWrite,
   }) {
-    var readElement = result.getter2?.asElement;
-    var writeElement = result.setter2?.asElement;
+    var readElement = result.getter2;
+    var writeElement = result.setter2;
 
     var contextType = hasRead
-        ? readElement.firstParameterType
-        : writeElement.firstParameterType;
+        ? readElement?.firstParameterType
+        : writeElement?.firstParameterType;
 
     return PropertyElementResolverResult(
       atDynamicTarget: atDynamicTarget,
-      readElementRequested2: readElement?.asElement2,
-      writeElementRequested2: writeElement?.asElement2,
+      readElementRequested2: readElement,
+      writeElementRequested2: writeElement,
       indexContextType: contextType ?? UnknownInferredType.instance,
     );
   }

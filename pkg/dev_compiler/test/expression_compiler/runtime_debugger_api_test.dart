@@ -752,7 +752,8 @@ void runSharedTests(
     test('getFunctionName (static method)', () async {
       var getFunctionName =
           setup.emitLibraryBundle ? 'getFunctionName' : 'getFunctionMetadata';
-      var expectedName = 'BaseClass.staticMethod';
+      var expectedName =
+          setup.emitLibraryBundle ? 'BaseClass.staticMethod' : 'staticMethod';
 
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',

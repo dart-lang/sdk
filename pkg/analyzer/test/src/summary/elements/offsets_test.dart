@@ -530,14 +530,6 @@ library
               reference: <testLibraryFragment>::@class::Raw::@constructor::new
               element: <testLibraryFragment>::@class::Raw::@constructor::new#element
               typeName: Raw
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class HasDocComment @91
           reference: <testLibraryFragment>::@class::HasDocComment
           element: <testLibrary>::@class::HasDocComment
@@ -546,14 +538,6 @@ library
               reference: <testLibraryFragment>::@class::HasDocComment::@constructor::new
               element: <testLibraryFragment>::@class::HasDocComment::@constructor::new#element
               typeName: HasDocComment
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class HasAnnotation @142
           reference: <testLibraryFragment>::@class::HasAnnotation
           element: <testLibrary>::@class::HasAnnotation
@@ -562,14 +546,6 @@ library
               reference: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
               element: <testLibraryFragment>::@class::HasAnnotation::@constructor::new#element
               typeName: HasAnnotation
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class AnnotationThenComment @223
           reference: <testLibraryFragment>::@class::AnnotationThenComment
           element: <testLibrary>::@class::AnnotationThenComment
@@ -578,14 +554,6 @@ library
               reference: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
               element: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new#element
               typeName: AnnotationThenComment
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class CommentThenAnnotation @312
           reference: <testLibraryFragment>::@class::CommentThenAnnotation
           element: <testLibrary>::@class::CommentThenAnnotation
@@ -594,14 +562,6 @@ library
               reference: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
               element: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new#element
               typeName: CommentThenAnnotation
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
         class CommentAroundAnnotation @401
           reference: <testLibraryFragment>::@class::CommentAroundAnnotation
           element: <testLibrary>::@class::CommentAroundAnnotation
@@ -610,14 +570,6 @@ library
               reference: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
               element: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new#element
               typeName: CommentAroundAnnotation
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: dart:core::<fragment>::@class::Object::@constructor::new
-                  element: dart:core::<fragment>::@class::Object::@constructor::new#element
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -641,6 +593,14 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::Raw::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class alias HasDocComment
       reference: <testLibrary>::@class::HasDocComment
       firstFragment: <testLibraryFragment>::@class::HasDocComment
@@ -652,6 +612,14 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::HasDocComment::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class alias HasAnnotation
       reference: <testLibrary>::@class::HasAnnotation
       firstFragment: <testLibraryFragment>::@class::HasAnnotation
@@ -662,6 +630,14 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::HasAnnotation::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class alias AnnotationThenComment
       reference: <testLibrary>::@class::AnnotationThenComment
       firstFragment: <testLibraryFragment>::@class::AnnotationThenComment
@@ -673,6 +649,14 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::AnnotationThenComment::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class alias CommentThenAnnotation
       reference: <testLibrary>::@class::CommentThenAnnotation
       firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation
@@ -684,6 +668,14 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::CommentThenAnnotation::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class alias CommentAroundAnnotation
       reference: <testLibrary>::@class::CommentAroundAnnotation
       firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation
@@ -695,6 +687,14 @@ library
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::CommentAroundAnnotation::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
+              element: dart:core::<fragment>::@class::Object::@constructor::new#element
 ''');
   }
 

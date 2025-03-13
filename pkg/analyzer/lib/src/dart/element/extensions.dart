@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -23,6 +20,14 @@ extension DartTypeExtension on DartType {
 }
 
 extension Element2Extension on Element2 {
+  TypeImpl? get firstParameterType {
+    var self = this;
+    if (self is MethodElement2OrMember) {
+      return self.formalParameters.firstOrNull?.type;
+    }
+    return null;
+  }
+
   /// Return `true` if this element, the enclosing class (if there is one), or
   /// the enclosing library, has been annotated with the `@doNotStore`
   /// annotation.
@@ -139,78 +144,11 @@ extension ElementAnnotationExtensions on ElementAnnotation {
   }
 }
 
-extension ElementExtension on Element {
-  /// Return `true` if this element, the enclosing class (if there is one), or
-  /// the enclosing library, has been annotated with the `@doNotStore`
-  /// annotation.
-  bool get hasOrInheritsDoNotStore {
-    if (hasDoNotStore) {
-      return true;
-    }
-
-    var ancestor = enclosingElement3;
-    if (ancestor is InterfaceElement) {
-      if (ancestor.hasDoNotStore) {
-        return true;
-      }
-      ancestor = ancestor.enclosingElement3;
-    } else if (ancestor is ExtensionElement) {
-      if (ancestor.hasDoNotStore) {
-        return true;
-      }
-      ancestor = ancestor.enclosingElement3;
-    }
-
-    return ancestor is CompilationUnitElement && ancestor.library.hasDoNotStore;
-  }
-
-  /// Return `true` if this element is an instance member of a class or mixin.
-  ///
-  /// Only [MethodElement]s and [PropertyAccessorElement]s are supported.
-  /// We intentionally exclude [ConstructorElement]s - they can only be
-  /// invoked in instance creation expressions, and [FieldElement]s - they
-  /// cannot be invoked directly and are always accessed using corresponding
-  /// [PropertyAccessorElement]s.
-  bool get isInstanceMember {
-    assert(this is! PropertyInducingElement,
-        'Check the PropertyAccessorElement instead');
-    var this_ = this;
-    var enclosing = this_.enclosingElement3;
-    if (enclosing is InterfaceElement) {
-      return this_ is MethodElement && !this_.isStatic ||
-          this_ is PropertyAccessorElement && !this_.isStatic;
-    }
-    return false;
-  }
-}
-
-extension ExecutableElement2OrMemberQuestionExtension
-    on ExecutableElement2OrMember? {
-  TypeImpl? get firstParameterType {
-    var self = this;
-    if (self is MethodElement2OrMember) {
-      return self.formalParameters.firstOrNull?.type;
-    }
-    return null;
-  }
-}
-
-extension ExecutableElementExtension on ExecutableElement {
+extension ExecutableElement2Extension on ExecutableElement2 {
   /// Whether the enclosing element is the class `Object`.
   bool get isObjectMember {
-    var enclosing = enclosingElement3;
-    return enclosing is ClassElement && enclosing.isDartCoreObject;
-  }
-}
-
-extension ExecutableElementOrMemberQuestionExtension
-    on ExecutableElementOrMember? {
-  TypeImpl? get firstParameterType {
-    var self = this;
-    if (self is MethodElementOrMember) {
-      return self.parameters.firstOrNull?.type;
-    }
-    return null;
+    var enclosing = enclosingElement2;
+    return enclosing is ClassElement2 && enclosing.isDartCoreObject;
   }
 }
 
@@ -222,7 +160,7 @@ extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
     ParameterKind? kind,
     bool? isCovariant,
   }) {
-    var firstFragment = this.firstFragment as ParameterElementMixin;
+    var firstFragment = this.firstFragment as ParameterElementImpl;
     return FormalParameterElementImpl(
       firstFragment.copyWith(
         type: type,
@@ -245,7 +183,7 @@ extension LibraryExtension2 on LibraryElement2? {
 }
 
 extension ParameterElementMixinExtension on ParameterElementMixin {
-  /// Return [ParameterElement] with the specified properties replaced.
+  /// Return [ParameterElementImpl] with the specified properties replaced.
   ParameterElementImpl copyWith({
     TypeImpl? type,
     ParameterKind? kind,
@@ -256,15 +194,6 @@ extension ParameterElementMixinExtension on ParameterElementMixin {
       type ?? this.type,
       kind ?? parameterKind,
     )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
-  }
-
-  /// Returns `this`, converted to a [ParameterElementImpl] if it isn't one
-  /// already.
-  ParameterElementImpl toImpl() {
-    return switch (this) {
-      ParameterElementImpl p => p,
-      _ => copyWith(),
-    };
   }
 }
 

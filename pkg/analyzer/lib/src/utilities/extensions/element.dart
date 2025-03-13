@@ -421,25 +421,6 @@ extension ExtensionTypeElementImpl2Extension on ExtensionTypeElementImpl2 {
   }
 }
 
-extension FieldElement2Extension on FieldElement2 {
-  FieldElement get asElement {
-    if (this case FieldMember member) {
-      return member;
-    }
-    return firstFragment as FieldElement;
-  }
-}
-
-extension FieldElementExtension on FieldElement {
-  FieldElement2 get asElement2 {
-    return switch (this) {
-      FieldFragment(:var element) => element,
-      FieldMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
-  }
-}
-
 extension FieldElementImpl2Extension on FieldElementImpl2 {
   FieldElementImpl get asElement {
     return firstFragment;

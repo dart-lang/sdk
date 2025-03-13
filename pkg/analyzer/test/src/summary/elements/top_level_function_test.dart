@@ -1516,15 +1516,6 @@ library
               reference: <testLibraryFragment>::@class::main::@constructor::new
               element: <testLibraryFragment>::@class::main::@constructor::new#element
               typeName: main
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::C::@constructor::new
-                  element: <testLibraryFragment>::@class::C::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
         class C @29
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
@@ -1551,6 +1542,14 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::main::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::C::@constructor::new
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::C::@constructor::new#element
     class C
       reference: <testLibrary>::@class::C

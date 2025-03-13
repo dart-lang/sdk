@@ -735,15 +735,6 @@ library
               reference: <testLibraryFragment>::@class::X::@def::0::@constructor::new
               element: <testLibraryFragment>::@class::X::@def::0::@constructor::new#element
               typeName: X
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::A::@constructor::new
-                  element: <testLibraryFragment>::@class::A::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class X @48
           reference: <testLibraryFragment>::@class::X::@def::1
           element: <testLibrary>::@class::X::@def::1
@@ -752,15 +743,6 @@ library
               reference: <testLibraryFragment>::@class::X::@def::1::@constructor::new
               element: <testLibraryFragment>::@class::X::@def::1::@constructor::new#element
               typeName: X
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::B::@constructor::new
-                  element: <testLibraryFragment>::@class::B::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::B::@constructor::new
       mixins
         mixin M @68
           reference: <testLibraryFragment>::@mixin::M
@@ -787,6 +769,14 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::X::@def::0::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
     class alias X
       reference: <testLibrary>::@class::X::@def::1
@@ -797,6 +787,14 @@ library
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::X::@def::1::@constructor::new
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              staticElement: <testLibraryFragment>::@class::B::@constructor::new
+              element: <testLibraryFragment>::@class::B::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
   mixins
     mixin M

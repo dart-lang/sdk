@@ -351,6 +351,8 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeConstructorElement(ConstructorElement2 e) {
+    e as ConstructorElementImpl2;
+
     // Check that the reference exists, and filled with the element.
     // var reference = e.reference;
     // if (reference == null) {
@@ -380,16 +382,16 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterElement,
       );
 
-      // _writeList(
-      //   'constantInitializers',
-      //   e.constantInitializers,
-      //   _writeNode,
-      // );
+      _writeList(
+        'constantInitializers',
+        e.constantInitializers,
+        _writeNode,
+      );
 
       var superConstructor = e.superConstructor2;
       if (superConstructor != null) {
         var enclosingElement = superConstructor.enclosingElement2;
-        if (enclosingElement is ClassElement2 &&
+        if (enclosingElement is ClassElementImpl2 &&
             !enclosingElement.isDartCoreObject) {
           _writeElementReference('superConstructor', superConstructor);
         }
@@ -452,32 +454,6 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterFragment,
       );
 
-      _writeList(
-        'constantInitializers',
-        f.constantInitializers,
-        _writeNode,
-      );
-
-      var superConstructor = f.superConstructor;
-      if (superConstructor != null) {
-        var enclosingElement = superConstructor.enclosingElement3;
-        if (enclosingElement is ClassElement &&
-            !enclosingElement.isDartCoreObject) {
-          _elementPrinter.writeNamedElement(
-            'superConstructor',
-            superConstructor,
-          );
-        }
-      }
-
-      var redirectedConstructor = f.redirectedConstructor;
-      if (redirectedConstructor != null) {
-        _elementPrinter.writeNamedElement(
-          'redirectedConstructor',
-          redirectedConstructor,
-        );
-      }
-
       // _writeNonSyntheticElement(f);
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeFragmentReference('previousFragment', f.previousFragment);
@@ -485,13 +461,6 @@ class _Element2Writer extends _AbstractElementWriter {
 
     expect(f.isAsynchronous, isFalse);
     expect(f.isGenerator, isFalse);
-
-    if (f.isSynthetic) {
-      expect(f.nameOffset, -1);
-      expect(f.nonSynthetic, same(f.enclosingElement3));
-    } else {
-      expect(f.nameOffset, isPositive);
-    }
   }
 
   void _writeDocumentation(String? documentation) {

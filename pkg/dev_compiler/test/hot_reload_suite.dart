@@ -866,7 +866,7 @@ abstract class HotReloadSuiteRunner {
     if (failedTests.isNotEmpty) {
       print('Some tests failed:');
       failedTests.forEach((outcome) {
-        print('${outcome.testName} failed with:\n  ${outcome.testOutput}');
+        print(outcome.testName);
       });
       // Exit cleanly after writing test results.
       exit(0);

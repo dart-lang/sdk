@@ -872,39 +872,45 @@ class LinkingUnit {
 
 /// This class examines all the [InterfaceElement]s in a library and determines
 /// which fields are promotable within that library.
-class _FieldPromotability extends FieldPromotability<InterfaceElement,
-    FieldElement, PropertyAccessorElement> {
+class _FieldPromotability extends FieldPromotability<InterfaceElementImpl2,
+    FieldElementImpl2, GetterElementImpl> {
   /// The [_libraryBuilder] for the library being analyzed.
   final LibraryBuilder _libraryBuilder;
 
   final bool enabled;
 
   /// Fields that might be promotable, if not marked unpromotable later.
-  final List<FieldElementImpl> _potentiallyPromotableFields = [];
+  final List<FieldElementImpl2> _potentiallyPromotableFields = [];
 
   _FieldPromotability(this._libraryBuilder, {required this.enabled});
 
   @override
-  Iterable<InterfaceElement> getSuperclasses(InterfaceElement class_,
-      {required bool ignoreImplements}) {
-    List<InterfaceElement> result = [];
+  Iterable<InterfaceElementImpl2> getSuperclasses(
+    InterfaceElementImpl2 class_, {
+    required bool ignoreImplements,
+  }) {
+    var result = <InterfaceElementImpl2>[];
+
     var supertype = class_.supertype;
     if (supertype != null) {
-      result.add(supertype.element3.asElement);
+      result.add(supertype.element3);
     }
-    for (var m in class_.mixins) {
-      result.add(m.element3.asElement);
+
+    for (var mixin in class_.mixins) {
+      result.add(mixin.element3);
     }
+
     if (!ignoreImplements) {
       for (var interface in class_.interfaces) {
-        result.add(interface.element3.asElement);
+        result.add(interface.element3);
       }
-      if (class_ is MixinElement) {
+      if (class_ is MixinElementImpl2) {
         for (var constraint in class_.superclassConstraints) {
-          result.add(constraint.element3.asElement);
+          result.add(constraint.element3);
         }
       }
     }
+
     return result;
   }
 
@@ -913,22 +919,34 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
   void perform() {
     // Iterate through all the classes, enums, and mixins in the library,
     // recording the non-synthetic instance fields and getters of each.
-    for (var unitElement in _libraryBuilder.element.units) {
-      for (var class_ in unitElement.classes) {
-        _handleMembers(addClass(class_, isAbstract: class_.isAbstract), class_);
-      }
-      for (var enum_ in unitElement.enums) {
-        _handleMembers(addClass(enum_, isAbstract: false), enum_);
-      }
-      for (var mixin_ in unitElement.mixins) {
-        _handleMembers(addClass(mixin_, isAbstract: true), mixin_);
-      }
-      // Private representation fields of extension types are always promotable.
-      // They also don't affect promotability of any other fields.
-      for (var extensionType in unitElement.extensionTypes) {
-        var representation = extensionType.representation;
-        if (representation.name.startsWith('_')) {
-          representation.isPromotable = true;
+    var element = _libraryBuilder.element;
+    for (var class_ in element.classes) {
+      _handleMembers(
+        addClass(class_, isAbstract: class_.isAbstract),
+        class_,
+      );
+    }
+    for (var enum_ in element.enums) {
+      _handleMembers(
+        addClass(enum_, isAbstract: false),
+        enum_,
+      );
+    }
+    for (var mixin_ in element.mixins) {
+      _handleMembers(
+        addClass(mixin_, isAbstract: true),
+        mixin_,
+      );
+    }
+
+    // Private representation fields of extension types are always promotable.
+    // They also don't affect promotability of any other fields.
+    for (var extensionType in element.extensionTypes) {
+      var representation = extensionType.representation2;
+      var representationName = representation.name3;
+      if (representationName != null) {
+        if (representationName.startsWith('_')) {
+          representation.firstFragment.isPromotable = true;
         }
       }
     }
@@ -938,52 +956,65 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
 
     // Set the `isPromotable` bit for each field element that *is* promotable.
     for (var field in _potentiallyPromotableFields) {
-      if (fieldNonPromotabilityInfo[field.name] == null) {
-        field.isPromotable = true;
+      if (fieldNonPromotabilityInfo[field.name3!] == null) {
+        field.firstFragment.isPromotable = true;
       }
     }
 
-    _libraryBuilder.element.fieldNameNonPromotabilityInfo = {
+    element.fieldNameNonPromotabilityInfo = {
       for (var MapEntry(:key, :value) in fieldNonPromotabilityInfo.entries)
         key: element_model.FieldNameNonPromotabilityInfo(
-          conflictingFields:
-              value.conflictingFields.map((e) => e.asElement2).toList(),
-          conflictingGetters:
-              value.conflictingGetters.map((e) => e.asElement2).toList(),
-          conflictingNsmClasses:
-              value.conflictingNsmClasses.map((e) => e.asElement2).toList(),
+          conflictingFields: value.conflictingFields,
+          conflictingGetters: value.conflictingGetters,
+          conflictingNsmClasses: value.conflictingNsmClasses,
         )
     };
   }
 
-  /// Records all the non-synthetic instance fields and getters of [class_] into
-  /// [classInfo].
+  /// Records all the non-synthetic instance fields and getters of [class_]
+  /// into [classInfo].
   void _handleMembers(
-      ClassInfo<InterfaceElement> classInfo, InterfaceElementImpl class_) {
-    for (var field in class_.fields) {
+    ClassInfo<InterfaceElementImpl2> classInfo,
+    InterfaceElementImpl2 class_,
+  ) {
+    for (var field in class_.fields2) {
       if (field.isStatic || field.isSynthetic) {
         continue;
       }
 
-      var nonPromotabilityReason = addField(classInfo, field, field.name,
+      var fieldName = field.name3;
+      if (fieldName != null) {
+        var nonPromotabilityReason = addField(
+          classInfo,
+          field,
+          fieldName,
           isFinal: field.isFinal,
           isAbstract: field.isAbstract,
-          isExternal: field.isExternal);
-      if (enabled && nonPromotabilityReason == null) {
-        _potentiallyPromotableFields.add(field);
+          isExternal: field.isExternal,
+        );
+        if (enabled && nonPromotabilityReason == null) {
+          _potentiallyPromotableFields.add(field);
+        }
       }
     }
 
-    for (var accessor in class_.accessors) {
-      if (!accessor.isGetter || accessor.isStatic || accessor.isSynthetic) {
+    for (var getter in class_.getters2) {
+      if (getter.isStatic || getter.isSynthetic) {
         continue;
       }
 
-      var nonPromotabilityReason = addGetter(classInfo, accessor, accessor.name,
-          isAbstract: accessor.isAbstract);
-      if (enabled && nonPromotabilityReason == null) {
-        _potentiallyPromotableFields
-            .add(accessor.variable2 as FieldElementImpl);
+      var getterName = getter.name3;
+      if (getterName != null) {
+        var nonPromotabilityReason = addGetter(
+          classInfo,
+          getter,
+          getterName,
+          isAbstract: getter.isAbstract,
+        );
+        if (enabled && nonPromotabilityReason == null) {
+          var field = getter.variable3 as FieldElementImpl2;
+          _potentiallyPromotableFields.add(field);
+        }
       }
     }
   }
