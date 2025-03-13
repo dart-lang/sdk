@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/type_inference/shared_inference_log.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
@@ -26,7 +23,6 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, WarningCode;
 import 'package:analyzer/src/generated/inference_log.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -149,7 +145,8 @@ class GenericInferrer {
   /// type is a subtype of the [parameterType].
   void constrainArgument(
       TypeImpl argumentType, TypeImpl parameterType, String parameterName,
-      {InterfaceElement? genericClass, required AstNodeImpl? nodeForTesting}) {
+      {InterfaceElementImpl? genericClass,
+      required AstNodeImpl? nodeForTesting}) {
     var origin = TypeConstraintFromArgument(
       argumentType: SharedTypeView(argumentType),
       parameterType: SharedTypeView(parameterType),
@@ -167,7 +164,7 @@ class GenericInferrer {
   /// Applies all the argument constraints implied by [parameters] and
   /// [argumentTypes].
   void constrainArguments(
-      {InterfaceElement? genericClass,
+      {InterfaceElementImpl? genericClass,
       required List<ParameterElementMixin> parameters,
       required List<TypeImpl> argumentTypes,
       required AstNodeImpl? nodeForTesting}) {
@@ -187,7 +184,7 @@ class GenericInferrer {
   /// Applies all the argument constraints implied by [parameters] and
   /// [argumentTypes].
   void constrainArguments2(
-      {InterfaceElement? genericClass,
+      {InterfaceElementImpl? genericClass,
       required List<FormalParameterElementMixin> parameters,
       required List<TypeImpl> argumentTypes,
       required AstNodeImpl? nodeForTesting}) {
@@ -560,7 +557,7 @@ class GenericInferrer {
     }
   }
 
-  String _elementStr(Element element) {
+  String _elementStr(ElementImpl element) {
     return element.getDisplayString();
   }
 
@@ -719,7 +716,7 @@ class GenericInferrer {
     } else if (errorEntity is Annotation) {
       if (genericMetadataIsEnabled) {
         // Only report an error if generic metadata is valid syntax.
-        var element = errorEntity.name.element?.asElement;
+        var element = errorEntity.name.element;
         if (element != null && !element.hasOptionalTypeArgs) {
           String constructorName = errorEntity.constructorName == null
               ? errorEntity.name.name
@@ -732,9 +729,9 @@ class GenericInferrer {
         }
       }
     } else if (errorEntity is SimpleIdentifier) {
-      var element = errorEntity.element?.asElement;
+      var element = errorEntity.element;
       if (element != null) {
-        if (element is VariableElement) {
+        if (element is VariableElement2) {
           // For variable elements, we check their type and possible alias type.
           var type = element.type;
           var typeElement = type is InterfaceType ? type.element3 : null;
@@ -859,5 +856,14 @@ class GenericInferrer {
     }));
 
     return messageLines.join('\n');
+  }
+}
+
+extension on Element2 {
+  bool get hasOptionalTypeArgs {
+    if (this case Annotatable annotatable) {
+      return annotatable.metadata2.hasOptionalTypeArgs;
+    }
+    return false;
   }
 }
