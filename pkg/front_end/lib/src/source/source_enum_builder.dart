@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
-import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
@@ -326,10 +325,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
               containerName: new ClassName(name),
               containerType: ContainerType.Class,
               libraryName: libraryName),
-          // Trick the constructor to be built during the outline phase.
-          // TODO(johnniwinther): Avoid relying on [beginInitializers] to
-          // ensure building constructors creation during the outline phase.
-          beginInitializers: new Token.eof(-1),
           constructorDeclaration: constructorDeclaration);
       synthesizedDefaultConstructorBuilder!
           .registerInitializedField(valuesBuilder);
