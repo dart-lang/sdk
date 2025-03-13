@@ -1850,6 +1850,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
               null,
               initializer: node.value,
               isSynthesized: true,
+              type: field.type,
             ),
           );
         } else {
