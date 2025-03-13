@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -47,7 +48,7 @@ void f(A a, B b, C c) {
     );
     await assertHasFix(
       r'''
-import 'lib.dart' show A, B, C;
+import 'lib.dart' show A, C, B;
 void f(A a, B b, C c) {
   print('$a');
 }
@@ -252,7 +253,7 @@ void f(A a1) {
     );
     await assertHasFix(
       r'''
-import 'lib.dart' show A, E, a;
+import 'lib.dart' show A, a, E;
 void f(A a1) {
   print('$a1 ${E.m()} $a');
 }
@@ -402,10 +403,55 @@ void f(String s, lib2.C c) {
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart' as lib show C;
-import 'package:test/lib.dart' show C, E;
+import 'package:test/lib.dart' show E, C;
 
 void f(String s, C c) {
   s.m;
+}
+''');
+  }
+
+  Future<void> test_lint_active() async {
+    createAnalysisOptionsFile(lints: [LintNames.combinators_ordering]);
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+class B {}
+class C {}
+''');
+    await resolveTestCode(r'''
+import 'lib.dart' show B, C;
+void f(A a, C c) {
+  print('$a $c');
+}
+''');
+    await assertHasFix(r'''
+import 'lib.dart' show A, B, C;
+void f(A a, C c) {
+  print('$a $c');
+}
+''');
+  }
+
+  // Two shows, and a hide that should be updated. Even though the hide is not
+  // part of these tests, it should be fixed too for making the import correct.
+  Future<void> test_multiple_combinators() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+class B {}
+class C {}
+''');
+    await resolveTestCode(r'''
+// ignore: multiple_combinators
+import 'lib.dart' show A show A, B hide B, C;
+void f(A a, C c) {
+  print('$a $c');
+}
+''');
+    await assertHasFix(r'''
+// ignore: multiple_combinators
+import 'lib.dart' show A, C show A, B, C hide B;
+void f(A a, C c) {
+  print('$a $c');
 }
 ''');
   }
