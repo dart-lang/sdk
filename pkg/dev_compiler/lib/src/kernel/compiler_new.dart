@@ -1243,8 +1243,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // We only need to tag static functions that are torn off at
         // compile-time. We attach these at late so tearoffs have access to
         // their types.
-        var reifiedType = member.function
-            .computeThisFunctionType(member.enclosingLibrary.nonNullable);
+        var reifiedType =
+            member.function.computeThisFunctionType(Nullability.nonNullable);
         jsStaticMethodTypeTags.add(
             _emitFunctionTagged(result, reifiedType, asLazy: true)
                 .toStatement());
@@ -1959,11 +1959,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     FunctionType result;
     if (!f.positionalParameters.any(isCovariantParameter) &&
         !f.namedParameters.any(isCovariantParameter)) {
-      // Avoid tagging a member as Function? or Function*
       result = f.computeThisFunctionType(Nullability.nonNullable);
     } else {
-      var fComputed =
-          f.computeThisFunctionType(member.enclosingLibrary.nonNullable);
+      var fComputed = f.computeThisFunctionType(Nullability.nonNullable);
       var fComputedNamedByName = {
         for (NamedType namedParameter in fComputed.namedParameters)
           namedParameter.name: namedParameter
@@ -1971,7 +1969,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       DartType reifyParameter(
               VariableDeclaration parameter, DartType fComputedParameter) =>
           isCovariantParameter(parameter)
-              ? _coreTypes.objectRawType(member.enclosingLibrary.nullable)
+              ? _coreTypes.objectNullableRawType
               : fComputedParameter;
       NamedType reifyNamedParameter(
           VariableDeclaration parameter, NamedType fComputedNamedParameter) {
@@ -2586,8 +2584,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     assert(!member.isAccessor);
 
     var superMethodType = substituteType(superMemberFunction!
-            .computeThisFunctionType(superMember.enclosingLibrary.nonNullable))
-        as FunctionType;
+        .computeThisFunctionType(Nullability.nonNullable)) as FunctionType;
     var function = member.function;
 
     var body = <js_ast.Statement>[];
@@ -3501,10 +3498,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // can tag them during the delta diff phase.
       if (p.isStatic && _reifyTearoff(p) && !p.isExternal) {
         var nameExpr = _emitTopLevelName(p);
-        _moduleItems.add(_emitFunctionTagged(
-                nameExpr,
-                p.function
-                    .computeThisFunctionType(p.enclosingLibrary.nonNullable),
+        _moduleItems.add(_emitFunctionTagged(nameExpr,
+                p.function.computeThisFunctionType(Nullability.nonNullable),
                 asLazy: true)
             .toStatement());
       }
@@ -3691,9 +3686,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitFunctionTagged(js_ast.Expression fn, FunctionType type,
       {bool asLazy = false}) {
-    var typeRep = _emitType(
-        // Avoid tagging a closure as Function? or Function*
-        type.withDeclaredNullability(Nullability.nonNullable));
+    assert(type.nullability == Nullability.nonNullable);
+    var typeRep = _emitType(type);
     if (type.typeParameters.isEmpty) {
       return asLazy
           ? _runtimeCall('lazyFn(#, () => #)', [fn, typeRep])
@@ -4411,7 +4405,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (node is AsExpression && node.isTypeError) {
       assert(node.getStaticType(_staticTypeContext) ==
-          _types.coreTypes.boolRawType(_currentLibrary!.nonNullable));
+          _types.coreTypes.boolNonNullableRawType);
       return _runtimeCall('dtest(#)', [_visitExpression(node.operand)]);
     }
 
@@ -4924,8 +4918,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     // TODO(jmesserly): we may want a helper if these become common. For now the
     // full desugaring seems okay.
-    var streamIterator = _coreTypes.rawType(
-        _asyncStreamIteratorClass, _currentLibrary!.nonNullable);
+    var streamIterator =
+        _coreTypes.nonNullableRawType(_asyncStreamIteratorClass);
     var streamIteratorRti = _emitType(streamIterator);
     var createStreamIter = js_ast.Call(
         _emitConstructorName(
@@ -5255,7 +5249,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       declareFn = js_ast.Block([
         declareFn,
         _emitFunctionTagged(_emitVariableRef(node.variable),
-                func.computeThisFunctionType(_currentLibrary!.nonNullable))
+                func.computeThisFunctionType(Nullability.nonNullable))
             .toStatement()
       ]);
     }
@@ -6473,6 +6467,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           if (name == 'TYPE_REF') {
             return _emitType(typeArgs.single);
           }
+          // TODO(nshahan): Delete after uses are deleted from dart:_rti and the
+          // external signature is removed from dart:_foreign_helper.
           if (name == 'LEGACY_TYPE_REF') {
             return _emitType(
                 typeArgs.single.withDeclaredNullability(Nullability.legacy));
@@ -7307,7 +7303,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {
       // If `to` is some form of `num`, it should have been filtered above.
 
-      // * -> double? | double* : no-op
+      // * -> double? : no-op
       if (to == _coreTypes.doubleNullableRawType) {
         return jsFrom;
       }
@@ -7325,7 +7321,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return _runtimeCall('asInt(#)', [jsFrom]);
       }
 
-      // * -> int? | int* : asNullableInt check
+      // * -> int? : asNullableInt check
       if (to == _coreTypes.intNullableRawType) {
         return _runtimeCall('asNullableInt(#)', [jsFrom]);
       }
@@ -7716,31 +7712,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     if (node is TypeLiteralConstant) {
       // We bypass the use of constants, since types are already canonicalized
-      // in the DDC output. DDC emits type literals in two contexts:
-      //   * Foreign JS functions: we use the non-nullable version of some types
-      //     directly in the runtime libraries (e.g. dart:_runtime). For
-      //     correctness of those libraries, we need to remove the legacy marker
-      //     that was added by the CFE normalization of type literals.
-      //
-      //   * Regular user code: we need to emit a canonicalized type. We do so
-      //     by calling `wrapType` on the type at runtime. By emitting the
-      //     non-nullable version we save some redundant work at runtime.
-      //     Technically, emitting a legacy type in this case would be correct,
-      //     only more verbose and inefficient.
-      var type = node.type;
-      if (type.nullability == Nullability.legacy) {
-        type = type.withDeclaredNullability(Nullability.nonNullable);
-      }
-      assert(!_isInForeignJS ||
-          type.nullability == Nullability.nonNullable ||
-          // The types dynamic, void, and Null all intrinsically have
-          // `Nullability.nullable` but are handled explicitly without emitting
-          // the nullable runtime wrapper. They are safe to allow through
-          // unchanged.
-          type == const DynamicType() ||
-          type == const NullType() ||
-          type == const VoidType());
-      return _emitTypeLiteral(type);
+      // in the DDC output.
+      return _emitTypeLiteral(node.type);
     }
     if (node is PrimitiveConstant) {
       return super.visitConstant(node);
@@ -7862,12 +7835,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Expression visitEnum(InstanceConstant node) {
-    // Non-nullable is forced here because the type of an instance constant
-    // should never appear as legacy "*" at runtime but the library where the
-    // constant is defined can cause those types to appear here.
-    var type = node
-        .getType(_staticTypeContext)
-        .withDeclaredNullability(Nullability.nonNullable);
+    var type = node.getType(_staticTypeContext);
+    assert(type.nullability == Nullability.nonNullable,
+        'An instance constant should only ever have a non-nullable type.');
     var classRef = _emitClassRef(type as InterfaceType);
     var prototype = js.call('#.prototype', [classRef]);
     var enumAccessor = _emitTopLevelName(node.classNode);
@@ -7950,12 +7920,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return js_ast.Property(symbol, constant);
     }
 
-    // Non-nullable is forced here because the type of an instance constant
-    // should never appear as legacy "*" at runtime but the library where the
-    // constant is defined can cause those types to appear here.
-    var type = node
-        .getType(_staticTypeContext)
-        .withDeclaredNullability(Nullability.nonNullable);
+    var type = node.getType(_staticTypeContext);
+    assert(type.nullability == Nullability.nonNullable,
+        'An instance constant should only ever have a non-nullable type.');
     var classRef = _emitClassRef(type as InterfaceType);
     var prototype = js.call('#.prototype', [classRef]);
     var properties = [
