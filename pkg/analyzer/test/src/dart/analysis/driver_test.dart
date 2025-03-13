@@ -1219,8 +1219,8 @@ final B1 = A1;
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.libraryConfiguration.unitConfiguration
-        .variableTypesSelector2 = (result) {
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
       return switch (result.uriStr) {
         'package:test/a.dart' => [
             result.findElement2.topVar('A1'),
@@ -1306,8 +1306,8 @@ final A2 = B1;
     driver.addFile2(a);
     driver.priorityFiles2 = [a];
 
-    configuration.libraryConfiguration.unitConfiguration
-        .variableTypesSelector2 = (result) {
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
       switch (result.uriStr) {
         case 'package:test/a.dart':
           return [
@@ -2606,8 +2606,8 @@ final foo = 0;
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration.libraryConfiguration.unitConfiguration
-        .variableTypesSelector2 = (result) {
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
       return [
         result.findElement2.topVar('foo'),
       ];
@@ -3025,8 +3025,8 @@ final B = A;
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
 
-    configuration.libraryConfiguration.unitConfiguration
-        .variableTypesSelector2 = (result) {
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
       switch (result.uriStr) {
         case 'package:test/b.dart':
           return [
@@ -4535,8 +4535,8 @@ final B = 0;
     driver.addFile2(a);
     driver.addFile2(b);
 
-    configuration.libraryConfiguration.unitConfiguration
-        .variableTypesSelector2 = (result) {
+    configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
+        (result) {
       switch (result.uriStr) {
         case 'package:test/a.dart':
           return [

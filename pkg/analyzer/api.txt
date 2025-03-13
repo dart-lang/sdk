@@ -3304,9 +3304,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: GenericFunctionTypeElement Function())
   HideElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: HideElementCombinator Function())
-    end (getter: int)
     hiddenNames (getter: List<String>)
-    offset (getter: int)
   ImportElementPrefix (class extends Object):
     new (constructor: ImportElementPrefix Function())
     element (getter: PrefixElement)
@@ -3412,7 +3410,9 @@ package:analyzer/dart/element/element.dart:
   MultiplyDefinedElement (class extends Object implements Element):
     new (constructor: MultiplyDefinedElement Function())
     conflictingElements (getter: List<Element>)
-  NamespaceCombinator (class extends Object)
+  NamespaceCombinator (class extends Object):
+    end (getter: int)
+    offset (getter: int)
   ParameterElement (class extends Object implements PromotableElement, ConstantEvaluationTarget):
     new (constructor: ParameterElement Function())
     declaration (getter: ParameterElement)
@@ -3470,8 +3470,6 @@ package:analyzer/dart/element/element.dart:
     setter (getter: PropertyAccessorElement?)
   ShowElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: ShowElementCombinator Function())
-    end (getter: int)
-    offset (getter: int)
     shownNames (getter: List<String>)
   SuperFormalParameterElement (class extends Object implements ParameterElement):
     new (constructor: SuperFormalParameterElement Function())

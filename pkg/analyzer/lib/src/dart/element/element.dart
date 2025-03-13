@@ -8365,6 +8365,11 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
+  InstanceElementImpl get enclosingElement3 {
+    return super.enclosingElement3 as InstanceElementImpl;
+  }
+
+  @override
   InstanceFragment? get enclosingFragment =>
       enclosingElement3 as InstanceFragment;
 
@@ -10021,6 +10026,11 @@ sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
   PropertyAccessorElementImpl2 get element;
 
   @override
+  ElementImpl get enclosingElement3 {
+    return super.enclosingElement3 as ElementImpl;
+  }
+
+  @override
   Fragment get enclosingFragment {
     var enclosing = enclosingElement3;
     if (enclosing is InstanceFragment) {
@@ -10134,7 +10144,9 @@ class PropertyAccessorElementImpl_ImplicitGetter extends GetterFragmentImpl {
   }
 
   @override
-  Element get enclosingElement3 => variable2.enclosingElement3;
+  ElementImpl get enclosingElement3 {
+    return variable2.enclosingElement3 as ElementImpl;
+  }
 
   @override
   bool get hasImplicitReturnType => variable2.hasImplicitType;
@@ -10200,7 +10212,9 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
   }
 
   @override
-  Element get enclosingElement3 => variable2.enclosingElement3;
+  ElementImpl get enclosingElement3 {
+    return variable2.enclosingElement3 as ElementImpl;
+  }
 
   @override
   bool get isSetter => true;

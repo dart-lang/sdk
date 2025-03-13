@@ -1430,8 +1430,7 @@ void Elf::FinalizeEhFrame() {
   // No text section added means no .eh_frame.
   if (text_section == nullptr) return;
 
-#if defined(DART_TARGET_OS_WINDOWS) &&                                         \
-    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
+#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
   // Append Windows unwinding instructions to the end of .text section.
   {  // NOLINT
     auto* const unwinding_instructions_frame = new (zone_) TextSection(type_);
@@ -1493,8 +1492,7 @@ void Elf::FinalizeEhFrame() {
 
   // Emit an FDE covering each .text section.
   for (const auto& portion : text_section->portions()) {
-#if defined(DART_TARGET_OS_WINDOWS) &&                                         \
-    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
+#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
     if (portion.label == 0) {
       // Unwinding instructions sections doesn't have label, doesn't dwarf
       continue;

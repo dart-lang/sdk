@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -453,6 +454,55 @@ void f() {
   HashMap? s = null;
   LinkedHashMap? f = null;
   print('$s $f');
+}
+''');
+  }
+
+  Future<void> test_lint_active() async {
+    createAnalysisOptionsFile(lints: [LintNames.combinators_ordering]);
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    await resolveTestCode(r'''
+// ignore: combinators_ordering
+import 'lib.dart' hide C, D, B;
+void f(A a, C c) {
+  print('$a $c');
+}
+''');
+    await assertHasFix(r'''
+// ignore: combinators_ordering
+import 'lib.dart' hide B, D;
+void f(A a, C c) {
+  print('$a $c');
+}
+''');
+  }
+
+  // Two hides, one that should be removed entirely and a show that should be
+  // updated. Even though the show is not part of these tests, it should be
+  // fixed too for making the import correct.
+  Future<void> test_multiple_combinators() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+class B {}
+class C {}
+''');
+    await resolveTestCode(r'''
+// ignore: multiple_combinators
+import 'lib.dart' hide B, C show A hide C;
+void f(A a, C c) {
+  print('$a $c');
+}
+''');
+    await assertHasFix(r'''
+// ignore: multiple_combinators
+import 'lib.dart' hide B show A, C;
+void f(A a, C c) {
+  print('$a $c');
 }
 ''');
   }

@@ -26,6 +26,7 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 typedef _ProducersGenerators =
     Future<List<ResolvedCorrectionProducer>> Function(
@@ -110,12 +111,9 @@ class ImportLibrary extends MultiCorrectionProducer {
     String? prefix,
   }) async {
     var combinators = import.combinators;
-    if (combinators.length != 1) {
+    if (combinators.isEmpty) {
       return (null, null);
     }
-    _ImportLibraryCombinator? importCombinator;
-    _ImportLibraryCombinatorMultiple? importCombinatorMultiple;
-    var combinator = combinators.first;
     var otherNames = await _otherUnresolvedNames(prefix, name);
     var namesInThisLibrary = <String>[
       name,
@@ -125,41 +123,23 @@ class ImportLibrary extends MultiCorrectionProducer {
           exportedName,
     ];
     var importPrefix = import.prefix2?.element;
-    if (combinator is HideElementCombinator) {
-      importCombinator = _ImportLibraryCombinator(
-        uri,
-        combinator,
-        name,
-        removePrefix: importPrefix == null,
-        context: context,
-      );
-      if (namesInThisLibrary.length > 1) {
-        importCombinatorMultiple = _ImportLibraryCombinatorMultiple(
-          uri,
-          combinator,
-          namesInThisLibrary,
-          removePrefix: importPrefix == null,
-          context: context,
-        );
-      }
-    } else if (combinator is ShowElementCombinator) {
-      importCombinator = _ImportLibraryCombinator(
-        uri,
-        combinator,
-        name,
-        removePrefix: importPrefix == null,
-        context: context,
-      );
-      if (namesInThisLibrary.length > 1) {
-        importCombinatorMultiple = _ImportLibraryCombinatorMultiple(
-          uri,
-          combinator,
-          namesInThisLibrary,
-          removePrefix: importPrefix == null,
-          context: context,
-        );
-      }
+    var importCombinator = _ImportLibraryCombinator(
+      uri,
+      combinators,
+      name,
+      removePrefix: importPrefix == null,
+      context: context,
+    );
+    if (namesInThisLibrary.length == 1) {
+      return (importCombinator, null);
     }
+    var importCombinatorMultiple = _ImportLibraryCombinatorMultiple(
+      uri,
+      combinators,
+      namesInThisLibrary,
+      removePrefix: importPrefix == null,
+      context: context,
+    );
     return (importCombinator, importCombinatorMultiple);
   }
 
@@ -435,8 +415,6 @@ class ImportLibrary extends MultiCorrectionProducer {
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
-        // TODO(FMorschel): We should fix all combinators for the import, if
-        // we don't, we may not import at all.
         var libraryElement = import.importedLibrary2;
         if (libraryElement == null) {
           continue;
@@ -857,11 +835,11 @@ enum _ImportKind {
 class _ImportLibraryCombinator extends _ImportLibraryCombinatorMultiple {
   _ImportLibraryCombinator(
     String libraryName,
-    NamespaceCombinator combinator,
+    List<NamespaceCombinator> combinators,
     String updatedName, {
     super.removePrefix,
     required super.context,
-  }) : super(libraryName, combinator, [updatedName]);
+  }) : super(libraryName, combinators, [updatedName]);
 
   @override
   List<String> get fixArguments => [_updatedNames.first, _libraryName];
@@ -875,7 +853,7 @@ class _ImportLibraryCombinator extends _ImportLibraryCombinatorMultiple {
 class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
   final String _libraryName;
 
-  final NamespaceCombinator _combinator;
+  final List<NamespaceCombinator> _combinators;
 
   final List<String> _updatedNames;
 
@@ -883,7 +861,7 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
 
   _ImportLibraryCombinatorMultiple(
     this._libraryName,
-    this._combinator,
+    this._combinators,
     this._updatedNames, {
     bool removePrefix = false,
     required super.context,
@@ -910,50 +888,57 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    Set<String> finalNames = SplayTreeSet<String>();
-    int offset;
-    int length;
-    Keyword keyword;
-    if (_combinator case ShowElementCombinator(shownNames: var names)) {
-      finalNames.addAll(names);
-      offset = _combinator.offset;
-      length = _combinator.end - offset;
-      finalNames.addAll(_updatedNames);
-      keyword = Keyword.SHOW;
-    } else if (_combinator case HideElementCombinator(hiddenNames: var names)) {
-      finalNames.addAll(names);
-      offset = _combinator.offset;
-      length = _combinator.end - offset;
-      finalNames.removeAll(_updatedNames);
-      keyword = Keyword.HIDE;
-    } else {
-      return;
-    }
-    var newCombinatorCode = '';
-    if (finalNames.isNotEmpty) {
-      newCombinatorCode = ' ${keyword.lexeme} ${finalNames.join(', ')}';
-    }
-    var libraryPath = unitResult.libraryElement2.firstFragment.source.fullName;
-    await builder.addDartFileEdit(libraryPath, (builder) {
-      builder.addSimpleReplacement(
-        SourceRange(offset - 1, length + 1),
-        newCombinatorCode,
-      );
-      if (_removePrefix) {
-        AstNode? prefix;
-        if (node case NamedType(:var importPrefix?)) {
-          prefix = importPrefix;
-        } else if (node case PrefixedIdentifier(:var prefix)) {
-          prefix = prefix;
-        } else {
-          return;
-        }
-        if (prefix == null) {
-          return;
-        }
-        builder.addDeletion(range.node(prefix));
+    var codeStyleOptions = getCodeStyleOptions(unitResult.file);
+
+    for (var combinator in _combinators) {
+      var combinatorNames = <String>{};
+      var offset = combinator.offset;
+      var length = combinator.end - offset;
+
+      Keyword keyword;
+      switch (combinator) {
+        case ShowElementCombinator(shownNames: var names):
+          combinatorNames.addAll(names);
+          combinatorNames.addAll(_updatedNames);
+          keyword = Keyword.SHOW;
+        case HideElementCombinator(hiddenNames: var names):
+          combinatorNames.addAll(names);
+          combinatorNames.removeAll(_updatedNames);
+          keyword = Keyword.HIDE;
       }
-    });
+
+      var names =
+          codeStyleOptions.sortCombinators
+              ? combinatorNames.sorted()
+              : combinatorNames;
+
+      var newCombinatorCode = '';
+      if (names.isNotEmpty) {
+        newCombinatorCode = ' ${keyword.lexeme} ${names.join(', ')}';
+      }
+      var libraryPath =
+          unitResult.libraryElement2.firstFragment.source.fullName;
+      await builder.addDartFileEdit(libraryPath, (builder) {
+        builder.addSimpleReplacement(
+          SourceRange(offset - 1, length + 1),
+          newCombinatorCode,
+        );
+        if (_removePrefix) {
+          AstNode? prefix;
+          if (node case NamedType(:var importPrefix?)) {
+            prefix = importPrefix;
+          } else if (node case PrefixedIdentifier(:var prefix)) {
+            prefix = prefix;
+          } else {
+            return;
+          }
+          if (prefix == null) {
+            return;
+          }
+          builder.addDeletion(range.node(prefix));
+        }
+      });
+    }
   }
 }
 

@@ -409,6 +409,12 @@ extension ExtensionElementExtension on ExtensionElement {
   }
 }
 
+extension ExtensionElementImplExtension on ExtensionElementImpl {
+  ExtensionElementImpl2 get asElement2 {
+    return element;
+  }
+}
+
 extension ExtensionTypeElement2Extension on ExtensionTypeElement2 {
   ExtensionTypeElement get asElement {
     return firstFragment as ExtensionTypeElement;
@@ -484,6 +490,18 @@ extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
 extension InstanceElement2Extension on InstanceElement2 {
   InstanceElement get asElement {
     return firstFragment as InstanceElement;
+  }
+}
+
+extension InstanceElementExtension on InstanceElement {
+  InstanceElement2 get asElement2 {
+    return (this as InstanceElementImpl).element;
+  }
+}
+
+extension InstanceElementImplExtension on InstanceElementImpl {
+  InstanceElementImpl2 get asElement2 {
+    return element;
   }
 }
 

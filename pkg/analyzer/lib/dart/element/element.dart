@@ -1271,16 +1271,9 @@ abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class HideElementCombinator implements NamespaceCombinator {
-  /// The offset of the character immediately following the last character of
-  /// this node.
-  int get end;
-
   /// The names that are not to be made visible in the importing library even
   /// if they are defined in the imported library.
   List<String> get hiddenNames;
-
-  /// The offset of the 'hide' keyword of this element.
-  int get offset;
 }
 
 /// Usage of a [PrefixElement] in an `import` directive.
@@ -1833,7 +1826,14 @@ abstract class MultiplyDefinedElement implements Element {
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.
-sealed class NamespaceCombinator {}
+sealed class NamespaceCombinator {
+  /// The offset of the character immediately following the last character of
+  /// this node.
+  int get end;
+
+  /// The offset of the first character of this node.
+  int get offset;
+}
 
 /// A parameter defined within an executable element.
 ///
@@ -2093,13 +2093,6 @@ abstract class PropertyInducingElement implements VariableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ShowElementCombinator implements NamespaceCombinator {
-  /// The offset of the character immediately following the last character of
-  /// this node.
-  int get end;
-
-  /// The offset of the 'show' keyword of this element.
-  int get offset;
-
   /// The names that are to be made visible in the importing library if they
   /// are defined in the imported library.
   List<String> get shownNames;
