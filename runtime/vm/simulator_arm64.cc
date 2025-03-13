@@ -4095,7 +4095,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // have this boilerplate, don't have this stack resource, have to transition
   // explicitly.
   if (thread->exit_through_ffi() == dart::Thread::kExitThroughFfi) {
-    thread->ExitSafepoint();
+    thread->ExitSafepointFromNative();
     thread->set_execution_state(Thread::kThreadInGenerated);
   }
 
