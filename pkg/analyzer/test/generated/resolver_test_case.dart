@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 /// @docImport 'strong_mode_test.dart';
 library;
 
-import 'package:analyzer/dart/element/element.dart';
+// import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -65,10 +62,10 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   }
 
   FunctionType _getFunctionTypedElementType(SimpleIdentifier identifier) {
-    var element = identifier.element?.asElement;
-    if (element is ExecutableElement) {
+    var element = identifier.element;
+    if (element is ExecutableElement2) {
       return element.type;
-    } else if (element is VariableElement) {
+    } else if (element is VariableElement2) {
       return element.type as FunctionType;
     } else {
       fail('Unexpected element: (${element.runtimeType}) $element');
