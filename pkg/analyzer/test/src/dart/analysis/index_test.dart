@@ -2,16 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -2780,7 +2776,7 @@ void f() {
 
   String _getRelationsText(Element2 element) {
     var lineInfo = result.lineInfo;
-    var elementId = _findElementId(element.asElement!);
+    var elementId = _findElementId(element);
 
     var relations = <_Relation>[];
     for (var i = 0; i < index.usedElementOffsets.length; i++) {
@@ -2929,15 +2925,15 @@ mixin _IndexMixin on PubPackageResolutionTest {
   }
 
   /// Return the [element] identifier in [index] or fail.
-  int _findElementId(Element element) {
+  int _findElementId(Element2 element) {
     var unitId = _getUnitId(element);
 
     // Prepare the element that was put into the index.
-    IndexElementInfo info = IndexElementInfo(element.asElement2!);
-    element = info.element.asElement!;
+    IndexElementInfo info = IndexElementInfo(element);
+    element = info.element;
 
     // Prepare element's name components.
-    var components = ElementNameComponents(element.asElement2!);
+    var components = ElementNameComponents(element);
     var unitMemberId = index.getStringId(components.unitMemberName);
     var classMemberId = index.getStringId(components.classMemberName);
     var parameterId = index.getStringId(components.parameterName);
@@ -2958,8 +2954,8 @@ mixin _IndexMixin on PubPackageResolutionTest {
     return 0;
   }
 
-  int _getUnitId(Element element) {
-    var unitElement = getUnitElement(element.asElement2!);
+  int _getUnitId(Element2 element) {
+    var unitElement = getUnitElement(element);
     return index.getLibraryFragmentId(unitElement);
   }
 
