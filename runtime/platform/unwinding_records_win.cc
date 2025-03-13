@@ -9,23 +9,27 @@
 
 namespace dart {
 
-#if (defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)) &&      \
-    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
+#if (defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)) ||     \
+    (defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT))
 
 #if defined(TARGET_ARCH_X64)
 const intptr_t kReservedUnwindingRecordsSizeBytes = 64;
-#else
+#elif defined(TARGET_ARCH_ARM64)
 const intptr_t kReservedUnwindingRecordsSizeBytes = 4 * KB;
+#else
+#error Unhandled Windows architecture.
 #endif
 
 intptr_t UnwindingRecordsPlatform::SizeInBytes() {
   return kReservedUnwindingRecordsSizeBytes;
 }
 
-#endif  // defined(DART_TARGET_OS_WINDOWS) || defined(DART_HOST_OS_WINDOWS)
+#endif  // defined(DART_TARGET_OS_WINDOWS) ...
 
-#if defined(DART_HOST_OS_WINDOWS) &&                                           \
-    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
+// Only use these definitions when the ELF loader may be used on 64-bit Windows,
+// as it is the only client of these methods (e.g., _not_ in gen_snapshot).
+#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT) &&                \
+    (!defined(DART_PRECOMPILER) || defined(TESTING))
 
 void UnwindingRecordsPlatform::RegisterExecutableMemory(
     void* start,
@@ -54,6 +58,6 @@ void UnwindingRecordsPlatform::UnregisterDynamicTable(void* p_dynamic_table) {
   RtlDeleteGrowableFunctionTable(p_dynamic_table);
 }
 
-#endif  // defined(DART_HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS) ...
 
 }  // namespace dart

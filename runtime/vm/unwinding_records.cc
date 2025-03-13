@@ -7,22 +7,23 @@
 
 namespace dart {
 
-#if (!defined(DART_TARGET_OS_WINDOWS) && !defined(DART_HOST_OS_WINDOWS)) ||    \
-    (!defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64))
+#if !defined(DART_TARGET_OS_WINDOWS) || !defined(TARGET_ARCH_IS_64_BIT)
 
 const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
                                                   uint8_t* target_buffer) {
   return nullptr;
 }
 
-#endif
+#endif  // !defined(DART_TARGET_OS_WINDOWS)
 
-#if !defined(DART_HOST_OS_WINDOWS) ||                                          \
-    (!defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64))
+// Also use empty definitions when running gen_snapshot on 64-bit Windows, as
+// it does not use the ELF loader, which is the client of these methods.
+#if !defined(DART_HOST_OS_WINDOWS) || !defined(ARCH_IS_64_BIT) ||              \
+    (defined(DART_PRECOMPILER) && !defined(TESTING))
 
 void UnwindingRecords::RegisterExecutablePage(Page* page) {}
 void UnwindingRecords::UnregisterExecutablePage(Page* page) {}
 
-#endif
+#endif  // !defined(DART_HOST_OS_WINDOWS)
 
 }  // namespace dart
