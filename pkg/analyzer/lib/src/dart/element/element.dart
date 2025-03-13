@@ -9315,11 +9315,12 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
   NonParameterVariableElementImpl(super.name, super.offset);
 
   @override
-  Element get enclosingElement3 =>
-      // TODO(paulberry): `!` is not appropriate here because variable elements
-      // aren't guaranteed to have enclosing elements. See
-      // https://github.com/dart-lang/sdk/issues/59750.
-      super.enclosingElement3!;
+  ElementImpl get enclosingElement3 {
+    // TODO(paulberry): `!` is not appropriate here because variable elements
+    // aren't guaranteed to have enclosing elements. See
+    // https://github.com/dart-lang/sdk/issues/59750.
+    return super.enclosingElement3 as ElementImpl;
+  }
 
   bool get hasInitializer {
     return hasModifier(Modifier.HAS_INITIALIZER);
@@ -10147,7 +10148,7 @@ class PropertyAccessorElementImpl_ImplicitGetter extends GetterFragmentImpl {
 
   @override
   ElementImpl get enclosingElement3 {
-    return variable2.enclosingElement3 as ElementImpl;
+    return variable2.enclosingElement3;
   }
 
   @override
@@ -10215,7 +10216,7 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
 
   @override
   ElementImpl get enclosingElement3 {
-    return variable2.enclosingElement3 as ElementImpl;
+    return variable2.enclosingElement3;
   }
 
   @override

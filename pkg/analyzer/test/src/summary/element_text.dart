@@ -2534,9 +2534,9 @@ class _ElementWriter extends _AbstractElementWriter {
     } else {
       var enclosing = variable!.enclosingElement3;
       switch (enclosing) {
-        case CompilationUnitElement():
+        case CompilationUnitElementImpl():
           expect(enclosing.topLevelVariables, contains(variable));
-        case InterfaceElement():
+        case InterfaceElementImpl():
           expect(enclosing.fields, contains(variable));
       }
     }
