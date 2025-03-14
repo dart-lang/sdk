@@ -11117,6 +11117,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     if (aliasedType_ is! InterfaceTypeImpl) {
       return false;
     }
+    var typeParameters = element.typeParameters2;
     var aliasedClass = aliasedType_.element;
     var typeArguments = aliasedType_.typeArguments;
     var typeParameterCount = typeParameters.length;
@@ -11133,7 +11134,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       }
       var typeArgument = typeArguments[i];
       if (typeArgument is TypeParameterType &&
-          typeParameters[i] != typeArgument.element) {
+          typeParameters[i] != typeArgument.element3) {
         return false;
       }
     }

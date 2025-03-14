@@ -1701,11 +1701,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = type.element;
+    var element = type.element3;
     switch (element) {
-      case ClassElement():
+      case ClassElement2():
         return;
-      case MixinElement():
+      case MixinElement2():
         if (clause is ImplementsClause ||
             clause is MixinOnClause ||
             clause is WithClause) {

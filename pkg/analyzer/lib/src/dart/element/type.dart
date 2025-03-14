@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -42,6 +40,7 @@ class DynamicTypeImpl extends TypeImpl
   /// Prevent the creation of instances of this class.
   DynamicTypeImpl._();
 
+  @Deprecated('Use element2 instead')
   @override
   DynamicElementImpl get element => DynamicElementImpl.instance;
 
@@ -195,6 +194,7 @@ class FunctionTypeImpl extends TypeImpl
     super.alias,
   });
 
+  @Deprecated('Use element2 instead')
   @override
   Null get element => null;
 
@@ -1193,6 +1193,7 @@ class InvalidTypeImpl extends TypeImpl
   /// Prevent the creation of instances of this class.
   InvalidTypeImpl._();
 
+  @Deprecated('Use element2 instead')
   @override
   Null get element => null;
 
@@ -1374,6 +1375,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType, SharedRecordType {
     );
   }
 
+  @Deprecated('Use element2 instead')
   @override
   Null get element => null;
 
@@ -1533,6 +1535,7 @@ abstract class TypeImpl implements DartType, SharedType {
   /// Initialize a newly created type.
   const TypeImpl({this.alias});
 
+  @Deprecated('Use element3 instead')
   @override
   Element? get element => element3?.asElement;
 
@@ -1607,6 +1610,7 @@ abstract class TypeImpl implements DartType, SharedType {
   /// Append a textual representation of this type to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
 
+  @Deprecated('Use asInstanceOf2() instead')
   @override
   InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) => null;
 
@@ -1780,6 +1784,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     builder.writeTypeParameterType(this);
   }
 
+  @Deprecated('Use asInstanceOf2() instead')
   @override
   InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) {
     return bound.asInstanceOf(targetElement);
@@ -1820,6 +1825,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
   /// Prevent the creation of instances of this class.
   VoidTypeImpl._();
 
+  @Deprecated('Use element2 instead')
   @override
   Null get element => null;
 
