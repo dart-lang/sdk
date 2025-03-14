@@ -851,10 +851,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             contextType: matchedType.unwrapTypeView(),
             nodeForTesting: pattern,
           );
-          return SharedTypeView(typeNode.type = typeNameElement.instantiate(
-            typeArguments: typeArguments,
-            nullabilitySuffix: NullabilitySuffix.none,
-          ));
+          return SharedTypeView(
+            typeNode.type = typeNameElement.instantiateImpl(
+              typeArguments: typeArguments,
+              nullabilitySuffix: NullabilitySuffix.none,
+            ),
+          );
         }
       }
     }

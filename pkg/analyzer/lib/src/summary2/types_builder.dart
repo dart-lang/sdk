@@ -493,7 +493,7 @@ class _MixinInference {
         if (rawType is InterfaceTypeImpl) {
           supertypeConstraints = rawType.superclassConstraints;
           instantiate = (typeArguments) {
-            return mixinElement.instantiate(
+            return mixinElement.instantiateImpl(
               typeArguments: typeArguments,
               nullabilitySuffix: mixinType.nullabilitySuffix,
             ) as InterfaceTypeImpl;

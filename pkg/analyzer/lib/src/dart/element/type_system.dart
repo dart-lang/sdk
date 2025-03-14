@@ -731,7 +731,7 @@ class TypeSystemImpl implements TypeSystem {
   }) {
     var typeParameters = element.typeParameters2;
     var typeArguments = _defaultTypeArguments(typeParameters);
-    return element.instantiate(
+    return element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );

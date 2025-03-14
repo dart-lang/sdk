@@ -537,29 +537,29 @@ class FutureOrTypeImpl extends InterfaceTypeImpl {
 
 class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
   @override
-  final TypeAliasElement element;
+  final TypeAliasElementImpl2 element2;
 
   @override
   final List<TypeImpl> typeArguments;
 
   InstantiatedTypeAliasElementImpl({
-    required this.element,
+    required this.element2,
     required this.typeArguments,
   });
 
   factory InstantiatedTypeAliasElementImpl.v2({
-    required TypeAliasElement2 element,
+    required TypeAliasElementImpl2 element,
     required List<TypeImpl> typeArguments,
   }) {
     return InstantiatedTypeAliasElementImpl(
-      element: element.asElement,
+      element2: element,
       typeArguments: typeArguments,
     );
   }
 
+  @Deprecated('Use element2 instead')
   @override
-  TypeAliasElementImpl2 get element2 =>
-      (element as TypeAliasFragment).element as TypeAliasElementImpl2;
+  TypeAliasElementImpl get element => element2.firstFragment;
 }
 
 /// A concrete implementation of an [InterfaceType].

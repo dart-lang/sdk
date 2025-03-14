@@ -680,7 +680,7 @@ mixin ElementsTypesMixin {
     TypeAliasElementImpl2 element, {
     List<TypeImpl> typeArguments = const [],
   }) {
-    return element.instantiate(
+    return element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );

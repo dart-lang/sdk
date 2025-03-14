@@ -843,7 +843,7 @@ class FunctionReferenceResolver {
       element.typeParameters2,
       CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
     );
-    var type = element.instantiate(
+    var type = element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
