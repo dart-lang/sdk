@@ -72,15 +72,11 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   final int fileOffset;
 
-  final FactoryFragment _introductory;
-
-  final _FactoryEncoding _encoding;
+  final FactoryDeclaration _introductory;
 
   SourceFactoryBuilder(
       {required this.modifiers,
-      required TypeBuilder returnType,
       required this.name,
-      required List<NominalParameterBuilder>? typeParameters,
       required this.libraryBuilder,
       required this.declarationBuilder,
       required this.fileUri,
@@ -88,23 +84,23 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       required Reference? procedureReference,
       required Reference? tearOffReference,
       required NameScheme nameScheme,
-      required FactoryFragment fragment})
+      required FactoryDeclaration introductory})
       : _memberName = nameScheme.getDeclaredName(name),
-        _introductory = fragment,
-        _encoding = new _FactoryEncoding(fragment,
-            name: name,
-            libraryBuilder: libraryBuilder,
-            typeParameters: typeParameters,
-            returnType: returnType,
-            nameScheme: nameScheme,
-            procedureReference: procedureReference,
-            tearOffReference: tearOffReference);
+        _introductory = introductory {
+    _introductory.createNode(
+        name: name,
+        libraryBuilder: libraryBuilder,
+        nameScheme: nameScheme,
+        procedureReference: procedureReference,
+        tearOffReference: tearOffReference);
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParameters => _encoding.typeParameters;
+  List<NominalParameterBuilder>? get typeParameters =>
+      _introductory.typeParameters;
 
-  TypeBuilder get returnType => _encoding.returnType;
+  TypeBuilder get returnType => _introductory.returnType;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -145,15 +141,15 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   bool get isAssignable => false;
 
   FormalParameterBuilder? getFormal(Identifier identifier) =>
-      _encoding.getFormal(identifier);
+      _introductory.getFormal(identifier);
 
   void setBody(Statement value) {
-    _encoding.setBody(value);
+    _introductory.setBody(value);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isNative => _encoding.isNative;
+  bool get isNative => _introductory.isNative;
 
   /// Returns the [index]th parameter of this function.
   ///
@@ -161,7 +157,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   /// parameter in the order they are declared, and excluding the synthesized
   /// this parameter on extension instance members.
   VariableDeclaration getFormalParameter(int index) =>
-      _introductory.formals![index].variable!;
+      _introductory.getFormalParameter(index);
 
   @override
   VariableDeclaration? get thisVariable => null;
@@ -171,7 +167,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   @override
   void becomeNative(SourceLoader loader) {
-    _encoding.becomeNative(loader);
+    _introductory.becomeNative(loader: loader, annotatables: annotatables);
   }
 
   @override
@@ -185,7 +181,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   List<SourceFactoryBuilder>? get augmentationsForTesting => _augmentations;
 
   void _setAsyncModifier(AsyncMarker newModifier) {
-    _encoding.asyncModifier = newModifier;
+    _introductory.asyncModifier = newModifier;
   }
 
   @override
@@ -225,12 +221,13 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   bool get isEnumElement => false;
 
   Procedure get _procedure =>
-      isAugmenting ? origin._procedure : _encoding.procedure;
+      isAugmenting ? origin._procedure : _introductory.procedure;
 
-  Procedure? get _tearOff => isAugmenting ? origin._tearOff : _encoding.tearOff;
+  Procedure? get _tearOff =>
+      isAugmenting ? origin._tearOff : _introductory.tearOff;
 
   @override
-  FunctionNode get function => _encoding.function;
+  FunctionNode get function => _introductory.function;
 
   @override
   Member get readTarget => _tearOff ?? _procedure;
@@ -265,7 +262,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   /// This is used to update the default value for the closure parameter when
   /// it has been computed for the original parameter.
   VariableDeclaration? getTearOffParameter(int index) =>
-      _encoding.getTearOffParameter(index);
+      _introductory.getTearOffParameter(index);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -324,7 +321,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
-    int count = _encoding.computeDefaultTypes(context,
+    int count = _introductory.computeDefaultTypes(context,
         inErrorRecovery: inErrorRecovery);
     List<SourceFactoryBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
@@ -344,7 +341,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
-    _encoding.checkTypes(library, nameSpace, typeEnvironment);
+    _introductory.checkTypes(library, nameSpace, typeEnvironment);
     List<SourceFactoryBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (SourceFactoryBuilder augmentation in augmentations) {
@@ -362,7 +359,10 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     _hasBeenCheckedAsRedirectingFactory = true;
 
     if (_introductory.redirectionTarget != null) {
-      _encoding.checkRedirectingFactory(typeEnvironment);
+      _introductory.checkRedirectingFactory(
+          libraryBuilder: libraryBuilder,
+          factoryBuilder: this,
+          typeEnvironment: typeEnvironment);
     }
     List<SourceFactoryBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
@@ -397,16 +397,17 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   // Coverage-ignore(suite): Not run.
   List<DartType>? get _redirectionTypeArguments =>
-      _encoding.redirectionTypeArguments;
+      _introductory.redirectionTypeArguments;
 
   // Coverage-ignore(suite): Not run.
   void set _redirectionTypeArguments(List<DartType>? value) {
-    _encoding.redirectionTypeArguments = value;
+    _introductory.redirectionTypeArguments = value;
   }
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
-    _encoding.buildOutlineNodes(f);
+    _introductory.buildOutlineNodes(
+        libraryBuilder: libraryBuilder, factoryBuilder: this, f: f);
     List<SourceFactoryBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (SourceFactoryBuilder augmentation in augmentations) {
@@ -433,8 +434,11 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
           classHierarchy, delayedDefaultValueCloners);
     }
 
-    _encoding.buildOutlineExpressions(
-        classHierarchy, delayedDefaultValueCloners);
+    _introductory.buildOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        factoryBuilder: this,
+        classHierarchy: classHierarchy,
+        delayedDefaultValueCloners: delayedDefaultValueCloners);
 
     if (isConst && isAugmenting) {
       _finishAugmentation();
@@ -450,10 +454,10 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   }
 
   void _finishAugmentation() {
-    finishProcedureAugmentation(_procedure, _encoding.procedure);
+    finishProcedureAugmentation(_procedure, _introductory.procedure);
 
-    if (_encoding.tearOff != null) {
-      finishProcedureAugmentation(_tearOff!, _encoding.tearOff!);
+    if (_introductory.tearOff != null) {
+      finishProcedureAugmentation(_tearOff!, _introductory.tearOff!);
     }
 
     if (_introductory.redirectionTarget != null) {
@@ -469,7 +473,8 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   }
 
   void resolveRedirectingFactory() {
-    _encoding.resolveRedirectingFactory();
+    _introductory.resolveRedirectingFactory(
+        libraryBuilder: libraryBuilder, factoryBuilder: this);
 
     List<SourceFactoryBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
@@ -480,7 +485,11 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   }
 
   void _setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
-    _encoding.setRedirectingFactoryBody(target, typeArguments);
+    _introductory.setRedirectingFactoryBody(
+        libraryBuilder: libraryBuilder,
+        factoryBuilder: this,
+        target: target,
+        typeArguments: typeArguments);
   }
 }
 
@@ -594,7 +603,306 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 }
 
-class _FactoryEncoding implements InferredTypeListener {
+abstract class FactoryDeclaration {
+  Procedure get procedure;
+
+  Procedure? get tearOff;
+
+  FunctionNode get function;
+
+  List<NominalParameterBuilder>? get typeParameters;
+
+  TypeBuilder get returnType;
+
+  void createNode({
+    required String name,
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required Reference? procedureReference,
+    required Reference? tearOffReference,
+  });
+
+  void buildOutlineNodes(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required BuildNodesCallback f});
+
+  void buildOutlineExpressions(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required ClassHierarchy classHierarchy,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners});
+
+  /// Checks this factory builder if it is for a redirecting factory.
+  void checkRedirectingFactory(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required TypeEnvironment typeEnvironment});
+
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery});
+
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment);
+
+  void setBody(Statement value);
+
+  void set asyncModifier(AsyncMarker newModifier);
+
+  FormalParameterBuilder? getFormal(Identifier identifier);
+
+  VariableDeclaration? getTearOffParameter(int index);
+
+  abstract List<DartType>? redirectionTypeArguments;
+
+  bool get isNative;
+
+  void becomeNative(
+      {required SourceLoader loader,
+      required Iterable<Annotatable> annotatables});
+
+  void resolveRedirectingFactory(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder});
+
+  void setRedirectingFactoryBody(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required Member target,
+      required List<DartType> typeArguments});
+
+  List<FormalParameterBuilder>? get formals;
+
+  /// Returns the [index]th parameter of this function.
+  ///
+  /// The index is the syntactical index, including both positional and named
+  /// parameter in the order they are declared, and excluding the synthesized
+  /// this parameter on extension instance members.
+  VariableDeclaration getFormalParameter(int index);
+
+  Iterable<MetadataBuilder>? get metadata;
+
+  ConstructorReferenceBuilder? get redirectionTarget;
+}
+
+class FactoryDeclarationImpl implements FactoryDeclaration {
+  final FactoryFragment _fragment;
+  @override
+  final List<NominalParameterBuilder>? typeParameters;
+  @override
+  final TypeBuilder returnType;
+  final FactoryEncoding _encoding;
+
+  FactoryDeclarationImpl(this._fragment,
+      {required this.typeParameters, required this.returnType})
+      : _encoding = new FactoryEncoding(_fragment,
+            typeParameters: typeParameters,
+            returnType: returnType,
+            redirectionTarget: _fragment.redirectionTarget);
+
+  @override
+  Procedure get procedure => _encoding.procedure;
+
+  @override
+  Procedure? get tearOff => _encoding.tearOff;
+
+  @override
+  FunctionNode get function => _encoding.function;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isNative => _encoding.isNative;
+
+  @override
+  void becomeNative(
+      {required SourceLoader loader,
+      required Iterable<Annotatable> annotatables}) {
+    for (Annotatable annotatable in annotatables) {
+      loader.addNativeAnnotation(annotatable, _fragment.nativeMethodName!);
+    }
+    _encoding.becomeNative(loader);
+  }
+
+  @override
+  void createNode({
+    required String name,
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required Reference? procedureReference,
+    required Reference? tearOffReference,
+  }) {
+    _encoding.createNode(
+        name: name,
+        libraryBuilder: libraryBuilder,
+        nameScheme: nameScheme,
+        procedureReference: procedureReference,
+        tearOffReference: tearOffReference);
+  }
+
+  @override
+  void buildOutlineNodes(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required BuildNodesCallback f}) {
+    _encoding.buildOutlineNodes(
+        libraryBuilder: libraryBuilder, factoryBuilder: factoryBuilder, f: f);
+  }
+
+  @override
+  void buildOutlineExpressions(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required ClassHierarchy classHierarchy,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
+    _fragment.formals?.infer(classHierarchy);
+
+    for (Annotatable annotatable in factoryBuilder.annotatables) {
+      MetadataBuilder.buildAnnotations(
+          annotatable,
+          _fragment.metadata,
+          factoryBuilder.createBodyBuilderContext(),
+          libraryBuilder,
+          _fragment.fileUri,
+          _fragment.enclosingScope,
+          createFileUriExpression: factoryBuilder.isAugmented);
+    }
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(
+            libraryBuilder,
+            factoryBuilder.createBodyBuilderContext(),
+            classHierarchy,
+            _fragment.typeParameterScope);
+      }
+    }
+
+    if (_fragment.formals != null) {
+      // For const constructors we need to include default parameter values
+      // into the outline. For all other formals we need to call
+      // buildOutlineExpressions to clear initializerToken to prevent
+      // consuming too much memory.
+      for (FormalParameterBuilder formal in _fragment.formals!) {
+        formal.buildOutlineExpressions(
+            libraryBuilder, factoryBuilder.declarationBuilder,
+            scope: _fragment.typeParameterScope,
+            buildDefaultValue: FormalParameterBuilder
+                .needsDefaultValuesBuiltAsOutlineExpressions(factoryBuilder));
+      }
+    }
+
+    _encoding.buildOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        factoryBuilder: factoryBuilder,
+        classHierarchy: classHierarchy,
+        delayedDefaultValueCloners: delayedDefaultValueCloners);
+  }
+
+  @override
+  void checkRedirectingFactory(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required TypeEnvironment typeEnvironment}) {
+    _encoding.checkRedirectingFactory(
+        libraryBuilder: libraryBuilder,
+        factoryBuilder: factoryBuilder,
+        typeEnvironment: typeEnvironment);
+  }
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        // Type parameters are inherited from the enclosing declaration, so if
+        // it has issues, so do the constructors.
+        inErrorRecovery: inErrorRecovery);
+    context.reportGenericFunctionTypesForFormals(_fragment.formals);
+    return count;
+  }
+
+  @override
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
+    if (_fragment.redirectionTarget != null) {
+      // Default values are not required on redirecting factory constructors so
+      // we don't call [checkInitializersInFormals].
+    } else {
+      library.checkInitializersInFormals(_fragment.formals, typeEnvironment,
+          isAbstract: _fragment.modifiers.isAbstract,
+          isExternal: _fragment.modifiers.isExternal);
+    }
+  }
+
+  @override
+  void setBody(Statement value) {
+    _encoding.setBody(value);
+  }
+
+  @override
+  void set asyncModifier(AsyncMarker newModifier) {
+    _encoding.asyncModifier = newModifier;
+  }
+
+  @override
+  FormalParameterBuilder? getFormal(Identifier identifier) {
+    return _encoding.getFormal(identifier);
+  }
+
+  @override
+  VariableDeclaration? getTearOffParameter(int index) {
+    return _encoding.getTearOffParameter(index);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<DartType>? get redirectionTypeArguments =>
+      _encoding.redirectionTypeArguments;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set redirectionTypeArguments(List<DartType>? value) {
+    _encoding.redirectionTypeArguments = value;
+  }
+
+  @override
+  void resolveRedirectingFactory(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder}) {
+    _encoding.resolveRedirectingFactory(
+        libraryBuilder: libraryBuilder, factoryBuilder: factoryBuilder);
+  }
+
+  @override
+  void setRedirectingFactoryBody(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required Member target,
+      required List<DartType> typeArguments}) {
+    _encoding.setRedirectingFactoryBody(
+        libraryBuilder: libraryBuilder,
+        factoryBuilder: factoryBuilder,
+        target: target,
+        typeArguments: typeArguments);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<FormalParameterBuilder>? get formals => _fragment.formals;
+
+  @override
+  VariableDeclaration getFormalParameter(int index) =>
+      _fragment.formals![index].variable!;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadata => _fragment.metadata;
+
+  @override
+  ConstructorReferenceBuilder? get redirectionTarget {
+    return _fragment.redirectionTarget;
+  }
+}
+
+class FactoryEncoding implements InferredTypeListener {
   late final Procedure _procedureInternal;
   late final Procedure? _factoryTearOff;
 
@@ -612,17 +920,25 @@ class _FactoryEncoding implements InferredTypeListener {
 
   FreshTypeParameters? _tearOffTypeParameters;
 
-  _FactoryEncoding(this._fragment,
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required this.typeParameters,
-      required this.returnType,
-      required NameScheme nameScheme,
-      required Reference? procedureReference,
-      required Reference? tearOffReference})
-      : _asyncModifier = _fragment.redirectionTarget != null
+  final ConstructorReferenceBuilder? _redirectionTarget;
+
+  FactoryEncoding(
+    this._fragment, {
+    required this.typeParameters,
+    required this.returnType,
+    required ConstructorReferenceBuilder? redirectionTarget,
+  })  : _redirectionTarget = redirectionTarget,
+        _asyncModifier = redirectionTarget != null
             ? AsyncMarker.Sync
-            : _fragment.asyncModifier {
+            : _fragment.asyncModifier;
+
+  void createNode({
+    required String name,
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required Reference? procedureReference,
+    required Reference? tearOffReference,
+  }) {
     _procedureInternal = new Procedure(
         dummyName,
         nameScheme.isExtensionTypeMember
@@ -668,29 +984,32 @@ class _FactoryEncoding implements InferredTypeListener {
   }
 
   List<DartType>? get redirectionTypeArguments {
-    assert(_fragment.redirectionTarget != null);
+    assert(_redirectionTarget != null);
     return _redirectionTypeArguments;
   }
 
   void set redirectionTypeArguments(List<DartType>? value) {
-    assert(_fragment.redirectionTarget != null);
+    assert(_redirectionTarget != null);
     _redirectionTypeArguments = value;
   }
 
-  void buildOutlineNodes(BuildNodesCallback f) {
+  void buildOutlineNodes(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required BuildNodesCallback f}) {
     _procedureInternal.function.asyncMarker = _asyncModifier;
-    if (_fragment.redirectionTarget == null &&
+    if (_redirectionTarget == null &&
         !_fragment.modifiers.isAbstract &&
         !_fragment.modifiers.isExternal) {
       _procedureInternal.function.body = new EmptyStatement()
         ..parent = _procedureInternal.function;
     }
-    buildTypeParametersAndFormals(_fragment.builder.libraryBuilder,
-        _procedureInternal.function, typeParameters, _fragment.formals,
+    buildTypeParametersAndFormals(libraryBuilder, _procedureInternal.function,
+        typeParameters, _fragment.formals,
         classTypeParameters: null, supportsTypeParameters: true);
     if (returnType is! InferableTypeBuilder) {
-      _procedureInternal.function.returnType = returnType.build(
-          _fragment.builder.libraryBuilder, TypeUse.returnType);
+      _procedureInternal.function.returnType =
+          returnType.build(libraryBuilder, TypeUse.returnType);
     }
     _procedureInternal.function.fileOffset = _fragment.formalsOffset;
     _procedureInternal.function.fileEndOffset =
@@ -700,13 +1019,12 @@ class _FactoryEncoding implements InferredTypeListener {
     _procedureInternal.isConst = _fragment.modifiers.isConst;
     _procedureInternal.isStatic = _fragment.modifiers.isStatic;
 
-    if (_fragment.redirectionTarget != null) {
-      if (_fragment.redirectionTarget!.typeArguments != null) {
+    if (_redirectionTarget != null) {
+      if (_redirectionTarget.typeArguments != null) {
         redirectionTypeArguments = new List<DartType>.generate(
-            _fragment.redirectionTarget!.typeArguments!.length,
-            (int i) => _fragment.redirectionTarget!.typeArguments![i].build(
-                _fragment.builder.libraryBuilder,
-                TypeUse.redirectionTypeArgument),
+            _redirectionTarget.typeArguments!.length,
+            (int i) => _redirectionTarget.typeArguments![i]
+                .build(libraryBuilder, TypeUse.redirectionTypeArgument),
             growable: false);
       }
       if (_factoryTearOff != null) {
@@ -714,73 +1032,39 @@ class _FactoryEncoding implements InferredTypeListener {
             buildRedirectingFactoryTearOffProcedureParameters(
                 tearOff: _factoryTearOff,
                 implementationConstructor: _procedureInternal,
-                libraryBuilder: _fragment.builder.libraryBuilder);
+                libraryBuilder: libraryBuilder);
       }
     } else {
       if (_factoryTearOff != null) {
         _delayedDefaultValueCloner = buildConstructorTearOffProcedure(
             tearOff: _factoryTearOff,
-            declarationConstructor: _fragment.builder._procedure,
+            declarationConstructor: factoryBuilder._procedure,
             implementationConstructor: _procedureInternal,
-            libraryBuilder: _fragment.builder.libraryBuilder);
+            libraryBuilder: libraryBuilder);
       }
     }
     f(
         member: _procedureInternal,
         tearOff: _factoryTearOff,
-        kind: _fragment.builder.isExtensionTypeMember
-            ? (_fragment.redirectionTarget != null
+        kind: factoryBuilder.isExtensionTypeMember
+            ? (_redirectionTarget != null
                 ? BuiltMemberKind.ExtensionTypeRedirectingFactory
                 : BuiltMemberKind.ExtensionTypeFactory)
-            : (_fragment.redirectionTarget != null
+            : (_redirectionTarget != null
                 ? BuiltMemberKind.RedirectingFactory
                 : BuiltMemberKind.Factory));
   }
 
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    _fragment.formals?.infer(classHierarchy);
-
+  void buildOutlineExpressions(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required ClassHierarchy classHierarchy,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
     if (_delayedDefaultValueCloner != null) {
       delayedDefaultValueCloners.add(_delayedDefaultValueCloner!);
     }
 
-    for (Annotatable annotatable in _fragment.builder.annotatables) {
-      MetadataBuilder.buildAnnotations(
-          annotatable,
-          _fragment.metadata,
-          _fragment.builder.createBodyBuilderContext(),
-          _fragment.builder.libraryBuilder,
-          _fragment.fileUri,
-          _fragment.enclosingScope,
-          createFileUriExpression: _fragment.builder.isAugmented);
-    }
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(
-            _fragment.builder.libraryBuilder,
-            _fragment.builder.createBodyBuilderContext(),
-            classHierarchy,
-            _fragment.typeParameterScope);
-      }
-    }
-
-    if (_fragment.formals != null) {
-      // For const constructors we need to include default parameter values
-      // into the outline. For all other formals we need to call
-      // buildOutlineExpressions to clear initializerToken to prevent
-      // consuming too much memory.
-      for (FormalParameterBuilder formal in _fragment.formals!) {
-        formal.buildOutlineExpressions(_fragment.builder.libraryBuilder,
-            _fragment.builder.declarationBuilder,
-            scope: _fragment.typeParameterScope,
-            buildDefaultValue: FormalParameterBuilder
-                .needsDefaultValuesBuiltAsOutlineExpressions(
-                    _fragment.builder));
-      }
-    }
-
-    if (_fragment.redirectionTarget == null) {
+    if (_redirectionTarget == null) {
       return;
     }
 
@@ -793,21 +1077,20 @@ class _FactoryEncoding implements InferredTypeListener {
     List<DartType>? typeArguments = redirectingFactoryTarget.typeArguments;
     Member? target = redirectingFactoryTarget.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
-      TypeInferrer inferrer = _fragment
-          .builder.libraryBuilder.loader.typeInferenceEngine
+      TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
           .createLocalTypeInferrer(
               _fragment.fileUri,
-              _fragment.builder.declarationBuilder.thisType,
-              _fragment.builder.libraryBuilder,
+              factoryBuilder.declarationBuilder.thisType,
+              libraryBuilder,
               _fragment.typeParameterScope,
               null);
-      InferenceHelper helper = _fragment.builder.libraryBuilder.loader
+      InferenceHelper helper = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              _fragment.builder.libraryBuilder,
-              _fragment.builder.createBodyBuilderContext(),
+              libraryBuilder,
+              factoryBuilder.createBodyBuilderContext(),
               _fragment.enclosingScope,
               _fragment.fileUri);
-      Builder? targetBuilder = _fragment.redirectionTarget!.target;
+      Builder? targetBuilder = _redirectionTarget.target;
 
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
@@ -828,18 +1111,17 @@ class _FactoryEncoding implements InferredTypeListener {
       typeArguments = inferrer.inferRedirectingFactoryTypeArguments(
           helper,
           _procedureInternal.function.returnType,
-          _fragment.builder._procedure.function,
+          factoryBuilder._procedure.function,
           _fragment.fullNameOffset,
           target,
           target.function!.computeFunctionType(Nullability.nonNullable));
       if (typeArguments == null) {
-        assert(_fragment.builder.libraryBuilder.loader
-            .assertProblemReportedElsewhere(
-                "RedirectingFactoryTarget.buildOutlineExpressions",
-                expectedPhase: CompilationPhaseForProblemReporting.outline));
+        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+            "RedirectingFactoryTarget.buildOutlineExpressions",
+            expectedPhase: CompilationPhaseForProblemReporting.outline));
         // Use 'dynamic' for recovery.
         typeArguments = new List<DartType>.filled(
-            _fragment.builder.declarationBuilder.typeParametersCount,
+            factoryBuilder.declarationBuilder.typeParametersCount,
             const DynamicType(),
             growable: true);
       }
@@ -884,18 +1166,18 @@ class _FactoryEncoding implements InferredTypeListener {
             target!,
             typeArguments,
             _tearOffTypeParameters!,
-            _fragment.builder.libraryBuilder));
+            libraryBuilder));
       }
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          target!, _fragment.builder._procedure,
-          libraryBuilder: _fragment.builder.libraryBuilder,
-          identicalSignatures: false));
+          target!, factoryBuilder._procedure,
+          libraryBuilder: libraryBuilder, identicalSignatures: false));
     }
   }
 
-  void resolveRedirectingFactory() {
-    ConstructorReferenceBuilder? redirectionTarget =
-        _fragment.redirectionTarget;
+  void resolveRedirectingFactory(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder}) {
+    ConstructorReferenceBuilder? redirectionTarget = _redirectionTarget;
     if (redirectionTarget != null) {
       // Compute the immediate redirection target, not the effective.
       List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
@@ -924,7 +1206,7 @@ class _FactoryEncoding implements InferredTypeListener {
             // ConstructorReferenceBuilder.resolveIn and unify with other
             // cases of handling of type arguments after constructor
             // names.
-            _fragment.builder.libraryBuilder.addProblem(
+            libraryBuilder.addProblem(
                 messageConstructorWithTypeArguments,
                 redirectionTargetName.nameOffset,
                 redirectionTargetName.nameLength,
@@ -941,38 +1223,46 @@ class _FactoryEncoding implements InferredTypeListener {
         targetNode = targetBuilder.invokeTarget!;
       } else if (targetBuilder is AmbiguousBuilder) {
         _addProblemForRedirectingFactory(
-            templateDuplicatedDeclarationUse
+            libraryBuilder: libraryBuilder,
+            factoryBuilder: factoryBuilder,
+            message: templateDuplicatedDeclarationUse
                 .withArguments(redirectionTarget.fullNameForErrors),
-            redirectionTarget.charOffset,
-            noLength,
-            redirectionTarget.fileUri);
+            fileOffset: redirectionTarget.charOffset,
+            length: noLength,
+            fileUri: redirectionTarget.fileUri);
       } else {
         _addProblemForRedirectingFactory(
-            templateRedirectionTargetNotFound
+            libraryBuilder: libraryBuilder,
+            factoryBuilder: factoryBuilder,
+            message: templateRedirectionTargetNotFound
                 .withArguments(redirectionTarget.fullNameForErrors),
-            redirectionTarget.charOffset,
-            noLength,
-            redirectionTarget.fileUri);
+            fileOffset: redirectionTarget.charOffset,
+            length: noLength,
+            fileUri: redirectionTarget.fileUri);
       }
       if (targetNode != null &&
           targetNode is Constructor &&
           targetNode.enclosingClass.isAbstract) {
         _addProblemForRedirectingFactory(
-            templateAbstractRedirectedClassInstantiation
+            libraryBuilder: libraryBuilder,
+            factoryBuilder: factoryBuilder,
+            message: templateAbstractRedirectedClassInstantiation
                 .withArguments(redirectionTarget.fullNameForErrors),
-            redirectionTarget.charOffset,
-            noLength,
-            redirectionTarget.fileUri);
+            fileOffset: redirectionTarget.charOffset,
+            length: noLength,
+            fileUri: redirectionTarget.fileUri);
         targetNode = null;
       }
       if (targetNode != null &&
           targetNode is Constructor &&
           targetNode.enclosingClass.isEnum) {
         _addProblemForRedirectingFactory(
-            messageEnumFactoryRedirectsToConstructor,
-            redirectionTarget.charOffset,
-            noLength,
-            redirectionTarget.fileUri);
+            libraryBuilder: libraryBuilder,
+            factoryBuilder: factoryBuilder,
+            message: messageEnumFactoryRedirectsToConstructor,
+            fileOffset: redirectionTarget.charOffset,
+            length: noLength,
+            fileUri: redirectionTarget.fileUri);
         targetNode = null;
       }
       if (targetNode != null) {
@@ -991,12 +1281,20 @@ class _FactoryEncoding implements InferredTypeListener {
           typeArguments =
               new List<DartType>.filled(typeArgumentCount, const UnknownType());
         }
-        setRedirectingFactoryBody(targetNode, typeArguments);
+        setRedirectingFactoryBody(
+            libraryBuilder: libraryBuilder,
+            factoryBuilder: factoryBuilder,
+            target: targetNode,
+            typeArguments: typeArguments);
       }
     }
   }
 
-  void setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
+  void setRedirectingFactoryBody(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required Member target,
+      required List<DartType> typeArguments}) {
     if (_procedureInternal.function.body != null) {
       unexpected("null", "${_procedureInternal.function.body.runtimeType}",
           _fragment.fullNameOffset, _fragment.fileUri);
@@ -1005,11 +1303,8 @@ class _FactoryEncoding implements InferredTypeListener {
     // Ensure that constant factories only have constant targets/bodies.
     if (_fragment.modifiers.isConst && !target.isConst) {
       // Coverage-ignore-block(suite): Not run.
-      _fragment.builder.libraryBuilder.addProblem(
-          messageConstFactoryRedirectionToNonConst,
-          _fragment.fullNameOffset,
-          noLength,
-          _fragment.fileUri);
+      libraryBuilder.addProblem(messageConstFactoryRedirectionToNonConst,
+          _fragment.fullNameOffset, noLength, _fragment.fileUri);
     }
 
     _procedureInternal.function.body = createRedirectingFactoryBody(
@@ -1017,7 +1312,7 @@ class _FactoryEncoding implements InferredTypeListener {
       ..parent = _procedureInternal.function;
     _procedureInternal.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget(target, typeArguments);
-    if (_fragment.builder.isAugmenting) {
+    if (factoryBuilder.isAugmenting) {
       if (_procedureInternal.function.typeParameters.isNotEmpty) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
         for (int i = 0;
@@ -1025,33 +1320,37 @@ class _FactoryEncoding implements InferredTypeListener {
             i++) {
           substitution[_procedureInternal.function.typeParameters[i]] =
               new TypeParameterType.withDefaultNullability(
-                  _fragment.builder.origin.function.typeParameters[i]);
+                  factoryBuilder.origin.function.typeParameters[i]);
         }
         typeArguments = new List<DartType>.generate(typeArguments.length,
             (int i) => substitute(typeArguments[i], substitution),
             growable: false);
       }
-      _fragment.builder.origin
-          ._setRedirectingFactoryBody(target, typeArguments);
+      factoryBuilder.origin._setRedirectingFactoryBody(target, typeArguments);
     }
   }
 
   void _addProblemForRedirectingFactory(
-      Message message, int charOffset, int length, Uri fileUri) {
-    _fragment.builder.libraryBuilder
-        .addProblem(message, charOffset, length, fileUri);
-    String text = _fragment.builder.libraryBuilder.loader.target.context
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required Message message,
+      required int fileOffset,
+      required int length,
+      required Uri fileUri}) {
+    libraryBuilder.addProblem(message, fileOffset, length, fileUri);
+    String text = libraryBuilder.loader.target.context
         .format(
-            message.withLocation(fileUri, charOffset, length), Severity.error)
+            message.withLocation(fileUri, fileOffset, length), Severity.error)
         .plain;
-    _setRedirectingFactoryError(text);
+    _setRedirectingFactoryError(factoryBuilder: factoryBuilder, message: text);
   }
 
-  void _setRedirectingFactoryError(String message) {
-    assert(_fragment.redirectionTarget != null);
+  void _setRedirectingFactoryError(
+      {required SourceFactoryBuilder factoryBuilder, required String message}) {
+    assert(_redirectionTarget != null);
 
     setBody(createRedirectingFactoryErrorBody(message));
-    _fragment.builder._procedure.function.redirectingFactoryTarget =
+    factoryBuilder._procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
     if (_factoryTearOff != null) {
       _factoryTearOff.function.body = createRedirectingFactoryErrorBody(message)
@@ -1060,18 +1359,23 @@ class _FactoryEncoding implements InferredTypeListener {
   }
 
   /// Checks this factory builder if it is for a redirecting factory.
-  void checkRedirectingFactory(TypeEnvironment typeEnvironment) {
-    assert(_fragment.redirectionTarget != null);
+  void checkRedirectingFactory(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required TypeEnvironment typeEnvironment}) {
+    assert(_redirectionTarget != null);
 
     // Check that factory declaration is not cyclic.
-    if (_isCyclicRedirectingFactory(_fragment.builder)) {
+    if (_isCyclicRedirectingFactory(factoryBuilder)) {
       _addProblemForRedirectingFactory(
-          templateCyclicRedirectingFactoryConstructors
-              .withArguments("${_fragment.builder.declarationBuilder.name}"
+          libraryBuilder: libraryBuilder,
+          factoryBuilder: factoryBuilder,
+          message: templateCyclicRedirectingFactoryConstructors
+              .withArguments("${factoryBuilder.declarationBuilder.name}"
                   "${_fragment.name == '' ? '' : '.${_fragment.name}'}"),
-          _fragment.fullNameOffset,
-          noLength,
-          _fragment.fileUri);
+          fileOffset: _fragment.fullNameOffset,
+          length: noLength,
+          fileUri: _fragment.fileUri);
       return;
     }
 
@@ -1080,7 +1384,7 @@ class _FactoryEncoding implements InferredTypeListener {
     // of their own.
     FunctionType factoryType = _procedureInternal.function
         .computeThisFunctionType(Nullability.nonNullable);
-    if (_fragment.builder.isAugmenting) {
+    if (factoryBuilder.isAugmenting) {
       // The redirection target type uses the origin type parameters so we must
       // substitute augmentation type parameters before checking subtyping.
       if (_procedureInternal.function.typeParameters.isNotEmpty) {
@@ -1090,16 +1394,19 @@ class _FactoryEncoding implements InferredTypeListener {
             i++) {
           substitution[_procedureInternal.function.typeParameters[i]] =
               new TypeParameterType.withDefaultNullability(
-                  _fragment.builder.origin.function.typeParameters[i]);
+                  factoryBuilder.origin.function.typeParameters[i]);
         }
         factoryType = substitute(factoryType, substitution) as FunctionType;
       }
     }
-    FunctionType? redirecteeType = _computeRedirecteeType(typeEnvironment);
+    FunctionType? redirecteeType = _computeRedirecteeType(
+        libraryBuilder: libraryBuilder,
+        factoryBuilder: factoryBuilder,
+        typeEnvironment: typeEnvironment);
     Map<TypeParameter, DartType> substitutionMap = {};
     for (int i = 0; i < factoryType.typeParameters.length; i++) {
       TypeParameter functionTypeParameter =
-          _fragment.builder.origin.function.typeParameters[i];
+          factoryBuilder.origin.function.typeParameters[i];
       substitutionMap[functionTypeParameter] =
           new StructuralParameterType.withDefaultNullability(
               factoryType.typeParameters[i]);
@@ -1114,24 +1421,24 @@ class _FactoryEncoding implements InferredTypeListener {
       return;
     }
 
-    Builder? redirectionTargetBuilder = _fragment.redirectionTarget!.target;
+    Builder? redirectionTargetBuilder = _redirectionTarget!.target;
     if (redirectionTargetBuilder is SourceFactoryBuilder &&
         redirectionTargetBuilder.redirectionTarget != null) {
       redirectionTargetBuilder.checkRedirectingFactories(typeEnvironment);
       String? errorMessage = redirectionTargetBuilder
           .function.redirectingFactoryTarget?.errorMessage;
       if (errorMessage != null) {
-        _setRedirectingFactoryError(errorMessage);
+        _setRedirectingFactoryError(
+            factoryBuilder: factoryBuilder, message: errorMessage);
       }
     }
 
-    Builder? redirectionTargetParent =
-        _fragment.redirectionTarget!.target?.parent;
+    Builder? redirectionTargetParent = _redirectionTarget.target?.parent;
     bool redirectingTargetParentIsEnum = redirectionTargetParent is ClassBuilder
         ? redirectionTargetParent.isEnum
         : false;
-    if (!((_fragment.builder.classBuilder?.cls.isEnum ?? false) &&
-        (_fragment.redirectionTarget!.target?.isConstructor ?? false) &&
+    if (!((factoryBuilder.classBuilder?.cls.isEnum ?? false) &&
+        (_redirectionTarget.target?.isConstructor ?? false) &&
         redirectingTargetParentIsEnum)) {
       // Check whether [redirecteeType] <: [factoryType].
       FunctionType factoryTypeWithoutTypeParameters =
@@ -1141,28 +1448,31 @@ class _FactoryEncoding implements InferredTypeListener {
           factoryTypeWithoutTypeParameters,
           SubtypeCheckMode.withNullabilities)) {
         _addProblemForRedirectingFactory(
-            templateIncompatibleRedirecteeFunctionType.withArguments(
+            libraryBuilder: libraryBuilder,
+            factoryBuilder: factoryBuilder,
+            message: templateIncompatibleRedirecteeFunctionType.withArguments(
                 redirecteeType, factoryTypeWithoutTypeParameters),
-            _fragment.redirectionTarget!.charOffset,
-            noLength,
-            _fragment.redirectionTarget!.fileUri);
+            fileOffset: _redirectionTarget.charOffset,
+            length: noLength,
+            fileUri: _redirectionTarget.fileUri);
       }
     } else {
       // Redirection to generative enum constructors is forbidden.
-      assert(_fragment.builder.libraryBuilder.loader
-          .assertProblemReportedElsewhere(
-              "RedirectingFactoryBuilder._checkRedirectingFactory: "
-              "Redirection to generative enum constructor.",
-              expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
+      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+          "RedirectingFactoryBuilder._checkRedirectingFactory: "
+          "Redirection to generative enum constructor.",
+          expectedPhase: CompilationPhaseForProblemReporting.bodyBuilding));
     }
   }
 
   // Computes the function type of a given redirection target. Returns [null] if
   // the type of the target could not be computed.
-  FunctionType? _computeRedirecteeType(TypeEnvironment typeEnvironment) {
-    assert(_fragment.redirectionTarget != null);
-    ConstructorReferenceBuilder redirectionTarget =
-        _fragment.redirectionTarget!;
+  FunctionType? _computeRedirecteeType(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required TypeEnvironment typeEnvironment}) {
+    assert(_redirectionTarget != null);
+    ConstructorReferenceBuilder redirectionTarget = _redirectionTarget!;
     Builder? targetBuilder = redirectionTarget.target;
     FunctionNode targetNode;
     if (targetBuilder == null) return null;
@@ -1181,17 +1491,20 @@ class _FactoryEncoding implements InferredTypeListener {
           _fragment.fullNameOffset, _fragment.fileUri);
     }
 
-    List<DartType>? typeArguments = _getRedirectionTypeArguments();
+    List<DartType>? typeArguments =
+        _getRedirectionTypeArguments(factoryBuilder: factoryBuilder);
     FunctionType targetFunctionType =
         targetNode.computeFunctionType(Nullability.nonNullable);
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
       _addProblemForRedirectingFactory(
-          templateTypeArgumentMismatch
+          libraryBuilder: libraryBuilder,
+          factoryBuilder: factoryBuilder,
+          message: templateTypeArgumentMismatch
               .withArguments(targetFunctionType.typeParameters.length),
-          redirectionTarget.charOffset,
-          noLength,
-          redirectionTarget.fileUri);
+          fileOffset: redirectionTarget.charOffset,
+          length: noLength,
+          fileUri: redirectionTarget.fileUri);
       return null;
     }
 
@@ -1214,21 +1527,25 @@ class _FactoryEncoding implements InferredTypeListener {
             SubtypeCheckMode.ignoringNullabilities)) {
           // Coverage-ignore-block(suite): Not run.
           _addProblemForRedirectingFactory(
-              templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
-                  typeArgument, typeParameterBound),
-              redirectionTarget.charOffset,
-              noLength,
-              redirectionTarget.fileUri);
+              libraryBuilder: libraryBuilder,
+              factoryBuilder: factoryBuilder,
+              message: templateRedirectingFactoryIncompatibleTypeArgument
+                  .withArguments(typeArgument, typeParameterBound),
+              fileOffset: redirectionTarget.charOffset,
+              length: noLength,
+              fileUri: redirectionTarget.fileUri);
           hasProblem = true;
         } else {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
             _addProblemForRedirectingFactory(
-                templateRedirectingFactoryIncompatibleTypeArgument
+                libraryBuilder: libraryBuilder,
+                factoryBuilder: factoryBuilder,
+                message: templateRedirectingFactoryIncompatibleTypeArgument
                     .withArguments(typeArgument, typeParameterBound),
-                redirectionTarget.charOffset,
-                noLength,
-                redirectionTarget.fileUri);
+                fileOffset: redirectionTarget.charOffset,
+                length: noLength,
+                fileUri: redirectionTarget.fileUri);
             hasProblem = true;
           }
         }
@@ -1292,10 +1609,11 @@ class _FactoryEncoding implements InferredTypeListener {
     return false;
   }
 
-  List<DartType>? _getRedirectionTypeArguments() {
-    assert(_fragment.redirectionTarget != null);
-    return _fragment
-        .builder._procedure.function.redirectingFactoryTarget!.typeArguments;
+  List<DartType>? _getRedirectionTypeArguments(
+      {required SourceFactoryBuilder factoryBuilder}) {
+    assert(_redirectionTarget != null);
+    return factoryBuilder
+        ._procedure.function.redirectingFactoryTarget!.typeArguments;
   }
 
   void setBody(Statement value) {
@@ -1304,9 +1622,6 @@ class _FactoryEncoding implements InferredTypeListener {
   }
 
   void becomeNative(SourceLoader loader) {
-    for (Annotatable annotatable in _fragment.builder.annotatables) {
-      loader.addNativeAnnotation(annotatable, _fragment.nativeMethodName!);
-    }
     _procedureInternal.isExternal = true;
   }
 
@@ -1347,27 +1662,5 @@ class _FactoryEncoding implements InferredTypeListener {
       }
     }
     return null;
-  }
-
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    int count = context.computeDefaultTypesForVariables(typeParameters,
-        // Type parameters are inherited from the enclosing declaration, so if
-        // it has issues, so do the constructors.
-        inErrorRecovery: inErrorRecovery);
-    context.reportGenericFunctionTypesForFormals(_fragment.formals);
-    return count;
-  }
-
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {
-    if (_fragment.redirectionTarget != null) {
-      // Default values are not required on redirecting factory constructors so
-      // we don't call [checkInitializersInFormals].
-    } else {
-      library.checkInitializersInFormals(_fragment.formals, typeEnvironment,
-          isAbstract: _fragment.modifiers.isAbstract,
-          isExternal: _fragment.modifiers.isExternal);
-    }
   }
 }
