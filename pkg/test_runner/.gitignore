@@ -1,3 +1,2 @@
 # Don’t commit the following files and directories created by pub.
-.packages
 pubspec.lock

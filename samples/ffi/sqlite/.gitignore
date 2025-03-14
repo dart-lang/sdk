@@ -1,6 +1,5 @@
 .dart_tool
 .gdb_history
-.packages
 .vscode
 pubspec.lock
 test.db
