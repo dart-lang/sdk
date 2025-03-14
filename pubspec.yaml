@@ -76,6 +76,7 @@ workspace:
   - pkg/vm_service_protos
   - pkg/vm_snapshot_analysis
   - pkg/wasm_builder
+  - samples/ffi/http
   # dap and language_server_protocol are checked in to and
   # developed in the sdk repo, though they are located in `third_party/`.
   - third_party/pkg/dap

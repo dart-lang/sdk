@@ -78,6 +78,7 @@ $overrides
       final rootUri = package['rootUri'];
       if (!(rootUri.startsWith('../third_party/') || // Third-party package
               rootUri.startsWith('../pkg/') || // SDK package
+              rootUri.startsWith('../samples/') || // sample package
               rootUri.startsWith('../runtime/') || // VM package
               rootUri.startsWith(
                 '../tools',
