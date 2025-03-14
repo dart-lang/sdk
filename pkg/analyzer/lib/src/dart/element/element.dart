@@ -3872,7 +3872,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     _parameters = parameters;
   }
 
-  List<ParameterElement> get parameters_unresolved {
+  List<ParameterElementImpl> get parameters_unresolved {
     return _parameters;
   }
 
@@ -5280,10 +5280,16 @@ sealed class FunctionElementImpl extends ExecutableElementImpl
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypedElementImpl
     implements _ExistingElementImpl, FunctionTypedElement {
+  @override
+  List<ParameterElementImpl> get parameters;
+
   set returnType(DartType returnType);
 
   @override
   FunctionTypeImpl get type;
+
+  @override
+  List<TypeParameterElementImpl> get typeParameters;
 }
 
 abstract class FunctionTypedElementImpl2 extends TypeParameterizedElementImpl2
@@ -11699,7 +11705,7 @@ mixin TypeParameterizedElementMixin on ElementImpl
   List<TypeParameterElementImpl> get typeParameters2 =>
       typeParameters.cast<TypeParameterElementImpl>();
 
-  List<TypeParameterElement> get typeParameters_unresolved {
+  List<TypeParameterElementImpl> get typeParameters_unresolved {
     return _typeParameters;
   }
 }

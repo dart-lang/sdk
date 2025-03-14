@@ -22,6 +22,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart'
     show writeComponentToBinary, writeComponentToText;
 import 'package:kernel/library_index.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
 import 'package:path/path.dart' as path show setExtension;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
@@ -273,14 +274,7 @@ Future<CompilationResult> compileToModule(
         includeSource: false);
   }
 
-  // Patch `dart:_internal`s `mainTearOff` getter.
-  final internalLib = component.libraries
-      .singleWhere((lib) => lib.importUri.toString() == 'dart:_internal');
-  final mainTearOff = internalLib.procedures
-      .singleWhere((procedure) => procedure.name.text == 'mainTearOff');
-  mainTearOff.isExternal = false;
-  mainTearOff.function.body = ReturnStatement(
-      ConstantExpression(StaticTearOffConstant(component.mainMethod!)));
+  _patchMainTearOffs(coreTypes, component);
 
   // Keep the flags in-sync with
   // pkg/vm/test/transformations/type_flow/transformer_test.dart
@@ -351,6 +345,38 @@ Future<CompilationResult> compileToModule(
   }
 
   return CompilationSuccess(wasmModules, jsRuntime, supportJs);
+}
+
+// Patches `dart:_internal`s `mainTearOff{0,1,2}` getters.
+void _patchMainTearOffs(CoreTypes coreTypes, Component component) {
+  final mainMethod = component.mainMethod!;
+  final mainMethodType = mainMethod.computeSignatureOrFunctionType();
+  void patchToReturnMainTearOff(Procedure p) {
+    p.function.body =
+        ReturnStatement(ConstantExpression(StaticTearOffConstant(mainMethod)))
+          ..parent = p.function;
+  }
+
+  final typeEnv =
+      TypeEnvironment(coreTypes, ClassHierarchy(component, coreTypes));
+  bool mainHasType(DartType type) => typeEnv.isSubtypeOf(
+      mainMethodType, type, SubtypeCheckMode.withNullabilities);
+
+  final internalLib = coreTypes.index.getLibrary('dart:_internal');
+  (Procedure, DartType) lookupAndInitialize(String name) {
+    final p = internalLib.procedures
+        .singleWhere((procedure) => procedure.name.text == name);
+    p.isExternal = false;
+    p.function.body = ReturnStatement(NullLiteral())..parent = p.function;
+    return (p, p.function.returnType.toNonNull());
+  }
+
+  final (mainTearOff0, mainArg0Type) = lookupAndInitialize('mainTearOffArg0');
+  final (mainTearOff1, mainArg1Type) = lookupAndInitialize('mainTearOffArg1');
+  final (mainTearOff2, mainArg2Type) = lookupAndInitialize('mainTearOffArg2');
+  if (mainHasType(mainArg2Type)) return patchToReturnMainTearOff(mainTearOff2);
+  if (mainHasType(mainArg1Type)) return patchToReturnMainTearOff(mainTearOff1);
+  if (mainHasType(mainArg0Type)) return patchToReturnMainTearOff(mainTearOff0);
 }
 
 String _generateSupportJs(TranslatorOptions options) {

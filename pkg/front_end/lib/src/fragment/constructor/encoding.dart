@@ -46,13 +46,11 @@ class RegularConstructorEncoding {
       // [GenericFunction].
       _constructor as Member;
 
-  // Coverage-ignore(suite): Not run.
   Reference get readTargetReference =>
       (_constructorTearOff ?? _constructor).reference;
 
   Member get invokeTarget => _constructor;
 
-  // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _constructor.reference;
 
   void registerFunctionBody(Statement value) {
@@ -261,16 +259,6 @@ class RegularConstructorEncoding {
     return null;
   }
 
-  void finishAugmentation(SourceConstructorBuilder origin) {
-    finishConstructorAugmentation(
-        origin.invokeTarget as Constructor, _constructor);
-
-    if (_constructorTearOff != null) {
-      finishProcedureAugmentation(
-          origin.readTarget as Procedure, _constructorTearOff);
-    }
-  }
-
   bool _hasAddedDefaultValueCloners = false;
 
   void addSuperParameterDefaultValueCloners(
@@ -337,13 +325,13 @@ class ExtensionTypeConstructorEncoding {
       _constructorTearOff ?? // Coverage-ignore(suite): Not run.
       _constructor;
 
-  // Coverage-ignore(suite): Not run.
   Reference get readTargetReference =>
-      (_constructorTearOff ?? _constructor).reference;
+      (_constructorTearOff ?? // Coverage-ignore(suite): Not run.
+              _constructor)
+          .reference;
 
   Member get invokeTarget => _constructor;
 
-  // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _constructor.reference;
 
   void registerFunctionBody(Statement value) {

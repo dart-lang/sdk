@@ -57,6 +57,8 @@ abstract class BodyBuilderContext {
   /// For an unnamed constructor this is offset of the class name.
   ///
   /// This is used for error reporting.
+  // TODO(johnniwinther): Replaces this with something better. It is not only
+  // used for error reporting.
   int get memberNameOffset {
     throw new UnsupportedError("${runtimeType}.memberNameOffset");
   }
@@ -66,6 +68,7 @@ abstract class BodyBuilderContext {
   /// For an unnamed constructor this is 0.
   ///
   /// This is used for error reporting.
+  // TODO(johnniwinther): Replaces this with something better.
   int get memberNameLength {
     throw new UnsupportedError('${runtimeType}.memberNameLength');
   }

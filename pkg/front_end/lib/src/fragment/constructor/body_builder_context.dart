@@ -20,52 +20,51 @@ import '../../type_inference/type_inferrer.dart';
 import 'declaration.dart';
 
 class ConstructorBodyBuilderContext extends BodyBuilderContext {
-  final SourceConstructorBuilderImpl _member;
+  final SourceConstructorBuilderImpl _builder;
 
-  final ConstructorDeclaration _constructorDeclaration;
+  final ConstructorDeclaration _declaration;
 
-  final Member _builtMember;
+  final Member _member;
 
-  ConstructorBodyBuilderContext(
-      this._member, this._constructorDeclaration, this._builtMember)
-      : super(_member.libraryBuilder, _member.declarationBuilder,
+  ConstructorBodyBuilderContext(this._builder, this._declaration, this._member)
+      : super(_builder.libraryBuilder, _builder.declarationBuilder,
             isDeclarationInstanceMember: false);
 
   @override
-  int get memberNameOffset => _member.fileOffset;
+  int get memberNameOffset => _declaration.fileOffset;
 
   @override
   void registerSuperCall() {
-    _builtMember.transformerFlags |= TransformerFlag.superCalls;
+    _member.transformerFlags |= TransformerFlag.superCalls;
   }
 
   @override
   VariableDeclaration getFormalParameter(int index) {
-    return _constructorDeclaration.getFormalParameter(index);
+    return _declaration.getFormalParameter(index);
   }
 
   @override
   VariableDeclaration? getTearOffParameter(int index) {
-    return _constructorDeclaration.getTearOffParameter(index);
+    return _declaration.getTearOffParameter(index);
   }
 
   @override
-  TypeBuilder get returnType => _constructorDeclaration.returnType;
+  TypeBuilder get returnType => _declaration.returnType;
 
   @override
-  List<FormalParameterBuilder>? get formals => _constructorDeclaration.formals;
+  List<FormalParameterBuilder>? get formals => _declaration.formals;
 
   @override
   FormalParameterBuilder? getFormalParameterByName(Identifier name) {
-    return _constructorDeclaration.getFormal(name);
+    return _declaration.getFormal(name);
   }
 
   @override
-  int get memberNameLength => _member.name.length;
+  int get memberNameLength => _builder.name.length;
 
   @override
   FunctionNode get function {
-    return _constructorDeclaration.function;
+    return _declaration.function;
   }
 
   @override
@@ -74,41 +73,41 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isNativeMethod {
-    return _member.isNative;
+    return _builder.isNative;
   }
 
   @override
-  bool get isExternalFunction => _constructorDeclaration.isExternal;
+  bool get isExternalFunction => _declaration.isExternal;
 
   @override
   bool get isSetter => false;
 
   @override
   DartType substituteFieldType(DartType fieldType) {
-    return _member.substituteFieldType(fieldType);
+    return _builder.substituteFieldType(fieldType);
   }
 
   @override
   void registerInitializedField(SourcePropertyBuilder builder) {
-    _member.registerInitializedField(builder);
+    _builder.registerInitializedField(builder);
   }
 
   @override
   void prepareInitializers() {
-    _member.prepareInitializers();
+    _builder.prepareInitializers();
   }
 
   @override
   void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
       {required InitializerInferenceResult? inferenceResult}) {
-    _member.addInitializer(initializer, helper,
-        inferenceResult: inferenceResult, parent: _builtMember);
+    _builder.addInitializer(initializer, helper,
+        inferenceResult: inferenceResult, parent: _member);
   }
 
   @override
   InitializerInferenceResult inferInitializer(Initializer initializer,
       ExpressionGeneratorHelper helper, TypeInferrer typeInferrer) {
-    return typeInferrer.inferInitializer(helper, _member, initializer);
+    return typeInferrer.inferInitializer(helper, _builder, initializer);
   }
 
   @override
@@ -121,12 +120,12 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
 
   @override
   bool get isConstConstructor {
-    return _constructorDeclaration.isConst;
+    return _declaration.isConst;
   }
 
   @override
   bool get isExternalConstructor {
-    return _constructorDeclaration.isExternal;
+    return _declaration.isExternal;
   }
 
   @override
@@ -136,28 +135,27 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
 
   @override
   LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
-    return _constructorDeclaration
-        .computeFormalParameterInitializerScope(parent);
+    return _declaration.computeFormalParameterInitializerScope(parent);
   }
 
   @override
   void registerFunctionBody(Statement body) {
-    _constructorDeclaration.registerFunctionBody(body);
+    _declaration.registerFunctionBody(body);
   }
 
   @override
   void registerNoBodyConstructor() {
-    _constructorDeclaration.registerNoBodyConstructor();
+    _declaration.registerNoBodyConstructor();
   }
 
   @override
   bool isConstructorCyclic(String name) {
-    return declarationContext.isConstructorCyclic(_member.name, name);
+    return declarationContext.isConstructorCyclic(_builder.name, name);
   }
 
   @override
   bool needsImplicitSuperInitializer(CoreTypes coreTypes) {
-    return _member.isClassMember &&
+    return _builder.isClassMember &&
         !declarationContext.isObjectClass(coreTypes) &&
         !isExternalConstructor;
   }

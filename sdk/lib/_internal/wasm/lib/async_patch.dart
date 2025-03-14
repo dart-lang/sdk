@@ -1,4 +1,4 @@
-import 'dart:_internal' show _AsyncCompleter, patch;
+import 'dart:_internal' show _AsyncCompleter, patch, exportWasmFunction;
 
 import 'dart:_js_helper' show JS;
 

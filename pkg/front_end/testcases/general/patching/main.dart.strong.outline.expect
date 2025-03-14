@@ -16,9 +16,11 @@ import "dart:_internal";
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class extends core::Object {
   @_in::patch
-  external constructor •(core::int value) → self2::Class;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ •(core::int value) → self2::Class
+    ;
   @_in::patch
-  external constructor redirecting(core::int value) → self2::Class;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirecting(core::int value) → self2::Class
+    ;
   constructor /* from org-dartlang-testcase:///patch_lib.dart */ _injectedGenerative(core::int value) → self2::Class
     ;
   constructor /* from org-dartlang-testcase:///patch_lib.dart */ _injectedRedirecting(core::int value) → self2::Class
@@ -156,8 +158,8 @@ static extension-member method /* from org-dartlang-testcase:///patch_lib.dart *
 
 Extra constant evaluation status:
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:63:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:65:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:70:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})

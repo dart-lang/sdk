@@ -89,6 +89,11 @@ external T unsafeCastOpaque<T>(Object? v);
 // This function can be used to keep an object alive till that point.
 void reachabilityFence(Object? object) {}
 
+// Used for exporting wasm functions that are annotated via
+// `@pragma('wasm:weak-export', '<name>')
+@pragma("wasm:intrinsic")
+external void exportWasmFunction(Function object);
+
 // This function can be used to encode native side effects.
 @pragma("wasm:intrinsic")
 external void _nativeEffect(Object object);
@@ -115,44 +120,35 @@ external int doubleToIntBits(double value);
 @pragma("wasm:intrinsic")
 external double intBitsToDouble(int value);
 
-/// Used to invoke a Dart closure from JS (for microtasks and other callbacks),
-/// printing any exceptions that escape.
-@pragma("wasm:export", "\$invokeCallback")
-void _invokeCallback(void Function() callback) {
-  try {
-    callback();
-  } catch (e, s) {
-    print(e);
-    print(s);
-    // FIXME: Chrome/V8 bug makes errors from `rethrow`s not being reported to
-    // `window.onerror`. Please change this back to `rethrow` once the chrome
-    // bug is fixed.
-    //
-    // https://g-issues.chromium.org/issues/327155548
-    throw e;
-  }
-}
-
 // Will be patched in `pkg/dart2wasm/lib/compile.dart` right before TFA.
-external Function get mainTearOff;
+external void Function()? get mainTearOffArg0;
+external void Function(List<String>)? get mainTearOffArg1;
+external void Function(List<String>, Null)? get mainTearOffArg2;
 
 /// Used to invoke the `main` function from JS, printing any exceptions that
 /// escape.
 @pragma("wasm:export", "\$invokeMain")
 void _invokeMain(WasmExternRef jsArrayRef) {
   try {
-    final jsArray = (JSValue(jsArrayRef) as JSArray<JSString>).toDart;
-    final args = <String>[for (final jsValue in jsArray) jsValue.toDart];
-    final main = mainTearOff;
-    if (main is void Function(List<String>, Null)) {
-      main(List.unmodifiable(args), null);
-    } else if (main is void Function(List<String>)) {
-      main(List.unmodifiable(args));
-    } else if (main is void Function()) {
-      main();
-    } else {
-      throw "Could not call main";
+    // We will only compile one of these cases, the remaining cases will be
+    // eliminated by the compiler.
+    if (mainTearOffArg0 case final mainMethod?) {
+      mainMethod();
+      return;
     }
+    if (mainTearOffArg1 case final mainMethod?) {
+      final jsArray = (JSValue(jsArrayRef) as JSArray<JSString>).toDart;
+      final args = <String>[for (final jsValue in jsArray) jsValue.toDart];
+      mainMethod(List.unmodifiable(args));
+      return;
+    }
+    if (mainTearOffArg2 case final mainMethod?) {
+      final jsArray = (JSValue(jsArrayRef) as JSArray<JSString>).toDart;
+      final args = <String>[for (final jsValue in jsArray) jsValue.toDart];
+      mainMethod(List.unmodifiable(args), null);
+      return;
+    }
+    throw "Could not call main";
   } catch (e, s) {
     print(e);
     print(s);

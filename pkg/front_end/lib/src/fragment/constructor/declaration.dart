@@ -6,10 +6,12 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../../base/constant_context.dart';
 import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
+import '../../base/name_space.dart';
 import '../../base/scope.dart';
 import '../../builder/builder.dart';
 import '../../builder/constructor_builder.dart';
@@ -23,6 +25,7 @@ import '../../kernel/body_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
+import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
@@ -35,6 +38,10 @@ import '../fragment.dart';
 import 'encoding.dart';
 
 abstract class ConstructorDeclaration {
+  int get fileOffset;
+
+  Uri get fileUri;
+
   List<MetadataBuilder>? get metadata;
 
   OmittedTypeBuilder get returnType;
@@ -91,6 +98,12 @@ abstract class ConstructorDeclaration {
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   });
 
+  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment);
+
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery});
+
   void prepareInitializers();
 
   void prependInitializer(Initializer initializer);
@@ -113,8 +126,6 @@ abstract class ConstructorDeclaration {
   LocalScope computeFormalParameterScope(LookupScope parent);
 
   LocalScope computeFormalParameterInitializerScope(LocalScope parent);
-
-  void finishAugmentation(SourceConstructorBuilder origin);
 
   Substitution computeFieldTypeSubstitution(
       DeclarationBuilder declarationBuilder);
@@ -144,10 +155,6 @@ abstract class ConstructorDeclaration {
 }
 
 mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
-  Uri get _fileUri;
-
-  int get _fileOffset;
-
   bool get _hasSuperInitializingFormals;
 
   LookupScope get _typeParameterScope;
@@ -215,7 +222,7 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
       ClassHierarchyBase hierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (formals != null) {
-      libraryBuilder.loader.withUriForCrashReporting(_fileUri, _fileOffset, () {
+      libraryBuilder.loader.withUriForCrashReporting(fileUri, fileOffset, () {
         for (FormalParameterBuilder formal in formals!) {
           if (formal.type is InferableTypeBuilder) {
             if (formal.isInitializingFormal) {
@@ -245,7 +252,7 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
                 libraryBuilder,
                 createBodyBuilderContext(constructorBuilder),
                 _typeParameterScope,
-                _fileUri);
+                fileUri);
         if (isConst) {
           bodyBuilder.constantContext = ConstantContext.required;
         }
@@ -438,7 +445,7 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
       superTarget = (initializers.last as SuperInitializer).target;
     } else {
       MemberBuilder? memberBuilder = superclassBuilder.findConstructorOrFactory(
-          "", _fileOffset, _fileUri, libraryBuilder);
+          "", fileOffset, fileUri, libraryBuilder);
       if (memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.invokeTarget;
       } else {
@@ -452,7 +459,7 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
 
     MemberBuilder? constructorBuilder =
         superclassBuilder.findConstructorOrFactory(
-            superTarget.name.text, _fileOffset, _fileUri, libraryBuilder);
+            superTarget.name.text, fileOffset, fileUri, libraryBuilder);
     if (constructorBuilder is ConstructorBuilder) {
       return constructorBuilder;
     } else {
@@ -525,7 +532,7 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
               libraryBuilder,
               createBodyBuilderContext(constructorBuilder),
               _typeParameterScope,
-              _fileUri,
+              fileUri,
               formalParameterScope: formalParameterScope);
       if (isConst) {
         bodyBuilder.constantContext = ConstantContext.required;
@@ -596,6 +603,24 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
         libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
     _beginInitializers = null;
   }
+
+  @override
+  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
+    libraryBuilder.checkInitializersInFormals(formals, typeEnvironment,
+        isAbstract: false, isExternal: isExternal);
+  }
+
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        // Type parameters are inherited from the enclosing declaration, so if
+        // it has issues, so do the constructors.
+        inErrorRecovery: inErrorRecovery);
+    context.reportGenericFunctionTypesForFormals(formals);
+    return count;
+  }
 }
 
 mixin RegularConstructorDeclarationMixin
@@ -609,14 +634,12 @@ mixin RegularConstructorDeclarationMixin
   Member get readTarget => _encoding.readTarget;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Reference get readTargetReference => _encoding.readTargetReference;
 
   @override
   Member get invokeTarget => _encoding.invokeTarget;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _encoding.invokeTargetReference;
 
   @override
@@ -661,11 +684,6 @@ mixin RegularConstructorDeclarationMixin
   @override
   VariableDeclaration? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
-  }
-
-  @override
-  void finishAugmentation(SourceConstructorBuilder origin) {
-    _encoding.finishAugmentation(origin);
   }
 
   @override
@@ -885,10 +903,10 @@ class RegularConstructorDeclaration
   }
 
   @override
-  int get _fileOffset => _fragment.fullNameOffset;
+  int get fileOffset => _fragment.fullNameOffset;
 
   @override
-  Uri get _fileUri => _fragment.fileUri;
+  Uri get fileUri => _fragment.fileUri;
 }
 
 // Coverage-ignore(suite): Not run.
@@ -1001,20 +1019,20 @@ class PrimaryConstructorDeclaration
   }
 
   @override
-  int get _fileOffset => _fragment.fileOffset;
+  int get fileOffset => _fragment.fileOffset;
 
   @override
-  Uri get _fileUri => _fragment.fileUri;
+  Uri get fileUri => _fragment.fileUri;
 }
 
 class DefaultEnumConstructorDeclaration
     with ConstructorDeclarationMixin, RegularConstructorDeclarationMixin
     implements ConstructorDeclaration {
   @override
-  final Uri _fileUri;
+  final Uri fileUri;
 
   @override
-  final int _fileOffset;
+  final int fileOffset;
 
   @override
   final OmittedTypeBuilder returnType;
@@ -1038,8 +1056,8 @@ class DefaultEnumConstructorDeclaration
       required Uri fileUri,
       required int fileOffset,
       required LookupScope lookupScope})
-      : _fileUri = fileUri,
-        _fileOffset = fileOffset,
+      : fileUri = fileUri,
+        fileOffset = fileOffset,
         _lookupScope = lookupScope,
         // Trick the constructor to be built during the outline phase.
         // TODO(johnniwinther): Avoid relying on [beginInitializers] to
@@ -1075,10 +1093,10 @@ class DefaultEnumConstructorDeclaration
         nameScheme: nameScheme,
         constructorReference: constructorReference,
         tearOffReference: tearOffReference,
-        fileUri: _fileUri,
-        startOffset: _fileOffset,
-        fileOffset: _fileOffset,
-        endOffset: _fileOffset,
+        fileUri: fileUri,
+        startOffset: fileOffset,
+        fileOffset: fileOffset,
+        endOffset: fileOffset,
         isSynthetic: true,
         forAbstractClassOrEnumOrMixin: true);
   }
@@ -1095,7 +1113,7 @@ class DefaultEnumConstructorDeclaration
         declarationBuilder:
             constructorBuilder.declarationBuilder as SourceClassBuilder,
         declarationConstructor: declarationConstructor,
-        formalsOffset: _fileOffset,
+        formalsOffset: fileOffset,
         isConst: true,
         returnType: returnType,
         typeParameters: typeParameters,
@@ -1141,14 +1159,12 @@ mixin ExtensionTypeConstructorDeclarationMixin
   Member get readTarget => _encoding.readTarget;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Reference get readTargetReference => _encoding.readTargetReference;
 
   @override
   Member get invokeTarget => _encoding.invokeTarget;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => _encoding.invokeTargetReference;
 
   @override
@@ -1193,11 +1209,6 @@ mixin ExtensionTypeConstructorDeclarationMixin
   @override
   VariableDeclaration? getTearOffParameter(int index) {
     return _encoding.getTearOffParameter(index);
-  }
-
-  @override
-  void finishAugmentation(SourceConstructorBuilder origin) {
-    throw new UnsupportedError('$runtimeType.finishAugmentation');
   }
 
   @override
@@ -1416,10 +1427,10 @@ class ExtensionTypeConstructorDeclaration
   }
 
   @override
-  int get _fileOffset => _fragment.fullNameOffset;
+  int get fileOffset => _fragment.fullNameOffset;
 
   @override
-  Uri get _fileUri => _fragment.fileUri;
+  Uri get fileUri => _fragment.fileUri;
 }
 
 class ExtensionTypePrimaryConstructorDeclaration
@@ -1531,8 +1542,8 @@ class ExtensionTypePrimaryConstructorDeclaration
   }
 
   @override
-  int get _fileOffset => _fragment.fileOffset;
+  int get fileOffset => _fragment.fileOffset;
 
   @override
-  Uri get _fileUri => _fragment.fileUri;
+  Uri get fileUri => _fragment.fileUri;
 }

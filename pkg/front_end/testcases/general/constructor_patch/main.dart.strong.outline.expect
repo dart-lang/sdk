@@ -19,13 +19,15 @@ import "dart:_internal";
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::bool defaultValue /* from org-dartlang-testcase:///patch_lib.dart */;
   @_in::patch
-  external constructor generative({core::bool defaultValue = true}) → self2::Class;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ generative({core::bool defaultValue = true}) → self2::Class
+    ;
   @_in::patch
   const constructor /* from org-dartlang-testcase:///patch_lib.dart */ constGenerative({core::bool defaultValue = true}) → self2::Class
     : self2::Class::defaultValue = defaultValue, super core::Object::•()
     ;
   @_in::patch
-  external constructor _private() → self2::Class;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ _private() → self2::Class
+    ;
   constructor /* from org-dartlang-testcase:///patch_lib.dart */ _privateInjected() → self2::Class
     ;
   constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirect() → self2::Class
@@ -38,7 +40,8 @@ class Class2 extends core::Object {
   field core::int field;
   final field core::int injectedField /* from org-dartlang-testcase:///patch_lib.dart */;
   @_in::patch
-  external constructor •(core::int field) → self2::Class2;
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ •(core::int field) → self2::Class2
+    ;
 }
 class Subclass extends self2::Class {
   constructor private() → self2::Subclass
@@ -58,10 +61,10 @@ static method test() → dynamic
 
 Extra constant evaluation status:
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:43 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:12:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:15:4 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:17:8 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:18:4 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:28:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:32:4 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:36:1 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 8, effectively constant: 7

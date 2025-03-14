@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' show patch, unsafeCast, unsafeCastOpaque;
+import 'dart:_internal'
+    show patch, unsafeCast, unsafeCastOpaque, exportWasmFunction;
 import 'dart:_js_helper' show JS;
 import 'dart:_js_types' show JSArrayBase, JSDataViewImpl;
 import 'dart:js_interop';
@@ -31,6 +32,10 @@ void _copyFromWasmI8Array(
   int wasmOffset,
   int length,
 ) {
+  // This will make TFA retain [_wasmI8ArrayGet] which will then cause the
+  // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
+  exportWasmFunction(_wasmI8ArrayGet);
+
   JS<WasmExternRef?>(
     """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
           const getValue = dartInstance.exports.\$wasmI8ArrayGet;
@@ -54,6 +59,10 @@ void copyToWasmI8Array(
   int wasmOffset,
   int length,
 ) {
+  // This will make TFA retain [_wasmI8ArraySet] which will then cause the
+  // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
+  exportWasmFunction(_wasmI8ArraySet);
+
   JS<WasmExternRef?>(
     """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
           const setValue = dartInstance.exports.\$wasmI8ArraySet;
@@ -123,6 +132,10 @@ void _copyFromWasmI32Array(
   int wasmOffset,
   int length,
 ) {
+  // This will make TFA retain [_wasmI32ArrayGet] which will then cause the
+  // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
+  exportWasmFunction(_wasmI32ArrayGet);
+
   JS<WasmExternRef?>(
     """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
           const getValue = dartInstance.exports.\$wasmI32ArrayGet;
@@ -146,6 +159,10 @@ void copyToWasmI32Array(
   int wasmOffset,
   int length,
 ) {
+  // This will make TFA retain [_wasmI32ArraySet] which will then cause the
+  // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
+  exportWasmFunction(_wasmI32ArraySet);
+
   JS<WasmExternRef?>(
     """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
           const setValue = dartInstance.exports.\$wasmI32ArraySet;
@@ -169,6 +186,10 @@ void _copyFromWasmF32Array(
   int wasmOffset,
   int length,
 ) {
+  // This will make TFA retain [_wasmF32ArrayGet] which will then cause the
+  // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
+  exportWasmFunction(_wasmF32ArrayGet);
+
   JS<WasmExternRef?>(
     """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
           const getValue = dartInstance.exports.\$wasmF32ArrayGet;
@@ -192,6 +213,10 @@ void copyToWasmF32Array(
   int wasmOffset,
   int length,
 ) {
+  // This will make TFA retain [_wasmF32ArraySet] which will then cause the
+  // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
+  exportWasmFunction(_wasmF32ArraySet);
+
   JS<WasmExternRef?>(
     """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
           const setValue = dartInstance.exports.\$wasmF32ArraySet;
@@ -215,6 +240,10 @@ void _copyFromWasmF64Array(
   int wasmOffset,
   int length,
 ) {
+  // This will make TFA retain [_wasmF64ArrayGet] which will then cause the
+  // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
+  exportWasmFunction(_wasmF64ArrayGet);
+
   JS<WasmExternRef?>(
     """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
           const getValue = dartInstance.exports.\$wasmF64ArrayGet;
@@ -238,6 +267,10 @@ void copyToWasmF64Array(
   int wasmOffset,
   int length,
 ) {
+  // This will make TFA retain [_wasmF64ArraySet] which will then cause the
+  // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
+  exportWasmFunction(_wasmF64ArraySet);
+
   JS<WasmExternRef?>(
     """(jsArray, jsArrayOffset, wasmArray, wasmArrayOffset, length) => {
           const setValue = dartInstance.exports.\$wasmF64ArraySet;
@@ -421,7 +454,7 @@ WasmExternRef jsDataViewFromDartByteData(ByteData l, int length) {
   return (JSDataView(jsArrayBuffer, 0, length) as JSValue).toExternRef!;
 }
 
-@pragma("wasm:export", "\$wasmI8ArrayGet")
+@pragma("wasm:weak-export", "\$wasmI8ArrayGet")
 WasmI32 _wasmI8ArrayGet(WasmExternRef? ref, WasmI32 index) {
   final array = unsafeCastOpaque<WasmArray<WasmI8>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
@@ -429,7 +462,7 @@ WasmI32 _wasmI8ArrayGet(WasmExternRef? ref, WasmI32 index) {
   return array.readUnsigned(index.toIntUnsigned()).toWasmI32();
 }
 
-@pragma("wasm:export", "\$wasmI8ArraySet")
+@pragma("wasm:weak-export", "\$wasmI8ArraySet")
 void _wasmI8ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
   final array = unsafeCastOpaque<WasmArray<WasmI8>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
@@ -453,7 +486,7 @@ void _wasmI16ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
   array.write(index.toIntUnsigned(), value.toIntUnsigned());
 }
 
-@pragma("wasm:export", "\$wasmI32ArrayGet")
+@pragma("wasm:weak-export", "\$wasmI32ArrayGet")
 WasmI32 _wasmI32ArrayGet(WasmExternRef? ref, WasmI32 index) {
   final array = unsafeCastOpaque<WasmArray<WasmI32>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
@@ -461,7 +494,7 @@ WasmI32 _wasmI32ArrayGet(WasmExternRef? ref, WasmI32 index) {
   return array.readUnsigned(index.toIntUnsigned()).toWasmI32();
 }
 
-@pragma("wasm:export", "\$wasmI32ArraySet")
+@pragma("wasm:weak-export", "\$wasmI32ArraySet")
 void _wasmI32ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
   final array = unsafeCastOpaque<WasmArray<WasmI32>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
@@ -469,7 +502,7 @@ void _wasmI32ArraySet(WasmExternRef? ref, WasmI32 index, WasmI32 value) {
   array.write(index.toIntUnsigned(), value.toIntUnsigned());
 }
 
-@pragma("wasm:export", "\$wasmF32ArrayGet")
+@pragma("wasm:weak-export", "\$wasmF32ArrayGet")
 WasmF32 _wasmF32ArrayGet(WasmExternRef? ref, WasmI32 index) {
   final array = unsafeCastOpaque<WasmArray<WasmF32>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
@@ -477,7 +510,7 @@ WasmF32 _wasmF32ArrayGet(WasmExternRef? ref, WasmI32 index) {
   return array[index.toIntUnsigned()];
 }
 
-@pragma("wasm:export", "\$wasmF32ArraySet")
+@pragma("wasm:weak-export", "\$wasmF32ArraySet")
 void _wasmF32ArraySet(WasmExternRef? ref, WasmI32 index, WasmF32 value) {
   final array = unsafeCastOpaque<WasmArray<WasmF32>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
@@ -485,7 +518,7 @@ void _wasmF32ArraySet(WasmExternRef? ref, WasmI32 index, WasmF32 value) {
   array[index.toIntUnsigned()] = value;
 }
 
-@pragma("wasm:export", "\$wasmF64ArrayGet")
+@pragma("wasm:weak-export", "\$wasmF64ArrayGet")
 WasmF64 _wasmF64ArrayGet(WasmExternRef? ref, WasmI32 index) {
   final array = unsafeCastOpaque<WasmArray<WasmF64>>(
     unsafeCast<WasmExternRef>(ref).internalize(),
@@ -493,7 +526,7 @@ WasmF64 _wasmF64ArrayGet(WasmExternRef? ref, WasmI32 index) {
   return array[index.toIntUnsigned()];
 }
 
-@pragma("wasm:export", "\$wasmF64ArraySet")
+@pragma("wasm:weak-export", "\$wasmF64ArraySet")
 void _wasmF64ArraySet(WasmExternRef? ref, WasmI32 index, WasmF64 value) {
   final array = unsafeCastOpaque<WasmArray<WasmF64>>(
     unsafeCast<WasmExternRef>(ref).internalize(),

@@ -63,9 +63,8 @@ class CallbackSpecializer {
   /// returned value. [node] is the conversion function that was called to
   /// convert the callback.
   ///
-  /// Returns a [String] function name representing the name of the wrapping
-  /// function.
-  String _createFunctionTrampoline(Procedure node, FunctionType function,
+  /// Returns the created trampoline [Procedure].
+  Procedure _createFunctionTrampoline(Procedure node, FunctionType function,
       {required bool boxExternRef}) {
     // Create arguments for each positional parameter in the function. These
     // arguments will be JS objects. The generated wrapper will cast each
@@ -156,7 +155,7 @@ class CallbackSpecializer {
     // returned from the supplied callback will be converted with `jsifyRaw` to
     // a native JS value before being returned to JS.
     final functionTrampolineName = _methodCollector.generateMethodName();
-    _methodCollector.addInteropProcedure(
+    return _methodCollector.addInteropProcedure(
         functionTrampolineName,
         functionTrampolineName,
         FunctionNode(functionTrampolineBody,
@@ -169,9 +168,8 @@ class CallbackSpecializer {
             returnType: _util.nullableWasmExternRefType)
           ..fileOffset = node.fileOffset,
         node.fileUri,
-        AnnotationType.export,
+        AnnotationType.weakExport,
         isExternal: false);
-    return functionTrampolineName;
   }
 
   /// Create a [Procedure] that will wrap a Dart callback in a JS wrapper.
@@ -189,12 +187,14 @@ class CallbackSpecializer {
   /// function's arguments' length, the cast closure if needed, and the JS
   /// function's arguments as arguments.
   ///
-  /// Returns the created [Procedure].
-  Procedure _getJSWrapperFunction(Procedure node, FunctionType type,
+  /// Returns the created JS wrapper [Procedure] which will call out to JS
+  /// and the trampoline [Procedure] which will be invoked by the JS code.
+  (Procedure, Procedure) _getJSWrapperFunction(
+      Procedure node, FunctionType type,
       {required bool boxExternRef,
       required bool needsCastClosure,
       required bool captureThis}) {
-    final functionTrampolineName =
+    final functionTrampoline =
         _createFunctionTrampoline(node, type, boxExternRef: boxExternRef);
     List<String> jsParameters = [];
     var jsParametersLength = type.positionalParameters.length;
@@ -220,7 +220,7 @@ class CallbackSpecializer {
     }
 
     // Create Dart procedure stub.
-    final jsMethodName = functionTrampolineName;
+    final jsMethodName = functionTrampoline.name.text;
     Procedure dartProcedure = _methodCollector.addInteropProcedure(
         '|$jsMethodName',
         'dart2wasm.$jsMethodName',
@@ -246,10 +246,10 @@ class CallbackSpecializer {
         dartProcedure,
         jsMethodName,
         "$jsMethodParams => finalizeWrapper(f, function($jsWrapperParams) {"
-        " return dartInstance.exports.$functionTrampolineName($dartArguments) "
+        " return dartInstance.exports.${functionTrampoline.name.text}($dartArguments) "
         "})");
 
-    return dartProcedure;
+    return (dartProcedure, functionTrampoline);
   }
 
   /// Lowers an invocation of `allowInterop<type>(foo)` to:
@@ -272,7 +272,7 @@ class CallbackSpecializer {
   Expression allowInterop(StaticInvocation staticInvocation) {
     final argument = staticInvocation.arguments.positional.single;
     final type = argument.getStaticType(_staticTypeContext) as FunctionType;
-    final jsWrapperFunction = _getJSWrapperFunction(
+    final (jsWrapperFunction, exportedFunction) = _getJSWrapperFunction(
         staticInvocation.target, type,
         boxExternRef: false, needsCastClosure: false, captureThis: false);
     final v = VariableDeclaration('#var',
@@ -287,12 +287,24 @@ class CallbackSpecializer {
                 _util.wrapDartFunctionTarget,
                 Arguments([
                   VariableGet(v),
-                  StaticInvocation(
-                      jsWrapperFunction,
-                      Arguments([
-                        StaticInvocation(_util.jsObjectFromDartObjectTarget,
-                            Arguments([VariableGet(v)]))
-                      ])),
+                  BlockExpression(
+                      Block([
+                        // This ensures TFA will retain the function which the
+                        // JS code will call. The backend in return will export
+                        // the function due to `@pragma('wasm:weak-export', ...)`
+                        ExpressionStatement(StaticInvocation(
+                            _util.exportWasmFunctionTarget,
+                            Arguments([
+                              ConstantExpression(
+                                  StaticTearOffConstant(exportedFunction))
+                            ])))
+                      ]),
+                      StaticInvocation(
+                          jsWrapperFunction,
+                          Arguments([
+                            StaticInvocation(_util.jsObjectFromDartObjectTarget,
+                                Arguments([VariableGet(v)]))
+                          ]))),
                 ], types: [
                   type
                 ])),
@@ -359,19 +371,30 @@ class CallbackSpecializer {
     final argument = staticInvocation.arguments.positional.single;
     final type = argument.getStaticType(_staticTypeContext) as FunctionType;
     final castClosure = _createCastClosure(type);
-    final jsWrapperFunction = _getJSWrapperFunction(
+    final (jsWrapperFunction, exportedFunction) = _getJSWrapperFunction(
         staticInvocation.target, type,
         boxExternRef: true,
         needsCastClosure: castClosure != null,
         captureThis: captureThis);
-    return _createJSValue(StaticInvocation(
-        jsWrapperFunction,
-        Arguments([
-          StaticInvocation(
-              _util.jsObjectFromDartObjectTarget, Arguments([argument])),
-          if (castClosure != null)
-            StaticInvocation(
-                _util.jsObjectFromDartObjectTarget, Arguments([castClosure]))
-        ])));
+    return _createJSValue(BlockExpression(
+        Block([
+          // This ensures TFA will retain the function which the
+          // JS code will call. The backend in return will export
+          // the function due to `@pragma('wasm:weak-export', ...)`
+          ExpressionStatement(StaticInvocation(
+              _util.exportWasmFunctionTarget,
+              Arguments([
+                ConstantExpression(StaticTearOffConstant(exportedFunction))
+              ])))
+        ]),
+        StaticInvocation(
+            jsWrapperFunction,
+            Arguments([
+              StaticInvocation(
+                  _util.jsObjectFromDartObjectTarget, Arguments([argument])),
+              if (castClosure != null)
+                StaticInvocation(_util.jsObjectFromDartObjectTarget,
+                    Arguments([castClosure]))
+            ]))));
   }
 }

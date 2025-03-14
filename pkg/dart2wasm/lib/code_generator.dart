@@ -1700,6 +1700,18 @@ abstract class AstCodeGenerator
     }
 
     Member? singleTarget = translator.singleTarget(node);
+
+    // Custom devirtualization because TFA doesn't correctly devirtualize index
+    // accesses on constant lists (see https://dartbug.com/60313)
+    if (singleTarget == null &&
+        target.kind == ProcedureKind.Operator &&
+        target.name.text == '[]') {
+      final receiver = node.receiver;
+      if (receiver is ConstantExpression && receiver.constant is ListConstant) {
+        singleTarget = translator.listBaseIndexOperator;
+      }
+    }
+
     if (singleTarget != null) {
       final target = translator.getFunctionEntry(singleTarget.reference,
           uncheckedEntry: useUncheckedEntry);
