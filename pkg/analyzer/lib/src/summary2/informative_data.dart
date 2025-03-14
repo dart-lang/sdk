@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/token.dart';
@@ -178,14 +176,13 @@ class InformativeDataApplier {
   }
 
   void _applyToAccessors(
-    List<PropertyAccessorElement> elementList,
+    List<PropertyAccessorElementImpl> elementList,
     List<_InfoMethodDeclaration> infoList,
   ) {
-    forCorrespondingPairs<PropertyAccessorElement, _InfoMethodDeclaration>(
+    forCorrespondingPairs(
       elementList.notSynthetic,
       infoList,
       (element, info) {
-        element as PropertyAccessorElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
         element.nameOffset2 = info.nameOffset2;
@@ -215,10 +212,9 @@ class InformativeDataApplier {
   }
 
   void _applyToClassDeclaration(
-    ClassElement element,
+    ClassElementImpl element,
     _InfoClassDeclaration info,
   ) {
-    element as ClassElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
@@ -254,10 +250,9 @@ class InformativeDataApplier {
   }
 
   void _applyToClassTypeAlias(
-    ClassElement element,
+    ClassElementImpl element,
     _InfoClassTypeAlias info,
   ) {
-    element as ClassElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
@@ -304,14 +299,13 @@ class InformativeDataApplier {
   }
 
   void _applyToConstructors(
-    List<ConstructorElement> elementList,
+    List<ConstructorElementImpl> elementList,
     List<_InfoConstructorDeclaration> infoList,
   ) {
-    forCorrespondingPairs<ConstructorElement, _InfoConstructorDeclaration>(
+    forCorrespondingPairs(
       elementList,
       infoList,
       (element, info) {
-        element as ConstructorElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.typeNameOffset = info.typeNameOffset;
         element.periodOffset = info.periodOffset;
@@ -345,10 +339,9 @@ class InformativeDataApplier {
   }
 
   void _applyToEnumDeclaration(
-    EnumElement element,
+    EnumElementImpl element,
     _InfoClassDeclaration info,
   ) {
-    element as EnumElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
@@ -383,11 +376,10 @@ class InformativeDataApplier {
     List<LibraryExportElementImpl> exports,
     _InfoUnit info,
   ) {
-    forCorrespondingPairs<LibraryExportElement, _InfoExport>(
+    forCorrespondingPairs(
       exports,
       info.exports,
       (element, info) {
-        element as LibraryExportElementImpl;
         element.nameOffset = info.nameOffset;
         _applyToCombinators(element.combinators, info.combinators);
       },
@@ -395,10 +387,9 @@ class InformativeDataApplier {
   }
 
   void _applyToExtensionDeclaration(
-    ExtensionElement element,
+    ExtensionElementImpl element,
     _InfoClassDeclaration info,
   ) {
-    element as ExtensionElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
@@ -428,10 +419,9 @@ class InformativeDataApplier {
   }
 
   void _applyToExtensionTypeDeclaration(
-    ExtensionTypeElement element,
+    ExtensionTypeElementImpl element,
     _InfoExtensionTypeDeclaration info,
   ) {
-    element as ExtensionTypeElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
@@ -476,7 +466,7 @@ class InformativeDataApplier {
     primaryConstructor.nameOffset2 = infoRep.constructorNameOffset2;
 
     var primaryConstructorParameter =
-        primaryConstructor.parameters_unresolved.first as ParameterElementImpl;
+        primaryConstructor.parameters_unresolved.first;
     primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset;
     primaryConstructorParameter.nameOffset2 = infoRep.fieldNameOffset2;
     primaryConstructorParameter.setCodeRange(
@@ -510,14 +500,13 @@ class InformativeDataApplier {
   }
 
   void _applyToFields(
-    List<FieldElement> elementList,
+    List<FieldElementImpl> elementList,
     List<_InfoFieldDeclaration> infoList,
   ) {
-    forCorrespondingPairs<FieldElement, _InfoFieldDeclaration>(
+    forCorrespondingPairs(
       elementList.notSynthetic,
       infoList,
       (element, info) {
-        element as FieldElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
         element.nameOffset2 = info.nameOffset2;
@@ -542,14 +531,13 @@ class InformativeDataApplier {
   }
 
   void _applyToFormalParameters(
-    List<ParameterElement> parameters,
+    List<ParameterElementImpl> parameters,
     List<_InfoFormalParameter> infoList,
   ) {
-    forCorrespondingPairs<ParameterElement, _InfoFormalParameter>(
+    forCorrespondingPairs(
       parameters,
       infoList,
       (element, info) {
-        element as ParameterElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
         element.nameOffset2 = info.nameOffset2;
@@ -560,10 +548,9 @@ class InformativeDataApplier {
   }
 
   void _applyToFunctionDeclaration(
-    FunctionElement element,
+    TopLevelFunctionFragmentImpl element,
     _InfoFunctionDeclaration info,
   ) {
-    element as TopLevelFunctionFragmentImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
@@ -595,10 +582,9 @@ class InformativeDataApplier {
   }
 
   void _applyToFunctionTypeAlias(
-    TypeAliasElement element,
+    TypeAliasElementImpl element,
     _InfoFunctionTypeAlias info,
   ) {
-    element as TypeAliasElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
@@ -616,10 +602,9 @@ class InformativeDataApplier {
   }
 
   void _applyToGenericTypeAlias(
-    TypeAliasElement element,
+    TypeAliasElementImpl element,
     _InfoGenericTypeAlias info,
   ) {
-    element as TypeAliasElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
@@ -641,11 +626,10 @@ class InformativeDataApplier {
     List<LibraryImportElementImpl> imports,
     _InfoUnit info,
   ) {
-    forCorrespondingPairs<LibraryImportElement, _InfoImport>(
+    forCorrespondingPairs(
       imports,
       info.imports,
       (element, info) {
-        element as LibraryImportElementImpl;
         element.nameOffset = info.nameOffset;
 
         var prefixElement = element.prefix?.element;
@@ -688,14 +672,13 @@ class InformativeDataApplier {
   }
 
   void _applyToMethods(
-    List<MethodElement> elementList,
+    List<MethodElementImpl> elementList,
     List<_InfoMethodDeclaration> infoList,
   ) {
-    forCorrespondingPairs<MethodElement, _InfoMethodDeclaration>(
+    forCorrespondingPairs(
       elementList,
       infoList,
       (element, info) {
-        element as MethodElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
         element.nameOffset2 = info.nameOffset2;
@@ -729,10 +712,9 @@ class InformativeDataApplier {
   }
 
   void _applyToMixinDeclaration(
-    MixinElement element,
+    MixinElementImpl element,
     _InfoClassDeclaration info,
   ) {
-    element as MixinElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
@@ -763,10 +745,9 @@ class InformativeDataApplier {
   }
 
   void _applyToTopLevelVariable(
-    TopLevelVariableElement element,
+    TopLevelVariableElementImpl element,
     _InfoTopLevelVariable info,
   ) {
-    element as TopLevelVariableElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.nameOffset2 = info.nameOffset2;
@@ -789,14 +770,13 @@ class InformativeDataApplier {
   }
 
   void _applyToTypeParameters(
-    List<TypeParameterElement> elementList,
+    List<TypeParameterElementImpl> elementList,
     List<_InfoTypeParameter> infoList,
   ) {
-    forCorrespondingPairs<TypeParameterElement, _InfoTypeParameter>(
+    forCorrespondingPairs(
       elementList,
       infoList,
       (element, info) {
-        element as TypeParameterElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
         element.nameOffset2 = info.nameOffset2;
@@ -2136,7 +2116,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   _OffsetsApplier(this._iterator);
 
-  void applyToConstantInitializer(Element element) {
+  void applyToConstantInitializer(ElementImpl element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {
       _applyToEnumConstantInitializer(element);
     } else if (element is ConstVariableElement) {
@@ -2150,19 +2130,19 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToEnumConstants(List<FieldElement> constants) {
+  void applyToEnumConstants(List<FieldElementImpl> constants) {
     for (var constant in constants) {
       applyToMetadata(constant);
     }
   }
 
-  void applyToExports(List<LibraryExportElement> elements) {
+  void applyToExports(List<LibraryExportElementImpl> elements) {
     for (var element in elements) {
       applyToMetadata(element);
     }
   }
 
-  void applyToFormalParameters(List<ParameterElement> formalParameters) {
+  void applyToFormalParameters(List<ParameterElementImpl> formalParameters) {
     for (var parameter in formalParameters) {
       applyToMetadata(parameter);
       applyToFormalParameters(parameter.parameters);
@@ -2170,20 +2150,20 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToImports(List<LibraryImportElement> elements) {
+  void applyToImports(List<LibraryImportElementImpl> elements) {
     for (var element in elements) {
       applyToMetadata(element);
     }
   }
 
-  void applyToMetadata(Element element) {
+  void applyToMetadata(ElementImpl element) {
     for (var annotation in element.metadata) {
-      var node = (annotation as ElementAnnotationImpl).annotationAst;
+      var node = annotation.annotationAst;
       node.accept(this);
     }
   }
 
-  void applyToPartDirectives(List<PartElement> elements) {
+  void applyToPartDirectives(List<PartElementImpl> elements) {
     for (var element in elements) {
       applyToMetadata(element);
     }
@@ -2195,7 +2175,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     }
   }
 
-  void applyToTypeParameters(List<TypeParameterElement> typeParameters) {
+  void applyToTypeParameters(List<TypeParameterElementImpl> typeParameters) {
     for (var typeParameter in typeParameters) {
       applyToMetadata(typeParameter);
     }
@@ -2650,7 +2630,7 @@ extension on String {
   }
 }
 
-extension _ListOfElement<T extends Element> on List<T> {
+extension _ListOfElement<T extends ElementImpl> on List<T> {
   List<T> get notSynthetic {
     return where((e) => !e.isSynthetic).toList();
   }
