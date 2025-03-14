@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -173,7 +172,8 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(
-      covariant EnumConstantDeclarationImpl node) {
+    covariant EnumConstantDeclarationImpl node,
+  ) {
     super.visitEnumConstantDeclaration(node);
 
     var element = node.declaredFragment!;
@@ -222,11 +222,13 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   ReferenceFinder(this._callback);
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(
+    covariant InstanceCreationExpressionImpl node,
+  ) {
     if (node.isConst) {
       var constructor = node.constructorName.element?.baseElement;
       if (constructor != null && constructor.isConst) {
-        _callback(constructor.firstFragment as ConstructorElementImpl);
+        _callback(constructor.firstFragment);
       }
     }
     super.visitInstanceCreationExpression(node);
@@ -243,33 +245,35 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    covariant RedirectingConstructorInvocationImpl node,
+  ) {
     super.visitRedirectingConstructorInvocation(node);
     var target = node.element?.baseElement;
     if (target != null) {
-      _callback(target.firstFragment as ConstructorElementImpl);
+      _callback(target.firstFragment);
     }
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var staticElement = node.element;
-    var element = staticElement is GetterElement
-        ? staticElement.variable3
-        : staticElement is SetterElement
-            ? staticElement.variable3
-            : staticElement;
-    if (element is VariableElement2 && element.isConst) {
+    var element = node.element;
+    if (element is GetterElementImpl) {
+      element = element.variable3;
+    }
+
+    if (element is VariableElementImpl2 && element.isConst) {
       _callback(element.firstFragment as VariableElementImpl);
     }
   }
 
   @override
-  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(
+    covariant SuperConstructorInvocationImpl node,
+  ) {
     super.visitSuperConstructorInvocation(node);
     var constructor = node.element?.baseElement;
     if (constructor != null) {
-      _callback(constructor.firstFragment as ConstructorElementImpl);
+      _callback(constructor.firstFragment);
     }
   }
 }
