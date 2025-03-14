@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -116,7 +113,7 @@ class ElementFactory {
       ConstLocalVariableElementImpl(name, 0);
 
   static ConstructorElementImpl constructorElement(
-      ClassElement definingClass, String? name, bool isConst,
+      ClassElementImpl definingClass, String? name, bool isConst,
       [List<TypeImpl> argumentTypes = const []]) {
     var offset = name == null ? -1 : 0;
     // A constructor declared as `C.new` is unnamed, and is modeled as such.
@@ -143,7 +140,7 @@ class ElementFactory {
   }
 
   static ConstructorElementImpl constructorElement2(
-          ClassElement definingClass, String? name,
+          ClassElementImpl definingClass, String? name,
           [List<TypeImpl> argumentTypes = const []]) =>
       constructorElement(definingClass, name, false, argumentTypes);
 
@@ -234,7 +231,7 @@ class ElementFactory {
   }
 
   static MethodElementImpl methodElementWithParameters(
-      ClassElement enclosingElement,
+      ClassElementImpl enclosingElement,
       String methodName,
       DartType returnType,
       List<ParameterElementImpl> parameters) {
