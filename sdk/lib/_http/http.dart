@@ -2054,6 +2054,13 @@ abstract final class HttpClientBasicCredentials
       _HttpClientBasicCredentials(username, password);
 }
 
+/// Represents credentials for bearer token authentication.
+abstract final class HttpClientBearerCredentials
+    implements HttpClientCredentials {
+  factory HttpClientBearerCredentials(String token) =>
+      _HttpClientBearerCredentials(token);
+}
+
 /// Represents credentials for digest authentication. Digest
 /// authentication is only supported for servers using the MD5
 /// algorithm and quality of protection (qop) of either "none" or
