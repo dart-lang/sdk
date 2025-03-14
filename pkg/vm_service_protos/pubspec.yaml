@@ -9,6 +9,7 @@ repository: https://github.com/dart-lang/sdk/tree/main/pkg/vm_service_protos
 environment:
   sdk: ^3.5.0
 
+resolution: workspace
 
 dependencies:
   fixnum: ^1.0.0

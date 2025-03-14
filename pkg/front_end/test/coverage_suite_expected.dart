@@ -896,7 +896,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_factory_builder.dart": (
-    hitCount: 1016,
+    hitCount: 949,
     missCount: 0,
   ),
   // 100.0%.
@@ -946,7 +946,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 1578,
+    hitCount: 1579,
     missCount: 0,
   ),
   // 100.0%.

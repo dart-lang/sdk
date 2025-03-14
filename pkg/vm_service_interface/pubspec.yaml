@@ -9,6 +9,7 @@ repository: https://github.com/dart-lang/sdk/tree/main/pkg/vm_service/packages/v
 environment:
   sdk: ^3.5.0
 
+resolution: workspace
 
 dependencies:
   vm_service: '>=14.3.0 <16.0.0'

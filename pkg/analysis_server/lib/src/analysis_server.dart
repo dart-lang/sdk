@@ -32,6 +32,7 @@ import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/assist_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
@@ -1219,6 +1220,11 @@ class ServerRecentPerformance {
   /// completion operation up to [performanceListMaxLength] measurements.
   final RecentBuffer<CompletionPerformance> completion =
       RecentBuffer<CompletionPerformance>(performanceListMaxLength);
+
+  /// A list of performance measurements for the latest requests to get fixes
+  /// up to [performanceListMaxLength] measurements.
+  final RecentBuffer<GetAssistsPerformance> getAssists =
+      RecentBuffer<GetAssistsPerformance>(performanceListMaxLength);
 
   /// A list of performance measurements for the latest requests to get fixes
   /// up to [performanceListMaxLength] measurements.

@@ -12,6 +12,35 @@ const int CHAR_DOLLAR = 0x24;
 /// "_"
 const int CHAR_UNDERSCORE = 0x5F;
 
+/// Build a string from [contents] that includes a caret (`^`) at the
+/// given [offset].
+///
+/// This string is useful for displaying to users in a diagnostic context.
+String addCaretAtOffset(String contents, int offset) {
+  if (offset < 0 || contents.length < offset) {
+    return '???';
+  }
+  var start = offset;
+  while (start > 0) {
+    var ch = contents[start - 1];
+    if (ch == '\r' || ch == '\n') {
+      break;
+    }
+    --start;
+  }
+  var end = offset;
+  while (end < contents.length) {
+    var ch = contents[end];
+    if (ch == '\r' || ch == '\n') {
+      break;
+    }
+    ++end;
+  }
+  var prefix = contents.substring(start, offset);
+  var suffix = contents.substring(offset, end);
+  return '$prefix^$suffix';
+}
+
 String? capitalize(String? str) {
   if (str == null || str.isEmpty) {
     return str;

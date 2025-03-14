@@ -6,6 +6,8 @@ environment:
   # Use min prerelease bound to get the latest formatter changes.
   sdk: '^3.7.0'
 
+resolution: workspace
+
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _fe_analyzer_shared: any

@@ -13,6 +13,7 @@ import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/exception/exception.dart';
@@ -111,12 +112,28 @@ class EditGetAssistsHandler extends LegacyHandler
       );
 
       try {
-        var processor = AssistProcessor(context);
+        var performanceTracker = AssistPerformance();
+        var processor = AssistProcessor(
+          context,
+          performance: performanceTracker,
+        );
+
         var assists = await processor.compute();
         assists.sort(Assist.compareAssists);
         for (var assist in assists) {
           changes.add(assist.change);
         }
+
+        server.recentPerformance.getAssists.add(
+          GetAssistsPerformance(
+            performance: performance,
+            path: file,
+            content: unitResult.content,
+            offset: offset,
+            requestLatency: performanceTracker.computeTime!.inMilliseconds,
+            producerTimings: performanceTracker.producerTimings,
+          ),
+        );
       } on InconsistentAnalysisException {
         // ignore
       } catch (exception, stackTrace) {

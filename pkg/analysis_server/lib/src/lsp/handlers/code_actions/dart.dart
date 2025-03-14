@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -12,6 +13,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisOptions, Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/assist_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
@@ -116,7 +118,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<CodeActionWithPriority>> getAssistActions() async {
+  Future<List<CodeActionWithPriority>> getAssistActions({
+    OperationPerformanceImpl? performance,
+  }) async {
     // These assists are only provided as literal CodeActions.
     if (!supportsLiterals) {
       return [];
@@ -133,8 +137,30 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         offset,
         length,
       );
-      var processor = AssistProcessor(context);
-      var assists = await processor.compute();
+
+      late List<Assist> assists;
+      if (performance != null) {
+        var performanceTracker = AssistPerformance();
+        var processor = AssistProcessor(
+          context,
+          performance: performanceTracker,
+        );
+
+        assists = await processor.compute();
+        server.recentPerformance.getAssists.add(
+          GetAssistsPerformance(
+            performance: performance,
+            path: path,
+            content: unitResult.content,
+            offset: offset,
+            requestLatency: performanceTracker.computeTime!.inMilliseconds,
+            producerTimings: performanceTracker.producerTimings,
+          ),
+        );
+      } else {
+        var processor = AssistProcessor(context);
+        assists = await processor.compute();
+      }
 
       return assists.map((assist) {
         var action = createAssistAction(
@@ -186,9 +212,11 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           error: error,
         );
 
-        var peformanceTracker = FixPerformance();
-
-        var fixes = await computeFixes(context, performance: peformanceTracker);
+        var performanceTracker = FixPerformance();
+        var fixes = await computeFixes(
+          context,
+          performance: performanceTracker,
+        );
 
         if (performance != null) {
           server.recentPerformance.getFixes.add(
@@ -197,8 +225,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
               path: path,
               content: unitResult.content,
               offset: offset,
-              requestLatency: peformanceTracker.computeTime!.inMilliseconds,
-              producerTimings: peformanceTracker.producerTimings,
+              requestLatency: performanceTracker.computeTime!.inMilliseconds,
+              producerTimings: performanceTracker.producerTimings,
             ),
           );
         }

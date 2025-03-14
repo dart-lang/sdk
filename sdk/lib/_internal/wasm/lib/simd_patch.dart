@@ -28,16 +28,17 @@ class Float32x4 {
   factory Float32x4(double x, double y, double z, double w) = NaiveFloat32x4;
 
   @patch
-  factory Float32x4.splat(double v) = NaiveFloat32x4.splat;
+  factory Float32x4.splat(double value) = NaiveFloat32x4.splat;
 
   @patch
   factory Float32x4.zero() = NaiveFloat32x4.zero;
 
   @patch
-  factory Float32x4.fromInt32x4Bits(Int32x4 x) = NaiveFloat32x4.fromInt32x4Bits;
+  factory Float32x4.fromInt32x4Bits(Int32x4 bits) =
+      NaiveFloat32x4.fromInt32x4Bits;
 
   @patch
-  factory Float32x4.fromFloat64x2(Float64x2 v) = NaiveFloat32x4.fromFloat64x2;
+  factory Float32x4.fromFloat64x2(Float64x2 xy) = NaiveFloat32x4.fromFloat64x2;
 }
 
 @patch

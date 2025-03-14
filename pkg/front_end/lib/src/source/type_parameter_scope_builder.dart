@@ -2010,6 +2010,10 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         fragment.typeParameterNameSpace.addTypeParameters(
             problemReporting, typeParameters,
             ownerName: fragment.name, allowNameConflict: true);
+        FactoryDeclaration introductoryDeclaration = new FactoryDeclarationImpl(
+            fragment,
+            returnType: returnType,
+            typeParameters: typeParameters);
 
         NameScheme nameScheme = new NameScheme(
             containerName: containerName,
@@ -2037,9 +2041,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
 
         SourceFactoryBuilder factoryBuilder = new SourceFactoryBuilder(
             modifiers: fragment.modifiers,
-            returnType: returnType,
             name: name,
-            typeParameters: typeParameters,
             libraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
             fileUri: fragment.fileUri,
@@ -2047,7 +2049,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             procedureReference: procedureReference,
             tearOffReference: tearOffReference,
             nameScheme: nameScheme,
-            fragment: fragment);
+            introductory: introductoryDeclaration);
         if (fragment.redirectionTarget != null) {
           (enclosingLibraryBuilder.redirectingFactoryBuilders ??= [])
               .add(factoryBuilder);

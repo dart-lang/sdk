@@ -33,7 +33,9 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   String get name => 'PluginActionsComputer';
 
   @override
-  Future<List<CodeActionWithPriority>> getAssistActions() async {
+  Future<List<CodeActionWithPriority>> getAssistActions({
+    OperationPerformance? performance,
+  }) async {
     // These assists are only provided as literal CodeActions.
     if (!supportsLiterals) {
       return [];

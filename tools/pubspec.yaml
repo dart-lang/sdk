@@ -4,6 +4,8 @@ description: Internal tools for building and working on the sdk.
 environment:
   sdk: ^3.5.0
 
+resolution: workspace
+
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 

@@ -1,511 +1,646 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
 // VMOptions=--no-intrinsify
-
-// Requirements=nnbd-strong
-
-// Library tag to be able to run in html test framework.
-library float32x4_test;
 
 import 'dart:typed_data';
 import "package:expect/expect.dart";
 
-testAdd() {
-  var m = new Float32x4(-1.0, -2.0, -3.0, -4.0);
-  var n = new Float32x4(1.0, 2.0, 3.0, 4.0);
+const nan = double.nan;
+const inf = double.infinity;
+
+/// Minimal positive 32-bit float value.
+const min = 1.401298464324817e-45;
+
+/// Maximal finite 32-bit float value.
+const max = 3.4028234663852886e+38;
+
+void testAdd() {
+  var m = Float32x4(-1.0, -2.0, -3.0, -4.0);
+  var n = Float32x4(1.0, 2.0, 3.0, 4.0);
   var o = m + n;
-  Expect.equals(0.0, o.x);
-  Expect.equals(0.0, o.y);
-  Expect.equals(0.0, o.z);
-  Expect.equals(0.0, o.w);
+  checkEquals(0.0, o.x);
+  checkEquals(0.0, o.y);
+  checkEquals(0.0, o.z);
+  checkEquals(0.0, o.w);
+
+  var p = Float32x4(-0.0, inf, max, nan);
+  var q = Float32x4(-0.0, -inf, max, 3.14);
+  var r = p + q;
+  checkEquals(-0.0, r.x);
+  checkEquals(nan, r.y);
+  checkEquals(inf, r.z);
+  checkEquals(nan, r.w);
 }
 
-testNegate() {
-  var m = new Float32x4(1.0, 2.0, -3.0, -4.0);
+void testNegate() {
+  var m = Float32x4(1.0, 2.0, -3.0, -4.0);
   m = -m;
-  Expect.equals(-1.0, m.x);
-  Expect.equals(-2.0, m.y);
-  Expect.equals(3.0, m.z);
-  Expect.equals(4.0, m.w);
+  checkEquals(-1.0, m.x);
+  checkEquals(-2.0, m.y);
+  checkEquals(3.0, m.z);
+  checkEquals(4.0, m.w);
+
+  var n = Float32x4(0.0, -0.0, inf, nan);
+  n = -n;
+  checkEquals(-0.0, n.x);
+  checkEquals(0.0, n.y);
+  checkEquals(-inf, n.z);
+  checkEquals(nan, n.w);
 }
 
-testSub() {
-  var m = new Float32x4(-1.0, -2.0, -3.0, -4.0);
-  var n = new Float32x4(1.0, 2.0, 3.0, 4.0);
+void testSub() {
+  var m = Float32x4(-1.0, -2.0, -3.0, -4.0);
+  var n = Float32x4(1.0, 2.0, 3.0, 4.0);
   var o = m - n;
-  Expect.equals(-2.0, o.x);
-  Expect.equals(-4.0, o.y);
-  Expect.equals(-6.0, o.z);
-  Expect.equals(-8.0, o.w);
+  checkEquals(-2.0, o.x);
+  checkEquals(-4.0, o.y);
+  checkEquals(-6.0, o.z);
+  checkEquals(-8.0, o.w);
+
+  var p = Float32x4(-0.0, inf, max, nan);
+  var q = Float32x4(0.0, inf, -max, 3.14);
+  var r = p - q;
+  checkEquals(-0.0, r.x);
+  checkEquals(nan, r.y);
+  checkEquals(inf, r.z);
+  checkEquals(nan, r.w);
 }
 
-testMul() {
-  var m = new Float32x4(-1.0, -2.0, -3.0, -4.0);
-  var n = new Float32x4(1.0, 2.0, 3.0, 4.0);
+void testMul() {
+  var m = Float32x4(-1.0, -2.0, -3.0, -4.0);
+  var n = Float32x4(1.0, 2.0, 3.0, 4.0);
   var o = m * n;
-  Expect.equals(-1.0, o.x);
-  Expect.equals(-4.0, o.y);
-  Expect.equals(-9.0, o.z);
-  Expect.equals(-16.0, o.w);
+  checkEquals(-1.0, o.x);
+  checkEquals(-4.0, o.y);
+  checkEquals(-9.0, o.z);
+  checkEquals(-16.0, o.w);
+
+  var p = Float32x4(-0.0, inf, max, nan);
+  var q = Float32x4(0.0, 0.0, 2.0, 3.14);
+  var r = p * q;
+  checkEquals(-0.0, r.x);
+  checkEquals(nan, r.y);
+  checkEquals(inf, r.z);
+  checkEquals(nan, r.w);
 }
 
-testDiv() {
-  var m = new Float32x4(-1.0, -2.0, -3.0, -4.0);
-  var n = new Float32x4(1.0, 2.0, 3.0, 4.0);
+void testDiv() {
+  var m = Float32x4(-1.0, -2.0, -3.0, -4.0);
+  var n = Float32x4(1.0, 2.0, 3.0, 4.0);
   var o = m / n;
-  Expect.equals(-1.0, o.x);
-  Expect.equals(-1.0, o.y);
-  Expect.equals(-1.0, o.z);
-  Expect.equals(-1.0, o.w);
+  checkEquals(-1.0, o.x);
+  checkEquals(-1.0, o.y);
+  checkEquals(-1.0, o.z);
+  checkEquals(-1.0, o.w);
+
+  var p = Float32x4(0.0, inf, max, nan);
+  var q = Float32x4(-1.0, inf, 0.5, 3.14);
+  var r = p / q;
+  checkEquals(-0.0, r.x);
+  checkEquals(nan, r.y);
+  checkEquals(inf, r.z);
+  checkEquals(nan, r.w);
 }
 
-testComparison() {
-  var m = new Float32x4(1.0, 2.0, 0.1, 0.001);
-  var n = new Float32x4(2.0, 2.0, 0.001, 0.1);
+void testComparison() {
+  var m = Float32x4(1.0, 2.0, 0.1, 0.001);
+  var n = Float32x4(2.0, 2.0, 0.001, 0.1);
   var cmp;
   cmp = m.lessThan(n);
   Expect.equals(-1, cmp.x);
-  Expect.equals(0x0, cmp.y);
-  Expect.equals(0x0, cmp.z);
+  Expect.equals(0, cmp.y);
+  Expect.equals(0, cmp.z);
   Expect.equals(-1, cmp.w);
 
   cmp = m.lessThanOrEqual(n);
   Expect.equals(-1, cmp.x);
   Expect.equals(-1, cmp.y);
-  Expect.equals(0x0, cmp.z);
+  Expect.equals(0, cmp.z);
   Expect.equals(-1, cmp.w);
 
   cmp = m.equal(n);
-  Expect.equals(0x0, cmp.x);
+  Expect.equals(0, cmp.x);
   Expect.equals(-1, cmp.y);
-  Expect.equals(0x0, cmp.z);
-  Expect.equals(0x0, cmp.w);
+  Expect.equals(0, cmp.z);
+  Expect.equals(0, cmp.w);
 
   cmp = m.notEqual(n);
   Expect.equals(-1, cmp.x);
-  Expect.equals(0x0, cmp.y);
+  Expect.equals(0, cmp.y);
   Expect.equals(-1, cmp.z);
   Expect.equals(-1, cmp.w);
 
   cmp = m.greaterThanOrEqual(n);
-  Expect.equals(0x0, cmp.x);
+  Expect.equals(0, cmp.x);
   Expect.equals(-1, cmp.y);
   Expect.equals(-1, cmp.z);
-  Expect.equals(0x0, cmp.w);
+  Expect.equals(0, cmp.w);
 
   cmp = m.greaterThan(n);
-  Expect.equals(0x0, cmp.x);
-  Expect.equals(0x0, cmp.y);
+  Expect.equals(0, cmp.x);
+  Expect.equals(0, cmp.y);
   Expect.equals(-1, cmp.z);
-  Expect.equals(0x0, cmp.w);
+  Expect.equals(0, cmp.w);
+
+  var p = Float32x4(0.0, nan, min, nan);
+  var q = Float32x4(-0.0, nan, 0.0, 3.14);
+
+  cmp = p.lessThan(q);
+  Expect.equals(0, cmp.x);
+  Expect.equals(0, cmp.y);
+  Expect.equals(0, cmp.z);
+  Expect.equals(0, cmp.w);
+
+  cmp = p.lessThanOrEqual(q);
+  Expect.equals(-1, cmp.x);
+  Expect.equals(0, cmp.y);
+  Expect.equals(0, cmp.z);
+  Expect.equals(0, cmp.w);
+
+  cmp = p.equal(q);
+  Expect.equals(-1, cmp.x);
+  Expect.equals(0, cmp.y);
+  Expect.equals(0, cmp.z);
+  Expect.equals(0, cmp.w);
+
+  cmp = p.notEqual(q);
+  Expect.equals(0, cmp.x);
+  Expect.equals(-1, cmp.y);
+  Expect.equals(-1, cmp.z);
+  Expect.equals(-1, cmp.w);
+
+  cmp = p.greaterThanOrEqual(q);
+  Expect.equals(-1, cmp.x);
+  Expect.equals(0, cmp.y);
+  Expect.equals(-1, cmp.z);
+  Expect.equals(0, cmp.w);
+
+  cmp = p.greaterThan(q);
+  Expect.equals(0, cmp.x);
+  Expect.equals(0, cmp.y);
+  Expect.equals(-1, cmp.z);
+  Expect.equals(0, cmp.w);
 }
 
-testAbs() {
-  var m = new Float32x4(1.0, -2.0, 3.0, -4.0);
+void testAbs() {
+  var m = Float32x4(1.0, -2.0, 3.0, -4.0);
   m = m.abs();
-  Expect.equals(1.0, m.x);
-  Expect.equals(2.0, m.y);
-  Expect.equals(3.0, m.z);
-  Expect.equals(4.0, m.w);
+  checkEquals(1.0, m.x);
+  checkEquals(2.0, m.y);
+  checkEquals(3.0, m.z);
+  checkEquals(4.0, m.w);
+
+  var n = Float32x4(-0.0, 0.0, -inf, nan);
+  n = n.abs();
+  checkEquals(0.0, n.x);
+  checkEquals(0.0, n.y);
+  checkEquals(inf, n.z);
+  checkEquals(nan, n.w);
 }
 
-testScale() {
-  var m = new Float32x4(1.0, -2.0, 3.0, -4.0);
+void testScale() {
+  var m = Float32x4(1.0, -2.0, 3.0, -4.0);
   m = m.scale(20.0);
-  Expect.equals(20.0, m.x);
-  Expect.equals(-40.0, m.y);
-  Expect.equals(60.0, m.z);
-  Expect.equals(-80.0, m.w);
+  checkEquals(20.0, m.x);
+  checkEquals(-40.0, m.y);
+  checkEquals(60.0, m.z);
+  checkEquals(-80.0, m.w);
+
+  var n = Float32x4(0.0, max, min, nan);
+  var o = n.scale(-2.0);
+  checkEquals(-0.0, o.x);
+  checkEquals(-inf, o.y);
+  checkEquals(-min * 2.0, o.z);
+  checkEquals(nan, o.w);
+  o = n.scale(-0.5);
+  checkEquals(-0.0, o.x);
+  checkEquals(-max / 2.0, o.y);
+  checkEquals(-0.0, o.z);
+  checkEquals(nan, o.w);
+  o = n.scale(nan);
+  checkEquals(nan, o.x);
+  checkEquals(nan, o.y);
+  checkEquals(nan, o.z);
+  checkEquals(nan, o.w);
+  o = n.scale(-0.0);
+  checkEquals(-0.0, o.x);
+  checkEquals(-0.0, o.y);
+  checkEquals(-0.0, o.z);
+  checkEquals(nan, o.w);
 }
 
-testClamp() {
-  var m = new Float32x4(1.0, -2.0, 3.0, -4.0);
-  var lo = new Float32x4(0.0, 0.0, 0.0, 0.0);
-  var hi = new Float32x4(2.0, 2.0, 2.0, 2.0);
+void testClamp() {
+  var m = Float32x4(1.0, -2.0, 3.0, -4.0);
+  var lo = Float32x4(0.0, 0.0, 0.0, 0.0);
+  var hi = Float32x4(2.0, 2.0, 2.0, 2.0);
   m = m.clamp(lo, hi);
-  Expect.equals(1.0, m.x);
-  Expect.equals(0.0, m.y);
-  Expect.equals(2.0, m.z);
-  Expect.equals(0.0, m.w);
+  checkEquals(1.0, m.x);
+  checkEquals(0.0, m.y);
+  checkEquals(2.0, m.z);
+  checkEquals(0.0, m.w);
+
+  // No guarantees if one value is `nan` or max < min.
+  m = Float32x4(nan, 3.0, -3.0, -4.0);
+  lo = Float32x4(0.0, nan, 0.0, 2.0);
+  hi = Float32x4(2.0, 2.0, nan, 0.0);
+  var r = m.clamp(lo, hi);
+  checkOneOf([m.x, lo.x, hi.x], r.x);
+  checkOneOf([m.y, lo.y, hi.y], r.y);
+  checkOneOf([m.z, lo.z, hi.z], r.z);
+  checkOneOf([m.w, lo.w, hi.w], r.w);
 }
 
-testShuffle() {
-  var m = new Float32x4(1.0, 2.0, 3.0, 4.0);
+void testShuffle() {
+  var m = Float32x4(1.0, 2.0, 3.0, 4.0);
   var xxxx = m.shuffle(Float32x4.xxxx);
-  Expect.equals(1.0, xxxx.x);
-  Expect.equals(1.0, xxxx.y);
-  Expect.equals(1.0, xxxx.z);
-  Expect.equals(1.0, xxxx.w);
+  checkEquals(m.x, xxxx.x);
+  checkEquals(m.x, xxxx.y);
+  checkEquals(m.x, xxxx.z);
+  checkEquals(m.x, xxxx.w);
   var yyyy = m.shuffle(Float32x4.yyyy);
-  Expect.equals(2.0, yyyy.x);
-  Expect.equals(2.0, yyyy.y);
-  Expect.equals(2.0, yyyy.z);
-  Expect.equals(2.0, yyyy.w);
+  checkEquals(m.y, yyyy.x);
+  checkEquals(m.y, yyyy.y);
+  checkEquals(m.y, yyyy.z);
+  checkEquals(m.y, yyyy.w);
   var zzzz = m.shuffle(Float32x4.zzzz);
-  Expect.equals(3.0, zzzz.x);
-  Expect.equals(3.0, zzzz.y);
-  Expect.equals(3.0, zzzz.z);
-  Expect.equals(3.0, zzzz.w);
+  checkEquals(m.z, zzzz.x);
+  checkEquals(m.z, zzzz.y);
+  checkEquals(m.z, zzzz.z);
+  checkEquals(m.z, zzzz.w);
   var wwww = m.shuffle(Float32x4.wwww);
-  Expect.equals(4.0, wwww.x);
-  Expect.equals(4.0, wwww.y);
-  Expect.equals(4.0, wwww.z);
-  Expect.equals(4.0, wwww.w);
+  checkEquals(m.w, wwww.x);
+  checkEquals(m.w, wwww.y);
+  checkEquals(m.w, wwww.z);
+  checkEquals(m.w, wwww.w);
   var wzyx = m.shuffle(Float32x4.wzyx);
-  Expect.equals(4.0, wzyx.x);
-  Expect.equals(3.0, wzyx.y);
-  Expect.equals(2.0, wzyx.z);
-  Expect.equals(1.0, wzyx.w);
+  checkEquals(m.w, wzyx.x);
+  checkEquals(m.z, wzyx.y);
+  checkEquals(m.y, wzyx.z);
+  checkEquals(m.x, wzyx.w);
   var wwzz = m.shuffle(Float32x4.wwzz);
-  Expect.equals(4.0, wwzz.x);
-  Expect.equals(4.0, wwzz.y);
-  Expect.equals(3.0, wwzz.z);
-  Expect.equals(3.0, wwzz.w);
+  checkEquals(m.w, wwzz.x);
+  checkEquals(m.w, wwzz.y);
+  checkEquals(m.z, wwzz.z);
+  checkEquals(m.z, wwzz.w);
   var xxyy = m.shuffle(Float32x4.xxyy);
-  Expect.equals(1.0, xxyy.x);
-  Expect.equals(1.0, xxyy.y);
-  Expect.equals(2.0, xxyy.z);
-  Expect.equals(2.0, xxyy.w);
+  checkEquals(m.x, xxyy.x);
+  checkEquals(m.x, xxyy.y);
+  checkEquals(m.y, xxyy.z);
+  checkEquals(m.y, xxyy.w);
   var yyww = m.shuffle(Float32x4.yyww);
-  Expect.equals(2.0, yyww.x);
-  Expect.equals(2.0, yyww.y);
-  Expect.equals(4.0, yyww.z);
-  Expect.equals(4.0, yyww.w);
+  checkEquals(m.y, yyww.x);
+  checkEquals(m.y, yyww.y);
+  checkEquals(m.w, yyww.z);
+  checkEquals(m.w, yyww.w);
+
+  double getLane(Float32x4 lanes, int lane) => switch (lane) {
+    0 => lanes.x,
+    1 => lanes.y,
+    2 => lanes.z,
+    3 => lanes.w,
+    _ => throw UnsupportedError("Test failure, wrong lane number: $lane"),
+  };
+  for (var i = 0; i < 256; i++) {
+    var shuffled = m.shuffle(i);
+    checkEquals(getLane(m, i & 3), shuffled.x);
+    checkEquals(getLane(m, (i >> 2) & 3), shuffled.y);
+    checkEquals(getLane(m, (i >> 4) & 3), shuffled.z);
+    checkEquals(getLane(m, (i >> 6) & 3), shuffled.w);
+  }
 }
 
-testMin() {
-  var m = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  var n = new Float32x4(1.0, 0.0, 2.5, 5.0);
+void testMin() {
+  var m = Float32x4(1.0, 2.0, 3.0, 4.0);
+  var n = Float32x4(1.0, 0.0, 2.5, 5.0);
   m = m.min(n);
-  Expect.equals(1.0, m.x);
-  Expect.equals(0.0, m.y);
-  Expect.equals(2.5, m.z);
-  Expect.equals(4.0, m.w);
+  checkEquals(1.0, m.x);
+  checkEquals(0.0, m.y);
+  checkEquals(2.5, m.z);
+  checkEquals(4.0, m.w);
+
+  var p = Float32x4(-0.0, -inf, -0.0, nan);
+  var q = Float32x4(0.0, -max, -min, 3.5);
+  var r = p.min(q);
+  checkOneOf([-0.0, 0.0], r.x);
+  checkEquals(-inf, r.y);
+  checkEquals(-min, r.z);
+  checkOneOf([nan, 3.5], r.w);
+
+  r = q.min(p);
+  checkOneOf([-0.0, 0.0], r.x);
+  checkEquals(-inf, r.y);
+  checkEquals(-min, r.z);
+  checkOneOf([nan, 3.5], r.w);
 }
 
-testMax() {
-  var m = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  var n = new Float32x4(1.0, 0.0, 2.5, 5.0);
+void testMax() {
+  var m = Float32x4(1.0, 2.0, 3.0, 4.0);
+  var n = Float32x4(1.0, 0.0, 2.5, 5.0);
   m = m.max(n);
-  Expect.equals(1.0, m.x);
-  Expect.equals(2.0, m.y);
-  Expect.equals(3.0, m.z);
-  Expect.equals(5.0, m.w);
+  checkEquals(1.0, m.x);
+  checkEquals(2.0, m.y);
+  checkEquals(3.0, m.z);
+  checkEquals(5.0, m.w);
+
+  var p = Float32x4(-0.0, -inf, -0.0, nan);
+  var q = Float32x4(0.0, -max, -min, 3.5);
+  var r = p.max(q);
+  checkOneOf([-0.0, 0.0], r.x);
+  checkEquals(-max, r.y);
+  checkEquals(-0.0, r.z);
+  checkOneOf([nan, 3.5], r.w);
+
+  r = q.max(p);
+  checkOneOf([-0.0, 0.0], r.x);
+  checkEquals(-max, r.y);
+  checkEquals(-0.0, r.z);
+  checkOneOf([nan, 3.5], r.w);
 }
 
-testSqrt() {
-  var m = new Float32x4(1.0, 4.0, 9.0, 16.0);
+void testSqrt() {
+  var m = Float32x4(1.0, 4.0, 9.0, 16.0);
   m = m.sqrt();
-  Expect.equals(1.0, m.x);
-  Expect.equals(2.0, m.y);
-  Expect.equals(3.0, m.z);
-  Expect.equals(4.0, m.w);
+  checkEquals(1.0, m.x);
+  checkEquals(2.0, m.y);
+  checkEquals(3.0, m.z);
+  checkEquals(4.0, m.w);
+
+  m = Float32x4(0.0, -4.0, inf, nan);
+  m = m.sqrt();
+  checkEquals(0.0, m.x);
+  checkEquals(nan, m.y);
+  checkEquals(inf, m.z);
+  checkEquals(nan, m.w);
+
+  m = Float32x4(-0.0, -inf, 12224, 12223.999023);
+  m = m.sqrt();
+  checkEquals(-0.0, m.x);
+  checkEquals(nan, m.y);
+  Expect.approxEquals(110.56220245361328, m.z, 0.0001);
+  Expect.approxEquals(110.5621566772461, m.w, 0.0001);
 }
 
-testReciprocal() {
-  var m = new Float32x4(1.0, 4.0, 9.0, 16.0);
+void testReciprocal() {
+  var m = Float32x4(1.0, 4.0, 9.0, 16.0);
   m = m.reciprocal();
   Expect.approxEquals(1.0, m.x, 0.001);
   Expect.approxEquals(0.25, m.y, 0.001);
   Expect.approxEquals(0.1111111, m.z, 0.001);
   Expect.approxEquals(0.0625, m.w, 0.001);
+
+  m = Float32x4(0.0, -0.0, inf, nan);
+  m = m.reciprocal();
+  checkEquals(inf, m.x);
+  checkEquals(-inf, m.y);
+  checkEquals(0, m.z);
+  checkEquals(nan, m.w);
 }
 
-testReciprocalSqrt() {
-  var m = new Float32x4(1.0, 0.25, 0.111111, 0.0625);
-  m = m.reciprocalSqrt();
-  Expect.approxEquals(1.0, m.x, 0.001);
-  Expect.approxEquals(2.0, m.y, 0.001);
-  Expect.approxEquals(3.0, m.z, 0.001);
-  Expect.approxEquals(4.0, m.w, 0.001);
+void testReciprocalSqrt() {
+  var m = Float32x4(1.0, 0.25, 0.111111, 0.0625);
+  var n = m.reciprocalSqrt();
+  Expect.approxEquals(1.0, n.x, 0.001);
+  Expect.approxEquals(2.0, n.y, 0.001);
+  Expect.approxEquals(3.0, n.z, 0.001);
+  Expect.approxEquals(4.0, n.w, 0.001);
+
+  var o = m.reciprocal().sqrt();
+  Expect.approxEquals(o.x, n.x, 0.001);
+  Expect.approxEquals(o.y, n.y, 0.001);
+  Expect.approxEquals(o.z, n.z, 0.001);
+  Expect.approxEquals(o.w, n.w, 0.001);
+
+  m = Float32x4(0.0, -0.0, inf, nan);
+  n = m.reciprocalSqrt();
+  checkEquals(inf, n.x);
+  checkOneOf([nan, -inf], n.y); // One of 1/sqrt(-inf) or sqrt(1/-inf).
+  checkEquals(0, n.z);
+  checkEquals(nan, n.w);
 }
 
-testSelect() {
-  var m = new Int32x4.bool(true, true, false, false);
-  var t = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  var f = new Float32x4(5.0, 6.0, 7.0, 8.0);
+void testSelect() {
+  // Technically on `Int32x4`, but only works on `Float32x4`s.
+  var m = Int32x4.bool(true, true, false, false);
+  var t = Float32x4(1.0, 2.0, 3.0, 4.0);
+  var f = Float32x4(5.0, 6.0, 7.0, 8.0);
   var s = m.select(t, f);
-  Expect.equals(1.0, s.x);
-  Expect.equals(2.0, s.y);
-  Expect.equals(7.0, s.z);
-  Expect.equals(8.0, s.w);
+  checkEquals(1.0, s.x);
+  checkEquals(2.0, s.y);
+  checkEquals(7.0, s.z);
+  checkEquals(8.0, s.w);
 }
 
-testConversions() {
-  var m = new Int32x4(0x3F800000, 0x40000000, 0x40400000, 0x40800000);
-  var n = new Float32x4.fromInt32x4Bits(m);
-  Expect.equals(1.0, n.x);
-  Expect.equals(2.0, n.y);
-  Expect.equals(3.0, n.z);
-  Expect.equals(4.0, n.w);
-  n = new Float32x4(5.0, 6.0, 7.0, 8.0);
-  m = new Int32x4.fromFloat32x4Bits(n);
-  Expect.equals(0x40A00000, m.x);
-  Expect.equals(0x40C00000, m.y);
-  Expect.equals(0x40E00000, m.z);
-  Expect.equals(0x41000000, m.w);
-  // Flip sign using bit-wise operators.
-  n = new Float32x4(9.0, 10.0, 11.0, 12.0);
-  m = new Int32x4(0x80000000, 0x80000000, 0x80000000, 0x80000000);
-  var nMask = new Int32x4.fromFloat32x4Bits(n);
-  nMask = nMask ^ m; // flip sign.
-  n = new Float32x4.fromInt32x4Bits(nMask);
-  Expect.equals(-9.0, n.x);
-  Expect.equals(-10.0, n.y);
-  Expect.equals(-11.0, n.z);
-  Expect.equals(-12.0, n.w);
-  nMask = new Int32x4.fromFloat32x4Bits(n);
-  nMask = nMask ^ m; // flip sign.
-  n = new Float32x4.fromInt32x4Bits(nMask);
-  Expect.equals(9.0, n.x);
-  Expect.equals(10.0, n.y);
-  Expect.equals(11.0, n.z);
-  Expect.equals(12.0, n.w);
+void testConversions() {
+  var signMask = Int32x4(0x80000000, 0x80000000, 0x80000000, 0x80000000);
+
+  for (var (bits, float) in [
+    // Simple values.
+    (0x3F800000, 1.0),
+    (0x40000000, 2.0),
+    (0x40400000, 3.0),
+    (0x40800000, 4.0),
+    // Special values.
+    (0x00000000, 0.0),
+    (0x80000000, -0.0),
+    (0x00000001, 1.401298464324817e-45),
+    (0x80000001, -1.401298464324817e-45),
+    (0x007FFFFF, 1.1754942106924411e-38),
+    (0x807FFFFF, -1.1754942106924411e-38),
+    (0x00800000, 1.1754943508222875e-38),
+    (0x80800000, -1.1754943508222875e-38),
+    (0x3F7FFFFF, 0.9999999403953552),
+    (0xBF7FFFFF, -0.9999999403953552),
+    (0x3F800000, 1.0),
+    (0xBF800000, -1.0),
+    (0x3F800001, 1.0000001192092896),
+    (0xBF800001, -1.0000001192092896),
+    (0x4AFFFFFF, 8388607.5),
+    (0xCAFFFFFF, -8388607.5),
+    (0x4B800000, 16777216.0),
+    (0xCB800000, -16777216.0),
+    (0x7F7FFFFF, 3.4028234663852886e+38),
+    (0xFF7FFFFF, -3.4028234663852886e+38),
+    (0x7F800000, inf),
+    (0xFF800000, -inf),
+    (0x7FC00000, nan), // Quiet NaN
+    (0xFFC00000, -nan), // Negative Quiet NaN.
+    (0x7F800001, nan), // Signaling NaN
+    (0x7F800001, -nan), // Signaling NaN
+    (0x3F7FFFFF, 0.9999999403953552),
+    (0xBF7FFFFF, -0.9999999403953552),
+    (0x4B000001, 8388609.0),
+    (0xCB000001, -8388609.0),
+    (0x4B7FFFFF, 16777215.0),
+    (0xCB7FFFFF, -16777215.0),
+  ]) {
+    var b = Int32x4(bits, bits, bits, bits);
+    var f = Float32x4.fromInt32x4Bits(b);
+    checkEquals(float, f.x);
+    checkEquals(float, f.y);
+    checkEquals(float, f.z);
+    checkEquals(float, f.w);
+    // Flip sign using bit mask.
+    bits ^= 0x80000000;
+    b = Int32x4(bits, bits, bits, bits);
+    f = Float32x4.fromInt32x4Bits(b);
+    checkEquals(-float, f.x);
+    checkEquals(-float, f.y);
+    checkEquals(-float, f.z);
+    checkEquals(-float, f.w);
+  }
 }
 
-testBitOperators() {
-  var m = new Int32x4(0xAAAAAAA, 0xAAAAAAA, 0xAAAAAAA, 0xAAAAAAA);
-  var n = new Int32x4(0x5555555, 0x5555555, 0x5555555, 0x5555555);
-  Expect.equals(0xAAAAAAA, m.x);
-  Expect.equals(0xAAAAAAA, m.y);
-  Expect.equals(0xAAAAAAA, m.z);
-  Expect.equals(0xAAAAAAA, m.w);
-  Expect.equals(0x5555555, n.x);
-  Expect.equals(0x5555555, n.y);
-  Expect.equals(0x5555555, n.z);
-  Expect.equals(0x5555555, n.w);
-  Expect.equals(true, n.flagX);
-  Expect.equals(true, n.flagY);
-  Expect.equals(true, n.flagZ);
-  Expect.equals(true, n.flagW);
-  var o = m | n; // or
-  Expect.equals(0xFFFFFFF, o.x);
-  Expect.equals(0xFFFFFFF, o.y);
-  Expect.equals(0xFFFFFFF, o.z);
-  Expect.equals(0xFFFFFFF, o.w);
-  Expect.equals(true, o.flagX);
-  Expect.equals(true, o.flagY);
-  Expect.equals(true, o.flagZ);
-  Expect.equals(true, o.flagW);
-  o = m & n; // and
-  Expect.equals(0x0, o.x);
-  Expect.equals(0x0, o.y);
-  Expect.equals(0x0, o.z);
-  Expect.equals(0x0, o.w);
-  n = n.withX(0xAAAAAAA);
-  n = n.withY(0xAAAAAAA);
-  n = n.withZ(0xAAAAAAA);
-  n = n.withW(0xAAAAAAA);
-  Expect.equals(0xAAAAAAA, n.x);
-  Expect.equals(0xAAAAAAA, n.y);
-  Expect.equals(0xAAAAAAA, n.z);
-  Expect.equals(0xAAAAAAA, n.w);
-  o = m ^ n; // xor
-  Expect.equals(0x0, o.x);
-  Expect.equals(0x0, o.y);
-  Expect.equals(0x0, o.z);
-  Expect.equals(0x0, o.w);
-  Expect.equals(false, o.flagX);
-  Expect.equals(false, o.flagY);
-  Expect.equals(false, o.flagZ);
-  Expect.equals(false, o.flagW);
-}
-
-testSetters() {
-  var f = new Float32x4.zero();
-  Expect.equals(0.0, f.x);
-  Expect.equals(0.0, f.y);
-  Expect.equals(0.0, f.z);
-  Expect.equals(0.0, f.w);
+void testSetters() {
+  var f = Float32x4.zero();
+  checkEquals(0.0, f.x);
+  checkEquals(0.0, f.y);
+  checkEquals(0.0, f.z);
+  checkEquals(0.0, f.w);
   f = f.withX(4.0);
-  Expect.equals(4.0, f.x);
+  checkEquals(4.0, f.x);
   f = f.withY(3.0);
-  Expect.equals(3.0, f.y);
+  checkEquals(3.0, f.y);
   f = f.withZ(2.0);
-  Expect.equals(2.0, f.z);
+  checkEquals(2.0, f.z);
   f = f.withW(1.0);
-  Expect.equals(1.0, f.w);
-  f = new Float32x4.zero();
+  checkEquals(1.0, f.w);
+  f = Float32x4.zero();
   f = f.withX(4.0).withZ(2.0).withW(1.0).withY(3.0);
-  Expect.equals(4.0, f.x);
-  Expect.equals(3.0, f.y);
-  Expect.equals(2.0, f.z);
-  Expect.equals(1.0, f.w);
-  var m = new Int32x4.bool(false, false, false, false);
-  Expect.equals(false, m.flagX);
-  Expect.equals(false, m.flagY);
-  Expect.equals(false, m.flagZ);
-  Expect.equals(false, m.flagW);
-  m = m.withFlagX(true);
-  Expect.equals(true, m.flagX);
-  Expect.equals(false, m.flagY);
-  Expect.equals(false, m.flagZ);
-  Expect.equals(false, m.flagW);
-  m = m.withFlagY(true);
-  Expect.equals(true, m.flagX);
-  Expect.equals(true, m.flagY);
-  Expect.equals(false, m.flagZ);
-  Expect.equals(false, m.flagW);
-  m = m.withFlagZ(true);
-  Expect.equals(true, m.flagX);
-  Expect.equals(true, m.flagY);
-  Expect.equals(true, m.flagZ);
-  Expect.equals(false, m.flagW);
-  m = m.withFlagW(true);
-  Expect.equals(true, m.flagX);
-  Expect.equals(true, m.flagY);
-  Expect.equals(true, m.flagZ);
-  Expect.equals(true, m.flagW);
-}
-
-testGetters() {
-  var f = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  Expect.equals(1.0, f.x);
-  Expect.equals(2.0, f.y);
-  Expect.equals(3.0, f.z);
-  Expect.equals(4.0, f.w);
-  var m = new Int32x4.bool(false, true, true, false);
-  Expect.equals(false, m.flagX);
-  Expect.equals(true, m.flagY);
-  Expect.equals(true, m.flagZ);
-  Expect.equals(false, m.flagW);
+  checkEquals(4.0, f.x);
+  checkEquals(3.0, f.y);
+  checkEquals(2.0, f.z);
+  checkEquals(1.0, f.w);
 }
 
 void testSplat() {
-  var f = new Float32x4.splat(2.0);
-  Expect.equals(2.0, f.x);
-  Expect.equals(2.0, f.y);
-  Expect.equals(2.0, f.z);
-  Expect.equals(2.0, f.w);
+  for (var v in [2.0, 0.0, -0.0, inf, -inf, nan, max, min]) {
+    var f = Float32x4.splat(v);
+    checkEquals(v, f.x);
+    checkEquals(v, f.y);
+    checkEquals(v, f.z);
+    checkEquals(v, f.w);
+  }
 }
 
-void testZero() {
-  var f = new Float32x4.zero();
-  Expect.equals(0.0, f.x);
-  Expect.equals(0.0, f.y);
-  Expect.equals(0.0, f.z);
-  Expect.equals(0.0, f.w);
+void testZeroConstructor() {
+  var f = Float32x4.zero();
+  checkEquals(0.0, f.x);
+  checkEquals(0.0, f.y);
+  checkEquals(0.0, f.z);
+  checkEquals(0.0, f.w);
 }
 
-void testConstructor() {
-  var f = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  Expect.equals(1.0, f.x);
-  Expect.equals(2.0, f.y);
-  Expect.equals(3.0, f.z);
-  Expect.equals(4.0, f.w);
+void testConstructorAndGetters() {
+  var f = Float32x4(1.0, 2.0, 3.0, 4.0);
+  checkEquals(1.0, f.x);
+  checkEquals(2.0, f.y);
+  checkEquals(3.0, f.z);
+  checkEquals(4.0, f.w);
 }
-
-// TODO(eernst): Come pure null-safety, this can only be `TypeError`.
-bool isTypeError(e) => e is TypeError || e is ArgumentError;
 
 void testBadArguments() {
-  dynamic dynamicNull = null;
-  Expect.throws(() => new Float32x4(dynamicNull, 2.0, 3.0, 4.0), isTypeError);
-  Expect.throws(() => new Float32x4(1.0, dynamicNull, 3.0, 4.0), isTypeError);
-  Expect.throws(() => new Float32x4(1.0, 2.0, dynamicNull, 4.0), isTypeError);
-  Expect.throws(() => new Float32x4(1.0, 2.0, 3.0, dynamicNull), isTypeError);
+  // Checks that non-double values are not accepted.
+  // The compiler should insert a dynamic downcast to `double` for each
+  // `dynamic`-typed argument. This test checks that no optimization gets
+  // in the way of that test.
 
-  // Use local variable typed as "dynamic" to avoid static warnings.
-  dynamic str = "foo";
-  Expect.throws(() => new Float32x4(str, 2.0, 3.0, 4.0), isTypeError);
-  Expect.throws(() => new Float32x4(1.0, str, 3.0, 4.0), isTypeError);
-  Expect.throws(() => new Float32x4(1.0, 2.0, str, 4.0), isTypeError);
-  Expect.throws(() => new Float32x4(1.0, 2.0, 3.0, str), isTypeError);
+  dynamic dynamicValue = null;
+  Expect.throwsTypeError(() => Float32x4(dynamicValue, 2.0, 3.0, 4.0));
+  Expect.throwsTypeError(() => Float32x4(1.0, dynamicValue, 3.0, 4.0));
+  Expect.throwsTypeError(() => Float32x4(1.0, 2.0, dynamicValue, 4.0));
+  Expect.throwsTypeError(() => Float32x4(1.0, 2.0, 3.0, dynamicValue));
+
+  dynamicValue = "foo";
+  Expect.throwsTypeError(() => Float32x4(dynamicValue, 2.0, 3.0, 4.0));
+  Expect.throwsTypeError(() => Float32x4(1.0, dynamicValue, 3.0, 4.0));
+  Expect.throwsTypeError(() => Float32x4(1.0, 2.0, dynamicValue, 4.0));
+  Expect.throwsTypeError(() => Float32x4(1.0, 2.0, 3.0, dynamicValue));
 }
 
 void testSpecialValues() {
-  /// Same as Expect.identical, but also works with NaNs and -0.0 for dart2js.
-  void checkEquals(expected, actual) {
-    if (expected.isNaN) {
-      Expect.isTrue(actual.isNaN);
-    } else if (expected == 0.0 && expected.isNegative) {
-      Expect.isTrue(actual == 0.0 && actual.isNegative);
-    } else {
-      Expect.equals(expected, actual);
-    }
-  }
-
+  // Pairs of double values and (a double representation of) their closest
+  // 32-bit floating point value.
+  // The second value is what the first value is rounded to when converted
+  // to 32-bit float.
   var pairs = [
-    [0.0, 0.0],
-    [5e-324, 0.0],
-    [2.225073858507201e-308, 0.0],
-    [2.2250738585072014e-308, 0.0],
-    [0.9999999999999999, 1.0],
-    [1.0, 1.0],
-    [1.0000000000000002, 1.0],
-    [4294967295.0, 4294967296.0],
-    [4294967296.0, 4294967296.0],
-    [4503599627370495.5, 4503599627370496.0],
-    [9007199254740992.0, 9007199254740992.0],
-    [1.7976931348623157e+308, double.infinity],
-    [0.49999999999999994, 0.5],
-    [4503599627370497.0, 4503599627370496.0],
-    [9007199254740991.0, 9007199254740992.0],
-    [double.infinity, double.infinity],
-    [double.nan, double.nan],
+    // Values that are precisely representable as float-32.
+    for (var f32 in [
+      0.0,
+      1.0,
+      1.401298464324817e-45,
+      1.1754942106924411e-38,
+      1.1754943508222875e-38,
+      0.9999999403953552,
+      1.0000001192092896,
+      8388607.5,
+      8388608.0,
+      3.4028234663852886e+38,
+      8388609.0,
+      16777215.0,
+      4294967296.0,
+      inf,
+      nan,
+    ])
+      (f32, f32),
+    // Values that round when converted.
+    (5e-324, 0.0),
+    (2.225073858507201e-308, 0.0),
+    (2.2250738585072014e-308, 0.0),
+    (0.9999999999999999, 1.0),
+    (1.0000000000000002, 1.0),
+    (4294967295.0, 4294967296.0),
+    (4503599627370495.5, 4503599627370496.0),
+    (9007199254740992.0, 9007199254740992.0),
+    (1.7976931348623157e+308, inf),
+    (0.49999999999999994, 0.5),
+    (4503599627370497.0, 4503599627370496.0),
+    (9007199254740991.0, 9007199254740992.0),
   ];
 
-  var conserved = [
-    1.401298464324817e-45,
-    1.1754942106924411e-38,
-    1.1754943508222875e-38,
-    0.9999999403953552,
-    1.0000001192092896,
-    8388607.5,
-    8388608.0,
-    3.4028234663852886e+38,
-    8388609.0,
-    16777215.0,
+  var allTests = [
+    ...pairs,
+    // Add negative variant of every pair.
+    for (var (d, f) in pairs) (-d, -f),
   ];
 
-  var minusPairs = pairs.map((pair) {
-    return [-pair[0], -pair[1]];
-  });
-  var conservedPairs = conserved.map((value) => [value, value]);
-
-  var allTests = [pairs, minusPairs, conservedPairs].expand((x) => x);
-
-  for (var pair in allTests) {
-    var input = pair[0];
-    var expected = pair[1];
+  for (var (input, expected) in allTests) {
     var f;
-    f = new Float32x4(input, 2.0, 3.0, 4.0);
+    f = Float32x4(input, 2.0, 3.0, 4.0);
     checkEquals(expected, f.x);
-    Expect.equals(2.0, f.y);
-    Expect.equals(3.0, f.z);
-    Expect.equals(4.0, f.w);
+    checkEquals(2.0, f.y);
+    checkEquals(3.0, f.z);
+    checkEquals(4.0, f.w);
 
-    f = new Float32x4(1.0, input, 3.0, 4.0);
-    Expect.equals(1.0, f.x);
+    f = Float32x4(1.0, input, 3.0, 4.0);
+    checkEquals(1.0, f.x);
     checkEquals(expected, f.y);
-    Expect.equals(3.0, f.z);
-    Expect.equals(4.0, f.w);
+    checkEquals(3.0, f.z);
+    checkEquals(4.0, f.w);
 
-    f = new Float32x4(1.0, 2.0, input, 4.0);
-    Expect.equals(1.0, f.x);
-    Expect.equals(2.0, f.y);
+    f = Float32x4(1.0, 2.0, input, 4.0);
+    checkEquals(1.0, f.x);
+    checkEquals(2.0, f.y);
     checkEquals(expected, f.z);
-    Expect.equals(4.0, f.w);
+    checkEquals(4.0, f.w);
 
-    f = new Float32x4(1.0, 2.0, 3.0, input);
-    Expect.equals(1.0, f.x);
-    Expect.equals(2.0, f.y);
-    Expect.equals(3.0, f.z);
+    f = Float32x4(1.0, 2.0, 3.0, input);
+    checkEquals(1.0, f.x);
+    checkEquals(2.0, f.y);
+    checkEquals(3.0, f.z);
     checkEquals(expected, f.w);
   }
 }
 
-main() {
+void main() {
   for (int i = 0; i < 20; i++) {
-    testConstructor();
-    testSplat();
-    testZero();
-    testAdd();
-    testGetters();
+    testConstructorAndGetters();
     testSetters();
-    testBitOperators();
+    testSplat();
+    testZeroConstructor();
+    testAdd();
     testConversions();
     testSelect();
     testShuffle();
@@ -525,4 +660,28 @@ main() {
     testBadArguments();
     testSpecialValues();
   }
+}
+
+void checkEquals(double expected, double actual) {
+  if (!_sameDouble(expected, actual)) {
+    Expect.fail("Not equal. Expected: $expected, actual: $actual");
+  }
+}
+
+void checkOneOf(List<double> possibleValues, double actual) {
+  if (!possibleValues.any((v) => _sameDouble(v, actual))) {
+    Expect.fail(
+      "Not equal. Expected one of: ${possibleValues.join(', ')}, "
+      "actual: $actual",
+    );
+  }
+}
+
+bool _sameDouble(double v1, double v2) {
+  if (v1 == v2) {
+    // False positive for 0.0 and -0.0.
+    return v1.isNegative == v2.isNegative;
+  }
+  // False negative for NaN.
+  return v1.isNaN && v2.isNaN;
 }
