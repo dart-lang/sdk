@@ -1743,7 +1743,7 @@ class _SubstitutedTypeParameters {
 
     // Create type formals with specialized bounds.
     // For example `<U extends T>` where T comes from an outer scope.
-    var newElements = <TypeParameterElement>[];
+    var newElements = <TypeParameterElementImpl>[];
     var newTypes = <TypeParameterType>[];
     for (int i = 0; i < elements.length; i++) {
       var element = elements[i];
@@ -1757,10 +1757,11 @@ class _SubstitutedTypeParameters {
     }
 
     // Update bounds to reference new TypeParameterElement(s).
-    var substitution2 = Substitution.fromPairs(elements, newTypes);
+    // TODO(scheglov): remove the cast
+    var substitution2 = Substitution.fromPairs(elements.cast(), newTypes);
     for (int i = 0; i < newElements.length; i++) {
       var element = elements[i];
-      var newElement = newElements[i] as TypeParameterElementImpl;
+      var newElement = newElements[i];
       var bound = element.bound;
       if (bound != null) {
         var newBound = substitution2.substituteType(bound);

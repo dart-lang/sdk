@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -204,7 +201,7 @@ abstract class Substitution {
   /// Substitutes the Nth parameter in [parameters] with the Nth type in
   /// [types].
   static MapSubstitution fromPairs(
-    List<TypeParameterElement> parameters,
+    List<TypeParameterElementImpl> parameters,
     List<DartType> types,
   ) {
     return fromPairs2(parameters.map((p) => p.asElement2).toFixedList(), types);
