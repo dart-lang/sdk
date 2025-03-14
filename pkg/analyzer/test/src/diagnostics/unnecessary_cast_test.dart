@@ -163,6 +163,14 @@ void f() {
 ''');
   }
 
+  test_type_function() async {
+    await assertNoErrorsInCode(r'''
+void f(Function f) {
+  f as Function;
+}
+''');
+  }
+
   test_type_supertype() async {
     await assertNoErrorsInCode(r'''
 void f(int a) {

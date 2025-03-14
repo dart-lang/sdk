@@ -28,6 +28,9 @@ class CandidatesConflict extends Conflict {
     required super.name,
     required this.candidates,
   });
+
+  List<ExecutableElement2> get candidates2 =>
+      candidates.map((e) => e.asElement2).toList();
 }
 
 /// Failure to find a valid signature from superinterfaces.
@@ -50,6 +53,10 @@ class GetterMethodConflict extends Conflict {
     required this.getter,
     required this.method,
   });
+
+  ExecutableElement2 get getter2 => getter.asElement2;
+
+  ExecutableElement2 get method2 => method.asElement2;
 }
 
 /// The extension type has both an extension and non-extension member
@@ -63,6 +70,12 @@ class HasNonExtensionAndExtensionMemberConflict extends Conflict {
     required this.nonExtension,
     required this.extension,
   });
+
+  List<ExecutableElement2> get extension2 =>
+      extension.map((e) => e.asElement2).toList();
+
+  List<ExecutableElement2> get nonExtension2 =>
+      nonExtension.map((e) => e.asElement2).toList();
 }
 
 /// Manages knowledge about interface types and their members.
@@ -743,15 +756,29 @@ class InheritanceManager3 {
       return MapEntry(key, result);
     });
 
+    var implemented2 = implemented.map<Name, ExecutableElement2>(
+        (key, value) => MapEntry(key, value.asElement2));
+
+    var namedCandidates2 = namedCandidates.map<Name, List<ExecutableElement2>>(
+        (key, value) => MapEntry(key, value.map((e) => e.asElement2).toList()));
+
+    var superImplemented2 = superImplemented
+        .map((e) => e.map<Name, ExecutableElement2>(
+            (key, value) => MapEntry(key, value.asElement2)))
+        .toList();
+
     return Interface._(
       map: interface,
       declared: declared,
       implemented: implemented,
+      implemented2: implemented2,
       noSuchMethodForwarders: noSuchMethodForwarders,
       overridden: namedCandidates,
+      overridden2: namedCandidates2,
       redeclared: const {},
       redeclared2: const {},
       superImplemented: superImplemented,
+      superImplemented2: superImplemented2,
       conflicts: conflicts.toFixedList(),
     );
   }
@@ -939,15 +966,21 @@ class InheritanceManager3 {
       }
     }
 
+    var implemented2 = implemented.map<Name, ExecutableElement2>(
+        (key, value) => MapEntry(key, value.asElement2));
+
     return Interface._(
       map: implemented,
       declared: declared,
       implemented: implemented,
+      implemented2: implemented2,
       noSuchMethodForwarders: const {},
       overridden: const {},
+      overridden2: const {},
       redeclared: uniqueRedeclared,
       redeclared2: uniqueRedeclared2,
       superImplemented: const [],
+      superImplemented2: const [],
       conflicts: conflicts.toFixedList(),
     );
   }
@@ -998,15 +1031,28 @@ class InheritanceManager3 {
     var implemented = <Name, ExecutableElementOrMember>{};
     _addImplemented(implemented, fragment, element);
 
+    var implemented2 = implemented.map<Name, ExecutableElement2>(
+        (key, value) => MapEntry(key, value.asElement2));
+
+    var interfaceCandidates2 =
+        interfaceCandidates.map<Name, List<ExecutableElement2>>((key, value) =>
+            MapEntry(key, value.map((e) => e.asElement2).toList()));
+
+    var superInterface2 = superInterface.map<Name, ExecutableElement2>(
+        (key, value) => MapEntry(key, value.asElement2));
+
     return Interface._(
       map: interface,
       declared: declared,
       implemented: implemented,
+      implemented2: implemented2,
       noSuchMethodForwarders: {},
       overridden: interfaceCandidates,
+      overridden2: interfaceCandidates2,
       redeclared: const {},
       redeclared2: const {},
       superImplemented: [superInterface],
+      superImplemented2: [superInterface2],
       conflicts: <Conflict>[
         ...superConflicts,
         ...interfaceConflicts,
@@ -1226,11 +1272,14 @@ class Interface {
     map: const {},
     declared: const {},
     implemented: const {},
+    implemented2: const {},
     noSuchMethodForwarders: <Name>{},
     overridden: const {},
+    overridden2: const {},
     redeclared: const {},
     redeclared2: const {},
     superImplemented: const [{}],
+    superImplemented2: const [{}],
     conflicts: const [],
   );
 
@@ -1243,12 +1292,19 @@ class Interface {
   /// The map of names to their concrete implementations.
   final Map<Name, ExecutableElementOrMember> implemented;
 
+  /// The map of names to their concrete implementations.
+  final Map<Name, ExecutableElement2> implemented2;
+
   /// The set of names that are `noSuchMethod` forwarders in [implemented].
   final Set<Name> noSuchMethodForwarders;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
   final Map<Name, List<ExecutableElementOrMember>> overridden;
+
+  /// The map of names to their signatures from the mixins, superclasses,
+  /// or interfaces.
+  final Map<Name, List<ExecutableElement2>> overridden2;
 
   /// The map of names to the signatures from superinterfaces that a member
   /// declaration in this extension type redeclares.
@@ -1264,6 +1320,12 @@ class Interface {
   /// `class C extends S with M1, M2`, we get `[S, S&M1, S&M1&M2]`.
   final List<Map<Name, ExecutableElementOrMember>> superImplemented;
 
+  /// Each item of this list maps names to their concrete implementations.
+  /// The first item of the list is the nominal superclass, next the nominal
+  /// superclass plus the first mixin, etc. So, for the class like
+  /// `class C extends S with M1, M2`, we get `[S, S&M1, S&M1&M2]`.
+  final List<Map<Name, ExecutableElement2>> superImplemented2;
+
   /// The list of conflicts between superinterfaces - the nominal superclass,
   /// mixins, and interfaces.  Does not include conflicts with the declared
   /// members of the class.
@@ -1277,11 +1339,14 @@ class Interface {
     required this.map,
     required this.declared,
     required this.implemented,
+    required this.implemented2,
     required this.noSuchMethodForwarders,
     required this.overridden,
+    required this.overridden2,
     required this.redeclared,
     required this.redeclared2,
     required this.superImplemented,
+    required this.superImplemented2,
     required this.conflicts,
   });
 
@@ -1289,6 +1354,19 @@ class Interface {
   @experimental
   Map<Name, ExecutableElement2> get declared2 {
     return declared.mapValue((element) => element.asElement2);
+  }
+
+  /// The map of names to the most specific signatures from the mixins,
+  /// superclasses, or interfaces.
+  Map<Name, ExecutableElement2>? get inheritedMap2 {
+    if (inheritedMap == null) {
+      return null;
+    }
+    var inheritedMap2 = <Name, ExecutableElement2>{};
+    for (var entry in inheritedMap!.entries) {
+      inheritedMap2[entry.key] = entry.value.asElement2;
+    }
+    return inheritedMap2;
   }
 
   /// The map of names to their signature in the interface.
@@ -1396,6 +1474,9 @@ class NotUniqueExtensionMemberConflict extends Conflict {
     required super.name,
     required this.candidates,
   });
+
+  List<ExecutableElement2> get candidates2 =>
+      candidates.map((e) => e.asElement2).toList();
 }
 
 class _ExtensionTypeCandidates {

@@ -134,7 +134,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
-    if (isUnnecessaryCast(node, _typeSystem)) {
+    if (_isUnnecessaryCast(node, _typeSystem)) {
       _errorReporter.atNode(
         node,
         WarningCode.UNNECESSARY_CAST,
@@ -1509,27 +1509,31 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return _workspacePackage.contains(library.firstFragment.source);
   }
 
+  static String _formalParameterNameOrEmpty(FormalParameter node) {
+    return node.name?.lexeme ?? '';
+  }
+
+  static bool _hasNonVirtualAnnotation(ExecutableElement2 element) {
+    if (element is PropertyAccessorElement2 && element.isSynthetic) {
+      var variable = element.variable3;
+      if (variable != null && variable.metadata2.hasNonVirtual) {
+        return true;
+      }
+    }
+    return element.metadata2.hasNonVirtual;
+  }
+
   /// Checks for the passed as expression for the [WarningCode.UNNECESSARY_CAST]
   /// hint code.
   ///
   /// Returns `true` if and only if an unnecessary cast hint should be generated
   /// on [node].  See [WarningCode.UNNECESSARY_CAST].
-  static bool isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
+  static bool _isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
     var leftType = node.expression.typeOrThrow;
     var rightType = node.type.typeOrThrow;
 
-    // `dynamicValue as SomeType` is a valid use case.
-    if (leftType is DynamicType) {
-      return false;
-    }
-
     // `cannotResolve is SomeType` is already reported.
     if (leftType is InvalidType) {
-      return false;
-    }
-
-    // `x as dynamic` is a valid use case.
-    if (rightType is DynamicType) {
       return false;
     }
 
@@ -1543,21 +1547,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    return true;
-  }
-
-  static String _formalParameterNameOrEmpty(FormalParameter node) {
-    return node.name?.lexeme ?? '';
-  }
-
-  static bool _hasNonVirtualAnnotation(ExecutableElement2 element) {
-    if (element is PropertyAccessorElement2 && element.isSynthetic) {
-      var variable = element.variable3;
-      if (variable != null && variable.metadata2.hasNonVirtual) {
-        return true;
-      }
+    // `x as dynamic` is a valid use case. The explicit cast is a recommended
+    // way to dynamically call a `Function` when the `avoid_dynamic_calls` lint
+    // rule is enabled.
+    if (rightType is DynamicType) {
+      return false;
     }
-    return element.metadata2.hasNonVirtual;
+
+    // `x as Function` is a valid use case. The explicit cast is a recommended
+    // way to dynamically call a `Function` when the `avoid_dynamic_calls` lint
+    // rule is enabled.
+    if (rightType.isDartCoreFunction) {
+      return false;
+    }
+
+    return true;
   }
 }
 

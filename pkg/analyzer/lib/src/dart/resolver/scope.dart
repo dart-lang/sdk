@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements, as_much_as_we_can
-
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -127,6 +125,7 @@ class Namespace {
 
   /// Return a table containing the same mappings as those defined by this
   /// namespace.
+  @Deprecated('Use definedNames2 instead')
   Map<String, Element> get definedNames =>
       _definedNames.mapValue((e) => e.asElement!);
 
@@ -136,6 +135,7 @@ class Namespace {
 
   /// Return the element in this namespace that is available to the containing
   /// scope using the given name, or `null` if there is no such element.
+  @Deprecated('Use get2() instead')
   Element? get(String name) => _definedNames[name]?.asElement;
 
   /// Return the element in this namespace that is available to the containing
@@ -145,6 +145,7 @@ class Namespace {
   /// Return the element in this namespace whose name is the result of combining
   /// the [prefix] and the [name], separated by a period, or `null` if there is
   /// no such element.
+  @Deprecated('Use getPrefixed2() instead')
   Element? getPrefixed(String prefix, String name) => null;
 
   /// Return the element in this namespace whose name is the result of combining
@@ -322,6 +323,7 @@ class PrefixedNamespace implements Namespace {
       : _prefix = prefix,
         _length = prefix.length;
 
+  @Deprecated('Use definedNames2 instead')
   @override
   Map<String, Element> get definedNames {
     var definedNames = <String, Element>{};
@@ -336,6 +338,7 @@ class PrefixedNamespace implements Namespace {
     return _definedNames;
   }
 
+  @Deprecated('Use get2() instead')
   @override
   Element? get(String name) {
     return get2(name)?.asElement;
@@ -351,6 +354,7 @@ class PrefixedNamespace implements Namespace {
     return null;
   }
 
+  @Deprecated('Use getPrefixed2() instead')
   @override
   Element? getPrefixed(String prefix, String name) {
     return getPrefixed2(prefix, name)?.asElement;

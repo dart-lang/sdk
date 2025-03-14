@@ -7026,7 +7026,7 @@ class LibraryElementImpl extends ElementImpl
 
   /// The entry point for this library, or `null` if this library does not have
   /// an entry point.
-  FunctionElement? _entryPoint;
+  TopLevelFunctionElement? _entryPoint;
 
   /// The provider for the synthetic function `loadLibrary` that is defined
   /// for this library.
@@ -7126,19 +7126,21 @@ class LibraryElementImpl extends ElementImpl
     return _definingCompilationUnit;
   }
 
+  @Deprecated('Use entryPoint2 instead')
   @override
   FunctionElement? get entryPoint {
+    return entryPoint2?.asElement;
+  }
+
+  @override
+  TopLevelFunctionElement? get entryPoint2 {
     linkedData?.read(this);
     return _entryPoint;
   }
 
-  set entryPoint(FunctionElement? entryPoint) {
-    _entryPoint = entryPoint;
+  set entryPoint2(TopLevelFunctionElement? value) {
+    _entryPoint = value;
   }
-
-  @override
-  TopLevelFunctionElement? get entryPoint2 =>
-      entryPoint.asElement2 as TopLevelFunctionElement?;
 
   @override
   List<LibraryElementImpl> get exportedLibraries {

@@ -44,7 +44,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
   exportNamespace
-    C: package:test/a.dart::<fragment>::@class::C
+    C: package:test/a.dart::@class::C
 ''');
   }
 
@@ -79,7 +79,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
   exportNamespace
-    C: package:test/a.dart::<fragment>::@class::C
+    C: package:test/a.dart::@class::C
 ''');
   }
 
@@ -119,7 +119,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/foo.dart::<fragment>::@class::A
   exportNamespace
-    A: package:test/foo.dart::<fragment>::@class::A
+    A: package:test/foo.dart::@class::A
 ''');
   }
 
@@ -160,7 +160,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/foo_io.dart::<fragment>::@class::A
   exportNamespace
-    A: package:test/foo_io.dart::<fragment>::@class::A
+    A: package:test/foo_io.dart::@class::A
 ''');
   }
 
@@ -201,7 +201,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/foo_html.dart::<fragment>::@class::A
   exportNamespace
-    A: package:test/foo_html.dart::<fragment>::@class::A
+    A: package:test/foo_html.dart::@class::A
 ''');
   }
 
@@ -266,8 +266,8 @@ library
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
     declared <testLibraryFragment>::@class::X
   exportNamespace
-    A: package:test/a.dart::<fragment>::@class::A
-    X: <testLibraryFragment>::@class::X
+    A: package:test/a.dart::@class::A
+    X: <testLibrary>::@class::X
 ''');
   }
 
@@ -298,7 +298,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@function::f
   exportNamespace
-    f: package:test/a.dart::<fragment>::@function::f
+    f: package:test/a.dart::@function::f
 ''');
   }
 
@@ -363,8 +363,8 @@ library
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::B
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::D
   exportNamespace
-    B: package:test/a.dart::<fragment>::@class::B
-    D: package:test/a.dart::<fragment>::@class::D
+    B: package:test/a.dart::@class::B
+    D: package:test/a.dart::@class::D
 ''');
   }
 
@@ -405,7 +405,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
   exportNamespace
-    C: package:test/a.dart::<fragment>::@class::C
+    C: package:test/a.dart::@class::C
 ''');
   }
 
@@ -489,10 +489,10 @@ library
     exported[(0, 1)] package:test/c.dart::<fragment>::@class::C
     declared <testLibraryFragment>::@class::X
   exportNamespace
-    A: package:test/a.dart::<fragment>::@class::A
-    B: package:test/b.dart::<fragment>::@class::B
-    C: package:test/c.dart::<fragment>::@class::C
-    X: <testLibraryFragment>::@class::X
+    A: package:test/a.dart::@class::A
+    B: package:test/b.dart::@class::B
+    C: package:test/c.dart::@class::C
+    X: <testLibrary>::@class::X
 ''');
   }
 
@@ -523,7 +523,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@setter::f
   exportNamespace
-    f=: package:test/a.dart::<fragment>::@setter::f
+    f=: package:test/a.dart::<fragment>::@setter::f#element
 ''');
   }
 
@@ -566,8 +566,8 @@ library
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::A
     exported[(0, 0)] package:test/a.dart::<fragment>::@class::C
   exportNamespace
-    A: package:test/a.dart::<fragment>::@class::A
-    C: package:test/a.dart::<fragment>::@class::C
+    A: package:test/a.dart::@class::A
+    C: package:test/a.dart::@class::C
 ''');
   }
 
@@ -606,8 +606,8 @@ library
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::f
     exported[(0, 0)] package:test/a.dart::<fragment>::@setter::f
   exportNamespace
-    f: package:test/a.dart::<fragment>::@getter::f
-    f=: package:test/a.dart::<fragment>::@setter::f
+    f: package:test/a.dart::<fragment>::@getter::f#element
+    f=: package:test/a.dart::<fragment>::@setter::f#element
 ''');
   }
 
@@ -638,7 +638,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@typeAlias::F
   exportNamespace
-    F: package:test/a.dart::<fragment>::@typeAlias::F
+    F: package:test/a.dart::@typeAlias::F
 ''');
   }
 
@@ -696,8 +696,8 @@ library
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::x
     exported[(0, 0)] package:test/a.dart::<fragment>::@setter::x
   exportNamespace
-    x: package:test/a.dart::<fragment>::@getter::x
-    x=: package:test/a.dart::<fragment>::@setter::x
+    x: package:test/a.dart::<fragment>::@getter::x#element
+    x=: package:test/a.dart::<fragment>::@setter::x#element
 ''');
   }
 
@@ -728,7 +728,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::x
   exportNamespace
-    x: package:test/a.dart::<fragment>::@getter::x
+    x: package:test/a.dart::<fragment>::@getter::x#element
 ''');
   }
 
@@ -759,7 +759,7 @@ library
   exportedReferences
     exported[(0, 0)] package:test/a.dart::<fragment>::@getter::x
   exportNamespace
-    x: package:test/a.dart::<fragment>::@getter::x
+    x: package:test/a.dart::<fragment>::@getter::x#element
 ''');
   }
 
@@ -1236,11 +1236,11 @@ library
     exported[(2, 1)] package:test/c.dart::<fragment>::@class::C
     declared <testLibraryFragment>::@class::X
   exportNamespace
-    A: package:test/a.dart::<fragment>::@class::A
-    B1: package:test/b.dart::<fragment>::@class::B1
-    B2: package:test/b.dart::<fragment>::@class::B2
-    C: package:test/c.dart::<fragment>::@class::C
-    X: <testLibraryFragment>::@class::X
+    A: package:test/a.dart::@class::A
+    B1: package:test/b.dart::@class::B1
+    B2: package:test/b.dart::@class::B2
+    C: package:test/c.dart::@class::C
+    X: <testLibrary>::@class::X
 ''');
   }
 
@@ -1330,9 +1330,9 @@ library
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A3
     declared <testLibraryFragment>::@class::X
   exportNamespace
-    A1: package:test/a.dart::<fragment>::@class::A1
-    A3: package:test/a.dart::<fragment>::@class::A3
-    X: <testLibraryFragment>::@class::X
+    A1: package:test/a.dart::@class::A1
+    A3: package:test/a.dart::@class::A3
+    X: <testLibrary>::@class::X
 ''');
   }
 
@@ -1421,9 +1421,9 @@ library
     exported[(1, 0)] package:test/a.dart::<fragment>::@class::A3
     declared <testLibraryFragment>::@class::X
   exportNamespace
-    A1: package:test/a.dart::<fragment>::@class::A1
-    A3: package:test/a.dart::<fragment>::@class::A3
-    X: <testLibraryFragment>::@class::X
+    A1: package:test/a.dart::@class::A1
+    A3: package:test/a.dart::@class::A3
+    X: <testLibrary>::@class::X
 ''');
   }
 
@@ -1663,9 +1663,9 @@ library
     declared <testLibrary>::@fragment::package:test/b.dart::@class::B
     declared <testLibraryFragment>::@class::C
   exportNamespace
-    A: <testLibrary>::@fragment::package:test/a.dart::@class::A
-    B: <testLibrary>::@fragment::package:test/b.dart::@class::B
-    C: <testLibraryFragment>::@class::C
+    A: <testLibrary>::@class::A
+    B: <testLibrary>::@class::B
+    C: <testLibrary>::@class::C
 ''');
   }
 
@@ -1775,9 +1775,9 @@ library
     exported[(2, 0)] package:test/b.dart::<fragment>::@class::B
     declared <testLibraryFragment>::@class::X
   exportNamespace
-    A: package:test/a.dart::<fragment>::@class::A
-    B: package:test/b.dart::<fragment>::@class::B
-    X: <testLibraryFragment>::@class::X
+    A: package:test/a.dart::@class::A
+    B: package:test/b.dart::@class::B
+    X: <testLibrary>::@class::X
 ''');
   }
 
@@ -1878,8 +1878,8 @@ library
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
     declared <testLibrary>::@fragment::package:test/a.dart::@setter::a
   exportNamespace
-    a: <testLibrary>::@fragment::package:test/a.dart::@getter::a
-    a=: <testLibrary>::@fragment::package:test/a.dart::@setter::a
+    a: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
+    a=: <testLibrary>::@fragment::package:test/a.dart::@setter::a#element
 ''');
   }
 
@@ -1966,7 +1966,7 @@ library
   exportedReferences
     declared <testLibrary>::@fragment::package:test/a.dart::@getter::a
   exportNamespace
-    a: <testLibrary>::@fragment::package:test/a.dart::@getter::a
+    a: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
 ''');
   }
 

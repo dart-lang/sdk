@@ -2728,6 +2728,9 @@ abstract class SuperFormalParameterFragment implements FormalParameterFragment {
 /// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelFunctionElement
     implements ExecutableElement2, HasSinceSdkVersion {
+  /// The name of the function used as an entry point.
+  static const String MAIN_FUNCTION_NAME = "main";
+
   /// The name of the synthetic function defined for libraries that are
   /// deferred.
   static final String LOAD_LIBRARY_NAME = "loadLibrary";
