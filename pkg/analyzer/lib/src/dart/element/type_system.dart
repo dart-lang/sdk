@@ -447,7 +447,7 @@ class TypeSystemImpl implements TypeSystem {
   TypeImpl? futureType(TypeImpl T) {
     // T implements S, and there is a U such that S is Future<U>
     if (T.nullabilitySuffix != NullabilitySuffix.question) {
-      var result = T.asInstanceOf(typeProvider.futureElement);
+      var result = T.asInstanceOf2(typeProvider.futureElement2);
       if (result != null) {
         return result;
       }
@@ -731,7 +731,7 @@ class TypeSystemImpl implements TypeSystem {
   }) {
     var typeParameters = element.typeParameters2;
     var typeArguments = _defaultTypeArguments(typeParameters);
-    return element.instantiate(
+    return element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );

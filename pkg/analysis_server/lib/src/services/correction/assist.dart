@@ -4,9 +4,7 @@
 
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
-import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
@@ -25,9 +23,6 @@ class DartAssistContextImpl implements DartAssistContext {
   final ResolvedUnitResult unitResult;
 
   @override
-  final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
-
-  @override
   final int selectionOffset;
 
   @override
@@ -38,7 +33,6 @@ class DartAssistContextImpl implements DartAssistContext {
     this.workspace,
     this.libraryResult,
     this.unitResult,
-    this.producerGeneratorsForLintRules,
     this.selectionOffset,
     this.selectionLength,
   );

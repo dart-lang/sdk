@@ -31,7 +31,6 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/assist_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
@@ -51,12 +50,10 @@ import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
 import 'package:analysis_server/src/utilities/timing_byte_store.dart';
-import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -254,10 +251,6 @@ abstract class AnalysisServer {
   /// the last idle state.
   final Set<String> filesResolvedSinceLastIdle = {};
 
-  /// A mapping of [ProducerGenerator]s to the set of lint names with which they
-  /// are associated (can fix).
-  final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
-
   /// A completer for [lspUninitialized].
   final Completer<void> _lspUninitializedCompleter = Completer<void>();
 
@@ -292,7 +285,6 @@ abstract class AnalysisServer {
          httpClient,
          Platform.environment['PUB_HOSTED_URL'],
        ),
-       producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap(),
        messageScheduler = MessageScheduler(
          testView: retainDataForTesting ? MessageSchedulerTestView() : null,
        ) {

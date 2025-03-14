@@ -223,7 +223,7 @@ class NamedTypeResolver with ScopeHelpers {
           argumentList,
           element.typeParameters2.length,
         );
-        var type = element.instantiate(
+        var type = element.instantiateImpl(
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );

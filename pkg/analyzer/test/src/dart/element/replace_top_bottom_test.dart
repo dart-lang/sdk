@@ -90,7 +90,7 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
       ),
     );
 
-    var F_dynamic = F.instantiate(
+    var F_dynamic = F.instantiateImpl(
       typeArguments: [dynamicType],
       nullabilitySuffix: NullabilitySuffix.none,
     );

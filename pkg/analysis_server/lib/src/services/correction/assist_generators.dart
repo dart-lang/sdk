@@ -4,6 +4,7 @@
 
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analyzer/error/error.dart';
 
 final registeredAssistGenerators = _RegisteredAssistGenerators();
 
@@ -17,6 +18,17 @@ class _RegisteredAssistGenerators {
   /// A list of the multi-generators used to produce [CorrectionProducer]s for
   /// assists.
   final Set<MultiProducerGenerator> multiProducerGenerators = {};
+
+  /// A mapping from registered _assist_ producer generators to the [LintCode]s
+  /// for which they may also act as a _fix_ producer generator.
+  late Map<ProducerGenerator, Set<LintCode>> lintRuleMap = {
+    for (var generator in producerGenerators)
+      generator: {
+        for (var MapEntry(key: lintName, value: generators)
+            in registeredFixGenerators.lintProducers.entries)
+          if (generators.contains(generator)) lintName,
+      },
+  };
 
   void registerGenerator(ProducerGenerator generator) {
     producerGenerators.add(generator);

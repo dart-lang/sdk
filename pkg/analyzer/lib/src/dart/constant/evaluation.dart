@@ -2671,7 +2671,7 @@ class _InstanceCreationEvaluator {
 
   /// Evaluates this constructor call as a factory constructor call.
   Constant evaluateFactoryConstructorCall(List<Expression> arguments) {
-    var definingClass = _constructor.enclosingElement3;
+    var definingClass = _constructor.asElement2.enclosingElement2;
     var argumentCount = arguments.length;
     if (_constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
@@ -2682,7 +2682,7 @@ class _InstanceCreationEvaluator {
       }
       String? variableName =
           argumentCount < 1 ? null : firstArgument?.toStringValue();
-      if (definingClass == typeProvider.boolElement) {
+      if (definingClass == typeProvider.boolElement2) {
         // Special case: https://github.com/dart-lang/sdk/issues/50045
         if (variableName == 'dart.library.js_util') {
           return DartObjectImpl(
@@ -2693,20 +2693,20 @@ class _InstanceCreationEvaluator {
         }
         return FromEnvironmentEvaluator(typeSystem, _declaredVariables)
             .getBool2(variableName, _namedValues, _constructor.asElement2);
-      } else if (definingClass == typeProvider.intElement) {
+      } else if (definingClass == typeProvider.intElement2) {
         return FromEnvironmentEvaluator(typeSystem, _declaredVariables)
             .getInt2(variableName, _namedValues, _constructor.asElement2);
-      } else if (definingClass == typeProvider.stringElement) {
+      } else if (definingClass == typeProvider.stringElement2) {
         return FromEnvironmentEvaluator(typeSystem, _declaredVariables)
             .getString2(variableName, _namedValues, _constructor.asElement2);
       }
     } else if (_constructor.name == 'hasEnvironment' &&
-        definingClass == typeProvider.boolElement) {
+        definingClass == typeProvider.boolElement2) {
       var name = argumentCount < 1 ? null : firstArgument?.toStringValue();
       return FromEnvironmentEvaluator(typeSystem, _declaredVariables)
           .hasEnvironment(name);
     } else if (_constructor.name == "" &&
-        definingClass == typeProvider.symbolElement &&
+        definingClass == typeProvider.symbolElement2 &&
         argumentCount == 1) {
       if (!_checkSymbolArguments(arguments)) {
         return InvalidConstant.forEntity(

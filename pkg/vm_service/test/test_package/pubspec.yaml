@@ -2,4 +2,3 @@ name: test_package
 publish_to: none
 environment:
   sdk: ^3.5.0
-resolution: workspace

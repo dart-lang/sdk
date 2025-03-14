@@ -8,7 +8,6 @@ repository: https://github.com/dart-lang/sdk/tree/main/pkg/dds_service_extension
 environment:
   sdk: ^3.5.0
 
-resolution: workspace
 
 dependencies:
   async: ^2.4.1

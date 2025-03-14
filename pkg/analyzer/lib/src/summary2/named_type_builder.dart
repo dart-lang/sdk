@@ -123,7 +123,7 @@ class NamedTypeBuilder extends TypeBuilder {
       var parameters = element3.typeParameters2;
       var arguments = _buildArguments(parameters);
       element3.aliasedType = aliasedType;
-      _type = element3.instantiate(
+      _type = element3.instantiateImpl(
         typeArguments: arguments,
         nullabilitySuffix: nullabilitySuffix,
       );

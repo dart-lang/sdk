@@ -318,28 +318,28 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl futureNone(TypeImpl type) {
-    return typeProvider.futureElement.instantiateImpl(
+    return typeProvider.futureElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl futureOrNone(TypeImpl type) {
-    return typeProvider.futureOrElement.instantiateImpl(
+    return typeProvider.futureOrElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl futureOrQuestion(TypeImpl type) {
-    return typeProvider.futureOrElement.instantiateImpl(
+    return typeProvider.futureOrElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   InterfaceTypeImpl futureQuestion(TypeImpl type) {
-    return typeProvider.futureElement.instantiateImpl(
+    return typeProvider.futureElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -387,14 +387,14 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl iterableNone(TypeImpl type) {
-    return typeProvider.iterableElement.instantiateImpl(
+    return typeProvider.iterableElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl iterableQuestion(TypeImpl type) {
-    return typeProvider.iterableElement.instantiateImpl(
+    return typeProvider.iterableElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -432,28 +432,28 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceTypeImpl listNone(TypeImpl type) {
-    return typeProvider.listElement.instantiateImpl(
+    return typeProvider.listElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl listQuestion(TypeImpl type) {
-    return typeProvider.listElement.instantiateImpl(
+    return typeProvider.listElement2.instantiateImpl(
       typeArguments: <TypeImpl>[type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   InterfaceTypeImpl mapNone(TypeImpl key, TypeImpl value) {
-    return typeProvider.mapElement.instantiateImpl(
+    return typeProvider.mapElement2.instantiateImpl(
       typeArguments: [key, value],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl mapQuestion(TypeImpl key, TypeImpl value) {
-    return typeProvider.mapElement.instantiateImpl(
+    return typeProvider.mapElement2.instantiateImpl(
       typeArguments: [key, value],
       nullabilitySuffix: NullabilitySuffix.question,
     );
@@ -680,7 +680,7 @@ mixin ElementsTypesMixin {
     TypeAliasElementImpl2 element, {
     List<TypeImpl> typeArguments = const [],
   }) {
-    return element.instantiate(
+    return element.instantiateImpl(
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );

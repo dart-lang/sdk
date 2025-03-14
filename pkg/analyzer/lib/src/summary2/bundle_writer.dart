@@ -869,16 +869,15 @@ class ResolutionSink extends _SummaryDataWriter {
     writeUInt30(elementIndex);
   }
 
-  void _writeElementList(List<Element> elements) {
-    writeUInt30(elements.length);
-    for (var element in elements) {
-      writeElement(element);
-    }
+  void _writeElement2(Element2? element) {
+    _writeElement(element?.asElement);
   }
 
-  void _writeElementList2(List<Element2> elements2) {
-    var elements = elements2.map((e) => e.asElement!).toList();
-    _writeElementList(elements);
+  void _writeElementList2(List<Element2> elements) {
+    writeUInt30(elements.length);
+    for (var element in elements) {
+      writeElement2(element);
+    }
   }
 
   void _writeFormalParameters(
@@ -962,7 +961,7 @@ class ResolutionSink extends _SummaryDataWriter {
 
   void _writeTypeAliasElementArguments(TypeImpl type) {
     var alias = type.alias;
-    _writeElement(alias?.element);
+    _writeElement2(alias?.element2);
     if (alias != null) {
       _writeTypeList(alias.typeArguments);
     }

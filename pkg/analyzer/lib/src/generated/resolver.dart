@@ -551,7 +551,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // TODO(srawlins): When this check is moved into the resolution stage,
         // use the result of that check to determine whether this check should
         // be done.
-        var lowerBound = typeProvider.futureElement.instantiateImpl(
+        var lowerBound = typeProvider.futureElement2.instantiateImpl(
           typeArguments: fixedTypeList(NeverTypeImpl.instance),
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -851,10 +851,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             contextType: matchedType.unwrapTypeView(),
             nodeForTesting: pattern,
           );
-          return SharedTypeView(typeNode.type = typeNameElement.instantiate(
-            typeArguments: typeArguments,
-            nullabilitySuffix: NullabilitySuffix.none,
-          ));
+          return SharedTypeView(
+            typeNode.type = typeNameElement.instantiateImpl(
+              typeArguments: typeArguments,
+              nullabilitySuffix: NullabilitySuffix.none,
+            ),
+          );
         }
       }
     }

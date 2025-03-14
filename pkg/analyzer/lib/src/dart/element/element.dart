@@ -11202,68 +11202,10 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    if (hasSelfReference) {
-      if (isNonFunctionTypeAliasesEnabled) {
-        return DynamicTypeImpl.instance;
-      } else {
-        return _errorFunctionType(nullabilitySuffix);
-      }
-    }
-
-    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
-    var type = substitution.substituteType(aliasedType);
-
-    var resultNullability = type.nullabilitySuffix == NullabilitySuffix.question
-        ? NullabilitySuffix.question
-        : nullabilitySuffix;
-
-    if (type is FunctionTypeImpl) {
-      return FunctionTypeImpl(
-        typeFormals: type.typeFormals,
-        parameters: type.parameters,
-        returnType: type.returnType,
-        nullabilitySuffix: resultNullability,
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          // TODO(scheglov): remove this cast
-          typeArguments: typeArguments.cast(),
-        ),
-      );
-    } else if (type is InterfaceTypeImpl) {
-      return InterfaceTypeImpl(
-        element: type.element3,
-        typeArguments: type.typeArguments,
-        nullabilitySuffix: resultNullability,
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          // TODO(scheglov): remove this cast
-          typeArguments: typeArguments.cast(),
-        ),
-      );
-    } else if (type is RecordTypeImpl) {
-      return RecordTypeImpl(
-        positionalFields: type.positionalFields,
-        namedFields: type.namedFields,
-        nullabilitySuffix: resultNullability,
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          // TODO(scheglov): remove this cast
-          typeArguments: typeArguments.cast(),
-        ),
-      );
-    } else if (type is TypeParameterTypeImpl) {
-      return TypeParameterTypeImpl(
-        element: type.element,
-        nullabilitySuffix: resultNullability,
-        alias: InstantiatedTypeAliasElementImpl(
-          element: this,
-          // TODO(scheglov): remove this cast
-          typeArguments: typeArguments.cast(),
-        ),
-      );
-    } else {
-      return type.withNullability(resultNullability);
-    }
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
@@ -11271,15 +11213,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     reference.element = this;
 
     this.linkedData = linkedData;
-  }
-
-  FunctionTypeImpl _errorFunctionType(NullabilitySuffix nullabilitySuffix) {
-    return FunctionTypeImpl(
-      typeFormals: const [],
-      parameters: const [],
-      returnType: DynamicTypeImpl.instance,
-      nullabilitySuffix: nullabilitySuffix,
-    );
   }
 }
 
@@ -11370,11 +11303,88 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   }
 
   @override
-  TypeImpl instantiate(
-          {required List<DartType> typeArguments,
-          required NullabilitySuffix nullabilitySuffix}) =>
-      firstFragment.instantiate(
-          typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
+  TypeImpl instantiate({
+    required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return instantiateImpl(
+      typeArguments: typeArguments.cast<TypeImpl>(),
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  TypeImpl instantiateImpl({
+    required List<TypeImpl> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    if (firstFragment.hasSelfReference) {
+      if (firstFragment.isNonFunctionTypeAliasesEnabled) {
+        return DynamicTypeImpl.instance;
+      } else {
+        return _errorFunctionType(nullabilitySuffix);
+      }
+    }
+
+    var substitution = Substitution.fromPairs2(typeParameters2, typeArguments);
+    var type = substitution.substituteType(aliasedType);
+
+    var resultNullability = type.nullabilitySuffix == NullabilitySuffix.question
+        ? NullabilitySuffix.question
+        : nullabilitySuffix;
+
+    if (type is FunctionTypeImpl) {
+      return FunctionTypeImpl(
+        typeFormals: type.typeFormals,
+        parameters: type.parameters,
+        returnType: type.returnType,
+        nullabilitySuffix: resultNullability,
+        alias: InstantiatedTypeAliasElementImpl(
+          element2: this,
+          typeArguments: typeArguments,
+        ),
+      );
+    } else if (type is InterfaceTypeImpl) {
+      return InterfaceTypeImpl(
+        element: type.element3,
+        typeArguments: type.typeArguments,
+        nullabilitySuffix: resultNullability,
+        alias: InstantiatedTypeAliasElementImpl(
+          element2: this,
+          typeArguments: typeArguments,
+        ),
+      );
+    } else if (type is RecordTypeImpl) {
+      return RecordTypeImpl(
+        positionalFields: type.positionalFields,
+        namedFields: type.namedFields,
+        nullabilitySuffix: resultNullability,
+        alias: InstantiatedTypeAliasElementImpl(
+          element2: this,
+          typeArguments: typeArguments,
+        ),
+      );
+    } else if (type is TypeParameterTypeImpl) {
+      return TypeParameterTypeImpl(
+        element: type.element,
+        nullabilitySuffix: resultNullability,
+        alias: InstantiatedTypeAliasElementImpl(
+          element2: this,
+          typeArguments: typeArguments,
+        ),
+      );
+    } else {
+      return type.withNullability(resultNullability);
+    }
+  }
+
+  FunctionTypeImpl _errorFunctionType(NullabilitySuffix nullabilitySuffix) {
+    return FunctionTypeImpl(
+      typeFormals: const [],
+      parameters: const [],
+      returnType: DynamicTypeImpl.instance,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
 }
 
 abstract class TypeDefiningElementImpl2 extends ElementImpl2

@@ -264,7 +264,7 @@ class AssistProcessor {
     for (var generator in registeredAssistGenerators.producerGenerators) {
       if (!_generatorAppliesToAnyLintRule(
         generator,
-        _assistContext.producerGeneratorsForLintRules[generator] ?? {},
+        registeredAssistGenerators.lintRuleMap[generator] ?? {},
       )) {
         var producer = generator(context: context);
         await compute(producer);
@@ -285,6 +285,10 @@ class AssistProcessor {
     ProducerGenerator generator,
     Set<LintCode> errorCodes,
   ) {
+    if (errorCodes.isEmpty) {
+      return false;
+    }
+
     var selectionEnd =
         _assistContext.selectionOffset + _assistContext.selectionLength;
     var locator = NodeLocator(_assistContext.selectionOffset, selectionEnd);
@@ -307,15 +311,4 @@ class AssistProcessor {
     }
     return false;
   }
-
-  /// Returns a map from registered _assist_ producer generators to the
-  /// [LintCode]s for which they may also act as a _fix_ producer generator.
-  static Map<ProducerGenerator, Set<LintCode>> computeLintRuleMap() => {
-    for (var generator in registeredAssistGenerators.producerGenerators)
-      generator: {
-        for (var MapEntry(key: lintName, value: generators)
-            in registeredFixGenerators.lintProducers.entries)
-          if (generators.contains(generator)) lintName,
-      },
-  };
 }

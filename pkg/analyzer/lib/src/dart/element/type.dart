@@ -537,29 +537,29 @@ class FutureOrTypeImpl extends InterfaceTypeImpl {
 
 class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
   @override
-  final TypeAliasElement element;
+  final TypeAliasElementImpl2 element2;
 
   @override
   final List<TypeImpl> typeArguments;
 
   InstantiatedTypeAliasElementImpl({
-    required this.element,
+    required this.element2,
     required this.typeArguments,
   });
 
   factory InstantiatedTypeAliasElementImpl.v2({
-    required TypeAliasElement2 element,
+    required TypeAliasElementImpl2 element,
     required List<TypeImpl> typeArguments,
   }) {
     return InstantiatedTypeAliasElementImpl(
-      element: element.asElement,
+      element2: element,
       typeArguments: typeArguments,
     );
   }
 
+  @Deprecated('Use element2 instead')
   @override
-  TypeAliasElementImpl2 get element2 =>
-      (element as TypeAliasFragment).element as TypeAliasElementImpl2;
+  TypeAliasElementImpl get element => element2.firstFragment;
 }
 
 /// A concrete implementation of an [InterfaceType].
@@ -705,88 +705,88 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   bool get isDartAsyncFuture {
-    return element.name == "Future" && element.library.isDartAsync;
+    return element3.name3 == "Future" && element3.library2.isDartAsync;
   }
 
   @override
   bool get isDartAsyncStream {
-    return element.name == "Stream" && element.library.isDartAsync;
+    return element3.name3 == "Stream" && element3.library2.isDartAsync;
   }
 
   @override
   bool get isDartCoreBool {
-    return element.name == "bool" && element.library.isDartCore;
+    return element3.name3 == "bool" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreDouble {
-    return element.name == "double" && element.library.isDartCore;
+    return element3.name3 == "double" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreEnum {
-    var element = this.element;
-    return element is ClassElementImpl && element.isDartCoreEnum;
+    var element = element3;
+    return element is ClassElementImpl2 && element.isDartCoreEnum;
   }
 
   @override
   bool get isDartCoreFunction {
-    return element.name == "Function" && element.library.isDartCore;
+    return element3.name3 == "Function" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreInt {
-    return element.name == "int" && element.library.isDartCore;
+    return element3.name3 == "int" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreIterable {
-    return element.name == "Iterable" && element.library.isDartCore;
+    return element3.name3 == "Iterable" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreList {
-    return element.name == "List" && element.library.isDartCore;
+    return element3.name3 == "List" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreMap {
-    return element.name == "Map" && element.library.isDartCore;
+    return element3.name3 == "Map" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreNum {
-    return element.name == "num" && element.library.isDartCore;
+    return element3.name3 == "num" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreObject {
-    return element.name == "Object" && element.library.isDartCore;
+    return element3.name3 == "Object" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreRecord {
-    return element.name == "Record" && element.library.isDartCore;
+    return element3.name3 == "Record" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreSet {
-    return element.name == "Set" && element.library.isDartCore;
+    return element3.name3 == "Set" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreString {
-    return element.name == "String" && element.library.isDartCore;
+    return element3.name3 == "String" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreSymbol {
-    return element.name == "Symbol" && element.library.isDartCore;
+    return element3.name3 == "Symbol" && element3.library2.isDartCore;
   }
 
   @override
   bool get isDartCoreType {
-    return element.name == "Type" && element.library.isDartCore;
+    return element3.name3 == "Type" && element3.library2.isDartCore;
   }
 
   @override

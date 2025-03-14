@@ -4,9 +4,7 @@ name: dartdev
 publish_to: none
 
 environment:
-  sdk: ^3.5.0
-
-resolution: workspace
+  sdk: ^3.3.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:

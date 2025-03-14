@@ -2216,7 +2216,7 @@ class ResolutionReader {
 
   TypeImpl _readAliasElementArguments(TypeImpl type) {
     var aliasElement = _readRawElement();
-    if (aliasElement is TypeAliasElement) {
+    if (aliasElement is TypeAliasElementImpl) {
       var aliasArguments = _readTypeList();
       if (type is DynamicTypeImpl) {
         // TODO(scheglov): add support for `dynamic` aliasing
@@ -2228,7 +2228,7 @@ class ResolutionReader {
           returnType: type.returnType,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
+            element2: aliasElement.asElement2,
             typeArguments: aliasArguments,
           ),
         );
@@ -2238,7 +2238,7 @@ class ResolutionReader {
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
+            element2: aliasElement.asElement2,
             typeArguments: aliasArguments,
           ),
         );
@@ -2248,7 +2248,7 @@ class ResolutionReader {
           namedFields: type.namedFields,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
+            element2: aliasElement.asElement2,
             typeArguments: aliasArguments,
           ),
         );
@@ -2257,7 +2257,7 @@ class ResolutionReader {
           element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
-            element: aliasElement,
+            element2: aliasElement.asElement2,
             typeArguments: aliasArguments,
           ),
         );

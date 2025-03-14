@@ -117,10 +117,7 @@ extension ConstructorElementExtension on ConstructorElement {
 }
 
 extension ConstructorElementImpl2Extension on ConstructorElementImpl2 {
-  ConstructorElementMixin get asElement {
-    if (this case ConstructorMember member) {
-      return member;
-    }
+  ConstructorElementImpl get asElement {
     return lastFragment;
   }
 }
