@@ -1530,9 +1530,9 @@ package:test/a.dart
 
           void writeResult(ScopeLookupResult result) {
             sink.withIndent(() {
-              elementPrinter.writelnNamedElement2('getter', result.getter2);
+              elementPrinter.writeNamedElement2('getter', result.getter2);
               if (result.setter2 case var setter?) {
-                elementPrinter.writelnNamedElement2('setter', setter);
+                elementPrinter.writeNamedElement2('setter', setter);
               }
             });
           }
@@ -1547,12 +1547,12 @@ package:test/a.dart
             var importPrefix = prefixLookup.getter2;
             if (importPrefix == null) {
               sink.withIndent(() {
-                elementPrinter.writelnNamedElement2(prefixName, importPrefix);
+                elementPrinter.writeNamedElement2(prefixName, importPrefix);
               });
             } else {
               importPrefix as PrefixElementImpl2;
               sink.withIndent(() {
-                elementPrinter.writelnNamedElement2(prefixName, importPrefix);
+                elementPrinter.writeNamedElement2(prefixName, importPrefix);
               });
               var result = importPrefix.scope.lookup(rawName);
               writeResult(result);

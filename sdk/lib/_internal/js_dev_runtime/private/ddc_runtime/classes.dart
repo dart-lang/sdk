@@ -164,7 +164,7 @@ getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 ///
 /// This is typically an instance's JS constructor.
 getTypeSignatureContainer(obj) {
-  if (obj == null) return JS('!', '#', Object);
+  if (obj == null) return JS_CLASS_REF(Object);
 
   // Object.create(null) produces a js object without a prototype.
   // In that case use the native Object constructor.

@@ -797,7 +797,7 @@ class GetterMember extends PropertyAccessorMember
 
 /// An element defined in a parameterized type where the values of the type
 /// parameters are known.
-abstract class Member implements Element {
+abstract class Member implements Element, ElementOrMember {
   /// The element on which the parameterized element was created.
   final Element _declaration;
 

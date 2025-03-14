@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements, as_much_as_we_can
-
 /// The implementation of the class [DartObject].
 ///
 /// @docImport 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -159,6 +157,7 @@ class ConstructorInvocation {
   ConstructorInvocation(
       this.constructor2, this._argumentValues, this.namedArguments);
 
+  @Deprecated('Use constructor2 instead')
   ConstructorElement get constructor => constructor2.asElement;
 
   /// The positional arguments passed to the constructor.

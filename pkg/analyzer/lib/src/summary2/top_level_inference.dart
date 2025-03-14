@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -27,8 +24,8 @@ class ConstantInitializersResolver {
   final Linker linker;
 
   late LibraryBuilder _libraryBuilder;
-  late CompilationUnitElementImpl _unitElement;
-  late LibraryElement _library;
+  late CompilationUnitElementImpl _libraryFragment;
+  late LibraryElementImpl _library;
   late Scope _scope;
 
   ConstantInitializersResolver(this.linker);
@@ -37,35 +34,33 @@ class ConstantInitializersResolver {
     for (var builder in linker.builders.values) {
       _library = builder.element;
       _libraryBuilder = builder;
-      for (var unit in _library.units) {
-        _unitElement = unit as CompilationUnitElementImpl;
-        unit.classes.forEach(_resolveInterfaceFields);
-        unit.enums.forEach(_resolveInterfaceFields);
-        unit.extensions.forEach(_resolveExtensionFields);
-        unit.extensionTypes.forEach(_resolveInterfaceFields);
-        unit.mixins.forEach(_resolveInterfaceFields);
+      for (var libraryFragment in _library.fragments) {
+        _libraryFragment = libraryFragment;
+        libraryFragment.classes.forEach(_resolveInterfaceFields);
+        libraryFragment.enums.forEach(_resolveInterfaceFields);
+        libraryFragment.extensions.forEach(_resolveExtensionFields);
+        libraryFragment.extensionTypes.forEach(_resolveInterfaceFields);
+        libraryFragment.mixins.forEach(_resolveInterfaceFields);
 
-        _scope = unit.scope;
-        unit.topLevelVariables.forEach(_resolveVariable);
+        _scope = libraryFragment.scope;
+        libraryFragment.topLevelVariables.forEach(_resolveVariable);
       }
     }
   }
 
-  void _resolveExtensionFields(ExtensionElement extension_) {
+  void _resolveExtensionFields(ExtensionElementImpl extension_) {
     var node = linker.getLinkingNode(extension_)!;
     _scope = LinkingNodeContext.get(node).scope;
     extension_.fields.forEach(_resolveVariable);
   }
 
-  void _resolveInterfaceFields(InterfaceElement class_) {
+  void _resolveInterfaceFields(InterfaceElementImpl class_) {
     var node = linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
     class_.fields.forEach(_resolveVariable);
   }
 
-  void _resolveVariable(PropertyInducingElement element) {
-    element as PropertyInducingElementImpl;
-
+  void _resolveVariable(PropertyInducingElementImpl element) {
     if (element is FieldElementImpl && element.isEnumConstant) {
       return;
     }
@@ -81,7 +76,7 @@ class ConstantInitializersResolver {
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
       linker,
-      _unitElement,
+      _libraryFragment,
       _scope,
       analysisOptions,
     );
@@ -155,21 +150,19 @@ class _InitializerInference {
     }
   }
 
-  void _addClassElementFields(InterfaceElement class_) {
+  void _addClassElementFields(InterfaceElementImpl class_) {
     var node = _linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
     class_.fields.forEach(_addVariableNode);
   }
 
-  void _addExtensionElementFields(ExtensionElement extension_) {
+  void _addExtensionElementFields(ExtensionElementImpl extension_) {
     var node = _linker.getLinkingNode(extension_)!;
     _scope = LinkingNodeContext.get(node).scope;
     extension_.fields.forEach(_addVariableNode);
   }
 
-  void _addVariableNode(PropertyInducingElement element) {
-    element as PropertyInducingElementImpl;
-
+  void _addVariableNode(PropertyInducingElementImpl element) {
     if (element.isSynthetic &&
         !(element is FieldElementImpl && element.isSyntheticEnumField)) {
       return;

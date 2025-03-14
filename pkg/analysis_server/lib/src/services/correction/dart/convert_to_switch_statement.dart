@@ -20,21 +20,20 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (!isEnabled(Feature.patterns)) {
+    var ifStatement = node;
+    if (ifStatement is! IfStatement) {
       return;
     }
 
-    var ifStatement = node;
-    if (ifStatement is! IfStatement) {
+    if (!isEnabled(Feature.patterns)) {
       return;
     }
 
@@ -212,9 +211,8 @@ class ConvertSwitchExpressionToSwitchStatement
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;

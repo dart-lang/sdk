@@ -1980,7 +1980,7 @@ class ResolutionReader {
     return _reader.readDouble();
   }
 
-  Element? readElement() {
+  ElementOrMember? readElement() {
     var memberFlags = _reader.readByte();
     var element = _readRawElement();
 
@@ -1989,7 +1989,7 @@ class ResolutionReader {
     }
 
     if (memberFlags == Tag.RawElement) {
-      return element;
+      return element as ElementOrMember;
     }
 
     if (memberFlags == Tag.MemberWithTypeArguments) {
@@ -2040,14 +2040,15 @@ class ResolutionReader {
     }
 
     if (memberFlags == Tag.MemberWithTypeArguments) {
-      return element;
+      return element as ElementOrMember;
     }
 
     throw UnimplementedError('memberFlags: $memberFlags');
   }
 
   Element2? readElement2() {
-    return readElement()?.asElement2;
+    var element = readElement() as Element?;
+    return element?.asElement2;
   }
 
   List<T> readElementList<T extends Element>() {

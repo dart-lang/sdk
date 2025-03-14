@@ -4545,8 +4545,8 @@ class _InterfacePrinter {
           case GetterMethodConflict _:
             _sink.writelnWithIndent('GetterMethodConflict');
             _sink.withIndent(() {
-              _elementPrinter.writelnNamedElement2('getter', conflict.getter2);
-              _elementPrinter.writelnNamedElement2('method', conflict.method2);
+              _elementPrinter.writeNamedElement2('getter', conflict.getter2);
+              _elementPrinter.writeNamedElement2('method', conflict.method2);
             });
           case HasNonExtensionAndExtensionMemberConflict _:
             _sink.writelnWithIndent(
@@ -4618,7 +4618,7 @@ class _InterfacePrinter {
         var name = _nameObjStr(entry.key);
         var element = entry.value;
         if (_shouldWrite(element)) {
-          _elementPrinter.writelnNamedElement2(name, element);
+          _elementPrinter.writeNamedElement2(name, element);
         }
       }
     });

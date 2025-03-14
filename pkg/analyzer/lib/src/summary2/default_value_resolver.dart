@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -24,14 +21,14 @@ class DefaultValueResolver {
       : _typeSystem = _libraryBuilder.element.typeSystem;
 
   void resolve() {
-    for (var unitElement in _libraryBuilder.element.units.impl) {
-      _UnitContext(unitElement)
-        ..forEach(unitElement.classes, _interface)
-        ..forEach(unitElement.enums, _interface)
-        ..forEach(unitElement.extensions, _extension)
-        ..forEach(unitElement.extensionTypes, _interface)
-        ..forEach(unitElement.functions, _executable)
-        ..forEach(unitElement.mixins, _interface);
+    for (var libraryFragment in _libraryBuilder.element.fragments) {
+      _UnitContext(libraryFragment)
+        ..forEach(libraryFragment.classes, _interface)
+        ..forEach(libraryFragment.enums, _interface)
+        ..forEach(libraryFragment.extensions, _extension)
+        ..forEach(libraryFragment.extensionTypes, _interface)
+        ..forEach(libraryFragment.functions, _executable)
+        ..forEach(libraryFragment.mixins, _interface);
     }
   }
 
@@ -40,7 +37,7 @@ class DefaultValueResolver {
     _executable(context, element);
   }
 
-  DefaultFormalParameterImpl? _defaultParameter(ParameterElement element) {
+  DefaultFormalParameterImpl? _defaultParameter(ParameterElementImpl element) {
     var node = _linker.getLinkingNode(element);
     if (node is DefaultFormalParameterImpl && node.defaultValue != null) {
       return node;
@@ -67,7 +64,7 @@ class DefaultValueResolver {
       ..forEach(element.methods, _executable);
   }
 
-  void _parameter(_ExecutableContext context, ParameterElement parameter) {
+  void _parameter(_ExecutableContext context, ParameterElementImpl parameter) {
     // If a function typed parameter, process nested parameters.
     context.forEach(parameter.parameters, _parameter);
 
@@ -79,7 +76,7 @@ class DefaultValueResolver {
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
       _linker,
-      context.unitElement,
+      context.libraryFragment,
       context.scope,
       analysisOptions,
       enclosingClassElement: context.classElement?.asElement2,
@@ -89,7 +86,7 @@ class DefaultValueResolver {
         contextType: contextType);
   }
 
-  Scope _scopeFromElement(Element element) {
+  Scope _scopeFromElement(ElementImpl element) {
     var node = _linker.getLinkingNode(element)!;
     return LinkingNodeContext.get(node).scope;
   }
@@ -104,15 +101,15 @@ class _ClassContext extends _Context {
   _ClassContext(this.unitContext, this.classElement);
 
   @override
-  CompilationUnitElementImpl get unitElement {
-    return unitContext.unitElement;
+  CompilationUnitElementImpl get libraryFragment {
+    return unitContext.libraryFragment;
   }
 }
 
 abstract class _Context {
   InterfaceElementImpl? get classElement => null;
 
-  CompilationUnitElementImpl get unitElement;
+  CompilationUnitElementImpl get libraryFragment;
 }
 
 class _ExecutableContext extends _Context {
@@ -132,22 +129,16 @@ class _ExecutableContext extends _Context {
   }
 
   @override
-  CompilationUnitElementImpl get unitElement {
-    return enclosingContext.unitElement;
+  CompilationUnitElementImpl get libraryFragment {
+    return enclosingContext.libraryFragment;
   }
 }
 
 class _UnitContext extends _Context {
   @override
-  final CompilationUnitElementImpl unitElement;
+  final CompilationUnitElementImpl libraryFragment;
 
-  _UnitContext(this.unitElement);
-}
-
-extension on List<CompilationUnitElement> {
-  List<CompilationUnitElementImpl> get impl {
-    return cast();
-  }
+  _UnitContext(this.libraryFragment);
 }
 
 extension _ContextExtension<C extends _Context> on C {

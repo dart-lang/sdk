@@ -2553,7 +2553,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 }
 
 /// A base class for concrete implementations of an [Element] or [Element2].
-abstract class ElementImpl implements Element, Element2 {
+abstract class ElementImpl implements Element, Element2, ElementOrMember {
   static const _metadataFlag_isReady = 1 << 0;
   static const _metadataFlag_hasDeprecated = 1 << 1;
   static const _metadataFlag_hasOverride = 1 << 2;
@@ -3613,6 +3613,10 @@ class ElementLocationImpl implements ElementLocation {
   }
 }
 
+/// A shared internal interface of [Element] and [Member].
+/// Used during migration to avoid referencing [Element].
+abstract class ElementOrMember {}
+
 /// An [InterfaceElementImpl] which is an enum.
 class EnumElementImpl extends InterfaceElementImpl
     implements EnumElement, EnumFragment {
@@ -3958,7 +3962,8 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `ExecutableElement`.
-abstract class ExecutableElementOrMember implements ExecutableElement {
+abstract class ExecutableElementOrMember
+    implements ExecutableElement, ElementOrMember {
   @override
   List<ParameterElementMixin> get parameters;
 
@@ -7329,7 +7334,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  Iterable<Element> get topLevelElements sync* {
+  Iterable<ElementImpl> get topLevelElements sync* {
     for (var unit in units) {
       yield* unit.accessors;
       yield* unit.classes;
@@ -9315,11 +9320,12 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
   NonParameterVariableElementImpl(super.name, super.offset);
 
   @override
-  Element get enclosingElement3 =>
-      // TODO(paulberry): `!` is not appropriate here because variable elements
-      // aren't guaranteed to have enclosing elements. See
-      // https://github.com/dart-lang/sdk/issues/59750.
-      super.enclosingElement3!;
+  ElementImpl get enclosingElement3 {
+    // TODO(paulberry): `!` is not appropriate here because variable elements
+    // aren't guaranteed to have enclosing elements. See
+    // https://github.com/dart-lang/sdk/issues/59750.
+    return super.enclosingElement3 as ElementImpl;
+  }
 
   bool get hasInitializer {
     return hasModifier(Modifier.HAS_INITIALIZER);
@@ -10147,7 +10153,7 @@ class PropertyAccessorElementImpl_ImplicitGetter extends GetterFragmentImpl {
 
   @override
   ElementImpl get enclosingElement3 {
-    return variable2.enclosingElement3 as ElementImpl;
+    return variable2.enclosingElement3;
   }
 
   @override
@@ -10215,7 +10221,7 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
 
   @override
   ElementImpl get enclosingElement3 {
-    return variable2.enclosingElement3 as ElementImpl;
+    return variable2.enclosingElement3;
   }
 
   @override

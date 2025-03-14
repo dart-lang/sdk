@@ -102,8 +102,8 @@ class ExpressionEvaluationTestDriver {
 
   /// Must be called when testing a new Dart program.
   ///
-  /// Depends on SDK artifacts (such as the sound and unsound dart_sdk.js
-  /// files) generated from the 'ddc_stable_test' and 'ddc_canary_test' targets.
+  /// Depends on SDK artifacts (such as the dart_sdk.js files) generated from
+  /// the 'ddc_stable_test' and 'ddc_canary_test' targets.
   Future<void> initSource(
     SetupCompilerOptions setup,
     String source, {

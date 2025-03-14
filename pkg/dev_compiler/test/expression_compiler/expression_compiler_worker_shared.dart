@@ -807,9 +807,6 @@ class TestProjectConfiguration {
   Uri get packagesPath => root.resolve('package_config.json');
 
   Uri get sdkRoot => computePlatformBinariesLocation();
-  // Use the outline copied to the released SDK.
-  // Unsound .dill files are not longer in the released SDK so this file must be
-  // read from the build output directory.
   Uri get sdkSummaryPath => sdkRoot.resolve('ddc_outline.dill');
   Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 

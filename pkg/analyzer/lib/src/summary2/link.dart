@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
@@ -87,7 +85,7 @@ class Linker {
 
   /// If the [element] is part of a library being linked, return the node
   /// from which it was created.
-  ast.AstNode? getLinkingNode(Element element) {
+  ast.AstNode? getLinkingNode(ElementImpl element) {
     return elementNodes[element];
   }
 
