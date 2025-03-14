@@ -11,7 +11,6 @@ environment:
   # version of the SDK without it being a breaking change.
   sdk: '>=3.5.0 <3.9.0'
 
-resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
