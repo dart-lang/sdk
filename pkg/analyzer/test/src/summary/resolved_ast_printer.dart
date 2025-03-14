@@ -1840,13 +1840,13 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writeElement2(String name, Element2? element) {
     if (_withResolution) {
-      _elementPrinter.writelnNamedElement2(name, element);
+      _elementPrinter.writeNamedElement2(name, element);
     }
   }
 
   void _writeFragment(String name, Fragment? fragment) {
     if (_withResolution) {
-      _elementPrinter.writelnNamedFragment(name, fragment);
+      _elementPrinter.writeNamedFragment(name, fragment);
     }
   }
 

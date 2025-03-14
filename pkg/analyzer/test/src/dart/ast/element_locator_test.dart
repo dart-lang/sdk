@@ -564,9 +564,8 @@ x@12
       configuration: ElementPrinterConfiguration(),
     );
 
-    sink.writeIndentedLine(() {
-      elementPrinter.writeElement2(element);
-    });
+    sink.writeIndent();
+    elementPrinter.writeElement2(element);
 
     var actual = buffer.toString();
     if (actual != expected) {

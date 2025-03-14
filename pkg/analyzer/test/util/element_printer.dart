@@ -85,95 +85,93 @@ class ElementPrinter {
   void writeElement2(Element2? element) {
     switch (element) {
       case null:
-        _sink.write('<null>');
+        _sink.writeln('<null>');
       case TypeAliasElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case TopLevelVariableElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case TypeParameterElementImpl2():
         // TODO(scheglov): update when implemented
-        _sink.write('<not-implemented>');
+        _sink.writeln('<not-implemented>');
       case ConstructorElement2 element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case DynamicElementImpl2():
-        _sink.write('dynamic');
+        _sink.writeln('dynamic');
       case FormalParameterElementImpl():
         var firstFragment = element.firstFragment;
         var referenceStr = _elementToReferenceString(firstFragment as Element);
         _sink.write(referenceStr);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case TopLevelFunctionElementImpl element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case FragmentedElementMixin element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference!;
         writeReference(reference);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case GetterElement element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case LabelElementImpl():
         _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
       case LabelElementImpl2():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LibraryElementImpl e:
-        writeReference(e.reference!);
+        writelnReference(e.reference!);
       case LocalFunctionElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LocalVariableElementImpl():
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LocalVariableElementImpl2():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case NeverElementImpl2():
-        _sink.write('Never');
+        _sink.writeln('Never');
       case ClassElementImpl2 element:
         writeReference(element.reference);
+        _sink.writeln();
       case EnumElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case ExtensionElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case ExtensionTypeElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case MixinElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case MethodElement2 element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case MultiplyDefinedElementImpl2 multiElement:
         _sink.writeln('multiplyDefinedElement');
         _sink.withIndent(() {
-          for (var (i, element) in multiElement.conflictingElements2.indexed) {
-            if (i != 0) {
-              _sink.writeln();
-            }
+          for (var element in multiElement.conflictingElements2) {
             _sink.writeIndent();
             writeElement2(element);
           }
         });
       case NeverElementImpl():
-        _sink.write('Never@-1');
+        _sink.writeln('Never@-1');
       case ParameterMember():
         var firstFragment = element.firstFragment;
         var referenceStr = _elementToReferenceString(firstFragment as Element);
         _sink.write(referenceStr);
-        _sink.write('#element');
+        _sink.writeln('#element');
       case PrefixElementImpl2 element:
-        writeReference(element.reference);
+        writelnReference(element.reference);
       case SetterElement element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
-        _sink.write('#element');
+        _sink.writeln('#element');
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -188,36 +186,20 @@ class ElementPrinter {
 
   void writeElementList2(String name, List<Element2> elements) {
     _sink.writeElements(name, elements, (element) {
-      _sink.writeIndentedLine(() {
-        writeElement2(element);
-      });
-    });
-  }
-
-  void writeFragmentReference(Fragment fragment) {
-    var referenceStr = _fragmentToReferenceString(fragment);
-    _sink.write(referenceStr);
-  }
-
-  void writelnFragmentReference(Fragment fragment) {
-    writeFragmentReference(fragment);
-    _sink.writeln();
-  }
-
-  void writelnNamedElement2(String name, Element2? element) {
-    _sink.writeIndentedLine(() {
-      _sink.write('$name: ');
+      _sink.writeIndent();
       writeElement2(element);
     });
   }
 
-  void writelnNamedFragment(String name, Fragment? fragment) {
-    _sink.writeWithIndent('$name: ');
-    if (fragment != null) {
-      writelnFragmentReference(fragment);
-    } else {
-      _sink.writeln('<null>');
-    }
+  void writelnFragmentReference(Fragment fragment) {
+    var referenceStr = _fragmentToReferenceString(fragment);
+    _sink.write(referenceStr);
+    _sink.writeln();
+  }
+
+  void writelnReference(Reference reference) {
+    writeReference(reference);
+    _sink.writeln();
   }
 
   void writeNamedElement(String name, Element? element) {
@@ -226,8 +208,18 @@ class ElementPrinter {
   }
 
   void writeNamedElement2(String name, Element2? element) {
-    _sink.writeWithIndent('$name: ');
+    _sink.writeIndent();
+    _sink.write('$name: ');
     writeElement2(element);
+  }
+
+  void writeNamedFragment(String name, Fragment? fragment) {
+    _sink.writeWithIndent('$name: ');
+    if (fragment != null) {
+      writelnFragmentReference(fragment);
+    } else {
+      _sink.writeln('<null>');
+    }
   }
 
   void writeNamedType(String name, DartType? type) {
@@ -249,7 +241,7 @@ class ElementPrinter {
         if (_configuration.withInterfaceTypeElements) {
           _sink.withIndent(() {
             writeNamedElement('element', type.element3.asElement);
-            writelnNamedElement2('element', type.element3);
+            writeNamedElement2('element', type.element3);
           });
         }
       }

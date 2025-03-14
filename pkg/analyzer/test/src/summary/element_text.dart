@@ -533,14 +533,14 @@ class _Element2Writer extends _AbstractElementWriter {
       return;
     }
 
-    _elementPrinter.writelnNamedElement2(name, e);
+    _elementPrinter.writeNamedElement2(name, e);
   }
 
   void _writeExportNamespace(LibraryElement2 e) {
     var map = e.exportNamespace.definedNames2;
     var sortedEntries = map.entries.sortedBy((entry) => entry.key);
     for (var entry in sortedEntries) {
-      _elementPrinter.writelnNamedElement2(entry.key, entry.value);
+      _elementPrinter.writeNamedElement2(entry.key, entry.value);
     }
   }
 
@@ -1096,11 +1096,11 @@ class _Element2Writer extends _AbstractElementWriter {
           break;
         case ExtensionTypeElementImpl2():
           expect(e.supertype, isNull);
-          _elementPrinter.writelnNamedElement2(
+          _elementPrinter.writeNamedElement2(
             'representation',
             e.representation2,
           );
-          _elementPrinter.writelnNamedElement2(
+          _elementPrinter.writeNamedElement2(
             'primaryConstructor',
             e.primaryConstructor2,
           );
@@ -1405,9 +1405,8 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writePrefixElement(PrefixElementImpl2 e) {
-    _sink.writeIndentedLine(() {
-      _elementPrinter.writeElement2(e);
-    });
+    _sink.writeIndent();
+    _elementPrinter.writeElement2(e);
 
     _sink.withIndent(() {
       _sink.writeIndentedLine(() {

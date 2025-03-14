@@ -677,7 +677,7 @@ class DriverEventsPrinter {
 
     var libraryFragment = result.fragment;
 
-    elementPrinter.writelnNamedFragment(
+    elementPrinter.writeNamedFragment(
       'enclosing',
       libraryFragment.enclosingFragment,
     );
@@ -880,7 +880,7 @@ class ResolvedLibraryResultPrinter {
     sink.writelnWithIndent('ResolvedLibraryResult $id');
 
     sink.withIndent(() {
-      elementPrinter.writelnNamedElement2('element', result.element2);
+      elementPrinter.writeNamedElement2('element', result.element2);
       sink.writeElements('units', result.units, _writeResolvedUnitResult);
     });
   }

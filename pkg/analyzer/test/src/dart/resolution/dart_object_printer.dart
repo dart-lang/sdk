@@ -70,7 +70,7 @@ class DartObjectPrinter {
     _elementPrinter.writeType(type);
 
     _sink.withIndent(() {
-      _elementPrinter.writelnNamedElement2('element', state.element);
+      _elementPrinter.writeNamedElement2('element', state.element);
     });
 
     _writeTypeArguments(state.typeArguments);
@@ -219,7 +219,7 @@ class DartObjectPrinter {
     var variable = object.variable2;
     if (variable != null) {
       _sink.withIndent(() {
-        _elementPrinter.writelnNamedElement2('variable', variable);
+        _elementPrinter.writeNamedElement2('variable', variable);
       });
     }
   }
