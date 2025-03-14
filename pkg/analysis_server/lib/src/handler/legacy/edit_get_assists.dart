@@ -106,7 +106,6 @@ class EditGetAssistsHandler extends LegacyHandler
         DartChangeWorkspace(await server.currentSessions),
         libraryResult,
         unitResult,
-        server.producerGeneratorsForLintRules,
         offset,
         length,
       );
