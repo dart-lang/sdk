@@ -179,9 +179,9 @@ void registerBuiltInAssistGenerators() {
   // This function can be called many times during test runs so these statements
   // should not result in duplicate producers (i.e. they should only add to maps
   // or sets or otherwise ensure producers that already exist are not added).
-  registeredAssistGenerators.producerGenerators.addAll(_builtInGenerators);
-  registeredAssistGenerators.multiProducerGenerators.addAll(
-    _builtInMultiGenerators,
+  _builtInGenerators.forEach(registeredAssistGenerators.registerGenerator);
+  _builtInMultiGenerators.forEach(
+    registeredAssistGenerators.registerMultiGenerator,
   );
 }
 
