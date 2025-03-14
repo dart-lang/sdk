@@ -1432,7 +1432,7 @@ class A {
 ''');
   }
 
-  Future<void> test_shadowingTopLevelVariable_addsThis() async {
+  Future<void> test_shadowingTopLevelVariableGetter_addsThis() async {
     await indexTestUnit('''
 int? value = 0;
 
@@ -1459,6 +1459,38 @@ class A {
 
   A copyWith() {
     return A(value ?? this.value);
+  }
+}
+''');
+  }
+
+  Future<void> test_shadowingTopLevelVariableSetter_addsThis() async {
+    await indexTestUnit('''
+int? value = 0;
+
+class A {
+  final int? _value;
+
+  const A(this._value);
+
+  void m() {
+    value = _value ?? 0;
+  }
+}
+''');
+    createRenameRefactoringAtString('_value;');
+    // check status
+    refactoring.newName = 'value';
+    await assertSuccessfulRefactoring('''
+int? value = 0;
+
+class A {
+  final int? value;
+
+  const A(this.value);
+
+  void m() {
+    value = this.value ?? 0;
   }
 }
 ''');

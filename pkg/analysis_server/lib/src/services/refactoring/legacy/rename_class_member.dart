@@ -361,10 +361,23 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
-    if (element is GetterElement && element.name3 == name) {
-      if (element.variable3 case TopLevelVariableElement2 variable) {
-        elements.add(variable);
-      }
+    if (node.parent case AssignmentExpression(
+      :var writeElement2,
+      :var leftHandSide,
+    ) when node == leftHandSide) {
+      element = writeElement2;
+    }
+    if (element is! PropertyAccessorElement2) {
+      return;
+    }
+    if (element.name3 != name) {
+      return;
+    }
+    if (element is! GetterElement && element is! SetterElement) {
+      return;
+    }
+    if (element.variable3 case TopLevelVariableElement2 variable) {
+      elements.add(variable);
     }
     super.visitSimpleIdentifier(node);
   }
