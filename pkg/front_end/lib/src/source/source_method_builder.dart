@@ -155,12 +155,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
         classTypeParameters: classBuilder?.cls.typeParameters);
 
     for (MethodFragment augmented in augmentedFragments) {
-      augmented.buildOutlineNode(libraryBuilder, _nameScheme, (
-              {required Member member,
-              Member? tearOff,
-              required BuiltMemberKind kind}) {
-        // Don't add augmented methods.
-      },
+      augmented.buildOutlineNode(
+          libraryBuilder, _nameScheme, noAddBuildNodesCallback,
           reference: new Reference(),
           tearOffReference: new Reference(),
           classTypeParameters: classBuilder?.cls.typeParameters);

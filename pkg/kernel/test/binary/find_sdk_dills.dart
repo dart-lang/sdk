@@ -9,7 +9,9 @@ import 'dart:io';
 /// Note that it reads all dills found to create and compare a checksum to
 /// remove duplicates (and re-read on checksum matches).
 List<File> findSdkDills() {
-  File exe = new File(Platform.resolvedExecutable).absolute;
+  String? resolvedExecutable = Platform.environment['resolvedExecutable'];
+  File exe =
+      new File(resolvedExecutable ?? Platform.resolvedExecutable).absolute;
   int steps = 0;
   Directory parent = exe.parent.parent;
   while (true) {

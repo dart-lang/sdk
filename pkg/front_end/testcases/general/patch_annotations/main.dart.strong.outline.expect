@@ -21,7 +21,7 @@ class Class<@core::pragma::_("origin-class-type-variable") @core::pragma::_("pat
   @/* from org-dartlang-testcase:///origin_lib.dart */ const core::pragma::_("origin-constructor")
   @_in::patch
   @core::pragma::_("patch-constructor")
-  external constructor •() → self2::Class<self2::Class::T%>;
+  external constructor /* from org-dartlang-testcase:///patch_lib.dart */ •() → self2::Class<self2::Class::T%>;
   @/* from org-dartlang-testcase:///origin_lib.dart */ const core::pragma::_("origin-procedure")
   @_in::patch
   @core::pragma::_("patch-procedure")
@@ -37,8 +37,8 @@ Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:9:1 -> In
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///origin_lib.dart:9:14 -> InstanceConstant(const pragma{pragma.name: "origin-class-type-variable", pragma.options: null})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///origin_lib.dart:9:45 -> InstanceConstant(const pragma{pragma.name: "patch-class-type-variable", pragma.options: null})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///origin_lib.dart:10:3 -> InstanceConstant(const pragma{pragma.name: "origin-constructor", pragma.options: null})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:11:2 -> InstanceConstant(const _Patch{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///origin_lib.dart:11:11 -> InstanceConstant(const pragma{pragma.name: "patch-constructor", pragma.options: null})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:11:4 -> InstanceConstant(const _Patch{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///patch_lib.dart:12:4 -> InstanceConstant(const pragma{pragma.name: "patch-constructor", pragma.options: null})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///origin_lib.dart:13:3 -> InstanceConstant(const pragma{pragma.name: "origin-procedure", pragma.options: null})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:15:4 -> InstanceConstant(const _Patch{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///patch_lib.dart:16:4 -> InstanceConstant(const pragma{pragma.name: "patch-procedure", pragma.options: null})

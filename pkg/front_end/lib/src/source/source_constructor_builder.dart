@@ -94,7 +94,21 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   @override
   final Uri fileUri;
 
+  /// The introductory declaration for this constructor.
   final ConstructorDeclaration _introductory;
+
+  /// The augmenting declarations for this constructor.
+  final List<ConstructorDeclaration> _augmentations;
+
+  /// All constructor declarations for this constructor that are augmented by
+  /// at least one constructor declaration.
+  late final List<ConstructorDeclaration> _augmentedDeclarations;
+
+  /// The last constructor declaration between [_introductory] and
+  /// [_augmentations].
+  ///
+  /// This is the declaration that creates the emitted kernel member(s).
+  late final ConstructorDeclaration _lastDeclaration;
 
   final MemberName _memberName;
 
@@ -102,9 +116,10 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   Set<SourcePropertyBuilder>? _initializedFields;
 
-  SourceConstructorBuilderImpl? actualOrigin;
-
-  List<SourceConstructorBuilderImpl>? _augmentations;
+  late final Reference _invokeTargetReference;
+  late final Member _invokeTarget;
+  late final Reference _readTargetReference;
+  late final Member _readTarget;
 
   SourceConstructorBuilderImpl({
     required this.modifiers,
@@ -117,22 +132,43 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     required Reference? constructorReference,
     required Reference? tearOffReference,
     required NameScheme nameScheme,
-    required ConstructorDeclaration constructorDeclaration,
-  })  : _introductory = constructorDeclaration,
+    required ConstructorDeclaration introductory,
+    List<ConstructorDeclaration> augmentations = const [],
+  })  : _introductory = introductory,
+        _augmentations = augmentations,
         _memberName = nameScheme.getDeclaredName(name) {
-    _introductory.createNode(
+    _augmentedDeclarations = [_introductory, ..._augmentations];
+    _lastDeclaration = _augmentedDeclarations.removeLast();
+    for (ConstructorDeclaration declaration in _augmentedDeclarations) {
+      declaration.createNode(
+          name: name,
+          libraryBuilder: libraryBuilder,
+          nameScheme: nameScheme,
+          constructorReference: null,
+          tearOffReference: null);
+    }
+    _lastDeclaration.createNode(
         name: name,
         libraryBuilder: libraryBuilder,
         nameScheme: nameScheme,
         constructorReference: constructorReference,
         tearOffReference: tearOffReference);
+    _invokeTargetReference = _lastDeclaration.invokeTargetReference;
+    _invokeTarget = _lastDeclaration.invokeTarget;
+    _readTargetReference = _lastDeclaration.readTargetReference;
+    _readTarget = _lastDeclaration.readTarget;
+
     _introductory.registerInferable(this);
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      augmentation.registerInferable(this);
+    }
   }
 
   @override
   Builder get parent => declarationBuilder;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get typeParameters =>
       _introductory.typeParameters;
 
@@ -144,12 +180,14 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   Iterable<MetadataBuilder>? get metadataForTesting => _introductory.metadata;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAugmentation => modifiers.isAugment;
 
   @override
   bool get isExternal => modifiers.isExternal;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAbstract => modifiers.isAbstract;
 
   @override
@@ -169,53 +207,11 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
 
-  /// Returns `true` if this member is augmented, either by being the origin
-  /// of a augmented member or by not being the last among augmentations.
-  bool get isAugmented {
-    if (isAugmenting) {
-      return origin._augmentations!.last != this;
-    } else {
-      return _augmentations != null;
-    }
-  }
+  @override
+  SourceConstructorBuilderImpl get origin => this;
 
   @override
-  SourceConstructorBuilderImpl get origin => actualOrigin ?? this;
-
-  // Coverage-ignore(suite): Not run.
-  List<SourceConstructorBuilder>? get augmentationsForTesting => _augmentations;
-
-  void _addAugmentation(Builder augmentation) {
-    if (augmentation is SourceConstructorBuilderImpl) {
-      if (checkAugmentation(
-          augmentationLibraryBuilder: augmentation.libraryBuilder,
-          origin: this,
-          augmentation: augmentation)) {
-        augmentation.actualOrigin = this;
-        (_augmentations ??= []).add(augmentation);
-      }
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      reportAugmentationMismatch(
-          originLibraryBuilder: libraryBuilder,
-          origin: this,
-          augmentation: augmentation);
-    }
-  }
-
-  @override
-  void addAugmentation(Builder augmentation) {
-    _addAugmentation(augmentation);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void applyAugmentation(Builder augmentation) {
-    _addAugmentation(augmentation);
-  }
-
-  @override
-  bool get isRedirecting => _introductory.isRedirecting;
+  bool get isRedirecting => _lastDeclaration.isRedirecting;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -227,21 +223,23 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
       _introductory.thisTypeParameters;
 
   @override
-  Member get readTarget => _introductory.readTarget;
+  Member get readTarget => _readTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference get readTargetReference => _introductory.readTargetReference;
+  Reference get readTargetReference => _readTargetReference;
 
   @override
-  Member get invokeTarget =>
-      isAugmenting ? origin.invokeTarget : _introductory.invokeTarget;
+  Member get invokeTarget => isAugmenting
+      ?
+      // Coverage-ignore(suite): Not run.
+      origin.invokeTarget
+      : _invokeTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference => isAugmenting
-      ? origin.invokeTargetReference
-      : _introductory.invokeTargetReference;
+  Reference get invokeTargetReference =>
+      isAugmenting ? origin.invokeTargetReference : _invokeTargetReference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -260,11 +258,15 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   Iterable<Annotatable> get annotatables => [invokeTarget];
 
   @override
-  FunctionNode get function => _introductory.function;
+  FunctionNode get function => _lastDeclaration.function;
 
   @override
   void becomeNative(SourceLoader loader) {
     _introductory.becomeNative();
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      // Coverage-ignore-block(suite): Not run.
+      augmentation.becomeNative();
+    }
     for (Annotatable annotatable in annotatables) {
       loader.addNativeAnnotation(annotatable, nativeMethodName!);
     }
@@ -287,7 +289,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   @override
   bool get isConstructor => true;
 
-  List<Initializer> get _initializers => _introductory.initializers;
+  List<Initializer> get _initializers => _lastDeclaration.initializers;
 
   SuperInitializer? superInitializer;
 
@@ -295,7 +297,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   void _injectInvalidInitializer(Message message, int charOffset, int length,
       ExpressionGeneratorHelper helper, TreeNode parent) {
-    Initializer lastInitializer = _introductory.initializers.removeLast();
+    Initializer lastInitializer = _initializers.removeLast();
     assert(lastInitializer == superInitializer ||
         lastInitializer == redirectingInitializer);
     Initializer error = helper.buildInvalidInitializer(
@@ -419,17 +421,11 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
-    int count = context.computeDefaultTypesForVariables(typeParameters,
-        // Type parameters are inherited from the enclosing declaration, so if
-        // it has issues, so do the constructors.
+    int count = _introductory.computeDefaultTypes(context,
         inErrorRecovery: inErrorRecovery);
-    context.reportGenericFunctionTypesForFormals(formals);
-    List<SourceConstructorBuilderImpl>? augmentations = _augmentations;
-    if (augmentations != null) {
-      for (SourceConstructorBuilderImpl augmentation in augmentations) {
-        count += augmentation.computeDefaultTypes(context,
-            inErrorRecovery: inErrorRecovery);
-      }
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      count += augmentation.computeDefaultTypes(context,
+          inErrorRecovery: inErrorRecovery);
     }
     return count;
   }
@@ -440,15 +436,11 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
   @override
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
       TypeEnvironment typeEnvironment) {
-    library.checkInitializersInFormals(formals, typeEnvironment,
-        isAbstract: isAbstract, isExternal: isExternal);
-    List<SourceConstructorBuilderImpl>? augmentations = _augmentations;
-    if (augmentations != null) {
-      for (SourceConstructorBuilderImpl augmentation in augmentations) {
-        augmentation.checkTypes(library, nameSpace, typeEnvironment);
-      }
+    _introductory.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     }
   }
 
@@ -497,47 +489,32 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
-    _introductory.buildOutlineNodes(f,
+    _lastDeclaration.buildOutlineNodes(f,
         constructorBuilder: this,
         libraryBuilder: libraryBuilder,
         declarationConstructor: invokeTarget,
         delayedDefaultValueCloners: _delayedDefaultValueCloners);
-    List<SourceConstructorBuilder>? augmentations = _augmentations;
-    if (augmentations != null) {
-      for (SourceConstructorBuilder augmentation in augmentations) {
-        augmentation.buildOutlineNodes((
-            {required Member member,
-            Member? tearOff,
-            required BuiltMemberKind kind}) {
-          // Don't add augmentations.
-        });
-      }
+    for (ConstructorDeclaration declaration in _augmentedDeclarations) {
+      declaration.buildOutlineNodes(noAddBuildNodesCallback,
+          constructorBuilder: this,
+          libraryBuilder: libraryBuilder,
+          declarationConstructor: invokeTarget,
+          delayedDefaultValueCloners: _delayedDefaultValueCloners);
     }
   }
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
     _introductory.buildBody();
-    int count = 0;
-    List<SourceConstructorBuilder>? augmentations = _augmentations;
-    if (augmentations != null) {
-      for (SourceConstructorBuilder augmentation in augmentations) {
-        count += augmentation.buildBodyNodes(f);
-      }
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      augmentation.buildBody();
     }
-    if (isAugmenting) {
-      _introductory.finishAugmentation(origin);
-    }
-    return count;
+    return _augmentations.length;
   }
 
   @override
   void registerInitializedField(SourcePropertyBuilder fieldBuilder) {
-    if (isAugmenting) {
-      origin.registerInitializedField(fieldBuilder);
-    } else {
-      (_initializedFields ??= {}).add(fieldBuilder);
-    }
+    (_initializedFields ??= {}).add(fieldBuilder);
   }
 
   @override
@@ -550,18 +527,16 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   @override
   void prepareInitializers() {
     _introductory.prepareInitializers();
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      augmentation.prepareInitializers();
+    }
     redirectingInitializer = null;
     superInitializer = null;
   }
 
   @override
   void prependInitializer(Initializer initializer) {
-    if (isAugmentation) {
-      // Coverage-ignore-block(suite): Not run.
-      origin.prependInitializer(initializer);
-    } else {
-      _introductory.prependInitializer(initializer);
-    }
+    _lastDeclaration.prependInitializer(initializer);
   }
 
   bool _hasBuiltOutlines = false;
@@ -573,6 +548,7 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     if (_hasBuiltOutlines) return;
 
     if (isConst && isAugmenting) {
+      // Coverage-ignore-block(suite): Not run.
       origin.buildOutlineExpressions(
           classHierarchy, delayedDefaultValueCloners);
     }
@@ -583,27 +559,26 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
           declarationBuilder: declarationBuilder,
           constructorBuilder: this,
           classHierarchy: classHierarchy,
-          createFileUriExpression: isAugmented,
+          createFileUriExpression:
+              _invokeTarget.fileUri != _introductory.fileUri,
           delayedDefaultValueCloners: delayedDefaultValueCloners);
-
+      for (ConstructorDeclaration augmentation in _augmentations) {
+        augmentation.buildOutlineExpressions(
+            annotatables: annotatables,
+            libraryBuilder: libraryBuilder,
+            declarationBuilder: declarationBuilder,
+            constructorBuilder: this,
+            classHierarchy: classHierarchy,
+            createFileUriExpression:
+                _invokeTarget.fileUri != augmentation.fileUri,
+            delayedDefaultValueCloners: delayedDefaultValueCloners);
+      }
       hasBuiltOutlineExpressions = true;
-    }
-
-    if (isConst && isAugmenting) {
-      _introductory.finishAugmentation(origin);
     }
 
     delayedDefaultValueCloners.addAll(_delayedDefaultValueCloners);
     _delayedDefaultValueCloners.clear();
     _hasBuiltOutlines = true;
-
-    List<SourceConstructorBuilder>? augmentations = _augmentations;
-    if (augmentations != null) {
-      for (SourceConstructorBuilder augmentation in augmentations) {
-        augmentation.buildOutlineExpressions(
-            classHierarchy, delayedDefaultValueCloners);
-      }
-    }
   }
 
   @override
@@ -625,11 +600,8 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   bool get isEffectivelyExternal {
     bool isExternal = this.isExternal;
     if (isExternal) {
-      List<SourceConstructorBuilder>? augmentations = _augmentations;
-      if (augmentations != null) {
-        for (SourceConstructorBuilder augmentation in augmentations) {
-          isExternal &= augmentation.isExternal;
-        }
+      for (ConstructorDeclaration augmentation in _augmentations) {
+        isExternal &= augmentation.isExternal;
       }
     }
     return isExternal;
@@ -637,13 +609,10 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   bool get isEffectivelyRedirecting {
-    bool isRedirecting = this.isRedirecting;
+    bool isRedirecting = _introductory.isRedirecting;
     if (!isRedirecting) {
-      List<SourceConstructorBuilder>? augmentations = _augmentations;
-      if (augmentations != null) {
-        for (SourceConstructorBuilder augmentation in augmentations) {
-          isRedirecting |= augmentation.isRedirecting;
-        }
+      for (ConstructorDeclaration augmentation in _augmentations) {
+        isRedirecting |= augmentation.isRedirecting;
       }
     }
     return isRedirecting;
@@ -661,6 +630,10 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     if (_hasFormalsInferred) return;
     _introductory.inferFormalTypes(libraryBuilder, declarationBuilder, this,
         hierarchy, _delayedDefaultValueCloners);
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      augmentation.inferFormalTypes(libraryBuilder, declarationBuilder, this,
+          hierarchy, _delayedDefaultValueCloners);
+    }
     _hasFormalsInferred = true;
   }
 
@@ -669,6 +642,10 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     _introductory.addSuperParameterDefaultValueCloners(
         libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
+    for (ConstructorDeclaration augmentation in _augmentations) {
+      augmentation.addSuperParameterDefaultValueCloners(
+          libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
+    }
   }
 }
 

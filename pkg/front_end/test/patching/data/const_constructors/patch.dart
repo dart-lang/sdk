@@ -9,12 +9,9 @@ import 'dart:_internal';
 class PatchedClass {
   final int _field;
 
-  /*member: PatchedClass.:
-   initializers=[
+  /*member: PatchedClass.:initializers=[
     FieldInitializer(_field),
-    SuperInitializer],
-   patch
-  */
+    SuperInitializer]*/
   @patch
   const PatchedClass({int field = 0}) : _field = field;
 }
