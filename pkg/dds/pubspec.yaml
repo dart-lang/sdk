@@ -8,6 +8,7 @@ repository: https://github.com/dart-lang/sdk/tree/main/pkg/dds
 environment:
   sdk: ^3.5.0
 
+resolution: workspace
 
 dependencies:
   args: ^2.0.0
