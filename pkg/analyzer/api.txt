@@ -4397,7 +4397,7 @@ package:analyzer/dart/element/type.dart:
   TypeParameterType (class extends Object implements DartType):
     new (constructor: TypeParameterType Function())
     bound (getter: DartType)
-    definition (getter: ElementLocation)
+    definition (getter: ElementLocation, deprecated)
     element (getter: TypeParameterElement, deprecated)
     element3 (getter: TypeParameterElement2, experimental)
   VoidType (class extends Object implements DartType):

@@ -685,6 +685,7 @@ abstract class TypeParameterType implements DartType {
   /// Depending on the use, [bound] may also need to be taken into account.
   /// A given type parameter, it may have different bounds in different scopes.
   /// Always consult the bound if that could be relevant.
+  @Deprecated('Elements are equal when they are identical')
   ElementLocation get definition;
 
   @Deprecated('Use element3 instead')

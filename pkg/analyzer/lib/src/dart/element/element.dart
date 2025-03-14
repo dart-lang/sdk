@@ -11369,7 +11369,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
       );
     } else if (type is TypeParameterTypeImpl) {
       return TypeParameterTypeImpl(
-        element: type.element,
+        element3: type.element3,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element2: this,
@@ -11531,7 +11531,7 @@ class TypeParameterElementImpl extends ElementImpl
   /// Computes the variance of the type parameters in the [type].
   shared.Variance computeVarianceInType(DartType type) {
     if (type is TypeParameterTypeImpl) {
-      if (type.element == this) {
+      if (type.element3 == element) {
         return shared.Variance.covariant;
       } else {
         return shared.Variance.unrelated;
@@ -11577,8 +11577,7 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return TypeParameterTypeImpl(
-      element: this,
+    return element.instantiate(
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -11666,8 +11665,8 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return TypeParameterTypeImpl.v2(
-      element: this,
+    return TypeParameterTypeImpl(
+      element3: this,
       nullabilitySuffix: nullabilitySuffix,
     );
   }

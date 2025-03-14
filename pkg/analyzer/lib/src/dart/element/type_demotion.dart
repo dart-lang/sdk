@@ -20,8 +20,8 @@ class DemotionVisitor extends ReplacementVisitor {
       return null;
     }
 
-    return TypeParameterTypeImpl.v2(
-      element: type.element3,
+    return TypeParameterTypeImpl(
+      element3: type.element3,
       nullabilitySuffix: type.nullabilitySuffix,
       alias: type.alias,
     );

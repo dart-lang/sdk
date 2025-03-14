@@ -573,8 +573,8 @@ mixin ElementsTypesMixin {
     required NullabilitySuffix nullabilitySuffix,
     required TypeImpl promotedBound,
   }) {
-    return TypeParameterTypeImpl.v2(
-      element: element,
+    return TypeParameterTypeImpl(
+      element3: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );
@@ -704,8 +704,8 @@ mixin ElementsTypesMixin {
     required NullabilitySuffix nullabilitySuffix,
     TypeImpl? promotedBound,
   }) {
-    return TypeParameterTypeImpl.v2(
-      element: element,
+    return TypeParameterTypeImpl(
+      element3: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );

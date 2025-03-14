@@ -129,9 +129,9 @@ class NamedTypeBuilder extends TypeBuilder {
       );
     } else if (element3 is NeverElementImpl2) {
       _type = NeverTypeImpl.instance.withNullability(nullabilitySuffix);
-    } else if (element3 is TypeParameterElement2) {
-      _type = TypeParameterTypeImpl.v2(
-        element: element3,
+    } else if (element3 is TypeParameterElementImpl2) {
+      _type = TypeParameterTypeImpl(
+        element3: element3,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {

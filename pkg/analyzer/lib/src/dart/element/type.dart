@@ -316,6 +316,7 @@ class FunctionTypeImpl extends TypeImpl
     );
   }
 
+  @Deprecated('Use referencesAny2() instead')
   @override
   bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     if (typeFormals.any((element) {
@@ -396,8 +397,9 @@ class FunctionTypeImpl extends TypeImpl
       return instantiate([
         for (var i = 0; i < typeFormals.length; i++)
           TypeParameterTypeImpl(
-              element: TypeParameterElementImpl.synthetic('T$i'),
-              nullabilitySuffix: NullabilitySuffix.none)
+            element3: TypeParameterElementImpl.synthetic('T$i').element,
+            nullabilitySuffix: NullabilitySuffix.none,
+          )
       ]).hashCode;
     }
 
@@ -1138,6 +1140,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
+  @Deprecated('Use referencesAny2() instead')
   @override
   bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     return typeArguments.any((argument) => argument.referencesAny(parameters));
@@ -1629,6 +1632,7 @@ abstract class TypeImpl implements DartType, SharedType {
   bool isStructurallyEqualTo(Object other) => this == other;
 
   /// Returns true if this type references any of the [parameters].
+  @Deprecated('Use referencesAny2() instead')
   bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     return false;
   }
@@ -1672,7 +1676,7 @@ abstract class TypeImpl implements DartType, SharedType {
 /// A concrete implementation of a [TypeParameterType].
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
-  final TypeParameterElementImpl element;
+  final TypeParameterElementImpl2 element3;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -1680,52 +1684,34 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   /// An optional promoted bound on the type parameter.
   ///
   /// 'null' indicates that the type parameter's bound has not been promoted and
-  /// is therefore the same as the bound of [element].
+  /// is therefore the same as the bound of [element3].
   final TypeImpl? promotedBound;
 
   /// Initialize a newly created type parameter type to be declared by the given
-  /// [element] and to have the given name.
+  /// [element3] and to have the given name.
   TypeParameterTypeImpl({
-    required TypeParameterElement element,
+    required this.element3,
     required this.nullabilitySuffix,
     DartType? promotedBound,
     super.alias,
-  })  :
-        // TODO(paulberry): change the type of the parameter `element` so
-        // that this cast isn't needed.
-        element = element as TypeParameterElementImpl,
-        // TODO(paulberry): change the type of the parameter `promotedBound` so
+  }) : // TODO(paulberry): change the type of the parameter `promotedBound` so
         // that this cast isn't needed.
         promotedBound = promotedBound as TypeImpl?;
 
-  /// Initialize a newly created type parameter type to be declared by the given
-  /// [element] and to have the given name.
-  factory TypeParameterTypeImpl.v2({
-    required TypeParameterElement2 element,
-    required NullabilitySuffix nullabilitySuffix,
-    DartType? promotedBound,
-    InstantiatedTypeAliasElementImpl? alias,
-  }) {
-    return TypeParameterTypeImpl(
-      element: element.asElement,
-      nullabilitySuffix: nullabilitySuffix,
-      promotedBound: promotedBound,
-      alias: alias,
-    );
-  }
-
   @override
   TypeImpl get bound =>
-      promotedBound ?? element.bound ?? DynamicTypeImpl.instance;
+      promotedBound ?? element3.bound ?? DynamicTypeImpl.instance;
 
+  @Deprecated('Elements are equal when they are identical')
   @override
   ElementLocation get definition => element.location;
 
+  @Deprecated('Use element3 instead')
   @override
-  TypeParameterElementImpl2 get element3 => element.element;
+  TypeParameterElementImpl get element => element3.asElement;
 
   @override
-  int get hashCode => element.hashCode;
+  int get hashCode => element3.hashCode;
 
   @override
   bool get isBottom {
@@ -1755,7 +1741,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   TypeParameterTypeImpl get withoutPromotedBound {
     return TypeParameterTypeImpl(
-      element: element,
+      element3: element3,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -1766,7 +1752,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       return true;
     }
 
-    if (other is TypeParameterTypeImpl && other.element == element) {
+    if (other is TypeParameterTypeImpl && other.element3 == element3) {
       if (other.nullabilitySuffix != nullabilitySuffix) {
         return false;
       }
@@ -1804,6 +1790,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return bound.asInstanceOf2(targetElement);
   }
 
+  @Deprecated('Use referencesAny2() instead')
   @override
   bool referencesAny(Set<TypeParameterElement> parameters) {
     return parameters.contains(element);
@@ -1818,7 +1805,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return TypeParameterTypeImpl(
-      element: element,
+      element3: element3,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );
