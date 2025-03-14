@@ -136,7 +136,7 @@ library
               reference: <testLibraryFragment>::@class::X::@field::f
               enclosingElement3: <testLibraryFragment>::@class::X
               type: void Function(dynamic)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
           constructors
@@ -147,7 +147,7 @@ library
                 optionalNamed default final hasImplicitType this.f @90
                   reference: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
                   type: void Function(dynamic)
-                    alias: <testLibraryFragment>::@typeAlias::F
+                    alias: <testLibrary>::@typeAlias::F
                       typeArguments
                         dynamic
                   constantInitializer
@@ -166,7 +166,7 @@ library
               reference: <testLibraryFragment>::@class::X::@getter::f
               enclosingElement3: <testLibraryFragment>::@class::X
               returnType: void Function(dynamic)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
       typeAliases
@@ -256,7 +256,7 @@ library
         final f
           firstFragment: <testLibraryFragment>::@class::X::@field::f
           type: void Function(dynamic)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 dynamic
           getter: <testLibraryFragment>::@class::X::@getter::f#element
@@ -267,7 +267,7 @@ library
             optionalNamed final hasImplicitType f
               firstFragment: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
               type: void Function(dynamic)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
               constantInitializer
@@ -530,7 +530,7 @@ library
           parameters
             optionalPositional default compare @22
               type: int Function(InvalidType, InvalidType)
-                alias: dart:core::<fragment>::@typeAlias::Comparator
+                alias: dart:core::@typeAlias::Comparator
                   typeArguments
                     InvalidType
               constantInitializer
@@ -586,7 +586,7 @@ library
       formalParameters
         optionalPositional compare
           type: int Function(InvalidType, InvalidType)
-            alias: dart:core::<fragment>::@typeAlias::Comparator
+            alias: dart:core::@typeAlias::Comparator
               typeArguments
                 InvalidType
           constantInitializer

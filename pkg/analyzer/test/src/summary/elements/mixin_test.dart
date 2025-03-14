@@ -1532,7 +1532,7 @@ library
           supertype: S<String>
           mixins
             M<String, int>
-              alias: <testLibraryFragment>::@typeAlias::M2
+              alias: <testLibrary>::@typeAlias::M2
                 typeArguments
                   String
           constructors
@@ -1617,7 +1617,7 @@ library
       supertype: S<String>
       mixins
         M<String, int>
-          alias: <testLibraryFragment>::@typeAlias::M2
+          alias: <testLibrary>::@typeAlias::M2
             typeArguments
               String
       constructors
@@ -1678,7 +1678,7 @@ library
           supertype: S<String>
           mixins
             M<String, int>
-              alias: <testLibraryFragment>::@typeAlias::M3
+              alias: <testLibrary>::@typeAlias::M3
                 typeArguments
                   String
           constructors
@@ -1712,7 +1712,7 @@ library
             covariant T3 @67
               defaultType: dynamic
           aliasedType: M<T3, int>
-            alias: <testLibraryFragment>::@typeAlias::M2
+            alias: <testLibrary>::@typeAlias::M2
               typeArguments
                 T3
 ----------------------------------------
@@ -1778,7 +1778,7 @@ library
       supertype: S<String>
       mixins
         M<String, int>
-          alias: <testLibraryFragment>::@typeAlias::M3
+          alias: <testLibrary>::@typeAlias::M3
             typeArguments
               String
       constructors
@@ -1805,7 +1805,7 @@ library
       typeParameters
         T3
       aliasedType: M<T3, int>
-        alias: <testLibraryFragment>::@typeAlias::M2
+        alias: <testLibrary>::@typeAlias::M2
           typeArguments
             T3
 ''');

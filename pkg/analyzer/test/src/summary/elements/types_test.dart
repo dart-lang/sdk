@@ -84,7 +84,7 @@ library
           parameters
             requiredPositional f @25
               type: dynamic Function(int)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
           returnType: dynamic
 ----------------------------------------
 library
@@ -114,7 +114,7 @@ library
       formalParameters
         requiredPositional f
           type: dynamic Function(int)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
       returnType: dynamic
 ''');
   }
@@ -1854,7 +1854,7 @@ library
               reference: <testLibraryFragment>::@class::C::@method::f
               enclosingElement3: <testLibraryFragment>::@class::C
               returnType: O Function(O)
-                alias: package:test/a.dart::<fragment>::@typeAlias::F
+                alias: package:test/a.dart::@typeAlias::F
                   typeArguments
                     O
 ----------------------------------------
@@ -1921,7 +1921,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function(num)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 num
       accessors
@@ -1929,7 +1929,7 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function(num)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 num
         synthetic static set f= @-1
@@ -1938,7 +1938,7 @@ library
           parameters
             requiredPositional _f @-1
               type: dynamic Function(num)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     num
           returnType: void
@@ -1984,7 +1984,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function(num)
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
           typeArguments
             num
       getter: <testLibraryFragment>::@getter::f#element
@@ -1998,7 +1998,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function(num)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 num
 ''');
@@ -2178,7 +2178,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: S Function<S>(num)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 num
       accessors
@@ -2186,7 +2186,7 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: S Function<S>(num)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 num
         synthetic static set f= @-1
@@ -2195,7 +2195,7 @@ library
           parameters
             requiredPositional _f @-1
               type: S Function<S>(num)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     num
           returnType: void
@@ -2241,7 +2241,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: S Function<S>(num)
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
           typeArguments
             num
       getter: <testLibraryFragment>::@getter::f#element
@@ -2255,7 +2255,7 @@ library
       formalParameters
         requiredPositional _f
           type: S Function<S>(num)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 num
 ''');

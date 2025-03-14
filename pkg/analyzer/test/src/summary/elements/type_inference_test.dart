@@ -248,7 +248,7 @@ library
               parameters
                 requiredPositional f @65
                   type: D<V, U> Function<U>()
-                    alias: <testLibraryFragment>::@typeAlias::F
+                    alias: <testLibrary>::@typeAlias::F
                       typeArguments
                         V
         class D @77
@@ -409,7 +409,7 @@ library
           formalParameters
             requiredPositional f
               type: D<V, U> Function<U>()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     V
     class D
@@ -477,7 +477,7 @@ library
               parameters
                 requiredPositional f @54
                   type: D<T> Function<T>()
-                    alias: <testLibraryFragment>::@typeAlias::F
+                    alias: <testLibrary>::@typeAlias::F
         class D @66
           reference: <testLibraryFragment>::@class::D
           enclosingElement3: <testLibraryFragment>
@@ -617,7 +617,7 @@ library
           formalParameters
             requiredPositional f
               type: D<T> Function<T>()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
     class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
@@ -2802,7 +2802,7 @@ library
               reference: <testLibraryFragment>::@class::C::@field::v
               enclosingElement3: <testLibraryFragment>::@class::C
               type: int Function(String)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2813,14 +2813,14 @@ library
               reference: <testLibraryFragment>::@class::C::@getter::v
               enclosingElement3: <testLibraryFragment>::@class::C
               returnType: int Function(String)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
             synthetic set v= @-1
               reference: <testLibraryFragment>::@class::C::@setter::v
               enclosingElement3: <testLibraryFragment>::@class::C
               parameters
                 requiredPositional _v @-1
                   type: int Function(String)
-                    alias: <testLibraryFragment>::@typeAlias::F
+                    alias: <testLibrary>::@typeAlias::F
               returnType: void
         abstract class D @69
           reference: <testLibraryFragment>::@class::D
@@ -2830,7 +2830,7 @@ library
               reference: <testLibraryFragment>::@class::D::@field::v
               enclosingElement3: <testLibraryFragment>::@class::D
               type: int Function(String)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -2840,7 +2840,7 @@ library
               reference: <testLibraryFragment>::@class::D::@getter::v
               enclosingElement3: <testLibraryFragment>::@class::D
               returnType: int Function(String)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
       typeAliases
         functionTypeAliasBased F @12
           reference: <testLibraryFragment>::@typeAlias::F
@@ -2912,7 +2912,7 @@ library
         v
           firstFragment: <testLibraryFragment>::@class::C::@field::v
           type: int Function(String)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
           getter: <testLibraryFragment>::@class::C::@getter::v#element
           setter: <testLibraryFragment>::@class::C::@setter::v#element
       constructors
@@ -2928,7 +2928,7 @@ library
           formalParameters
             requiredPositional _v
               type: int Function(String)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
@@ -2936,7 +2936,7 @@ library
         synthetic v
           firstFragment: <testLibraryFragment>::@class::D::@field::v
           type: int Function(String)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
           getter: <testLibraryFragment>::@class::D::@getter::v#element
       constructors
         synthetic new
@@ -3486,7 +3486,7 @@ library
           parameters
             requiredPositional f @37
               type: void Function(int Function(String))
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
           returnType: dynamic
 ----------------------------------------
 library
@@ -3549,7 +3549,7 @@ library
       formalParameters
         requiredPositional f
           type: void Function(int Function(String))
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
       returnType: dynamic
 ''');
   }
@@ -8424,7 +8424,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
@@ -8452,14 +8452,14 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -8631,7 +8631,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -8657,7 +8657,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
 ''');
   }
 
@@ -8693,7 +8693,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
@@ -8721,14 +8721,14 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
           returnType: void
     <testLibrary>::@fragment::package:test/a.dart
       enclosingElement3: <testLibraryFragment>
@@ -8975,7 +8975,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -9001,7 +9001,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
 ''');
   }
 
@@ -9105,7 +9105,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::c
@@ -9133,14 +9133,14 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::f
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::f
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -9318,7 +9318,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
       type: dynamic Function()
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
       getter: <testLibrary>::@fragment::package:test/a.dart::@getter::f#element
       setter: <testLibrary>::@fragment::package:test/a.dart::@setter::f#element
   getters
@@ -9344,7 +9344,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
 ''');
   }
 
@@ -9456,7 +9456,7 @@ library
           reference: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::f
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           type: dynamic Function()
-            alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibrary>::@fragment::package:test/b.dart::@getter::c
@@ -9484,14 +9484,14 @@ library
           reference: <testLibrary>::@fragment::package:test/b.dart::@getter::f
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           returnType: dynamic Function()
-            alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibrary>::@fragment::package:test/b.dart::@setter::f
           enclosingElement3: <testLibrary>::@fragment::package:test/b.dart
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -9674,7 +9674,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::f
       type: dynamic Function()
-        alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
       getter: <testLibrary>::@fragment::package:test/b.dart::@getter::f#element
       setter: <testLibrary>::@fragment::package:test/b.dart::@setter::f#element
   getters
@@ -9700,7 +9700,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
 ''');
   }
 
@@ -9804,7 +9804,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           type: dynamic Function()
-            alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::c
@@ -9832,14 +9832,14 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::f
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           returnType: dynamic Function()
-            alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::f
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -10017,7 +10017,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
       type: dynamic Function()
-        alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
       getter: <testLibrary>::@fragment::package:test/a.dart::@getter::f#element
       setter: <testLibrary>::@fragment::package:test/a.dart::@setter::f#element
   getters
@@ -10043,7 +10043,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
 ''');
   }
 
@@ -10575,7 +10575,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: package:test/a.dart::<fragment>::@typeAlias::F
+            alias: package:test/a.dart::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
@@ -10603,14 +10603,14 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: package:test/a.dart::<fragment>::@typeAlias::F
+            alias: package:test/a.dart::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: package:test/a.dart::<fragment>::@typeAlias::F
+                alias: package:test/a.dart::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -10682,7 +10682,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: package:test/a.dart::<fragment>::@typeAlias::F
+        alias: package:test/a.dart::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -10708,7 +10708,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: package:test/a.dart::<fragment>::@typeAlias::F
+            alias: package:test/a.dart::@typeAlias::F
 ''');
   }
 
@@ -10740,7 +10740,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: package:test/b.dart::<fragment>::@typeAlias::F
+            alias: package:test/b.dart::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
@@ -10768,14 +10768,14 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: package:test/b.dart::<fragment>::@typeAlias::F
+            alias: package:test/b.dart::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: package:test/b.dart::<fragment>::@typeAlias::F
+                alias: package:test/b.dart::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -10847,7 +10847,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: package:test/b.dart::<fragment>::@typeAlias::F
+        alias: package:test/b.dart::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -10873,7 +10873,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: package:test/b.dart::<fragment>::@typeAlias::F
+            alias: package:test/b.dart::@typeAlias::F
 ''');
   }
 
@@ -10906,7 +10906,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: package:test/c.dart::<fragment>::@typeAlias::F
+            alias: package:test/c.dart::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
@@ -10934,14 +10934,14 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: package:test/c.dart::<fragment>::@typeAlias::F
+            alias: package:test/c.dart::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: package:test/c.dart::<fragment>::@typeAlias::F
+                alias: package:test/c.dart::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -11013,7 +11013,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: package:test/c.dart::<fragment>::@typeAlias::F
+        alias: package:test/c.dart::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -11039,7 +11039,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: package:test/c.dart::<fragment>::@typeAlias::F
+            alias: package:test/c.dart::@typeAlias::F
 ''');
   }
 
@@ -11072,7 +11072,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: package:test/a/c/c.dart::<fragment>::@typeAlias::F
+            alias: package:test/a/c/c.dart::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
@@ -11100,14 +11100,14 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: package:test/a/c/c.dart::<fragment>::@typeAlias::F
+            alias: package:test/a/c/c.dart::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: package:test/a/c/c.dart::<fragment>::@typeAlias::F
+                alias: package:test/a/c/c.dart::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -11179,7 +11179,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: package:test/a/c/c.dart::<fragment>::@typeAlias::F
+        alias: package:test/a/c/c.dart::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -11205,7 +11205,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: package:test/a/c/c.dart::<fragment>::@typeAlias::F
+            alias: package:test/a/c/c.dart::@typeAlias::F
 ''');
   }
 
@@ -11237,7 +11237,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: package:test/a/b/b.dart::<fragment>::@typeAlias::F
+            alias: package:test/a/b/b.dart::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
@@ -11265,14 +11265,14 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: package:test/a/b/b.dart::<fragment>::@typeAlias::F
+            alias: package:test/a/b/b.dart::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: package:test/a/b/b.dart::<fragment>::@typeAlias::F
+                alias: package:test/a/b/b.dart::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -11344,7 +11344,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: package:test/a/b/b.dart::<fragment>::@typeAlias::F
+        alias: package:test/a/b/b.dart::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -11370,7 +11370,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: package:test/a/b/b.dart::<fragment>::@typeAlias::F
+            alias: package:test/a/b/b.dart::@typeAlias::F
 ''');
   }
 
@@ -11402,7 +11402,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: package:test/a.dart::@fragment::package:test/b.dart::@typeAlias::F
+            alias: package:test/a.dart::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
@@ -11430,14 +11430,14 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: package:test/a.dart::@fragment::package:test/b.dart::@typeAlias::F
+            alias: package:test/a.dart::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: package:test/a.dart::@fragment::package:test/b.dart::@typeAlias::F
+                alias: package:test/a.dart::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -11509,7 +11509,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: package:test/a.dart::@fragment::package:test/b.dart::@typeAlias::F
+        alias: package:test/a.dart::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -11535,7 +11535,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: package:test/a.dart::@fragment::package:test/b.dart::@typeAlias::F
+            alias: package:test/a.dart::@typeAlias::F
 ''');
   }
 
@@ -11686,7 +11686,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: package:test/a/b.dart::@fragment::package:test/a/c.dart::@typeAlias::F
+            alias: package:test/a/b.dart::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
@@ -11714,14 +11714,14 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: package:test/a/b.dart::@fragment::package:test/a/c.dart::@typeAlias::F
+            alias: package:test/a/b.dart::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: package:test/a/b.dart::@fragment::package:test/a/c.dart::@typeAlias::F
+                alias: package:test/a/b.dart::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -11793,7 +11793,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: package:test/a/b.dart::@fragment::package:test/a/c.dart::@typeAlias::F
+        alias: package:test/a/b.dart::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -11819,7 +11819,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: package:test/a/b.dart::@fragment::package:test/a/c.dart::@typeAlias::F
+            alias: package:test/a/b.dart::@typeAlias::F
 ''');
   }
 
@@ -11850,7 +11850,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: package:test/a.dart::<fragment>::@typeAlias::F
+            alias: package:test/a.dart::@typeAlias::F
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
@@ -11878,14 +11878,14 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: package:test/a.dart::<fragment>::@typeAlias::F
+            alias: package:test/a.dart::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: package:test/a.dart::<fragment>::@typeAlias::F
+                alias: package:test/a.dart::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -11957,7 +11957,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: package:test/a.dart::<fragment>::@typeAlias::F
+        alias: package:test/a.dart::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -11983,7 +11983,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: package:test/a.dart::<fragment>::@typeAlias::F
+            alias: package:test/a.dart::@typeAlias::F
 ''');
   }
 
@@ -12007,20 +12007,20 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
       accessors
         synthetic static get f @-1
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
         synthetic static set f= @-1
           reference: <testLibraryFragment>::@setter::f
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _f @-1
               type: dynamic Function()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
           returnType: void
 ----------------------------------------
 library
@@ -12058,7 +12058,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
       getter: <testLibraryFragment>::@getter::f#element
       setter: <testLibraryFragment>::@setter::f#element
   getters
@@ -12070,7 +12070,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
 ''');
   }
 
@@ -12103,7 +12103,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: String Function(int)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 int
                 String
@@ -12112,7 +12112,7 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: String Function(int)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 int
                 String
@@ -12122,7 +12122,7 @@ library
           parameters
             requiredPositional _f @-1
               type: String Function(int)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     int
                     String
@@ -12171,7 +12171,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: String Function(int)
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
           typeArguments
             int
             String
@@ -12186,7 +12186,7 @@ library
       formalParameters
         requiredPositional _f
           type: String Function(int)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 int
                 String
@@ -12221,7 +12221,7 @@ library
           reference: <testLibraryFragment>::@topLevelVariable::f
           enclosingElement3: <testLibraryFragment>
           type: dynamic Function(dynamic)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 dynamic
                 dynamic
@@ -12230,7 +12230,7 @@ library
           reference: <testLibraryFragment>::@getter::f
           enclosingElement3: <testLibraryFragment>
           returnType: dynamic Function(dynamic)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 dynamic
                 dynamic
@@ -12240,7 +12240,7 @@ library
           parameters
             requiredPositional _f @-1
               type: dynamic Function(dynamic)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
                     dynamic
@@ -12289,7 +12289,7 @@ library
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function(dynamic)
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
           typeArguments
             dynamic
             dynamic
@@ -12304,7 +12304,7 @@ library
       formalParameters
         requiredPositional _f
           type: dynamic Function(dynamic)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 dynamic
                 dynamic

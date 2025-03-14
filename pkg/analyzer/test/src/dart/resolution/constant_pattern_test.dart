@@ -358,7 +358,7 @@ ConstantPattern
       element: <testLibraryFragment>::@typeAlias::A
       element2: <testLibrary>::@typeAlias::A
       type: int
-        alias: <testLibraryFragment>::@typeAlias::A
+        alias: <testLibrary>::@typeAlias::A
     staticType: Type
   matchedValueType: Object?
 ''');
@@ -418,7 +418,7 @@ ConstantPattern
       element: package:test/a.dart::<fragment>::@typeAlias::A
       element2: package:test/a.dart::@typeAlias::A
       type: int
-        alias: package:test/a.dart::<fragment>::@typeAlias::A
+        alias: package:test/a.dart::@typeAlias::A
     staticType: Type
   matchedValueType: Object?
 ''');

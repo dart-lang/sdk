@@ -610,7 +610,7 @@ ImplicitCallReference
     staticElement: <testLibraryFragment>::@function::f::@parameter::b
     element: <testLibraryFragment>::@function::f::@parameter::b#element
     staticType: A
-      alias: <testLibraryFragment>::@typeAlias::B
+      alias: <testLibrary>::@typeAlias::B
   staticElement: <testLibraryFragment>::@class::A::@method::call
   element: <testLibraryFragment>::@class::A::@method::call#element
   staticType: void Function()

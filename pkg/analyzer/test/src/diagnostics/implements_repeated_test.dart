@@ -87,7 +87,7 @@ ImplementsClause
       element: <testLibraryFragment>::@typeAlias::B
       element2: <testLibrary>::@typeAlias::B
       type: A
-        alias: <testLibraryFragment>::@typeAlias::B
+        alias: <testLibrary>::@typeAlias::B
 ''');
   }
 
@@ -178,7 +178,7 @@ ImplementsClause
       element: <testLibraryFragment>::@typeAlias::B
       element2: <testLibrary>::@typeAlias::B
       type: A
-        alias: <testLibraryFragment>::@typeAlias::B
+        alias: <testLibrary>::@typeAlias::B
 ''');
   }
 
@@ -264,7 +264,7 @@ ImplementsClause
       element: <testLibraryFragment>::@typeAlias::A
       element2: <testLibrary>::@typeAlias::A
       type: int
-        alias: <testLibraryFragment>::@typeAlias::A
+        alias: <testLibrary>::@typeAlias::A
 ''');
   }
 

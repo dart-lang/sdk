@@ -350,7 +350,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::F
   element2: <testLibrary>::@typeAlias::F
   type: int Function()
-    alias: <testLibraryFragment>::@typeAlias::F
+    alias: <testLibrary>::@typeAlias::F
 ''');
   }
 
@@ -368,7 +368,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::F
   element2: <testLibrary>::@typeAlias::F
   type: num Function()
-    alias: <testLibraryFragment>::@typeAlias::F
+    alias: <testLibrary>::@typeAlias::F
       typeArguments
         num
 ''');
@@ -388,7 +388,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::F
   element2: <testLibrary>::@typeAlias::F
   type: dynamic Function()
-    alias: <testLibraryFragment>::@typeAlias::F
+    alias: <testLibrary>::@typeAlias::F
       typeArguments
         dynamic
 ''');
@@ -417,7 +417,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::F
   element2: <testLibrary>::@typeAlias::F
   type: int Function()
-    alias: <testLibraryFragment>::@typeAlias::F
+    alias: <testLibrary>::@typeAlias::F
       typeArguments
         int
 ''');
@@ -908,7 +908,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: Map<int, String>
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         String
 ''');
@@ -930,7 +930,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: Map<int, String?>
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         String?
 ''');
@@ -958,7 +958,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: List<int?>
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         int
 ''');
@@ -980,7 +980,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: List<int?>
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         int?
 ''');
@@ -1060,7 +1060,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: int?
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         int
 ''');
@@ -1088,7 +1088,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::X
   element2: <testLibrary>::@typeAlias::X
   type: Map<int, String>
-    alias: <testLibraryFragment>::@typeAlias::X
+    alias: <testLibrary>::@typeAlias::X
       typeArguments
         String
 ''');

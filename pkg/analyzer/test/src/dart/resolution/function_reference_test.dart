@@ -2066,14 +2066,14 @@ FunctionReference
         element: <testLibraryFragment>::@typeAlias::Exactly
         element2: <testLibrary>::@typeAlias::Exactly
         type: int Function(int)
-          alias: <testLibraryFragment>::@typeAlias::Exactly
+          alias: <testLibrary>::@typeAlias::Exactly
             typeArguments
               int
     rightBracket: >
   staticType: void Function()
   typeArgumentTypes
     int Function(int)
-      alias: <testLibraryFragment>::@typeAlias::Exactly
+      alias: <testLibrary>::@typeAlias::Exactly
         typeArguments
           int
 ''');
@@ -2661,14 +2661,14 @@ FunctionReference
         element: <testLibraryFragment>::@typeAlias::Exactly
         element2: <testLibrary>::@typeAlias::Exactly
         type: int Function(int)
-          alias: <testLibraryFragment>::@typeAlias::Exactly
+          alias: <testLibrary>::@typeAlias::Exactly
             typeArguments
               int
     rightBracket: >
   staticType: void Function()
   typeArgumentTypes
     int Function(int)
-      alias: <testLibraryFragment>::@typeAlias::Exactly
+      alias: <testLibrary>::@typeAlias::Exactly
         typeArguments
           int
 ''');
@@ -4548,7 +4548,7 @@ FunctionReference
     staticElement: <testLibraryFragment>::@function::foo::@parameter::f
     element: <testLibraryFragment>::@function::foo::@parameter::f#element
     staticType: void Function<U>(U)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
   staticType: void Function(int)
   typeArgumentTypes
     int

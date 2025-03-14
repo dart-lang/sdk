@@ -16653,7 +16653,7 @@ library
                     element: <testLibraryFragment>::@typeAlias::F
                     element2: <testLibrary>::@typeAlias::F
                     type: int Function(String)
-                      alias: <testLibraryFragment>::@typeAlias::F
+                      alias: <testLibrary>::@typeAlias::F
                 rightBracket: > @44
               leftBracket: [ @45
               rightBracket: ] @46
@@ -16688,7 +16688,7 @@ library
                     element: <testLibraryFragment>::@typeAlias::F
                     element2: <testLibrary>::@typeAlias::F
                     type: int Function(String)
-                      alias: <testLibraryFragment>::@typeAlias::F
+                      alias: <testLibrary>::@typeAlias::F
                 rightBracket: > @44
               leftBracket: [ @45
               rightBracket: ] @46
