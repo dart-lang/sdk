@@ -188,6 +188,7 @@ class ElementFactory {
     field.type = type;
     field.isFinal = true;
     GetterFragmentImpl getter = GetterFragmentImpl(name, 0);
+    getter.name2 = name;
     getter.isSynthetic = false;
     getter.variable2 = field;
     getter.returnType = type;
@@ -339,11 +340,13 @@ class ElementFactory {
     field.isSynthetic = true;
     field.type = type;
     GetterFragmentImpl getter = GetterFragmentImpl(name, -1);
+    getter.name2 = name;
     getter.variable2 = field;
     getter.returnType = type;
     field.getter = getter;
     ParameterElementImpl parameter = requiredParameter2("a", type);
     SetterFragmentImpl setter = SetterFragmentImpl(name, -1);
+    setter.name2 = name;
     setter.isSynthetic = true;
     setter.variable2 = field;
     setter.parameters = [parameter];

@@ -5884,17 +5884,17 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
-  GetterElement? getGetter2(String name) {
+  GetterElementImpl? getGetter2(String name) {
     return getters2.firstWhereOrNull((e) => e.name3 == name);
   }
 
   @override
-  MethodElement2OrMember? getMethod2(String name) {
+  MethodElementImpl2? getMethod2(String name) {
     return methods2.firstWhereOrNull((e) => e.lookupName == name);
   }
 
   @override
-  SetterElement? getSetter2(String name) {
+  SetterElementImpl? getSetter2(String name) {
     return setters2.firstWhereOrNull((e) => e.name3 == name);
   }
 
@@ -6725,10 +6725,12 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  PropertyAccessorElement2OrMember? lookupStaticGetter(
+  GetterElement2OrMember? lookupStaticGetter(
       String name, LibraryElement2 library) {
-    return _implementationsOfGetter2(name).firstWhereOrNull(
-        (element) => element.isStatic && element.isAccessibleIn2(library));
+    return _implementationsOfGetter2(name)
+        .firstWhereOrNull(
+            (element) => element.isStatic && element.isAccessibleIn2(library))
+        .ifTypeOrNull();
   }
 
   /// Return the static method with the [name], accessible to the [library].
@@ -6747,10 +6749,12 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  PropertyAccessorElement2OrMember? lookupStaticSetter(
+  SetterElement2OrMember? lookupStaticSetter(
       String name, LibraryElement2 library) {
-    return _implementationsOfSetter2(name).firstWhereOrNull(
-        (element) => element.isStatic && element.isAccessibleIn2(library));
+    return _implementationsOfSetter2(name)
+        .firstWhereOrNull(
+            (element) => element.isStatic && element.isAccessibleIn2(library))
+        .ifTypeOrNull();
   }
 
   void resetCachedAllSupertypes() {

@@ -283,9 +283,9 @@ class ConstantEvaluationEngine {
           var superclass = constant.returnType.superclass;
           if (superclass != null && !superclass.isDartCoreObject) {
             var unnamedConstructor =
-                superclass.element.unnamedConstructor?.declaration;
+                superclass.element3.unnamedConstructor2?.baseElement;
             if (unnamedConstructor != null && unnamedConstructor.isConst) {
-              callback(unnamedConstructor);
+              callback(unnamedConstructor.asElement);
             }
           }
         }
@@ -2760,8 +2760,8 @@ class _InstanceCreationEvaluator {
     }
 
     var definingType = this.definingType;
-    if (definingType.element case ExtensionTypeElement element) {
-      var representation = _fieldMap[element.representation.name];
+    if (definingType.element3 case ExtensionTypeElement2 element) {
+      var representation = _fieldMap[element.representation2.name3];
       if (representation != null) {
         return representation;
       }
@@ -2910,13 +2910,13 @@ class _InstanceCreationEvaluator {
               );
             }
             _fieldMap[fieldName] = evaluationResult;
-            var getter = definingType.getGetter(fieldName);
+            var getter = definingType.getGetter2(fieldName);
             if (getter != null) {
-              var field = getter.variable2;
+              var field = getter.variable3;
               if (field == null) {
                 return _InitializersEvaluationResult(
                   InvalidConstant.forElement(
-                    element: getter.asElement2,
+                    element: getter,
                     errorCode: CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
                   ),
                   evaluationIsComplete: true,

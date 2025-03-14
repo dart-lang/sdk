@@ -714,6 +714,16 @@ extension PropertyAccessorElement2Extension on PropertyAccessorElement2 {
   }
 }
 
+extension PropertyAccessorElement2OrMemberExtension
+    on PropertyAccessorElement2OrMember {
+  PropertyAccessorElementOrMember get asElement {
+    if (this case PropertyAccessorMember member) {
+      return member;
+    }
+    return (this as PropertyAccessorElementImpl2).lastFragment;
+  }
+}
+
 extension PropertyAccessorElementExtension on PropertyAccessorElement {
   PropertyAccessorElement2 get asElement2 {
     return switch (this) {

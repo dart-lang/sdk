@@ -793,6 +793,22 @@ class GetterMember extends PropertyAccessorMember
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitGetterElement(this);
   }
+
+  static GetterElement2OrMember from(
+    GetterElementImpl element,
+    InterfaceType definingType,
+  ) {
+    if (definingType.typeArguments.isEmpty) {
+      return element;
+    }
+
+    return GetterMember._(
+      element.asElement,
+      Substitution.empty,
+      Substitution.fromInterfaceType(definingType),
+      const [],
+    );
+  }
 }
 
 /// An element defined in a parameterized type where the values of the type
@@ -1135,19 +1151,21 @@ class MethodMember extends ExecutableMember
     );
   }
 
-  static MethodElement from2(
-    MethodElement element,
-    MapSubstitution substitution,
-  ) {
-    if (substitution.map.isEmpty) {
+  /// If the given [method]'s type is different when any type parameters from
+  /// the defining type's declaration are replaced with the actual type
+  /// arguments from the [definingType], create a method member representing the
+  /// given method. Return the member that was created, or the base method if no
+  /// member was created.
+  static MethodElement2OrMember from2(
+      MethodElementImpl2 element, InterfaceType definingType) {
+    if (definingType.typeArguments.isEmpty) {
       return element;
     }
+
     return MethodMember(
-      element,
-      element is MethodMember
-          ? element.augmentationSubstitution
-          : Substitution.empty,
-      substitution,
+      element.asElement,
+      Substitution.empty,
+      Substitution.fromInterfaceType(definingType),
     );
   }
 }
@@ -1553,6 +1571,22 @@ class SetterMember extends PropertyAccessorMember
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitSetterElement(this);
+  }
+
+  static SetterElement2OrMember from(
+    SetterElementImpl element,
+    InterfaceType definingType,
+  ) {
+    if (definingType.typeArguments.isEmpty) {
+      return element;
+    }
+
+    return SetterMember._(
+      element.asElement,
+      Substitution.empty,
+      Substitution.fromInterfaceType(definingType),
+      const [],
+    );
   }
 }
 
