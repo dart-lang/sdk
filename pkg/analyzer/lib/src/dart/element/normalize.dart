@@ -76,7 +76,7 @@ class NormalizeHelper {
 
     // * if S is Never then Future<Never>
     if (identical(S, NeverTypeImpl.instance)) {
-      return typeProvider.futureElement.instantiateImpl(
+      return typeProvider.futureElement2.instantiateImpl(
         typeArguments: [NeverTypeImpl.instance],
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -84,14 +84,14 @@ class NormalizeHelper {
 
     // * if S is Null then Future<Null>?
     if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
-      return typeProvider.futureElement.instantiateImpl(
+      return typeProvider.futureElement2.instantiateImpl(
         typeArguments: [typeSystem.nullNone],
         nullabilitySuffix: NullabilitySuffix.question,
       );
     }
 
     // * else FutureOr<S>
-    return typeProvider.futureOrElement.instantiateImpl(
+    return typeProvider.futureOrElement2.instantiateImpl(
       typeArguments: [S],
       nullabilitySuffix: NullabilitySuffix.none,
     );

@@ -714,23 +714,23 @@ class TypeSystemOperations
 
   @override
   TypeImpl? matchIterableTypeInternal(TypeImpl type) {
-    var iterableElement = typeSystem.typeProvider.iterableElement;
-    var listType = type.asInstanceOf(iterableElement);
+    var iterableElement = typeSystem.typeProvider.iterableElement2;
+    var listType = type.asInstanceOf2(iterableElement);
     return listType?.typeArguments[0];
   }
 
   @override
   SharedTypeView? matchListType(SharedTypeView type) {
-    var listElement = typeSystem.typeProvider.listElement;
-    var listType = type.unwrapTypeView<TypeImpl>().asInstanceOf(listElement);
+    var listElement = typeSystem.typeProvider.listElement2;
+    var listType = type.unwrapTypeView<TypeImpl>().asInstanceOf2(listElement);
     return listType == null ? null : SharedTypeView(listType.typeArguments[0]);
   }
 
   @override
   ({SharedTypeView keyType, SharedTypeView valueType})? matchMapType(
       SharedTypeView type) {
-    var mapElement = typeSystem.typeProvider.mapElement;
-    var mapType = type.unwrapTypeView<TypeImpl>().asInstanceOf(mapElement);
+    var mapElement = typeSystem.typeProvider.mapElement2;
+    var mapType = type.unwrapTypeView<TypeImpl>().asInstanceOf2(mapElement);
     if (mapType != null) {
       return (
         keyType: SharedTypeView(mapType.typeArguments[0]),
@@ -742,8 +742,8 @@ class TypeSystemOperations
 
   @override
   SharedTypeView? matchStreamType(SharedTypeView type) {
-    var streamElement = typeSystem.typeProvider.streamElement;
-    var listType = type.unwrapTypeView<TypeImpl>().asInstanceOf(streamElement);
+    var streamElement = typeSystem.typeProvider.streamElement2;
+    var listType = type.unwrapTypeView<TypeImpl>().asInstanceOf2(streamElement);
     return listType == null ? null : SharedTypeView(listType.typeArguments[0]);
   }
 

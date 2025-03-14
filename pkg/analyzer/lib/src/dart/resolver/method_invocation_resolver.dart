@@ -462,8 +462,8 @@ class MethodInvocationResolver with ScopeHelpers {
       {required TypeImpl contextType}) {
     var nameNode = node.methodName;
 
-    var objectElement = _typeSystem.typeProvider.objectElement;
-    var target = objectElement.getMethod(nameNode.name);
+    var objectElement = _typeSystem.typeProvider.objectElement2;
+    var target = objectElement.getMethod2(nameNode.name);
 
     FunctionType? rawType;
     if (receiverType is InvalidType) {
@@ -473,8 +473,9 @@ class MethodInvocationResolver with ScopeHelpers {
       node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
     } else if (target != null &&
         !target.isStatic &&
-        _hasMatchingObjectMethod(target, node.argumentList.arguments)) {
-      nameNode.element = target.asElement2;
+        _hasMatchingObjectMethod(
+            target.asElement, node.argumentList.arguments)) {
+      nameNode.element = target;
       rawType = target.type;
       nameNode.setPseudoExpressionStaticType(target.type);
       node.staticInvokeType = target.type;
@@ -517,10 +518,10 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (receiverType == NeverTypeImpl.instanceNullable) {
       var methodName = node.methodName;
-      var objectElement = _resolver.typeProvider.objectElement;
-      var objectMember = objectElement.getMethod(methodName.name);
+      var objectElement = _resolver.typeProvider.objectElement2;
+      var objectMember = objectElement.getMethod2(methodName.name);
       if (objectMember != null) {
-        methodName.element = objectMember.asElement2;
+        methodName.element = objectMember;
         _setResolution(
           node,
           objectMember.type,

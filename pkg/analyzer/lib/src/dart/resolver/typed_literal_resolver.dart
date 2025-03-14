@@ -198,8 +198,8 @@ class TypedLiteralResolver {
       case SpreadElementImpl():
         var expressionType = element.expression.typeOrThrow;
 
-        var iterableType = expressionType.asInstanceOf(
-          _typeProvider.iterableElement,
+        var iterableType = expressionType.asInstanceOf2(
+          _typeProvider.iterableElement2,
         );
         if (iterableType != null) {
           return iterableType.typeArguments[0];
@@ -291,11 +291,11 @@ class TypedLiteralResolver {
       var unwrappedContextType = _typeSystem.futureOrBase(contextType);
       // TODO(brianwilkerson): Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
-      var iterableType = unwrappedContextType.asInstanceOf(
-        _typeProvider.iterableElement,
+      var iterableType = unwrappedContextType.asInstanceOf2(
+        _typeProvider.iterableElement2,
       );
-      var mapType = unwrappedContextType.asInstanceOf(
-        _typeProvider.mapElement,
+      var mapType = unwrappedContextType.asInstanceOf2(
+        _typeProvider.mapElement2,
       );
       var isIterable = iterableType != null;
       var isMap = mapType != null;
@@ -371,8 +371,8 @@ class TypedLiteralResolver {
       case SpreadElementImpl():
         var expressionType = element.expression.typeOrThrow;
 
-        var iterableType = expressionType.asInstanceOf(
-          _typeProvider.iterableElement,
+        var iterableType = expressionType.asInstanceOf2(
+          _typeProvider.iterableElement2,
         );
         if (iterableType != null) {
           return _InferredCollectionElementTypeInformation(
@@ -380,8 +380,8 @@ class TypedLiteralResolver {
           );
         }
 
-        var mapType = expressionType.asInstanceOf(
-          _typeProvider.mapElement,
+        var mapType = expressionType.asInstanceOf2(
+          _typeProvider.mapElement2,
         );
         if (mapType != null) {
           return _InferredCollectionElementTypeInformation(

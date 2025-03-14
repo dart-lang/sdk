@@ -7,6 +7,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -1992,7 +1993,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T', bound: listNone(intNone));
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement,
+      typeProvider.iterableElement2,
       'Iterable<int>',
     );
   }
@@ -2001,7 +2002,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T', bound: numNone);
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement,
+      typeProvider.iterableElement2,
       null,
     );
   }
@@ -2013,7 +2014,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
         T,
         promotedBound: listNone(intNone),
       ),
-      typeProvider.iterableElement,
+      typeProvider.iterableElement2,
       'Iterable<int>',
     );
   }
@@ -2025,7 +2026,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
         T,
         promotedBound: numNone,
       ),
-      typeProvider.iterableElement,
+      typeProvider.iterableElement2,
       null,
     );
   }
@@ -2034,7 +2035,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement,
+      typeProvider.iterableElement2,
       null,
     );
   }
@@ -2052,10 +2053,10 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
 
   void _assert_asInstanceOf(
     TypeImpl type,
-    ClassElement element,
+    ClassElement2 element,
     String? expected,
   ) {
-    var result = type.asInstanceOf(element);
+    var result = type.asInstanceOf2(element);
     expect(
       result?.getDisplayString(),
       expected,

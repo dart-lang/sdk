@@ -2853,9 +2853,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     TypeImpl? sequenceElementType;
     {
       var sequenceElement = awaitKeyword != null
-          ? _typeProvider.streamElement
-          : _typeProvider.iterableElement;
-      var sequenceType = iterableType.asInstanceOf(sequenceElement);
+          ? _typeProvider.streamElement2
+          : _typeProvider.iterableElement2;
+      var sequenceType = iterableType.asInstanceOf2(sequenceElement);
       if (sequenceType != null) {
         sequenceElementType = sequenceType.typeArguments[0];
       }
@@ -4369,7 +4369,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    if (!_typeProvider.isNonSubtypableClass(superType.element)) {
+    if (!_typeProvider.isNonSubtypableClass2(superType.element3)) {
       // Don't report this diagnostic for non-subtypable classes because the
       // real problem was already reported.
       errorReporter.atElement2(
