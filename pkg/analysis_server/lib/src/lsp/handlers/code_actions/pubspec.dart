@@ -30,7 +30,9 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   String get name => 'ServerPubspecActionsComputer';
 
   @override
-  Future<List<CodeActionWithPriority>> getAssistActions() async => [];
+  Future<List<CodeActionWithPriority>> getAssistActions({
+    OperationPerformance? performance,
+  }) async => [];
 
   @override
   Future<List<CodeActionWithPriority>> getFixActions(

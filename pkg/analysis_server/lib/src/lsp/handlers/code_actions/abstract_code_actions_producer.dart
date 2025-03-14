@@ -170,7 +170,9 @@ abstract class AbstractCodeActionsProducer
     );
   }
 
-  Future<List<CodeActionWithPriority>> getAssistActions();
+  Future<List<CodeActionWithPriority>> getAssistActions({
+    OperationPerformanceImpl? performance,
+  });
 
   Future<List<CodeActionWithPriority>> getFixActions(
     OperationPerformance? performance,

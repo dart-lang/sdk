@@ -247,7 +247,9 @@ class CodeActionHandler
               for (var computer in actionComputers)
                 ...await performance.runAsync(
                   '${computer.name}.getAssistActions',
-                  (_) => computer.getAssistActions(),
+                  (_) => computer.getAssistActions(
+                    performance: message.performance,
+                  ),
                 ),
             ]),
           if (includeRefactors)

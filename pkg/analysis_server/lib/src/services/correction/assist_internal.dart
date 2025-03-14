@@ -5,6 +5,7 @@
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist_generators.dart';
+import 'package:analysis_server/src/services/correction/assist_performance.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
@@ -186,14 +187,20 @@ void registerBuiltInAssistGenerators() {
 
 /// The computer for Dart assists.
 class AssistProcessor {
+  final AssistPerformance? _performance;
   final DartAssistContext _assistContext;
+  final Stopwatch _timer = Stopwatch();
 
   final List<Assist> _assists = [];
 
-  AssistProcessor(this._assistContext);
+  AssistProcessor(this._assistContext, {AssistPerformance? performance})
+    : _performance = performance;
 
   Future<List<Assist>> compute() async {
+    _timer.start();
     await _addFromProducers();
+    _timer.stop();
+    _performance?.computeTime = _timer.elapsed;
     return _assists;
   }
 
@@ -225,7 +232,17 @@ class AssistProcessor {
         eol: producer.eol,
       );
       try {
-        await producer.compute(builder);
+        if (_performance != null) {
+          var startTime = _timer.elapsedMilliseconds;
+          await producer.compute(builder);
+          _performance.producerTimings.add((
+            className: producer.runtimeType.toString(),
+            elapsedTime: _timer.elapsedMilliseconds - startTime,
+          ));
+        } else {
+          await producer.compute(builder);
+        }
+
         var assistKind = producer.assistKind;
         if (assistKind != null) {
           _addAssistFromBuilder(

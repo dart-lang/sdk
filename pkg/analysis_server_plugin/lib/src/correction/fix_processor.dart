@@ -7,6 +7,7 @@ import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_in_file_processor.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -19,15 +20,6 @@ Future<List<Fix>> computeFixes(DartFixContext context,
     ...await FixInFileProcessor(context).compute(),
   ];
 }
-
-/// Timing information for a producer's call to `compute()`.
-typedef ProducerTiming = ({
-  /// The producer class name.
-  String className,
-
-  /// The time elapsed during `compute()`.
-  int elapsedTime,
-});
 
 /// A callback for recording fix request timings.
 class FixPerformance {

@@ -18,6 +18,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
+import 'package:analysis_server/src/services/correction/assist_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
@@ -175,6 +176,23 @@ _CollectedOptionsData _collectOptionsData(AnalysisDriver driver) {
   return collectedData;
 }
 
+(int, String) _producerDetails(ProducerRequestPerformance request) {
+  var details = StringBuffer();
+
+  var totalProducerTime = 0;
+  var producerTimings = request.producerTimings;
+
+  for (var timing in producerTimings.sortedBy((t) => t.elapsedTime).reversed) {
+    var producerTime = timing.elapsedTime;
+    totalProducerTime += producerTime;
+    details.write(timing.className);
+    details.write(': ');
+    details.writeln(printMilliseconds(producerTime));
+  }
+
+  return (totalProducerTime, details.toString());
+}
+
 class AnalysisDriverTimingsPage extends DiagnosticPageWithNav
     implements PostablePage {
   static const _resetFormId = 'reset-driver-timers';
@@ -183,9 +201,10 @@ class AnalysisDriverTimingsPage extends DiagnosticPageWithNav
     : super(
         site,
         'driver-timings',
-        'Analysis Driver Timings',
+        'Analysis Driver',
         description:
             'Timing statistics collected by the analysis driver scheduler since last reset.',
+        indentInNav: true,
       );
 
   @override
@@ -305,6 +324,62 @@ class AnalyticsPage extends DiagnosticPageWithNav {
   }
 }
 
+class AssistsPage extends DiagnosticPageWithNav with PerformanceChartMixin {
+  AssistsPage(DiagnosticsSite site)
+    : super(
+        site,
+        'getAssists',
+        'Assists',
+        description: 'Latency and timing statistics for getting assists.',
+        indentInNav: true,
+      );
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  List<GetAssistsPerformance> get performanceItems =>
+      server.recentPerformance.getAssists.items.toList();
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    var requests = performanceItems;
+
+    if (requests.isEmpty) {
+      blankslate('No assist requests recorded.');
+      return;
+    }
+
+    var fastCount =
+        requests.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p(
+      '${requests.length} results; ${printPercentage(fastCount / requests.length)} within 100ms.',
+    );
+
+    drawChart(requests);
+
+    // Emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+      '<tr><th>Time</th><th align = "left" title="Time in correction producer `compute()` calls">Producer.compute()</th><th align = "left">Source</th><th>Snippet</th></tr>',
+    );
+
+    for (var request in requests) {
+      var shortName = pathContext.basename(request.path);
+      var (producerTime, producerDetails) = _producerDetails(request);
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${request.id}&kind=getAssists">'
+        '${_formatLatencyTiming(request.elapsedInMilliseconds, request.requestLatency)}'
+        '</a></td>'
+        '<td><abbr title="$producerDetails">${printMilliseconds(producerTime)}</abbr></td>'
+        '<td>${escape(shortName)}</td>'
+        '<td><code>${escape(request.snippet)}</code></td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
+  }
+}
+
 class AstPage extends DiagnosticPageWithNav {
   String? _description;
 
@@ -362,8 +437,9 @@ class ByteStoreTimingPage extends DiagnosticPageWithNav
     : super(
         site,
         'byte-store-timing',
-        'FileByteStore Timings',
+        'FileByteStore',
         description: 'FileByteStore Timing statistics.',
+        indentInNav: true,
       );
 
   @override
@@ -837,7 +913,7 @@ class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       buf.writeln(
         '<tr>'
         '<td class="pre right"><a href="/timing?id=${completion.id}&kind=completion">'
-        '${_formatTiming(completion)}'
+        '${_formatLatencyTiming(completion.elapsedInMilliseconds, completion.requestLatency)}'
         '</a></td>'
         '<td class="right">${completion.computedSuggestionCountStr}</td>'
         '<td class="right">${completion.transmittedSuggestionCountStr}</td>'
@@ -847,21 +923,6 @@ class CompletionPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       );
     }
     buf.writeln('</table>');
-  }
-
-  String _formatTiming(CompletionPerformance completion) {
-    var buffer = StringBuffer();
-    buffer.write(printMilliseconds(completion.elapsedInMilliseconds));
-
-    var latency = completion.requestLatency;
-    if (latency != null) {
-      buffer
-        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
-        ..write(printMilliseconds(latency))
-        ..write(')</small>');
-    }
-
-    return buffer.toString();
   }
 }
 
@@ -1286,6 +1347,20 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 
     buf.writeln('</div>');
   }
+
+  String _formatLatencyTiming(int elapsed, int? latency) {
+    var buffer = StringBuffer();
+    buffer.write(printMilliseconds(elapsed));
+
+    if (latency != null) {
+      buffer
+        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
+        ..write(printMilliseconds(latency))
+        ..write(')</small>');
+    }
+
+    return buffer.toString();
+  }
 }
 
 class DiagnosticsSite extends Site implements AbstractHttpHandler {
@@ -1325,8 +1400,6 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
       pages.add(LspRegistrationsPage(this, server));
     }
 
-    pages.add(ByteStoreTimingPage(this));
-    pages.add(AnalysisDriverTimingsPage(this));
     pages.add(AnalysisPerformanceLogPage(this));
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
@@ -1352,8 +1425,11 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     // Add timing pages
     pages.add(TimingPage(this));
     // (Nested)
+    pages.add(AnalysisDriverTimingsPage(this));
+    pages.add(AssistsPage(this));
+    pages.add(ByteStoreTimingPage(this));
     pages.add(CompletionPage(this));
-    pages.add(GetFixesPage(this));
+    pages.add(FixesPage(this));
   }
 
   @override
@@ -1543,13 +1619,13 @@ class FeedbackPage extends DiagnosticPage {
   }
 }
 
-class GetFixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
-  GetFixesPage(DiagnosticsSite site)
+class FixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
+  FixesPage(DiagnosticsSite site)
     : super(
         site,
         'getFixes',
-        'Get Fixes',
-        description: 'Latency statistics for getting fixes.',
+        'Fixes',
+        description: 'Latency and timing statistics for getting fixes.',
         indentInNav: true,
       );
 
@@ -1587,7 +1663,7 @@ class GetFixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       buf.writeln(
         '<tr>'
         '<td class="pre right"><a href="/timing?id=${request.id}&kind=getFixes">'
-        '${_formatTiming(request)}'
+        '${_formatLatencyTiming(request.elapsedInMilliseconds, request.requestLatency)}'
         '</a></td>'
         '<td><abbr title="$producerDetails">${printMilliseconds(producerTime)}</abbr></td>'
         '<td>${escape(shortName)}</td>'
@@ -1596,39 +1672,6 @@ class GetFixesPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       );
     }
     buf.writeln('</table>');
-  }
-
-  String _formatTiming(GetFixesPerformance request) {
-    var buffer = StringBuffer();
-    buffer.write(printMilliseconds(request.elapsedInMilliseconds));
-
-    var latency = request.requestLatency;
-    if (latency != null) {
-      buffer
-        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
-        ..write(printMilliseconds(latency))
-        ..write(')</small>');
-    }
-
-    return buffer.toString();
-  }
-
-  (int, String) _producerDetails(GetFixesPerformance request) {
-    var details = StringBuffer();
-
-    var totalProducerTime = 0;
-    var producerTimings = request.producerTimings;
-
-    for (var timing
-        in producerTimings.sortedBy((t) => t.elapsedTime).reversed) {
-      var producerTime = timing.elapsedTime;
-      totalProducerTime += producerTime;
-      details.write(timing.className);
-      details.write(': ');
-      details.writeln(printMilliseconds(producerTime));
-    }
-
-    return (totalProducerTime, details.toString());
   }
 }
 
@@ -2018,6 +2061,8 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     List<RequestPerformance>? itemsSlow;
     if (kind == 'completion') {
       items = server.recentPerformance.completion.items.toList();
+    } else if (kind == 'getAssists') {
+      items = server.recentPerformance.getAssists.items.toList();
     } else if (kind == 'getFixes') {
       items = server.recentPerformance.getFixes.items.toList();
     } else {
@@ -2040,28 +2085,13 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       buf.writeln(
         '<tr>'
         '<td class="pre right"><a href="/timing?id=${item.id}">'
-        '${_formatTiming(item)}'
+        '${_formatLatencyTiming(item.performance.elapsed.inMilliseconds, item.requestLatency)}'
         '</a></td>'
         '<td>${escape(item.operation)}</td>'
         '</tr>',
       );
     }
     buf.writeln('</table>');
-  }
-
-  String _formatTiming(RequestPerformance item) {
-    var buffer = StringBuffer();
-    buffer.write(printMilliseconds(item.performance.elapsed.inMilliseconds));
-
-    var latency = item.requestLatency;
-    if (latency != null) {
-      buffer
-        ..write(' <small class="subtle" title="client-to-server latency">(+ ')
-        ..write(printMilliseconds(latency))
-        ..write(')</small>');
-    }
-
-    return buffer.toString();
   }
 
   void _generateDetails(

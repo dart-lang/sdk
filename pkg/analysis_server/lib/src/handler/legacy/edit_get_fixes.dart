@@ -202,8 +202,11 @@ class EditGetFixesHandler extends LegacyHandler
 
           List<Fix> fixes;
           try {
-            var peformanceTracker = FixPerformance();
-            fixes = await computeFixes(context, performance: peformanceTracker);
+            var performanceTracker = FixPerformance();
+            fixes = await computeFixes(
+              context,
+              performance: performanceTracker,
+            );
 
             server.recentPerformance.getFixes.add(
               GetFixesPerformance(
@@ -211,8 +214,8 @@ class EditGetFixesHandler extends LegacyHandler
                 path: file,
                 content: unitResult.content,
                 offset: offset,
-                requestLatency: peformanceTracker.computeTime!.inMilliseconds,
-                producerTimings: peformanceTracker.producerTimings,
+                requestLatency: performanceTracker.computeTime!.inMilliseconds,
+                producerTimings: performanceTracker.producerTimings,
               ),
             );
           } on InconsistentAnalysisException {
