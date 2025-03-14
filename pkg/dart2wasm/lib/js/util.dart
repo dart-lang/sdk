@@ -7,7 +7,7 @@ import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-enum AnnotationType { import, export }
+enum AnnotationType { import, export, weakExport }
 
 /// A utility wrapper for [CoreTypes].
 class CoreTypesUtil {
@@ -30,6 +30,7 @@ class CoreTypesUtil {
   final Class wasmArrayClass;
   final Class wasmArrayRefClass;
   final Procedure wrapDartFunctionTarget;
+  final Procedure exportWasmFunctionTarget;
 
   CoreTypesUtil(this.coreTypes, this._extensionIndex)
       : allowInteropTarget = coreTypes.index
@@ -70,7 +71,9 @@ class CoreTypesUtil {
         wasmArrayRefClass =
             coreTypes.index.getClass('dart:_wasm', 'WasmArrayRef'),
         wrapDartFunctionTarget = coreTypes.index
-            .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction');
+            .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
+        exportWasmFunctionTarget = coreTypes.index
+            .getTopLevelProcedure('dart:_internal', 'exportWasmFunction');
 
   DartType get nonNullableObjectType =>
       coreTypes.objectRawType(Nullability.nonNullable);
@@ -96,7 +99,8 @@ class CoreTypesUtil {
       Procedure procedure, String pragmaOptionString, AnnotationType type) {
     String pragmaNameType = switch (type) {
       AnnotationType.import => 'import',
-      AnnotationType.export => 'export'
+      AnnotationType.export => 'export',
+      AnnotationType.weakExport => 'weak-export',
     };
     procedure.addAnnotation(ConstantExpression(
         InstanceConstant(coreTypes.pragmaClass.reference, [], {

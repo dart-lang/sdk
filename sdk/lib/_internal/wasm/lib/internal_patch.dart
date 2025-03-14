@@ -89,6 +89,11 @@ external T unsafeCastOpaque<T>(Object? v);
 // This function can be used to keep an object alive till that point.
 void reachabilityFence(Object? object) {}
 
+// Used for exporting wasm functions that are annotated via
+// `@pragma('wasm:weak-export', '<name>')
+@pragma("wasm:intrinsic")
+external void exportWasmFunction(Function object);
+
 // This function can be used to encode native side effects.
 @pragma("wasm:intrinsic")
 external void _nativeEffect(Object object);
@@ -114,24 +119,6 @@ external double intBitsToFloat(int value);
 external int doubleToIntBits(double value);
 @pragma("wasm:intrinsic")
 external double intBitsToDouble(int value);
-
-/// Used to invoke a Dart closure from JS (for microtasks and other callbacks),
-/// printing any exceptions that escape.
-@pragma("wasm:export", "\$invokeCallback")
-void _invokeCallback(void Function() callback) {
-  try {
-    callback();
-  } catch (e, s) {
-    print(e);
-    print(s);
-    // FIXME: Chrome/V8 bug makes errors from `rethrow`s not being reported to
-    // `window.onerror`. Please change this back to `rethrow` once the chrome
-    // bug is fixed.
-    //
-    // https://g-issues.chromium.org/issues/327155548
-    throw e;
-  }
-}
 
 // Will be patched in `pkg/dart2wasm/lib/compile.dart` right before TFA.
 external Function get mainTearOff;

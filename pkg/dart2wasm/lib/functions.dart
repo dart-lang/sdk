@@ -23,8 +23,6 @@ class FunctionCollector {
   final Map<Reference, w.BaseFunction> _functions = {};
   // Wasm function for each function expression and local function.
   final Map<Lambda, w.BaseFunction> _lambdas = {};
-  // Names of exported functions
-  final Map<Reference, String> _exports = {};
   // Selector IDs that are invoked via GDT.
   final Set<int> _calledSelectors = {};
   final Set<int> _calledUncheckedSelectors = {};
@@ -42,14 +40,13 @@ class FunctionCollector {
   void _collectImportsAndExports() {
     for (Library library in translator.libraries) {
       library.procedures.forEach(_importOrExport);
-      library.fields.forEach(_importOrExport);
       for (Class cls in library.classes) {
         cls.procedures.forEach(_importOrExport);
       }
     }
   }
 
-  void _importOrExport(Member member) {
+  void _importOrExport(Procedure member) {
     String? importName =
         translator.getPragma(member, "wasm:import", member.name.text);
     if (importName != null) {
@@ -58,31 +55,34 @@ class FunctionCollector {
         assert(!member.isInstanceMember);
         String module = importName.substring(0, dot);
         String name = importName.substring(dot + 1);
-        if (member is Procedure) {
-          w.FunctionType ftype = _makeFunctionType(
-              translator, member.reference, null,
-              isImportOrExport: true);
-          _functions[member.reference] = translator
-              .moduleForReference(member.reference)
-              .functions
-              .import(module, name, ftype, "$importName (import)");
-        }
+        final ftype = _makeFunctionType(translator, member.reference, null,
+            isImportOrExport: true);
+        _functions[member.reference] = translator
+            .moduleForReference(member.reference)
+            .functions
+            .import(module, name, ftype, "$importName (import)");
       }
     }
+
+    // Ensure any procedures marked as exported are enqueued.
     String? exportName =
         translator.getPragma(member, "wasm:export", member.name.text);
     if (exportName != null) {
-      if (member is Procedure) {
-        _makeFunctionType(translator, member.reference, null,
-            isImportOrExport: true);
-      }
-      _exports[member.reference] = exportName;
+      getFunction(member.reference);
     }
   }
 
   /// If the member with the reference [target] is exported, get the export
   /// name.
-  String? getExportName(Reference target) => _exports[target];
+  String? getExportName(Reference target) {
+    final member = target.asMember;
+    if (member.reference == target) {
+      final text = member.name.text;
+      return translator.getPragma(member, "wasm:export", text) ??
+          translator.getPragma(member, "wasm:weak-export", text);
+    }
+    return null;
+  }
 
   w.BaseFunction importFunctionToDynamicModule(w.BaseFunction fun) {
     assert(translator.isDynamicModule);
@@ -110,31 +110,6 @@ class FunctionCollector {
       }
     }
 
-    // Add exports to the module and add exported functions to the
-    // compilationQueue.
-    for (var export in _exports.entries) {
-      Reference target = export.key;
-      Member node = target.asMember;
-      if (node is Procedure) {
-        assert(!node.isInstanceMember);
-        assert(!node.isGetter);
-        w.FunctionType ftype =
-            _makeFunctionType(translator, target, null, isImportOrExport: true);
-        final module = translator.moduleForReference(target);
-        w.FunctionBuilder function = module.functions.define(ftype, "$node");
-        _functions[target] = function;
-        module.exports.export(export.value, function);
-        translator.compilationQueue.add(AstCompilationTask(function,
-            getMemberCodeGenerator(translator, function, target), target));
-      } else if (node is Field) {
-        final module = translator.moduleForReference(target);
-        w.Table? table = translator.getTable(module, node);
-        if (table != null) {
-          module.exports.export(export.value, table);
-        }
-      }
-    }
-
     // Value classes are always implicitly allocated.
     recordClassAllocation(
         translator.classInfo[translator.boxedBoolClass]!.classId);
@@ -150,9 +125,49 @@ class FunctionCollector {
 
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
+      final member = target.asMember;
+
+      // If this function is a `@pragma('wasm:import', '<module>:<name>')` we
+      // import the function and return it.
+      if (member.reference == target && member.annotations.isNotEmpty) {
+        final importName =
+            translator.getPragma(member, 'wasm:import', member.name.text);
+        if (importName != null) {
+          assert(!member.isInstanceMember);
+          int dot = importName.indexOf('.');
+          if (dot != -1) {
+            final module = importName.substring(0, dot);
+            final name = importName.substring(dot + 1);
+            final ftype = _makeFunctionType(translator, member.reference, null,
+                isImportOrExport: true);
+            return _functions[member.reference] = translator
+                .moduleForReference(member.reference)
+                .functions
+                .import(module, name, ftype, "$importName (import)");
+          }
+        }
+      }
+
+      // If this function is exported via
+      //   * `@pragma('wasm:export', '<name>')` or
+      //   * `@pragma('wasm:weak-export', '<name>')`
+      // we export it under the given `<name>`
+      String? exportName;
+      if (member.reference == target && member.annotations.isNotEmpty) {
+        exportName = translator.getPragma(
+                member, 'wasm:export', member.name.text) ??
+            translator.getPragma(member, 'wasm:weak-export', member.name.text);
+        assert(exportName == null || member is Procedure && member.isStatic);
+      }
+
+      final w.FunctionType ftype = exportName != null
+          ? _makeFunctionType(translator, target, null, isImportOrExport: true)
+          : translator.signatureForDirectCall(target);
+
       final module = translator.moduleForReference(target);
-      final function = module.functions.define(
-          translator.signatureForDirectCall(target), getFunctionName(target));
+      final function = module.functions.define(ftype, getFunctionName(target));
+      if (exportName != null) module.exports.export(exportName, function);
+
       translator.compilationQueue.add(AstCompilationTask(function,
           getMemberCodeGenerator(translator, function, target), target));
 

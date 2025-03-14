@@ -164,6 +164,7 @@ enum StaticIntrinsic {
   intBitsToFloat('dart:_internal', null, 'intBitsToFloat'),
   doubleToIntBits('dart:_internal', null, 'doubleToIntBits'),
   intBitsToDouble('dart:_internal', null, 'intBitsToDouble'),
+  exportWasmFunction('dart:_internal', null, 'exportWasmFunction'),
   getID('dart:_internal', 'ClassID', 'getID'),
   loadInt8('dart:ffi', null, '_loadInt8'),
   loadUint8('dart:ffi', null, '_loadUint8'),
@@ -1162,6 +1163,28 @@ class Intrinsifier {
             node.arguments.positional.single, w.NumType.i64);
         b.f64_reinterpret_i64();
         return w.NumType.f64;
+      case StaticIntrinsic.exportWasmFunction:
+        const error =
+            'The `dart:_internal:exportWasmFunction` expects its argument '
+            'to be a tear-off of a `@pragma(\'wasm:weak-export\', ...)` '
+            'annotated function';
+
+        // Sanity check argument.
+        final argument = node.arguments.positional.single;
+        if (argument is! ConstantExpression) throw error;
+        final constant = argument.constant;
+        if (constant is! StaticTearOffConstant) throw error;
+        final target = constant.target;
+        if (translator.getPragma(target, 'wasm:weak-export', '') == null) {
+          throw error;
+        }
+
+        // Ensure we compile the target function & export it.
+        translator.functions.getFunction(target.reference);
+
+        final topType = translator.topInfo.nullableType;
+        codeGen.translateExpression(NullLiteral(), topType);
+        return topType;
       case StaticIntrinsic.getID:
         ClassInfo info = translator.topInfo;
         codeGen.translateExpression(
