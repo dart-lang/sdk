@@ -3777,10 +3777,6 @@ class Float32x4 {
   @patch
   @pragma("vm:prefer-inline")
   factory Float32x4(double x, double y, double z, double w) {
-    _throwIfNull(x, 'x');
-    _throwIfNull(y, 'y');
-    _throwIfNull(z, 'z');
-    _throwIfNull(w, 'w');
     return _Float32x4FromDoubles(x, y, z, w);
   }
 
@@ -3796,10 +3792,7 @@ class Float32x4 {
 
   @patch
   @pragma("vm:prefer-inline")
-  factory Float32x4.splat(double v) {
-    _throwIfNull(v, 'v');
-    return _Float32x4Splat(v);
-  }
+  factory Float32x4.splat(double value) => _Float32x4Splat(value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
@@ -3822,7 +3815,7 @@ class Float32x4 {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_fromFloat64x2")
-  external factory Float32x4.fromFloat64x2(Float64x2 v);
+  external factory Float32x4.fromFloat64x2(Float64x2 xy);
 }
 
 @pragma('vm:deeply-immutable')
@@ -3874,7 +3867,7 @@ final class _Float32x4 implements Float32x4 {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_scale")
-  external Float32x4 scale(double s);
+  external Float32x4 scale(double scale);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_abs")
@@ -3914,7 +3907,6 @@ final class _Float32x4 implements Float32x4 {
 
   @pragma("vm:prefer-inline")
   Float32x4 withX(double x) {
-    _throwIfNull(x, 'x');
     return _withX(x);
   }
 
@@ -3925,7 +3917,6 @@ final class _Float32x4 implements Float32x4 {
 
   @pragma("vm:prefer-inline")
   Float32x4 withY(double y) {
-    _throwIfNull(y, 'y');
     return _withY(y);
   }
 
@@ -3936,7 +3927,6 @@ final class _Float32x4 implements Float32x4 {
 
   @pragma("vm:prefer-inline")
   Float32x4 withZ(double z) {
-    _throwIfNull(z, 'z');
     return _withZ(z);
   }
 
@@ -3947,7 +3937,6 @@ final class _Float32x4 implements Float32x4 {
 
   @pragma("vm:prefer-inline")
   Float32x4 withW(double w) {
-    _throwIfNull(w, 'w');
     return _withW(w);
   }
 
@@ -3984,10 +3973,6 @@ class Int32x4 {
   @patch
   @pragma("vm:prefer-inline")
   factory Int32x4(int x, int y, int z, int w) {
-    _throwIfNull(x, 'x');
-    _throwIfNull(y, 'y');
-    _throwIfNull(z, 'z');
-    _throwIfNull(w, 'w');
     return _Int32x4FromInts(x, y, z, w);
   }
 
@@ -3999,10 +3984,6 @@ class Int32x4 {
   @patch
   @pragma("vm:prefer-inline")
   factory Int32x4.bool(bool x, bool y, bool z, bool w) {
-    _throwIfNull(x, 'x');
-    _throwIfNull(y, 'y');
-    _throwIfNull(z, 'z');
-    _throwIfNull(w, 'w');
     return _Int32x4FromBools(x, y, z, w);
   }
 
@@ -4053,7 +4034,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline")
   Int32x4 withX(int x) {
-    _throwIfNull(x, 'x');
     return _withX(x);
   }
 
@@ -4063,7 +4043,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline")
   Int32x4 withY(int y) {
-    _throwIfNull(y, 'y');
     return _withY(y);
   }
 
@@ -4073,7 +4052,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline")
   Int32x4 withZ(int z) {
-    _throwIfNull(z, 'z');
     return _withZ(z);
   }
 
@@ -4083,7 +4061,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline")
   Int32x4 withW(int w) {
-    _throwIfNull(w, 'w');
     return _withW(w);
   }
 
@@ -4110,7 +4087,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagX(bool x) {
-    _throwIfNull(x, 'x');
     return _withFlagX(x);
   }
 
@@ -4121,7 +4097,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagY(bool y) {
-    _throwIfNull(y, 'y');
     return _withFlagY(y);
   }
 
@@ -4132,7 +4107,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagZ(bool z) {
-    _throwIfNull(z, 'z');
     return _withFlagZ(z);
   }
 
@@ -4143,7 +4117,6 @@ final class _Int32x4 implements Int32x4 {
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagW(bool w) {
-    _throwIfNull(w, 'w');
     return _withFlagW(w);
   }
 
@@ -4164,8 +4137,6 @@ class Float64x2 {
   @patch
   @pragma("vm:prefer-inline")
   factory Float64x2(double x, double y) {
-    _throwIfNull(x, 'x');
-    _throwIfNull(y, 'y');
     return _Float64x2FromDoubles(x, y);
   }
 
@@ -4177,7 +4148,6 @@ class Float64x2 {
   @patch
   @pragma("vm:prefer-inline")
   factory Float64x2.splat(double v) {
-    _throwIfNull(v, 'v');
     return _Float64x2Splat(v);
   }
 
@@ -4244,7 +4214,6 @@ final class _Float64x2 implements Float64x2 {
 
   @pragma("vm:prefer-inline")
   Float64x2 withX(double x) {
-    _throwIfNull(x, 'x');
     return _withX(x);
   }
 
@@ -4255,7 +4224,6 @@ final class _Float64x2 implements Float64x2 {
 
   @pragma("vm:prefer-inline")
   Float64x2 withY(double y) {
-    _throwIfNull(y, 'y');
     return _withY(y);
   }
 
@@ -5433,13 +5401,6 @@ int _toClampedUint8(int value) {
   if (value < 0) return 0;
   if (value > 0xFF) return 0xFF;
   return value;
-}
-
-@pragma("vm:prefer-inline")
-void _throwIfNull(val, String name) {
-  if (val == null) {
-    throw ArgumentError.notNull(name);
-  }
 }
 
 // Length should be non-negative.
