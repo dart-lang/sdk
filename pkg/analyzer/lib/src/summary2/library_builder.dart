@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
@@ -738,7 +735,7 @@ class LibraryBuilder {
   /// might be not available yet. So, we create references together with the
   /// library, and create the fragment and element later.
   void _createLoadLibraryReferences() {
-    var name = FunctionElement.LOAD_LIBRARY_NAME;
+    var name = TopLevelFunctionElement.LOAD_LIBRARY_NAME;
 
     var fragmentContainer = units[0].reference.getChild('@function');
     var fragmentReference = fragmentContainer.addChild(name);
@@ -870,8 +867,8 @@ class LinkingUnit {
   });
 }
 
-/// This class examines all the [InterfaceElement]s in a library and determines
-/// which fields are promotable within that library.
+/// This class examines all the [InterfaceElementImpl2]s in a library and
+/// determines which fields are promotable within that library.
 class _FieldPromotability extends FieldPromotability<InterfaceElementImpl2,
     FieldElementImpl2, GetterElementImpl> {
   /// The [_libraryBuilder] for the library being analyzed.

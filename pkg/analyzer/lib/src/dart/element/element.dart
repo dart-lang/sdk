@@ -7334,7 +7334,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  Iterable<Element> get topLevelElements sync* {
+  Iterable<ElementImpl> get topLevelElements sync* {
     for (var unit in units) {
       yield* unit.accessors;
       yield* unit.classes;
