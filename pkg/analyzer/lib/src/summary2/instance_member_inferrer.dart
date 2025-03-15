@@ -22,7 +22,7 @@ class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
   final Set<InterfaceElement> elementsBeingInferred = {};
 
-  late InterfaceElement currentInterfaceElement;
+  late InterfaceElementImpl currentInterfaceElement;
 
   /// Initialize a newly create inferrer.
   InstanceMemberInferrer(this.inheritance);

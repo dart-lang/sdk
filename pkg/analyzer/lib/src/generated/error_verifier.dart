@@ -2043,7 +2043,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
   /// [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
   void _checkForConflictingClassMembers(InterfaceElement fragment) {
-    var enclosingClass = _enclosingClass.asElement as InterfaceElement?;
+    var enclosingClass = _enclosingClass.asElement as InterfaceElementImpl?;
     if (enclosingClass == null) {
       return;
     }
@@ -2060,10 +2060,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       String name = method.name;
 
       // find inherited property accessors
-      var getter = _inheritanceManager.getInherited2(
-          enclosingClass, Name(libraryUri, name));
-      var setter = _inheritanceManager.getInherited2(
-          enclosingClass, Name(libraryUri, '$name='));
+      var getter = _inheritanceManager
+          .getInherited4(enclosingClass.asElement2, Name(libraryUri, name))
+          ?.asElement;
+      var setter = _inheritanceManager
+          .getInherited4(enclosingClass.asElement2, Name(libraryUri, '$name='))
+          ?.asElement;
 
       if (method.isStatic) {
         void reportStaticConflict(ExecutableElement inherited) {
@@ -2122,10 +2124,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       String name = accessor.displayName;
 
       // find inherited method or property accessor
-      var inherited = _inheritanceManager.getInherited2(
-          enclosingClass, Name(libraryUri, name));
-      inherited ??= _inheritanceManager.getInherited2(
-          enclosingClass, Name(libraryUri, '$name='));
+      var inherited = _inheritanceManager
+          .getInherited4(enclosingClass.asElement2, Name(libraryUri, name))
+          ?.asElement;
+      inherited ??= _inheritanceManager
+          .getInherited4(enclosingClass.asElement2, Name(libraryUri, '$name='))
+          ?.asElement;
 
       if (accessor.isStatic && inherited != null) {
         errorReporter.atElement2(
@@ -3145,7 +3149,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeMemberConflicts({
     required ExtensionTypeDeclaration node,
-    required ExtensionTypeElement element,
+    required ExtensionTypeElementImpl element,
   }) {
     void report(String memberName, List<ExecutableElement> candidates) {
       var contextMessages = candidates.map<DiagnosticMessage>((executable) {
