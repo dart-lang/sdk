@@ -2,17 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
-/// Return the [Element] of the given [node], or `null` if [node] is `null` or
+/// Return the [Element2] of the given [node], or `null` if [node] is `null` or
 /// does not have an element.
 Element2? getElementOfNode2(AstNode? node) {
   if (node == null) {
@@ -55,17 +52,17 @@ Element2? getElementOfNode2(AstNode? node) {
 /// If the given [constructor] is a synthetic constructor created for a
 /// [ClassTypeAlias], return the actual constructor of a [ClassDeclaration]
 /// which is invoked.  Return `null` if a redirection cycle is detected.
-ConstructorElement? _getActualConstructorElement(
-    ConstructorElement? constructor) {
-  var seenConstructors = <ConstructorElement?>{};
-  while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
-    var enclosing = constructor.enclosingElement3;
-    if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
+ConstructorElement2? _getActualConstructorElement(
+    ConstructorElement2? constructor) {
+  var seenConstructors = <ConstructorElement2?>{};
+  while (constructor is ConstructorElementImpl2 && constructor.isSynthetic) {
+    var enclosing = constructor.enclosingElement2;
+    if (enclosing is ClassElementImpl2 && enclosing.isMixinApplication) {
       var superInvocation = constructor.constantInitializers
           .whereType<SuperConstructorInvocation>()
           .singleOrNull;
       if (superInvocation != null) {
-        constructor = superInvocation.element?.asElement;
+        constructor = superInvocation.element;
       }
     } else {
       break;
@@ -259,7 +256,7 @@ class MatchKind {
 }
 
 class ReferencesCollector extends GeneralizingAstVisitor<void> {
-  final Element element;
+  final Element2 element;
   final List<MatchInfo> references = [];
 
   ReferencesCollector(this.element);
@@ -269,8 +266,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
     var writeElement = node.writeElement2;
     if (writeElement is PropertyAccessorElement2) {
       var kind = MatchKind.WRITE;
-      if (writeElement.variable3 == element.asElement2 ||
-          writeElement == element.asElement2) {
+      if (writeElement.variable3 == element || writeElement == element) {
         if (node.leftHandSide is SimpleIdentifier) {
           references.add(MatchInfo(
               node.leftHandSide.offset, node.leftHandSide.length, kind));
@@ -288,7 +284,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
     var readElement = node.readElement2;
     if (readElement is PropertyAccessorElement2) {
-      if (readElement.variable3 == element.asElement2) {
+      if (readElement.variable3 == element) {
         references.add(MatchInfo(node.rightHandSide.offset,
             node.rightHandSide.length, MatchKind.READ));
       }
@@ -299,8 +295,8 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   visitCommentReference(CommentReference node) {
     var expression = node.expression;
     if (expression is Identifier) {
-      var element = expression.element?.asElement;
-      if (element is ConstructorElement) {
+      var element = expression.element;
+      if (element is ConstructorElement2) {
         if (expression is PrefixedIdentifier) {
           var offset = expression.prefix.end;
           var length = expression.end - offset;
@@ -323,7 +319,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   @override
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var fragment = node.declaredFragment;
-    if (fragment == element) {
+    if (fragment?.element == element) {
       if (fragment!.name.isEmpty) {
         references.add(MatchInfo(fragment.nameOffset + fragment.nameLength, 0,
             MatchKind.DECLARATION));
@@ -338,7 +334,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    var e = node.element?.baseElement.asElement;
+    var e = node.element?.baseElement;
     e = _getActualConstructorElement(e);
     MatchKind kind;
     int offset;
@@ -359,17 +355,17 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         length = 0;
       }
       references.add(MatchInfo(offset, length, kind));
-    } else if (e != null && e.enclosingElement3 == element) {
+    } else if (e != null && e.enclosingElement2 == element) {
       kind = MatchKind.REFERENCE;
       offset = node.offset;
-      length = element.nameLength;
+      length = element.name3?.length ?? 0;
       references.add(MatchInfo(offset, length, kind));
     }
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    var constructorElement = node.constructorElement2.asElement;
+    var constructorElement = node.constructorElement2;
     if (constructorElement != null && constructorElement == element) {
       int offset;
       int length;
@@ -390,7 +386,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (node.element2.asElement == element) {
+    if (node.element2 == element) {
       references.add(
         MatchInfo(
           node.name2.offset,
@@ -407,7 +403,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var e = node.element?.asElement;
+    var e = node.element;
     if (e == element) {
       if (node.constructorName != null) {
         int offset = node.period!.offset;
@@ -425,10 +421,10 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    var e = node.element?.asElement;
+    var e = node.element;
     if (e == element) {
       references.add(MatchInfo(node.offset, node.length, MatchKind.REFERENCE));
-    } else if (e is PropertyAccessorElement && e.variable2 == element) {
+    } else if (e is GetterElement && e.variable3 == element) {
       bool inGetterContext = node.inGetterContext();
       bool inSetterContext = node.inSetterContext();
       MatchKind kind;
@@ -445,7 +441,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    var e = node.element?.asElement;
+    var e = node.element;
     if (e == element) {
       if (node.constructorName != null) {
         int offset = node.period!.offset;
