@@ -6565,7 +6565,7 @@ library
             covariant U @96
               defaultType: dynamic
           supertype: C<U, T>
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 U
                 T
@@ -6655,7 +6655,7 @@ library
         T
         U
       supertype: C<U, T>
-        alias: <testLibraryFragment>::@typeAlias::A
+        alias: <testLibrary>::@typeAlias::A
           typeArguments
             U
             T
@@ -24391,11 +24391,11 @@ library
           typeParameters
             covariant X @42
               bound: void Function(X)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     X
               defaultType: void Function(Never)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     Never
           constructors
@@ -24446,7 +24446,7 @@ library
       typeParameters
         X
           bound: void Function(X)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 X
       constructors
@@ -24481,11 +24481,11 @@ library
           typeParameters
             covariant X @38
               bound: X Function()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     X
               defaultType: dynamic Function()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
           constructors
@@ -24533,7 +24533,7 @@ library
       typeParameters
         X
           bound: X Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 X
       constructors
@@ -24568,11 +24568,11 @@ library
           typeParameters
             covariant X @39
               bound: X Function(X)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     X
               defaultType: dynamic Function(dynamic)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
           constructors
@@ -24623,7 +24623,7 @@ library
       typeParameters
         X
           bound: X Function(X)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 X
       constructors
@@ -24658,11 +24658,11 @@ library
           typeParameters
             covariant X @39
               bound: X Function(X)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     X
               defaultType: dynamic Function(dynamic)
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
           constructors
@@ -24713,7 +24713,7 @@ library
       typeParameters
         X
           bound: X Function(X)
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 X
       constructors
@@ -24964,11 +24964,11 @@ library
           typeParameters
             covariant X @48
               bound: List<void Function(X)>
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
                   typeArguments
                     X
               defaultType: List<void Function(Never)>
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
                   typeArguments
                     Never
           constructors
@@ -25014,7 +25014,7 @@ library
       typeParameters
         X
           bound: List<void Function(X)>
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 X
       constructors
@@ -25049,11 +25049,11 @@ library
           typeParameters
             covariant X @37
               bound: Map<X, int>
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
                   typeArguments
                     X
               defaultType: Map<dynamic, int>
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
                   typeArguments
                     dynamic
           constructors
@@ -25099,7 +25099,7 @@ library
       typeParameters
         X
           bound: Map<X, int>
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 X
       constructors

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -42,6 +40,7 @@ class DynamicTypeImpl extends TypeImpl
   /// Prevent the creation of instances of this class.
   DynamicTypeImpl._();
 
+  @Deprecated('Use element2 instead')
   @override
   DynamicElementImpl get element => DynamicElementImpl.instance;
 
@@ -195,6 +194,7 @@ class FunctionTypeImpl extends TypeImpl
     super.alias,
   });
 
+  @Deprecated('Use element2 instead')
   @override
   Null get element => null;
 
@@ -316,6 +316,7 @@ class FunctionTypeImpl extends TypeImpl
     );
   }
 
+  @Deprecated('Use referencesAny2() instead')
   @override
   bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     if (typeFormals.any((element) {
@@ -396,8 +397,9 @@ class FunctionTypeImpl extends TypeImpl
       return instantiate([
         for (var i = 0; i < typeFormals.length; i++)
           TypeParameterTypeImpl(
-              element: TypeParameterElementImpl.synthetic('T$i'),
-              nullabilitySuffix: NullabilitySuffix.none)
+            element3: TypeParameterElementImpl.synthetic('T$i').element,
+            nullabilitySuffix: NullabilitySuffix.none,
+          )
       ]).hashCode;
     }
 
@@ -573,14 +575,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
-  /// Cached [ConstructorElement]s - members or raw elements.
-  List<ConstructorElement>? _constructors;
+  /// Cached [ConstructorElementMixin2]s - members or raw elements.
+  List<ConstructorElementMixin2>? _constructors;
 
-  /// Cached [PropertyAccessorElement]s - members or raw elements.
-  List<PropertyAccessorElement>? _accessors;
+  /// Cached [GetterElement2OrMember]s - members or raw elements.
+  List<GetterElement2OrMember>? _getters;
 
-  /// Cached [MethodElement]s - members or raw elements.
-  List<MethodElementOrMember>? _methods;
+  /// Cached [SetterElement2OrMember]s - members or raw elements.
+  List<SetterElement2OrMember>? _setters;
+
+  /// Cached [MethodElement2OrMember]s - members or raw elements.
+  List<MethodElement2OrMember>? _methods;
 
   factory InterfaceTypeImpl({
     required InterfaceElementImpl2 element,
@@ -638,69 +643,52 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     assert(this is NullTypeImpl);
   }
 
+  @Deprecated('Use getters / setters instead')
   @override
-  List<PropertyAccessorElement> get accessors {
-    if (_accessors == null) {
-      var accessors = element.accessors;
-      var members = <PropertyAccessorElement>[];
-      for (int i = 0; i < accessors.length; i++) {
-        members.add(PropertyAccessorMember.from(accessors[i], this)!);
-      }
-      _accessors = members;
-    }
-    return _accessors!;
+  List<PropertyAccessorElementOrMember> get accessors {
+    return [...getters, ...setters].map((e) => e.asElement).toList();
   }
 
   @override
   List<InterfaceTypeImpl> get allSupertypes {
     var substitution = Substitution.fromInterfaceType(this);
-    return element.allSupertypes
+    return element3.allSupertypes
         .map((t) => (substitution.substituteType(t) as InterfaceTypeImpl)
             .withNullability(nullabilitySuffix))
         .toList();
   }
 
+  @Deprecated('Use constructors2 instead')
   @override
-  List<ConstructorElement> get constructors {
-    return _constructors ??= element.constructors.map((constructor) {
-      return ConstructorMember.from(constructor, this);
-    }).toFixedList();
+  List<ConstructorElementMixin> get constructors {
+    return constructors2.map((e) => e.asElement).toList();
   }
 
   @override
-  List<ConstructorElementMixin2> get constructors2 => constructors
-      .map((fragment) => switch (fragment) {
-            ConstructorElementImpl(:var element) => element,
-            ConstructorMember() => fragment,
-            _ => throw StateError(
-                'unexpected fragment type: ${fragment.runtimeType}',
-              )
-          })
-      .toList();
+  List<ConstructorElementMixin2> get constructors2 {
+    return _constructors ??= element3.constructors2.map((constructor) {
+      return ConstructorMember.from2(constructor, this);
+    }).toFixedList();
+  }
 
   @override
   InterfaceElementImpl get element => element3.asElement;
 
   @override
-  List<GetterElement2OrMember> get getters => accessors
-      .where((accessor) => accessor.isGetter)
-      .map((fragment) => switch (fragment) {
-            GetterFragmentImpl(:var element) => element,
-            GetterMember() => fragment,
-            _ => throw StateError(
-                'unexpected fragment type: ${fragment.runtimeType}',
-              )
-          })
-      .toList();
+  List<GetterElement2OrMember> get getters {
+    return _getters ??= element3.getters2.map((e) {
+      return GetterMember.from(e, this);
+    }).toFixedList();
+  }
 
   @override
   int get hashCode {
-    return element.hashCode;
+    return element3.hashCode;
   }
 
   @override
   List<InterfaceTypeImpl> get interfaces {
-    return _instantiateSuperTypes(element.interfaces);
+    return _instantiateSuperTypes(element3.interfaces);
   }
 
   @override
@@ -789,57 +777,48 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return element3.name3 == "Type" && element3.library2.isDartCore;
   }
 
+  @Deprecated('Use methods2 instead')
   @override
   List<MethodElementOrMember> get methods {
-    if (_methods == null) {
-      var members = <MethodElementOrMember>[];
-      var methods = element.methods;
-      for (int i = 0; i < methods.length; i++) {
-        members.add(MethodMember.from(methods[i], this)!);
-      }
-      _methods = members;
-    }
-    return _methods!;
+    return methods2.map((e) => e.asElement).toList();
   }
 
   @override
-  List<MethodElement2OrMember> get methods2 =>
-      methods.map((e) => e.asElement2).toList();
+  List<MethodElement2OrMember> get methods2 {
+    return _methods ??= element3.methods2.map((e) {
+      return MethodMember.from2(e, this);
+    }).toFixedList();
+  }
 
   @override
   List<InterfaceTypeImpl> get mixins {
-    return _instantiateSuperTypes(element.mixins);
+    return _instantiateSuperTypes(element3.mixins);
   }
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
   String get name => element.name;
 
-  /// The instantiated representation type, if [element] is an extension type.
+  /// The instantiated representation type, if [element3] is an extension type.
   TypeImpl? get representationType {
-    if (element case ExtensionTypeElement element) {
+    if (element3 case ExtensionTypeElement2 element) {
       var substitution = Substitution.fromInterfaceType(this);
-      var representationType = element.representation.type;
+      var representationType = element.representation2.type;
       return substitution.substituteType(representationType);
     }
     return null;
   }
 
   @override
-  List<SetterElement> get setters => accessors
-      .where((accessor) => accessor.isSetter)
-      .map((fragment) => switch (fragment) {
-            SetterFragment(:var element) => element,
-            SetterMember() => fragment,
-            _ => throw StateError(
-                'unexpected fragment type: ${fragment.runtimeType}',
-              )
-          })
-      .toList();
+  List<SetterElement2OrMember> get setters {
+    return _setters ??= element3.setters2.map((e) {
+      return SetterMember.from(e, this);
+    }).toFixedList();
+  }
 
   @override
   InterfaceTypeImpl? get superclass {
-    var supertype = element.supertype;
+    var supertype = element3.supertype;
     if (supertype == null) {
       return null;
     }
@@ -851,10 +830,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InterfaceTypeImpl> get superclassConstraints {
-    var element = this.element;
-    var augmented = element.element;
-    if (augmented is MixinElementImpl2) {
-      var constraints = augmented.superclassConstraints;
+    var element = element3;
+    if (element is MixinElementImpl2) {
+      var constraints = element.superclassConstraints;
       return _instantiateSuperTypes(constraints);
     } else {
       return [];
@@ -862,7 +840,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   InheritanceManager3 get _inheritanceManager =>
-      element.library.session.inheritanceManager;
+      element3.library2.session.inheritanceManager;
 
   @override
   bool operator ==(Object other) {
@@ -870,7 +848,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     if (other is InterfaceTypeImpl) {
-      if (!identical(other.element, element)) {
+      if (!identical(other.element3, element3)) {
         return false;
       }
       if (other.nullabilitySuffix != nullabilitySuffix) {
@@ -918,13 +896,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   InterfaceTypeImpl? asInstanceOf2(InterfaceElement2 targetElement) {
-    if ((element as InterfaceFragment).element == targetElement) {
+    if (element3 == targetElement) {
       return this;
     }
 
-    for (var rawInterface in element.allSupertypes) {
-      var realElement = rawInterface.element3;
-      if (realElement == targetElement) {
+    for (var rawInterface in element3.allSupertypes) {
+      if (rawInterface.element3 == targetElement) {
         var substitution = Substitution.fromInterfaceType(this);
         return substitution.substituteType(rawInterface) as InterfaceTypeImpl;
       }
@@ -933,30 +910,41 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
+  @Deprecated('Use getGetter2() instead')
   @override
-  PropertyAccessorElementOrMember? getGetter(String getterName) =>
-      PropertyAccessorMember.from(element.getGetter(getterName), this);
-
-  @override
-  GetterElement2OrMember? getGetter2(String getterName) =>
-      getGetter(getterName)?.asElement2 as GetterElement2OrMember?;
-
-  @override
-  MethodElementOrMember? getMethod(String methodName) =>
-      MethodMember.from(element.getMethod(methodName), this);
-
-  @override
-  MethodElement2OrMember? getMethod2(String methodName) {
-    return getMethod(methodName)?.asElement2;
+  PropertyAccessorElementOrMember? getGetter(String getterName) {
+    return getGetter2(getterName)?.asElement;
   }
 
   @override
-  PropertyAccessorElement? getSetter(String setterName) =>
-      PropertyAccessorMember.from(element.getSetter(setterName), this);
+  GetterElement2OrMember? getGetter2(String getterName) {
+    var element = element3.getGetter2(getterName);
+    return element != null ? GetterMember.from(element, this) : null;
+  }
+
+  @Deprecated('Use getMethod2() instead')
+  @override
+  MethodElementOrMember? getMethod(String methodName) {
+    return getMethod2(methodName)?.asElement;
+  }
 
   @override
-  SetterElement2OrMember? getSetter2(String setterName) =>
-      getSetter(setterName)?.asElement2 as SetterElement2OrMember?;
+  MethodElement2OrMember? getMethod2(String methodName) {
+    var element = element3.getMethod2(methodName);
+    return element != null ? MethodMember.from2(element, this) : null;
+  }
+
+  @Deprecated('Use getSetter2() instead')
+  @override
+  PropertyAccessorElement? getSetter(String setterName) {
+    return getSetter2(setterName)?.asElement;
+  }
+
+  @override
+  SetterElement2OrMember? getSetter2(String setterName) {
+    var element = element3.getSetter2(setterName);
+    return element != null ? SetterMember.from(element, this) : null;
+  }
 
   @Deprecated('Use lookUpConstructor2() instead')
   @override
@@ -984,6 +972,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return ConstructorMember.from2(constructorElement, this);
   }
 
+  @Deprecated('Use lookUpGetter3() instead')
   @override
   PropertyAccessorElement? lookUpGetter2(
     String name,
@@ -992,34 +981,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     bool inherited = false,
     bool recoveryStatic = false,
   }) {
-    var inheritance = _inheritanceManager;
-    var nameObj = Name(library.source.uri, name);
-
-    if (inherited) {
-      if (concrete) {
-        var result = inheritance.getMember(this, nameObj, forSuper: inherited);
-        if (result is PropertyAccessorElementOrMember) {
-          return result;
-        }
-      } else {
-        var result = inheritance.getInherited(this, nameObj);
-        if (result is PropertyAccessorElementOrMember) {
-          return result;
-        }
-      }
-      return null;
-    }
-
-    var result = inheritance.getMember(this, nameObj, concrete: concrete);
-    if (result is PropertyAccessorElementOrMember) {
-      return result;
-    }
-
-    if (recoveryStatic) {
-      return element.lookupStaticGetter(name, library);
-    }
-
-    return null;
+    return lookUpGetter3(
+      name,
+      library.asElement2,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement;
   }
 
   @override
@@ -1030,15 +998,37 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     bool inherited = false,
     bool recoveryStatic = false,
   }) {
-    return lookUpGetter2(
-      name,
-      library.asElement,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    )?.asElement2.ifTypeOrNull();
+    var inheritance = _inheritanceManager;
+    var nameObj = Name(library.uri, name);
+
+    if (inherited) {
+      if (concrete) {
+        var result = inheritance.getMember3(this, nameObj, forSuper: inherited);
+        if (result is GetterElement2OrMember) {
+          return result;
+        }
+      } else {
+        var result = inheritance.getInherited3(this, nameObj);
+        if (result is GetterElement2OrMember) {
+          return result;
+        }
+      }
+      return null;
+    }
+
+    var result = inheritance.getMember3(this, nameObj, concrete: concrete);
+    if (result is GetterElement2OrMember) {
+      return result;
+    }
+
+    if (recoveryStatic) {
+      return element3.lookupStaticGetter(name, library);
+    }
+
+    return null;
   }
 
+  @Deprecated('Use lookUpMethod3() instead')
   @override
   MethodElementOrMember? lookUpMethod2(
     String name,
@@ -1047,34 +1037,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     bool inherited = false,
     bool recoveryStatic = false,
   }) {
-    var inheritance = _inheritanceManager;
-    var nameObj = Name(library.source.uri, name);
-
-    if (inherited) {
-      if (concrete) {
-        var result = inheritance.getMember(this, nameObj, forSuper: inherited);
-        if (result is MethodElementOrMember) {
-          return result;
-        }
-      } else {
-        var result = inheritance.getInherited(this, nameObj);
-        if (result is MethodElementOrMember) {
-          return result;
-        }
-      }
-      return null;
-    }
-
-    var result = inheritance.getMember(this, nameObj, concrete: concrete);
-    if (result is MethodElementOrMember) {
-      return result;
-    }
-
-    if (recoveryStatic) {
-      return element.lookupStaticMethod(name, library);
-    }
-
-    return null;
+    return lookUpMethod3(
+      name,
+      library.asElement2,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement;
   }
 
   @override
@@ -1085,15 +1054,37 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     bool inherited = false,
     bool recoveryStatic = false,
   }) {
-    return lookUpMethod2(
-      name,
-      library.asElement,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    )?.asElement2;
+    var inheritance = _inheritanceManager;
+    var nameObj = Name(library.uri, name);
+
+    if (inherited) {
+      if (concrete) {
+        var result = inheritance.getMember3(this, nameObj, forSuper: inherited);
+        if (result is MethodElement2OrMember) {
+          return result;
+        }
+      } else {
+        var result = inheritance.getInherited3(this, nameObj);
+        if (result is MethodElement2OrMember) {
+          return result;
+        }
+      }
+      return null;
+    }
+
+    var result = inheritance.getMember3(this, nameObj, concrete: concrete);
+    if (result is MethodElement2OrMember) {
+      return result;
+    }
+
+    if (recoveryStatic) {
+      return element3.lookupStaticMethod(name, library);
+    }
+
+    return null;
   }
 
+  @Deprecated('Use lookUpSetter3() instead')
   @override
   PropertyAccessorElement? lookUpSetter2(
     String name,
@@ -1102,34 +1093,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     bool inherited = false,
     bool recoveryStatic = false,
   }) {
-    var inheritance = _inheritanceManager;
-    var nameObj = Name(library.source.uri, '$name=');
-
-    if (inherited) {
-      if (concrete) {
-        var result = inheritance.getMember(this, nameObj, forSuper: inherited);
-        if (result is PropertyAccessorElementOrMember) {
-          return result;
-        }
-      } else {
-        var result = inheritance.getInherited(this, nameObj);
-        if (result is PropertyAccessorElementOrMember) {
-          return result;
-        }
-      }
-      return null;
-    }
-
-    var result = inheritance.getMember(this, nameObj, concrete: concrete);
-    if (result is PropertyAccessorElementOrMember) {
-      return result;
-    }
-
-    if (recoveryStatic) {
-      return element.lookupStaticSetter(name, library);
-    }
-
-    return null;
+    return lookUpSetter3(
+      name,
+      library.asElement2,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement.ifTypeOrNull();
   }
 
   @override
@@ -1140,15 +1110,37 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     bool inherited = false,
     bool recoveryStatic = false,
   }) {
-    return lookUpSetter2(
-      name,
-      library.asElement,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    )?.asElement2.ifTypeOrNull();
+    var inheritance = _inheritanceManager;
+    var nameObj = Name(library.uri, '$name=');
+
+    if (inherited) {
+      if (concrete) {
+        var result = inheritance.getMember3(this, nameObj, forSuper: inherited);
+        if (result is SetterElement2OrMember) {
+          return result;
+        }
+      } else {
+        var result = inheritance.getInherited3(this, nameObj);
+        if (result is SetterElement2OrMember) {
+          return result;
+        }
+      }
+      return null;
+    }
+
+    var result = inheritance.getMember3(this, nameObj, concrete: concrete);
+    if (result is SetterElement2OrMember) {
+      return result;
+    }
+
+    if (recoveryStatic) {
+      return element3.lookupStaticSetter(name, library);
+    }
+
+    return null;
   }
 
+  @Deprecated('Use referencesAny2() instead')
   @override
   bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     return typeArguments.any((argument) => argument.referencesAny(parameters));
@@ -1176,7 +1168,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (definedTypes.isEmpty) return definedTypes;
 
     MapSubstitution? substitution;
-    if (element.typeParameters.isNotEmpty) {
+    if (element3.typeParameters2.isNotEmpty) {
       substitution = Substitution.fromInterfaceType(this);
     }
 
@@ -1201,6 +1193,7 @@ class InvalidTypeImpl extends TypeImpl
   /// Prevent the creation of instances of this class.
   InvalidTypeImpl._();
 
+  @Deprecated('Use element2 instead')
   @override
   Null get element => null;
 
@@ -1382,6 +1375,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType, SharedRecordType {
     );
   }
 
+  @Deprecated('Use element2 instead')
   @override
   Null get element => null;
 
@@ -1541,6 +1535,7 @@ abstract class TypeImpl implements DartType, SharedType {
   /// Initialize a newly created type.
   const TypeImpl({this.alias});
 
+  @Deprecated('Use element3 instead')
   @override
   Element? get element => element3?.asElement;
 
@@ -1615,6 +1610,7 @@ abstract class TypeImpl implements DartType, SharedType {
   /// Append a textual representation of this type to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
 
+  @Deprecated('Use asInstanceOf2() instead')
   @override
   InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) => null;
 
@@ -1640,6 +1636,7 @@ abstract class TypeImpl implements DartType, SharedType {
   bool isStructurallyEqualTo(Object other) => this == other;
 
   /// Returns true if this type references any of the [parameters].
+  @Deprecated('Use referencesAny2() instead')
   bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     return false;
   }
@@ -1683,7 +1680,7 @@ abstract class TypeImpl implements DartType, SharedType {
 /// A concrete implementation of a [TypeParameterType].
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
-  final TypeParameterElementImpl element;
+  final TypeParameterElementImpl2 element3;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -1691,52 +1688,34 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   /// An optional promoted bound on the type parameter.
   ///
   /// 'null' indicates that the type parameter's bound has not been promoted and
-  /// is therefore the same as the bound of [element].
+  /// is therefore the same as the bound of [element3].
   final TypeImpl? promotedBound;
 
   /// Initialize a newly created type parameter type to be declared by the given
-  /// [element] and to have the given name.
+  /// [element3] and to have the given name.
   TypeParameterTypeImpl({
-    required TypeParameterElement element,
+    required this.element3,
     required this.nullabilitySuffix,
     DartType? promotedBound,
     super.alias,
-  })  :
-        // TODO(paulberry): change the type of the parameter `element` so
-        // that this cast isn't needed.
-        element = element as TypeParameterElementImpl,
-        // TODO(paulberry): change the type of the parameter `promotedBound` so
+  }) : // TODO(paulberry): change the type of the parameter `promotedBound` so
         // that this cast isn't needed.
         promotedBound = promotedBound as TypeImpl?;
 
-  /// Initialize a newly created type parameter type to be declared by the given
-  /// [element] and to have the given name.
-  factory TypeParameterTypeImpl.v2({
-    required TypeParameterElement2 element,
-    required NullabilitySuffix nullabilitySuffix,
-    DartType? promotedBound,
-    InstantiatedTypeAliasElementImpl? alias,
-  }) {
-    return TypeParameterTypeImpl(
-      element: element.asElement,
-      nullabilitySuffix: nullabilitySuffix,
-      promotedBound: promotedBound,
-      alias: alias,
-    );
-  }
-
   @override
   TypeImpl get bound =>
-      promotedBound ?? element.bound ?? DynamicTypeImpl.instance;
+      promotedBound ?? element3.bound ?? DynamicTypeImpl.instance;
 
+  @Deprecated('Elements are equal when they are identical')
   @override
   ElementLocation get definition => element.location;
 
+  @Deprecated('Use element3 instead')
   @override
-  TypeParameterElementImpl2 get element3 => element.element;
+  TypeParameterElementImpl get element => element3.asElement;
 
   @override
-  int get hashCode => element.hashCode;
+  int get hashCode => element3.hashCode;
 
   @override
   bool get isBottom {
@@ -1766,7 +1745,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   TypeParameterTypeImpl get withoutPromotedBound {
     return TypeParameterTypeImpl(
-      element: element,
+      element3: element3,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -1777,7 +1756,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       return true;
     }
 
-    if (other is TypeParameterTypeImpl && other.element == element) {
+    if (other is TypeParameterTypeImpl && other.element3 == element3) {
       if (other.nullabilitySuffix != nullabilitySuffix) {
         return false;
       }
@@ -1805,6 +1784,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     builder.writeTypeParameterType(this);
   }
 
+  @Deprecated('Use asInstanceOf2() instead')
   @override
   InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) {
     return bound.asInstanceOf(targetElement);
@@ -1815,6 +1795,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return bound.asInstanceOf2(targetElement);
   }
 
+  @Deprecated('Use referencesAny2() instead')
   @override
   bool referencesAny(Set<TypeParameterElement> parameters) {
     return parameters.contains(element);
@@ -1829,7 +1810,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return TypeParameterTypeImpl(
-      element: element,
+      element3: element3,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );
@@ -1844,6 +1825,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
   /// Prevent the creation of instances of this class.
   VoidTypeImpl._();
 
+  @Deprecated('Use element2 instead')
   @override
   Null get element => null;
 

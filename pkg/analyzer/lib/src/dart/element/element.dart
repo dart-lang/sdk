@@ -5884,17 +5884,17 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
-  GetterElement? getGetter2(String name) {
+  GetterElementImpl? getGetter2(String name) {
     return getters2.firstWhereOrNull((e) => e.name3 == name);
   }
 
   @override
-  MethodElement2OrMember? getMethod2(String name) {
+  MethodElementImpl2? getMethod2(String name) {
     return methods2.firstWhereOrNull((e) => e.lookupName == name);
   }
 
   @override
-  SetterElement? getSetter2(String name) {
+  SetterElementImpl? getSetter2(String name) {
     return setters2.firstWhereOrNull((e) => e.name3 == name);
   }
 
@@ -6725,10 +6725,12 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  PropertyAccessorElement2OrMember? lookupStaticGetter(
+  GetterElement2OrMember? lookupStaticGetter(
       String name, LibraryElement2 library) {
-    return _implementationsOfGetter2(name).firstWhereOrNull(
-        (element) => element.isStatic && element.isAccessibleIn2(library));
+    return _implementationsOfGetter2(name)
+        .firstWhereOrNull(
+            (element) => element.isStatic && element.isAccessibleIn2(library))
+        .ifTypeOrNull();
   }
 
   /// Return the static method with the [name], accessible to the [library].
@@ -6747,10 +6749,12 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  PropertyAccessorElement2OrMember? lookupStaticSetter(
+  SetterElement2OrMember? lookupStaticSetter(
       String name, LibraryElement2 library) {
-    return _implementationsOfSetter2(name).firstWhereOrNull(
-        (element) => element.isStatic && element.isAccessibleIn2(library));
+    return _implementationsOfSetter2(name)
+        .firstWhereOrNull(
+            (element) => element.isStatic && element.isAccessibleIn2(library))
+        .ifTypeOrNull();
   }
 
   void resetCachedAllSupertypes() {
@@ -11113,6 +11117,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     if (aliasedType_ is! InterfaceTypeImpl) {
       return false;
     }
+    var typeParameters = element.typeParameters2;
     var aliasedClass = aliasedType_.element;
     var typeArguments = aliasedType_.typeArguments;
     var typeParameterCount = typeParameters.length;
@@ -11129,7 +11134,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       }
       var typeArgument = typeArguments[i];
       if (typeArgument is TypeParameterType &&
-          typeParameters[i] != typeArgument.element) {
+          typeParameters[i] != typeArgument.element3) {
         return false;
       }
     }
@@ -11365,7 +11370,7 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
       );
     } else if (type is TypeParameterTypeImpl) {
       return TypeParameterTypeImpl(
-        element: type.element,
+        element3: type.element3,
         nullabilitySuffix: resultNullability,
         alias: InstantiatedTypeAliasElementImpl(
           element2: this,
@@ -11527,7 +11532,7 @@ class TypeParameterElementImpl extends ElementImpl
   /// Computes the variance of the type parameters in the [type].
   shared.Variance computeVarianceInType(DartType type) {
     if (type is TypeParameterTypeImpl) {
-      if (type.element == this) {
+      if (type.element3 == element) {
         return shared.Variance.covariant;
       } else {
         return shared.Variance.unrelated;
@@ -11573,8 +11578,7 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return TypeParameterTypeImpl(
-      element: this,
+    return element.instantiate(
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -11662,8 +11666,8 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   TypeParameterTypeImpl instantiate({
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return TypeParameterTypeImpl.v2(
-      element: this,
+    return TypeParameterTypeImpl(
+      element3: this,
       nullabilitySuffix: nullabilitySuffix,
     );
   }

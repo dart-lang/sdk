@@ -19,22 +19,29 @@ class _RegisteredAssistGenerators {
   /// assists.
   final Set<MultiProducerGenerator> multiProducerGenerators = {};
 
+  Map<ProducerGenerator, Set<LintCode>>? _lintRuleMap;
+
   /// A mapping from registered _assist_ producer generators to the [LintCode]s
   /// for which they may also act as a _fix_ producer generator.
-  late Map<ProducerGenerator, Set<LintCode>> lintRuleMap = {
-    for (var generator in producerGenerators)
-      generator: {
-        for (var MapEntry(key: lintName, value: generators)
-            in registeredFixGenerators.lintProducers.entries)
-          if (generators.contains(generator)) lintName,
-      },
-  };
+  Map<ProducerGenerator, Set<LintCode>> get lintRuleMap =>
+      _lintRuleMap ??= {
+        for (var generator in producerGenerators)
+          generator: {
+            for (var MapEntry(key: lintName, value: generators)
+                in registeredFixGenerators.lintProducers.entries)
+              if (generators.contains(generator)) lintName,
+          },
+      };
 
   void registerGenerator(ProducerGenerator generator) {
     producerGenerators.add(generator);
+    // Reset the lint rule map, to account for the new generator.
+    _lintRuleMap = null;
   }
 
   void registerMultiGenerator(MultiProducerGenerator generator) {
     multiProducerGenerators.add(generator);
+    // Reset the lint rule map, to account for the new generator.
+    _lintRuleMap = null;
   }
 }

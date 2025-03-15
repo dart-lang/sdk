@@ -2151,10 +2151,10 @@ class ResolutionReader {
       var type = _readRecordType();
       return _readAliasElementArguments(type);
     } else if (tag == Tag.TypeParameterType) {
-      var element = readElement() as TypeParameterElement;
+      var element = readElement() as TypeParameterElementImpl;
       var nullability = _readNullability();
       var type = TypeParameterTypeImpl(
-        element: element,
+        element3: element.asElement2,
         nullabilitySuffix: nullability,
       );
       return _readAliasElementArguments(type);
@@ -2254,7 +2254,7 @@ class ResolutionReader {
         );
       } else if (type is TypeParameterTypeImpl) {
         return TypeParameterTypeImpl(
-          element: type.element,
+          element3: type.element3,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element2: aliasElement.asElement2,

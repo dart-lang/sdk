@@ -37,7 +37,7 @@ NamedType
   element: <testLibraryFragment>::@typeAlias::G
   element2: <testLibrary>::@typeAlias::G
   type: int Function()
-    alias: <testLibraryFragment>::@typeAlias::G
+    alias: <testLibrary>::@typeAlias::G
       typeArguments
         int
 ''');

@@ -62,7 +62,7 @@ FieldDeclaration
       element: <testLibraryFragment>::@typeAlias::F
       element2: <testLibrary>::@typeAlias::F
       type: T Function<T>(int, T)?
-        alias: <testLibraryFragment>::@typeAlias::F
+        alias: <testLibrary>::@typeAlias::F
     variables
       VariableDeclaration
         name: f

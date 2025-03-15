@@ -259,8 +259,10 @@ class _ClassVerifier {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
           var fieldElement = field.declaredFragment! as FieldElementImpl;
-          _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
-          _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
+          _checkDeclaredMember(
+              field.name, libraryUri, fieldElement.getter?.asElement2);
+          _checkDeclaredMember(
+              field.name, libraryUri, fieldElement.setter?.asElement2);
           if (!member.isStatic && firstFragment is! EnumElement) {
             _checkIllegalEnumValuesDeclaration(field.name);
           }
@@ -274,7 +276,8 @@ class _ClassVerifier {
           continue;
         }
 
-        _checkDeclaredMember(member.name, libraryUri, member.declaredFragment,
+        _checkDeclaredMember(
+            member.name, libraryUri, member.declaredFragment!.asElement2,
             methodParameterNodes: member.parameters?.parameters);
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
@@ -369,17 +372,19 @@ class _ClassVerifier {
   void _checkDeclaredMember(
     SyntacticEntity node,
     Uri libraryUri,
-    ExecutableElement? member, {
+    ExecutableElement2OrMember? member, {
     List<FormalParameter>? methodParameterNodes,
     int mixinIndex = -1,
   }) {
     if (member == null) return;
     if (member.isStatic) return;
 
-    var name = Name(libraryUri, member.name);
+    var name = Name.forElement(member);
+    if (name == null) return;
+
     var correctOverrideHelper = CorrectOverrideHelper(
       typeSystem: typeSystem,
-      thisMember: member.asElement2,
+      thisMember: member,
     );
 
     for (var superType in directSuperInterfaces) {
@@ -402,13 +407,13 @@ class _ClassVerifier {
           superMember: superMember.asElement2,
           errorReporter: reporter,
           errorNode: node,
-          errorCode: member is PropertyAccessorElement && member.isSetter
+          errorCode: member is SetterElement
               ? CompileTimeErrorCode.INVALID_OVERRIDE_SETTER
               : CompileTimeErrorCode.INVALID_OVERRIDE);
     }
 
     if (mixinIndex == -1) {
-      CovariantParametersVerifier(thisMember: member.asElement2).verify(
+      CovariantParametersVerifier(thisMember: member).verify(
         errorReporter: reporter,
         errorEntity: node,
       );
@@ -419,12 +424,15 @@ class _ClassVerifier {
   /// corresponding instance members in each of [directSuperInterfaces].
   void _checkDeclaredMembers(AstNode node, InterfaceTypeImpl type,
       {required int mixinIndex}) {
-    var libraryUri = type.element.library.source.uri;
-    for (var method in type.methods) {
+    var libraryUri = type.element3.library2.uri;
+    for (var method in type.methods2) {
       _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
     }
-    for (var accessor in type.accessors) {
-      _checkDeclaredMember(node, libraryUri, accessor, mixinIndex: mixinIndex);
+    for (var getter in type.getters) {
+      _checkDeclaredMember(node, libraryUri, getter, mixinIndex: mixinIndex);
+    }
+    for (var setter in type.setters) {
+      _checkDeclaredMember(node, libraryUri, setter, mixinIndex: mixinIndex);
     }
   }
 

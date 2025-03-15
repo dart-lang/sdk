@@ -1772,7 +1772,7 @@ library
             parameters
               requiredPositional @-1
                 type: V1 Function()
-                  alias: <testLibraryFragment>::@typeAlias::F2
+                  alias: <testLibrary>::@typeAlias::F2
                     typeArguments
                       V1
             returnType: dynamic

@@ -1223,7 +1223,7 @@ class InterfaceTypeImplTest extends _AbstractTypeSystemTest with StringTypes {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    PropertyAccessorElement getter = AofI.getGetter(getterName)!;
+    var getter = AofI.getGetter2(getterName)!;
     expect(getter, isNotNull);
     FunctionType getterType = getter.type;
     expect(getterType.returnType, same(I));
@@ -1353,7 +1353,7 @@ A<int>?
     //
     var typeI = interfaceTypeNone3(class_3(name: 'I'));
     var typeAI = interfaceTypeNone3(A, typeArguments: [typeI]);
-    var method = typeAI.getMethod(methodName)!;
+    var method = typeAI.getMethod2(methodName)!;
     expect(method, isNotNull);
     FunctionType methodType = method.type;
     expect(methodType.returnType, same(typeI));
@@ -1481,7 +1481,7 @@ A<int>?
     //
     var typeI = interfaceTypeNone3(class_3(name: 'I'));
     var typeAI = interfaceTypeNone3(A, typeArguments: [typeI]);
-    PropertyAccessorElement setter = typeAI.getSetter(setterName)!;
+    var setter = typeAI.getSetter2(setterName)!;
     expect(setter, isNotNull);
     FunctionType setterType = setter.type;
     List<DartType> parameterTypes = setterType.normalParameterTypes;
@@ -1919,10 +1919,13 @@ class MethodElementImplTest extends _AbstractTypeSystemTest {
     expect(foo == foo, isTrue);
 
     // MethodMember is not equal to MethodElementImpl.
-    var foo_int = A.instantiateImpl(
-      typeArguments: [intNone],
-      nullabilitySuffix: NullabilitySuffix.none,
-    ).getMethod('foo')!;
+    var foo_int = A
+        .instantiateImpl(
+          typeArguments: [intNone],
+          nullabilitySuffix: NullabilitySuffix.none,
+        )
+        .getMethod2('foo')!
+        .asElement;
     expect(foo == foo_int, isFalse);
     expect(foo_int == foo, isFalse);
   }

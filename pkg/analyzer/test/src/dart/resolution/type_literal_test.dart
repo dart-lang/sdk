@@ -197,7 +197,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::CA
     element2: <testLibrary>::@typeAlias::CA
     type: C<int>
-      alias: <testLibraryFragment>::@typeAlias::CA
+      alias: <testLibrary>::@typeAlias::CA
         typeArguments
           int
   staticType: Type
@@ -228,7 +228,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::CA
     element2: <testLibrary>::@typeAlias::CA
     type: C<String, int>
-      alias: <testLibraryFragment>::@typeAlias::CA
+      alias: <testLibrary>::@typeAlias::CA
         typeArguments
           String
   staticType: Type
@@ -269,7 +269,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::CA
     element2: <testLibrary>::@typeAlias::CA
     type: C<void Function()>
-      alias: <testLibraryFragment>::@typeAlias::CA
+      alias: <testLibrary>::@typeAlias::CA
         typeArguments
           void Function()
   staticType: Type
@@ -308,7 +308,7 @@ TypeLiteral
     element: package:test/a.dart::<fragment>::@typeAlias::CA
     element2: package:test/a.dart::@typeAlias::CA
     type: C<int>
-      alias: package:test/a.dart::<fragment>::@typeAlias::CA
+      alias: package:test/a.dart::@typeAlias::CA
         typeArguments
           int
   staticType: Type
@@ -342,7 +342,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::CA
     element2: <testLibrary>::@typeAlias::CA
     type: C<String>
-      alias: <testLibraryFragment>::@typeAlias::CA
+      alias: <testLibrary>::@typeAlias::CA
         typeArguments
           String
   staticType: Type
@@ -435,7 +435,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -473,7 +473,7 @@ TypeLiteral
     element: package:test/a.dart::<fragment>::@typeAlias::Fn
     element2: package:test/a.dart::@typeAlias::Fn
     type: void Function(int)
-      alias: package:test/a.dart::<fragment>::@typeAlias::Fn
+      alias: package:test/a.dart::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -512,7 +512,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -559,7 +559,7 @@ TypeLiteral
     element: package:test/a.dart::<fragment>::@typeAlias::Fn
     element2: package:test/a.dart::@typeAlias::Fn
     type: void Function(int)
-      alias: package:test/a.dart::<fragment>::@typeAlias::Fn
+      alias: package:test/a.dart::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -596,7 +596,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -635,7 +635,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -672,7 +672,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -711,7 +711,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -748,7 +748,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
         typeArguments
           int
   staticType: Type
@@ -780,7 +780,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(dynamic, dynamic)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
         typeArguments
           dynamic
           dynamic
@@ -818,7 +818,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(dynamic)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
         typeArguments
           dynamic
   staticType: Type
@@ -851,7 +851,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(String)
-      alias: <testLibraryFragment>::@typeAlias::Fn
+      alias: <testLibrary>::@typeAlias::Fn
         typeArguments
           String
   staticType: Type
@@ -908,7 +908,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::T
     element2: <testLibrary>::@typeAlias::T
     type: int
-      alias: <testLibraryFragment>::@typeAlias::T
+      alias: <testLibrary>::@typeAlias::T
         typeArguments
           int
   staticType: Type
@@ -948,7 +948,7 @@ TypeLiteral
     element: <testLibraryFragment>::@typeAlias::T
     element2: <testLibrary>::@typeAlias::T
     type: void Function()
-      alias: <testLibraryFragment>::@typeAlias::T
+      alias: <testLibrary>::@typeAlias::T
         typeArguments
           void Function()
   staticType: Type

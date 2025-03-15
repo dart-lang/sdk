@@ -403,8 +403,8 @@ class TypeSystemImpl implements TypeSystem {
         }
         // * otherwise, flatten(T) = flatten(X)
         return flatten(
-          TypeParameterTypeImpl.v2(
-            element: T.element3,
+          TypeParameterTypeImpl(
+            element3: T.element3,
             nullabilitySuffix: nullabilitySuffix,
           ),
         );
@@ -1478,8 +1478,8 @@ class TypeSystemImpl implements TypeSystem {
       // NonNull(X & T) = X & NonNull(T)
       if (type.promotedBound != null) {
         var promotedBound = promoteToNonNull(type.promotedBound!);
-        return TypeParameterTypeImpl.v2(
-          element: element,
+        return TypeParameterTypeImpl(
+          element3: element,
           nullabilitySuffix: NullabilitySuffix.none,
           promotedBound: promotedBound,
         );
@@ -1492,8 +1492,8 @@ class TypeSystemImpl implements TypeSystem {
       if (identical(promotedBound, element.bound)) {
         promotedBound = null;
       }
-      return TypeParameterTypeImpl.v2(
-        element: element,
+      return TypeParameterTypeImpl(
+        element3: element,
         nullabilitySuffix: NullabilitySuffix.none,
         promotedBound: promotedBound,
       );
@@ -1736,8 +1736,8 @@ class TypeSystemImpl implements TypeSystem {
     if (from is TypeParameterTypeImpl) {
       if (isSubtypeOf(to, from.bound)) {
         var declaration = from.element3.baseElement;
-        return TypeParameterTypeImpl.v2(
-          element: declaration,
+        return TypeParameterTypeImpl(
+          element3: declaration as TypeParameterElementImpl2,
           nullabilitySuffix: _promotedTypeParameterTypeNullability(
             from.nullabilitySuffix,
             to.nullabilitySuffix,

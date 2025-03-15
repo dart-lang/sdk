@@ -410,15 +410,19 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
           ],
           parameters: [
             requiredParameter(
-                    name: 'x',
-                    type: TypeParameterTypeImpl(
-                        element: t, nullabilitySuffix: NullabilitySuffix.none))
-                .asElement,
+              name: 'x',
+              type: TypeParameterTypeImpl(
+                element3: t.element,
+                nullabilitySuffix: NullabilitySuffix.none,
+              ),
+            ).asElement,
             requiredParameter(
-                    name: 'y',
-                    type: TypeParameterTypeImpl(
-                        element: t, nullabilitySuffix: NullabilitySuffix.none))
-                .asElement
+              name: 'y',
+              type: TypeParameterTypeImpl(
+                element3: t.element,
+                nullabilitySuffix: NullabilitySuffix.none,
+              ),
+            ).asElement
           ],
           returnType: typeProvider.voidType,
           nullabilitySuffix: NullabilitySuffix.none);

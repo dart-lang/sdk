@@ -407,7 +407,7 @@ FunctionExpressionInvocation
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: int Function<T>(T)
-      alias: <testLibraryFragment>::@typeAlias::F
+      alias: <testLibrary>::@typeAlias::F
         typeArguments
           int
   typeArguments: TypeArgumentList
@@ -489,7 +489,7 @@ FunctionExpressionInvocation
     staticElement: <testLibraryFragment>::@class::A::@getter::foo
     element: <testLibraryFragment>::@class::A::@getter::foo#element
     staticType: String Function(int, {int b})
-      alias: <testLibraryFragment>::@typeAlias::F
+      alias: <testLibrary>::@typeAlias::F
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -513,7 +513,7 @@ FunctionExpressionInvocation
   staticElement: <null>
   element: <null>
   staticInvokeType: String Function(int, {int b})
-    alias: <testLibraryFragment>::@typeAlias::F
+    alias: <testLibrary>::@typeAlias::F
   staticType: String
 ''');
   }

@@ -2070,7 +2070,7 @@ FunctionExpressionInvocation
   staticElement: <null>
   element: <null>
   staticInvokeType: double Function(int)
-    alias: <testLibraryFragment>::@typeAlias::MyFunction
+    alias: <testLibrary>::@typeAlias::MyFunction
   staticType: double
 ''');
   }
@@ -7383,14 +7383,14 @@ FunctionExpressionInvocation
     staticElement: <testLibraryFragment>::@function::f::@parameter::a
     element: <testLibraryFragment>::@function::f::@parameter::a#element
     staticType: void Function()
-      alias: <testLibraryFragment>::@typeAlias::F
+      alias: <testLibrary>::@typeAlias::F
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   staticElement: <null>
   element: <null>
   staticInvokeType: void Function()
-    alias: <testLibraryFragment>::@typeAlias::F
+    alias: <testLibrary>::@typeAlias::F
   staticType: void
 ''');
   }

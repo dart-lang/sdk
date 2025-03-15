@@ -676,7 +676,7 @@ library
           parameters
             requiredPositional a @32
               type: int Function()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     int
           returnType: void
@@ -713,7 +713,7 @@ library
       formalParameters
         requiredPositional a
           type: int Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 int
       returnType: void
@@ -797,7 +797,7 @@ library
           aliasedType: void Function(T) Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void Function(T)
-              alias: <testLibraryFragment>::@typeAlias::F1
+              alias: <testLibrary>::@typeAlias::F1
                 typeArguments
                   T
 ----------------------------------------
@@ -854,7 +854,7 @@ library
           aliasedType: void Function(T) Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void Function(T)
-              alias: <testLibraryFragment>::@typeAlias::F1
+              alias: <testLibrary>::@typeAlias::F1
                 typeArguments
                   T
         functionTypeAliasBased F1 @36
@@ -1014,7 +1014,7 @@ library
           aliasedType: T Function() Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: T Function()
-              alias: <testLibraryFragment>::@typeAlias::F1
+              alias: <testLibrary>::@typeAlias::F1
                 typeArguments
                   T
 ----------------------------------------
@@ -1084,7 +1084,7 @@ library
             parameters
               requiredPositional a @50
                 type: void Function(T)
-                  alias: <testLibraryFragment>::@typeAlias::F1
+                  alias: <testLibrary>::@typeAlias::F1
                     typeArguments
                       T
             returnType: void
@@ -1198,7 +1198,7 @@ library
               requiredPositional a @41
                 type: T
             returnType: T Function()
-              alias: <testLibraryFragment>::@typeAlias::F1
+              alias: <testLibrary>::@typeAlias::F1
                 typeArguments
                   T
 ----------------------------------------
@@ -1680,7 +1680,7 @@ library
           parameters
             requiredPositional a @46
               type: void Function({int p})
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
                 parameters
                   optionalNamed p @-1
                     type: int
@@ -1713,7 +1713,7 @@ library
       formalParameters
         requiredPositional a
           type: void Function({int p})
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }
@@ -1838,7 +1838,7 @@ library
           aliasedType: void Function(T) Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: void Function(T)
-              alias: <testLibraryFragment>::@typeAlias::F1
+              alias: <testLibrary>::@typeAlias::F1
                 typeArguments
                   T
 ----------------------------------------
@@ -1987,7 +1987,7 @@ library
           aliasedType: T Function() Function()
           aliasedElement: GenericFunctionTypeElement
             returnType: T Function()
-              alias: <testLibraryFragment>::@typeAlias::F1
+              alias: <testLibrary>::@typeAlias::F1
                 typeArguments
                   T
 ----------------------------------------
@@ -2057,7 +2057,7 @@ library
             parameters
               requiredPositional @-1
                 type: void Function(T)
-                  alias: <testLibraryFragment>::@typeAlias::F1
+                  alias: <testLibrary>::@typeAlias::F1
                     typeArguments
                       T
             returnType: void
@@ -2192,7 +2192,7 @@ library
             parameters
               requiredPositional @-1
                 type: void Function()
-                  alias: <testLibraryFragment>::@typeAlias::F
+                  alias: <testLibrary>::@typeAlias::F
             returnType: void
 ----------------------------------------
 library
@@ -2299,7 +2299,7 @@ library
               requiredPositional @-1
                 type: T
             returnType: T Function()
-              alias: <testLibraryFragment>::@typeAlias::F1
+              alias: <testLibrary>::@typeAlias::F1
                 typeArguments
                   T
 ----------------------------------------
@@ -2872,7 +2872,7 @@ library
               reference: <testLibraryFragment>::@class::A::@field::f
               enclosingElement3: <testLibraryFragment>::@class::A
               type: int Function<T>(T)
-                alias: <testLibraryFragment>::@typeAlias::Foo
+                alias: <testLibrary>::@typeAlias::Foo
                   typeArguments
                     int
           constructors
@@ -2884,7 +2884,7 @@ library
               reference: <testLibraryFragment>::@class::A::@getter::f
               enclosingElement3: <testLibraryFragment>::@class::A
               returnType: int Function<T>(T)
-                alias: <testLibraryFragment>::@typeAlias::Foo
+                alias: <testLibrary>::@typeAlias::Foo
                   typeArguments
                     int
             synthetic set f= @-1
@@ -2893,7 +2893,7 @@ library
               parameters
                 requiredPositional _f @-1
                   type: int Function<T>(T)
-                    alias: <testLibraryFragment>::@typeAlias::Foo
+                    alias: <testLibrary>::@typeAlias::Foo
                       typeArguments
                         int
               returnType: void
@@ -2958,7 +2958,7 @@ library
         f
           firstFragment: <testLibraryFragment>::@class::A::@field::f
           type: int Function<T>(T)
-            alias: <testLibraryFragment>::@typeAlias::Foo
+            alias: <testLibrary>::@typeAlias::Foo
               typeArguments
                 int
           getter: <testLibraryFragment>::@class::A::@getter::f#element
@@ -2975,7 +2975,7 @@ library
           formalParameters
             requiredPositional _f
               type: int Function<T>(T)
-                alias: <testLibraryFragment>::@typeAlias::Foo
+                alias: <testLibrary>::@typeAlias::Foo
                   typeArguments
                     int
   typeAliases
@@ -4382,7 +4382,7 @@ library
           parameters
             requiredPositional a @71
               type: void Function()
-                alias: <testLibraryFragment>::@typeAlias::A1
+                alias: <testLibrary>::@typeAlias::A1
           returnType: void
         f2 @82
           reference: <testLibraryFragment>::@function::f2
@@ -4390,7 +4390,7 @@ library
           parameters
             requiredPositional a @93
               type: int Function()
-                alias: <testLibraryFragment>::@typeAlias::A2
+                alias: <testLibrary>::@typeAlias::A2
                   typeArguments
                     int
           returnType: void
@@ -4439,7 +4439,7 @@ library
       formalParameters
         requiredPositional a
           type: void Function()
-            alias: <testLibraryFragment>::@typeAlias::A1
+            alias: <testLibrary>::@typeAlias::A1
       returnType: void
     f2
       reference: <testLibrary>::@function::f2
@@ -4447,7 +4447,7 @@ library
       formalParameters
         requiredPositional a
           type: int Function()
-            alias: <testLibraryFragment>::@typeAlias::A2
+            alias: <testLibrary>::@typeAlias::A2
               typeArguments
                 int
       returnType: void
@@ -4488,7 +4488,7 @@ library
           parameters
             requiredPositional a @65
               type: List<int>
-                alias: <testLibraryFragment>::@typeAlias::A1
+                alias: <testLibrary>::@typeAlias::A1
           returnType: void
         f2 @76
           reference: <testLibraryFragment>::@function::f2
@@ -4496,7 +4496,7 @@ library
           parameters
             requiredPositional a @95
               type: Map<int, String>
-                alias: <testLibraryFragment>::@typeAlias::A2
+                alias: <testLibrary>::@typeAlias::A2
                   typeArguments
                     int
                     String
@@ -4549,7 +4549,7 @@ library
       formalParameters
         requiredPositional a
           type: List<int>
-            alias: <testLibraryFragment>::@typeAlias::A1
+            alias: <testLibrary>::@typeAlias::A1
       returnType: void
     f2
       reference: <testLibrary>::@function::f2
@@ -4557,7 +4557,7 @@ library
       formalParameters
         requiredPositional a
           type: Map<int, String>
-            alias: <testLibraryFragment>::@typeAlias::A2
+            alias: <testLibrary>::@typeAlias::A2
               typeArguments
                 int
                 String
@@ -4614,7 +4614,7 @@ library
           parameters
             requiredPositional a @48
               type: (int, String)
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
                   typeArguments
                     int
                     String
@@ -4655,7 +4655,7 @@ library
       formalParameters
         requiredPositional a
           type: (int, String)
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 int
                 String
@@ -4693,7 +4693,7 @@ library
           parameters
             requiredPositional a @33
               type: U
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
                   typeArguments
                     U
           returnType: void
@@ -4735,7 +4735,7 @@ library
       formalParameters
         requiredPositional a
           type: U
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 U
       returnType: void
@@ -4789,7 +4789,7 @@ library
           enclosingElement3: <testLibraryFragment>
           interfaces
             A<int, String>
-              alias: <testLibraryFragment>::@typeAlias::X
+              alias: <testLibrary>::@typeAlias::X
                 typeArguments
                   String
           constructors
@@ -4853,7 +4853,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       interfaces
         A<int, String>
-          alias: <testLibraryFragment>::@typeAlias::X
+          alias: <testLibrary>::@typeAlias::X
             typeArguments
               String
       constructors
@@ -5059,7 +5059,7 @@ library
           interfaces
             B
             A<int?>
-              alias: <testLibraryFragment>::@typeAlias::X
+              alias: <testLibrary>::@typeAlias::X
                 typeArguments
                   int
             C
@@ -5150,7 +5150,7 @@ library
       interfaces
         B
         A<int?>
-          alias: <testLibraryFragment>::@typeAlias::X
+          alias: <testLibrary>::@typeAlias::X
             typeArguments
               int
         C
@@ -5540,7 +5540,7 @@ library
           supertype: Object
           mixins
             A<int>
-              alias: <testLibraryFragment>::@typeAlias::X
+              alias: <testLibrary>::@typeAlias::X
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -5594,7 +5594,7 @@ library
       supertype: Object
       mixins
         A<int>
-          alias: <testLibraryFragment>::@typeAlias::X
+          alias: <testLibrary>::@typeAlias::X
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -5764,7 +5764,7 @@ library
           mixins
             M1
             A<int?>
-              alias: <testLibraryFragment>::@typeAlias::X
+              alias: <testLibrary>::@typeAlias::X
             M2
           constructors
             synthetic @-1
@@ -5838,7 +5838,7 @@ library
       mixins
         M1
         A<int?>
-          alias: <testLibraryFragment>::@typeAlias::X
+          alias: <testLibrary>::@typeAlias::X
         M2
       constructors
         synthetic new
@@ -5946,7 +5946,7 @@ library
           reference: <testLibraryFragment>::@class::B
           enclosingElement3: <testLibraryFragment>
           supertype: A<int>
-            alias: <testLibraryFragment>::@typeAlias::X
+            alias: <testLibrary>::@typeAlias::X
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -6001,7 +6001,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<int>
-        alias: <testLibraryFragment>::@typeAlias::X
+        alias: <testLibrary>::@typeAlias::X
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
@@ -6041,7 +6041,7 @@ library
           reference: <testLibraryFragment>::@class::B
           enclosingElement3: <testLibraryFragment>
           supertype: A<int>
-            alias: <testLibraryFragment>::@typeAlias::X
+            alias: <testLibrary>::@typeAlias::X
               typeArguments
                 A<int>
           constructors
@@ -6104,7 +6104,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A<int>
-        alias: <testLibraryFragment>::@typeAlias::X
+        alias: <testLibrary>::@typeAlias::X
           typeArguments
             A<int>
       constructors
@@ -6292,7 +6292,7 @@ library
           reference: <testLibraryFragment>::@class::D
           enclosingElement3: <testLibraryFragment>
           supertype: A<int?>
-            alias: <testLibraryFragment>::@typeAlias::X
+            alias: <testLibrary>::@typeAlias::X
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -6347,7 +6347,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       supertype: A<int?>
-        alias: <testLibraryFragment>::@typeAlias::X
+        alias: <testLibrary>::@typeAlias::X
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
@@ -6586,7 +6586,7 @@ library
           parameters
             requiredPositional a @42
               type: dynamic Function()
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
           returnType: void
 ----------------------------------------
 library
@@ -6616,7 +6616,7 @@ library
       formalParameters
         requiredPositional a
           type: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }
@@ -6644,7 +6644,7 @@ library
           parameters
             requiredPositional a @26
               type: int
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
           returnType: void
 ----------------------------------------
 library
@@ -6674,7 +6674,7 @@ library
       formalParameters
         requiredPositional a
           type: int
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }
@@ -6702,7 +6702,7 @@ library
           parameters
             requiredPositional a @27
               type: int?
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
           returnType: void
 ----------------------------------------
 library
@@ -6732,7 +6732,7 @@ library
       formalParameters
         requiredPositional a
           type: int?
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
       returnType: void
 ''');
   }
@@ -6763,7 +6763,7 @@ library
           parameters
             requiredPositional a @45
               type: Map<int, String>
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
                   typeArguments
                     String
           returnType: void
@@ -6800,7 +6800,7 @@ library
       formalParameters
         requiredPositional a
           type: Map<int, String>
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 String
       returnType: void
@@ -6953,7 +6953,7 @@ library
           parameters
             requiredPositional a @49
               type: int
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
                   typeArguments
                     int
           returnType: void
@@ -7003,7 +7003,7 @@ library
       formalParameters
         requiredPositional a
           type: int
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 int
       returnType: void
@@ -7044,7 +7044,7 @@ library
           parameters
             requiredPositional a @50
               type: int?
-                alias: <testLibraryFragment>::@typeAlias::A
+                alias: <testLibrary>::@typeAlias::A
                   typeArguments
                     int
           returnType: void
@@ -7094,7 +7094,7 @@ library
       formalParameters
         requiredPositional a
           type: int?
-            alias: <testLibraryFragment>::@typeAlias::A
+            alias: <testLibrary>::@typeAlias::A
               typeArguments
                 int
       returnType: void

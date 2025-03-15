@@ -1163,12 +1163,12 @@ PostfixExpression
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: String?
-      alias: <testLibraryFragment>::@typeAlias::A
+      alias: <testLibrary>::@typeAlias::A
   operator: !
   staticElement: <null>
   element: <null>
   staticType: String
-    alias: <testLibraryFragment>::@typeAlias::A
+    alias: <testLibrary>::@typeAlias::A
 ''');
   }
 
@@ -1299,12 +1299,12 @@ PostfixExpression
     staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: (int,)?
-      alias: <testLibraryFragment>::@typeAlias::A
+      alias: <testLibrary>::@typeAlias::A
   operator: !
   staticElement: <null>
   element: <null>
   staticType: (int,)
-    alias: <testLibraryFragment>::@typeAlias::A
+    alias: <testLibrary>::@typeAlias::A
 ''');
   }
 

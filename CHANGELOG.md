@@ -8,6 +8,10 @@
 
 - Added `Iterable.withIterator` constructor.
 
+#### `dart:io`
+
+- Added support `HttpClientBearerCredentials`.
+
 #### `dart:html`
 
 - **Breaking change**: Native classes in `dart:html`, like `HtmlElement`, can no

@@ -16476,7 +16476,7 @@ library
               reference: <testLibraryFragment>::@class::A::@field::x
               enclosingElement3: <testLibraryFragment>::@class::A
               type: dynamic Function()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     T
             synthetic y @-1
@@ -16492,7 +16492,7 @@ library
               reference: <testLibraryFragment>::@class::A::@getter::x
               enclosingElement3: <testLibraryFragment>::@class::A
               returnType: dynamic Function()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     T
             get y @69
@@ -16508,7 +16508,7 @@ library
               reference: <testLibraryFragment>::@class::B::@field::x
               enclosingElement3: <testLibraryFragment>::@class::B
               type: dynamic Function()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     int
             synthetic y @-1
@@ -16527,7 +16527,7 @@ library
               reference: <testLibraryFragment>::@class::B::@getter::x
               enclosingElement3: <testLibraryFragment>::@class::B
               returnType: dynamic Function()
-                alias: <testLibraryFragment>::@typeAlias::F
+                alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     int
             get y @131
@@ -16618,7 +16618,7 @@ library
         synthetic x
           firstFragment: <testLibraryFragment>::@class::A::@field::x
           type: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 T
           getter: <testLibraryFragment>::@class::A::@getter::x#element
@@ -16642,7 +16642,7 @@ library
         synthetic x
           firstFragment: <testLibraryFragment>::@class::B::@field::x
           type: dynamic Function()
-            alias: <testLibraryFragment>::@typeAlias::F
+            alias: <testLibrary>::@typeAlias::F
               typeArguments
                 int
           getter: <testLibraryFragment>::@class::B::@getter::x#element

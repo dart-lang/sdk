@@ -182,8 +182,8 @@ class SubtypeHelper {
     if (T1 is TypeParameterTypeImpl) {
       var T1_promotedBound = T1.promotedBound;
       if (T1_promotedBound != null) {
-        var X1 = TypeParameterTypeImpl.v2(
-          element: T1.element3,
+        var X1 = TypeParameterTypeImpl(
+          element3: T1.element3,
           nullabilitySuffix: T1.nullabilitySuffix,
         );
         return isSubtypeOf(T0, X1) && isSubtypeOf(T0, T1_promotedBound);
