@@ -44,28 +44,23 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   @override
-  Future<ParsedUnitResult> getParsedUnit(File file) async {
-    var unitResult = await super.getParsedUnit(file);
-    testParsedResult = unitResult;
-    testCode = unitResult.content;
-    testUnit = unitResult.unit;
-    findNode = FindNode(testCode, testUnit);
-    findElement2 = FindElement2(testUnit);
-    return unitResult;
-  }
-
-  @override
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
     var session = await this.session;
-    testLibraryResult = await session.getResolvedContainingLibrary(file.path);
-    var unitResult = testLibraryResult?.unitWithPath(file.path);
+    var libraryResult = await session.getResolvedContainingLibrary(file.path);
+    var unitResult = libraryResult?.unitWithPath(file.path);
     unitResult ??= await super.getResolvedUnit(file);
-    testAnalysisResult = unitResult;
-    testCode = testAnalysisResult.content;
-    testUnit = testAnalysisResult.unit;
+
+    if (file.path == testFilePath) {
+      testLibraryResult = libraryResult;
+      testAnalysisResult = unitResult;
+      testUnit = unitResult.unit;
+      testLibraryElement = testUnit.declaredFragment!.element;
+      findNode = FindNode(unitResult.content, testUnit);
+      findElement2 = FindElement2(testUnit);
+    }
     if (verifyNoTestUnitErrors) {
       expect(
-        testAnalysisResult.errors.where((AnalysisError error) {
+        unitResult.errors.where((AnalysisError error) {
           return error.errorCode != WarningCode.DEAD_CODE &&
               error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
               error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
@@ -77,16 +72,19 @@ class AbstractSingleUnitTest extends AbstractContextTest {
         isEmpty,
       );
     }
-
-    testLibraryElement = testUnit.declaredFragment!.element;
-    findNode = FindNode(testCode, testUnit);
-    findElement2 = FindElement2(testUnit);
-    return testAnalysisResult;
+    return unitResult;
   }
 
   Future<void> parseTestCode(String code) async {
     addTestSource(code);
-    await getParsedUnit(testFile);
+    testParsedResult = await getParsedUnit(testFile);
+    testUnit = testParsedResult.unit;
+    findNode = FindNode(testCode, testUnit);
+    findElement2 = FindElement2(testUnit);
+  }
+
+  void putTestFileInTestDir() {
+    testFilePath = '$testPackageTestPath/test.dart';
   }
 
   Future<void> resolveTestCode(String code) async {
