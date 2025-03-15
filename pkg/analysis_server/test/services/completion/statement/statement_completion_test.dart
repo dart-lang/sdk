@@ -75,18 +75,13 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
     bool atEnd = false,
     int delta = 0,
   }) async {
-    testCode = sourceCode.replaceAll('////', '');
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode(sourceCode.replaceAll('////', ''));
     var offset = findOffset(search);
     if (atEnd) {
       delta = search.length;
     }
-    await _prepareCompletionAt(offset + delta, testCode);
-  }
-
-  Future<void> _prepareCompletionAt(int offset, String sourceCode) async {
-    verifyNoTestUnitErrors = false;
-    await resolveTestCode(sourceCode);
-    await _computeCompletion(offset);
+    await _computeCompletion(offset + delta);
   }
 }
 

@@ -945,18 +945,14 @@ class NonLibraryAnnotation {
   }
 
   Future<void> _computeUnitAndErrors(String code) async {
-    addTestSource(code);
     verifyNoTestUnitErrors = false;
-    var result = await getResolvedUnit(testFile);
-    testUnit = result.unit;
-    testErrors = result.errors;
+    await resolveTestCode(code);
+    testErrors = testAnalysisResult.errors;
   }
 
   Future<void> _parseUnitAndErrors(String code) async {
-    addTestSource(code);
     verifyNoTestUnitErrors = false;
-    var result = await getParsedUnit(testFile);
-    testUnit = result.unit;
-    testErrors = result.errors;
+    await parseTestCode(code);
+    testErrors = testParsedResult.errors;
   }
 }

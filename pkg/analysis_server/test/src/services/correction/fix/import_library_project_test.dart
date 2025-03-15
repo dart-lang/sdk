@@ -1293,63 +1293,31 @@ void f(Test t) {}
   }
 
   Future<void> test_withClass_pub_other_inTest_dependencies() async {
-    var aaaRoot = getFolder('$packagesRootPath/aaa');
-    newFile('${aaaRoot.path}/lib/a.dart', '''
-class Test {}
-''');
-
-    updateTestPubspecFile(r'''
-name: test
-dependencies:
-  aaa: any
-''');
-
-    writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
-    );
-
-    var b = newFile('$testPackageTestPath/b.dart', r'''
+    _createPackageAaa();
+    putTestFileInTestDir();
+    await resolveTestCode(r'''
 void f(Test t) {}
 ''');
-
-    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'package:aaa/a.dart';
 
 void f(Test t) {}
-''', target: b.path);
+''');
   }
 
   Future<void> test_withClass_pub_other_inTest_devDependencies() async {
-    var aaaRoot = getFolder('$packagesRootPath/aaa');
-    newFile('${aaaRoot.path}/lib/a.dart', '''
-class Test {}
-''');
-
-    updateTestPubspecFile(r'''
-name: test
-dev_dependencies:
-  aaa: any
-''');
-
-    writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
-    );
-
-    var b = newFile('$testPackageTestPath/b.dart', r'''
+    _createPackageAaa();
+    putTestFileInTestDir();
+    await resolveTestCode(r'''
 void f(Test t) {}
 ''');
-
-    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'package:aaa/a.dart';
 
 void f(Test t) {}
-''', target: b.path);
+''');
   }
 
   Future<void> test_withClass_pub_this() async {
@@ -1396,17 +1364,16 @@ name: test
 class Test {}
 ''');
 
-    var b = newFile('$testPackageTestPath/b.dart', r'''
+    putTestFileInTestDir();
+    await resolveTestCode(r'''
 void f(Test t) {}
 ''');
-
-    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'a.dart';
 
 void f(Test t) {}
-''', target: b.path);
+''');
   }
 
   Future<void> test_withClass_simpleIdentifier_lowerCase() async {
@@ -1776,6 +1743,24 @@ void f() {
   foo = 0;
 }
 ''');
+  }
+
+  void _createPackageAaa() {
+    var aaaRoot = getFolder('$packagesRootPath/aaa');
+    newFile('${aaaRoot.path}/lib/a.dart', '''
+class Test {}
+''');
+
+    updateTestPubspecFile(r'''
+name: test
+dependencies:
+  aaa: any
+''');
+
+    writeTestPackageConfig(
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
+    );
   }
 }
 
@@ -2489,17 +2474,16 @@ name: test
 class Test {}
 ''');
 
-    var b = newFile('$testPackageTestPath/b.dart', r'''
+    putTestFileInTestDir();
+    await resolveTestCode(r'''
 void f(lib.Test t) {}
 ''');
-
-    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'package:test/src/a.dart' as lib;
 
 void f(lib.Test t) {}
-''', target: b.path);
+''');
   }
 }
 
@@ -2557,17 +2541,16 @@ name: test
 class Test {}
 ''');
 
-    var b = newFile('$testPackageTestPath/b.dart', r'''
+    putTestFileInTestDir();
+    await resolveTestCode(r'''
 void f(lib.Test t) {}
 ''');
-
-    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'package:test/src/a.dart' as lib show Test;
 
 void f(lib.Test t) {}
-''', target: b.path);
+''');
   }
 }
 
@@ -2642,17 +2625,16 @@ name: test
 class Test {}
 ''');
 
-    var b = newFile('$testPackageTestPath/b.dart', r'''
+    putTestFileInTestDir();
+    await resolveTestCode(r'''
 void f(Test t) {}
 ''');
-
-    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'package:test/src/a.dart';
 
 void f(Test t) {}
-''', target: b.path);
+''');
   }
 }
 
@@ -2710,16 +2692,15 @@ name: test
 class Test {}
 ''');
 
-    var b = newFile('$testPackageTestPath/b.dart', r'''
+    putTestFileInTestDir();
+    await resolveTestCode(r'''
 void f(Test t) {}
 ''');
-
-    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'package:test/src/a.dart' show Test;
 
 void f(Test t) {}
-''', target: b.path);
+''');
   }
 }

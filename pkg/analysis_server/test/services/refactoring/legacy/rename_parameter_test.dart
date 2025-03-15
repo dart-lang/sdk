@@ -104,16 +104,15 @@ void f() {
   }
 
   Future<void> test_createChange_inOtherFile() async {
-    var a = convertPath('$testPackageLibPath/a.dart');
     var b = convertPath('$testPackageLibPath/b.dart');
 
-    newFile(a, r'''
+    addTestSource(r'''
 class A {
   A({test});
 }
 ''');
     newFile(b, r'''
-import 'a.dart';
+import 'test.dart';
 
 void f() {
   new A(test: 2);
@@ -121,7 +120,6 @@ void f() {
 ''');
     await analyzeTestPackageFiles();
 
-    testFilePath = a;
     await resolveTestFile();
 
     createRenameRefactoringAtString('test});');
@@ -134,7 +132,7 @@ class A {
 }
 ''');
     assertFileChangeResult(b, '''
-import 'a.dart';
+import 'test.dart';
 
 void f() {
   new A(newName: 2);
