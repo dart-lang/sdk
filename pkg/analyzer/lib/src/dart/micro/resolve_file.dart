@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -265,7 +263,7 @@ class FileResolver {
           String path, OperationPerformanceImpl performance) async {
         await performance.runAsync('collectReferences', (_) async {
           var resolved = await resolve(path: path);
-          var collector = ReferencesCollector(element.asElement!);
+          var collector = ReferencesCollector(element);
           resolved.unit.accept(collector);
           var matches = collector.references;
           if (matches.isNotEmpty) {

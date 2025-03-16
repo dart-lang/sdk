@@ -8501,6 +8501,9 @@ abstract class MethodElementOrMember
 
   @override
   FunctionTypeImpl get type;
+
+  @override
+  List<TypeParameterElementImpl> get typeParameters;
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.

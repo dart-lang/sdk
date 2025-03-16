@@ -32,7 +32,7 @@ class ConstructorMember extends ExecutableMember
     required MapSubstitution augmentationSubstitution,
     required MapSubstitution substitution,
   }) : super(declaration, augmentationSubstitution, substitution,
-            const <TypeParameterElement>[]);
+            const <TypeParameterElementImpl>[]);
 
   @override
   ConstructorElementImpl2 get baseElement => _element2;
@@ -220,7 +220,7 @@ class ConstructorMember extends ExecutableMember
 abstract class ExecutableMember extends Member
     implements ExecutableElementOrMember, ExecutableElement2OrMember {
   @override
-  final List<TypeParameterElement> typeParameters;
+  final List<TypeParameterElementImpl> typeParameters;
 
   FunctionTypeImpl? _type;
 
@@ -1764,7 +1764,7 @@ abstract class VariableMember extends Member
 }
 
 class _SubstitutedTypeParameters {
-  final List<TypeParameterElement> elements;
+  final List<TypeParameterElementImpl> elements;
   final MapSubstitution substitution;
 
   factory _SubstitutedTypeParameters(
@@ -1772,7 +1772,7 @@ class _SubstitutedTypeParameters {
     MapSubstitution substitution,
   ) {
     if (elements.isEmpty) {
-      return _SubstitutedTypeParameters._(elements, substitution);
+      return _SubstitutedTypeParameters._(const [], substitution);
     }
 
     // Create type formals with specialized bounds.
