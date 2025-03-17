@@ -861,24 +861,8 @@ class _Element2Writer extends _AbstractElementWriter {
       });
       return;
     }
-    Element2? element;
-    if (f is ElementImpl) {
-      element = f as ElementImpl;
-    } else {
-      element = f.element;
-      if (element is! ElementImpl) {
-        if (element is InstanceElementImpl2) {
-          element = element.firstFragment;
-        }
-      }
-    }
-    if (element is! ElementImpl) {
-      _sink.writeIndentedLine(() {
-        _sink.write(name);
-        _sink.write(': <none>');
-      });
-      return;
-    }
+
+    var element = f as ElementImpl;
     if (element.reference case var reference?) {
       _sink.writeIndentedLine(() {
         _sink.write(name);
@@ -1228,8 +1212,7 @@ class _Element2Writer extends _AbstractElementWriter {
           _writeLibraryImport,
         );
       }
-      _writeElementList(
-          'prefixes', f.library2!, f.prefixes, _writePrefixElement);
+      _writeElementList('prefixes', f.element, f.prefixes, _writePrefixElement);
       // _writeList(
       //     'libraryExports', f.libraryExports, _writeLibraryExportElement);
       // _writeList('parts', f.parts, _writePartElement);

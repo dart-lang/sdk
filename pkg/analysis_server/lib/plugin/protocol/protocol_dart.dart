@@ -134,28 +134,14 @@ ElementKind convertElementToElementKind(engine.Element2 element) {
 }
 
 Element convertLibraryFragment(CompilationUnitElementImpl fragment) {
-  var kind = convertElementToElementKind(fragment);
-  var name = getElementDisplayName(fragment);
-  var elementTypeParameters = _getTypeParametersString(fragment);
-  var aliasedType = getAliasedTypeString(fragment);
-  var elementParameters = getParametersString(fragment);
-  var elementReturnType = getReturnTypeString(fragment);
   return Element(
-    kind,
-    name,
+    ElementKind.COMPILATION_UNIT,
+    path.basename(fragment.source.fullName),
     Element.makeFlags(
       isPrivate: fragment.isPrivate,
       isDeprecated: fragment.hasDeprecated,
-      isAbstract: _isAbstract(fragment),
-      isConst: _isConst(fragment),
-      isFinal: _isFinal(fragment),
-      isStatic: _isStatic(fragment),
     ),
     location: newLocation_fromFragment(fragment),
-    typeParameters: elementTypeParameters,
-    aliasedType: aliasedType,
-    parameters: elementParameters,
-    returnType: elementReturnType,
   );
 }
 

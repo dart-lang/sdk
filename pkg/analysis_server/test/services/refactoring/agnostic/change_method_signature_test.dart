@@ -111,7 +111,6 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   String _elementToReferenceString(Element2 element) {
     var enclosingElement = element.enclosingElement2;
     var reference = switch (element) {
-      ElementImpl() => element.reference,
       ElementImpl2() =>
         element.reference ?? (element.firstFragment as ElementImpl).reference,
       _ => null,

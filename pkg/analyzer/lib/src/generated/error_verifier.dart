@@ -4352,16 +4352,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superType == null) {
       return;
     }
-    var superElement = superType.element;
+    var superElement = superType.element3;
     // try to find default generative super constructor
-    var superUnnamedConstructor = superElement.unnamedConstructor;
+    var superUnnamedConstructor = superElement.unnamedConstructor2;
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         errorReporter.atElement2(
           fragment.asElement2,
           CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
           arguments: [
-            superElement.name,
+            superElement.name3!,
             fragment.name,
             superUnnamedConstructor,
           ],

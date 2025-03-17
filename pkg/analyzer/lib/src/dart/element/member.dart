@@ -1678,10 +1678,12 @@ class TopLevelVariableMember extends VariableMember
   bool get isExternal => declaration.isExternal;
 
   @override
-  LibraryElement get library => _declaration.library!;
+  LibraryElementImpl get library {
+    return _declaration.library as LibraryElementImpl;
+  }
 
   @override
-  LibraryElement2 get library2 => _declaration.library as LibraryElement2;
+  LibraryElementImpl get library2 => library;
 
   @override
   String get name => declaration.name;

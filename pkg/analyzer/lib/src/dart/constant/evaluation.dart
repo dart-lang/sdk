@@ -521,6 +521,7 @@ class ConstantEvaluationEngine {
 /// performed.
 @AnalyzerPublicApi(
     message: 'exposed because it is implemented by various elements')
+// TODO(scheglov): consider implementing only in Impl or removing
 abstract class ConstantEvaluationTarget extends AnalysisTarget {
   /// Return the [AnalysisContext] which should be used to evaluate this
   /// constant.
