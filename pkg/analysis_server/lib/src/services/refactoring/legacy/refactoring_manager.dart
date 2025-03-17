@@ -330,7 +330,7 @@ class RefactoringManager {
             refactoring = RenameRefactoring.create(
               refactoringWorkspace,
               resolvedUnit,
-              renameElement.element2,
+              renameElement.element,
             );
             feedback = RenameFeedback(
               renameElement.offset,

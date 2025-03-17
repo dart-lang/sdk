@@ -78,7 +78,7 @@ class PrepareRenameHandler
       var refactoring = RenameRefactoring.create(
         server.refactoringWorkspace,
         unit,
-        refactorDetails.element2,
+        refactorDetails.element,
       );
       if (refactoring == null) {
         return success(null);
@@ -173,7 +173,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       var refactoring = RenameRefactoring.create(
         server.refactoringWorkspace,
         unit,
-        refactorDetails.element2,
+        refactorDetails.element,
       );
       if (refactoring == null) {
         return success(null);

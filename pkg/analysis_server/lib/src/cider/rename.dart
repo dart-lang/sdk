@@ -35,10 +35,10 @@ class CanRenameResponse {
     this.filePath,
   );
 
-  String get oldName => refactoringElement.element2.displayName;
+  String get oldName => refactoringElement.element.displayName;
 
   CheckNameResponse? checkNewName(String name) {
-    var element = refactoringElement.element2;
+    var element = refactoringElement.element;
 
     RefactoringStatus? status;
     if (element is FormalParameterElement) {
@@ -125,11 +125,11 @@ class CheckNameResponse {
 
   LineInfo get lineInfo => canRename.lineInfo;
 
-  String get oldName => canRename.refactoringElement.element2.displayName;
+  String get oldName => canRename.refactoringElement.element.displayName;
 
   Future<RenameResponse?> computeRenameRanges2() async {
     var elements = <Element2>[];
-    var element = canRename.refactoringElement.element2;
+    var element = canRename.refactoringElement.element;
     if (element is PropertyInducingElement2 && element.isSynthetic) {
       var property = element;
       var getter = property.getter2;
@@ -362,7 +362,7 @@ class CheckNameResponse {
   }
 
   Future<CiderReplaceMatch?> _replaceSyntheticConstructor() async {
-    var element = canRename.refactoringElement.element2;
+    var element = canRename.refactoringElement.element;
     var interfaceElement = element.enclosingElement2!;
 
     var fileResolver = canRename._fileResolver;

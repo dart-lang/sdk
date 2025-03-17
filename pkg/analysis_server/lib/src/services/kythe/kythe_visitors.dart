@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:path/path.dart' show relative;
 
@@ -121,12 +117,7 @@ class CiderKytheHelper {
   CiderKytheHelper(this.resourceProvider, this.corpus, this.sdkRootPath);
 
   /// Returns a URI that can be used to query Kythe.
-  String toKytheUri(Element e) {
-    return toKytheUri2(e.asElement2!);
-  }
-
-  /// Returns a URI that can be used to query Kythe.
-  String toKytheUri2(Element2 e) {
+  String toKytheUri(Element2 e) {
     var nodeKind = _getNodeKind(e) ?? schema.RECORD_KIND;
     var vname = _vNameFromElement(e, nodeKind);
     return 'kythe://$corpus?lang=dart?path=${vname.path}#${vname.signature}';
