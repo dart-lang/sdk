@@ -585,6 +585,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitRedirectingFactoryTearOff(
       RedirectingFactoryTearOff node, DartType typeContext) {
+    ensureMemberType(node.target);
     DartType type =
         node.target.function.computeFunctionType(Nullability.nonNullable);
     return instantiateTearOff(type, typeContext, node);
@@ -1419,6 +1420,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitFactoryConstructorInvocation(
       FactoryConstructorInvocation node, DartType typeContext) {
+    ensureMemberType(node.target);
+
     bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
 
     FunctionType functionType =
@@ -1488,6 +1491,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult visitTypeAliasedConstructorInvocation(
       TypeAliasedConstructorInvocation node, DartType typeContext) {
     assert(getExplicitTypeArguments(node.arguments) == null);
+    ensureMemberType(node.target);
+
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType =
         _computeAliasedConstructorFunctionType(node.target, typedef);
@@ -1555,6 +1560,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitTypeAliasedFactoryInvocation(
       TypeAliasedFactoryInvocation node, DartType typeContext) {
+    ensureMemberType(node.target);
+
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType =

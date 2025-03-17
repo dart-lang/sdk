@@ -543,12 +543,21 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_prepareTopLevelInference);
+      loader.prepareTopLevelInference();
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
           ?.enterPhase(
               BenchmarkPhases.outline_performRedirectingFactoryInference);
       // TODO(johnniwinther): Add an interface for registering delayed actions.
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
-      loader.inferRedirectingFactories(
-          loader.hierarchy, delayedDefaultValueCloners);
+      loader.inferRedirectingFactories(delayedDefaultValueCloners);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.outline_computeMemberTypes);
+      loader.computeMemberTypes();
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -1143,7 +1152,8 @@ class KernelTarget {
             definingConstructor: superConstructorBuilder,
             delayedDefaultValueCloner: delayedDefaultValueCloner,
             typeDependency: typeDependency);
-    loader.registerConstructorToBeInferred(constructor, constructorBuilder);
+    loader.registerConstructorToBeInferred(
+        new InferableConstructor(constructor, constructorBuilder));
     return constructorBuilder;
   }
 

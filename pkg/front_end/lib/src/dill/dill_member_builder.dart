@@ -509,7 +509,8 @@ class DillClassMember extends BuilderClassMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
     // Do nothing; this is only for source members.
   }
 

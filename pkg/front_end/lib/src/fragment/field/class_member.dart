@@ -49,7 +49,7 @@ class _FieldClassMember implements ClassMember {
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
-    _builder.ensureTypes(membersBuilder);
+    inferType(membersBuilder);
     return forSetter ? _builder.writeTarget! : _builder.readTarget!;
   }
 
@@ -84,7 +84,7 @@ class _FieldClassMember implements ClassMember {
 
   @override
   void inferType(ClassMembersBuilder membersBuilder) {
-    _builder.ensureTypes(membersBuilder);
+    _builder.inferFieldType(membersBuilder.hierarchyBuilder);
   }
 
   @override
@@ -150,11 +150,14 @@ class _FieldClassMember implements ClassMember {
   Name get name => _builder.memberName;
 
   @override
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
     if (forSetter) {
-      _builder.registerSetterOverrideDependency(overriddenMembers);
+      _builder.registerSetterOverrideDependency(
+          membersBuilder, overriddenMembers);
     } else {
-      _builder.registerGetterOverrideDependency(overriddenMembers);
+      _builder.registerGetterOverrideDependency(
+          membersBuilder, overriddenMembers);
     }
   }
 
@@ -183,14 +186,14 @@ class _SynthesizedFieldClassMember implements ClassMember {
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
-    _builder.ensureTypes(membersBuilder);
+    inferType(membersBuilder);
     return _member;
   }
 
   @override
   Member? getTearOff(ClassMembersBuilder membersBuilder) {
     // Ensure field type is computed.
-    getMember(membersBuilder);
+    inferType(membersBuilder);
     return null;
   }
 
@@ -209,15 +212,18 @@ class _SynthesizedFieldClassMember implements ClassMember {
 
   @override
   void inferType(ClassMembersBuilder membersBuilder) {
-    _builder.ensureTypes(membersBuilder);
+    _builder.inferFieldType(membersBuilder.hierarchyBuilder);
   }
 
   @override
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
     if (forSetter) {
-      _builder.registerSetterOverrideDependency(overriddenMembers);
+      _builder.registerSetterOverrideDependency(
+          membersBuilder, overriddenMembers);
     } else {
-      _builder.registerGetterOverrideDependency(overriddenMembers);
+      _builder.registerGetterOverrideDependency(
+          membersBuilder, overriddenMembers);
     }
   }
 

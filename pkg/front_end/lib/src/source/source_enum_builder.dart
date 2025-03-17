@@ -630,6 +630,7 @@ class _EnumValuesFieldDeclaration implements FieldDeclaration {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void ensureTypes(
       ClassMembersBuilder membersBuilder,
       Set<ClassMember>? getterOverrideDependencies,
@@ -749,7 +750,7 @@ class _EnumValuesClassMember implements ClassMember {
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
-    _builder.ensureTypes(membersBuilder);
+    inferType(membersBuilder);
     return forSetter
         ?
         // Coverage-ignore(suite): Not run.
@@ -773,9 +774,8 @@ class _EnumValuesClassMember implements ClassMember {
   bool get hasDeclarations => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void inferType(ClassMembersBuilder membersBuilder) {
-    _builder.ensureTypes(membersBuilder);
+    _builder.inferFieldType(membersBuilder.hierarchyBuilder);
   }
 
   @override
@@ -846,8 +846,10 @@ class _EnumValuesClassMember implements ClassMember {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
-    _builder.registerGetterOverrideDependency(overriddenMembers);
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    _builder.registerGetterOverrideDependency(
+        membersBuilder, overriddenMembers);
   }
 
   @override

@@ -46,6 +46,8 @@ general/private_method_tearoff: semiFuzzFailureOnForceRebuildBodies # private me
 general/redirecting_factory_const_inference: semiFuzzFailureOnForceRebuildBodies # private class
 general/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
 general/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
+general/redirecting_factory_vs_field_inference: semiFuzzFailureOnForceRebuildBodies # privacy
+general/redirecting_factory_vs_field_inference2: semiFuzzFailureOnForceRebuildBodies # privacy
 general/redirection/main: semiFuzzFailureOnForceRebuildBodies # privacy.
 general/store_load: semiFuzzFailureOnForceRebuildBodies # private field in class
 general/typedef: semiFuzzFailureOnForceRebuildBodies # private typedef

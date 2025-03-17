@@ -33,6 +33,7 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../type_inference/inference_helper.dart';
+import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 import 'name_scheme.dart';
@@ -245,7 +246,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   Reference? get writeTargetReference => null;
 
   @override
-  Member? get invokeTarget => _procedure;
+  Member get invokeTarget => _procedure;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -421,11 +422,28 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     }
   }
 
+  bool _hasInferredRedirectionTarget = false;
+
+  void inferRedirectionTarget(ClassHierarchy classHierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    if (_hasInferredRedirectionTarget) return;
+    _hasInferredRedirectionTarget = true;
+    if (isAugmenting) {
+      origin.inferRedirectionTarget(classHierarchy, delayedDefaultValueCloners);
+    }
+    _introductory.inferRedirectionTarget(
+        libraryBuilder: libraryBuilder,
+        factoryBuilder: this,
+        classHierarchy: classHierarchy,
+        delayedDefaultValueCloners: delayedDefaultValueCloners);
+  }
+
   bool _hasBuiltOutlineExpressions = false;
 
   @override
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    inferRedirectionTarget(classHierarchy, delayedDefaultValueCloners);
     if (_hasBuiltOutlineExpressions) return;
     _hasBuiltOutlineExpressions = true;
 
@@ -633,6 +651,12 @@ abstract class FactoryDeclaration {
       required ClassHierarchy classHierarchy,
       required List<DelayedDefaultValueCloner> delayedDefaultValueCloners});
 
+  void inferRedirectionTarget(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required ClassHierarchy classHierarchy,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners});
+
   /// Checks this factory builder if it is for a redirecting factory.
   void checkRedirectingFactory(
       {required SourceLibraryBuilder libraryBuilder,
@@ -791,6 +815,19 @@ class FactoryDeclarationImpl implements FactoryDeclaration {
     }
 
     _encoding.buildOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        factoryBuilder: factoryBuilder,
+        classHierarchy: classHierarchy,
+        delayedDefaultValueCloners: delayedDefaultValueCloners);
+  }
+
+  @override
+  void inferRedirectionTarget(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required ClassHierarchy classHierarchy,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
+    _encoding.inferRedirectionTarget(
         libraryBuilder: libraryBuilder,
         factoryBuilder: factoryBuilder,
         classHierarchy: classHierarchy,
@@ -1063,7 +1100,13 @@ class FactoryEncoding implements InferredTypeListener {
     if (_delayedDefaultValueCloner != null) {
       delayedDefaultValueCloners.add(_delayedDefaultValueCloner!);
     }
+  }
 
+  void inferRedirectionTarget(
+      {required SourceLibraryBuilder libraryBuilder,
+      required SourceFactoryBuilder factoryBuilder,
+      required ClassHierarchy classHierarchy,
+      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
     if (_redirectionTarget == null) {
       return;
     }
@@ -1662,5 +1705,44 @@ class FactoryEncoding implements InferredTypeListener {
       }
     }
     return null;
+  }
+}
+
+class InferableRedirectingFactory implements InferableMember {
+  final SourceFactoryBuilder _builder;
+
+  final ClassHierarchy _classHierarchy;
+  final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners;
+
+  InferableRedirectingFactory(
+      this._builder, this._classHierarchy, this._delayedDefaultValueCloners);
+
+  @override
+  Member get member => _builder.invokeTarget;
+
+  @override
+  void inferMemberTypes(ClassHierarchyBase classHierarchy) {
+    _builder.inferRedirectionTarget(
+        _classHierarchy, _delayedDefaultValueCloners);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void reportCyclicDependency() {
+    // There is a cyclic dependency where inferring the types of the
+    // initializing formals of a constructor required us to infer the
+    // corresponding field type which required us to know the type of the
+    // constructor.
+    String name = _builder.declarationBuilder.name;
+    if (_builder.name.isNotEmpty) {
+      // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
+      // instead. However, `inferrer.helper` may be null.
+      name += ".${_builder.name}";
+    }
+    _builder.libraryBuilder.addProblem(
+        templateCantInferTypeDueToCircularity.withArguments(name),
+        _builder.fileOffset,
+        name.length,
+        _builder.fileUri);
   }
 }

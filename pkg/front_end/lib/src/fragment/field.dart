@@ -366,6 +366,7 @@ class FieldFragment
           nameLength: name.length,
           isAssignable: hasSetter);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       type.build(builder.libraryBuilder, TypeUse.fieldType,
           hierarchy: membersBuilder.hierarchyBuilder);
     }

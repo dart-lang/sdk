@@ -289,22 +289,29 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isRegularMethod => !isOperator;
 
   bool _typeEnsured = false;
+  ClassMembersBuilder? _classMembersBuilder;
   Set<ClassMember>? _overrideDependencies;
 
-  void _registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+  void _registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
     assert(
         overriddenMembers.every((overriddenMember) =>
             overriddenMember.declarationBuilder != classBuilder),
         "Unexpected override dependencies for $this: $overriddenMembers");
+    _classMembersBuilder ??= membersBuilder;
     _overrideDependencies ??= {};
     _overrideDependencies!.addAll(overriddenMembers);
   }
 
-  void _ensureTypes(ClassMembersBuilder membersBuilder) {
+  void _ensureTypes() {
     if (_typeEnsured) return;
-    _introductory.ensureTypes(membersBuilder,
-        declarationBuilder as SourceClassBuilder, _overrideDependencies);
-    _overrideDependencies = null;
+    if (_classMembersBuilder != null) {
+      assert(_overrideDependencies != null);
+      _introductory.ensureTypes(_classMembersBuilder!,
+          declarationBuilder as SourceClassBuilder, _overrideDependencies);
+      _overrideDependencies = null;
+      _classMembersBuilder = null;
+    }
     _typeEnsured = true;
   }
 }
@@ -386,7 +393,7 @@ class _MethodClassMember implements ClassMember {
 
   @override
   void inferType(ClassMembersBuilder membersBuilder) {
-    _builder._ensureTypes(membersBuilder);
+    _builder._ensureTypes();
   }
 
   @override
@@ -450,8 +457,9 @@ class _MethodClassMember implements ClassMember {
   Name get name => _builder.memberName;
 
   @override
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
-    _builder._registerOverrideDependency(overriddenMembers);
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    _builder._registerOverrideDependency(membersBuilder, overriddenMembers);
   }
 
   @override

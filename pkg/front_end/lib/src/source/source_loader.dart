@@ -75,7 +75,6 @@ import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'offset_map.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
-import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
@@ -1107,9 +1106,9 @@ severity: $severity
     hasInvalidNnbdModeLibrary = true;
   }
 
-  void registerConstructorToBeInferred(
-      Member member, SourceConstructorBuilder builder) {
-    _typeInferenceEngine!.toBeInferred[member] = builder;
+  void registerConstructorToBeInferred(InferableMember inferableMember) {
+    _typeInferenceEngine!.toBeInferred[inferableMember.member] =
+        inferableMember;
   }
 
   void registerTypeDependency(Member member, TypeDependency typeDependency) {
@@ -2574,8 +2573,7 @@ severity: $severity
         new TypeInferenceEngineImpl(instrumentation, target.benchmarker);
   }
 
-  void inferRedirectingFactories(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+  void prepareTopLevelInference() {
     /// Inferring redirecting factories partially overlaps with top-level
     /// inference, since the formal parameters of the redirection targets should
     /// be inferred, and they can be formal initializing parameters requiring
@@ -2588,16 +2586,15 @@ severity: $severity
     /// might be subject to type inference, and records dependencies between
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
-    membersBuilder.computeTypes();
 
-    // TODO(cstefantsova): Put the redirecting factory inference into a separate
-    // step.
+    ticker.logMs("Prepared for top level inference");
+  }
 
-    // Redirecting factory invocations can occur in outline expressions and
-    // should be processed before them. The outline expressions within
-    // redirecting factory invocations themselves are minimal, containing only
-    // the target and possibly some type arguments, and don't depend on other
-    // kinds of outline expressions themselves.
+  void inferRedirectingFactories(
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    assert(typeInferenceEngine.isTypeInferencePrepared,
+        "Top level inference has not been prepared.");
+
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       List<SourceFactoryBuilder>? redirectingFactoryBuilders =
           library.redirectingFactoryBuilders;
@@ -2611,8 +2608,10 @@ severity: $severity
             // likely be removed.
             continue;
           }
-          redirectingFactoryBuilder.buildOutlineExpressions(
-              classHierarchy, delayedDefaultValueCloners);
+          registerConstructorToBeInferred(new InferableRedirectingFactory(
+              redirectingFactoryBuilder,
+              hierarchy,
+              delayedDefaultValueCloners));
         }
       }
     }
@@ -2620,9 +2619,18 @@ severity: $severity
     ticker.logMs("Performed redirecting factory inference");
   }
 
+  void computeMemberTypes() {
+    assert(typeInferenceEngine.isTypeInferencePrepared,
+        "Top level inference has not been prepared.");
+    membersBuilder.computeTypes();
+
+    ticker.logMs("Computed member types");
+  }
+
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
+    assert(typeInferenceEngine.isTypeInferencePrepared,
+        "Top level inference has not been prepared.");
     inferableTypes.inferTypes(typeInferenceEngine.hierarchyBuilder);
-    typeInferenceEngine.isTypeInferencePrepared = true;
 
     ticker.logMs("Performed top level inference");
   }
@@ -2777,10 +2785,10 @@ severity: $severity
     LibraryBuilder? library =
         lookupLoadedLibraryBuilder(kernelLibrary.importUri);
     if (library == null) {
-      // Coverage-ignore-block(suite): Not run.
       return target.dillTarget.loader
           .computeExtensionTypeBuilderFromTargetExtensionType(extensionType);
     }
+    // Coverage-ignore(suite): Not run.
     return library.lookupLocalMember(extensionType.name, required: true)
         as ExtensionTypeDeclarationBuilder;
   }

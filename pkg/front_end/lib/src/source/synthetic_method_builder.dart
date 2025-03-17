@@ -319,7 +319,8 @@ class _SyntheticMethodClassMember implements ClassMember {
   Name get name => _builder.memberName;
 
   @override
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {}
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {}
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
