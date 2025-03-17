@@ -241,7 +241,7 @@ class _HttpProfileData {
 
   void _updated() => _lastUpdateTime = DateTime.now().microsecondsSinceEpoch;
 
-  static final String isolateId = Service.getIsolateID(Isolate.current)!;
+  static final String isolateId = Service.getIsolateId(Isolate.current)!;
 
   bool requestInProgress = true;
   bool? responseInProgress;
@@ -2423,6 +2423,7 @@ class _HttpClientConnection {
     });
     Future<Socket?>.value(_streamFuture).catchError((e) {
       destroy();
+      return null;
     });
     return request;
   }
