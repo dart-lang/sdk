@@ -56,7 +56,8 @@ class DownloadedFileProvider extends CachingFileProvider {
 
 class Logger {
   final Set<String> _seenMessages = <String>{};
-  log(String message) {
+
+  void log(String message) {
     if (_seenMessages.add(message)) {
       print(message);
     }

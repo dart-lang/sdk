@@ -10,6 +10,8 @@ analyzer:
     constant_identifier_names: ignore
     implementation_imports: ignore
     prefer_void_to_null: ignore
+    # ~5 violations in test/sourcemap.
+    strict_top_level_inference: ignore
   exclude:
     - doc/api/**
     - gen/**

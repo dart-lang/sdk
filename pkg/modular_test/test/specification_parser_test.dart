@@ -5,7 +5,7 @@
 import 'package:test/test.dart';
 import 'package:modular_test/src/test_specification_parser.dart';
 
-main() {
+void main() {
   test('require dependencies section', () {
     expect(() => parseTestSpecification(""),
         throwsA(TypeMatcher<InvalidSpecificationError>()));

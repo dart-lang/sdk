@@ -13,7 +13,7 @@ Usage: dump_bytecode input.bytecode
 Dumps bytecode file.
 ''';
 
-main(List<String> arguments) async {
+void main(List<String> arguments) async {
   if (arguments.length != 1) {
     print(_usage);
     exit(1);

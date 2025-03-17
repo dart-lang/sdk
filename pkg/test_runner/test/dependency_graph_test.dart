@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 
 import 'package:test_runner/src/dependency_graph.dart';
 
-main() {
+void main() {
   var graph = Graph<int>();
   var numberOfEvents = 0;
   var addEventAssertions = [];

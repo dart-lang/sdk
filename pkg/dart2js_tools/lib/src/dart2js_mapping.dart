@@ -165,7 +165,7 @@ class _FrameDecoder implements Iterator<String> {
   }
 }
 
-_extractMinifiedNames(
+void _extractMinifiedNames(
   String encodedInput,
   SingleMapping sourceMap,
   Map<String, String> minifiedNames,

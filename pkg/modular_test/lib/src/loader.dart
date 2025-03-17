@@ -209,7 +209,8 @@ Future<Module> _createSdkModule(Uri root) async {
 }
 
 /// Trim the set of modules, and detect cycles while we are at it.
-_detectCyclesAndRemoveUnreachable(Map<String, Module> modules, Module main) {
+void _detectCyclesAndRemoveUnreachable(
+    Map<String, Module> modules, Module main) {
   Set<Module> visiting = {};
   Set<Module> visited = {};
 
@@ -249,7 +250,7 @@ packages:
 ''';
 
 /// Report an conflict error.
-_moduleConflict(String name, Module existing, Uri root) {
+Never _moduleConflict(String name, Module existing, Uri root) {
   var isFile = name.endsWith('.dart');
   var entryType = isFile ? 'file' : 'folder';
 

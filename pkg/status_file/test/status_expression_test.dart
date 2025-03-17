@@ -21,10 +21,10 @@ class TestEnvironment implements Environment {
   @override
   String? lookUp(String name) => _values[name];
 
-  operator []=(String key, String value) => _values[key] = value;
+  void operator []=(String key, String value) => _values[key] = value;
 }
 
-main() {
+void main() {
   testExpression();
   testSyntaxError();
   testBoolean();

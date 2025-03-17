@@ -6,7 +6,7 @@ import '../../common/testing.dart' as helper;
 
 import 'shared/shared.dart' show A, B;
 
-main() async {
+void main() async {
   final o = (await helper.load('entry1.dart')) as A;
   final l = <dynamic>[A(), B()];
   for (final entry in l) {

@@ -11,7 +11,7 @@ import 'package:modular_test/src/io_pipeline.dart';
 
 import 'pipeline_common.dart';
 
-main() async {
+void main() async {
   var uri = Directory.systemTemp.uri.resolve("io_modular_test_root/");
   int i = 0;
   while (await Directory.fromUri(uri).exists()) {

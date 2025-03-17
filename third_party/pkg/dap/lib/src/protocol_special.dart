@@ -47,7 +47,7 @@ class Either2<T1, T2> extends ToJsonable {
   String toString() => map((t) => t.toString(), (t) => t.toString());
 
   /// Checks whether the value of the union equals the supplied value.
-  bool valueEquals(o) => map((t) => t == o, (t) => t == o);
+  bool valueEquals(Object o) => map((t) => t == o, (t) => t == o);
 }
 
 /// An object from the LSP/DAP specs that can be converted to JSON.

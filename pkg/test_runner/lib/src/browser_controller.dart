@@ -1146,7 +1146,7 @@ class BrowserTestingServer {
     errorReportingServer.listen(errorReportingHandler, onError: errorHandler);
   }
 
-  void setupDispatchingServer(_) {
+  void setupDispatchingServer(HttpServer _) {
     var server = configuration.servers.server!;
     void noCache(HttpRequest request) {
       request.response.headers

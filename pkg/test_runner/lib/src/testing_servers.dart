@@ -152,7 +152,7 @@ class TestingServers {
     }
   }
 
-  void _onError(e) {
+  void _onError(Object? e) {
     DebugLogger.error('HttpServer: an error occurred', e);
   }
 

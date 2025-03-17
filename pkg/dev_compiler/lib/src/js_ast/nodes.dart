@@ -323,7 +323,7 @@ abstract class Node {
   /// Returns a node equivalent to [this], but with new source position and end
   /// source position.
   T _withSourceInformation<T extends Node>(
-      sourceInformation, T Function() cloneFunc) {
+      Object? sourceInformation, T Function() cloneFunc) {
     if (sourceInformation == this.sourceInformation) {
       return this as T;
     }
@@ -334,7 +334,7 @@ abstract class Node {
     return clone;
   }
 
-  Node withSourceInformation(sourceInformation) =>
+  Node withSourceInformation(Object? sourceInformation) =>
       _withSourceInformation(sourceInformation, _clone);
 
   bool get isCommaOperator => false;

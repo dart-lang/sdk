@@ -124,7 +124,7 @@ class BytecodeDisassembler {
     }
   }
 
-  _decodeUint32At(int pos) =>
+  int _decodeUint32At(int pos) =>
       _bytecode[pos] +
       (_bytecode[pos + 1] << 8) +
       (_bytecode[pos + 2] << 16) +

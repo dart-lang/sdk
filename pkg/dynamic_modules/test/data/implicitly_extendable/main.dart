@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import 'shared/shared.dart' show Base;
 
 /// A dynamic module can implement an exposed class.
-main() async {
+void main() async {
   final o = (await helper.load('entry1.dart')) as Base;
   Expect.equals(5, o.method1());
   Expect.equals(6, o.method2());
