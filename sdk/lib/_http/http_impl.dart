@@ -132,18 +132,6 @@ class _HttpProfileData {
   }
 
   void startResponse({required HttpClientResponse response}) {
-    List<Map<String, dynamic>> formatRedirectInfo() {
-      final redirects = <Map<String, dynamic>>[];
-      for (final redirect in response.redirects) {
-        redirects.add({
-          'location': redirect.location.toString(),
-          'method': redirect.method,
-          'statusCode': redirect.statusCode,
-        });
-      }
-      return redirects;
-    }
-
     responseDetails = <String, dynamic>{
       'headers': formatHeaders(response.headers),
       'compressionState': response.compressionState.toString(),
@@ -153,7 +141,14 @@ class _HttpProfileData {
       'isRedirect': response.isRedirect,
       'persistentConnection': response.persistentConnection,
       'reasonPhrase': response.reasonPhrase,
-      'redirects': formatRedirectInfo(),
+      'redirects': [
+        for (final redirect in response.redirects)
+          {
+            'location': redirect.location.toString(),
+            'method': redirect.method,
+            'statusCode': redirect.statusCode,
+          },
+      ],
       'statusCode': response.statusCode,
     };
 
