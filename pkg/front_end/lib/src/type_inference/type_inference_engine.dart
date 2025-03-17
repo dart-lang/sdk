@@ -27,7 +27,6 @@ import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import 'factor_type.dart';
@@ -162,20 +161,18 @@ abstract class TypeInferenceEngine {
   late TypeSchemaEnvironment typeSchemaEnvironment;
 
   /// A map containing constructors with initializing formals whose types
-  /// need to be inferred.
-  ///
-  /// This is represented as a map from a constructor to its library
-  /// builder because the builder is used to report errors due to cyclic
-  /// inference dependencies.
-  final Map<Member, SourceConstructorBuilder> toBeInferred = {};
+  /// need to be inferred and redirecting factories whose target needs to be
+  /// inferred.
+  final Map<Member, InferableMember> toBeInferred = {};
 
-  /// A map containing constructors in the process of being inferred.
+  /// A map containing constructors and redirecting factories in the process of
+  /// being inferred.
   ///
-  /// This is used to detect cyclic inference dependencies.  It is represented
-  /// as a map from a constructor to its library builder because the builder
-  /// is used to report errors.
-  final Map<Member, SourceConstructorBuilder> beingInferred = {};
+  /// This is used to detect cyclic inference dependencies.
+  final Map<Member, InferableMember> beingInferred = {};
 
+  // TODO(johnniwinther): Unify [toBeInferred] and [typeDependencies] and
+  // ensure that these are called for all member accesses.
   final Map<Member, TypeDependency> typeDependencies = {};
 
   final Instrumentation? instrumentation;
@@ -204,8 +201,8 @@ abstract class TypeInferenceEngine {
   void finishTopLevelInitializingFormals() {
     // Field types have all been inferred so we don't need to guard against
     // cyclic dependency.
-    for (SourceConstructorBuilder builder in toBeInferred.values) {
-      builder.inferFormalTypes(hierarchyBuilder);
+    for (InferableMember inferableMember in toBeInferred.values.toList()) {
+      inferableMember.inferMemberTypes(hierarchyBuilder);
     }
     toBeInferred.clear();
     for (TypeDependency typeDependency in typeDependencies.values) {
@@ -217,9 +214,11 @@ abstract class TypeInferenceEngine {
   /// Gets ready to do top level type inference for the component having the
   /// given [hierarchy], using the given [coreTypes].
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
+    assert(!isTypeInferencePrepared, "Top level inference already prepared.");
     this.coreTypes = coreTypes;
     this.typeSchemaEnvironment =
         new TypeSchemaEnvironment(coreTypes, hierarchy);
+    isTypeInferencePrepared = true;
   }
 
   static Member? resolveInferenceNode(
@@ -364,10 +363,10 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
-      // Coverage-ignore-block(suite): Not run.
       assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
           new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
     } else {
+      // Coverage-ignore-block(suite): Not run.
       assignedVariables =
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
@@ -398,10 +397,10 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
-      // Coverage-ignore-block(suite): Not run.
       assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
           new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
     } else {
+      // Coverage-ignore-block(suite): Not run.
       assignedVariables =
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
@@ -423,6 +422,7 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 // TODO(cstefantsova): Merge with [TypeInferenceResultForTesting].
 class InferenceDataForTesting extends shared
     .TypeConstraintGenerationDataForTesting<VariableDeclaration, TreeNode> {
@@ -505,6 +505,7 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   SharedTypeView get dynamicType {
     return new SharedTypeView(const DynamicType());
   }
@@ -520,6 +521,7 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   SharedTypeView get neverType {
     return new SharedTypeView(const NeverType.nonNullable());
   }
@@ -581,29 +583,30 @@ class OperationsCfe
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool isExtensionTypeInternal(DartType type) => type is ExtensionType;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isFinal(VariableDeclaration variable) {
     return variable.isFinal;
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool isInterfaceTypeInternal(DartType type) {
     return type is InterfaceType;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isNever(SharedTypeView type) {
     return typeEnvironment.coreTypes.isBottom(type.unwrapTypeView());
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool isObject(SharedTypeView type) {
-    DartType unwrappedType = type.unwrapTypeView();
+    DartType unwrappedType = type // Coverage-ignore(suite): Not run.
+        .unwrapTypeView();
+    // Coverage-ignore(suite): Not run.
     return unwrappedType is InterfaceType &&
         unwrappedType.classNode == typeEnvironment.objectClass &&
         unwrappedType.nullability == Nullability.nonNullable;
@@ -740,7 +743,6 @@ class OperationsCfe
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool isTypeSchemaSatisfied(
       {required SharedTypeSchemaView typeSchema,
       required SharedTypeView type}) {
@@ -749,6 +751,7 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isVariableFinal(VariableDeclaration node) {
     return node.isFinal;
   }
@@ -918,7 +921,6 @@ class OperationsCfe
     switch (modifier) {
       case NullabilitySuffix.none:
         return computeTypeWithoutNullabilityMarker(type);
-      // Coverage-ignore(suite): Not run.
       case NullabilitySuffix.question:
         return type.withDeclaredNullability(Nullability.nullable);
       // Coverage-ignore(suite): Not run.
@@ -1023,7 +1025,6 @@ class OperationsCfe
     if (type is TypeParameterType) {
       return type.parameter.bound;
     } else if (type is StructuralParameterType) {
-      // Coverage-ignore-block(suite): Not run.
       return type.parameter.bound;
     } else if (type is IntersectionType) {
       return type.right;
@@ -1067,4 +1068,12 @@ class TypeInferenceResultForTesting extends shared
     .TypeConstraintGenerationDataForTesting<VariableDeclaration, TreeNode> {
   final Map<TreeNode, List<DartType>> inferredTypeArguments = {};
   final Map<TreeNode, DartType> inferredVariableTypes = {};
+}
+
+abstract class InferableMember {
+  Member get member;
+
+  void inferMemberTypes(ClassHierarchyBase classHierarchy);
+
+  void reportCyclicDependency();
 }

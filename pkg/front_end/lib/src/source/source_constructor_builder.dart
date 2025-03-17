@@ -16,7 +16,8 @@ import '../base/messages.dart'
         messageRedirectingConstructorWithMultipleRedirectInitializers,
         messageRedirectingConstructorWithSuperInitializer,
         messageSuperInitializerNotLast,
-        noLength;
+        noLength,
+        templateCantInferTypeDueToCircularity;
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../builder/builder.dart';
@@ -34,6 +35,7 @@ import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/type_algorithms.dart';
 import '../type_inference/inference_results.dart';
+import '../type_inference/type_inference_engine.dart';
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
@@ -955,5 +957,38 @@ class ExtensionTypeInitializerToStatementConverter
   // Coverage-ignore(suite): Not run.
   void visitSuperInitializer(SuperInitializer node) {
     // TODO(johnniwinther): Report error for this case.
+  }
+}
+
+class InferableConstructor implements InferableMember {
+  @override
+  final Member member;
+
+  final SourceConstructorBuilder _builder;
+
+  InferableConstructor(this.member, this._builder);
+
+  @override
+  void inferMemberTypes(ClassHierarchyBase classHierarchy) {
+    _builder.inferFormalTypes(classHierarchy);
+  }
+
+  @override
+  void reportCyclicDependency() {
+    // There is a cyclic dependency where inferring the types of the
+    // initializing formals of a constructor required us to infer the
+    // corresponding field type which required us to know the type of the
+    // constructor.
+    String name = _builder.declarationBuilder.name;
+    if (_builder.name.isNotEmpty) {
+      // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
+      // instead. However, `inferrer.helper` may be null.
+      name += ".${_builder.name}";
+    }
+    _builder.libraryBuilder.addProblem(
+        templateCantInferTypeDueToCircularity.withArguments(name),
+        _builder.fileOffset,
+        name.length,
+        _builder.fileUri);
   }
 }

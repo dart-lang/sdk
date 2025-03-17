@@ -649,38 +649,48 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   bool get isSetter => _introductorySetable != null;
 
   bool _typeEnsured = false;
+  ClassMembersBuilder? _classMembersBuilder;
   Set<ClassMember>? _getterOverrideDependencies;
 
-  void registerGetterOverrideDependency(Set<ClassMember> overriddenMembers) {
+  void registerGetterOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
     assert(
         overriddenMembers.every((overriddenMember) =>
             overriddenMember.declarationBuilder != classBuilder),
         "Unexpected override dependencies for $this: $overriddenMembers");
+    _classMembersBuilder ??= membersBuilder;
     _getterOverrideDependencies ??= {};
     _getterOverrideDependencies!.addAll(overriddenMembers);
   }
 
   Set<ClassMember>? _setterOverrideDependencies;
 
-  void registerSetterOverrideDependency(Set<ClassMember> overriddenMembers) {
+  void registerSetterOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
     assert(
         overriddenMembers.every((overriddenMember) =>
             overriddenMember.declarationBuilder != classBuilder),
         "Unexpected override dependencies for $this: $overriddenMembers");
+    _classMembersBuilder ??= membersBuilder;
     _setterOverrideDependencies ??= {};
     _setterOverrideDependencies!.addAll(overriddenMembers);
   }
 
-  void ensureTypes(ClassMembersBuilder membersBuilder) {
+  void inferTypesFromOverrides() {
     if (_typeEnsured) return;
-    _introductoryField?.ensureTypes(membersBuilder, _getterOverrideDependencies,
-        _setterOverrideDependencies);
-    _introductoryGetable?.ensureTypes(
-        membersBuilder, _getterOverrideDependencies);
-    _introductorySetable?.ensureTypes(
-        membersBuilder, _setterOverrideDependencies);
-    _getterOverrideDependencies = null;
-    _setterOverrideDependencies = null;
+    if (_classMembersBuilder != null) {
+      assert(_getterOverrideDependencies != null ||
+          _setterOverrideDependencies != null);
+      _introductoryField?.ensureTypes(_classMembersBuilder!,
+          _getterOverrideDependencies, _setterOverrideDependencies);
+      _introductoryGetable?.ensureTypes(
+          _classMembersBuilder!, _getterOverrideDependencies);
+      _introductorySetable?.ensureTypes(
+          _classMembersBuilder!, _setterOverrideDependencies);
+      _getterOverrideDependencies = null;
+      _setterOverrideDependencies = null;
+      _classMembersBuilder = null;
+    }
     _typeEnsured = true;
   }
 
@@ -771,7 +781,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   bool get isLate => _introductoryField!.isLate;
 
-  DartType inferType(ClassHierarchyBase hierarchy) {
+  DartType inferFieldType(ClassHierarchyBase hierarchy) {
+    inferTypesFromOverrides();
     return _introductoryField!.inferType(hierarchy);
   }
 
@@ -850,7 +861,7 @@ class _GetterClassMember implements ClassMember {
 
   @override
   void inferType(ClassMembersBuilder membersBuilder) {
-    _builder.ensureTypes(membersBuilder);
+    _builder.inferTypesFromOverrides();
   }
 
   @override
@@ -916,8 +927,10 @@ class _GetterClassMember implements ClassMember {
   Name get name => _builder.memberName;
 
   @override
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
-    _builder.registerGetterOverrideDependency(overriddenMembers);
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    _builder.registerGetterOverrideDependency(
+        membersBuilder, overriddenMembers);
   }
 
   @override
@@ -996,7 +1009,7 @@ class _SetterClassMember implements ClassMember {
 
   @override
   void inferType(ClassMembersBuilder membersBuilder) {
-    _builder.ensureTypes(membersBuilder);
+    _builder.inferTypesFromOverrides();
   }
 
   @override
@@ -1061,8 +1074,10 @@ class _SetterClassMember implements ClassMember {
   Name get name => _builder.memberName;
 
   @override
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
-    _builder.registerSetterOverrideDependency(overriddenMembers);
+  void registerOverrideDependency(
+      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    _builder.registerSetterOverrideDependency(
+        membersBuilder, overriddenMembers);
   }
 
   @override

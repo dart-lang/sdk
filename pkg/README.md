@@ -42,3 +42,14 @@ We validate:
 - that the dependencies listed in the pubspec are used in the package
 - that all the packages used by the source are listed in the pubspec
 - that a reference to a pkg/ package is done via a relative path dependency
+
+# Adding new packages
+
+Run `gclient sync` to re-generate `.dart_tool/package_config.json` after adding
+a new package.
+
+# Testing packages
+
+Currently `dart test` can't be used to run the tests, use `test.py` as usual.
+E.g. the command `./tools/test.py -n...<path>` runs all tests with prefix
+`<path>`.

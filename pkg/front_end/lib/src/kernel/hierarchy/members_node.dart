@@ -967,7 +967,8 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         /// Member types can be queried at arbitrary points during top level
         /// inference so we need to ensure that types are computed in dependency
         /// order.
-        classMember.registerOverrideDependency(overriddenMembers);
+        classMember.registerOverrideDependency(
+            _membersBuilder, overriddenMembers);
 
         /// Not all member type are queried during top level inference so we
         /// register delayed computation to ensure that all types have been

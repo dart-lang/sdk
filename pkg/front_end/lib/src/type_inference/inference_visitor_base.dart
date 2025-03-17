@@ -37,7 +37,6 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeParameters;
-import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import '../source/source_member_builder.dart';
@@ -290,37 +289,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Ensures that all parameter types of [constructor] have been inferred.
   void _inferConstructorParameterTypes(Member target) {
-    SourceConstructorBuilder? constructorBuilder = engine.beingInferred[target];
-    if (constructorBuilder != null) {
-      // There is a cyclic dependency where inferring the types of the
-      // initializing formals of a constructor required us to infer the
-      // corresponding field type which required us to know the type of the
-      // constructor.
-      String name = constructorBuilder.declarationBuilder.name;
-      if (target.name.text.isNotEmpty) {
-        // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
-        // instead. However, `inferrer.helper` may be null.
-        name += ".${target.name.text}";
+    InferableMember? inferableMember = engine.beingInferred[target];
+    if (inferableMember != null) {
+      inferableMember.reportCyclicDependency();
+    } else {
+      inferableMember = engine.toBeInferred.remove(target);
+      if (inferableMember != null) {
+        engine.beingInferred[target] = inferableMember;
+        inferableMember.inferMemberTypes(hierarchyBuilder);
+        engine.beingInferred.remove(target);
       }
-      constructorBuilder.libraryBuilder.addProblem(
-          templateCantInferTypeDueToCircularity.withArguments(name),
-          target.fileOffset,
-          name.length,
-          target.fileUri);
-      // TODO(johnniwinther): Is this needed? VariableDeclaration.type is
-      // non-nullable so the loops have no effect.
-      /*for (VariableDeclaration declaration
-          in target.function.positionalParameters) {
-        declaration.type ??= const InvalidType();
-      }
-      for (VariableDeclaration declaration in target.function.namedParameters) {
-        declaration.type ??= const InvalidType();
-      }*/
-    } else if ((constructorBuilder = engine.toBeInferred[target]) != null) {
-      engine.toBeInferred.remove(target);
-      engine.beingInferred[target] = constructorBuilder!;
-      constructorBuilder.inferFormalTypes(hierarchyBuilder);
-      engine.beingInferred.remove(target);
     }
   }
 

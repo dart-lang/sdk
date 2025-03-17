@@ -200,8 +200,8 @@ class RegularConstructorEncoding {
         }
       }
       if (needsInference) {
-        libraryBuilder.loader
-            .registerConstructorToBeInferred(_constructor, constructorBuilder);
+        libraryBuilder.loader.registerConstructorToBeInferred(
+            new InferableConstructor(_constructor, constructorBuilder));
       }
     }
   }
@@ -500,8 +500,8 @@ class ExtensionTypeConstructorEncoding {
         }
       }
       if (needsInference) {
-        libraryBuilder.loader
-            .registerConstructorToBeInferred(_constructor, constructorBuilder);
+        libraryBuilder.loader.registerConstructorToBeInferred(
+            new InferableConstructor(_constructor, constructorBuilder));
       }
     }
   }
