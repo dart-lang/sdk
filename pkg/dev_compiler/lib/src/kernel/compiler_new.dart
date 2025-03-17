@@ -232,6 +232,20 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   Map<Class, js_ast.Identifier> get classIdentifiers =>
       _symbolData.classIdentifiers;
 
+  /// Maps every mixin application to a unique identifier.
+  ///
+  /// A mixin application is represented as a (mixin, class) pair, where
+  /// 'mixin' is being mixed into 'class'. Anonymous mixins are already
+  /// unique per mixin application and so pass themselves in as both 'mixin'
+  /// and 'class'.
+  ///
+  /// This mapping is used when generating super property getters in mixins.
+  final Map<(Class, Class), js_ast.Identifier> _mixinCache = {};
+
+  /// Records a reference to a mixin application's passed in superclass.
+  /// (see [_emitMixinStatement]).
+  final Map<Class, js_ast.Identifier> _mixinSuperclassCache = {};
+
   /// Maps each class `Member` node compiled in the module to the name used for
   /// the member in JavaScript.
   ///
@@ -1173,6 +1187,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // a simpler representation within instance members of the class.
     _currentTypeEnvironment = ClassTypeEnvironment(c.typeParameters);
 
+    // Store identifiers for a mixin application's passed in superclass.
+    // (see [_emitMixinStatement]).
+    if (c.isMixinDeclaration && !c.isMixinClass) {
+      _mixinSuperclassCache.putIfAbsent(
+          c, () => _emitScopedId(getLocalClassName(c.superclass!)));
+    }
+
     // Mixins are unrolled in _defineClass.
     if (!c.isAnonymousMixin) {
       // If this class is annotated with `@JS`, then we only need to emit the
@@ -1463,7 +1484,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var instanceProperties = properties.where((m) => !m.isStatic).toList();
 
     body.addAll(_emitClassStatement(c, className, heritage, staticProperties));
-    var superclassId = _emitScopedId(getLocalClassName(c.superclass!));
+    var superclassId = _mixinSuperclassCache[c]!;
     var classId = className is js_ast.Identifier
         ? className
         : _emitScopedId(getLocalClassName(c));
@@ -1590,9 +1611,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var mixinClass = m.isAnonymousMixin ? m.mixedInClass! : m;
       var mixinType =
           _hierarchy.getClassAsInstanceOf(c, mixinClass)!.asInterfaceType;
-      var mixinName =
-          '${getLocalClassName(superclass)}_${getLocalClassName(mixinClass)}';
-      var mixinId = _emitScopedId('$mixinName\$');
+      var mixinId = _emitMixinId(m, m.isAnonymousMixin ? m : c);
       // Collect all forwarding stub members from anonymous mixins classes.
       // These can contain covariant parameter checks that need to be applied.
       var savedClassProperties = _classProperties;
@@ -1630,24 +1649,36 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _currentTypeEnvironment = savedTypeEnvironment;
       _classProperties = savedClassProperties;
 
-      // Bind the mixin class to a name to workaround a V8 bug with es6 classes
-      // and anonymous function names.
-      // TODO(leafp:) Eliminate this once the bug is fixed:
-      // https://bugs.chromium.org/p/v8/issues/detail?id=7069
-      body.add(js.statement('const # = #', [
+      // Mixins need to be exposed in this library in case they are
+      // referenced in a super getter.
+      // TODO(markzipan): We originally bound mixin classes to a temporary as a
+      // workaround for a now-resolved Chrome issue. However, a side effect of
+      // this operation is that mixin IDs are renamed by the local visitor. We
+      // can remove this hoisting after we give mixins unique names.
+      body.add(js.statement('let # = #', [
         mixinId,
-        js_ast.ClassExpression(
-            _emitScopedId(mixinName), null, forwardingMethodStubs)
+        _runtimeCall('declareClass(#, #, #)', [
+          _emitLibraryName(_currentLibrary!),
+          js.string(mixinId.name),
+          js_ast.ClassExpression(
+            _emitScopedId('${mixinId.name}\$'),
+            null,
+            forwardingMethodStubs,
+          )
+        ])
       ]));
+
       _classExtendsLinks.add(_runtimeStatement(
           'classExtends(#, #)', [mixinId, embedderResolvedBaseClass]));
       emitMixinConstructors(mixinId, superclass, mixinClass, mixinType);
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(mixinClass);
+      var mixinTargetLabel = js.string(fullyResolvedMixinClassLabel(m));
       // The SDK is never hot reloaded, so we can avoid the overhead of
       // resolving their classes through the embedder.
-      _mixinApplicationLinks.add(_runtimeStatement('applyMixin(#, #)', [
+      _mixinApplicationLinks.add(_runtimeStatement('applyMixin(#, #, #)', [
         mixinId,
-        emitClassRef(mixinType, resolvedFromEmbedder: !_isBuildingSdk)
+        emitClassRef(mixinType, resolvedFromEmbedder: !_isBuildingSdk),
+        mixinTargetLabel
       ]));
       baseClass = mixinId;
       embedderResolvedBaseClass = mixinId;
@@ -1810,6 +1841,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var staticMethods = <js_ast.Property>[];
     var instanceMethods = <js_ast.Property>[];
     var instanceMethodsDefaultTypeArgs = <js_ast.Property>[];
+    var methodsImmediateTarget = <js_ast.Property>[];
     var staticGetters = <js_ast.Property>[];
     var instanceGetters = <js_ast.Property>[];
     var staticSetters = <js_ast.Property>[];
@@ -1863,9 +1895,16 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var needsSignature = memberOverride == null ||
           reifiedType != _memberRuntimeType(memberOverride, c);
 
+      var memberName = _declareMemberName(member,
+          useExtension: _isObjectMethodTearoff(member.name.text));
+      if (!member.isAccessor) {
+        var immediateTarget = js.string(fullyResolvedTargetLabel(member));
+        methodsImmediateTarget
+            .add(js_ast.Property(memberName, immediateTarget));
+      }
+
       if (needsSignature) {
         js_ast.Expression type;
-        var memberName = _declareMemberName(member);
         if (member.isAccessor) {
           // These signatures are used for dynamic access and to inform the
           // debugger. The `arrayRti` accessor is only used by the dart:_rti
@@ -1918,6 +1957,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     emitSignature('Method', instanceMethods);
     emitSignature('MethodsDefaultTypeArg', instanceMethodsDefaultTypeArgs);
+    emitSignature('MethodsImmediateTarget', methodsImmediateTarget);
     // TODO(40273) Skip for all statics when the debugger consumes signature
     // information from symbol files.
     emitSignature('StaticMethod', staticMethods);
@@ -3136,12 +3176,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
-  js_ast.Expression _declareMemberName(Member m, {bool? useExtension}) {
+  js_ast.Expression _declareMemberName(Member m, {bool useExtension = false}) {
     var c = m.enclosingClass;
-    return _emitMemberName(m.name.text,
+    var name = m.name.text;
+    var actualUseExtension =
+        useExtension || (c != null && _extensionTypes.isNativeClass(c));
+    return _emitMemberName(name,
         isStatic: m is Field ? m.isStatic : (m as Procedure).isStatic,
-        useExtension:
-            useExtension ?? c != null && _extensionTypes.isNativeClass(c),
+        useExtension: actualUseExtension,
         member: m);
   }
 
@@ -5431,7 +5473,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var jsMemberName = _emitMemberName(memberName, member: member);
     if (_reifyTearoff(member)) {
-      return _runtimeCall('tearoff(#, #)', [jsReceiver, jsMemberName]);
+      return _runtimeCall('tearoff(#, null, #)', [jsReceiver, jsMemberName]);
     }
     var jsPropertyAccess = js_ast.PropertyAccess(jsReceiver, jsMemberName);
     return isJsMember(member)
@@ -5572,11 +5614,41 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _emitSuperPropertyGet(node.interfaceTarget);
   }
 
+  /// Emits a reference to a distinct mixin application, represented by
+  /// a [mixedInClass] being mixed into [baseClass].
+  ///
+  /// Anonymous mixins should pass themselves as [baseClass] since they are
+  /// already uniquely generated per distinct mixin application
+  js_ast.Identifier _emitMixinId(Class mixedInClass, Class baseClass) {
+    var mixinName = mixedInClass.name;
+    if (!mixedInClass.isAnonymousMixin) {
+      mixinName += '#${baseClass.name}';
+    }
+    return _mixinCache
+        .putIfAbsent((mixedInClass, baseClass), () => _emitScopedId(mixinName));
+  }
+
   js_ast.Expression _emitSuperPropertyGet(Member target) {
     if (_reifyTearoff(target)) {
       if (_superAllowed) {
         var jsTarget = _emitSuperTarget(target);
-        return _runtimeCall('bind(this, #, #)', [jsTarget.selector, jsTarget]);
+        var jsName = _declareMemberName(target);
+        var enclosingClass = target.enclosingClass!;
+        js_ast.Expression? supertypeReference =
+            _mixinSuperclassCache[_currentClass!];
+        if (supertypeReference == null) {
+          if (enclosingClass.isAnonymousMixin) {
+            var mixinId = _emitMixinId(enclosingClass, enclosingClass);
+            var enclosingLibrary = _emitLibraryName(getLibrary(enclosingClass));
+            supertypeReference = js_ast.PropertyAccess(
+                enclosingLibrary, js.string(mixinId.name));
+          } else {
+            supertypeReference =
+                _emitTopLevelNameNoExternalInterop(enclosingClass);
+          }
+        }
+        return _runtimeCall(
+            'bind(this, #, #, #)', [supertypeReference, jsName, jsTarget]);
       } else {
         return _emitSuperTearoff(target);
       }
@@ -5625,7 +5697,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var property = propertyAccessor.selector;
     var result = js.call('#.#', [context, property]);
     if (_reifyTearoff(target)) {
-      return _runtimeCall('staticTearoff(#, #)', [context, property]);
+      var targetLabel = js.string(fullyResolvedTargetLabel(target));
+      return _runtimeCall(
+          'staticTearoff(#, #, #)', [context, targetLabel, property]);
     }
     return result;
   }
@@ -6259,8 +6333,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Emits the [js_ast.PropertyAccess] for accessors or method calls to
   /// [jsTarget].[jsName], replacing `super` if it is not allowed in scope.
   js_ast.PropertyAccess _emitSuperTarget(Member member, {bool setter = false}) {
-    var jsName = _emitMemberName(member.name.text, member: member);
-    // Optimize access to non-virtual fields, if allowed in the current context.
+    var jsName = _declareMemberName(member);
     if (_optimizeNonVirtualFieldAccess &&
         member is Field &&
         !_virtualFields.isVirtual(member)) {
@@ -6316,6 +6389,25 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js_ast.PropertyAccess(js_ast.This(), jsMethod.name);
   }
 
+  /// Generates a special string used for identifying a torn off member [m].
+  ///
+  /// This tag is used for determining tearoff equality. We attach these tags
+  /// at tearoff time for static tearoffs and in the method signature for
+  /// dynamic tearoffs.
+  String fullyResolvedTargetLabel(Member m) {
+    return '${m.enclosingLibrary.importUri}:${m.enclosingClass?.name ?? ""}';
+  }
+
+  /// Generates a special string used for identifying class [c]'s applied mixed
+  /// in members.
+  ///
+  /// This tag is used for determining tearoff equality. We attach these tags
+  /// at tearoff time for static tearoffs and in the method signature for
+  /// dynamic tearoffs.
+  String fullyResolvedMixinClassLabel(Class c) {
+    return '${c.enclosingLibrary.importUri}:${c.name}';
+  }
+
   /// Generates a helper method that is inserted into the class that binds a
   /// tearoff of [member] from `super` and returns a call to the helper.
   ///
@@ -6323,11 +6415,16 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   // TODO(nshahan) Replace with a kernel transform and synthetic method filters
   // for devtools.
   js_ast.Expression _emitSuperTearoff(Member member) {
-    var jsName = _emitMemberName(member.name.text, member: member);
+    var jsName = _declareMemberName(member);
     var name = '_#super#tearOff#${member.name.text}';
     var jsMethod = _superHelpers.putIfAbsent(name, () {
-      var jsReturnValue =
-          _runtimeCall('bind(this, #, super[#])', [jsName, jsName]);
+      var superclass = member.enclosingClass?.superclass;
+      var supertypeReference = superclass == null
+          ? js_ast.LiteralNull()
+          : _mixinSuperclassCache[member.enclosingClass!] ??
+              _emitTopLevelNameNoExternalInterop(superclass);
+      var jsReturnValue = _runtimeCall(
+          'bind(this, #, #, super[#])', [supertypeReference, jsName, jsName]);
       var fn = js.fun('function() { return #; }', [jsReturnValue]);
       name = js_ast.friendlyNameForDartOperator[name] ?? name;
       return js_ast.Method(_emitScopedId(name), fn);
