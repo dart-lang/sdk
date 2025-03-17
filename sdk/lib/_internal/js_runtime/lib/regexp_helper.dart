@@ -20,56 +20,59 @@ regExpGetGlobalNative(JSSyntaxRegExp regexp) {
   return nativeRegexp;
 }
 
-/// Computes the number of captures in a regexp.
-///
-/// This currently involves creating a new RegExp object with a different
-/// source and running it against the empty string (the last part is usually
-/// fast).
-///
-/// The JSSyntaxRegExp could cache the result, and set the cache any time
-/// it finds a match.
-int regExpCaptureCount(JSSyntaxRegExp regexp) {
-  var nativeAnchoredRegExp = regexp._nativeAnchoredVersion;
-  JS('void', '#.lastIndex = #', nativeAnchoredRegExp, 0);
-  JSArray match = JS('JSExtendableArray', '#.exec("")', nativeAnchoredRegExp);
-  // The native-anchored regexp always have one capture more than the original,
-  // and always matches the empty string.
-  return match.length - 2;
-}
+// Helper method used by internal libraries ([String.split])
+bool regExpHasCaptures(JSSyntaxRegExp regexp) => regexp._hasCaptures;
 
 class JSSyntaxRegExp implements RegExp {
   final String pattern;
   final _nativeRegExp;
   var _nativeGlobalRegExp;
   var _nativeAnchoredRegExp;
+  bool? _hasCapturesCache;
 
   String toString() =>
       'RegExp/$pattern/' + JS('String', '#.flags', _nativeRegExp);
 
-  JSSyntaxRegExp(String source,
-      {bool multiLine = false,
-      bool caseSensitive = true,
-      bool unicode = false,
-      bool dotAll = false})
-      : this.pattern = source,
-        this._nativeRegExp = makeNative(
-            source, multiLine, caseSensitive, unicode, dotAll, false);
+  JSSyntaxRegExp(
+    String source, {
+    bool multiLine = false,
+    bool caseSensitive = true,
+    bool unicode = false,
+    bool dotAll = false,
+  }) : this.pattern = source,
+       this._nativeRegExp = makeNative(
+         source,
+         multiLine,
+         caseSensitive,
+         unicode,
+         dotAll,
+         '',
+       );
 
   get _nativeGlobalVersion {
     if (_nativeGlobalRegExp != null) return _nativeGlobalRegExp;
     return _nativeGlobalRegExp = makeNative(
-        pattern, _isMultiLine, _isCaseSensitive, _isUnicode, _isDotAll, true);
+      pattern,
+      _isMultiLine,
+      _isCaseSensitive,
+      _isUnicode,
+      _isDotAll,
+      'g',
+    );
   }
 
   get _nativeAnchoredVersion {
     if (_nativeAnchoredRegExp != null) return _nativeAnchoredRegExp;
-    // An "anchored version" of a regexp is created by adding "|()" to the
-    // source. This means that the regexp always matches at the first position
-    // that it tries, and you can see if the original regexp matched, or it
-    // was the added zero-width match that matched, by looking at the last
-    // capture. If it is a String, the match participated, otherwise it didn't.
-    return _nativeAnchoredRegExp = makeNative('$pattern|()', _isMultiLine,
-        _isCaseSensitive, _isUnicode, _isDotAll, true);
+    // A sticky regexp is created by adding the "sticky" `y` flag.
+    // Such a RegExp can only match exactly at the `lastIndex` position.
+    return _nativeAnchoredRegExp = makeNative(
+      pattern,
+      _isMultiLine,
+      _isCaseSensitive,
+      _isUnicode,
+      _isDotAll,
+      'y',
+    );
   }
 
   bool get _isMultiLine => JS('bool', '#.multiline', _nativeRegExp);
@@ -77,19 +80,29 @@ class JSSyntaxRegExp implements RegExp {
   bool get _isUnicode => JS('bool', '#.unicode', _nativeRegExp);
   bool get _isDotAll => JS('bool', '#.dotAll', _nativeRegExp);
 
-  static makeNative(String source, bool multiLine, bool caseSensitive,
-      bool unicode, bool dotAll, bool global) {
+  /// Used by [String.split] to determine whether it can use the JavaScript
+  /// `String.prototype.split` directly. It cannot if the RegExp has capture
+  /// groups.
+  bool get _hasCaptures => _hasCapturesCache ??= _computeHasCaptures();
+
+  static makeNative(
+    String source,
+    bool multiLine,
+    bool caseSensitive,
+    bool unicode,
+    bool dotAll,
+    String extraFlags,
+  ) {
     checkString(source);
-    String m = multiLine == true ? 'm' : '';
-    String i = caseSensitive == true ? '' : 'i';
+    String m = multiLine ? 'm' : '';
+    String i = caseSensitive ? '' : 'i';
     String u = unicode ? 'u' : '';
     String s = dotAll ? 's' : '';
-    String g = global ? 'g' : '';
     // We're using the JavaScript's try catch instead of the Dart one to avoid
     // dragging in Dart runtime support just because of using RegExp.
     var regexp = JS(
-        '',
-        r'''
+      '',
+      r'''
           (function(source, modifiers) {
             try {
               return new RegExp(source, modifiers);
@@ -97,12 +110,13 @@ class JSSyntaxRegExp implements RegExp {
               return e;
             }
           })(#, # + # + # + # + #)''',
-        source,
-        m,
-        i,
-        u,
-        s,
-        g);
+      source,
+      m,
+      i,
+      u,
+      s,
+      extraFlags,
+    );
     if (JS('bool', '# instanceof RegExp', regexp)) return regexp;
     // The returned value is the JavaScript exception. Turn it into a
     // Dart exception.
@@ -110,9 +124,35 @@ class JSSyntaxRegExp implements RegExp {
     throw FormatException('Illegal RegExp pattern ($errorMessage)', source);
   }
 
+  bool _computeHasCaptures() {
+    // Should only be called once, the first time [_hasCaptures] is read.
+    assert(_hasCapturesCache == null);
+    // No captures without parentheses.
+    if (!pattern.contains('(')) return false;
+    // Do not try to parse the RegExp, leave that to the RegExp compiler.
+    // It's more future proof.
+
+    // Create RegExp with same capture groups, which always (and quickly)
+    // matches the empty string, and do that match to get a match array.
+    // Currently supported flags do not affect capture syntax, and only the
+    // unicode flag affects parsing at all, so use no other flags.
+    // The length of the match array is the number of capture groups plus one.
+    JSArray match = JS(
+      'JSExtendableArray',
+      r'new RegExp("(?:)|" + #, #).exec("")',
+      pattern,
+      _isUnicode ? 'u' : '',
+    );
+    return match.length > 1;
+  }
+
   RegExpMatch? firstMatch(String string) {
-    JSArray? m = JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp,
-        checkString(string));
+    JSArray? m = JS(
+      'JSExtendableArray|Null',
+      r'#.exec(#)',
+      _nativeRegExp,
+      checkString(string),
+    );
     if (m == null) return null;
     return _MatchImplementation(this, m);
   }
@@ -149,9 +189,6 @@ class JSSyntaxRegExp implements RegExp {
     JS('void', '#.lastIndex = #', regexp, start);
     JSArray? match = JS('JSExtendableArray|Null', '#.exec(#)', regexp, string);
     if (match == null) return null;
-    // If the last capture group participated, the original regexp did not
-    // match at the start position.
-    if (match.removeLast() != null) return null;
     return _MatchImplementation(this, match);
   }
 
@@ -189,9 +226,14 @@ class _MatchImplementation implements RegExpMatch {
   int get start =>
       JS('returns:int;depends:none;effects:none;gvn:true', '#.index', _match);
 
-  int get end => (start +
-      JS('returns:int;depends:none;effects:none;gvn:true', '#[0].length',
-          _match)) as int;
+  int get end =>
+      (start +
+              JS(
+                'returns:int;depends:none;effects:none;gvn:true',
+                '#[0].length',
+                _match,
+              ))
+          as int;
 
   // The JS below changes the static type to avoid an implicit cast.
   // TODO(sra): Find a nicer way to do this, e.g. unsafeCast.
@@ -224,7 +266,8 @@ class _MatchImplementation implements RegExpMatch {
     var groups = JS('=Object|Null', '#.groups', _match);
     if (groups != null) {
       var keys = JSArray<String>.markGrowable(
-          JS('returns:JSExtendableArray;new:true', 'Object.keys(#)', groups));
+        JS('returns:JSExtendableArray;new:true', 'Object.keys(#)', groups),
+      );
       return SubListIterable(keys, 0, null);
     }
     return Iterable.empty();
