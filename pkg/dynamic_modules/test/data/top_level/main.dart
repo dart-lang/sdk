@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import 'shared/shared.dart' as shared;
 
 /// A top-level setter can be invoked from a dynamic module.
-main() async {
+void main() async {
   Expect.equals('original', shared.topLevelField);
   Expect.equals(0, shared.topLevelGetterInternal);
   Expect.equals(0, shared.topLevelSetterInternal);

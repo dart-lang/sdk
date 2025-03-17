@@ -149,7 +149,7 @@ String? libraryGroupName(Info info) {
 }
 
 /// Produce a string containing [value] padded with white space up to [n] chars.
-String pad(value, n, {bool right = false}) {
+String pad(Object value, int n, {bool right = false}) {
   var s = '$value';
   if (s.length >= n) return s;
   // ignore: avoid_dynamic_calls

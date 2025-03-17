@@ -9,7 +9,7 @@ import 'shared/shared.dart' show Base;
 
 /// A dynamic module is allowed to extend a class in the dynamic interface and
 /// override its members.
-main() async {
+void main() async {
   final o = (await helper.load('entry1.dart')) as Base;
   Expect.equals(1, o.method1());
   Expect.equals(2, o.method2());

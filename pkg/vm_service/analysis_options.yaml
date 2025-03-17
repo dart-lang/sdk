@@ -3,6 +3,8 @@ include: package:lints/recommended.yaml
 analyzer:
   errors:
     unnecessary_library_name: ignore
+    # ~300 violations in test/.
+    strict_top_level_inference: ignore
 
 linter:
   rules:

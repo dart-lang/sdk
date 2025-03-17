@@ -45,7 +45,7 @@ class DapHandler {
     };
   }
 
-  _handleEvent(Event event) {
+  void _handleEvent(Event event) {
     if (event.event == 'initialized') {
       _initializedCompleter.complete();
     }

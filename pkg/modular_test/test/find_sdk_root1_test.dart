@@ -10,7 +10,7 @@ import 'package:modular_test/src/find_sdk_root.dart';
 
 // This and the 'src/find_sdk_root2_test.dart' check that we can locate
 // the SDK root properly regardless of the location of the `Platform.script`.
-main() {
+void main() {
   asyncTest(() async {
     Expect.equals(Platform.script.resolve("../../../"), await findRoot());
   });

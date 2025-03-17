@@ -16,7 +16,7 @@ import 'package:status_file/status_file_normalizer.dart';
 
 final Uri statusFilePath = Platform.script.resolve("data/");
 
-main() {
+void main() {
   sanityCheck();
   normalizeCheck();
 }

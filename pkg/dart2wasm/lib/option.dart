@@ -87,24 +87,24 @@ class MultiValueOption<T> extends Option<List<T>> {
 }
 
 class IntMultiOption extends MultiValueOption<int> {
-  IntMultiOption(
-      name, void Function(WasmCompilerOptions o, List<int> v) applyToOptions,
+  IntMultiOption(String name,
+      void Function(WasmCompilerOptions o, List<int> v) applyToOptions,
       {Iterable<String>? defaultsTo})
       : super(name, applyToOptions, (v) => int.parse(v),
             defaultsTo: defaultsTo);
 }
 
 class StringMultiOption extends MultiValueOption<String> {
-  StringMultiOption(
-      name, void Function(WasmCompilerOptions o, List<String> v) applyToOptions,
+  StringMultiOption(String name,
+      void Function(WasmCompilerOptions o, List<String> v) applyToOptions,
       {String? abbr, Iterable<String>? defaultsTo})
       : super(name, applyToOptions, (v) => v,
             abbr: abbr, defaultsTo: defaultsTo);
 }
 
 class UriMultiOption extends MultiValueOption<Uri> {
-  UriMultiOption(
-      name, void Function(WasmCompilerOptions o, List<Uri> v) applyToOptions,
+  UriMultiOption(String name,
+      void Function(WasmCompilerOptions o, List<Uri> v) applyToOptions,
       {Iterable<String>? defaultsTo})
       : super(name, applyToOptions, (v) => Uri.file(Directory(v).absolute.path),
             defaultsTo: defaultsTo);

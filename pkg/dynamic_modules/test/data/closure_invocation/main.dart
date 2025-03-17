@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 
 import 'shared/shared.dart' as shared;
 
-main() async {
+void main() async {
   await helper.load('entry1.dart');
   Expect.equals('dynamic module 1: hello', shared.topLevelClosure!('hello'));
   helper.done();

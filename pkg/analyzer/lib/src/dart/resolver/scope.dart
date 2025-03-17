@@ -233,7 +233,7 @@ class NamespaceBuilder {
     // true of, for instance, `Object`, because `Object` has a source definition
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
-      definedNames['dynamic'] = DynamicElementImpl.instance;
+      definedNames['dynamic'] = DynamicElementImpl2.instance;
       definedNames['Never'] = NeverElementImpl2.instance;
     }
 

@@ -6,7 +6,7 @@ import 'dart:math';
 
 import 'package:heap_snapshot/intset.dart';
 
-main() {
+void main() {
   checkDump();
   checkBounds();
   handCodedTests();
@@ -15,7 +15,7 @@ main() {
   print("OK");
 }
 
-void addExpectRangeError(set, int value) {
+void addExpectRangeError(Set set, int value) {
   try {
     set.add(value);
     throw "Expected RangeError";

@@ -130,7 +130,7 @@ abstract class DartLanguageServerBenchmark {
     }
   }
 
-  void _checkLongRunningRequests(timer) {
+  void _checkLongRunningRequests(Timer timer) {
     bool reportedSomething = false;
     for (MapEntry<int, OutstandingRequest> waitingFor
         in _outstandingRequestsWithId.entries) {

@@ -149,7 +149,7 @@ class _DartNavigationCollector {
       fragment = fragment.element.nonSynthetic2.firstFragment;
     }
 
-    if (fragment.element == DynamicElementImpl.instance) {
+    if (fragment.element == DynamicElementImpl2.instance) {
       return;
     }
     if (fragment.element is MultiplyDefinedElement2) {

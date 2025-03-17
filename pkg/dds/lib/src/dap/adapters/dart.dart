@@ -3046,7 +3046,7 @@ class _DdsCapabilities {
   /// `postEvent`.
   bool get supportsCustomStreams => _isAtLeast(major: 1, minor: 4);
 
-  bool _isAtLeast({required major, required minor}) {
+  bool _isAtLeast({required int major, required int minor}) {
     if (this.major > major) {
       return true;
     } else if (this.major == major && this.minor >= minor) {

@@ -67,12 +67,12 @@ abstract class Logger {
 
   void logSuiteComplete(Suite suite);
 
-  void logUncaughtError(error, StackTrace stackTrace);
+  void logUncaughtError(Object error, StackTrace stackTrace);
 
   /// Issued when there's been a crash caught by the framework.
   /// Notice that the exit-code has already been set and that the error has
   /// been printed to stderr.
-  void noticeFrameworkCatchError(error, StackTrace stackTrace);
+  void noticeFrameworkCatchError(Object? error, StackTrace stackTrace);
 }
 
 class StdoutLogger implements Logger {
@@ -196,7 +196,7 @@ class StdoutLogger implements Logger {
   }
 
   @override
-  void logUncaughtError(error, StackTrace stackTrace) {
+  void logUncaughtError(Object error, StackTrace stackTrace) {
     logMessage(error);
     logMessage(stackTrace);
   }

@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/pipeline.dart';
 
-main() {
+void main() {
   test('no steps is OK', () {
     validateSteps([]);
   });
@@ -73,7 +73,7 @@ main() {
   });
 }
 
-validateSteps(List<ModularStep> steps) {
+void validateSteps(List<ModularStep> steps) {
   _NoopPipeline(steps);
 }
 

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 
 void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   var visitor = DartUnitOccurrencesComputerVisitor();
@@ -261,7 +260,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   void _addOccurrenceAt(Element2 element, int offset, int length) {
     var canonicalElement = _canonicalizeElement(element);
-    if (canonicalElement == null || element == DynamicElementImpl.instance) {
+    if (canonicalElement == null) {
       return;
     }
     var offsetLengths = elementsOffsetLengths[canonicalElement];

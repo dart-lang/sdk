@@ -436,13 +436,13 @@ class _ScopeBuilder extends RecursiveVisitor {
     _loopDepth = saveLoopDepth;
   }
 
-  _enterFrame(TreeNode node) {
+  void _enterFrame(TreeNode node) {
     _currentFrameInternal = new Frame(node, _currentFrameInternal);
     _enterScope(node);
     _currentFrame.topScope = _currentScope;
   }
 
-  _leaveFrame() {
+  void _leaveFrame() {
     _leaveScope();
     _currentFrameInternal = _currentFrame.parent;
   }

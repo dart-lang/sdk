@@ -8,7 +8,7 @@ library;
 import 'package:test/test.dart';
 import 'package:modular_test/src/suite.dart';
 
-main() {
+void main() {
   test('module test is not empty', () {
     var m = Module("a", [], Uri.parse("app:/"), []);
     expect(() => ModularTest([], m, []), throwsA(TypeMatcher<ArgumentError>()));

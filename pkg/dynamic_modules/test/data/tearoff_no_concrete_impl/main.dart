@@ -6,7 +6,7 @@ import '../../common/testing.dart' as helper;
 
 import 'shared/shared.dart' show A, B, C;
 
-main() async {
+void main() async {
   final c = await helper.load('entry1.dart') as C?;
   if (c != null) {
     A(B(c).c.foo);

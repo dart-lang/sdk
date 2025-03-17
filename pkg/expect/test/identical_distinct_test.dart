@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-main() {
+void main() {
   var o1 = Object();
   var o2 = Object();
   var o3 = Object();

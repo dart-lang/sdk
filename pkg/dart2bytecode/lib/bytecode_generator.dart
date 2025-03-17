@@ -3999,7 +3999,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     return locals.tempIndexInFrame(node, tempIndex: 1);
   }
 
-  _saveContextForTryBlock(TreeNode node) {
+  void _saveContextForTryBlock(TreeNode node) {
     if (!locals.hasContextVar) {
       return;
     }
@@ -4007,7 +4007,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitPopLocal(_savedContextVar(node));
   }
 
-  _restoreContextForTryBlock(TreeNode node) {
+  void _restoreContextForTryBlock(TreeNode node) {
     if (!locals.hasContextVar) {
       return;
     }
