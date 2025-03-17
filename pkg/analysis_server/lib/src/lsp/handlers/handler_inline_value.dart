@@ -243,7 +243,13 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
 
       // Never produce values for the left side of a property access.
       var isTarget = parent is PropertyAccess && node == parent.realTarget;
-      if (!isTarget) {
+
+      // Never produce values for obvious enum getters (this includes `values`).
+      var isEnumGetter =
+          node.element is GetterElement &&
+          node.element?.enclosingElement2 is EnumElement2;
+
+      if (!isTarget && !isEnumGetter) {
         collector.recordExpression(node.element, node.offset, node.length);
       }
     }
