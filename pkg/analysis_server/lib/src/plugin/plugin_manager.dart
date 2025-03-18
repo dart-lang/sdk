@@ -1057,6 +1057,17 @@ class PluginSession {
       completer,
     );
     channel.sendRequest(request);
+    completer.future.then((response) {
+      // If a RequestError is returned in the response, report this as an
+      // exception.
+      if (response.error case var error?) {
+        var stackTrace = StackTrace.fromString(error.stackTrace!);
+        var exception = PluginException(error.message);
+        info.reportException(
+          CaughtException.withMessage(error.message, exception, stackTrace),
+        );
+      }
+    });
     return completer.future;
   }
 
