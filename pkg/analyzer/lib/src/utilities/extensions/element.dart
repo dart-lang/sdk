@@ -80,10 +80,12 @@ extension CompilationUnitElementExtension on CompilationUnitElement {
   LibraryFragment get asElement2 {
     return this as LibraryFragment;
   }
+}
 
+extension CompilationUnitElementImplExtension on CompilationUnitElementImpl {
   /// Returns this library fragment, and all its enclosing fragments.
-  List<CompilationUnitElement> get withEnclosing {
-    var result = <CompilationUnitElement>[];
+  List<CompilationUnitElementImpl> get withEnclosing {
+    var result = <CompilationUnitElementImpl>[];
     var current = this;
     while (true) {
       result.add(current);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
@@ -16,7 +14,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -1825,21 +1822,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // prepare element
     var highlightedNode = expression;
-    var element = expression.element?.asElement;
+    var element = expression.element;
     if (expression is PrefixedIdentifier) {
       var prefixedIdentifier = expression as PrefixedIdentifier;
       highlightedNode = prefixedIdentifier.identifier;
     }
     // check if element is assignable
-    if (element is VariableElement) {
+    if (element is VariableElement2) {
       if (element.isConst) {
         errorReporter.atNode(
           expression,
           CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
         );
       }
-    } else if (element is PropertyAccessorElement && element.isGetter) {
-      var variable = element.variable2;
+    } else if (element is GetterElement) {
+      var variable = element.variable3;
       if (variable == null) {
         return;
       }
@@ -1848,32 +1845,33 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           expression,
           CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
         );
-      } else if (variable is FieldElement && variable.isSynthetic) {
+      } else if (variable is FieldElement2 && variable.isSynthetic) {
         errorReporter.atNode(
           highlightedNode,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-          arguments: [variable.name, variable.enclosingElement3.displayName],
+          arguments: [variable.name3!, variable.enclosingElement2.displayName],
         );
       } else {
         errorReporter.atNode(
           highlightedNode,
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
-          arguments: [variable.name],
+          arguments: [variable.name3!],
         );
       }
-    } else if (element is FunctionElement) {
+    } else if (element is LocalFunctionElement ||
+        element is TopLevelFunctionElement) {
       errorReporter.atNode(
         expression,
         CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION,
       );
-    } else if (element is MethodElement) {
+    } else if (element is MethodElement2) {
       errorReporter.atNode(
         expression,
         CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
       );
-    } else if (element is InterfaceElement ||
-        element is DynamicElementImpl ||
-        element is TypeParameterElement) {
+    } else if (element is InterfaceElement2 ||
+        element is DynamicElementImpl2 ||
+        element is TypeParameterElement2) {
       errorReporter.atNode(
         expression,
         CompileTimeErrorCode.ASSIGNMENT_TO_TYPE,
@@ -2042,8 +2040,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
   /// [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
   /// [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
-  void _checkForConflictingClassMembers(InterfaceElement fragment) {
-    var enclosingClass = _enclosingClass.asElement as InterfaceElementImpl?;
+  void _checkForConflictingClassMembers(InterfaceElementImpl fragment) {
+    var enclosingClass = _enclosingClass;
     if (enclosingClass == null) {
       return;
     }
@@ -2052,7 +2050,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var conflictingDeclaredNames = <String>{};
 
     // method declared in the enclosing class vs. inherited getter/setter
-    for (MethodElement method in fragment.methods) {
+    for (var method in fragment.methods) {
       if (method.source != _currentUnit.source) {
         continue;
       }
@@ -2061,21 +2059,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       // find inherited property accessors
       var getter = _inheritanceManager
-          .getInherited4(enclosingClass.asElement2, Name(libraryUri, name))
+          .getInherited4(enclosingClass, Name(libraryUri, name))
           ?.asElement;
       var setter = _inheritanceManager
-          .getInherited4(enclosingClass.asElement2, Name(libraryUri, '$name='))
+          .getInherited4(enclosingClass, Name(libraryUri, '$name='))
           ?.asElement;
 
       if (method.isStatic) {
-        void reportStaticConflict(ExecutableElement inherited) {
+        void reportStaticConflict(ExecutableElementOrMember inherited) {
           errorReporter.atElement2(
             method.asElement2,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
             arguments: [
               enclosingClass.displayName,
               name,
-              inherited.enclosingElement3.displayName,
+              inherited.asElement2.enclosingElement2!.displayName,
             ],
           );
         }
@@ -2092,18 +2090,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       // Extension type methods preclude accessors.
-      if (enclosingClass is ExtensionTypeElement) {
+      if (enclosingClass is ExtensionTypeElementImpl2) {
         continue;
       }
 
-      void reportFieldConflict(PropertyAccessorElement inherited) {
+      void reportFieldConflict(PropertyAccessorElementOrMember inherited) {
         errorReporter.atElement2(
           method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.enclosingElement3.displayName
+            inherited.asElement2.enclosingElement2.displayName
           ],
         );
       }
@@ -2120,15 +2118,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // getter declared in the enclosing class vs. inherited method
-    for (PropertyAccessorElement accessor in fragment.accessors) {
+    for (var accessor in fragment.accessors) {
       String name = accessor.displayName;
 
       // find inherited method or property accessor
       var inherited = _inheritanceManager
-          .getInherited4(enclosingClass.asElement2, Name(libraryUri, name))
+          .getInherited4(enclosingClass, Name(libraryUri, name))
           ?.asElement;
       inherited ??= _inheritanceManager
-          .getInherited4(enclosingClass.asElement2, Name(libraryUri, '$name='))
+          .getInherited4(enclosingClass, Name(libraryUri, '$name='))
           ?.asElement;
 
       if (accessor.isStatic && inherited != null) {
@@ -2138,13 +2136,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.enclosingElement3.displayName,
+            inherited.asElement2.enclosingElement2!.displayName,
           ],
         );
         conflictingDeclaredNames.add(name);
       } else if (inherited is MethodElementOrMember) {
         // Extension type accessors preclude inherited accessors/methods.
-        if (enclosingClass is ExtensionTypeElement) {
+        if (enclosingClass is ExtensionTypeElementImpl2) {
           continue;
         }
         errorReporter.atElement2(
@@ -2153,7 +2151,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           arguments: [
             enclosingClass.displayName,
             name,
-            inherited.enclosingElement3.displayName
+            inherited.asElement2.enclosingElement2!.displayName
           ],
         );
         conflictingDeclaredNames.add(name);
@@ -2161,10 +2159,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Inherited method and setter with the same name.
-    var inherited = _inheritanceManager.getInheritedMap2(enclosingClass);
+    var inherited =
+        _inheritanceManager.getInheritedMap2(enclosingClass.asElement);
     for (var entry in inherited.entries) {
       var method = entry.value;
-      if (method is MethodElement) {
+      if (method is MethodElementOrMember) {
         var methodName = entry.key;
         if (conflictingDeclaredNames.contains(methodName.name)) {
           continue;
@@ -2173,7 +2172,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var setter = inherited[setterName];
         if (setter is PropertyAccessorElementOrMember) {
           errorReporter.atElement2(
-            enclosingClass.asElement2,
+            enclosingClass,
             CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
             arguments: [
               enclosingClass.kind.displayName,
@@ -2186,8 +2185,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 message: formatList(
                   "The method is inherited from the {0} '{1}'.",
                   [
-                    method.enclosingElement3.kind.displayName,
-                    method.enclosingElement3.name,
+                    method.asElement2.enclosingElement2!.kind.displayName,
+                    method.asElement2.enclosingElement2!.name3,
                   ],
                 ),
                 offset: method.nameOffset,
@@ -2199,8 +2198,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 message: formatList(
                   "The setter is inherited from the {0} '{1}'.",
                   [
-                    setter.enclosingElement3.kind.displayName,
-                    setter.enclosingElement3.name,
+                    setter.asElement2.enclosingElement2.kind.displayName,
+                    setter.asElement2.enclosingElement2.name3,
                   ],
                 ),
                 offset: setter.nameOffset,
@@ -2764,15 +2763,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     NodeList<Directive> directives = unit.directives;
     int count = directives.length;
     if (count > 0) {
-      Map<PrefixElement, List<ImportDirective>> prefixToDirectivesMap =
-          HashMap<PrefixElement, List<ImportDirective>>();
+      var prefixToDirectivesMap = <PrefixElement2, List<ImportDirective>>{};
       for (int i = 0; i < count; i++) {
         Directive directive = directives[i];
         if (directive is ImportDirective) {
           var prefix = directive.prefix;
           if (prefix != null) {
-            var element = prefix.element?.asElement;
-            if (element is PrefixElement) {
+            var element = prefix.element;
+            if (element is PrefixElement2) {
               var elements = prefixToDirectivesMap[element];
               if (elements == null) {
                 elements = <ImportDirective>[];
@@ -3151,15 +3149,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required ExtensionTypeDeclaration node,
     required ExtensionTypeElementImpl element,
   }) {
-    void report(String memberName, List<ExecutableElement> candidates) {
+    void report(String memberName, List<ExecutableElement2> candidates) {
       var contextMessages = candidates.map<DiagnosticMessage>((executable) {
-        var nonSynthetic = executable.nonSynthetic;
-        var container = executable.enclosingElement3 as InterfaceElement;
+        var nonSynthetic = executable.nonSynthetic2;
+        var container = executable.enclosingElement2 as InterfaceElement2;
         return DiagnosticMessageImpl(
-          filePath: executable.source.fullName,
-          offset: nonSynthetic.nameOffset,
-          length: nonSynthetic.nameLength,
-          message: "Inherited from '${container.name}'",
+          filePath: executable.firstFragment.libraryFragment.source.fullName,
+          offset: nonSynthetic.firstFragment.nameOffset2!,
+          length: nonSynthetic.firstFragment.name2!.length,
+          message: "Inherited from '${container.name3}'",
           url: null,
         );
       }).toList();
@@ -3175,14 +3173,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var conflict in interface.conflicts) {
       switch (conflict) {
         case CandidatesConflict _:
-          report(conflict.name.name, conflict.candidates);
+          report(conflict.name.name, conflict.candidates2);
         case HasNonExtensionAndExtensionMemberConflict _:
           report(conflict.name.name, [
-            ...conflict.nonExtension,
-            ...conflict.extension,
+            ...conflict.nonExtension2,
+            ...conflict.extension2,
           ]);
         case NotUniqueExtensionMemberConflict _:
-          report(conflict.name.name, conflict.candidates);
+          report(conflict.name.name, conflict.candidates2);
       }
     }
   }
@@ -3492,7 +3490,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check that if the visiting library is not system, then any given library
   /// should not be SDK internal library. The [importElement] is the
-  /// [LibraryImportElement] retrieved from the node, if the element in the node
+  /// [LibraryImport] retrieved from the node, if the element in the node
   /// was `null`, then this method is not called.
   void _checkForImportInternalLibrary(
       ImportDirective directive, LibraryImport importElement) {
@@ -3822,17 +3820,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForMainFunction1(Token nameToken, Element declaredElement) {
+  void _checkForMainFunction1(Token nameToken, Fragment declaredFragment) {
     // We should only check exported declarations, i.e. top-level.
-    if (declaredElement.enclosingElement3 is! CompilationUnitElement) {
+    if (declaredFragment.enclosingFragment is! LibraryFragment) {
       return;
     }
 
-    if (declaredElement.displayName != 'main') {
+    if (declaredFragment.name2 != 'main') {
       return;
     }
 
-    if (declaredElement is! FunctionElement) {
+    if (declaredFragment is! TopLevelFunctionFragment) {
       errorReporter.atToken(
         nameToken,
         CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION,
@@ -4459,14 +4457,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForNonCovariantTypeParameterPositionInRepresentationType(
     ExtensionTypeDeclaration node,
-    ExtensionTypeElement element,
+    ExtensionTypeElementImpl fragment,
   ) {
     var typeParameters = node.typeParameters?.typeParameters;
     if (typeParameters == null) {
       return;
     }
 
-    var representationType = element.representation.type;
+    var representationType = fragment.representation.type;
 
     for (var typeParameterNode in typeParameters) {
       var typeParameterElement = typeParameterNode.declaredFragment!.element;
@@ -5687,8 +5685,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _enclosingClass!.interfaces.forEach(checkOne);
     _enclosingClass!.mixins.forEach(checkOne);
 
-    var enclosingClass = _enclosingClass.asElement;
-    if (enclosingClass is MixinElement) {
+    var enclosingClass = _enclosingClass;
+    if (enclosingClass is MixinElementImpl2) {
       enclosingClass.superclassConstraints.forEach(checkOne);
     }
   }
@@ -5707,16 +5705,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Errors should only be reported in classes and mixins since those are the
   /// only components that allow explicit variance modifiers.
   void _checkForWrongVariancePosition(Variance variance,
-      TypeParameterElement typeParameter, SyntacticEntity errorTarget) {
-    TypeParameterElementImpl typeParameterImpl =
-        typeParameter as TypeParameterElementImpl;
-    if (!variance.greaterThanOrEqual(typeParameterImpl.variance)) {
+      TypeParameterElementImpl typeParameter, SyntacticEntity errorTarget) {
+    if (!variance.greaterThanOrEqual(typeParameter.variance)) {
       errorReporter.atEntity(
         errorTarget,
         CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
         arguments: [
-          typeParameterImpl.variance.keyword,
-          typeParameterImpl.name,
+          typeParameter.variance.keyword,
+          typeParameter.name,
           variance.keyword
         ],
       );
