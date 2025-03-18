@@ -78,10 +78,12 @@ class MultiValueOption<T> extends Option<List<T>> {
       void Function(WasmCompilerOptions o, List<T> v) applyToOptions,
       T Function(dynamic v) converter,
       {Iterable<String>? defaultsTo,
-      String? abbr})
+      String? abbr,
+      bool splitCommas = true})
       : super(
             name,
-            (a) => a.addMultiOption(name, abbr: abbr, defaultsTo: defaultsTo),
+            (a) => a.addMultiOption(name,
+                abbr: abbr, defaultsTo: defaultsTo, splitCommas: splitCommas),
             applyToOptions,
             (vs) => vs.map(converter).cast<T>().toList());
 }
@@ -97,9 +99,9 @@ class IntMultiOption extends MultiValueOption<int> {
 class StringMultiOption extends MultiValueOption<String> {
   StringMultiOption(String name,
       void Function(WasmCompilerOptions o, List<String> v) applyToOptions,
-      {String? abbr, Iterable<String>? defaultsTo})
+      {String? abbr, Iterable<String>? defaultsTo, bool splitCommas = true})
       : super(name, applyToOptions, (v) => v,
-            abbr: abbr, defaultsTo: defaultsTo);
+            abbr: abbr, defaultsTo: defaultsTo, splitCommas: splitCommas);
 }
 
 class UriMultiOption extends MultiValueOption<Uri> {

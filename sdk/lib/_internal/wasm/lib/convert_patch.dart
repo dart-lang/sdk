@@ -298,7 +298,7 @@ class _NumberBuffer {
   // not only working on strings, but also on char-code lists, without losing
   // performance.
   num parseNum() => num.parse(getString());
-  double parseDouble() => _jsParseFloat(getString());
+  double parseDouble() => _jsParseValidFloat(getString());
 }
 
 /**
@@ -697,7 +697,9 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    * built exactly during parsing.
    */
   double parseDouble(int start, int end) {
-    return _jsParseFloat(getString(start, end, 0x7f, _emptyCodeUnitsCache));
+    return _jsParseValidFloat(
+      getString(start, end, 0x7f, _emptyCodeUnitsCache),
+    );
   }
 
   /**
@@ -1752,7 +1754,9 @@ class _JSStringImplParser extends _ChunkedJsonParserState
   }
 
   double parseDouble(int start, int end) {
-    return _jsParseFloat(getString(start, end, 0x7f, _emptyCodeUnitsCache));
+    return _jsParseValidFloat(
+      getString(start, end, 0x7f, _emptyCodeUnitsCache),
+    );
   }
 
   void close() {
@@ -2038,7 +2042,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
       chunk.offsetInElements + start,
       chunk.offsetInElements + end,
     );
-    return _jsParseFloat(result);
+    return _jsParseValidFloat(result);
   }
 }
 
@@ -2862,10 +2866,10 @@ WasmArray<WasmI8> _makeI8ArrayFromWasmI8ArrayBase(
   return bytes;
 }
 
-double _jsParseFloat(String string) => JS<double>(
-  '(s) => parseFloat(s)',
-  jsStringFromDartString(string).toExternRef,
-);
+// Assumes the given [string] is a valid float, so it can rely on the implicit
+// string to number conversion in JS using `+<string-of-number>`.
+double _jsParseValidFloat(String string) =>
+    JS<double>('(s) => +s', jsStringFromDartString(string).toExternRef);
 
 const ImmutableWasmArray<BoxedInt> _intBoxes256 = ImmutableWasmArray.literal([
   0, 1, 2, 3, 4, 5, 6, 7, //

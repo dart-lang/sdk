@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library;
-
 /// The accepted escapes in the input of the --batch processor.
 ///
 /// Contrary to Dart strings it does not contain hex escapes (\u or \x).
-const Map<String, String> escapeMapping = {
+const Map<String, String> _escapeMapping = {
   'n': '\n',
   'r': '\r',
   't': '\t',
@@ -57,7 +55,7 @@ List<String> splitLine(String line, {bool windows = false}) {
         i++;
 
         c = line[i];
-        String mapped = escapeMapping[c] ?? c;
+        String mapped = _escapeMapping[c] ?? c;
         buffer.write(mapped);
         continue;
       }

@@ -17,6 +17,7 @@ dependencies:
   package_config: any
   path: any
   pool: any
+  shell_arg_splitter: any
   smith: any
   status_file: any
   webdriver: any

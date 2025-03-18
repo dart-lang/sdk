@@ -1,0 +1,10 @@
+name: shell_arg_splitter
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.7.0'
+
+dev_dependencies:
+  expect: any
+  lints: any
