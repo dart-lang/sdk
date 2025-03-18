@@ -21,6 +21,7 @@ dependencies:
   kernel: any
   meta: any
   mmap: any
+  shell_arg_splitter: any
   vm_service: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.

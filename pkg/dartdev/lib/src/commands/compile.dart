@@ -799,6 +799,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         help: defineOption.help,
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
+        splitCommas: false,
       )
       ..addExperimentalFlags(verbose: verbose);
   }

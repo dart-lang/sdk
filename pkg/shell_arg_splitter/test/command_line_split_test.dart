@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'package:compiler/src/util/command_line.dart';
+import "package:shell_arg_splitter/shell_arg_splitter.dart";
 
-main() {
+void main() {
   Expect.listEquals(["foo", "bar"], splitLine("foo bar"));
   Expect.listEquals(["foo", "bar"], splitLine("foo bar", windows: true));
 
@@ -28,13 +28,23 @@ main() {
     "''bar",
   ], splitLine(r"""foo"'" '"'bar" """, windows: true));
 
-  Expect.listEquals(["foo", "bar"], splitLine("'f''o''o' " + '"b""a""r"'));
+  Expect.listEquals(
+    ["foo", "bar"],
+    splitLine(
+      "'f''o''o' "
+      '"b""a""r"',
+    ),
+  );
   // TODO(johnniwinther): This is not actual Windows behavior: "b""a" is
   // interpreted as b"a but "b""a""r" is interpreted as b"ar.
-  Expect.listEquals([
-    "'f''o''o'",
-    "bar",
-  ], splitLine("'f''o''o' " + '"b""a""r"', windows: true));
+  Expect.listEquals(
+    ["'f''o''o'", "bar"],
+    splitLine(
+      "'f''o''o' "
+      '"b""a""r"',
+      windows: true,
+    ),
+  );
 
   Expect.listEquals([
     "\n",

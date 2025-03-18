@@ -68,7 +68,7 @@ final List<Option> options = [
       "watch", (o, values) => o.translatorOptions.watchPoints = values),
   StringMultiOption(
       "define", (o, values) => o.environment.addAll(processEnvironment(values)),
-      abbr: "D"),
+      abbr: "D", splitCommas: false),
   StringMultiOption(
       "enable-experiment",
       (o, values) =>

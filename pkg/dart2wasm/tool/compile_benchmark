@@ -133,7 +133,7 @@ while [ $# -gt 0 ]; do
       ;;
 
     --extra-compiler-option=*)
-      DART2WASM_ARGS+=(${1#--extra-compiler-option=})
+      DART2WASM_ARGS+=("${1#--extra-compiler-option=}")
       shift
       ;;
 
@@ -219,7 +219,7 @@ fi
 binaryen_command=("$BINARYEN" "${BINARYEN_FLAGS[@]}" "$WASM_FILE" -o "$WASM_FILE")
 
 if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
-  measure ${dart2wasm_command[@]}
+  measure "${dart2wasm_command[@]}"
   COMPILER_TIME=$TIME
   COMPILER_MEMORY=$MEMORY
 
@@ -262,6 +262,6 @@ if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
   echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Dart2Wasm(MemoryUse): $COMPILER_MEMORY bytes"
   run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Wasm2WasmOpt(MemoryUse): $BINARYEN_MEMORY bytes"
 else
-  ${dart2wasm_command[@]}
+  "${dart2wasm_command[@]}"
   run_if_binaryen_enabled ${binaryen_command[@]}
 fi

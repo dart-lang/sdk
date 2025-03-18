@@ -11,6 +11,7 @@ import 'dart:isolate' show Isolate;
 
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+import 'package:shell_arg_splitter/shell_arg_splitter.dart';
 
 import '../compiler_api.dart' as api;
 import 'commandline_options.dart';
@@ -20,7 +21,6 @@ import 'io/mapped_file.dart';
 import 'options.dart'
     show CompilerOptions, CompilerStage, DumpInfoFormat, FeatureOptions;
 import 'source_file_provider.dart';
-import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 
 const String _defaultSpecificationUri = '../../../../sdk/lib/libraries.json';

@@ -1058,6 +1058,7 @@ class BatchRunnerProcess {
   }
 
   String _createArgumentsLine(List<String> arguments, int timeout) {
+    arguments = arguments.map(escapeCommandLineArgument).toList();
     if (_useJson) {
       return "${jsonEncode(arguments)}\n";
     } else {

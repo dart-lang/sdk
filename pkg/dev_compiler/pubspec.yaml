@@ -18,6 +18,7 @@ dependencies:
   js_shared: any
   kernel: any
   path: any
+  shell_arg_splitter: any
   source_maps: any
   source_span: any
 
