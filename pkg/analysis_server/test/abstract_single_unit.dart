@@ -50,7 +50,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     var unitResult = libraryResult?.unitWithPath(file.path);
     unitResult ??= await super.getResolvedUnit(file);
 
-    if (file.path == testFilePath) {
+    if (file.path == convertPath(testFilePath)) {
       testLibraryResult = libraryResult;
       testAnalysisResult = unitResult;
       testUnit = unitResult.unit;
