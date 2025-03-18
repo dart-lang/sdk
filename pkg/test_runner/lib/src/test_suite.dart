@@ -971,8 +971,10 @@ class StandardTestSuite extends TestSuite {
             _createUrlPathFromFile(Path('$outputDir/$nameNoExt.wasm'));
         final mjsPath =
             _createUrlPathFromFile(Path('$outputDir/$nameNoExt.mjs'));
-        content =
-            dart2wasmHtml(testFile.path.toNativePath(), wasmPath, mjsPath);
+        final supportJsPath =
+            _createUrlPathFromFile(Path('$outputDir/$nameNoExt.support.js'));
+        content = dart2wasmHtml(
+            testFile.path.toNativePath(), wasmPath, mjsPath, supportJsPath);
       } else if (configuration.compiler == Compiler.ddc) {
         var ddcConfig =
             configuration.compilerConfiguration as DevCompilerConfiguration;
