@@ -18724,7 +18724,6 @@ void Code::NotifyCodeObservers(const Function& function,
                                bool optimized) {
 #if !defined(PRODUCT)
   ASSERT(!function.IsNull());
-  ASSERT(!Thread::Current()->OwnsGCSafepoint());
   // Calling ToLibNamePrefixedQualifiedCString is very expensive,
   // try to avoid it.
   if (CodeObservers::AreActive()) {
@@ -18740,7 +18739,6 @@ void Code::NotifyCodeObservers(const char* name,
 #if !defined(PRODUCT)
   ASSERT(name != nullptr);
   ASSERT(!code.IsNull());
-  ASSERT(!Thread::Current()->OwnsGCSafepoint());
   if (CodeObservers::AreActive()) {
     const auto& instrs = Instructions::Handle(code.instructions());
     CodeObservers::NotifyAll(name, instrs.PayloadStart(),

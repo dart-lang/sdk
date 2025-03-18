@@ -345,7 +345,6 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   if (symbol.IsNull()) {
     IsolateGroup* group = thread->isolate_group();
     ObjectStore* object_store = group->object_store();
-    RELEASE_ASSERT(thread->CanAcquireSafepointLocks());
 
     // Most common case: The symbol is already in the table.
     {
@@ -359,11 +358,18 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
     }
     // Otherwise we'll have to get exclusive access and get-or-insert it.
     if (symbol.IsNull()) {
-      SafepointMutexLocker ml(group->symbols_mutex());
-      data = object_store->symbol_table();
-      CanonicalStringSet table(&key, &value, &data);
-      symbol ^= table.InsertNewOrGet(str);
-      object_store->set_symbol_table(table.Release());
+      if (thread->OwnsSafepoint()) {
+        data = object_store->symbol_table();
+        CanonicalStringSet table(&key, &value, &data);
+        symbol ^= table.InsertNewOrGet(str);
+        object_store->set_symbol_table(table.Release());
+      } else {
+        SafepointMutexLocker ml(group->symbols_mutex());
+        data = object_store->symbol_table();
+        CanonicalStringSet table(&key, &value, &data);
+        symbol ^= table.InsertNewOrGet(str);
+        object_store->set_symbol_table(table.Release());
+      }
     }
   }
   ASSERT(symbol.IsSymbol());
