@@ -589,7 +589,8 @@ void Dart::WaitForIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolate_creation_monitor_);
   intptr_t num_attempts = 0;
-  while (!IsolateGroup::HasOnlyVMIsolateGroup()) {
+  while (!IsolateGroup::HasOnlyVMIsolateGroup() ||
+         (Isolate::pending_shutdowns_ != 0)) {
     Monitor::WaitResult retval = ml.Wait(1000);
     if (retval == Monitor::kTimedOut) {
       num_attempts += 1;

@@ -524,6 +524,11 @@ void IsolateGroup::Shutdown() {
     thread_pool_.reset();
   }
 
+  {
+    MonitorLocker ml(Isolate::isolate_creation_monitor_);
+    Isolate::pending_shutdowns_++;
+  }
+
   // Needs to happen before starting to destroy the heap so helper tasks like
   // the SampleBlockProcessor don't try to enter the group during this
   // tear-down.
@@ -565,7 +570,8 @@ void IsolateGroup::Shutdown() {
                    Dart::UptimeMillis(), name);
     }
     MonitorLocker ml(Isolate::isolate_creation_monitor_);
-    if (!Isolate::creation_enabled_) {
+    Isolate::pending_shutdowns_--;
+    if (Isolate::pending_shutdowns_ == 0) {
       ml.Notify();
     }
     if (trace_shutdown) {
@@ -2743,6 +2749,7 @@ Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
 Random* IsolateGroup::isolate_group_random_ = nullptr;
 Monitor* Isolate::isolate_creation_monitor_ = nullptr;
 bool Isolate::creation_enabled_ = false;
+intptr_t Isolate::pending_shutdowns_ = 0;
 
 RwLock* IsolateGroup::isolate_groups_rwlock_ = nullptr;
 IntrusiveDList<IsolateGroup>* IsolateGroup::isolate_groups_ = nullptr;
