@@ -69,6 +69,7 @@ class _HttpProfileData {
     _updated();
   }
 
+  /// Adds an HTTP request event to the timeline and the list of events.
   void requestEvent(String name, {Map? arguments}) {
     _timeline.instant(name, arguments: arguments);
     requestEvents.add(_HttpProfileEvent(name, arguments));
@@ -131,6 +132,7 @@ class _HttpProfileData {
     _updated();
   }
 
+  /// Marks the response as "started."
   void startResponse({required HttpClientResponse response}) {
     responseDetails = <String, dynamic>{
       'headers': formatHeaders(response.headers),
@@ -175,6 +177,7 @@ class _HttpProfileData {
     _updated();
   }
 
+  /// Marks the response as "finished."
   void finishResponse() {
     // Guard against the response being completed more than once or being
     // completed before the response actually finished starting.
@@ -186,9 +189,10 @@ class _HttpProfileData {
     _updated();
   }
 
+  /// Marks the response as "finished" with an error.
   void finishResponseWithError(String error) {
-    // Return if finishResponseWithError has already been called. Can happen if
-    // the response stream is listened to with `cancelOnError: false`.
+    // Return if `finishResponseWithError` has already been called. Can happen
+    // if the response stream is listened to with `cancelOnError: false`.
     if (!responseInProgress!) return;
     responseInProgress = false;
     responseEndTimestamp = DateTime.now().microsecondsSinceEpoch;
@@ -239,6 +243,13 @@ class _HttpProfileData {
   static final String isolateId = Service.getIsolateId(Isolate.current)!;
 
   bool requestInProgress = true;
+
+  /// Whether the response-processing has started, and has not yet finished.
+  ///
+  /// This field has three meaningful states:
+  /// * `null`: processing the response has not started.
+  /// * `true`: processing the response has started.
+  /// * `false`: processing the response has finished.
   bool? responseInProgress;
 
   late final String id;
@@ -609,9 +620,6 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
       super(_incoming) {
     // Set uri for potential exceptions.
     _incoming.uri = _httpRequest.uri;
-    // Ensure the response profile is completed, even if the response stream is
-    // never actually listened to.
-    _incoming.dataDone.then((_) => _profileData?.finishResponse());
   }
 
   static HttpClientResponseCompressionState _getCompressionState(
@@ -1482,6 +1490,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   final _HttpClient _httpClient;
   final _HttpClientConnection _httpClientConnection;
 
+  /// A [Completer] that completes when the response has been fully received,
+  /// including any redirects and authentications.
   final Completer<HttpClientResponse> _responseCompleter =
       Completer<HttpClientResponse>();
 
@@ -1522,6 +1532,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         // 'certificate': response.certificate,
         response: response,
       );
+      (response as _HttpClientResponse)._incoming.dataDone.then(
+        // Ensure the response profile is finished, even if the response stream
+        // is never listened to.
+        (_) => _profileData?.finishResponse(),
+      );
     }, onError: (e) {});
   }
 
@@ -1554,7 +1569,10 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   HttpConnectionInfo? get connectionInfo =>
       _httpClientConnection.connectionInfo;
 
-  void _onIncoming(_HttpIncoming incoming) {
+  /// Handles [incoming] by possibly following redirects, possibly
+  /// authenticating, and completing [_responseCompleter] when the response is
+  /// complete.
+  void _handleIncoming(_HttpIncoming incoming) {
     if (_aborted) {
       return;
     }
@@ -2396,7 +2414,7 @@ class _HttpClientConnection {
                 if (nextnonce != null) creds.nonce = nextnonce;
               }
             }
-            request._onIncoming(incoming);
+            request._handleIncoming(incoming);
           })
           // If we see a state error, we failed to get the 'first'
           // element.

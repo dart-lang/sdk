@@ -687,6 +687,12 @@ extension ParameterElementImplExtension on ParameterElementImpl {
   }
 }
 
+extension PatternVariableElementImpl2Extension on PatternVariableElementImpl2 {
+  PatternVariableElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
 extension PatternVariableElementImplExtension on PatternVariableElementImpl {
   PatternVariableElementImpl2 get asElement2 {
     return element;

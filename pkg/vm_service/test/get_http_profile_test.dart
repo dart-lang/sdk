@@ -248,8 +248,8 @@ Future<void> hasValidHttpRequests(HttpProfile profile, String method) async {
           } else {
             // write() was used.
             expect(
-              utf8.decode(fullRequest.requestBody!).startsWith('$method http'),
-              true,
+              utf8.decode(fullRequest.requestBody!),
+              startsWith('$method http'),
             );
           }
         }
@@ -258,9 +258,15 @@ Future<void> hasValidHttpRequests(HttpProfile profile, String method) async {
           final responseData = r.response!;
           expect(responseData.statusCode, greaterThanOrEqualTo(100));
           expect(responseData.endTime, isNotNull);
-          expect(responseData.startTime!.isAfter(r.endTime!), true);
-          expect(responseData.startTime!.isBefore(responseData.endTime!), true);
-          expect(utf8.decode(fullRequest.responseBody!), method);
+          expect(responseData.startTime!, _isAfterOrSameAs(r.endTime!));
+          expect(
+            responseData.startTime!,
+            _isBeforeOrSameAs(responseData.endTime!),
+          );
+          if (method != 'HEAD') {
+            // The HEAD response has no body.
+            expect(utf8.decode(fullRequest.responseBody!), method);
+          }
           responseData.headers;
           responseData.compressionState;
           responseData.connectionInfo;
@@ -279,7 +285,7 @@ Future<void> hasValidHttpRequests(HttpProfile profile, String method) async {
 }
 
 void hasValidHttpProfile(HttpProfile profile, String method) {
-  expect(profile.requests.where((e) => e.method == method).length, 10);
+  expect(profile.requests.where((e) => e.method == method), hasLength(10));
 }
 
 Future<void> hasValidHttpCONNECTs(HttpProfile profile) =>
@@ -329,7 +335,7 @@ final tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
 
     final httpProfile = await service.getHttpProfile(isolateId);
-    expect(httpProfile.requests.length, 70);
+    expect(httpProfile.requests, hasLength(70));
 
     // Verify timeline events.
     await hasValidHttpCONNECTs(httpProfile);
@@ -350,3 +356,56 @@ void main([args = const <String>[]]) => runIsolateTests(
       'get_http_profile_test.dart',
       testeeBefore: testMain,
     );
+
+class _DateTimeMatcher extends Matcher {
+  const _DateTimeMatcher(this._expected, this._condition);
+
+  final DateTime _expected;
+
+  final _DateTimeCondition _condition;
+
+  @override
+  Description describe(Description description) {
+    return description.add('DateTime ${_condition.name} $_expected');
+  }
+
+  @override
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    Map matchState,
+    bool verbose,
+  ) {
+    if (item is! DateTime) return mismatchDescription;
+    final difference = _condition == _DateTimeCondition.before
+        ? item.difference(_expected)
+        : _expected.difference(item);
+    final actualRelation =
+        _condition == _DateTimeCondition.before ? 'after' : 'before';
+    return mismatchDescription
+        .add('is ${difference.inMicroseconds} microseconds $actualRelation');
+  }
+
+  @override
+  bool matches(Object? item, Map matchState) {
+    if (item is! DateTime) {
+      return false;
+    }
+    return switch (_condition) {
+      _DateTimeCondition.before =>
+        item.isBefore(_expected) || item.isAtSameMomentAs(_expected),
+      _DateTimeCondition.after =>
+        item.isAfter(_expected) || item.isAtSameMomentAs(_expected),
+    };
+  }
+}
+
+enum _DateTimeCondition {
+  before,
+  after;
+}
+
+_DateTimeMatcher _isBeforeOrSameAs(DateTime item) =>
+    _DateTimeMatcher(item, _DateTimeCondition.before);
+_DateTimeMatcher _isAfterOrSameAs(DateTime item) =>
+    _DateTimeMatcher(item, _DateTimeCondition.after);

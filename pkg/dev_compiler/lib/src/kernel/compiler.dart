@@ -75,6 +75,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   final classIdentifiers = <Class, js_ast.Identifier>{};
 
+  /// Maps every mixin application to a unique identifier.
+  ///
+  /// A mixin application is represented as a (mixin, class) pair, where
+  /// 'mixin' is being mixed into 'class'. Anonymous mixins are already
+  /// unique per mixin application and so pass themselves in as both 'mixin'
+  /// and 'class'.
+  ///
+  /// This mapping is used when generating super property getters in mixins.
+  final Map<(Class, Class), js_ast.Identifier> _mixinCache = {};
+
+  /// Records a reference to a mixin application's passed in superclass.
+  /// (see [_emitMixinStatement]).
+  final Map<Class, js_ast.Identifier> _mixinSuperclassCache = {};
+
   /// Maps each class `Member` node compiled in the module to the name used for
   /// the member in JavaScript.
   ///
@@ -957,6 +971,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // a simpler representation within instance members of the class.
     _currentTypeEnvironment = ClassTypeEnvironment(c.typeParameters);
 
+    // Store identifiers for a mixin application's passed in superclass.
+    // (see [_emitMixinStatement]).
+    if (c.isMixinDeclaration && !c.isMixinClass) {
+      _mixinSuperclassCache.putIfAbsent(
+          c, () => _emitScopedId(getLocalClassName(c.superclass!)));
+    }
+
     // Mixins are unrolled in _defineClass.
     if (!c.isAnonymousMixin) {
       // If this class is annotated with `@JS`, then we only need to emit the
@@ -1030,8 +1051,24 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     });
 
     var jsCtors = _defineConstructors(c, className);
-
     var jsMethods = _emitClassMethods(c);
+    var jsStaticMethodTypeTags = <js_ast.Statement>[];
+    for (var member in c.procedures) {
+      // TODO(#57049): We tag all static members because we don't know if
+      // they've been changed after a hot reload. This won't be necessary if we
+      // can tag them during the delta diff phase.
+      if (member.isStatic && _reifyTearoff(member) && !member.isExternal) {
+        var result = _emitStaticTarget(member);
+        // We only need to tag static functions that are torn off at
+        // compile-time. We attach these late so tearoffs have access to
+        // their types.
+        var reifiedType = member.function
+            .computeThisFunctionType(member.enclosingLibrary.nonNullable);
+        jsStaticMethodTypeTags.add(
+            _emitFunctionTagged(result, reifiedType, asLazy: true)
+                .toStatement());
+      }
+    }
 
     _emitSuperHelperSymbols(body);
     // Deferred supertypes must be evaluated lazily while emitting classes to
@@ -1042,6 +1079,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Emit the class, e.g. `core.Object = class Object { ... }`
     _defineClass(c, className, jsMethods, body, deferredSupertypes);
     body.addAll(jsCtors);
+    body.addAll(jsStaticMethodTypeTags);
 
     // Emit things that come after the ES6 `class ... { ... }`.
 
@@ -1217,7 +1255,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var instanceMethods = methods.where((m) => !m.isStatic).toList();
 
     body.add(_emitClassStatement(c, className, heritage, staticMethods));
-    var superclassId = _emitScopedId(getLocalClassName(c.superclass!));
+    var superclassId = _mixinSuperclassCache[c]!;
     var classId = className is js_ast.Identifier
         ? className
         : _emitScopedId(getLocalClassName(c));
@@ -1279,15 +1317,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(jmesserly): investigate this. It seems like `lazyJSType` is
       // invalid for use in an `extends` clause, hence this workaround.
       return _emitJSInterop(t.classNode) ?? _emitClassRef(t);
-    }
-
-    js_ast.Expression getBaseClass(int count) {
-      var base = emitDeferredClassRef(
-          c.getThisType(_coreTypes, Nullability.nonNullable));
-      while (--count >= 0) {
-        base = _emitJSObjectGetPrototypeOf(base, fullyQualifiedName: true);
-      }
-      return base;
     }
 
     // Find the real (user declared) superclass and the list of mixins.
@@ -1372,9 +1401,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _declareBeforeUse(mixinClass);
       var mixinType =
           _hierarchy.getClassAsInstanceOf(c, mixinClass)!.asInterfaceType;
-      var mixinName =
-          '${getLocalClassName(superclass)}_${getLocalClassName(mixinClass)}';
-      var mixinId = _emitScopedId('$mixinName\$');
+      var mixinId = _emitMixinId(m, m.isAnonymousMixin ? m : c);
       // Collect all forwarding stub members from anonymous mixins classes.
       // These can contain covariant parameter checks that need to be applied.
       var savedClassProperties = _classProperties;
@@ -1412,27 +1439,33 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _currentTypeEnvironment = savedTypeEnvironment;
       _classProperties = savedClassProperties;
 
-      // Bind the mixin class to a name to workaround a V8 bug with es6 classes
-      // and anonymous function names.
-      // TODO(leafp:) Eliminate this once the bug is fixed:
-      // https://bugs.chromium.org/p/v8/issues/detail?id=7069
-      body.add(js.statement('const # = #', [
-        mixinId,
-        js_ast.ClassExpression(
-            _emitScopedId(mixinName), baseClass, forwardingMethodStubs)
-      ]));
+      // Mixins need to be exposed in this library in case they are
+      // referenced in a super getter.
+      // TODO(markzipan): We originally bound mixin classes to a temporary as a
+      // workaround for a now-resolved Chrome issue. However, a side effect of
+      // this operation is that mixin IDs are renamed by the local visitor. We
+      // can remove this hoisting after we give mixins unique names.
+      var enclosingLibrary = _emitLibraryName(_currentLibrary!);
+      var mixinAccessor =
+          js_ast.PropertyAccess(enclosingLibrary, js.string(mixinId.name));
+      body.addAll([
+        js.statement('const # = #', [
+          mixinId,
+          js_ast.ClassExpression(_emitScopedId('${mixinId.name}\$'), baseClass,
+              forwardingMethodStubs)
+        ]),
+        js.statement('# = #', [mixinAccessor, mixinId])
+      ]);
 
       emitMixinConstructors(mixinId, superclass, mixinClass, mixinType);
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(mixinClass);
-
+      var mixinTargetLabel = js.string(fullyResolvedMixinClassLabel(m));
       if (shouldDefer(mixinType)) {
-        deferredSupertypes.add(() => _runtimeStatement('applyMixin(#, #)', [
-              getBaseClass(mixinApplications.length - i),
-              emitDeferredClassRef(mixinType)
-            ]));
+        deferredSupertypes.add(() => _runtimeStatement('applyMixin(#, #, #)',
+            [mixinId, emitDeferredClassRef(mixinType), mixinTargetLabel]));
       } else {
-        body.add(_runtimeStatement(
-            'applyMixin(#, #)', [mixinId, emitClassRef(mixinType)]));
+        body.add(_runtimeStatement('applyMixin(#, #, #)',
+            [mixinId, emitClassRef(mixinType), baseClass]));
       }
 
       baseClass = mixinId;
@@ -1608,6 +1641,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var staticMethods = <js_ast.Property>[];
     var instanceMethods = <js_ast.Property>[];
     var instanceMethodsDefaultTypeArgs = <js_ast.Property>[];
+    var methodsImmediateTarget = <js_ast.Property>[];
     var staticGetters = <js_ast.Property>[];
     var instanceGetters = <js_ast.Property>[];
     var staticSetters = <js_ast.Property>[];
@@ -1661,9 +1695,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var needsSignature = memberOverride == null ||
           reifiedType != _memberRuntimeType(memberOverride, c);
 
+      var memberName = _declareMemberName(member);
+      if (!member.isAccessor) {
+        var immediateTarget = js.string(fullyResolvedTargetLabel(member));
+        methodsImmediateTarget
+            .add(js_ast.Property(memberName, immediateTarget));
+      }
+
       if (needsSignature) {
         js_ast.Expression type;
-        var memberName = _declareMemberName(member);
         if (member.isAccessor) {
           // These signatures are used for dynamic access and to inform the
           // debugger. The `arrayRti` accessor is only used by the dart:_rti
@@ -1716,6 +1756,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     emitSignature('Method', instanceMethods);
     emitSignature('MethodsDefaultTypeArg', instanceMethodsDefaultTypeArgs);
+    emitSignature('MethodsImmediateTarget', methodsImmediateTarget);
     // TODO(40273) Skip for all statics when the debugger consumes signature
     // information from symbol files.
     emitSignature('StaticMethod', staticMethods);
@@ -2741,12 +2782,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
-  js_ast.Expression _declareMemberName(Member m, {bool? useExtension}) {
+  js_ast.Expression _declareMemberName(Member m, {bool useExtension = false}) {
     var c = m.enclosingClass;
+    var actualUseExtension =
+        useExtension || (c != null && _extensionTypes.isNativeClass(c));
     return _emitMemberName(m.name.text,
         isStatic: m is Field ? m.isStatic : (m as Procedure).isStatic,
-        useExtension:
-            useExtension ?? c != null && _extensionTypes.isNativeClass(c),
+        useExtension: actualUseExtension,
         member: m);
   }
 
@@ -3074,10 +3116,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         .where((p) =>
             !p.isExternal && !p.isAbstract && !_isStaticInteropTearOff(p))
         .toList();
-    _moduleItems.addAll(procedures
-        .where((p) => !p.isAccessor)
-        .map(_emitLibraryFunction)
-        .toList());
+    for (var p in procedures) {
+      if (!p.isAccessor) {
+        _moduleItems.add(_emitLibraryFunction(p));
+      }
+      // TODO(#57049): We tag all static members because we don't know if
+      // they've been changed after a hot reload. This won't be necessary if we
+      // can tag them during the delta diff phase.
+      if (p.isStatic && _reifyTearoff(p) && !p.isExternal) {
+        var nameExpr = _emitTopLevelName(p);
+        _moduleItems.add(_emitFunctionTagged(
+                nameExpr,
+                p.function
+                    .computeThisFunctionType(p.enclosingLibrary.nonNullable),
+                asLazy: true)
+            .toStatement());
+      }
+    }
     _emitLibraryAccessors(procedures.where((p) => p.isAccessor).toList());
   }
 
@@ -3215,12 +3270,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Expression _emitFunctionTagged(js_ast.Expression fn, FunctionType type,
-      {bool topLevel = false}) {
-    var lazy = topLevel && !_canEmitTypeAtTopLevel(type);
-    assert(type.nullability == Nullability.nonNullable);
-    var typeRep = _emitType(type);
+      {bool asLazy = false}) {
+    var typeRep = _emitType(
+        // Avoid tagging a closure as Function? or Function*
+        type.withDeclaredNullability(Nullability.nonNullable));
     if (type.typeParameters.isEmpty) {
-      return _runtimeCall(lazy ? 'lazyFn(#, #)' : 'fn(#, #)', [fn, typeRep]);
+      return asLazy
+          ? _runtimeCall('lazyFn(#, () => #)', [fn, typeRep])
+          : _runtimeCall('fn(#, #)', [fn, typeRep]);
     } else {
       var typeParameterDefaults = [
         for (var parameter in type.typeParameters)
@@ -3228,56 +3285,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ];
       var defaultInstantiatedBounds =
           _emitConstList(const DynamicType(), typeParameterDefaults);
-      return _runtimeCall(
-          'gFn(#, #, #)', [fn, typeRep, defaultInstantiatedBounds]);
-    }
-  }
-
-  /// Whether the expression for [type] can be evaluated at this point in the JS
-  /// module.
-  ///
-  /// Types cannot be evaluated if they depend on something that hasn't been
-  /// defined yet. For example:
-  ///
-  ///     C foo() => null;
-  ///     class C {}
-  ///
-  /// If we're emitting the type information for `foo`, we cannot refer to `C`
-  /// yet, so we must evaluate foo's type lazily.
-  bool _canEmitTypeAtTopLevel(DartType type) {
-    switch (type) {
-      case InterfaceType():
-        return !_pendingClasses!.contains(type.classNode) &&
-            type.typeArguments.every(_canEmitTypeAtTopLevel);
-      case FutureOrType():
-        return !_pendingClasses!.contains(_coreTypes.deprecatedFutureOrClass) &&
-            _canEmitTypeAtTopLevel(type.typeArgument);
-      case FunctionType():
-        // Generic functions are always safe to emit, because they're lazy until
-        // type arguments are applied.
-        if (type.typeParameters.isNotEmpty) return true;
-        return _canEmitTypeAtTopLevel(type.returnType) &&
-            type.positionalParameters.every(_canEmitTypeAtTopLevel) &&
-            type.namedParameters.every((n) => _canEmitTypeAtTopLevel(n.type));
-      case RecordType():
-        return type.positional.every(_canEmitTypeAtTopLevel) &&
-            type.named.every((n) => _canEmitTypeAtTopLevel(n.type));
-      case TypedefType():
-        return type.typeArguments.every(_canEmitTypeAtTopLevel);
-      case ExtensionType():
-        return _canEmitTypeAtTopLevel(type.extensionTypeErasure);
-      case DynamicType():
-      case VoidType():
-      case NeverType():
-      case NullType():
-      case IntersectionType():
-      case TypeParameterType():
-      case StructuralParameterType():
-        return true;
-      case AuxiliaryType():
-        throwUnsupportedAuxiliaryType(type);
-      case InvalidType():
-        throwUnsupportedInvalidType(type);
+      return asLazy
+          ? _runtimeCall('lazyGFn(#, () => #, () => #)',
+              [fn, typeRep, defaultInstantiatedBounds])
+          : _runtimeCall(
+              'gFn(#, #, #)', [fn, typeRep, defaultInstantiatedBounds]);
     }
   }
 
@@ -5011,7 +5023,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var jsMemberName = _emitMemberName(memberName, member: member);
     if (_reifyTearoff(member)) {
-      return _runtimeCall('bind(#, #)', [jsReceiver, jsMemberName]);
+      return _runtimeCall('tearoff(#, null, #)', [jsReceiver, jsMemberName]);
     }
     var jsPropertyAccess = js_ast.PropertyAccess(jsReceiver, jsMemberName);
     return isJsMember(member)
@@ -5152,11 +5164,41 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _emitSuperPropertyGet(node.interfaceTarget);
   }
 
+  /// Emits a reference to a distinct mixin application, represented by
+  /// a [mixedInClass] being mixed into [baseClass].
+  ///
+  /// Anonymous mixins should pass themselves as [baseClass] since they are
+  /// already uniquely generated per distinct mixin application
+  js_ast.Identifier _emitMixinId(Class mixedInClass, Class baseClass) {
+    var mixinName = mixedInClass.name;
+    if (!mixedInClass.isAnonymousMixin) {
+      mixinName += '#${baseClass.name}';
+    }
+    return _mixinCache
+        .putIfAbsent((mixedInClass, baseClass), () => _emitScopedId(mixinName));
+  }
+
   js_ast.Expression _emitSuperPropertyGet(Member target) {
     if (_reifyTearoff(target)) {
       if (_superAllowed) {
         var jsTarget = _emitSuperTarget(target);
-        return _runtimeCall('bind(this, #, #)', [jsTarget.selector, jsTarget]);
+        var jsName = _declareMemberName(target);
+        var enclosingClass = target.enclosingClass!;
+        js_ast.Expression? supertypeReference =
+            _mixinSuperclassCache[_currentClass!];
+        if (supertypeReference == null) {
+          if (enclosingClass.isAnonymousMixin) {
+            var mixinId = _emitMixinId(enclosingClass, enclosingClass);
+            var enclosingLibrary = _emitLibraryName(getLibrary(enclosingClass));
+            supertypeReference = js_ast.PropertyAccess(
+                enclosingLibrary, js.string(mixinId.name));
+          } else {
+            supertypeReference =
+                _emitTopLevelNameNoExternalInterop(enclosingClass);
+          }
+        }
+        return _runtimeCall(
+            'bind(this, #, #, #)', [supertypeReference, jsName, jsTarget]);
       } else {
         return _emitSuperTearoff(target);
       }
@@ -5200,13 +5242,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitStaticGet(node.target);
 
   js_ast.Expression _emitStaticGet(Member target) {
-    var result = _emitStaticTarget(target);
+    var propertyAccessor = _emitStaticTarget(target);
+    var context = propertyAccessor.receiver;
+    var property = propertyAccessor.selector;
+    var result = js.call('#.#', [context, property]);
     if (_reifyTearoff(target)) {
-      // TODO(jmesserly): we could tag static/top-level function types once
-      // in the module initialization, rather than at the point where they
-      // escape.
-      return _emitFunctionTagged(result,
-          target.function!.computeThisFunctionType(Nullability.nonNullable));
+      var enclosingMemberTargetName =
+          js.string(fullyResolvedTargetLabel(target));
+      return _runtimeCall('staticTearoff(#, #, #)',
+          [context, enclosingMemberTargetName, property]);
     }
     return result;
   }
@@ -5840,8 +5884,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Emits the [js_ast.PropertyAccess] for accessors or method calls to
   /// [jsTarget].[jsName], replacing `super` if it is not allowed in scope.
   js_ast.PropertyAccess _emitSuperTarget(Member member, {bool setter = false}) {
-    var jsName = _emitMemberName(member.name.text, member: member);
-    // Optimize access to non-virtual fields, if allowed in the current context.
+    var jsName = _declareMemberName(member);
     if (_optimizeNonVirtualFieldAccess &&
         member is Field &&
         !_virtualFields.isVirtual(member)) {
@@ -5897,6 +5940,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js_ast.PropertyAccess(js_ast.This(), jsMethod.name);
   }
 
+  /// Generates a special string used for identifying a torn off member [m].
+  ///
+  /// This tag is used for determining tearoff equality. We attach these tags
+  /// at tearoff time for static tearoffs and in the method signature for
+  /// dynamic tearoffs.
+  String fullyResolvedTargetLabel(Member m) {
+    return '${m.enclosingLibrary.importUri}:${m.enclosingClass?.name ?? ""}';
+  }
+
+  /// Generates a special string used for identifying class [c]'s applied mixed
+  /// in members.
+  ///
+  /// This tag is used for determining tearoff equality. We attach these tags
+  /// at tearoff time for static tearoffs and in the method signature for
+  /// dynamic tearoffs.
+  String fullyResolvedMixinClassLabel(Class c) {
+    return '${c.enclosingLibrary.importUri}:${c.name}';
+  }
+
   /// Generates a helper method that is inserted into the class that binds a
   /// tearoff of [member] from `super` and returns a call to the helper.
   ///
@@ -5904,11 +5966,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   // TODO(nshahan) Replace with a kernel transform and synthetic method filters
   // for devtools.
   js_ast.Expression _emitSuperTearoff(Member member) {
-    var jsName = _emitMemberName(member.name.text, member: member);
+    var jsName = _declareMemberName(member);
     var name = '_#super#tearOff#${member.name.text}';
     var jsMethod = _superHelpers.putIfAbsent(name, () {
-      var jsReturnValue =
-          _runtimeCall('bind(this, #, super[#])', [jsName, jsName]);
+      var superclass = member.enclosingClass?.superclass;
+      var supertypeReference = superclass == null
+          ? js_ast.LiteralNull()
+          : _mixinSuperclassCache[member.enclosingClass!] ??
+              _emitTopLevelNameNoExternalInterop(superclass);
+      var jsReturnValue = _runtimeCall(
+          'bind(this, #, #, super[#])', [supertypeReference, jsName, jsName]);
       var fn = js.fun('function() { return #; }', [jsReturnValue]);
       name = js_ast.friendlyNameForDartOperator[name] ?? name;
       return js_ast.Method(_emitScopedId(name), fn);
@@ -6299,7 +6366,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Emits the target of a [StaticInvocation], [StaticGet], or [StaticSet].
-  js_ast.Expression _emitStaticTarget(Member target) {
+  js_ast.PropertyAccess _emitStaticTarget(Member target) {
     var c = target.enclosingClass;
     if (c != null) {
       // A static native element should just forward directly to the JS type's
@@ -6309,9 +6376,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (isExternal && (target as Procedure).isStatic) {
         var nativeName = _extensionTypes.getNativePeers(c);
         if (nativeName.isNotEmpty) {
-          var memberName = _annotationName(target, isJSName) ??
-              _emitStaticMemberName(target.name.text, target);
-          return _runtimeCall('global.#.#', [nativeName[0], memberName]);
+          var annotationName = _annotationName(target, isJSName);
+          var memberName = annotationName == null
+              ? _emitStaticMemberName(target.name.text, target)
+              : js.string(annotationName);
+          return js_ast.PropertyAccess(
+              _runtimeCall('global.#', [nativeName[0]]), memberName);
         }
       }
       return js_ast.PropertyAccess(_emitStaticClassName(c, isExternal),

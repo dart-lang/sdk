@@ -6721,7 +6721,7 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
       result.add(variable);
       if (variable is JoinPatternVariableElementImpl2) {
         for (var variable in variable.variables2) {
-          append(variable as PatternVariableElementImpl2);
+          append(variable);
         }
       }
     }
@@ -6734,7 +6734,7 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
   List<PatternVariableElementImpl> get variables => _wrappedElement.variables;
 
   @override
-  List<PatternVariableElement2> get variables2 =>
+  List<PatternVariableElementImpl2> get variables2 =>
       _wrappedElement.variables.map((fragment) => fragment.element).toList();
 
   @override
@@ -7603,9 +7603,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   @override
   final LocalFunctionFragmentImpl _wrappedElement;
 
-  LocalFunctionElementImpl(this._wrappedElement) {
-    _wrappedElement.element = this;
-  }
+  LocalFunctionElementImpl(this._wrappedElement);
 
   @override
   String? get documentationComment => _wrappedElement.documentationComment;
@@ -7681,7 +7679,7 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
     implements LocalFunctionFragment {
   /// The element corresponding to this fragment.
   @override
-  late LocalFunctionElementImpl element;
+  late final LocalFunctionElementImpl element = LocalFunctionElementImpl(this);
 
   @override
   LocalFunctionFragmentImpl? previousFragment;

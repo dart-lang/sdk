@@ -114,6 +114,48 @@ void f(String /*[0*/s/*0]*/) {
     );
   }
 
+  Future<void> test_property_getter_enum_value_excluded() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+enum MyEnum {
+  one,
+}
+
+void f(MyEnum x) {
+  print(/*[0*/x/*0]*/ == MyEnum.one); // MyEnum.one excluded
+  print(/*[1*/MyEnum.one.index/*1]*/);
+  ^
+}
+''');
+
+    await verify_values(
+      code,
+      ofTypes: {
+        0: InlineValueVariableLookup,
+        1: InlineValueEvaluatableExpression,
+      },
+    );
+  }
+
+  Future<void> test_property_getter_enum_values_excluded() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+enum MyEnum {
+  one,
+}
+
+void f() {
+  print(MyEnum.values); // MyEnum.values excluded
+  print(/*[0*/MyEnum.values.length/*0]*/);
+  ^
+}
+''');
+
+    await verify_values(code, ofType: InlineValueEvaluatableExpression);
+  }
+
   Future<void> test_property_method() async {
     experimentalInlineValuesProperties = true;
 

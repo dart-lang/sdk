@@ -565,8 +565,7 @@ void IsolateGroup::Shutdown() {
                    Dart::UptimeMillis(), name);
     }
     MonitorLocker ml(Isolate::isolate_creation_monitor_);
-    if (!Isolate::creation_enabled_ &&
-        !IsolateGroup::HasApplicationIsolateGroups()) {
+    if (!Isolate::creation_enabled_) {
       ml.Notify();
     }
     if (trace_shutdown) {
