@@ -26,6 +26,21 @@ class FlutterWrapValueListenableBuilderTest extends AssistProcessorTest {
     writeTestPackageConfig(flutter: true);
   }
 
+  Future<void> test_aroundBuilder() async {
+    await resolveTestCode('''
+  import 'package:flutter/widgets.dart';
+
+  void f(ValueListenable<int> v) {
+    ^Builder(
+      builder: (context) {
+        return Text('a');
+      },
+    );
+  }
+  ''');
+    await assertNoAssist();
+  }
+
   Future<void> test_aroundText() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -38,7 +53,7 @@ void f() {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  ValueListenableBuilder<Object>(
+  ValueListenableBuilder(
     valueListenable: valueListenable,
     builder: (context, value, child) {
       return Text('a');
@@ -65,7 +80,7 @@ void f() {
   import 'package:flutter/widgets.dart';
 
   void f(ValueListenable<int> v) {
-    ValueListenableBuilder<Object>(
+    ValueListenableBuilder(
       valueListenable: valueListenable,
       builder: (context, value, child) {
         return ValueListenableBuilder<int>(
@@ -100,7 +115,7 @@ void f() {
     ValueListenableBuilder<int>(
       valueListenable: v,
       builder: (context, value, _) {
-        return ValueListenableBuilder<Object>(
+        return ValueListenableBuilder(
           valueListenable: valueListenable,
           builder: (context, value, child) {
             return Text('a');
@@ -132,7 +147,7 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Object>(
+    return ValueListenableBuilder(
       valueListenable: valueListenable,
       builder: (context, value, child) {
         return const Text('hi');
@@ -163,7 +178,7 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Object>(
+    return ValueListenableBuilder(
       valueListenable: valueListenable,
       builder: (context, value, child) {
         return const Text('hi');

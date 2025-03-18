@@ -77,9 +77,9 @@ void f() {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  StreamBuilder<Object>(
-    stream: null,
-    builder: (context, snapshot) {
+  StreamBuilder(
+    stream: stream,
+    builder: (context, asyncSnapshot) {
       return Text('a');
     }
   );
