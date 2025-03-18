@@ -5,8 +5,6 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
-import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -455,13 +453,12 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
       superType: instA,
     );
 
-    var typeParametersC =
-        ElementFactory.typeParameters(['T']).map((e) => e.asElement2).toList();
+    var typeParameterCT = typeParameter('T');
     var classC = class_2(
       name: 'B',
-      typeParameters: typeParametersC,
+      typeParameters: [typeParameterCT],
       superType: interfaceTypeNone(classB, typeArguments: [
-        typeParameterTypeNone(typeParametersC[0]),
+        typeParameterTypeNone(typeParameterCT),
       ]),
     );
 

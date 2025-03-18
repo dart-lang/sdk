@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -621,7 +620,7 @@ class _MockSdkElementsBuilder {
     var objectElement = _objectElement;
     if (objectElement != null) return objectElement;
 
-    _objectElement = objectElement = ElementFactory.object;
+    _objectElement = objectElement = _class(name: 'Object', unit: _coreUnit);
     _coreUnit.encloseElement(objectElement);
     objectElement.interfaces = const <InterfaceType>[];
     objectElement.mixins = const <InterfaceType>[];
@@ -1004,7 +1003,17 @@ class _MockSdkElementsBuilder {
     bool isFinal = false,
     bool isStatic = false,
   }) {
-    return ElementFactory.fieldElement(name, isStatic, isFinal, isConst, type);
+    var fragment =
+        isConst ? ConstFieldElementImpl(name, 0) : FieldElementImpl(name, 0);
+    fragment.isConst = isConst;
+    fragment.isFinal = isFinal;
+    fragment.isStatic = isStatic;
+    fragment.type = type;
+    PropertyAccessorElementImpl_ImplicitGetter(fragment);
+    if (!isConst && !isFinal) {
+      PropertyAccessorElementImpl_ImplicitSetter(fragment);
+    }
+    return fragment;
   }
 
   TopLevelFunctionFragmentImpl _function(
