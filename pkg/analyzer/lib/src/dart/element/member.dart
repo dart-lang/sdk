@@ -1472,8 +1472,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
     if (variable is FieldElementImpl) {
       return FieldMember(variable, augmentationSubstitution, _substitution);
     } else if (variable is TopLevelVariableElementImpl) {
-      return TopLevelVariableMember(
-          variable, augmentationSubstitution, _substitution);
+      return variable;
     }
     return variable;
   }
@@ -1641,74 +1640,6 @@ class SuperFormalParameterMember extends ParameterMember
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitSuperFormalParameterElement(this);
-}
-
-class TopLevelVariableMember extends VariableMember
-    implements TopLevelVariableElement, PropertyInducingElementOrMember {
-  TopLevelVariableMember(
-    super.declaration,
-    super.augmentationSubstitution,
-    super.substitution,
-  );
-
-  @override
-  TopLevelVariableElementImpl get declaration =>
-      _declaration as TopLevelVariableElementImpl;
-
-  @override
-  String get displayName => declaration.displayName;
-
-  @override
-  PropertyAccessorElement? get getter {
-    var baseGetter = declaration.getter;
-    if (baseGetter == null) {
-      return null;
-    }
-    return PropertyAccessorMember(
-        baseGetter, augmentationSubstitution, _substitution);
-  }
-
-  @override
-  bool get hasInitializer => declaration.hasInitializer;
-
-  @override
-  bool get isAugmentation => declaration.isAugmentation;
-
-  @override
-  bool get isExternal => declaration.isExternal;
-
-  @override
-  LibraryElementImpl get library {
-    return _declaration.library as LibraryElementImpl;
-  }
-
-  @override
-  LibraryElementImpl get library2 => library;
-
-  @override
-  String get name => declaration.name;
-
-  @override
-  PropertyAccessorElement? get setter {
-    var baseSetter = declaration.setter;
-    if (baseSetter == null) {
-      return null;
-    }
-    return PropertyAccessorMember(
-        baseSetter, augmentationSubstitution, _substitution);
-  }
-
-  @override
-  Source get source => _declaration.source!;
-
-  @override
-  TopLevelVariableElement2 get _element2 => declaration.asElement2;
-
-  @Deprecated('Use Element2 and accept2() instead')
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitTopLevelVariableElement(this);
-  }
 }
 
 /// A variable element defined in a parameterized type where the values of the
