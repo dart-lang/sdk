@@ -144,6 +144,36 @@ Project:
 
 **Expected outcome**: A package on pub.dev with terminal primitives like text styling, inputs, checkboxes, tables, layouts, spinners etc.
 
+## **Idea:** Generate JS Interop Bindings for TypeScript Declaration Files
+
+ - **Possible Mentor(s)**: `srujzs@google.com`
+ - **Difficulty**: Hard
+ - **Project size**: Large (350 hours)
+ - **Skills**: Dart, JS/TS
+
+**Description**: Generate modern Dart JS interop declarations for `.d.ts` files.
+
+[`package:web_generator`](https://github.com/dart-lang/web/tree/main/web_generator) is used to generate the JS interop bindings for the DOM and various browser APIs in [`package:web`](https://github.com/dart-lang/web).
+It uses [`webidl2`](https://www.npmjs.com/package/webidl2) to parse the definitions that are supplied by [`webref`](https://www.npmjs.com/package/@webref/idl).
+Using JS interop, it takes the resulting JS AST nodes and create an intermediate representation.
+Lastly, with that intermediate representation, it uses [`package:code_builder`](https://github.com/dart-lang/tools/tree/main/pkgs/code_builder) to emit valid JS interop code.
+
+This project would entail doing something similar but instead of translating IDL files, it would translate `.d.ts` files to JS interop interfaces, reusing and refactoring the intermediate representation so that it can be used for both purposes.
+
+There is some history in [`js_facade_gen`](https://github.com/dart-archive/js_facade_gen), which is now archived.
+This project will be a lighterweight version of that that will emit [modern JS interop](https://dart.dev/interop/js-interop) instead.
+
+Project:
+* Find a parser for `.d.ts` files that outputs JS/TS AST nodes and add a script in `web_generator/bin` to use it.
+* Refactor the `package:web_generator` intermediate representation so it can be used as the translation target.
+* Use JS interop to translate the AST nodes to the intermediate representation.
+* Add tests for TS->JS interop code generation.
+
+**Good Sample Project**:
+
+* Modify or add a binary to `package:web_generator` to provide an option to generate bindings for specific IDL files instead of all of `webref`.
+
+**Expected outcome**: A published `package:web_generator` that includes a `bin/` script that consumes `.d.ts` files and outputs JS interop interfaces.
 
 ## TODO: More ideas as they come!
 
