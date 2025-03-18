@@ -1999,25 +1999,6 @@ class ResolutionReader {
       var declarationTypeParameters =
           firstFragment.typeParameters.map((tp) => tp.asElement2).toList();
 
-      var augmentationSubstitution = Substitution.empty;
-      if (enclosing != firstFragment) {
-        var elementTypeParameters = enclosing.typeParameters;
-        if (elementTypeParameters.length == declarationTypeParameters.length) {
-          augmentationSubstitution = Substitution.fromPairs(
-            elementTypeParameters,
-            declarationTypeParameters.instantiateNone(),
-          );
-        } else {
-          augmentationSubstitution = Substitution.fromPairs(
-            elementTypeParameters,
-            List.filled(
-              elementTypeParameters.length,
-              InvalidTypeImpl.instance,
-            ),
-          );
-        }
-      }
-
       var substitution = Substitution.empty;
       var typeArguments = _readTypeList();
       if (typeArguments.isNotEmpty) {
@@ -2028,13 +2009,9 @@ class ResolutionReader {
       }
 
       if (element is ExecutableElement) {
-        element = ExecutableMember.fromAugmentation(
-            element, augmentationSubstitution);
         element = ExecutableMember.from2(element, substitution);
       } else {
         element as FieldElement;
-        element =
-            FieldMember.fromAugmentation(element, augmentationSubstitution);
         element = FieldMember.from2(element, substitution);
       }
     }

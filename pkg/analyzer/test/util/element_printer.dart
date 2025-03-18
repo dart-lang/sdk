@@ -409,11 +409,6 @@ class ElementPrinter {
         }
       }
 
-      writeSubstitution(
-        'augmentationSubstitution',
-        element.augmentationSubstitution,
-      );
-
       writeSubstitution('substitution', element.substitution);
 
       if (_configuration.withRedirectedConstructors) {
