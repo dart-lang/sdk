@@ -6,6 +6,12 @@ import 'dart:async';
 
 enum Color { red, blue, green }
 
+class E {
+  final int x;
+  static E y(int x) => E(x);
+  E(this.x);
+}
+
 void main() {
   FutureOr<Color> color = .blue;
   FutureOr<FutureOr<Color>> recursiveColor = .blue;
@@ -22,4 +28,7 @@ void main() {
   }
 
   var colorList = <FutureOr<Color>>[.blue, .green, .red];
+
+  FutureOr<E> e = .y(1);
+  FutureOr<FutureOr<E>> recursiveE = .y(1);
 }

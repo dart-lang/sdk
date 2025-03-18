@@ -46,7 +46,7 @@ void main() {
   var memberExtList = <FutureOr<StaticMemberExt>>[.member(), .memberType<String, int>("s")];
   var nullableMemberExtList = <FutureOr<StaticMemberExt?>>[.member(), .memberType<String, int>("s")];
 
-  var memberExtContextPositional = StaticMemberExtFutureOrContext(.member(), .regular(1));
+  var memberExtContextPositional = StaticMemberExtFutureOrContext(.member(), .memberType<String, int>("s"));
   var memberExtContextNamed = StaticMemberExtFutureOrContext.named(nullableMemberExt: .memberType<String, int>("s"));
   var memberExtContextOptional = StaticMemberExtFutureOrContext.optional(.memberType<String, int>("s"));
 }
