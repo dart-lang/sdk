@@ -311,14 +311,24 @@ abstract class ExecutableMember extends Member
 
   @override
   List<ParameterElementMixin> get parameters {
-    return declaration.parameters.map<ParameterElementMixin>((p) {
-      if (p is FieldFormalParameterElementImpl) {
-        return FieldFormalParameterMember(p, substitution);
+    return declaration.parameters.map<ParameterElementMixin>((element) {
+      switch (element) {
+        case FieldFormalParameterElementImpl():
+          return FieldFormalParameterMember(
+            declaration: element,
+            substitution: substitution,
+          );
+        case SuperFormalParameterElementImpl():
+          return SuperFormalParameterMember(
+            declaration: element,
+            substitution: substitution,
+          );
+        default:
+          return ParameterMember(
+            declaration: element,
+            substitution: substitution,
+          );
       }
-      if (p is SuperFormalParameterElementImpl) {
-        return SuperFormalParameterMember(p, substitution);
-      }
-      return ParameterMember(p, substitution);
     }).toList();
   }
 
@@ -394,10 +404,11 @@ abstract class ExecutableMember extends Member
     ExecutableElement element,
     MapSubstitution substitution,
   ) {
+    ExecutableElementImpl declaration;
     var combined = substitution;
     if (element is ExecutableMember) {
       ExecutableMember member = element;
-      element = member.declaration;
+      declaration = member.declaration;
 
       var map = <TypeParameterElement2, DartType>{
         for (var MapEntry(:key, :value) in member.substitution.map.entries)
@@ -405,6 +416,8 @@ abstract class ExecutableMember extends Member
         ...substitution.map,
       };
       combined = Substitution.fromMap2(map);
+    } else {
+      declaration = element as ExecutableElementImpl;
     }
 
     if (combined.map.isEmpty) {
@@ -413,17 +426,24 @@ abstract class ExecutableMember extends Member
       return element as ExecutableElementOrMember;
     }
 
-    if (element is ConstructorElement) {
-      return ConstructorMember(
-        declaration: element,
-        substitution: combined,
-      );
-    } else if (element is MethodElement) {
-      return MethodMember(element, combined);
-    } else if (element is PropertyAccessorElement) {
-      return PropertyAccessorMember(element, combined);
-    } else {
-      throw UnimplementedError('(${element.runtimeType}) $element');
+    switch (declaration) {
+      case ConstructorElementImpl():
+        return ConstructorMember(
+          declaration: declaration,
+          substitution: combined,
+        );
+      case MethodElementImpl():
+        return MethodMember(
+          declaration: declaration,
+          substitution: combined,
+        );
+      case PropertyAccessorElementImpl():
+        return PropertyAccessorMember(
+          declaration: declaration,
+          substitution: combined,
+        );
+      default:
+        throw UnimplementedError('(${declaration.runtimeType}) $element');
     }
   }
 }
@@ -432,10 +452,10 @@ abstract class ExecutableMember extends Member
 /// type parameters are known.
 class FieldFormalParameterMember extends ParameterMember
     implements FieldFormalParameterElement {
-  factory FieldFormalParameterMember(
-    FieldFormalParameterElement declaration,
-    MapSubstitution substitution,
-  ) {
+  factory FieldFormalParameterMember({
+    required FieldFormalParameterElement declaration,
+    required MapSubstitution substitution,
+  }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       declaration.typeParameters,
       substitution,
@@ -532,7 +552,10 @@ class FieldMember extends VariableMember
     if (baseGetter == null) {
       return null;
     }
-    return PropertyAccessorMember(baseGetter, substitution);
+    return PropertyAccessorMember(
+      declaration: baseGetter,
+      substitution: substitution,
+    );
   }
 
   @override
@@ -593,7 +616,10 @@ class FieldMember extends VariableMember
     if (baseSetter == null) {
       return null;
     }
-    return PropertyAccessorMember(baseSetter, substitution);
+    return PropertyAccessorMember(
+      declaration: baseSetter,
+      substitution: substitution,
+    );
   }
 
   @override
@@ -998,10 +1024,10 @@ abstract class Member implements Element, ElementOrMember {
 /// type parameters are known.
 class MethodMember extends ExecutableMember
     implements MethodElementOrMember, MethodElement2OrMember {
-  factory MethodMember(
-    MethodElement declaration,
-    MapSubstitution substitution,
-  ) {
+  factory MethodMember({
+    required MethodElement declaration,
+    required MapSubstitution substitution,
+  }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       declaration.typeParameters,
       substitution,
@@ -1068,39 +1094,19 @@ class MethodMember extends ExecutableMember
     return visitor.visitMethodElement(this);
   }
 
-  /// If the given [method]'s type is different when any type parameters from
-  /// the defining type's declaration are replaced with the actual type
-  /// arguments from the [definingType], create a method member representing the
-  /// given method. Return the member that was created, or the base method if no
-  /// member was created.
-  static MethodElementOrMember? from(
-      MethodElement? method, InterfaceType definingType) {
-    if (method == null || definingType.typeArguments.isEmpty) {
-      // TODO(paulberry): eliminate this cast by changing the type of the
-      // `method` parameter.
-      return method as MethodElementOrMember?;
-    }
-
-    return MethodMember(
-      method,
-      Substitution.fromInterfaceType(definingType),
-    );
-  }
-
-  /// If the given [method]'s type is different when any type parameters from
-  /// the defining type's declaration are replaced with the actual type
-  /// arguments from the [definingType], create a method member representing the
-  /// given method. Return the member that was created, or the base method if no
-  /// member was created.
+  /// If [definingType] has type parameters, returns [MethodMember] with
+  /// type substitutions. Otherwise returns [element] as is.
   static MethodElement2OrMember from2(
-      MethodElementImpl2 element, InterfaceType definingType) {
+    MethodElementImpl2 element,
+    InterfaceType definingType,
+  ) {
     if (definingType.typeArguments.isEmpty) {
       return element;
     }
 
     return MethodMember(
-      element.asElement,
-      Substitution.fromInterfaceType(definingType),
+      declaration: element.asElement,
+      substitution: Substitution.fromInterfaceType(definingType),
     );
   }
 }
@@ -1113,10 +1119,10 @@ class ParameterMember extends VariableMember
   @override
   final List<TypeParameterElement> typeParameters;
 
-  factory ParameterMember(
-    ParameterElement declaration,
-    MapSubstitution substitution,
-  ) {
+  factory ParameterMember({
+    required ParameterElement declaration,
+    required MapSubstitution substitution,
+  }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       declaration.typeParameters,
       substitution,
@@ -1301,7 +1307,10 @@ class ParameterMember extends VariableMember
       return element;
     }
 
-    return ParameterMember(element, combined);
+    return ParameterMember(
+      declaration: element,
+      substitution: combined,
+    );
   }
 }
 
@@ -1311,10 +1320,10 @@ abstract class PropertyAccessorMember extends ExecutableMember
     implements
         PropertyAccessorElementOrMember,
         PropertyAccessorElement2OrMember {
-  factory PropertyAccessorMember(
-    PropertyAccessorElement declaration,
-    MapSubstitution substitution,
-  ) {
+  factory PropertyAccessorMember({
+    required PropertyAccessorElement declaration,
+    required MapSubstitution substitution,
+  }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       declaration.typeParameters,
       substitution,
@@ -1346,7 +1355,10 @@ abstract class PropertyAccessorMember extends ExecutableMember
     if (baseGetter == null) {
       return null;
     }
-    return PropertyAccessorMember(baseGetter, substitution);
+    return PropertyAccessorMember(
+      declaration: baseGetter,
+      substitution: substitution,
+    );
   }
 
   @override
@@ -1355,7 +1367,10 @@ abstract class PropertyAccessorMember extends ExecutableMember
     if (baseSetter == null) {
       return null;
     }
-    return PropertyAccessorMember(baseSetter, substitution);
+    return PropertyAccessorMember(
+      declaration: baseSetter,
+      substitution: substitution,
+    );
   }
 
   @override
@@ -1425,8 +1440,8 @@ abstract class PropertyAccessorMember extends ExecutableMember
     }
 
     return PropertyAccessorMember(
-      accessor,
-      Substitution.fromInterfaceType(definingType),
+      declaration: accessor,
+      substitution: Substitution.fromInterfaceType(definingType),
     );
   }
 }
@@ -1509,10 +1524,10 @@ class SetterMember extends PropertyAccessorMember
 
 class SuperFormalParameterMember extends ParameterMember
     implements SuperFormalParameterElement {
-  factory SuperFormalParameterMember(
-    SuperFormalParameterElement declaration,
-    MapSubstitution substitution,
-  ) {
+  factory SuperFormalParameterMember({
+    required SuperFormalParameterElement declaration,
+    required MapSubstitution substitution,
+  }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
       declaration.typeParameters,
       substitution,
