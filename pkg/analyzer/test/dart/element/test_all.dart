@@ -4,14 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'element_test.dart' as element;
 import 'fragment_offset_test.dart' as fragment_offset;
 import 'type_test.dart' as type;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
-    element.main();
     fragment_offset.main();
     type.main();
   }, name: 'element');
