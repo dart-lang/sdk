@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -179,19 +180,47 @@ class Linker {
       }
     }
 
-    while (true) {
-      var hasChanges = false;
+    // We keep a queue of exports to propagate.
+    // First we loop over every reference that both exports and is exported,
+    // but then we only process the exports that should be propagated.
+    var additionalExportData = <_AdditionalExport>[];
+
+    void addExport(Export export, String name, ExportedReference reference) {
+      if (export.addToExportScope(name, reference)) {
+        // We've added [name] to [export.exporter]s export scope.
+        // We need to propagate that to anyone that exports that library.
+        additionalExportData
+            .add(_AdditionalExport(export.exporter, name, reference));
+      }
+    }
+
+    for (var exported in both) {
+      for (var export in exported.exports) {
+        exported.exportScope.forEach((name, reference) {
+          addExport(export, name, reference);
+        });
+      }
+    }
+
+    while (additionalExportData.isNotEmpty) {
+      var data = additionalExportData.removeLast();
+      for (var export in data.exported.exports) {
+        addExport(export, data.name, data.reference);
+      }
+    }
+
+    assert(() {
       for (var exported in both) {
         for (var export in exported.exports) {
           exported.exportScope.forEach((name, reference) {
             if (export.addToExportScope(name, reference)) {
-              hasChanges = true;
+              throw "Error in export calculation: Assert failed.";
             }
           });
         }
       }
-      if (!hasChanges) break;
-    }
+      return true;
+    }(), true);
 
     for (var library in builders.values) {
       library.storeExportScope();
@@ -361,4 +390,12 @@ class LinkResult {
   LinkResult({
     required this.resolutionBytes,
   });
+}
+
+class _AdditionalExport {
+  final LibraryBuilder exported;
+  final String name;
+  final ExportedReference reference;
+
+  _AdditionalExport(this.exported, this.name, this.reference);
 }
