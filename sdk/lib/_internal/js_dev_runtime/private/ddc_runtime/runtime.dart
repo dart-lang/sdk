@@ -66,8 +66,8 @@ import 'dart:_rti'
         interfaceTypeRecipePropertyName,
         isGenericFunctionType,
         isRecordType,
-        isSoundTopType,
         isSubtype,
+        isTopType,
         Rti,
         rtiToString,
         substitute;

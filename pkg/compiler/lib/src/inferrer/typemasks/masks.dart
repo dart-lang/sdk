@@ -320,10 +320,7 @@ class CommonMasks with AbstractValueDomain {
   }
 
   @override
-  AbstractValueWithPrecision createFromStaticType(
-    DartType type, {
-    required bool nullable,
-  }) {
+  AbstractValueWithPrecision createFromStaticType(DartType type) {
     if (dartTypes.isTopType(type)) {
       // A cone of a top type includes all values.
       return AbstractValueWithPrecision(dynamicType, true);
@@ -333,26 +330,7 @@ class CommonMasks with AbstractValueDomain {
       return _createFromStaticType(type.baseType, true);
     }
 
-    if (type is LegacyType) {
-      DartType baseType = type.baseType;
-      if (baseType is NeverType) {
-        // Never* is same as Null, for both 'is' and 'as'.
-        return AbstractValueWithPrecision(nullType, true);
-      }
-
-      // Object* is a top type for both 'is' and 'as'. This is handled in the
-      // 'cone of top type' case above.
-
-      return _createFromStaticType(baseType, nullable);
-    }
-
-    if (dartTypes.useLegacySubtyping) {
-      // In legacy and weak mode, `String` is nullable depending on context.
-      return _createFromStaticType(type, nullable);
-    } else {
-      // In strong mode nullability comes from explicit NullableType.
-      return _createFromStaticType(type, false);
-    }
+    return _createFromStaticType(type, false);
   }
 
   AbstractValueWithPrecision _createFromStaticType(
@@ -427,7 +405,7 @@ class CommonMasks with AbstractValueDomain {
       final shape = type.shape;
       final fields = type.fields;
       for (final field in fields) {
-        final fieldType = createFromStaticType(field, nullable: nullable);
+        final fieldType = createFromStaticType(field);
         types.add(fieldType.abstractValue as TypeMask);
         isPrecise &= fieldType.isPrecise;
       }

@@ -16,6 +16,14 @@ class Color extends core::_Enum /*isEnum*/  {
   method _enumToString() → core::String
     return "Color.${this.{core::_Enum::_name}{core::String}}";
 }
+class E extends core::Object {
+  final field core::int x;
+  constructor •(core::int x) → self::E
+    : self::E::x = x, super core::Object::•()
+    ;
+  static method y(core::int x) → self::E
+    return new self::E::•(x);
+}
 static method main() → void {
   FutureOr<self::Color>color = #C6;
   FutureOr<FutureOr<self::Color>>recursiveColor = #C6;
@@ -55,6 +63,8 @@ static method main() → void {
     }
   }
   core::List<FutureOr<self::Color>> colorList = <FutureOr<self::Color>>[#C6, #C9, #C3];
+  FutureOr<self::E>e = self::E::y(1);
+  FutureOr<FutureOr<self::E>>recursiveE = self::E::y(1);
 }
 
 constants  {

@@ -581,14 +581,8 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
       WrappedAbstractValue(_abstractValueDomain.createNonNullExact(cls));
 
   @override
-  AbstractValueWithPrecision createFromStaticType(
-    DartType type, {
-    required bool nullable,
-  }) {
-    var unwrapped = _abstractValueDomain.createFromStaticType(
-      type,
-      nullable: nullable,
-    );
+  AbstractValueWithPrecision createFromStaticType(DartType type) {
+    var unwrapped = _abstractValueDomain.createFromStaticType(type);
     return AbstractValueWithPrecision(
       WrappedAbstractValue(unwrapped.abstractValue),
       unwrapped.isPrecise,

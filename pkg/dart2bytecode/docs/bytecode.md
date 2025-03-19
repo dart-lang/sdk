@@ -349,7 +349,8 @@ type FunctionType extends Type {
   UInt functionTypeFlags = (hasOptionalPositionalParams,
                             hasOptionalNamedParams,
                             hasTypeParams,
-                            hasEnclosingTypeParameters);
+                            hasEnclosingTypeParameters,
+                            hasParameterFlags);
 
   if hasEnclosingTypeParameters
     UInt numEnclosingTypeParameters;
@@ -364,6 +365,11 @@ type FunctionType extends Type {
 
   Type[] positionalParameters;
   NameAndType[] namedParameters;
+
+  if hasParameterFlags
+    // For named parameters: (isRequired)
+    List<UInt> parameterFlags;
+
   PackedObject returnType;
 }
 
@@ -569,7 +575,7 @@ type FunctionDeclaration {
 
   NameAndType[numParameters] parameters;
   if hasParameterFlags
-    // (isCovariant, isCovariantByClass, isFinal, isRequired)
+    // For named parameters: (isRequired)
     List<UInt> parameterFlags;
 
   PackedObject returnType;
@@ -599,7 +605,7 @@ type Code {
                 hasDefaultFunctionTypeArgs, hasLocalVariables)
 
   if hasParameterFlags
-    // (isCovariant, isCovariantByClass, isFinal, isRequired)
+    // For all parameters: (isCovariant, isCovariantByClass)
     List<UInt> flags;
 
   if hasForwardingStubTarget
@@ -660,8 +666,8 @@ type ClosureDeclaration {
   NameAndType[numParameters] parameters;
 
   if hasParameterFlags
-    // (isCovariant, isCovariantByClass, isFinal, isRequired)
-    List<UInt> flags;
+    // For named parameters: (isRequired)
+    List<UInt> parameterFlags;
 
   PackedObject returnType;
 }

@@ -175,14 +175,8 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
       ComputableAbstractValue(_wrappedDomain.asyncStarStreamType);
 
   @override
-  AbstractValueWithPrecision createFromStaticType(
-    DartType type, {
-    required bool nullable,
-  }) {
-    final unwrapped = _wrappedDomain.createFromStaticType(
-      type,
-      nullable: nullable,
-    );
+  AbstractValueWithPrecision createFromStaticType(DartType type) {
+    final unwrapped = _wrappedDomain.createFromStaticType(type);
     return AbstractValueWithPrecision(
       ComputableAbstractValue(unwrapped.abstractValue),
       unwrapped.isPrecise,

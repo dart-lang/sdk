@@ -99,7 +99,6 @@ class Flags {
   static const String noOmitLateNames = '--no-omit-late-names';
 
   static const String preserveUris = '--preserve-uris';
-  static const String printLegacyStars = '--debug-print-legacy-stars';
   static const String showPackageWarnings = '--show-package-warnings';
   static const String suppressHints = '--suppress-hints';
   static const String suppressWarnings = '--suppress-warnings';

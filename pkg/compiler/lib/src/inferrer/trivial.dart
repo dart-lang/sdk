@@ -384,10 +384,7 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
       const TrivialAbstractValue();
 
   @override
-  AbstractValueWithPrecision createFromStaticType(
-    DartType type, {
-    required bool nullable,
-  }) {
+  AbstractValueWithPrecision createFromStaticType(DartType type) {
     return const AbstractValueWithPrecision(TrivialAbstractValue(), false);
   }
 

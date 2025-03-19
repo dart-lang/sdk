@@ -113,7 +113,7 @@ class KernelToElementMap implements IrToElementMap {
   KernelToElementMap(this.reporter, this.options) {
     _elementEnvironment = KernelElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
-    _types = KernelDartTypes(this, options);
+    _types = KernelDartTypes(this);
     _commonElements = KCommonElements(_types, _elementEnvironment);
     _constantValuefier = ConstantValuefier(this);
   }
@@ -907,7 +907,7 @@ class KernelToElementMap implements IrToElementMap {
           ..sort((a, b) => a.name!.compareTo(b.name!));
     for (var variable in sortedNamedParameters) {
       namedParameters.add(variable.name!);
-      if (variable.isRequired && !options.useLegacySubtyping) {
+      if (variable.isRequired) {
         requiredNamedParameters.add(variable.name!);
       }
     }
@@ -1579,7 +1579,6 @@ class KernelToElementMap implements IrToElementMap {
       this,
       member,
       reporter,
-      options,
       _constantValuefier,
       // TODO(johnniwinther): Pull the static type context from the cached
       // static types.

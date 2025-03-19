@@ -171,12 +171,7 @@ class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
 
   Future<void> test_start_running() async {
     plugin.currentSession = PluginSession(plugin);
-    try {
-      await plugin.start('', '');
-      fail('Expected a StateError');
-    } on StateError {
-      // Expected.
-    }
+    expect(() => plugin.start('', ''), throwsStateError);
   }
 
   void test_stop_notRunning() {
@@ -764,6 +759,32 @@ class PluginSessionTest with ResourceProviderMixin {
     expect(result, same(response));
   }
 
+  Future<void> test_handleResponse_withError() async {
+    TestServerCommunicationChannel(session);
+    var response = Response(
+      '0' /* id */,
+      1 /* requestTime */,
+      error: RequestError(
+        RequestErrorCode.PLUGIN_ERROR,
+        'exception',
+        stackTrace: 'some stackTrace',
+      ),
+    );
+
+    var responseFuture = session.sendRequest(
+      PluginVersionCheckParams('', '', ''),
+    );
+    session.handleResponse(response);
+    await responseFuture;
+    expect(
+      notificationManager.pluginErrors,
+      equals([
+        'An error occurred while executing an analyzer plugin: exception\n'
+            'some stackTrace',
+      ]),
+    );
+  }
+
   void test_nextRequestId() {
     expect(session.requestId, 0);
     expect(session.nextRequestId, '0');
@@ -794,12 +815,7 @@ class PluginSessionTest with ResourceProviderMixin {
 
   Future<void> test_start_running() async {
     TestServerCommunicationChannel(session);
-    try {
-      await session.start('', '');
-      fail('Expected a StateError to be thrown');
-    } on StateError {
-      // Expected behavior
-    }
+    expect(() => session.start('', ''), throwsStateError);
   }
 
   void test_stop_notRunning() {

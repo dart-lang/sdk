@@ -32,36 +32,8 @@ class SpecializedChecks {
   static IsTestSpecialization? findIsTestSpecialization(
     DartType dartType,
     MemberEntity compiland,
-    JClosedWorld closedWorld, {
-    required bool experimentNullSafetyChecks,
-  }) {
-    if (dartType is LegacyType) {
-      DartType base = dartType.baseType;
-      // `Never*` accepts only `null`.
-      if (base is NeverType) return SimpleIsTestSpecialization.isNull;
-      // `Object*` is top and should be handled by constant folding.
-      if (base.isObject) return null;
-      return _findIsTestSpecialization(
-        base,
-        compiland,
-        closedWorld,
-        experimentNullSafetyChecks: experimentNullSafetyChecks,
-      );
-    }
-    return _findIsTestSpecialization(
-      dartType,
-      compiland,
-      closedWorld,
-      experimentNullSafetyChecks: experimentNullSafetyChecks,
-    );
-  }
-
-  static IsTestSpecialization? _findIsTestSpecialization(
-    DartType dartType,
-    MemberEntity compiland,
-    JClosedWorld closedWorld, {
-    required bool experimentNullSafetyChecks,
-  }) {
+    JClosedWorld closedWorld,
+  ) {
     if (dartType is InterfaceType) {
       ClassEntity element = dartType.element;
       JCommonElements commonElements = closedWorld.commonElements;
@@ -117,10 +89,6 @@ class SpecializedChecks {
         return SimpleIsTestSpecialization.isNotNull;
       }
 
-      if (experimentNullSafetyChecks && dartType.typeArguments.isNotEmpty) {
-        return null;
-      }
-
       ClassHierarchy classHierarchy = closedWorld.classHierarchy;
       InterceptorData interceptorData = closedWorld.interceptorData;
       OutputUnitData outputUnitData = closedWorld.outputUnitData;
@@ -167,38 +135,15 @@ class SpecializedChecks {
   static FunctionEntity? findAsCheck(
     DartType dartType,
     JCommonElements commonElements,
-    bool useLegacySubtyping,
   ) {
     if (dartType is InterfaceType) {
       if (dartType.typeArguments.isNotEmpty) return null;
-      return _findAsCheck(
-        dartType.element,
-        commonElements,
-        nullable: false,
-        legacy: useLegacySubtyping,
-      );
-    }
-    if (dartType is LegacyType) {
-      DartType baseType = dartType.baseType;
-      if (baseType is InterfaceType && baseType.typeArguments.isEmpty) {
-        return _findAsCheck(
-          baseType.element,
-          commonElements,
-          nullable: false,
-          legacy: true,
-        );
-      }
-      return null;
+      return _findAsCheck(dartType.element, commonElements, nullable: false);
     }
     if (dartType is NullableType) {
       DartType baseType = dartType.baseType;
       if (baseType is InterfaceType && baseType.typeArguments.isEmpty) {
-        return _findAsCheck(
-          baseType.element,
-          commonElements,
-          nullable: true,
-          legacy: false,
-        );
+        return _findAsCheck(baseType.element, commonElements, nullable: true);
       }
       return null;
     }
@@ -224,31 +169,26 @@ class SpecializedChecks {
     ClassEntity element,
     JCommonElements commonElements, {
     required bool nullable,
-    required bool legacy,
   }) {
     if (element == commonElements.jsStringClass ||
         element == commonElements.stringClass) {
-      if (legacy) return commonElements.specializedAsStringLegacy;
       if (nullable) return commonElements.specializedAsStringNullable;
       return commonElements.specializedAsString;
     }
 
     if (element == commonElements.jsBoolClass ||
         element == commonElements.boolClass) {
-      if (legacy) return commonElements.specializedAsBoolLegacy;
       if (nullable) return commonElements.specializedAsBoolNullable;
       return commonElements.specializedAsBool;
     }
 
     if (element == commonElements.doubleClass) {
-      if (legacy) return commonElements.specializedAsDoubleLegacy;
       if (nullable) return commonElements.specializedAsDoubleNullable;
       return commonElements.specializedAsDouble;
     }
 
     if (element == commonElements.jsNumberClass ||
         element == commonElements.numClass) {
-      if (legacy) return commonElements.specializedAsNumLegacy;
       if (nullable) return commonElements.specializedAsNumNullable;
       return commonElements.specializedAsNum;
     }
@@ -258,7 +198,6 @@ class SpecializedChecks {
         element == commonElements.jsUInt32Class ||
         element == commonElements.jsUInt31Class ||
         element == commonElements.jsPositiveIntClass) {
-      if (legacy) return commonElements.specializedAsIntLegacy;
       if (nullable) return commonElements.specializedAsIntNullable;
       return commonElements.specializedAsInt;
     }

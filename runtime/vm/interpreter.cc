@@ -1828,7 +1828,8 @@ SwitchDispatch:
       // Check the interpreter's own stack limit for actual interpreter's stack
       // overflows, and also the thread's stack limit for scheduled interrupts.
       if (reinterpret_cast<uword>(SP) >= overflow_stack_limit() ||
-          thread->HasScheduledInterrupts()) {
+          thread->HasScheduledInterrupts() ||
+          !thread->os_thread()->HasStackHeadroom()) {
         Exit(thread, FP, SP + 1, pc);
         INVOKE_RUNTIME(DRT_InterruptOrStackOverflow,
                        NativeArguments(thread, 0, nullptr, nullptr));

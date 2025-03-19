@@ -31,8 +31,7 @@ abstract class TypeBuilder {
   AbstractValue? trustTypeMask(DartType type, {bool hasLateSentinel = false}) {
     type = builder.localsHandler.substInContext(type);
     if (_closedWorld.dartTypes.isTopType(type)) return null;
-    bool includeNull =
-        _closedWorld.dartTypes.useLegacySubtyping || type is NullableType;
+    bool includeNull = type is NullableType;
     type = type.withoutNullability;
     if (type is! InterfaceType) return null;
     // The type element is either a class or the void element.
@@ -385,11 +384,7 @@ abstract class TypeBuilder {
     required bool isTypeError,
     SourceInformation? sourceInformation,
   }) {
-    if (builder.options.experimentNullSafetyChecks) {
-      if (_closedWorld.dartTypes.isStrongTopType(type)) return original;
-    } else {
-      if (_closedWorld.dartTypes.isTopType(type)) return original;
-    }
+    if (_closedWorld.dartTypes.isTopType(type)) return original;
 
     HInstruction reifiedType = analyzeTypeArgument(
       type,
@@ -397,7 +392,7 @@ abstract class TypeBuilder {
       sourceInformation: sourceInformation,
     );
     AbstractValueWithPrecision checkedType = _abstractValueDomain
-        .createFromStaticType(type, nullable: true);
+        .createFromStaticType(type);
     AbstractValue instructionType = _abstractValueDomain.intersection(
       original.instructionType,
       checkedType.abstractValue,

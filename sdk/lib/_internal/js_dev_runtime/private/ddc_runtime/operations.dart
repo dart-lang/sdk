@@ -604,7 +604,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
       for (var i = 0; i < typeParameterCount; i++) {
         var bound = JS<rti.Rti>('!', '#[#]', typeParameterBounds, i);
         var typeArg = JS<rti.Rti>('!', '#[#]', typeArgs, i);
-        if (bound != typeArg && !rti.isSoundTopType(bound)) {
+        if (bound != typeArg && !rti.isTopType(bound)) {
           var instantiatedBound = rti.substitute(bound, typeArgs);
           var validSubtype = rti.isSubtype(
             JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),

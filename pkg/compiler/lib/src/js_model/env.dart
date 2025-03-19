@@ -753,11 +753,7 @@ mixin FunctionDataForEachParameterMixin implements FunctionData {
       String? name = parameter.name;
       ConstantValue? defaultValue;
       if (parameter.isRequired) {
-        if (elementMap.types.useLegacySubtyping) {
-          defaultValue = NullConstantValue();
-        } else {
-          defaultValue = elementMap.getRequiredSentinelConstantValue();
-        }
+        defaultValue = elementMap.getRequiredSentinelConstantValue();
       } else if (isOptional) {
         if (parameter.initializer != null) {
           defaultValue = elementMap.getConstantValue(parameter.initializer!);

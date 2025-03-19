@@ -141,6 +141,76 @@ UNIT_TEST_CASE(DartAPI_DartInitializeHeapSizes) {
   EXPECT(Dart_Cleanup() == nullptr);
 }
 
+static RelaxedAtomic<intptr_t> pending_isolate_groups = 0;
+static Dart_Isolate CreateCallback(const char* script_uri,
+                                   const char* main,
+                                   const char* package_root,
+                                   const char* package_config,
+                                   Dart_IsolateFlags* flags,
+                                   void* isolate_data,
+                                   char** error) {
+  pending_isolate_groups++;
+  return TesterState::create_callback(script_uri, main, package_root,
+                                      package_config, flags, isolate_data,
+                                      error);
+}
+static void CleanupCallback(void* isolate_group_data) {
+  TesterState::group_cleanup_callback(isolate_group_data);
+  OS::Sleep(3000);
+  pending_isolate_groups--;
+}
+
+UNIT_TEST_CASE(DartAPI_DartCleanupWaitsForGroupCleanupCallbacks) {
+  EXPECT(Dart_SetVMFlags(TesterState::argc, TesterState::argv) == nullptr);
+
+  Dart_InitializeParams params;
+  memset(&params, 0, sizeof(Dart_InitializeParams));
+  params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  params.vm_snapshot_data = TesterState::vm_snapshot_data;
+  params.create_group = CreateCallback;
+  params.shutdown_isolate = TesterState::shutdown_callback;
+  params.cleanup_group = CleanupCallback;
+  params.start_kernel_isolate = true;
+  EXPECT(Dart_Initialize(&params) == nullptr);
+
+  Monitor monitor;
+  bool shutting_down = false;
+  std::thread thread(
+      [](Monitor* monitor, bool* shutting_down) {
+        TestIsolateScope scope;
+        const char* kScriptChars =
+            "@pragma('vm:entry-point', 'call')\n"
+            "int testMain() {\n"
+            "  return 42;\n"
+            "}\n";
+        Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+        EXPECT_VALID(lib);
+        Dart_Handle result =
+            Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
+        EXPECT_VALID(result);
+        int64_t value = 0;
+        EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+        EXPECT_EQ(42, value);
+
+        MonitorLocker ml(monitor);
+        *shutting_down = true;
+        ml.Notify();
+      },
+      &monitor, &shutting_down);
+
+  {
+    MonitorLocker ml(&monitor);
+    while (!shutting_down) {
+      ml.Wait();
+    }
+  }
+
+  EXPECT(Dart_Cleanup() == nullptr);
+  EXPECT_EQ(0, pending_isolate_groups);
+
+  thread.join();
+}
+
 TEST_CASE(Dart_KillIsolate) {
   const char* kScriptChars =
       "@pragma('vm:entry-point', 'call')\n"

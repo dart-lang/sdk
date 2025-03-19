@@ -4599,10 +4599,6 @@ AbstractBool _typeTest(
   CompilerOptions options, {
   required bool isCast,
 }) {
-  // The null safety mode may affect the result of a type test, so defer to
-  // runtime.
-  if (options.experimentNullSafetyChecks) return AbstractBool.maybe;
-
   JCommonElements commonElements = closedWorld.commonElements;
   DartTypes dartTypes = closedWorld.dartTypes;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
@@ -4611,11 +4607,7 @@ AbstractBool _typeTest(
   AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
   bool nullIs(DartType type) =>
-      dartTypes.isStrongTopType(type) ||
-      type is LegacyType &&
-          (type.baseType.isObject ||
-              type.baseType is NeverType ||
-              nullIs(type.baseType)) ||
+      dartTypes.isTopType(type) ||
       type is NullableType ||
       type is FutureOrType && nullIs(type.typeArgument) ||
       type.isNull;
@@ -4680,10 +4672,7 @@ AbstractBool _typeTest(
     return AbstractBool.maybe;
   }
 
-  AbstractBool isNullAsCheck =
-      !options.useLegacySubtyping && isCast
-          ? expressionIsNull
-          : AbstractBool.false_;
+  AbstractBool isNullAsCheck = isCast ? expressionIsNull : AbstractBool.false_;
   AbstractBool isNullIsTest = !isCast ? expressionIsNull : AbstractBool.false_;
 
   AbstractBool unwrapAndCheck(DartType type) {
@@ -4692,10 +4681,6 @@ AbstractBool _typeTest(
     if (type is InterfaceType) {
       if (type.isNull) return expressionIsNull;
       return ~(isNullAsCheck | isNullIsTest) & checkInterface(type);
-    }
-    if (type is LegacyType) {
-      assert(!type.baseType.isObject);
-      return ~isNullIsTest & unwrapAndCheck(type.baseType);
     }
     if (type is NullableType) {
       return unwrapAndCheck(type.baseType);

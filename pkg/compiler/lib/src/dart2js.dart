@@ -450,7 +450,6 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.omitLateNames, passThrough),
     _OneOption(Flags.noOmitLateNames, passThrough),
     _OneOption(Flags.preserveUris, ignoreOption),
-    _OneOption(Flags.printLegacyStars, passThrough),
     _OneOption('--force-strip=.*', setStrip),
     _OneOption(Flags.disableDiagnosticColors, (_) {
       enableColors = false;
@@ -553,7 +552,7 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.experimentToBoolean, passThrough),
     _OneOption(Flags.experimentUnreachableMethodsThrow, passThrough),
     _OneOption(Flags.experimentCallInstrumentation, passThrough),
-    _OneOption(Flags.experimentNullSafetyChecks, passThrough),
+    _OneOption(Flags.experimentNullSafetyChecks, ignoreOption),
     _OneOption(Flags.experimentNewRti, ignoreOption),
     _OneOption('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 

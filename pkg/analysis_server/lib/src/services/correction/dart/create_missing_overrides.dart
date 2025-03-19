@@ -42,7 +42,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
       return;
     }
     var signatures = [
-      ...InheritanceOverrideVerifier.missingOverrides2(targetDeclaration),
+      ...InheritanceOverrideVerifier.missingOverrides(targetDeclaration),
       ...InheritanceOverrideVerifier.missingMustBeOverridden(targetDeclaration),
     ];
     // Sort by name, getters before setters.

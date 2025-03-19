@@ -776,7 +776,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_isBuildingSdk) {
       var prerequisiteRtiTypes = [
         _coreTypes.objectNullableRawType,
-        NeverType.legacy()
       ];
       prerequisiteRtiTypes.forEach((type) {
         var recipe = _typeRecipeGenerator
@@ -6115,12 +6114,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           if (name == 'TYPE_REF') {
             return _emitType(typeArgs.single);
           }
-          // TODO(nshahan): Delete after uses are deleted from dart:_rti and the
-          // external signature is removed from dart:_foreign_helper.
-          if (name == 'LEGACY_TYPE_REF') {
-            return _emitType(
-                typeArgs.single.withDeclaredNullability(Nullability.legacy));
-          }
         }
       }
 
@@ -6158,11 +6151,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           var value = flag.value;
           return switch (value) {
             'DEV_COMPILER' => js.boolean(true),
-            // TODO(nshahan): Delete 'PRINT_LEGACY_STARS', 'LEGACY', and
-            // 'EXTRA_NULL_SAFETY_CHECKS' after uses are deleted from dart:_rti.
-            'PRINT_LEGACY_STARS' => js.boolean(false),
-            'LEGACY' => js.boolean(false),
-            'EXTRA_NULL_SAFETY_CHECKS' => js.boolean(false),
             'MINIFIED' => js.boolean(false),
             'VARIANCE' =>
               // Variance is turned on by default, but only interfaces that have

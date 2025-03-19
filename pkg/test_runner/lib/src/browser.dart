@@ -321,7 +321,8 @@ $script
 """;
 }
 
-String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
+String dart2wasmHtml(
+    String title, String wasmPath, String mjsPath, String supportJsPath) {
   return """
 <!DOCTYPE html>
 <html>
@@ -344,7 +345,16 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
           src="/root_dart/pkg/test_runner/lib/src/test_controller.js">
   </script>
   <script type="module">
-  async function loadAndRun(mjsPath, wasmPath) {
+  async function loadAndRun(mjsPath, wasmPath, supportJsPath) {
+    const supportJSExpression = await (await fetch(supportJsPath)).text();
+    const support = eval(supportJSExpression);
+    if (support !== true) {
+      dartMainRunner(() => {
+        throw 'This browser does not support the required features to run the dart2wasm compiled app!';
+      });
+      return;
+    }
+
     const mjs = await import(mjsPath);
     const compiledApp = await mjs.compileStreaming(fetch(wasmPath));
     window.loadData = async (relativeToWasmFileUri) => {
@@ -363,7 +373,7 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath) {
     });
   }
 
-  loadAndRun('$mjsPath', '$wasmPath');
+  loadAndRun('$mjsPath', '$wasmPath', '$supportJsPath');
   </script>
 </body>
 </html>""";

@@ -26,6 +26,19 @@ class FlutterWrapFutureBuilderTest extends AssistProcessorTest {
     writeTestPackageConfig(flutter: true);
   }
 
+  Future<void> test_aroundBuilder() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+void f() {
+  ^Builder(
+    builder: (context) => Text(''),
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_aroundFutureBuilder() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -41,9 +54,9 @@ void f(Future<int> s) {
 import 'package:flutter/widgets.dart';
 
 void f(Future<int> s) {
-  FutureBuilder<Object>(
-    future: null,
-    builder: (context, snapshot) {
+  FutureBuilder(
+    future: future,
+    builder: (context, asyncSnapshot) {
       return FutureBuilder(
         future: s,
         builder: (context, snapshot) => Text(''),
@@ -66,9 +79,9 @@ void f() {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  FutureBuilder<Object>(
-    future: null,
-    builder: (context, snapshot) {
+  FutureBuilder(
+    future: future,
+    builder: (context, asyncSnapshot) {
       return Text('a');
     }
   );
@@ -96,9 +109,9 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Object>(
-      future: null,
-      builder: (context, snapshot) {
+    return FutureBuilder(
+      future: future,
+      builder: (context, asyncSnapshot) {
         return const Text('hi');
       }
     );
@@ -127,9 +140,9 @@ class TestWidget extends StatelessWidget {
   const TestWidget({super.key});
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Object>(
-      future: null,
-      builder: (context, snapshot) {
+    return FutureBuilder(
+      future: future,
+      builder: (context, asyncSnapshot) {
         return const Text('hi');
       },
     );

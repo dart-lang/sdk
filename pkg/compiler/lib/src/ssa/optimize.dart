@@ -1141,9 +1141,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         );
         HInstruction closureCall = HInvokeClosure(
           callSelector,
-          _abstractValueDomain
-              .createFromStaticType(fieldType, nullable: true)
-              .abstractValue,
+          _abstractValueDomain.createFromStaticType(fieldType).abstractValue,
           inputs,
           node.instructionType,
           node.typeArguments,
@@ -1237,16 +1235,10 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         );
         if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
           node.block!.addBefore(node, invocation);
-          final replacementType =
-              _options.experimentNullSafetyChecks
-                  ? invocation.instructionType
-                  : _abstractValueDomain.excludeNull(
-                    invocation.instructionType,
-                  );
           replacement = HInvokeStatic(
             commonElements.interopNullAssertion,
             [invocation],
-            replacementType,
+            _abstractValueDomain.excludeNull(invocation.instructionType),
             const <DartType>[],
           );
         }
@@ -2161,7 +2153,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       DartType fieldType = _closedWorld.elementEnvironment.getFieldType(member);
 
       AbstractValueWithPrecision checkedType = _abstractValueDomain
-          .createFromStaticType(fieldType, nullable: true);
+          .createFromStaticType(fieldType);
       if (checkedType.isPrecise &&
           _abstractValueDomain
               .isIn(value.instructionType, checkedType.abstractValue)
@@ -2617,11 +2609,10 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     final specializedCheck = SpecializedChecks.findAsCheck(
       node.checkedTypeExpression,
       _closedWorld.commonElements,
-      _options.useLegacySubtyping,
     );
     if (specializedCheck != null) {
       AbstractValueWithPrecision checkedType = _abstractValueDomain
-          .createFromStaticType(node.checkedTypeExpression, nullable: true);
+          .createFromStaticType(node.checkedTypeExpression);
       return HAsCheckSimple(
         node.checkedInput,
         node.checkedTypeExpression,
@@ -2666,7 +2657,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       node.dartType,
       _graph.element,
       _closedWorld,
-      experimentNullSafetyChecks: _options.experimentNullSafetyChecks,
     );
 
     if (specialization == SimpleIsTestSpecialization.isNull ||
@@ -2684,7 +2674,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     if (specialization != null) {
       AbstractValueWithPrecision checkedType = _abstractValueDomain
-          .createFromStaticType(node.dartType, nullable: false);
+          .createFromStaticType(node.dartType);
       _metrics.countIsTestSimplified.add();
       return HIsTestSimple(
         node.dartType,

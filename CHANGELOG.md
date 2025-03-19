@@ -27,13 +27,45 @@
 
 #### Analyzer
 
-- Added the experimental [`unnecessary_ignore`][] lint rule.
+- Add the experimental [`unnecessary_ignore`][] lint rule.
 - Offer additional assist to wrap a Flutter widget with a `FutureBuilder` widget.
+- Add a quick assist for Wrap with ValueListenableBuilder.
+- The quick fix that adds names to a 'show' combinator or removes names from a
+  'hide' combinator can now add or remove multiple names simultaneously, in
+  order to resolve as many "undefined" errors as possible.
+- Renaming a closure parameter is now possible, and will adjust implicit 'this'
+  references in order to avoid name collisions.
+- Renaming a field now adjusts implicit 'this' references in order to avoid
+  name collisions.
+- The "encapsulate field" quick assist now works on final fields.
+- The "inline method" refactoring now properly handles inner closures.
+- Code completion is improved to offer more valid suggestions. In particular,
+  the suggestions are improved when completing text in a comment reference on a
+  documentation comment for an extension, a typedef, or a directive (an import,
+  an export, or a library). Additionally, instance members can now be suggested
+  in a documentation comment reference.
+- Add a quick fix to convert an (illegal) extension field declaration into a
+  getter declaration.
+- Add a quick fix to help code comply with a few lint rules that encourage
+  omitting types: `omit_local_variable_types`,
+  `omit_obvious_local_variable_types`, and `omit_obvious_property_types`.
+- Add a quick fix to create an extension method to resolve an "undefined method
+  invocation" error.
+- Renaming a field formal parameter now properly renames known super-parameters
+  in subclasses in other libraries.
+- Renaming a method parameter now properly renames across the type hierarchy.
+- The "remove const" quick fix now operates on more types of code.
+- The "add missing required argument" quick fix can now add multiple missing
+  required arguments.
+- Add a new warning that reports an import or export directive with multiple
+  'show' or 'hide' combinators, which are never necessary.
+- Add a quick fix for this warning.
+- Add LSP document links for lint rules in analysis options files.
+- (Thanks [@FMorschel](https://github.com/FMorschel) for many of the above
+  enhancements!)
 
 
 [`unnecessary_ignore`]: http://dart.dev/lints/unnecessary_ignore
-
-- Added a quick assist for Wrap with ValueListenableBuilder.
 
 #### Dart Development Compiler (dartdevc)
 

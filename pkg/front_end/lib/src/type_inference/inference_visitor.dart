@@ -12127,6 +12127,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Use the previously cached context type to determine the declaration
     // member that we're trying to find.
     DartType cachedContext = getDotShorthandContext().unwrapTypeSchemaView();
+
+    // The static namespace denoted by `S` is also the namespace denoted by
+    // `FutureOr<S>`.
+    while (cachedContext is FutureOrType) {
+      cachedContext = cachedContext.typeArgument;
+    }
+
     Member? member = findInterfaceMember(
             cachedContext, node.name, node.fileOffset,
             includeExtensionMethods: false,

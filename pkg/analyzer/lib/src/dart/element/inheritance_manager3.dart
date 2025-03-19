@@ -185,7 +185,7 @@ class InheritanceManager3 {
   ExecutableElement2OrMember? getInherited4(
       InterfaceElement2 element, Name name) {
     element as InterfaceElementImpl2; // TODO(scheglov): remove cast
-    var oldElement = getInheritedMap2(element.asElement)[name];
+    var oldElement = getInherited2(element.asElement, name);
     return oldElement?.asElement2;
   }
 
@@ -757,8 +757,7 @@ class InheritanceManager3 {
       return MapEntry(key, result);
     });
 
-    var implemented2 = implemented.map<Name, ExecutableElement2>(
-        (key, value) => MapEntry(key, value.asElement2));
+    var implemented2 = implemented.mapValue((value) => value.asElement2);
 
     var namedCandidates2 = namedCandidates.map<Name, List<ExecutableElement2>>(
         (key, value) => MapEntry(key, value.map((e) => e.asElement2).toList()));
@@ -968,8 +967,7 @@ class InheritanceManager3 {
       }
     }
 
-    var implemented2 = implemented.map<Name, ExecutableElement2>(
-        (key, value) => MapEntry(key, value.asElement2));
+    var implemented2 = implemented.mapValue((value) => value.asElement2);
 
     return Interface._(
       map: implemented,
@@ -1033,15 +1031,13 @@ class InheritanceManager3 {
     var implemented = <Name, ExecutableElementOrMember>{};
     _addImplemented(implemented, fragment, element);
 
-    var implemented2 = implemented.map<Name, ExecutableElement2>(
-        (key, value) => MapEntry(key, value.asElement2));
+    var implemented2 = implemented.mapValue((value) => value.asElement2);
 
     var interfaceCandidates2 =
         interfaceCandidates.map<Name, List<ExecutableElement2>>((key, value) =>
             MapEntry(key, value.map((e) => e.asElement2).toList()));
 
-    var superInterface2 = superInterface.map<Name, ExecutableElement2>(
-        (key, value) => MapEntry(key, value.asElement2));
+    var superInterface2 = superInterface.mapValue((value) => value.asElement2);
 
     return Interface._(
       map: interface,
@@ -1295,7 +1291,7 @@ class Interface {
   final Map<Name, ExecutableElementOrMember> implemented;
 
   /// The map of names to their concrete implementations.
-  final Map<Name, ExecutableElement2> implemented2;
+  final Map<Name, ExecutableElement2OrMember> implemented2;
 
   /// The set of names that are `noSuchMethod` forwarders in [implemented].
   final Set<Name> noSuchMethodForwarders;
