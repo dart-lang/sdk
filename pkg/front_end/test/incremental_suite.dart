@@ -426,10 +426,6 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
-    "name": "NNBDModeMismatch",
-    "group": "Fail"
-  },
-  {
     "name": "ConstantCoverageReferenceWithoutNode",
     "group": "Fail"
   }
@@ -473,7 +469,6 @@ final Expectation LibraryCountMismatch =
     staticExpectationSet["LibraryCountMismatch"];
 final Expectation InitializedFromDillMismatch =
     staticExpectationSet["InitializedFromDillMismatch"];
-final Expectation NNBDModeMismatch = staticExpectationSet["NNBDModeMismatch"];
 final Expectation ConstantCoverageReferenceWithoutNode =
     staticExpectationSet["ConstantCoverageReferenceWithoutNode"];
 
