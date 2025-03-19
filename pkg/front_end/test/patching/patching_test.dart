@@ -13,7 +13,6 @@ import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/builder/builder.dart';
 import 'package:front_end/src/builder/member_builder.dart';
 import 'package:front_end/src/source/source_class_builder.dart';
-import 'package:front_end/src/source/source_factory_builder.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/source/source_property_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -162,9 +161,6 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
             as SourceMemberBuilder?;
     List<MemberBuilder>? patchMembers;
     if (memberBuilder is SourcePropertyBuilder) {
-      patchMembers = memberBuilder.augmentationsForTesting;
-    }
-    if (memberBuilder is SourceFactoryBuilder) {
       patchMembers = memberBuilder.augmentationsForTesting;
     }
     if (patchMembers != null) {

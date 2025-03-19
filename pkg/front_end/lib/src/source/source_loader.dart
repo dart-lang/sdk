@@ -2785,10 +2785,10 @@ severity: $severity
     LibraryBuilder? library =
         lookupLoadedLibraryBuilder(kernelLibrary.importUri);
     if (library == null) {
+      // Coverage-ignore-block(suite): Not run.
       return target.dillTarget.loader
           .computeExtensionTypeBuilderFromTargetExtensionType(extensionType);
     }
-    // Coverage-ignore(suite): Not run.
     return library.lookupLocalMember(extensionType.name, required: true)
         as ExtensionTypeDeclarationBuilder;
   }

@@ -39,7 +39,6 @@ import '../type_inference/type_inference_engine.dart';
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
-import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
@@ -76,7 +75,7 @@ abstract class SourceConstructorBuilder implements ConstructorBuilder {
 class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
     implements
         SourceConstructorBuilder,
-        SourceFunctionBuilder,
+        SourceMemberBuilder,
         Inferable,
         ConstructorDeclarationBuilder {
   final Modifiers modifiers;
@@ -169,13 +168,14 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   @override
   Builder get parent => declarationBuilder;
 
-  @override
+  bool get hasParameters => _introductory.formals != null;
+
   // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParameters =>
+  List<NominalParameterBuilder>? get typeParametersForTesting =>
       _introductory.typeParameters;
 
-  @override
-  List<FormalParameterBuilder>? get formals => _introductory.formals;
+  // Coverage-ignore(suite): Not run.
+  List<FormalParameterBuilder>? get formalsForTesting => _introductory.formals;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -210,19 +210,11 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   Name get memberName => _memberName.name;
 
   @override
+  // Coverage-ignore(suite): Not run.
   SourceConstructorBuilderImpl get origin => this;
 
   @override
   bool get isRedirecting => _lastDeclaration.isRedirecting;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  VariableDeclaration? get thisVariable => _introductory.thisVariable;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<TypeParameter>? get thisTypeParameters =>
-      _introductory.thisTypeParameters;
 
   @override
   Member get readTarget => _readTarget;
@@ -262,7 +254,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   @override
   FunctionNode get function => _lastDeclaration.function;
 
-  @override
   void becomeNative(SourceLoader loader) {
     _introductory.becomeNative();
     for (ConstructorDeclaration augmentation in _augmentations) {
@@ -284,7 +275,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
 
   final String? nativeMethodName;
 
-  @override
   // Coverage-ignore(suite): Not run.
   bool get isNative => nativeMethodName != null;
 

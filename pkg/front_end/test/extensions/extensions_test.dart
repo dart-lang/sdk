@@ -13,7 +13,8 @@ import 'package:front_end/src/builder/formal_parameter_builder.dart';
 import 'package:front_end/src/builder/library_builder.dart';
 import 'package:front_end/src/builder/member_builder.dart';
 import 'package:front_end/src/builder/type_builder.dart';
-import 'package:front_end/src/source/source_function_builder.dart';
+import 'package:front_end/src/source/source_constructor_builder.dart';
+import 'package:front_end/src/source/source_factory_builder.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/source/source_method_builder.dart';
 import 'package:front_end/src/source/source_property_builder.dart';
@@ -231,9 +232,10 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     MemberBuilder memberBuilder = lookupMemberBuilder(compilerResult, member)!;
     Features features = new Features();
     features[Tags.builderName] = memberBuilder.name;
-    if (memberBuilder is SourceFunctionBuilder) {
-      if (memberBuilder.formals != null) {
-        for (FormalParameterBuilder parameter in memberBuilder.formals!) {
+    if (memberBuilder is SourceConstructorBuilderImpl) {
+      if (memberBuilder.formalsForTesting != null) {
+        for (FormalParameterBuilder parameter
+            in memberBuilder.formalsForTesting!) {
           if (parameter.isRequiredPositional) {
             features.addElement(Tags.builderRequiredParameters, parameter.name);
           } else if (parameter.isPositional) {
@@ -248,9 +250,35 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
         features.markAsUnsorted(Tags.builderPositionalParameters);
         features.markAsUnsorted(Tags.builderNamedParameters);
       }
-      if (memberBuilder.typeParameters != null) {
+      if (memberBuilder.typeParametersForTesting != null) {
         for (NominalParameterBuilder typeVariable
-            in memberBuilder.typeParameters!) {
+            in memberBuilder.typeParametersForTesting!) {
+          features.addElement(Tags.builderTypeParameters,
+              typeVariableBuilderToText(typeVariable));
+        }
+        features.markAsUnsorted(Tags.builderTypeParameters);
+      }
+    } else if (memberBuilder is SourceFactoryBuilder) {
+      if (memberBuilder.formalsForTesting != null) {
+        for (FormalParameterBuilder parameter
+            in memberBuilder.formalsForTesting!) {
+          if (parameter.isRequiredPositional) {
+            features.addElement(Tags.builderRequiredParameters, parameter.name);
+          } else if (parameter.isPositional) {
+            features.addElement(
+                Tags.builderPositionalParameters, parameter.name);
+          } else {
+            assert(parameter.isNamed);
+            features.addElement(Tags.builderNamedParameters, parameter.name);
+          }
+        }
+        features.markAsUnsorted(Tags.builderRequiredParameters);
+        features.markAsUnsorted(Tags.builderPositionalParameters);
+        features.markAsUnsorted(Tags.builderNamedParameters);
+      }
+      if (memberBuilder.typeParametersForTesting != null) {
+        for (NominalParameterBuilder typeVariable
+            in memberBuilder.typeParametersForTesting!) {
           features.addElement(Tags.builderTypeParameters,
               typeVariableBuilderToText(typeVariable));
         }

@@ -363,10 +363,10 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
       assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
           new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
     } else {
-      // Coverage-ignore-block(suite): Not run.
       assignedVariables =
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
@@ -397,10 +397,10 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
       InferenceDataForTesting? dataForTesting) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
       assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
           new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
     } else {
-      // Coverage-ignore-block(suite): Not run.
       assignedVariables =
           new AssignedVariables<TreeNode, VariableDeclaration>();
     }
@@ -422,7 +422,6 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 // TODO(cstefantsova): Merge with [TypeInferenceResultForTesting].
 class InferenceDataForTesting extends shared
     .TypeConstraintGenerationDataForTesting<VariableDeclaration, TreeNode> {
@@ -505,7 +504,6 @@ class OperationsCfe
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   SharedTypeView get dynamicType {
     return new SharedTypeView(const DynamicType());
   }
@@ -521,7 +519,6 @@ class OperationsCfe
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   SharedTypeView get neverType {
     return new SharedTypeView(const NeverType.nonNullable());
   }
@@ -583,30 +580,29 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isExtensionTypeInternal(DartType type) => type is ExtensionType;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool isFinal(VariableDeclaration variable) {
     return variable.isFinal;
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isInterfaceTypeInternal(DartType type) {
     return type is InterfaceType;
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool isNever(SharedTypeView type) {
     return typeEnvironment.coreTypes.isBottom(type.unwrapTypeView());
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isObject(SharedTypeView type) {
-    DartType unwrappedType = type // Coverage-ignore(suite): Not run.
-        .unwrapTypeView();
-    // Coverage-ignore(suite): Not run.
+    DartType unwrappedType = type.unwrapTypeView();
     return unwrappedType is InterfaceType &&
         unwrappedType.classNode == typeEnvironment.objectClass &&
         unwrappedType.nullability == Nullability.nonNullable;
@@ -743,6 +739,7 @@ class OperationsCfe
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool isTypeSchemaSatisfied(
       {required SharedTypeSchemaView typeSchema,
       required SharedTypeView type}) {
@@ -751,7 +748,6 @@ class OperationsCfe
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool isVariableFinal(VariableDeclaration node) {
     return node.isFinal;
   }
@@ -921,6 +917,7 @@ class OperationsCfe
     switch (modifier) {
       case NullabilitySuffix.none:
         return computeTypeWithoutNullabilityMarker(type);
+      // Coverage-ignore(suite): Not run.
       case NullabilitySuffix.question:
         return type.withDeclaredNullability(Nullability.nullable);
       // Coverage-ignore(suite): Not run.
@@ -1025,6 +1022,7 @@ class OperationsCfe
     if (type is TypeParameterType) {
       return type.parameter.bound;
     } else if (type is StructuralParameterType) {
+      // Coverage-ignore-block(suite): Not run.
       return type.parameter.bound;
     } else if (type is IntersectionType) {
       return type.right;
