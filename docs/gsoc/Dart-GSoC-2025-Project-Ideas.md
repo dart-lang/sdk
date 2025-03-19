@@ -126,7 +126,7 @@ Project:
 
  - **Possible Mentor(s)**: `mudit.somani00@gmail.com`
  - **Difficulty**: Medium
- - **Project size**: Medium (175 hours)
+ - **Project size**: Large (350 hours)
  - **Skills**: Dart, CLIs
 
 **Description**: Dart is already used to create GUI applications through Flutter, it would be great if it can also be used to develop good looking TUI applications. Currently the language of choice for TUI development would be either Golang or Python due to their developed package ecosystems (like [charm](https://charm.sh/) or [textual](https://www.textualize.io/)) so a package that makes TUI development easier and faster on dart would increase its adoption in that space.
@@ -141,6 +141,8 @@ Project:
 
 * Composable methods to style text on the terminal (kinda like [libgloss](https://github.com/charmbracelet/lipgloss)).
 * Component based model to render and interact with terminal based text inputs and checkboxes (kinda like [bubbles](https://github.com/charmbracelet/bubbles)).
+* Functions to detect terminal width/height and enter fullscreen mode (alternate screen buffer).
+* Handle pointer events in the terminal (like clicking buttons).
 
 **Expected outcome**: A package on pub.dev with terminal primitives like text styling, inputs, checkboxes, tables, layouts, spinners etc.
 
