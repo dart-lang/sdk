@@ -764,6 +764,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         abbr: 'E',
         help: 'An extra option to pass to the dart2wasm compiler.',
         hide: !verbose,
+        splitCommas: false,
       )
       ..addOption(
         'optimization-level',
