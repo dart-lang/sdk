@@ -28,46 +28,9 @@ import 'dart:_js_names'
 import 'dart:_js_shared_embedded_names';
 import 'dart:_recipe_syntax';
 
-typedef OnExtraNullSafetyError = void Function(TypeError, StackTrace);
-
-Object? onExtraNullSafetyError;
-
-bool _reportingExtraNullSafetyError = false;
-
-@pragma('dart2js:as:trust')
-void _onExtraNullSafetyError(TypeError error, StackTrace trace) {
-  if (JS_GET_FLAG('DEV_COMPILER')) {
-    throw error;
-  } else if (!_reportingExtraNullSafetyError) {
-    // If [onExtraNullSafetyError] itself produces an extra null safety error,
-    // this avoids blowing the stack.
-    _reportingExtraNullSafetyError = true;
-    try {
-      if (onExtraNullSafetyError != null) {
-        (onExtraNullSafetyError as OnExtraNullSafetyError)(error, trace);
-      }
-    } finally {
-      _reportingExtraNullSafetyError = false;
-    }
-  }
-}
-
-class _InteropNullAssertionError extends _Error implements TypeError {
-  _InteropNullAssertionError()
-    : super('Non-nullable interop API returned null value.');
-}
-
 /// Called from generated code.
-Object? _interopNullAssertion(Object? value) {
-  if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-    if (value == null) {
-      _onExtraNullSafetyError(_InteropNullAssertionError(), StackTrace.current);
-    }
-    return value;
-  } else {
-    return value!;
-  }
-}
+@pragma('dart2js:prefer-inline')
+Object? _interopNullAssertion(Object? value) => value!;
 
 /// The name of a property on the constructor function of Dart Object
 /// and interceptor types, used for caching Rti types.
@@ -1440,9 +1403,7 @@ Object? _installSpecializedAsCheck(Object? object) {
     asFn = RAW_DART_FUNCTION_REF(_asTop);
   } else if (isObjectType(testRti)) {
     asFn = RAW_DART_FUNCTION_REF(_asObject);
-  } else if (JS_GET_FLAG('LEGACY') &&
-          !JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS') ||
-      isNullable(testRti)) {
+  } else if (JS_GET_FLAG('LEGACY') || isNullable(testRti)) {
     asFn = RAW_DART_FUNCTION_REF(_generalNullableAsCheckImplementation);
   }
   if (!JS_GET_FLAG('LEGACY')) {
@@ -1567,12 +1528,6 @@ Object? _generalAsCheckImplementation(Object? object) {
       return object;
     }
     if (JS_GET_FLAG('LEGACY')) {
-      if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-        _onExtraNullSafetyError(
-          _errorForAsCheck(object, testRti),
-          StackTrace.current,
-        );
-      }
       return object;
     }
   } else if (Rti._isCheck(testRti, object))
@@ -1674,12 +1629,6 @@ bool _isObject(Object? object) {
 Object? _asObject(Object? object) {
   if (object != null) return object;
   if (JS_GET_FLAG('LEGACY')) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'Object'),
-        StackTrace.current,
-      );
-    }
     return object;
   }
   throw _TypeError.forType(object, 'Object');
@@ -1727,12 +1676,6 @@ bool? _asBoolS(dynamic object) {
   if (true == object) return true;
   if (false == object) return false;
   if (object == null) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'bool'),
-        StackTrace.current,
-      );
-    }
     return _Utils.asNull(object);
   }
   throw _TypeError.forType(object, 'bool');
@@ -1762,12 +1705,6 @@ double _asDouble(Object? object) {
 double? _asDoubleS(dynamic object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'double'),
-        StackTrace.current,
-      );
-    }
     return _Utils.asNull(object);
   }
   throw _TypeError.forType(object, 'double');
@@ -1803,12 +1740,6 @@ int _asInt(Object? object) {
 int? _asIntS(dynamic object) {
   if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'int'),
-        StackTrace.current,
-      );
-    }
     return _Utils.asNull(object);
   }
   throw _TypeError.forType(object, 'int');
@@ -1843,12 +1774,6 @@ num _asNum(Object? object) {
 num? _asNumS(dynamic object) {
   if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'num'),
-        StackTrace.current,
-      );
-    }
     return _Utils.asNull(object);
   }
   throw _TypeError.forType(object, 'num');
@@ -1883,12 +1808,6 @@ String _asString(Object? object) {
 String? _asStringS(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) {
-    if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      _onExtraNullSafetyError(
-        _TypeError.forType(object, 'String'),
-        StackTrace.current,
-      );
-    }
     return _Utils.asNull(object);
   }
   throw _TypeError.forType(object, 'String');
@@ -3734,53 +3653,15 @@ class Variance {
 
 // -------- Subtype tests ------------------------------------------------------
 
-class _InconsistentSubtypingError extends _Error implements TypeError {
-  _InconsistentSubtypingError._fromMessage(String message)
-    : super('Inconsistent subtyping: $message');
-
-  _InconsistentSubtypingError._forTypes(Rti s, Rti t)
-    : this._fromMessage(_compose(s, t));
-
-  static String _compose(Rti s, Rti t) =>
-      '${_rtiToString(s, null)} is a subtype of ${_rtiToString(t, null)} with '
-      'unsound null safety but not with sound null safety.';
-}
-
-const int _subtypeResultFalse = 0;
-const int _subtypeResultTrue = 1;
-const int _subtypeResultInconsistent = 2;
-
 // Future entry point from compiled code.
 bool isSubtype(Object? universe, Rti s, Rti t) {
   var sCache = Rti._getIsSubtypeCache(s);
-  var result = _Utils.mapGet(sCache, t);
+  var result = _Utils.asBoolOrNull(_Utils.mapGet(sCache, t));
   if (result == null) {
-    result = _isSubtypeUncached(universe, s, t);
+    result = _isSubtype(universe, s, null, t, null, JS_GET_FLAG('LEGACY'));
     _Utils.mapSet(sCache, t, result);
   }
-  if (_subtypeResultFalse == result) return false;
-  if (_subtypeResultTrue == result) return true;
-  if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-    _onExtraNullSafetyError(
-      _InconsistentSubtypingError._forTypes(s, t),
-      StackTrace.current,
-    );
-  }
-  return true;
-}
-
-int _isSubtypeUncached(Object? universe, Rti s, Rti t) {
-  if (JS_GET_FLAG('LEGACY') && JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-    bool soundResult = _isSubtype(universe, s, null, t, null, false);
-    if (soundResult) return _subtypeResultTrue;
-    bool legacyResult = _isSubtype(universe, s, null, t, null, true);
-    if (legacyResult) return _subtypeResultInconsistent;
-    return _subtypeResultFalse;
-  } else {
-    return _isSubtype(universe, s, null, t, null, JS_GET_FLAG('LEGACY'))
-        ? _subtypeResultTrue
-        : _subtypeResultFalse;
-  }
+  return result;
 }
 
 /// Based on
@@ -3814,14 +3695,6 @@ bool _isSubtype(
   Object? tEnv,
   bool isLegacy,
 ) {
-  if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS') && !isLegacy) {
-    // With unsound null safety, the CFE may still produce legacy types in
-    // constants even when all files are migrated. In order to simulate sound
-    // null safety, we simply "unwrap" the legacy types.
-    s = Rti._unstar(s);
-    t = Rti._unstar(t);
-  }
-
   // Reflexivity:
   if (_Utils.isIdentical(s, t)) return true;
 
@@ -4345,10 +4218,7 @@ bool isNullable(Rti t) {
 /// only returns `true` for sound top types. This means this function can be
 /// used to detect top types in order to optimize type tests.
 @pragma('dart2js:parameter:trust')
-bool isDefinitelyTopType(Rti t) => isTopType(
-  t,
-  JS_GET_FLAG('LEGACY') && !JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS'),
-);
+bool isDefinitelyTopType(Rti t) => isTopType(t, JS_GET_FLAG('LEGACY'));
 
 @pragma('dart2js:parameter:trust')
 bool isTopType(Rti t, bool isLegacy) =>
@@ -4379,6 +4249,7 @@ bool isRecordInterfaceType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Record>());
 class _Utils {
   static Null asNull(Object? o) => JS('Null', '#', o);
   static bool asBool(Object? o) => JS('bool', '#', o);
+  static bool? asBoolOrNull(Object? o) => JS('bool|Null', '#', o);
   static double asDouble(Object? o) => JS('double', '#', o);
   static int asInt(Object? o) => JS('int', '#', o);
   static num asNum(Object? o) => JS('num', '#', o);

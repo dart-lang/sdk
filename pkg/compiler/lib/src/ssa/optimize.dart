@@ -1237,16 +1237,10 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         );
         if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
           node.block!.addBefore(node, invocation);
-          final replacementType =
-              _options.experimentNullSafetyChecks
-                  ? invocation.instructionType
-                  : _abstractValueDomain.excludeNull(
-                    invocation.instructionType,
-                  );
           replacement = HInvokeStatic(
             commonElements.interopNullAssertion,
             [invocation],
-            replacementType,
+            _abstractValueDomain.excludeNull(invocation.instructionType),
             const <DartType>[],
           );
         }
@@ -2666,7 +2660,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       node.dartType,
       _graph.element,
       _closedWorld,
-      experimentNullSafetyChecks: _options.experimentNullSafetyChecks,
     );
 
     if (specialization == SimpleIsTestSpecialization.isNull ||

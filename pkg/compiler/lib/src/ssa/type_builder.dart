@@ -385,11 +385,7 @@ abstract class TypeBuilder {
     required bool isTypeError,
     SourceInformation? sourceInformation,
   }) {
-    if (builder.options.experimentNullSafetyChecks) {
-      if (_closedWorld.dartTypes.isStrongTopType(type)) return original;
-    } else {
-      if (_closedWorld.dartTypes.isTopType(type)) return original;
-    }
+    if (_closedWorld.dartTypes.isTopType(type)) return original;
 
     HInstruction reifiedType = analyzeTypeArgument(
       type,

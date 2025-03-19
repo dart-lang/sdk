@@ -20,7 +20,6 @@ import 'package:kernel/type_environment.dart' as ir;
 import 'package:kernel/verifier.dart';
 
 import '../../compiler_api.dart' as api;
-import '../commandline_options.dart';
 import '../common.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
@@ -300,16 +299,6 @@ Future<_LoadFromSourceResult> _loadFromSource(
         ..verbosity = verbosity;
   Uri resolvedUri = options.compilationTarget;
   bool isLegacy = await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
-  if (isLegacy && options.experimentNullSafetyChecks) {
-    reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
-      'text':
-          'The ${Flags.experimentNullSafetyChecks} option may be used '
-          'only after all libraries have been migrated to null safety. Some '
-          'libraries reached from $resolvedUri are still opted out of null '
-          'safety. Please migrate these libraries before passing '
-          '${Flags.experimentNullSafetyChecks}.',
-    });
-  }
   if (isLegacy) {
     reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
       'text':

@@ -32,9 +32,8 @@ class SpecializedChecks {
   static IsTestSpecialization? findIsTestSpecialization(
     DartType dartType,
     MemberEntity compiland,
-    JClosedWorld closedWorld, {
-    required bool experimentNullSafetyChecks,
-  }) {
+    JClosedWorld closedWorld,
+  ) {
     if (dartType is InterfaceType) {
       ClassEntity element = dartType.element;
       JCommonElements commonElements = closedWorld.commonElements;
@@ -88,10 +87,6 @@ class SpecializedChecks {
       if (dartType.isObject) {
         assert(!dartTypes.isTopType(dartType)); // Checked above.
         return SimpleIsTestSpecialization.isNotNull;
-      }
-
-      if (experimentNullSafetyChecks && dartType.typeArguments.isNotEmpty) {
-        return null;
       }
 
       ClassHierarchy classHierarchy = closedWorld.classHierarchy;

@@ -3314,7 +3314,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     final operandType = _getStaticType(operand);
     DartType type = _elementMap.getDartType(node.type);
-    if (!options.experimentNullSafetyChecks && !node.isCovarianceCheck) {
+    if (!node.isCovarianceCheck) {
       if (_elementMap.types.isSubtype(operandType, type)) {
         // Skip unneeded casts.
         return;
