@@ -3880,7 +3880,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     js.Expression recipe = encoding.recipe;
 
     for (TypeVariableType typeVariable in encoding.typeVariables) {
-      _registry.registerTypeUse(TypeUse.namedTypeVariableNewRti(typeVariable));
+      _registry.registerTypeUse(TypeUse.namedTypeVariable(typeVariable));
     }
 
     final method = _commonElements.rtiEvalMethod;

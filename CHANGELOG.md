@@ -77,6 +77,10 @@ not match the non-nullable type and this will now throw.
 In the future this will likely be a compile-time error and will be entirely
 disallowed.
 
+#### Dart to Javascript Compiler (dart2js)
+
+Removed the `--experiment-new-rti` and `--use-old-rti` flags.
+
 ## 3.7.0
 
 **Released on:** 2025-02-12

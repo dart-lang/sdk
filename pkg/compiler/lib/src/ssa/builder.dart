@@ -568,7 +568,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
               "$targetElement inside a non-closure: $target",
             );
           }
-          _buildMethodSignatureNewRti(originalClosureNode);
+          _buildMethodSignature(originalClosureNode);
           break;
         case MemberKind.parameterStub:
           _buildParameterStub(
@@ -1380,7 +1380,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   }
 
   /// Constructs a special signature function for a closure.
-  void _buildMethodSignatureNewRti(ir.FunctionNode originalClosureNode) {
+  void _buildMethodSignature(ir.FunctionNode originalClosureNode) {
     // The signature function has no corresponding ir.Node, so we just use the
     // targetElement to set up the type environment.
     _openFunction(targetElement, checks: TargetChecks.none);

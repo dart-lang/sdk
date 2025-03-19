@@ -98,7 +98,7 @@ class BackendImpacts {
 
   late final BackendImpact getRuntimeTypeArgument = BackendImpact(
     globalUses: [],
-    otherImpacts: [newRtiImpact],
+    otherImpacts: [rtiImpact],
   );
 
   late final BackendImpact computeSignature = BackendImpact(
@@ -153,7 +153,7 @@ class BackendImpacts {
 
   late final BackendImpact asCheck = BackendImpact(
     staticUses: [],
-    otherImpacts: [newRtiImpact],
+    otherImpacts: [rtiImpact],
   );
 
   late final BackendImpact stringValues = BackendImpact(
@@ -322,7 +322,7 @@ class BackendImpacts {
   );
 
   late final BackendImpact typeCheck = BackendImpact(
-    otherImpacts: [boolValues, newRtiImpact],
+    otherImpacts: [boolValues, rtiImpact],
   );
 
   late final BackendImpact genericTypeCheck = BackendImpact(
@@ -330,26 +330,26 @@ class BackendImpacts {
       // TODO(johnniwinther): Investigate why this is needed.
       _commonElements.setArrayType,
     ],
-    otherImpacts: [listValues, getRuntimeTypeArgument, newRtiImpact],
+    otherImpacts: [listValues, getRuntimeTypeArgument, rtiImpact],
   );
 
   late final BackendImpact genericIsCheck = BackendImpact(
-    otherImpacts: [intValues, newRtiImpact],
+    otherImpacts: [intValues, rtiImpact],
   );
 
   late final BackendImpact typeVariableTypeCheck = BackendImpact(
     staticUses: [],
-    otherImpacts: [newRtiImpact],
+    otherImpacts: [rtiImpact],
   );
 
   late final BackendImpact functionTypeCheck = BackendImpact(
     staticUses: [/*helpers.functionTypeTestMetaHelper*/],
-    otherImpacts: [newRtiImpact],
+    otherImpacts: [rtiImpact],
   );
 
   late final BackendImpact futureOrTypeCheck = BackendImpact(
     staticUses: [],
-    otherImpacts: [newRtiImpact],
+    otherImpacts: [rtiImpact],
   );
 
   late final BackendImpact nativeTypeCheck = BackendImpact(
@@ -359,7 +359,7 @@ class BackendImpacts {
       // [:defineProperty:] is compiled.
       _commonElements.defineProperty,
     ],
-    otherImpacts: [newRtiImpact],
+    otherImpacts: [rtiImpact],
   );
 
   late final BackendImpact closure = BackendImpact(
@@ -532,7 +532,7 @@ class BackendImpacts {
       _genericInstantiation[typeArgumentCount] ??= BackendImpact(
         staticUses: [
           _commonElements.getInstantiateFunction(typeArgumentCount),
-          _commonElements.instantiatedGenericFunctionTypeNewRti,
+          _commonElements.instantiatedGenericFunctionType,
           _commonElements.closureFunctionType,
         ],
         instantiatedClasses: [
@@ -541,7 +541,7 @@ class BackendImpacts {
       );
 
   // TODO(sra): Split into refined impacts.
-  late final BackendImpact newRtiImpact = BackendImpact(
+  late final BackendImpact rtiImpact = BackendImpact(
     staticUses: [
       if (_options.interopNullAssertions) _commonElements.interopNullAssertion,
       _commonElements.findType,

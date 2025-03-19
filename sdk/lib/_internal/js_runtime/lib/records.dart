@@ -8,8 +8,12 @@ part of _js_helper;
 abstract final class _Record implements Record {
   const _Record();
 
-  int get _shapeTag => JS('JSUInt31', '#[#]', this,
-      JS_GET_NAME(JsGetName.RECORD_SHAPE_TAG_PROPERTY));
+  int get _shapeTag => JS(
+    'JSUInt31',
+    '#[#]',
+    this,
+    JS_GET_NAME(JsGetName.RECORD_SHAPE_TAG_PROPERTY),
+  );
 
   bool _sameShape(_Record other) => _shapeTag == other._shapeTag;
 
@@ -19,13 +23,17 @@ abstract final class _Record implements Record {
 
   Type get runtimeType {
     // TODO(51040): Consider caching.
-    return newRti.getRuntimeTypeOfRecord(this);
+    return rti.getRuntimeTypeOfRecord(this);
   }
 
-  newRti.Rti _getRti() {
-    String recipe =
-        JS('', '#[#]', this, JS_GET_NAME(JsGetName.RECORD_SHAPE_TYPE_PROPERTY));
-    return newRti.evaluateRtiForRecord(recipe, _getFieldValues());
+  rti.Rti _getRti() {
+    String recipe = JS(
+      '',
+      '#[#]',
+      this,
+      JS_GET_NAME(JsGetName.RECORD_SHAPE_TYPE_PROPERTY),
+    );
+    return rti.evaluateRtiForRecord(recipe, _getFieldValues());
   }
 
   @override
@@ -67,8 +75,12 @@ abstract final class _Record implements Record {
   }
 
   List<Object> _computeFieldKeys() {
-    String recipe =
-        JS('', '#[#]', this, JS_GET_NAME(JsGetName.RECORD_SHAPE_TYPE_PROPERTY));
+    String recipe = JS(
+      '',
+      '#[#]',
+      this,
+      JS_GET_NAME(JsGetName.RECORD_SHAPE_TYPE_PROPERTY),
+    );
 
     // TODO(50081): The Rti recipe format is agnostic to what the record shape
     // key is. We happen to use a comma-separated list of the names for the
@@ -103,7 +115,7 @@ abstract final class _Record implements Record {
 /// Entrypoint for rti library. Calls rti.evaluateRtiForRecord with components
 /// of the record.
 @pragma('dart2js:as:trust')
-newRti.Rti getRtiForRecord(Object? record) {
+rti.Rti getRtiForRecord(Object? record) {
   return (record as _Record)._getRti();
 }
 
@@ -249,7 +261,7 @@ void _recordImpactModel() {
   r3 == anything();
   rN == anything();
 
-  newRti.pairwiseIsTest(anything() as JSArray, anything() as JSArray);
+  rti.pairwiseIsTest(anything() as JSArray, anything() as JSArray);
 }
 
 // TODO(50081): Can this be `external`?

@@ -101,7 +101,7 @@ class JClosedWorld implements World {
 
   /// Returns the set of interfaces passed as type arguments to the internal
   /// `extractTypeArguments` function.
-  final Set<ClassEntity> extractTypeArgumentsInterfacesNewRti;
+  final Set<ClassEntity> extractTypeArgumentsInterfaces;
 
   final ClassHierarchy classHierarchy;
 
@@ -133,7 +133,7 @@ class JClosedWorld implements World {
     this.liveAbstractInstanceMembers,
     this.assignedInstanceMembers,
     this.processedMembers,
-    this.extractTypeArgumentsInterfacesNewRti,
+    this.extractTypeArgumentsInterfaces,
     this.mixinUses,
     this.typesImplementedBySubclasses,
     this.classHierarchy,
@@ -192,7 +192,7 @@ class JClosedWorld implements World {
 
     Set<ClassEntity> implementedClasses = source.readClasses().toSet();
     Set<ClassEntity> liveNativeClasses = source.readClasses().toSet();
-    Set<ClassEntity> extractTypeArgumentsInterfacesNewRti =
+    Set<ClassEntity> extractTypeArgumentsInterfaces =
         source.readClasses().toSet();
     Set<MemberEntity> liveInstanceMembers = source.readMembers().toSet();
     Set<MemberEntity> liveAbstractInstanceMembers =
@@ -242,7 +242,7 @@ class JClosedWorld implements World {
       liveAbstractInstanceMembers,
       assignedInstanceMembers,
       processedMembers,
-      extractTypeArgumentsInterfacesNewRti,
+      extractTypeArgumentsInterfaces,
       mixinUses,
       typesImplementedBySubclasses,
       classHierarchy,
@@ -268,7 +268,7 @@ class JClosedWorld implements World {
     noSuchMethodData.writeToDataSink(sink);
     sink.writeClasses(implementedClasses);
     sink.writeClasses(liveNativeClasses);
-    sink.writeClasses(extractTypeArgumentsInterfacesNewRti);
+    sink.writeClasses(extractTypeArgumentsInterfaces);
     sink.writeMembers(liveInstanceMembers);
     sink.writeMembers(liveAbstractInstanceMembers);
     sink.writeMembers(assignedInstanceMembers);
@@ -704,7 +704,7 @@ class JClosedWorld implements World {
 
   /// Registers [interface] as a type argument to `extractTypeArguments`.
   void registerExtractTypeArguments(ClassEntity interface) {
-    extractTypeArgumentsInterfacesNewRti.add(interface);
+    extractTypeArgumentsInterfaces.add(interface);
   }
 
   late final Set<ClassEntity> _defaultSuperclasses = {
