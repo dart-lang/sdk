@@ -1,0 +1,22 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class Foo extends core::Object {
+
+  [@vm.unreachable.metadata=]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  @#C3
+  late final field core::int hashCode = throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print(#C4);
+}
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = TypeLiteralConstant(self::Foo)
+}
