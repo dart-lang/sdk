@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:test/test.dart';
 
 import 'mini_types.dart';
@@ -128,35 +127,21 @@ main() {
       test('needs parentheses (question)', () {
         expect(
             TypeParameterType(t,
-                    promotion: TypeParameterType(u),
-                    nullabilitySuffix: NullabilitySuffix.question)
+                    promotion: TypeParameterType(u), isQuestionType: true)
                 .toString(),
             '(T&U)?');
-      });
-
-      test('needs parentheses (star)', () {
-        expect(
-            TypeParameterType(t,
-                    promotion: TypeParameterType(u),
-                    nullabilitySuffix: NullabilitySuffix.star)
-                .toString(),
-            '(T&U)*');
       });
     });
 
     group('QuestionType:', () {
       test('basic', () {
-        expect(
-            TypeParameterType(t, nullabilitySuffix: NullabilitySuffix.question)
-                .toString(),
-            'T?');
+        expect(TypeParameterType(t, isQuestionType: true).toString(), 'T?');
       });
 
       test('needs parentheses', () {
         expect(
             TypeParameterType(t,
-                    promotion: TypeParameterType(u,
-                        nullabilitySuffix: NullabilitySuffix.question))
+                    promotion: TypeParameterType(u, isQuestionType: true))
                 .toString(),
             'T&(U?)');
       });
@@ -208,24 +193,6 @@ main() {
               NamedType(name: 'u', type: TypeParameterType(u))
             ]).toString(),
             '(T, {U u})');
-      });
-    });
-
-    group('StarType:', () {
-      test('basic', () {
-        expect(
-            TypeParameterType(t, nullabilitySuffix: NullabilitySuffix.star)
-                .toString(),
-            'T*');
-      });
-
-      test('needs parentheses', () {
-        expect(
-            TypeParameterType(t,
-                    promotion: TypeParameterType(u,
-                        nullabilitySuffix: NullabilitySuffix.star))
-                .toString(),
-            'T&(U*)');
       });
     });
 
@@ -300,14 +267,8 @@ main() {
 
     test('question type', () {
       var type = Type('int?');
-      expect(type.nullabilitySuffix, NullabilitySuffix.question);
-      expect(type.withNullability(NullabilitySuffix.none).type, 'int');
-    });
-
-    test('star type', () {
-      var type = Type('int*');
-      expect(type.nullabilitySuffix, NullabilitySuffix.star);
-      expect(type.withNullability(NullabilitySuffix.none).type, 'int');
+      expect(type.isQuestionType, true);
+      expect(type.asQuestionType(false).type, 'int');
     });
 
     test('promoted type variable', () {
@@ -926,22 +887,6 @@ main() {
       });
     });
 
-    group('StarType:', () {
-      test('unchanged', () {
-        expect(Type('int*').recursivelyDemote(covariant: true), isNull);
-        expect(Type('int*').recursivelyDemote(covariant: false), isNull);
-      });
-
-      test('covariant', () {
-        expect(Type('(T&int)*').recursivelyDemote(covariant: true)!.type, 'T*');
-      });
-
-      test('contravariant', () {
-        expect(Type('(T&int)*').recursivelyDemote(covariant: false)!.type,
-            'Never*');
-      });
-    });
-
     test('UnknownType:', () {
       expect(Type('_').recursivelyDemote(covariant: true), isNull);
       expect(Type('_').recursivelyDemote(covariant: false), isNull);
@@ -1154,20 +1099,6 @@ main() {
             );
           });
         });
-      });
-    });
-
-    group('StarType:', () {
-      test('unchanged', () {
-        expect(
-            Type('int*').closureWithRespectToUnknown(covariant: true), isNull);
-        expect(
-            Type('int*').closureWithRespectToUnknown(covariant: false), isNull);
-      });
-
-      test('covariant', () {
-        expect(Type('_*').closureWithRespectToUnknown(covariant: true)!.type,
-            'Object?');
       });
     });
   });

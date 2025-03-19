@@ -1605,6 +1605,9 @@ abstract class TypeImpl implements DartType, SharedType {
   bool get isDartCoreType => false;
 
   @override
+  bool get isQuestionType => nullabilitySuffix != NullabilitySuffix.none;
+
+  @override
   NullabilitySuffix get nullabilitySuffix;
 
   /// Append a textual representation of this type to the given [builder].
@@ -1616,6 +1619,10 @@ abstract class TypeImpl implements DartType, SharedType {
 
   @override
   InterfaceTypeImpl? asInstanceOf2(InterfaceElement2 targetElement) => null;
+
+  @override
+  TypeImpl asQuestionType(bool isQuestionType) => withNullability(
+      isQuestionType ? NullabilitySuffix.question : NullabilitySuffix.none);
 
   @override
   String getDisplayString({

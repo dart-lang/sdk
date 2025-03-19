@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     hide Variance;
 import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
@@ -912,21 +911,6 @@ class OperationsCfe
   }
 
   @override
-  DartType withNullabilitySuffixInternal(
-      DartType type, NullabilitySuffix modifier) {
-    switch (modifier) {
-      case NullabilitySuffix.none:
-        return computeTypeWithoutNullabilityMarker(type);
-      // Coverage-ignore(suite): Not run.
-      case NullabilitySuffix.question:
-        return type.withDeclaredNullability(Nullability.nullable);
-      // Coverage-ignore(suite): Not run.
-      case NullabilitySuffix.star:
-        return type.withDeclaredNullability(Nullability.legacy);
-    }
-  }
-
-  @override
   // Coverage-ignore(suite): Not run.
   TypeDeclarationKind? getTypeDeclarationKindInternal(DartType type) {
     if (type is TypeDeclarationType) {
@@ -1016,7 +1000,7 @@ class OperationsCfe
 
   @override
   DartType? matchTypeParameterBoundInternal(DartType type) {
-    if (type.nullabilitySuffix != NullabilitySuffix.none) {
+    if (type.isQuestionType) {
       return null;
     }
     if (type is TypeParameterType) {

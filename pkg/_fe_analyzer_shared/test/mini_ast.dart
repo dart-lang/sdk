@@ -20,7 +20,6 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
@@ -371,8 +370,7 @@ Pattern objectPattern({
   required List<RecordPatternField> fields,
 }) {
   var parsedType = Type(requiredType);
-  if (parsedType is! PrimaryType ||
-      parsedType.nullabilitySuffix != NullabilitySuffix.none) {
+  if (parsedType is! PrimaryType || parsedType.isQuestionType) {
     fail('Expected a primary type, got $parsedType');
   }
   return ObjectPattern._(
@@ -1776,8 +1774,7 @@ class Harness {
     var member = getMember(matchedValueType, operator);
     if (member == null) return null;
     var memberType = member._type;
-    if (memberType is! FunctionType ||
-        memberType.nullabilitySuffix != NullabilitySuffix.none) {
+    if (memberType is! FunctionType || memberType.isQuestionType) {
       fail('$matchedValueType.operator$operator has type $memberType; '
           'must be a function type');
     }
@@ -2874,7 +2871,7 @@ class MiniAstOperations
   @override
   bool isDartCoreFunctionInternal(Type type) {
     return type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
+        !type.isQuestionType &&
         type.name == 'Function' &&
         type.args.isEmpty;
   }
@@ -2882,7 +2879,7 @@ class MiniAstOperations
   @override
   bool isDartCoreRecordInternal(Type type) {
     return type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
+        !type.isQuestionType &&
         type.name == 'Record' &&
         type.args.isEmpty;
   }
@@ -2907,8 +2904,7 @@ class MiniAstOperations
   @override
   bool isNever(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is NeverType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none;
+    return unwrappedType is NeverType && !unwrappedType.isQuestionType;
   }
 
   @override
@@ -2924,14 +2920,14 @@ class MiniAstOperations
         case TypeParameterType(
           :var promotion,
           :var typeParameter,
-          nullabilitySuffix: NullabilitySuffix.none
+          isQuestionType: false
         )) {
       if (promotion != null) {
         return isNonNullableInternal(promotion);
       } else {
         return isNonNullableInternal(typeParameter.bound);
       }
-    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
+    } else if (type.isQuestionType) {
       return false;
     } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
       return isNonNullableInternal(typeArgument);
@@ -2947,7 +2943,7 @@ class MiniAstOperations
         unwrappedType is VoidType ||
         unwrappedType is NullType) {
       return true;
-    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
+    } else if (type.isQuestionType) {
       return false;
     } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
       return isNullableInternal(typeArgument);
@@ -2962,7 +2958,7 @@ class MiniAstOperations
   bool isObject(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
     return unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        !unwrappedType.isQuestionType &&
         unwrappedType.name == 'Object' &&
         unwrappedType.args.isEmpty;
   }
@@ -2979,8 +2975,7 @@ class MiniAstOperations
   @override
   bool isTypeParameterType(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is TypeParameterType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none;
+    return unwrappedType is TypeParameterType && !unwrappedType.isQuestionType;
   }
 
   @override
@@ -3033,11 +3028,9 @@ class MiniAstOperations
         promoteToNonNull(SharedTypeView(type1)) != SharedTypeView(type1)) {
       // type1 is already nullable
       return type1;
-    } else if (type1 is NeverType &&
-        type1.nullabilitySuffix == NullabilitySuffix.none) {
+    } else if (type1 is NeverType && !type1.isQuestionType) {
       return type2;
-    } else if (type2 is NeverType &&
-        type2.nullabilitySuffix == NullabilitySuffix.none) {
+    } else if (type2 is NeverType && !type2.isQuestionType) {
       return type1;
     } else {
       var typeNames = [type1.type, type2.type];
@@ -3069,10 +3062,7 @@ class MiniAstOperations
   @override
   TypeParameter? matchInferableParameterInternal(Type type) {
     if (type
-        case TypeParameterType(
-          :var typeParameter,
-          nullabilitySuffix: NullabilitySuffix.none
-        )) {
+        case TypeParameterType(:var typeParameter, isQuestionType: false)) {
       return typeParameter;
     } else {
       return null;
@@ -3081,9 +3071,7 @@ class MiniAstOperations
 
   @override
   Type? matchIterableTypeInternal(Type type) {
-    if (type is PrimaryType &&
-        type.nullabilitySuffix == NullabilitySuffix.none &&
-        type.args.length == 1) {
+    if (type is PrimaryType && !type.isQuestionType && type.args.length == 1) {
       if (type.name == 'Iterable' || type.name == 'List') {
         return type.args[0];
       }
@@ -3095,7 +3083,7 @@ class MiniAstOperations
   SharedTypeView? matchListType(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
     if (unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        !unwrappedType.isQuestionType &&
         unwrappedType.name == 'List' &&
         unwrappedType.args.length == 1) {
       return SharedTypeView(unwrappedType.args[0]);
@@ -3108,7 +3096,7 @@ class MiniAstOperations
       SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
     if (unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        !unwrappedType.isQuestionType &&
         unwrappedType.name == 'Map' &&
         unwrappedType.args.length == 2) {
       return (
@@ -3123,7 +3111,7 @@ class MiniAstOperations
   SharedTypeView? matchStreamType(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
     if (unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        !unwrappedType.isQuestionType &&
         unwrappedType.args.length == 1) {
       if (unwrappedType.name == 'Stream') {
         return SharedTypeView(unwrappedType.args[0]);
@@ -3157,7 +3145,7 @@ class MiniAstOperations
         case TypeParameterType(
           :var promotion,
           :var typeParameter,
-          nullabilitySuffix: NullabilitySuffix.none
+          isQuestionType: false
         )) {
       return promotion ?? typeParameter.bound;
     } else {
@@ -3175,9 +3163,8 @@ class MiniAstOperations
   @override
   SharedTypeView promoteToNonNull(SharedTypeView type) {
     Type unwrappedType = type.unwrapTypeView();
-    if (unwrappedType.nullabilitySuffix == NullabilitySuffix.question) {
-      return SharedTypeView(
-          unwrappedType.withNullability(NullabilitySuffix.none));
+    if (unwrappedType.isQuestionType) {
+      return SharedTypeView(unwrappedType.asQuestionType(false));
     } else if (unwrappedType is NullType) {
       return SharedTypeView(NeverType.instance);
     } else {
@@ -3233,11 +3220,6 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
           covariant _PropertyElement property) =>
       property.whyNotPromotable;
-
-  @override
-  Type withNullabilitySuffixInternal(Type type, NullabilitySuffix modifier) {
-    return type.withNullability(modifier);
-  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
@@ -5633,8 +5615,7 @@ class _MiniAstTypeAnalyzer
       inputKinds.add(Kind.expression);
       analyzeExpression(
           arguments[i],
-          methodType is FunctionType &&
-                  methodType.nullabilitySuffix == NullabilitySuffix.none
+          methodType is FunctionType && !methodType.isQuestionType
               ? operations.typeToSchema(
                   SharedTypeView(methodType.positionalParameters[i]))
               : operations.unknownType);

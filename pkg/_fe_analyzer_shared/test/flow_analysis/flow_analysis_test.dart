@@ -4207,27 +4207,29 @@ main() {
           test('; no promotion', () {
             var s1 = FlowModel<SharedTypeView>(Reachability.initial)
                 ._declare(h, objectQVar, true)
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
+                ._tryPromoteForTypeCheck(h, objectQVar, 'List<Object?>')
                 .ifFalse
-                ._tryPromoteForTypeCheck(h, objectQVar, 'num*')
+                ._tryPromoteForTypeCheck(h, objectQVar, 'List<dynamic>')
                 .ifFalse;
             expect(s1.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(objectQVar):
                   _matchVariableModel(
-                chain: ['Object'],
-                ofInterest: ['num?', 'num*'],
+                ofInterest: ['List<Object?>', 'List<dynamic>'],
               ),
             });
-            var s2 = s1._write(h, null, objectQVar, SharedTypeView(Type('int')),
+            var s2 = s1._write(
+                h,
+                null,
+                objectQVar,
+                SharedTypeView(Type('List<int>')),
                 new SsaNode<SharedTypeView>(null));
-            // It's ambiguous whether to promote to num? or num*, so we don't
-            // promote.
+            // It's ambiguous whether to promote to List<Object?> or
+            // List<dynamic>, so we don't promote.
             expect(s2, isNot(same(s1)));
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(objectQVar):
                   _matchVariableModel(
-                chain: ['Object'],
-                ofInterest: ['num?', 'num*'],
+                ofInterest: ['List<Object?>', 'List<dynamic>'],
               ),
             });
           });
@@ -4236,24 +4238,28 @@ main() {
         test('exact match', () {
           var s1 = FlowModel<SharedTypeView>(Reachability.initial)
               ._declare(h, objectQVar, true)
-              ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
+              ._tryPromoteForTypeCheck(h, objectQVar, 'List<Object?>')
               .ifFalse
-              ._tryPromoteForTypeCheck(h, objectQVar, 'num*')
+              ._tryPromoteForTypeCheck(h, objectQVar, 'List<dynamic>')
               .ifFalse;
           expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
-              chain: ['Object'],
-              ofInterest: ['num?', 'num*'],
+              ofInterest: ['List<Object?>', 'List<dynamic>'],
             ),
           });
-          var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
-              SharedTypeView(Type('num?')), new SsaNode<SharedTypeView>(null));
-          // It's ambiguous whether to promote to num? or num*, but since the
-          // written type is exactly num?, we use that.
+          var s2 = s1._write(
+              h,
+              _MockNonPromotionReason(),
+              objectQVar,
+              SharedTypeView(Type('List<Object?>')),
+              new SsaNode<SharedTypeView>(null));
+          // It's ambiguous whether to promote to List<Object?> or
+          // List<dynamic>, but since the written type is exactly List<Object?>,
+          // we use that.
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
-              chain: ['num?'],
-              ofInterest: ['num?', 'num*'],
+              chain: ['List<Object?>'],
+              ofInterest: ['List<Object?>', 'List<dynamic>'],
             ),
           });
         });

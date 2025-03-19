@@ -623,7 +623,7 @@ class TypeSystemOperations
   @override
   bool isObject(SharedTypeView type) {
     return type.unwrapTypeView<TypeImpl>().isDartCoreObject &&
-        type.nullabilitySuffix == NullabilitySuffix.none;
+        !type.isQuestionType;
   }
 
   @override
@@ -853,12 +853,6 @@ class TypeSystemOperations
     // Non-promotion reason must be due to a conflict with some other
     // declaration, or because field promotion is disabled.
     return null;
-  }
-
-  @override
-  TypeImpl withNullabilitySuffixInternal(
-      TypeImpl type, NullabilitySuffix suffix) {
-    return type.withNullability(suffix);
   }
 }
 
