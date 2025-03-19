@@ -406,7 +406,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// process, then returns that new node. Otherwise, returns `null`.
   FunctionExpressionInvocationImpl? _resolveExtensionOverride(
       MethodInvocationImpl node,
-      ExtensionOverride override,
+      ExtensionOverrideImpl override,
       SimpleIdentifierImpl nameNode,
       String name,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,

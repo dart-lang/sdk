@@ -146,11 +146,11 @@ class ExtensionMemberResolver {
   ///
   /// The [node] is fully resolved, and its type arguments are set.
   ExtensionResolutionResult getOverrideMember(
-      ExtensionOverride node, String name) {
+      ExtensionOverrideImpl node, String name) {
     var element = node.element2;
 
-    ExecutableElement2? getter;
-    ExecutableElement2? setter;
+    ExecutableElementImpl2? getter;
+    ExecutableElementImpl2? setter;
     if (name == '[]') {
       getter = element.getMethod2('[]');
       setter = element.getMethod2('[]=');

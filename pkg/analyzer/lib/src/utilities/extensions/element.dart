@@ -374,6 +374,12 @@ extension ExecutableElementExtension on ExecutableElement {
   }
 }
 
+extension ExecutableElementImpl2Extension on ExecutableElementImpl2 {
+  ExecutableElementImpl get asElement {
+    return lastFragment;
+  }
+}
+
 extension ExecutableElementImplExtension on ExecutableElementImpl {
   ExecutableElementImpl2 get asElement2 {
     return element;
@@ -483,6 +489,12 @@ extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
       ParameterMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
+  }
+}
+
+extension GetterElementImplExtension on GetterElementImpl {
+  PropertyAccessorElementImpl get asElement {
+    return lastFragment;
   }
 }
 
@@ -635,6 +647,12 @@ extension MethodElementExtension on MethodElement {
   }
 }
 
+extension MethodElementImpl2Extension on MethodElementImpl2 {
+  MethodElementImpl get asElement {
+    return lastFragment;
+  }
+}
+
 extension MethodElementImplExtension on MethodElementImpl {
   MethodElementImpl2 get asElement2 {
     return element;
@@ -772,9 +790,21 @@ extension PropertyInducingElementExtension on PropertyInducingElement2 {
   }
 }
 
+extension SetterElementImplExtension on SetterElementImpl {
+  PropertyAccessorElementImpl get asElement {
+    return lastFragment;
+  }
+}
+
 extension TopLevelFunctionElementExtension on TopLevelFunctionElement {
   FunctionElement get asElement {
     return (this as TopLevelFunctionElementImpl).lastFragment;
+  }
+}
+
+extension TopLevelFunctionElementImplExtension on TopLevelFunctionElementImpl {
+  FunctionElementImpl get asElement {
+    return lastFragment;
   }
 }
 

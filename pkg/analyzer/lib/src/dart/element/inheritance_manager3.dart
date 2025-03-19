@@ -1248,12 +1248,8 @@ class InheritanceManager3 {
     }
 
     element.methods2.map((e) => e.asElement).forEach(addMember);
-    element.getters2
-        .map((e) => e.asElement as PropertyAccessorElementImpl)
-        .forEach(addMember);
-    element.setters2
-        .map((e) => e.asElement as PropertyAccessorElementImpl)
-        .forEach(addMember);
+    element.getters2.map((e) => e.asElement).forEach(addMember);
+    element.setters2.map((e) => e.asElement).forEach(addMember);
 
     return declared;
   }

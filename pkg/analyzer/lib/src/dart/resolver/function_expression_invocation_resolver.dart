@@ -160,7 +160,7 @@ class FunctionExpressionInvocationResolver {
 
   void _resolveReceiverExtensionOverride(
       FunctionExpressionInvocationImpl node,
-      ExtensionOverride function,
+      ExtensionOverrideImpl function,
       List<WhyNotPromotedGetter> whyNotPromotedArguments,
       {required TypeImpl contextType}) {
     var result = _extensionResolver.getOverrideMember(

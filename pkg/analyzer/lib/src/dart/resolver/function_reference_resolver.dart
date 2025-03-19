@@ -350,7 +350,7 @@ class FunctionReferenceResolver {
   void _resolveExtensionOverride(
     FunctionReferenceImpl node,
     PropertyAccessImpl function,
-    ExtensionOverride override,
+    ExtensionOverrideImpl override,
   ) {
     var propertyName = function.propertyName;
     var result =
