@@ -56,7 +56,6 @@ class C<V> extends B<V> {
       declaration: A_key,
       substitution: {
         'T': 'V',
-        'U': 'V',
       },
     );
   }

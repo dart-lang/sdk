@@ -404,6 +404,9 @@ abstract class ExecutableMember extends Member
     ExecutableElement element,
     MapSubstitution substitution,
   ) {
+    // TODO(scheglov): There is (E, E) substitution in `test_rewrite_without_target`.
+    // TODO(scheglov): Shortcut on `_NullSubstitution`.
+
     ExecutableElementImpl declaration;
     var combined = substitution;
     if (element is ExecutableMember) {
@@ -413,7 +416,6 @@ abstract class ExecutableMember extends Member
       var map = <TypeParameterElement2, DartType>{
         for (var MapEntry(:key, :value) in member.substitution.map.entries)
           key: substitution.substituteType(value),
-        ...substitution.map,
       };
       combined = Substitution.fromMap2(map);
     } else {
@@ -1298,7 +1300,6 @@ class ParameterMember extends VariableMember
       var map = <TypeParameterElement2, DartType>{
         for (var MapEntry(:key, :value) in member.substitution.map.entries)
           key: substitution.substituteType(value),
-        ...substitution.map,
       };
       combined = Substitution.fromMap2(map);
     }
