@@ -410,9 +410,6 @@ class Rti {
 // TODO(nshahan): Make private and change the argument type to rti once this
 // method is no longer called from outside the library.
 Rti getLegacyErasedRti(Object? rti) {
-  // When preserving the legacy stars in the runtime type no legacy erasure
-  // happens so the cached version cannot be used.
-  assert(!JS_GET_FLAG('PRINT_LEGACY_STARS'));
   var originalType = _Utils.asRti(rti);
   return Rti._getCachedRuntimeType(originalType)?._rti ??
       _createAndCacheRuntimeType(originalType)._rti;
@@ -1181,9 +1178,6 @@ _Type _createAndCacheRuntimeType(Rti rti) {
 }
 
 _Type _createRuntimeType(Rti rti) {
-  if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
-    return _Type(rti);
-  }
   String recipe = Rti._getCanonicalRecipe(rti);
   String starErasedRecipe = Rti.getLegacyErasedRecipe(rti);
   if (starErasedRecipe == recipe) {
@@ -1996,16 +1990,7 @@ String _rtiToString(Rti rti, List<String>? genericContext) {
   if (kind == Rti.kindStar) {
     Rti starArgument = Rti._getStarArgument(rti);
     String s = _rtiToString(starArgument, genericContext);
-    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
-      int argumentKind = Rti._getKind(starArgument);
-      if (argumentKind == Rti.kindFunction ||
-          argumentKind == Rti.kindGenericFunction) {
-        s = '(' + s + ')';
-      }
-      return s + '*';
-    } else {
-      return s;
-    }
+    return s;
   }
 
   if (kind == Rti.kindQuestion) {

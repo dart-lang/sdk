@@ -6600,9 +6600,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           var value = flag.value;
           return switch (value) {
             'DEV_COMPILER' => js.boolean(true),
-            // TODO(nshahan): Delete 'PRINT_LEGACY_STARS' and 'LEGACY' after
-            // uses are deleted from dart:_rti.
-            'PRINT_LEGACY_STARS' => js.boolean(false),
+            // TODO(nshahan): Delete 'LEGACY' after uses are deleted from
+            // dart:_rti.
             'LEGACY' => js.boolean(false),
             'MINIFIED' => js.boolean(false),
             'VARIANCE' =>
