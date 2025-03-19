@@ -21,7 +21,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 /// ```
 class ListFactorySpecializer {
   final Map<Member, StaticInvocation Function(StaticInvocation node)>
-      _transformers = {};
+      transformers = {};
 
   final Procedure _fixedListEmptyFactory;
   final Procedure _fixedListFactory;
@@ -58,14 +58,14 @@ class ListFactorySpecializer {
             .getProcedure('dart:_list', 'ModifiableFixedLengthList', 'filled'),
         _fixedListGenerateFactory = coreTypes.index.getProcedure(
             'dart:_list', 'ModifiableFixedLengthList', 'generate') {
-    _transformers[_listFilledFactory] = _transformListFilledFactory;
-    _transformers[_listEmptyFactory] = _transformListEmptyFactory;
-    _transformers[_listGenerateFactory] = _transformListGenerateFactory;
+    transformers[_listFilledFactory] = _transformListFilledFactory;
+    transformers[_listEmptyFactory] = _transformListEmptyFactory;
+    transformers[_listGenerateFactory] = _transformListGenerateFactory;
   }
 
   StaticInvocation transformStaticInvocation(StaticInvocation invocation) {
     final target = invocation.target;
-    final transformer = _transformers[target];
+    final transformer = transformers[target];
     if (transformer != null) {
       return transformer(invocation);
     }
