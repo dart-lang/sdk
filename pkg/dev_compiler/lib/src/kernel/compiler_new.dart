@@ -953,7 +953,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_isSdkInternalRuntime(_currentLibrary!)) {
       var prerequisiteRtiTypes = [
         _coreTypes.objectNullableRawType,
-        NeverType.legacy()
       ];
       prerequisiteRtiTypes.forEach((type) {
         var recipe = _typeRecipeGenerator
@@ -6600,9 +6599,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           var value = flag.value;
           return switch (value) {
             'DEV_COMPILER' => js.boolean(true),
-            // TODO(nshahan): Delete 'LEGACY' after uses are deleted from
-            // dart:_rti.
-            'LEGACY' => js.boolean(false),
             'MINIFIED' => js.boolean(false),
             'VARIANCE' =>
               // Variance is turned on by default, but only interfaces that have
