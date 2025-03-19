@@ -17,6 +17,30 @@ class UnawaitedFuturesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.unawaited_futures;
 
+  test_binaryExpression_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f(C a, C b) async {
+  a + b;
+}
+class C {
+  Future<int> operator +(C other) async => 7;
+}
+''',
+      [lint(27, 6)],
+    );
+  }
+
+  test_boundToFuture_unawaited() async {
+    // This behavior was not necessarily designed, but this test documents the
+    // current behavior.
+    await assertNoDiagnostics(r'''
+void f<T extends Future<void>>(T p) async {
+  p;
+}
+''');
+  }
+
   test_classImplementsFuture() async {
     // https://github.com/dart-lang/linter/issues/2211
     await assertDiagnostics(
@@ -69,6 +93,18 @@ void f() async {
 Future<int> g() => Future.value(0);
 ''',
       [lint(22, 3)],
+    );
+  }
+
+  test_functionCall_nullableFuture_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f() async {
+  g();
+}
+Future<int>? g() => Future.value(0);
+''',
+      [lint(19, 4)],
     );
   }
 
@@ -141,6 +177,45 @@ class C {
   Future<void> doAsync() async {}
 }
 ''');
+  }
+
+  test_instanceProperty_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f(C c) async {
+  c.p;
+}
+abstract class C {
+  Future<int> get p;
+}
+''',
+      [lint(22, 4)],
+    );
+  }
+
+  test_parameter_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f(Future<int> p) async {
+  p;
+}
+''',
+      [lint(32, 2)],
+    );
+  }
+
+  test_unaryExpression_unawaited() async {
+    await assertDiagnostics(
+      r'''
+void f(C a) async {
+  -a;
+}
+class C {
+  Future<int> operator -() async => 7;
+}
+''',
+      [lint(22, 3)],
+    );
   }
 
   test_undefinedIdentifier() async {

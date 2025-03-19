@@ -12151,15 +12151,40 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Member? constructor =
           findConstructor(cachedContext, node.name, node.fileOffset);
       if (constructor is Constructor) {
-        // TODO(kallentu): Const constructors.
+        if (!constructor.isConst && node.isConst) {
+          Expression replacement = helper.buildProblem(
+              messageNonConstConstructor,
+              node.nameOffset,
+              node.name.text.length);
+          return new ExpressionInferenceResult(
+              const DynamicType(), replacement);
+        }
+
         expr = new ConstructorInvocation(constructor, node.arguments,
-            isConst: false)
+            isConst: node.isConst)
           ..fileOffset = node.fileOffset;
       } else if (constructor is Procedure) {
         // [constructor] can be a [Procedure] if we have an extension type
-        // constructor.
-        expr = new StaticInvocation(constructor, node.arguments)
-          ..fileOffset = node.fileOffset;
+        // constructor or a redirecting factory constructor.
+        if (!constructor.isConst && node.isConst) {
+          // Coverage-ignore-block(suite): Not run.
+          Expression replacement = helper.buildProblem(
+              messageNonConstConstructor,
+              node.nameOffset,
+              node.name.text.length);
+          return new ExpressionInferenceResult(
+              const DynamicType(), replacement);
+        }
+
+        if (constructor.isRedirectingFactory) {
+          expr = new FactoryConstructorInvocation(constructor, node.arguments,
+              isConst: node.isConst)
+            ..fileOffset = node.fileOffset;
+        } else {
+          expr = new StaticInvocation(constructor, node.arguments,
+              isConst: node.isConst)
+            ..fileOffset = node.fileOffset;
+        }
       } else {
         // Coverage-ignore-block(suite): Not run.
         // TODO(kallentu): This is temporary. Build a problem with an error

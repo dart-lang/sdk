@@ -6413,6 +6413,7 @@ class BodyBuilder extends StackListenerImpl
       push(
           new ParserErrorGenerator(this, nameToken, cfe.messageSyntheticToken));
     } else if (type is InvalidExpression) {
+      // Coverage-ignore-block(suite): Not run.
       push(type);
     } else if (type is Expression) {
       push(createInstantiationAndInvocation(
@@ -9982,7 +9983,6 @@ class BodyBuilder extends StackListenerImpl
   void handleDotShorthandContext(Token token) {
     debugEvent("DotShorthandContext");
     if (!libraryFeatures.dotShorthands.isEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       addProblem(
           templateExperimentNotEnabledOffByDefault
               .withArguments(ExperimentalFlag.dotShorthands.name),
@@ -10005,7 +10005,6 @@ class BodyBuilder extends StackListenerImpl
   void handleDotShorthandHead(Token token) {
     debugEvent("DotShorthandHead");
     if (!libraryFeatures.dotShorthands.isEnabled) {
-      // Coverage-ignore-block(suite): Not run.
       addProblem(
           templateExperimentNotEnabledOffByDefault
               .withArguments(ExperimentalFlag.dotShorthands.name),
@@ -10024,13 +10023,30 @@ class BodyBuilder extends StackListenerImpl
       if (selector is InvocationSelector) {
         // e.g. `.parse(2)`
         push(forest.createDotShorthandInvocation(
-            offsetForToken(token), selector.name, selector.arguments));
+            offsetForToken(token), selector.name, selector.arguments,
+            nameOffset: offsetForToken(token.next),
+            isConst: constantContext == ConstantContext.inferred));
       } else if (selector is PropertySelector) {
         // e.g. `.zero`
         push(forest.createDotShorthandPropertyGet(
             offsetForToken(token), selector.name));
       }
     }
+  }
+
+  @override
+  void beginConstDotShorthand(Token token) {
+    debugEvent("beginConstDotShorthand");
+    super.push(constantContext);
+    constantContext = ConstantContext.inferred;
+  }
+
+  @override
+  void endConstDotShorthand(Token token) {
+    debugEvent("endConstDotShorthand");
+    Object? dotShorthand = pop();
+    constantContext = pop() as ConstantContext;
+    push(dotShorthand);
   }
 }
 

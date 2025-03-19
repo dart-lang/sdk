@@ -3343,4 +3343,18 @@ class ParserTestListener implements Listener {
     seen(token);
     doPrint('handleDotShorthandHead(' '$token)');
   }
+
+  @override
+  void beginConstDotShorthand(Token token) {
+    seen(token);
+    doPrint('beginConstDotShorthand(' '$token)');
+    indent++;
+  }
+
+  @override
+  void endConstDotShorthand(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endConstDotShorthand(' '$token)');
+  }
 }

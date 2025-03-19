@@ -11438,10 +11438,18 @@ LintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when an instance of `Future` is
-      returned from an invocation within an `async` (or `async*`) method or
-      function and the future is neither awaited nor passed to the `unawaited`
-      function.
+      The analyzer produces this diagnostic on an expression with a `Future`
+      type, only in a few specific cases:
+
+      * when the expression is itself a statement (like `f();`),
+      * when the expression is part of a cascade (like `C()..f()`),
+      * when the expression is a String interpolation (like `'${f()}'`).
+
+      The analyzer only produces this diagnostic on expressions inside an
+      `async` or `async*` function.
+
+      The two common corrections are to 'await' the expression, or to wrap the
+      expression in a call to `unawaited()`.
 
       #### Example
 

@@ -2400,4 +2400,10 @@ class Listener implements UnescapeErrorListener {
   void handleDotShorthandHead(Token token) {
     logEvent('DotShorthandHead');
   }
+
+  void beginConstDotShorthand(Token token) {}
+
+  void endConstDotShorthand(Token token) {
+    logEvent('ConstDotShorthand');
+  }
 }

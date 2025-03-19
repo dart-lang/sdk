@@ -5826,13 +5826,24 @@ class Parser {
     return token;
   }
 
+  /// Returns `true` if [period] is a `.` and the next token after is an
+  /// identifier or the `new` keyword.
+  ///
+  /// This indicates the parsing of a dot shorthand e.g. `.parse(42)`.
+  bool _isDotShorthand(Token period) {
+    if (period.isA(TokenType.PERIOD) &&
+        (period.next!.isIdentifier || period.next!.isA(Keyword.NEW))) {
+      return true;
+    }
+    return false;
+  }
+
   Token parsePrecedenceExpression(Token token, int precedence,
       bool allowCascades, ConstantPatternContext constantPatternContext) {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
 
-    bool isDotShorthand = token.next!.isA(TokenType.PERIOD) &&
-        (token.next!.next!.isIdentifier || token.next!.next!.isA(Keyword.NEW));
+    bool isDotShorthand = _isDotShorthand(token.next!);
     if (isDotShorthand) {
       // TODO(kallentu): Once the analyzer implementation is done, we can avoid
       // adding a synthetic identifier completely, but currently, the parser
@@ -7463,6 +7474,19 @@ class Parser {
         assert(false, "Expected either [, [] or < but found neither.");
       }
     }
+
+    bool isDotShorthand = _isDotShorthand(token.next!);
+    if (isDotShorthand) {
+      Token dot = token.next!;
+      listener.beginConstDotShorthand(constKeyword);
+      token = parsePrimary(dot, IdentifierContext.expressionContinuation,
+          ConstantPatternContext.explicit);
+      listener.handleDotShorthandHead(dot);
+      listener.handleDotShorthandContext(dot);
+      listener.endConstDotShorthand(constKeyword);
+      return token;
+    }
+
     listener.beginConstExpression(constKeyword);
     token = parseConstructorReference(token, ConstructorReferenceContext.Const,
         /* typeArg = */ potentialTypeArg);
