@@ -2203,6 +2203,16 @@ class ForwardingListener implements Listener {
   void handleDotShorthandContext(Token token) {
     listener?.handleDotShorthandContext(token);
   }
+
+  @override
+  void beginConstDotShorthand(Token token) {
+    listener?.beginConstDotShorthand(token);
+  }
+
+  @override
+  void endConstDotShorthand(Token token) {
+    listener?.beginConstDotShorthand(token);
+  }
 }
 
 class NullListener extends ForwardingListener {

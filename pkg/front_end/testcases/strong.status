@@ -172,6 +172,7 @@ none/mixin_super: semiFuzzFailureOnForceRebuildBodies # has private name mixin
 dart2js/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 
 constructor_tearoffs/call_instantiation: TypeCheckError
+dot_shorthands/const_constructor_nonconst: RuntimeError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
 enhanced_enums/simple_mixins: RuntimeError

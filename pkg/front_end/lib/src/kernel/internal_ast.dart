@@ -3254,11 +3254,13 @@ class DotShorthand extends InternalExpression {
 /// This node could represent a shorthand of a static method or a named
 /// constructor.
 class DotShorthandInvocation extends InternalExpression {
-  Name name;
+  final Name name;
+  final int nameOffset;
+  final Arguments arguments;
+  final bool isConst;
 
-  Arguments arguments;
-
-  DotShorthandInvocation(this.name, this.arguments);
+  DotShorthandInvocation(this.name, this.arguments, this.nameOffset,
+      {required this.isConst});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3274,6 +3276,9 @@ class DotShorthandInvocation extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
+    if (isConst) {
+      printer.write('const ');
+    }
     printer.write('.');
     printer.writeName(name);
     printer.writeArguments(arguments);

@@ -4440,6 +4440,7 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Expression qualifiedLookup(Token name) {
     return buildProblem();
   }
