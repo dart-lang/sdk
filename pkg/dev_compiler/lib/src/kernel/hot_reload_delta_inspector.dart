@@ -40,6 +40,9 @@ class HotReloadDeltaInspector {
           continue;
         }
         _checkClassTypeParametersCountChange(acceptedClass, deltaClass);
+        if (acceptedClass.isEnum || deltaClass.isEnum) {
+          _checkEnumIllegalConversion(acceptedClass, deltaClass);
+        }
         if (acceptedClass.hasConstConstructor) {
           _checkConstClassConsistency(acceptedClass, deltaClass);
           _checkConstClassDeletedFields(acceptedClass, deltaClass);
@@ -107,6 +110,21 @@ class HotReloadDeltaInspector {
       _rejectionMessages.add(
           'Limitation: changing type parameters does not work with hot reload.'
           "Library:'${deltaClass.enclosingLibrary.importUri}' "
+          'Class: ${deltaClass.name}');
+    }
+  }
+
+  /// Records a rejection error when a class is redefined as or from an [Enum].
+  ///
+  /// [acceptedClass] and [deltaClass] must represent the same class in the
+  /// last known accepted and delta components respectively.
+  void _checkEnumIllegalConversion(Class acceptedClass, Class deltaClass) {
+    if (acceptedClass.isEnum && !deltaClass.isEnum) {
+      _rejectionMessages
+          .add('Enum class cannot be redefined to be a non-enum class.'
+              'Class: ${deltaClass.name}');
+    } else if (!acceptedClass.isEnum && deltaClass.isEnum) {
+      _rejectionMessages.add('Class cannot be redefined to be a enum class.'
           'Class: ${deltaClass.name}');
     }
   }
