@@ -279,6 +279,7 @@ ISOLATE_UNIT_TEST_CASE(
     // progress.
     deopt->MarkAndNotify(LongDeoptTask::kFinishDeoptOperation);
     gc->WaitUntil(WaiterTask::kExitedSafepoint);
+    deopt->WaitUntil(LongDeoptTask::kFinishedDeoptOperation);
 
     // Make both threads exit the isolate group.
     deopt->MarkAndNotify(LongDeoptTask::kPleaseExit);
