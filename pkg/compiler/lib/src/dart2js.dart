@@ -552,7 +552,6 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.experimentToBoolean, passThrough),
     _OneOption(Flags.experimentUnreachableMethodsThrow, passThrough),
     _OneOption(Flags.experimentCallInstrumentation, passThrough),
-    _OneOption(Flags.experimentNullSafetyChecks, ignoreOption),
     _OneOption(Flags.experimentNewRti, ignoreOption),
     _OneOption('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
