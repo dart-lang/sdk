@@ -120,10 +120,7 @@ ir.Reference _findMainMethod(Library entryLibrary) {
   return mainMethodReference;
 }
 
-String _getPlatformFilename(CompilerOptions options, String targetName) {
-  String unsoundMarker = options.useLegacySubtyping ? "_unsound" : "";
-  return "${targetName}_platform$unsoundMarker.dill";
-}
+String _getPlatformFilename(String targetName) => "${targetName}_platform.dill";
 
 class _LoadFromKernelResult {
   final ir.Component? component;
@@ -228,7 +225,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(
   if (options.platformBinaries != null &&
       options.stage.shouldReadPlatformBinaries) {
     var platformUri = options.platformBinaries?.resolve(
-      _getPlatformFilename(options, targetName),
+      _getPlatformFilename(targetName),
     );
     // TODO(joshualitt): Change how we detect this case so it is less
     // brittle.
@@ -311,9 +308,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
   List<Uri> dependencies = [];
   if (options.platformBinaries != null) {
     dependencies.add(
-      options.platformBinaries!.resolve(
-        _getPlatformFilename(options, targetName),
-      ),
+      options.platformBinaries!.resolve(_getPlatformFilename(targetName)),
     );
   }
   if (options.dillDependencies != null) {

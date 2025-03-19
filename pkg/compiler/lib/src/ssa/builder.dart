@@ -2795,10 +2795,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         ..sourceInformation = sourceInformation;
       final staticType =
           _abstractValueDomain
-              .createFromStaticType(
-                _getStaticForInElementType(node),
-                nullable: true,
-              )
+              .createFromStaticType(_getStaticForInElementType(node))
               .abstractValue;
       value.instructionType = _abstractValueDomain.intersection(
         value.instructionType,
@@ -4430,9 +4427,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     AbstractValue type =
         _typeInferenceMap.typeOfRecordLiteral(node, _abstractValueDomain) ??
-        _abstractValueDomain
-            .createFromStaticType(dartType, nullable: true)
-            .abstractValue;
+        _abstractValueDomain.createFromStaticType(dartType).abstractValue;
 
     final allocation = HCreate(recordClass, inputs, type, sourceInformation);
 
@@ -4471,7 +4466,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final recordType =
           _typeInferenceMap.receiverTypeOfGet(node) ??
           _abstractValueDomain
-              .createFromStaticType(_getStaticType(node), nullable: true)
+              .createFromStaticType(_getStaticType(node))
               .abstractValue;
       final fieldType = _abstractValueDomain.getGetterTypeInRecord(
         recordType,
@@ -5497,7 +5492,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     );
     AbstractValue receiverType =
         _abstractValueDomain
-            .createFromStaticType(receiverStaticType, nullable: true)
+            .createFromStaticType(receiverStaticType)
             .abstractValue;
     push(
       HInvokeClosure(
@@ -6313,7 +6308,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
   bool _equivalentToMissingRti(InterfaceType type) {
     assert(type.element == _commonElements.jsArrayClass);
-    return dartTypes.isStrongTopType(type.typeArguments.single);
+    return dartTypes.isTopType(type.typeArguments.single);
   }
 
   void _handleForeignJs(
@@ -6888,7 +6883,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   ) {
     AbstractValue typeBound =
         _abstractValueDomain
-            .createFromStaticType(staticReceiverType, nullable: true)
+            .createFromStaticType(staticReceiverType)
             .abstractValue;
     receiverType =
         receiverType == null
@@ -7034,10 +7029,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (node is ir.InstanceInvocation || node is ir.FunctionInvocation) {
       final staticType =
           _abstractValueDomain
-              .createFromStaticType(
-                _getStaticType(node as ir.Expression),
-                nullable: true,
-              )
+              .createFromStaticType(_getStaticType(node as ir.Expression))
               .abstractValue;
       // Narrow to front-end inferred type, but only if `receiverType` is
       // disjoint with LegacyJavaScriptObject.  Global type inference does not
@@ -7752,7 +7744,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       sourceElement,
     );
     AbstractValueWithPrecision checkedType = _abstractValueDomain
-        .createFromStaticType(typeValue, nullable: false);
+        .createFromStaticType(typeValue);
 
     push(
       HIsTest(

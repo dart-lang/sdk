@@ -824,18 +824,9 @@ class PowersetDomain with AbstractValueDomain {
   }
 
   @override
-  AbstractValueWithPrecision createFromStaticType(
-    DartType type, {
-    required bool nullable,
-  }) {
-    int powersetBits = _powersetBitsDomain.createFromStaticType(
-      type,
-      nullable: nullable,
-    );
-    var unwrapped = _abstractValueDomain.createFromStaticType(
-      type,
-      nullable: nullable,
-    );
+  AbstractValueWithPrecision createFromStaticType(DartType type) {
+    int powersetBits = _powersetBitsDomain.createFromStaticType(type);
+    var unwrapped = _abstractValueDomain.createFromStaticType(type);
     return AbstractValueWithPrecision(
       PowersetValue(unwrapped.abstractValue, powersetBits),
       unwrapped.isPrecise,

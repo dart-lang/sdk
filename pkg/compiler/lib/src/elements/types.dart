@@ -1885,18 +1885,16 @@ abstract class DartTypes {
   /// The types defined in 'dart:core'.
   CommonElements get commonElements;
 
-  bool get useLegacySubtyping;
-
   DartType nullableType(DartType baseType) {
     bool isNullable(DartType t) =>
         // Note that we can assume null safety is enabled here.
         t.isNull ||
         t is NullableType ||
         t is FutureOrType && isNullable(t.typeArgument) ||
-        isStrongTopType(t);
+        isTopType(t);
 
     DartType result;
-    if (isStrongTopType(baseType) ||
+    if (isTopType(baseType) ||
         baseType.isNull ||
         baseType is NullableType ||
         baseType is FutureOrType && isNullable(baseType.typeArgument)) {
@@ -2048,14 +2046,10 @@ abstract class DartTypes {
   }
 
   /// Returns `true` if [t] is a bottom type, that is, a subtype of every type.
-  bool isBottomType(DartType t) =>
-      t is NeverType || (useLegacySubtyping && t.isNull);
+  bool isBottomType(DartType t) => t is NeverType;
 
   /// Returns `true` if [t] is a top type, that is, a supertype of every type.
   bool isTopType(DartType t) =>
-      isStrongTopType(t) || useLegacySubtyping && t.isObject;
-
-  bool isStrongTopType(DartType t) =>
       t is VoidType ||
       t is DynamicType ||
       t is ErasedType ||
@@ -2111,7 +2105,7 @@ abstract class DartTypes {
       if (isTopType(t)) return true;
 
       // Left Top:
-      if (isStrongTopType(s)) return false;
+      if (isTopType(s)) return false;
 
       // Left Bottom:
       if (isBottomType(s)) return true;
@@ -2127,7 +2121,7 @@ abstract class DartTypes {
       // Left Null:
       // Note: Interchanging the Left Null and Right Object rules allows us to
       // reduce casework.
-      if (!useLegacySubtyping && s.isNull) {
+      if (s.isNull) {
         if (t is FutureOrType) {
           return isSubtype(s, t.typeArgument, env);
         }
@@ -2135,7 +2129,7 @@ abstract class DartTypes {
       }
 
       // Right Object:
-      if (!useLegacySubtyping && t.isObject) {
+      if (t.isObject) {
         if (s is FutureOrType) {
           return isSubtype(s.typeArgument, t, env);
         }
@@ -2151,8 +2145,7 @@ abstract class DartTypes {
 
       // Left Nullable:
       if (s is NullableType) {
-        return (useLegacySubtyping ||
-                isSubtype(commonElements.nullType, t, env)) &&
+        return (isSubtype(commonElements.nullType, t, env)) &&
             isSubtype(s.baseType, t, env);
       }
 
@@ -2172,8 +2165,7 @@ abstract class DartTypes {
 
       // Right Nullable:
       if (t is NullableType) {
-        return (!useLegacySubtyping &&
-                isSubtype(s, commonElements.nullType, env)) ||
+        return (isSubtype(s, commonElements.nullType, env)) ||
             isSubtype(s, t.baseType, env);
       }
 
@@ -2280,14 +2272,12 @@ abstract class DartTypes {
                 String sName = sNamed[sIndex++];
                 int comparison = sName.compareTo(tName);
                 if (comparison > 0) return false;
-                bool sIsRequired =
-                    !useLegacySubtyping && sRequiredNamed.contains(sName);
+                bool sIsRequired = sRequiredNamed.contains(sName);
                 if (comparison < 0) {
                   if (sIsRequired) return false;
                   continue;
                 }
-                bool tIsRequired =
-                    !useLegacySubtyping && tRequiredNamed.contains(tName);
+                bool tIsRequired = tRequiredNamed.contains(tName);
                 if (sIsRequired && !tIsRequired) return false;
                 if (!isSubtype(
                   tNamedTypes[tIndex],
@@ -2299,10 +2289,8 @@ abstract class DartTypes {
                 break;
               }
             }
-            if (!useLegacySubtyping) {
-              while (sIndex < sNamedLength) {
-                if (sRequiredNamed.contains(sNamed[sIndex++])) return false;
-              }
+            while (sIndex < sNamedLength) {
+              if (sRequiredNamed.contains(sNamed[sIndex++])) return false;
             }
             return true;
           } finally {

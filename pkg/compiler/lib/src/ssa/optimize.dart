@@ -1141,9 +1141,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         );
         HInstruction closureCall = HInvokeClosure(
           callSelector,
-          _abstractValueDomain
-              .createFromStaticType(fieldType, nullable: true)
-              .abstractValue,
+          _abstractValueDomain.createFromStaticType(fieldType).abstractValue,
           inputs,
           node.instructionType,
           node.typeArguments,
@@ -2155,7 +2153,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       DartType fieldType = _closedWorld.elementEnvironment.getFieldType(member);
 
       AbstractValueWithPrecision checkedType = _abstractValueDomain
-          .createFromStaticType(fieldType, nullable: true);
+          .createFromStaticType(fieldType);
       if (checkedType.isPrecise &&
           _abstractValueDomain
               .isIn(value.instructionType, checkedType.abstractValue)
@@ -2614,7 +2612,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     );
     if (specializedCheck != null) {
       AbstractValueWithPrecision checkedType = _abstractValueDomain
-          .createFromStaticType(node.checkedTypeExpression, nullable: true);
+          .createFromStaticType(node.checkedTypeExpression);
       return HAsCheckSimple(
         node.checkedInput,
         node.checkedTypeExpression,
@@ -2676,7 +2674,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
     if (specialization != null) {
       AbstractValueWithPrecision checkedType = _abstractValueDomain
-          .createFromStaticType(node.dartType, nullable: false);
+          .createFromStaticType(node.dartType);
       _metrics.countIsTestSimplified.add();
       return HIsTestSimple(
         node.dartType,

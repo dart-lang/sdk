@@ -4607,7 +4607,7 @@ AbstractBool _typeTest(
   AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
   bool nullIs(DartType type) =>
-      dartTypes.isStrongTopType(type) ||
+      dartTypes.isTopType(type) ||
       type is NullableType ||
       type is FutureOrType && nullIs(type.typeArgument) ||
       type.isNull;
@@ -4672,10 +4672,7 @@ AbstractBool _typeTest(
     return AbstractBool.maybe;
   }
 
-  AbstractBool isNullAsCheck =
-      !options.useLegacySubtyping && isCast
-          ? expressionIsNull
-          : AbstractBool.false_;
+  AbstractBool isNullAsCheck = isCast ? expressionIsNull : AbstractBool.false_;
   AbstractBool isNullIsTest = !isCast ? expressionIsNull : AbstractBool.false_;
 
   AbstractBool unwrapAndCheck(DartType type) {

@@ -534,7 +534,6 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to generate code asserting that non-nullable return values of
   /// `@Native` methods or `JS()` invocations are checked for being non-null.
-  /// Emits checks only in sound null-safety.
   bool nativeNullAssertions = false;
   bool _noNativeNullAssertions = false;
 
@@ -652,11 +651,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// If [true], the compiler will emit code that logs whenever a method is
   /// called.
   bool experimentCallInstrumentation = false;
-
-  /// Whether to use legacy subtype semantics rather than null-safe semantics.
-  /// This is `true` if unsound null-safety semantics are being used, since
-  /// dart2js does not emit warnings for unsound null-safety.
-  bool get useLegacySubtyping => false;
 
   /// If specified, a bundle of optimizations to enable (or disable).
   int? optimizationLevel;
@@ -825,9 +819,8 @@ class CompilerOptions implements DiagnosticOptions {
     Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags =
         _extractExperiments(options, onError: onError, onWarning: onWarning);
 
-    // The null safety experiment can result in requiring different experiments
-    // for compiling user code vs. the sdk. To simplify things, we prebuild the
-    // sdk with the correct flags.
+    // We may require different experiments for compiling user code vs. the sdk.
+    // To simplify things, we prebuild the sdk with the correct flags.
     platformBinaries ??= fe.computePlatformBinariesLocation();
     return CompilerOptions()
       ..entryUri = _extractUriOption(options, '${Flags.entryUri}=')
@@ -1077,7 +1070,6 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (benchmarkingExperiment) {
       // Set flags implied by '--benchmarking-x'.
-      // TODO(sra): Use this for some null safety variant.
       features.forceCanary();
     }
 
