@@ -240,7 +240,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/builder.dart": (
-    hitCount: 30,
+    hitCount: 29,
     missCount: 0,
   ),
   // 100.0%.
@@ -515,7 +515,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/factory.dart": (
-    hitCount: 49,
+    hitCount: 51,
     missCount: 0,
   ),
   // 100.0%.
@@ -865,7 +865,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_class_builder.dart": (
-    hitCount: 1354,
+    hitCount: 1352,
     missCount: 0,
   ),
   // 100.0%.
@@ -875,7 +875,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_constructor_builder.dart": (
-    hitCount: 430,
+    hitCount: 429,
     missCount: 0,
   ),
   // 100.0%.
@@ -896,7 +896,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_factory_builder.dart": (
-    hitCount: 972,
+    hitCount: 860,
     missCount: 0,
   ),
   // 100.0%.
@@ -909,10 +909,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     hitCount: 1085,
     missCount: 0,
   ),
-  // 99.88919667590028%.
+  // 100.0%.
   "package:front_end/src/source/source_loader.dart": (
     hitCount: 1803,
-    missCount: 2,
+    missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_member_builder.dart": (
@@ -946,7 +946,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 1579,
+    hitCount: 1591,
     missCount: 0,
   ),
   // 100.0%.
@@ -1022,6 +1022,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
   "package:front_end/src/type_inference/type_demotion.dart": (
     hitCount: 19,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/type_inference/type_inference_engine.dart": (
+    hitCount: 539,
     missCount: 0,
   ),
   // 100.0%.

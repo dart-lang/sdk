@@ -1145,15 +1145,6 @@ enum class TypeEquality {
   kInSubtypeTest = 2,
 };
 
-// The NNBDCompiledMode reflects the mode in which constants of the library were
-// compiled by CFE.
-enum class NNBDCompiledMode {
-  kStrong = 0,
-  kWeak = 1,
-  kAgnostic = 2,
-  kInvalid = 3,
-};
-
 class Class : public Object {
  public:
   enum InvocationDispatcherEntry {

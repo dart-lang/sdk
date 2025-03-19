@@ -250,8 +250,7 @@ class DynamicModuleStrategy extends DefaultModuleStrategy with KernelNodes {
       if (hasPragma(coreTypes, library, _mainLibPragma)) {
         final mainMethod = library.procedures
             .firstWhere((m) => hasPragma(coreTypes, m, _mainMethodPragma));
-        component.setMainMethodAndMode(
-            mainMethod.reference, true, component.mode);
+        component.setMainMethodAndMode(mainMethod.reference, true);
       }
     }
   }

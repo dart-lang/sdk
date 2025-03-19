@@ -15,54 +15,11 @@ import '../base/messages.dart'
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import 'source_library_builder.dart';
-import 'source_loader.dart' show SourceLoader;
-import 'source_member_builder.dart';
-
-abstract class SourceFunctionBuilder
-    implements FunctionBuilder, SourceMemberBuilder {
-  List<NominalParameterBuilder>? get typeParameters;
-
-  List<FormalParameterBuilder>? get formals;
-
-  @override
-  bool get isAbstract;
-
-  @override
-  bool get isConstructor;
-
-  @override
-  bool get isRegularMethod;
-
-  @override
-  bool get isGetter;
-
-  @override
-  bool get isSetter;
-
-  @override
-  bool get isOperator;
-
-  @override
-  bool get isFactory;
-
-  bool get isNative;
-
-  /// Returns the parameter for 'this' synthetically added to extension
-  /// instance members.
-  VariableDeclaration? get thisVariable;
-
-  /// Returns a list of synthetic type parameters added to extension instance
-  /// members.
-  List<TypeParameter>? get thisTypeParameters;
-
-  void becomeNative(SourceLoader loader);
-}
 
 /// Builds the [TypeParameter]s for [declaredTypeParameters] and the parameter
 /// [VariableDeclaration]s for [declaredFormals] and adds them to [function].

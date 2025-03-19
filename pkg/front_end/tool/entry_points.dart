@@ -394,8 +394,7 @@ Future<Uri> _emitComponent(ProcessedOptions options, Component component,
     Component userCode = new Component(
         nameRoot: component.root,
         uriToSource: new Map<Uri, Source>.from(component.uriToSource));
-    userCode.setMainMethodAndMode(
-        component.mainMethodName, true, component.mode);
+    userCode.setMainMethodAndMode(component.mainMethodName, true);
     for (Library library in component.libraries) {
       if (!library.importUri.isScheme("dart")) {
         userCode.libraries.add(library);

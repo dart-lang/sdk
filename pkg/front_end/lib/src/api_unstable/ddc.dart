@@ -80,7 +80,7 @@ class DdcResult {
   Component _computeCompiledLibraries() {
     Component compiledLibraries = new Component(
         nameRoot: component.root, uriToSource: component.uriToSource)
-      ..setMainMethodAndMode(null, false, component.mode);
+      ..setMainMethodAndMode(null, false);
     for (Library lib in component.libraries) {
       if (!librariesFromDill.contains(lib)) {
         compiledLibraries.libraries.add(lib);

@@ -16,41 +16,16 @@ void main() {
     }
   }
 
-  void setNonNullableByDefaultCompiledMode(Library lib,
-      NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode) {
-    lib.nonNullableByDefaultCompiledMode = nonNullableByDefaultCompiledMode;
-  }
-
-  void verifyNonNullableByDefaultCompiledMode(Library lib,
-      NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode) {
-    if (lib.nonNullableByDefaultCompiledMode !=
-        nonNullableByDefaultCompiledMode) {
-      throw "Serialized and re-read library had change in "
-          "nonNullableByDefaultCompiledMode flag.";
-    }
-  }
-
   int combination = 0;
   for (bool isSynthetic in [true, false]) {
-    for (NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode in [
-      NonNullableByDefaultCompiledMode.Weak,
-      NonNullableByDefaultCompiledMode.Strong,
-    ]) {
-      combination++;
-      print("Checking combination #$combination ("
-          "isSynthetic: $isSynthetic; "
-          "nonNullableByDefaultCompiledMode:"
-          " $nonNullableByDefaultCompiledMode");
-      Uri uri = Uri.parse("foo://bar.dart");
-      Library lib = new Library(uri, fileUri: uri);
-      setSynthetic(lib, isSynthetic);
-      setNonNullableByDefaultCompiledMode(
-          lib, nonNullableByDefaultCompiledMode);
-      Library lib2 = libRoundTrip(lib);
-      verifySynthetic(lib2, isSynthetic);
-      verifyNonNullableByDefaultCompiledMode(
-          lib2, nonNullableByDefaultCompiledMode);
-    }
+    combination++;
+    print("Checking combination #$combination ("
+        "isSynthetic: $isSynthetic");
+    Uri uri = Uri.parse("foo://bar.dart");
+    Library lib = new Library(uri, fileUri: uri);
+    setSynthetic(lib, isSynthetic);
+    Library lib2 = libRoundTrip(lib);
+    verifySynthetic(lib2, isSynthetic);
   }
 
   print("Done: Everything looks good.");

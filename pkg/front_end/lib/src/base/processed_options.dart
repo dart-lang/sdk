@@ -13,12 +13,7 @@ import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
         TargetLibrariesSpecification;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/kernel.dart'
-    show
-        CanonicalName,
-        Component,
-        Location,
-        NonNullableByDefaultCompiledMode,
-        Version;
+    show CanonicalName, Component, Location, Version;
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
 import 'package:package_config/package_config.dart';
@@ -454,7 +449,7 @@ class ProcessedOptions {
   Target? _target;
   Target get target => _target ??= _raw.target ??
       // Coverage-ignore(suite): Not run.
-      new NoneTarget(new TargetFlags(soundNullSafety: true));
+      new NoneTarget(new TargetFlags());
 
   /// Returns the global state of the experimental features.
   flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;
@@ -477,22 +472,6 @@ class ProcessedOptions {
     return _raw.isExperimentEnabledInLibraryByVersion(flag, importUri, version);
   }
 
-  Component _validateNullSafetyMode(Component component) {
-    if (component.mode == NonNullableByDefaultCompiledMode.Invalid) {
-      throw new FormatException(
-          'Provided .dill file for the following libraries has an invalid null '
-          'safety mode and does not support null safety:\n'
-          '${component.libraries.join('\n')}');
-    }
-    if (component.mode != NonNullableByDefaultCompiledMode.Strong) {
-      throw new FormatException(
-          'Provided .dill file for the following libraries does not '
-          'support sound null safety:\n'
-          '${component.libraries.join('\n')}');
-    }
-    return component;
-  }
-
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<Component?> loadSdkSummary(CanonicalName? nameRoot) async {
@@ -512,7 +491,6 @@ class ProcessedOptions {
     if (_sdkSummaryComponent != null) {
       throw new StateError("sdkSummary already loaded.");
     }
-    _validateNullSafetyMode(platform);
     _sdkSummaryComponent = platform;
   }
 
@@ -550,7 +528,7 @@ class ProcessedOptions {
             disableLazyReading: false,
             alwaysCreateNewNamedNodes: alwaysCreateNewNamedNodes)
         .readComponent(component);
-    return _validateNullSafetyMode(component);
+    return component;
   }
 
   /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.

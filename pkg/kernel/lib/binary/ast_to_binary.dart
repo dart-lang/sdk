@@ -9,7 +9,6 @@ import 'dart:developer';
 import 'dart:typed_data';
 
 import '../ast.dart';
-import 'ast_from_binary.dart' show mergeCompilationModeOrThrow;
 import 'tag.dart';
 
 /// Writes to a binary file.
@@ -30,7 +29,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final List<bool?> _sourcesUsedInLibrary = <bool?>[];
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
-  NonNullableByDefaultCompiledMode? compilationMode;
 
   List<_MetadataSubsection>? _metadataSubsections;
 
@@ -586,7 +584,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeComponentFile(Component component) {
     Timeline.timeSync("BinaryPrinter.writeComponentFile", () {
-      compilationMode = component.mode;
       _computeCanonicalNames(component);
       final int componentOffset = getBufferOffset();
       writeUInt32(Tag.ComponentFile);
@@ -846,8 +843,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
           _ensureCanonicalName(getNonNullableMemberReferenceGetter(mainMethod));
       writeUInt32(main.index + 1);
     }
-    assert(component.modeRaw != null, "Component mode not set.");
-    writeUInt32(component.mode.index);
+    // TODO(jensj): Previously the component mode. Remove this.
+    writeUInt32(0);
 
     assert(libraryOffsets.length == libraries.length);
     for (int offset in libraryOffsets) {
@@ -1087,13 +1084,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     libraryOffsets.add(getBufferOffset());
     writeByte(node.flags);
-
-    assert(
-        mergeCompilationModeOrThrow(
-                compilationMode, node.nonNullableByDefaultCompiledMode) ==
-            compilationMode,
-        "Cannot have ${node.nonNullableByDefaultCompiledMode} "
-        "in component with mode $compilationMode");
 
     writeUInt30(node.languageVersion.major);
     writeUInt30(node.languageVersion.minor);

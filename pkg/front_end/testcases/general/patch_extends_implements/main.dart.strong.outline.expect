@@ -93,7 +93,7 @@ class Class4b extends core::Object {
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5a extends core::Object {
   @_in::patch
-  external static factory •() → self2::Class5a /* redirection-target: self2::Class5aImpl::• */
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •() → self2::Class5a /* redirection-target: self2::Class5aImpl::• */
     return new self2::Class5aImpl::•();
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
@@ -104,8 +104,12 @@ class Class5aImpl extends core::Object implements self2::Class5a {
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5b extends core::Object {
   @_in::patch
-  external static factory •() → self2::Class5b
-    return new self2::Class5bImpl::•();
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •() → self2::Class5b
+    return invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/patch_lib.dart:44:23: Error: The constructor function type 'Class5bImpl Function()' isn't a subtype of 'Class5b Function()'.
+ - 'Class5bImpl' is from 'dart:test'.
+ - 'Class5b' is from 'dart:test'.
+  factory Class5b() = Class5bImpl;
+                      ^";
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5bImpl extends core::Object {
@@ -115,8 +119,12 @@ class Class5bImpl extends core::Object {
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5c extends core::Object {
   @_in::patch
-  external static factory •() → self2::Class5c
-    return new self2::Class5cImpl::•();
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •() → self2::Class5c
+    return invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/patch_lib.dart:53:23: Error: The constructor function type 'Class5cImpl Function()' isn't a subtype of 'Class5c Function()'.
+ - 'Class5cImpl' is from 'dart:test'.
+ - 'Class5c' is from 'dart:test'.
+  factory Class5c() = Class5cImpl;
+                      ^";
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5cImpl extends core::Object {
@@ -126,20 +134,28 @@ class Class5cImpl extends core::Object {
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class6a<T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
-  external static factory •<T extends core::Object? = dynamic>((self2::Class6a::•::T%) → void f) → self2::Class6a<self2::Class6a::•::T%>
-    return new self2::_Class6aImpl::•<self2::Class6a::•::T%>(f);
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>((self2::Class6a::•::T%) → void f) → self2::Class6a<self2::Class6a::•::T%>
+    return invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/patch_lib.dart:62:41: Error: The constructor function type '_Class6aImpl<T> Function(void Function(T))' isn't a subtype of 'Class6a<T> Function(void Function(T))'.
+ - '_Class6aImpl' is from 'dart:test'.
+ - 'Class6a' is from 'dart:test'.
+  factory Class6a(void Function(T) f) = _Class6aImpl<T>;
+                                        ^";
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class6b<T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
-  external static factory •<T extends core::Object? = dynamic>((self2::Class6b::•::T%) → void f) → self2::Class6b<self2::Class6b::•::T%> /* redirection-target: self2::_Class6bImpl::•<self2::Class6b::•::T%>*/
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>((self2::Class6b::•::T%) → void f) → self2::Class6b<self2::Class6b::•::T%> /* redirection-target: self2::_Class6bImpl::•<self2::Class6b::•::T%>*/
     return new self2::_Class6bImpl::•<self2::Class6b::•::T%>(f);
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class6c<T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
-  external static factory •<T extends core::Object? = dynamic>((self2::Class6c::•::T%) → void f) → self2::Class6c<self2::Class6c::•::T%>
-    return new self2::_Class6cImpl::•<self2::Class6c::•::T%>(f);
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>((self2::Class6c::•::T%) → void f) → self2::Class6c<self2::Class6c::•::T%>
+    return invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/patch_lib.dart:82:41: Error: The constructor function type '_Class6cImpl<T> Function(void Function(T))' isn't a subtype of 'Class6c<T> Function(void Function(T))'.
+ - '_Class6cImpl' is from 'dart:test'.
+ - 'Class6c' is from 'dart:test'.
+  factory Class6c(void Function(T) f) = _Class6cImpl<T>;
+                                        ^";
 }
 class _Class6aImpl<T extends core::Object? = dynamic> extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
   constructor •((self2::_Class6aImpl::T%) → void f) → self2::_Class6aImpl<self2::_Class6aImpl::T%>
@@ -170,18 +186,18 @@ Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:23:1 -> I
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:26:1 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:29:1 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:32:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:31:29 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:34:4 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:38:1 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:41:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:39:16 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:43:4 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:47:1 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:50:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:46:44 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:52:4 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:56:1 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:59:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:54:6 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:61:4 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:69:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:71:4 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:79:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
-Extra constant evaluation: evaluated: 32, effectively constant: 23
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:81:4 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 26, effectively constant: 23

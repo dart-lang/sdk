@@ -10,8 +10,6 @@ import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -128,15 +126,12 @@ late IncrementalCompiler incrementalCompiler;
 Future<void> main(List<String> arguments) async {
   Uri? platformUri;
   Uri mainUri;
-  bool nnbd = false;
   String targetString = "VM";
 
   String? filename;
   for (String arg in arguments) {
     if (arg.startsWith("--")) {
-      if (arg == "--nnbd") {
-        nnbd = true;
-      } else if (arg.startsWith("--platform=")) {
+      if (arg.startsWith("--platform=")) {
         String platform = arg.substring("--platform=".length);
         platformUri = Uri.base.resolve(platform);
       } else if (arg == "--target=VM") {
@@ -178,20 +173,16 @@ Future<void> main(List<String> arguments) async {
   mainUri = file.absolute.uri;
 
   incrementalCompiler = new IncrementalCompiler(
-      setupCompilerContext(nnbd, targetString, false, platformUri, mainUri));
+      setupCompilerContext(targetString, false, platformUri, mainUri));
   await incrementalCompiler.computeDelta();
 }
 
-CompilerContext setupCompilerContext(bool nnbd, String targetString,
+CompilerContext setupCompilerContext(String targetString,
     bool widgetTransformation, Uri platformUri, Uri mainUri) {
   CompilerOptions options = getOptions();
 
-  if (nnbd) {
-    options.explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};
-  }
-
-  TargetFlags targetFlags = new TargetFlags(
-      soundNullSafety: nnbd, trackWidgetCreation: widgetTransformation);
+  TargetFlags targetFlags =
+      new TargetFlags(trackWidgetCreation: widgetTransformation);
   Target target;
   switch (targetString) {
     case "VM":

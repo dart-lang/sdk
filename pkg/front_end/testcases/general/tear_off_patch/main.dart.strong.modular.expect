@@ -40,10 +40,10 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ fact<T extends core::Object? = dynamic>({core::bool defaultValue = #C14, required test::Class::fact::T% value}) → test::Class<test::Class::fact::T%>
     return new test::ClassImpl::•<test::Class::fact::T%>(defaultValue: defaultValue, value: value);
   @#C13
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect<T extends core::Object? = dynamic>({core::bool defaultValue = #C15, required test::Class::redirect::T% value}) → test::Class<test::Class::redirect::T%> /* redirection-target: test::ClassImpl::•<test::Class::redirect::T%>*/
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect<T extends core::Object? = dynamic>({core::bool defaultValue = #C14, required test::Class::redirect::T% value}) → test::Class<test::Class::redirect::T%> /* redirection-target: test::ClassImpl::•<test::Class::redirect::T%>*/
     return new test::ClassImpl::•<test::Class::redirect::T%>(defaultValue: defaultValue, value: value);
   @#C13
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = #C15, required test::Class::redirect2::T% value}) → test::Class<test::Class::redirect2::T%> /* redirection-target: test::ClassImpl::patched<test::Class::redirect2::T%>*/
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = #C14, required test::Class::redirect2::T% value}) → test::Class<test::Class::redirect2::T%> /* redirection-target: test::ClassImpl::patched<test::Class::redirect2::T%>*/
     return new test::ClassImpl::patched<test::Class::redirect2::T%>(defaultValue: defaultValue, value: value);
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C13
@@ -59,11 +59,11 @@ class ClassImpl<T extends core::Object? = dynamic> extends core::Object implemen
 }
 static method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#new#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#Alias#new#tearOff::T value}) → test::Class<test::_#Alias#new#tearOff::T>
   return new test::Class::•<test::_#Alias#new#tearOff::T>(defaultValue: defaultValue, value: value);
-static method _#Alias#fact#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#Alias#fact#tearOff::T value}) → test::Class<test::_#Alias#fact#tearOff::T>
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#fact#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#Alias#fact#tearOff::T value}) → test::Class<test::_#Alias#fact#tearOff::T>
   return test::Class::fact<test::_#Alias#fact#tearOff::T>(defaultValue: defaultValue, value: value);
-static method _#Alias#redirect#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#Alias#redirect#tearOff::T value}) → test::Class<test::_#Alias#redirect#tearOff::T>
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#redirect#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#Alias#redirect#tearOff::T value}) → test::Class<test::_#Alias#redirect#tearOff::T>
   return test::Class::redirect<test::_#Alias#redirect#tearOff::T>(defaultValue: defaultValue, value: value);
-static method _#Alias#redirect2#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#Alias#redirect2#tearOff::T value}) → test::Class<test::_#Alias#redirect2#tearOff::T>
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _#Alias#redirect2#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#Alias#redirect2#tearOff::T value}) → test::Class<test::_#Alias#redirect2#tearOff::T>
   return test::Class::redirect2<test::_#Alias#redirect2#tearOff::T>(defaultValue: defaultValue, value: value);
 static method _#AliasImpl#new#tearOff<T extends core::num>({core::bool defaultValue = #C14, required test::_#AliasImpl#new#tearOff::T value}) → test::ClassImpl<test::_#AliasImpl#new#tearOff::T>
   return new test::ClassImpl::•<test::_#AliasImpl#new#tearOff::T>(defaultValue: defaultValue, value: value);
@@ -85,5 +85,4 @@ constants  {
   #C12 = static-tearoff test::_#AliasImpl#patched#tearOff
   #C13 = _in::_Patch {}
   #C14 = true
-  #C15 = null
 }

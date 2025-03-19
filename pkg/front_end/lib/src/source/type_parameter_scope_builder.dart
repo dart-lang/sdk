@@ -1974,46 +1974,69 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
       case FactoryFragment():
         String name = fragment.name;
-        NominalParameterCopy? nominalParameterCopy =
-            NominalParameterCopy.copyTypeParameters(
-                unboundNominalParameters: unboundNominalParameters,
-                oldParameterBuilders: declarationBuilder!.typeParameters,
-                oldParameterFragments:
-                    fragment.enclosingDeclaration.typeParameters,
-                kind: TypeParameterKind.function,
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Allowed);
-        List<NominalParameterBuilder>? typeParameters =
-            nominalParameterCopy?.newParameterBuilders;
-        TypeBuilder returnType;
-        switch (declarationBuilder) {
-          case ExtensionBuilder():
-            // Make the synthesized return type invalid for extensions.
-            returnType = new NamedTypeBuilderImpl.forInvalidType(
-                fragment.constructorName.fullName,
-                const NullabilityBuilder.omitted(),
-                messageExtensionDeclaresConstructor.withLocation(
-                    fragment.fileUri,
-                    fragment.constructorName.fullNameOffset,
-                    fragment.constructorName.fullNameLength));
-          case ClassBuilder():
-          case ExtensionTypeDeclarationBuilder():
-            returnType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                declarationBuilder, const NullabilityBuilder.omitted(),
-                arguments: nominalParameterCopy?.newTypeArguments,
-                fileUri: fragment.fileUri,
-                charOffset: fragment.constructorName.fullNameOffset,
-                instanceTypeParameterAccess:
-                    InstanceTypeParameterAccessState.Allowed);
+        Modifiers modifiers = fragment.modifiers;
+
+        FactoryDeclaration createFactoryDeclaration(FactoryFragment fragment) {
+          NominalParameterCopy? nominalParameterCopy =
+              NominalParameterCopy.copyTypeParameters(
+                  unboundNominalParameters: unboundNominalParameters,
+                  oldParameterBuilders: declarationBuilder!.typeParameters,
+                  oldParameterFragments:
+                      fragment.enclosingDeclaration.typeParameters,
+                  kind: TypeParameterKind.function,
+                  instanceTypeParameterAccess:
+                      InstanceTypeParameterAccessState.Allowed);
+          List<NominalParameterBuilder>? typeParameters =
+              nominalParameterCopy?.newParameterBuilders;
+          TypeBuilder returnType;
+          switch (declarationBuilder) {
+            case ExtensionBuilder():
+              // Make the synthesized return type invalid for extensions.
+              returnType = new NamedTypeBuilderImpl.forInvalidType(
+                  fragment.constructorName.fullName,
+                  const NullabilityBuilder.omitted(),
+                  messageExtensionDeclaresConstructor.withLocation(
+                      fragment.fileUri,
+                      fragment.constructorName.fullNameOffset,
+                      fragment.constructorName.fullNameLength));
+            case ClassBuilder():
+            case ExtensionTypeDeclarationBuilder():
+              returnType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                  declarationBuilder, const NullabilityBuilder.omitted(),
+                  arguments: nominalParameterCopy?.newTypeArguments,
+                  fileUri: fragment.fileUri,
+                  charOffset: fragment.constructorName.fullNameOffset,
+                  instanceTypeParameterAccess:
+                      InstanceTypeParameterAccessState.Allowed);
+          }
+
+          fragment.typeParameterNameSpace.addTypeParameters(
+              problemReporting, typeParameters,
+              ownerName: fragment.name, allowNameConflict: true);
+          return new FactoryDeclarationImpl(fragment,
+              returnType: returnType, typeParameters: typeParameters);
         }
 
-        fragment.typeParameterNameSpace.addTypeParameters(
-            problemReporting, typeParameters,
-            ownerName: fragment.name, allowNameConflict: true);
-        FactoryDeclaration introductoryDeclaration = new FactoryDeclarationImpl(
-            fragment,
-            returnType: returnType,
-            typeParameters: typeParameters);
+        FactoryDeclaration introductoryDeclaration =
+            createFactoryDeclaration(fragment);
+
+        bool isRedirectingFactory = fragment.redirectionTarget != null;
+        List<FactoryDeclaration> augmentationDeclarations = [];
+        if (augmentations != null) {
+          for (Fragment augmentation in augmentations) {
+            // Promote [augmentation] to [FactoryFragment].
+            augmentation as FactoryFragment;
+
+            augmentationDeclarations
+                .add(createFactoryDeclaration(augmentation));
+
+            isRedirectingFactory |= augmentation.redirectionTarget != null;
+
+            if (!augmentation.modifiers.isExternal) {
+              modifiers -= Modifiers.External;
+            }
+          }
+        }
 
         NameScheme nameScheme = new NameScheme(
             containerName: containerName,
@@ -2040,21 +2063,31 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
 
         SourceFactoryBuilder factoryBuilder = new SourceFactoryBuilder(
-            modifiers: fragment.modifiers,
+            modifiers: modifiers,
             name: name,
             libraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
+            declarationBuilder: declarationBuilder!,
             fileUri: fragment.fileUri,
             fileOffset: fragment.fullNameOffset,
             procedureReference: procedureReference,
             tearOffReference: tearOffReference,
             nameScheme: nameScheme,
-            introductory: introductoryDeclaration);
-        if (fragment.redirectionTarget != null) {
+            introductory: introductoryDeclaration,
+            augmentations: augmentationDeclarations);
+        if (isRedirectingFactory) {
           (enclosingLibraryBuilder.redirectingFactoryBuilders ??= [])
               .add(factoryBuilder);
         }
         fragment.builder = factoryBuilder;
+        if (augmentations != null) {
+          for (Fragment augmentation in augmentations) {
+            // Promote [augmentation] to [FactoryFragment].
+            augmentation as FactoryFragment;
+
+            augmentation.builder = factoryBuilder;
+          }
+          augmentations = null;
+        }
         builders.add(new _AddBuilder(fragment.name, factoryBuilder,
             fragment.fileUri, fragment.fullNameOffset,
             inPatch: fragment.enclosingDeclaration.isPatch));
@@ -2095,6 +2128,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
     }
     if (augmentations != null) {
       for (Fragment augmentation in augmentations) {
+        // Coverage-ignore-block(suite): Not run.
         createBuilder(augmentation);
       }
     }
@@ -2480,8 +2514,7 @@ class DeclarationNameSpaceBuilder {
       Uri fileUri = addBuilder.fileUri;
       int charOffset = addBuilder.charOffset;
 
-      bool isConstructor = declaration is FunctionBuilder &&
-          (declaration.isConstructor || declaration.isFactory);
+      bool isConstructor = declaration.isConstructor || declaration.isFactory;
       if (!isConstructor && name == _name) {
         problemReporting.addProblem(
             messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);

@@ -602,26 +602,9 @@ class SourceLoader extends Loader {
     DillLibraryBuilder? libraryBuilder =
         target.dillTarget.loader.lookupLibraryBuilder(uri);
     if (libraryBuilder != null) {
-      _checkDillLibraryBuilderNnbdMode(libraryBuilder);
       _checkForDartCore(uri, libraryBuilder.mainCompilationUnit);
     }
     return libraryBuilder;
-  }
-
-  void _checkDillLibraryBuilderNnbdMode(DillLibraryBuilder libraryBuilder) {
-    NonNullableByDefaultCompiledMode libraryMode =
-        libraryBuilder.library.nonNullableByDefaultCompiledMode;
-    if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
-      // Coverage-ignore-block(suite): Not run.
-      registerNnbdMismatchLibrary(
-          libraryBuilder, messageInvalidNnbdDillLibrary);
-    } else {
-      if (libraryMode != NonNullableByDefaultCompiledMode.Strong) {
-        // Coverage-ignore-block(suite): Not run.
-        registerNnbdMismatchLibrary(
-            libraryBuilder, messageStrongWithWeakDillLibrary);
-      }
-    }
   }
 
   void _markDartLibraries(Uri uri, CompilationUnit compilationUnit) {
@@ -1094,18 +1077,6 @@ severity: $severity
     });
   }
 
-  bool hasInvalidNnbdModeLibrary = false;
-
-  Map<LibraryBuilder, Message>? _nnbdMismatchLibraries;
-
-  // Coverage-ignore(suite): Not run.
-  void registerNnbdMismatchLibrary(
-      LibraryBuilder libraryBuilder, Message message) {
-    _nnbdMismatchLibraries ??= {};
-    _nnbdMismatchLibraries![libraryBuilder] = message;
-    hasInvalidNnbdModeLibrary = true;
-  }
-
   void registerConstructorToBeInferred(InferableMember inferableMember) {
     _typeInferenceEngine!.toBeInferred[inferableMember.member] =
         inferableMember;
@@ -1136,14 +1107,6 @@ severity: $severity
     }
     currentUriForCrashReporting = null;
     logSummary(outlineSummaryTemplate);
-    if (_nnbdMismatchLibraries != null) {
-      // Coverage-ignore-block(suite): Not run.
-      for (MapEntry<LibraryBuilder, Message> entry
-          in _nnbdMismatchLibraries!.entries) {
-        addProblem(entry.value, -1, noLength, entry.key.fileUri);
-      }
-      _nnbdMismatchLibraries = null;
-    }
     if (_unavailableDartLibraries.isNotEmpty) {
       CompilationUnit? rootLibrary = rootCompilationUnit;
       LoadedLibraries? loadedLibraries;
@@ -2785,10 +2748,10 @@ severity: $severity
     LibraryBuilder? library =
         lookupLoadedLibraryBuilder(kernelLibrary.importUri);
     if (library == null) {
+      // Coverage-ignore-block(suite): Not run.
       return target.dillTarget.loader
           .computeExtensionTypeBuilderFromTargetExtensionType(extensionType);
     }
-    // Coverage-ignore(suite): Not run.
     return library.lookupLocalMember(extensionType.name, required: true)
         as ExtensionTypeDeclarationBuilder;
   }

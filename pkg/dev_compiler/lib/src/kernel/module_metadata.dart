@@ -127,12 +127,8 @@ class ModuleMetadata {
 
   final Map<String, LibraryMetadata> libraries = {};
 
-  /// True if the module corresponding to this metadata was compiled with sound
-  /// null safety enabled.
-  final bool soundNullSafety;
-
   ModuleMetadata(this.name, this.closureName, this.sourceMapUri, this.moduleUri,
-      this.fullDillUri, this.soundNullSafety,
+      this.fullDillUri,
       {String? version})
       : version = version ??= ModuleMetadataVersion.current.version;
 
@@ -157,8 +153,7 @@ class ModuleMetadata {
         closureName = json['closureName'] as String,
         sourceMapUri = json['sourceMapUri'] as String,
         moduleUri = json['moduleUri'] as String,
-        fullDillUri = json['fullDillUri'] as String,
-        soundNullSafety = json['soundNullSafety'] as bool {
+        fullDillUri = json['fullDillUri'] as String {
     if (!ModuleMetadataVersion.current.isCompatibleWith(version)) {
       throw Exception('Unsupported metadata version $version');
     }
@@ -176,8 +171,7 @@ class ModuleMetadata {
       'sourceMapUri': sourceMapUri,
       'moduleUri': moduleUri,
       'fullDillUri': fullDillUri,
-      'libraries': [for (var lib in libraries.values) lib.toJson()],
-      'soundNullSafety': soundNullSafety
+      'libraries': [for (var lib in libraries.values) lib.toJson()]
     };
   }
 }

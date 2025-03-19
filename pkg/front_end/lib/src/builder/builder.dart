@@ -277,7 +277,6 @@ abstract class BuilderImpl implements Builder {
   bool get isConst => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isConstructor => false;
 
   @override
@@ -324,7 +323,7 @@ abstract class BuilderImpl implements Builder {
   bool get isLocal => false;
 
   @override
-  bool get isAugmenting => this != origin;
+  bool get isAugmenting => false;
 
   @override
   bool get isAugment => false;

@@ -13,12 +13,10 @@ import 'changed_structure_notifier.dart';
 
 class TargetFlags {
   final bool trackWidgetCreation;
-  final bool soundNullSafety;
   final bool supportMirrors;
 
   const TargetFlags(
       {this.trackWidgetCreation = false,
-      this.soundNullSafety = true,
       this.supportMirrors = true});
 
   @override
@@ -26,7 +24,6 @@ class TargetFlags {
     if (identical(this, other)) return true;
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
-        soundNullSafety == other.soundNullSafety &&
         supportMirrors == other.supportMirrors;
   }
 
@@ -34,7 +31,6 @@ class TargetFlags {
   int get hashCode {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
-    hash = 0x3fffffff & (hash * 31 + (hash ^ soundNullSafety.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
     return hash;
   }

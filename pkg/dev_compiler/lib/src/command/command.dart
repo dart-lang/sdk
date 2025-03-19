@@ -839,13 +839,8 @@ ModuleSymbols _emitSymbols(Compiler compiler, String moduleName,
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
     String sourceMapUri, String moduleUri, String? fullDillUri) {
-  var metadata = ModuleMetadata(
-      program.name!,
-      loadFunctionName(program.name!),
-      sourceMapUri,
-      moduleUri,
-      fullDillUri,
-      component.mode == NonNullableByDefaultCompiledMode.Strong);
+  var metadata = ModuleMetadata(program.name!, loadFunctionName(program.name!),
+      sourceMapUri, moduleUri, fullDillUri);
 
   for (var lib in component.libraries) {
     metadata.addLibrary(LibraryMetadata(

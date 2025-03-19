@@ -6,13 +6,15 @@ import 'package:kernel/ast.dart';
 
 import '../kernel/expression_generator_helper.dart';
 import '../type_inference/inference_results.dart';
-import 'source_function_builder.dart';
+import 'source_member_builder.dart';
 import 'source_property_builder.dart';
 
 /// Common interface for builders for generative constructor declarations in
 /// source code, such as a generative constructor in a regular class or a
 /// generative constructor in an extension type declaration.
-abstract class ConstructorDeclarationBuilder implements SourceFunctionBuilder {
+abstract class ConstructorDeclarationBuilder implements SourceMemberBuilder {
+  FunctionNode get function;
+
   /// Returns `true` if this constructor, including its augmentations, is
   /// external.
   ///

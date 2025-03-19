@@ -875,9 +875,6 @@ abstract class StaticTypeContext {
   /// For opt out libraries this is [Nullability.legacy].
   Nullability get nullable;
 
-  /// Returns the mode under which the current library was compiled.
-  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode;
-
   /// Returns the static type of [node].
   DartType getExpressionType(Expression node);
 
@@ -940,11 +937,6 @@ class StaticTypeContextImpl implements StaticTypeContext {
   /// For opt out libraries this is [Nullability.legacy].
   @override
   Nullability get nullable => _library.nullable;
-
-  /// Returns the mode under which the current library was compiled.
-  @override
-  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
-      _library.nonNullableByDefaultCompiledMode;
 
   @override
   DartType getExpressionType(Expression node) {
@@ -1053,10 +1045,6 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   @override
   Nullability get nullable => _library.nullable;
 
-  @override
-  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
-      _library.nonNullableByDefaultCompiledMode;
-
   /// Updates the [nonNullable] and [thisType] to match static type context for
   /// the member [node].
   ///
@@ -1154,10 +1142,6 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
 
   @override
   Nullability get nullable => _library.nullable;
-
-  @override
-  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
-      _library.nonNullableByDefaultCompiledMode;
 
   /// Updates the [library] and [thisType] to match static type context for
   /// the member [node].

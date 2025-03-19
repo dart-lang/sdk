@@ -760,12 +760,6 @@ class KernelTarget {
     Component component = backendTarget.configureComponent(new Component(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
 
-    NonNullableByDefaultCompiledMode? compiledMode =
-        NonNullableByDefaultCompiledMode.Strong;
-    if (loader.hasInvalidNnbdModeLibrary) {
-      compiledMode = NonNullableByDefaultCompiledMode.Invalid;
-    }
-
     Reference? mainReference;
 
     LibraryBuilder? firstRoot = loader.rootLibrary;
@@ -785,81 +779,10 @@ class KernelTarget {
         mainReference = declaration.invokeTarget.reference;
       }
     }
-    component.setMainMethodAndMode(mainReference, true, compiledMode);
-
-    assert(_getLibraryNnbdModeError(component) == null,
-        "Got error: ${_getLibraryNnbdModeError(component)}");
+    component.setMainMethodAndMode(mainReference, true);
 
     ticker.logMs("Linked component");
     return component;
-  }
-
-  String? _getLibraryNnbdModeError(Component component) {
-    if (loader.hasInvalidNnbdModeLibrary) {
-      // Coverage-ignore-block(suite): Not run.
-      // At least 1 library should be invalid or there should be a mix of strong
-      // and weak. For libraries we've just compiled it will be marked as
-      // invalid, but for libraries loaded from dill they have their original
-      // value (i.e. either strong or weak).
-      bool foundInvalid = false;
-      bool foundStrong = false;
-      bool foundWeak = false;
-      for (Library library in component.libraries) {
-        if (library.nonNullableByDefaultCompiledMode ==
-            NonNullableByDefaultCompiledMode.Invalid) {
-          foundInvalid = true;
-          break;
-        } else if (!foundWeak &&
-            library.nonNullableByDefaultCompiledMode ==
-                NonNullableByDefaultCompiledMode.Weak) {
-          foundWeak = true;
-          if (foundStrong) break;
-        } else if (!foundStrong &&
-            library.nonNullableByDefaultCompiledMode ==
-                NonNullableByDefaultCompiledMode.Strong) {
-          foundStrong = true;
-          if (foundWeak) break;
-        }
-      }
-      if (!foundInvalid && !(foundStrong && foundWeak)) {
-        return "hasInvalidNnbdModeLibrary is true, but no library was invalid "
-            "and there was no weak/strong mix.";
-      }
-      if (component.mode != NonNullableByDefaultCompiledMode.Invalid) {
-        return "Component mode is not invalid as expected";
-      }
-    } else {
-      // No libraries are allowed to be invalid, and should all be compatible
-      // with the component nnbd mode setting.
-      if (component.mode == NonNullableByDefaultCompiledMode.Invalid) {
-        return "Component mode is invalid which was not expected";
-      }
-      if (component.modeRaw == null) {
-        return "Component mode not set at all";
-      }
-      for (Library library in component.libraries) {
-        if (component.mode == NonNullableByDefaultCompiledMode.Strong) {
-          if (library.nonNullableByDefaultCompiledMode !=
-              NonNullableByDefaultCompiledMode.Strong) {
-            // Coverage-ignore-block(suite): Not run.
-            return "Expected library ${library.importUri} to be strong, "
-                "but was ${library.nonNullableByDefaultCompiledMode}";
-          }
-        }
-        // Coverage-ignore(suite): Not run.
-        else if (component.mode == NonNullableByDefaultCompiledMode.Weak) {
-          if (library.nonNullableByDefaultCompiledMode !=
-              NonNullableByDefaultCompiledMode.Weak) {
-            return "Expected library ${library.importUri} to be weak, "
-                "but was ${library.nonNullableByDefaultCompiledMode}";
-          }
-        } else {
-          return "Expected component mode to be either strong, "
-              "weak or agnostic but was ${component.mode}";
-        }
-      }
-    }
-    return null;
   }
 
   void installDefaultSupertypes() {

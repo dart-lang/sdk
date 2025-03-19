@@ -298,7 +298,7 @@ class IncrementalSerializer {
         libraries: libraries,
         uriToSource: component.uriToSource,
         nameRoot: component.root);
-    singlePackageLibraries.setMainMethodAndMode(null, false, component.mode);
+    singlePackageLibraries.setMainMethodAndMode(null, false);
 
     // Copy all metadata. This should be okay (e.g. not result in a leak)
     // because we serialize now and then (implicitly) throw this component away.

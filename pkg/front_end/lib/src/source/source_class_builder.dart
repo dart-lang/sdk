@@ -908,8 +908,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           // Report an error if a mixin class has a constructor with parameters,
           // is external, or is a redirecting constructor.
           if (constructor.isRedirecting ||
-              (constructor.formals != null &&
-                  constructor.formals!.isNotEmpty) ||
+              constructor.hasParameters ||
               constructor.isExternal) {
             addProblem(
                 templateIllegalMixinDueToConstructors

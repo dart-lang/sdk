@@ -26,7 +26,6 @@ native-assets:
         NativeAssetsValidator(errorDetector).parseAndValidate(yamlString)!;
     final component = Component(
       libraries: [NativeAssetsSynthesizer.synthesizeLibrary(validatedYaml)],
-      mode: NonNullableByDefaultCompiledMode.Strong,
     );
     final libraryToString = kernelLibraryToString(component.libraries.single);
     final expectedKernel = '''@#C3

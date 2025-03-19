@@ -30,6 +30,8 @@ class FactoryFragment implements Fragment, FunctionFragment {
 
   SourceFactoryBuilder? _builder;
 
+  FactoryDeclaration? _declaration;
+
   FactoryFragment({
     required this.constructorName,
     required this.fileUri,
@@ -63,6 +65,18 @@ class FactoryFragment implements Fragment, FunctionFragment {
   void set builder(SourceFactoryBuilder value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
+  }
+
+  FactoryDeclaration get declaration {
+    assert(
+        _declaration != null, "Declaration has not been computed for $this.");
+    return _declaration!;
+  }
+
+  void set declaration(FactoryDeclaration value) {
+    assert(_declaration == null,
+        "Declaration has already been computed for $this.");
+    _declaration = value;
   }
 
   @override
@@ -108,7 +122,7 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
 
   @override
   BodyBuilderContext createBodyBuilderContext() {
-    return _fragment.builder.createBodyBuilderContext();
+    return _fragment.declaration.createBodyBuilderContext(_fragment.builder);
   }
 
   @override
@@ -119,9 +133,8 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
       ?.inferenceData;
 
   @override
-  List<TypeParameter>? get thisTypeParameters =>
-      _fragment.builder.thisTypeParameters;
+  List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  VariableDeclaration? get thisVariable => _fragment.builder.thisVariable;
+  VariableDeclaration? get thisVariable => null;
 }

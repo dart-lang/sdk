@@ -57,12 +57,6 @@ class Class extends core::Object {
     : this test::Class::•(value)
     ;
   @#C8
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ factory(core::int value) → test::Class
-    return new test::Class::•(value);
-  @#C8
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirectingFactory(core::int value) → test::Class /* redirection-target: test::Class::• */
-    return new test::Class::•(value);
-  @#C8
   get /* from org-dartlang-testcase:///patch_lib.dart */ instanceGetter() → core::int
     return 42;
   @#C8
@@ -72,7 +66,13 @@ class Class extends core::Object {
     return 42;
   @#C8
   static set /* from org-dartlang-testcase:///patch_lib.dart */ staticSetter(core::int value) → void {}
+  @#C8
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ factory(core::int value) → test::Class
+    return new test::Class::•(value);
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ _injectedFactory(core::int value) → test::Class
+    return new test::Class::•(value);
+  @#C8
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirectingFactory(core::int value) → test::Class /* redirection-target: test::Class::• */
     return new test::Class::•(value);
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ _injectedRedirectingFactory(core::int value) → test::Class /* redirection-target: test::Class::• */
     return new test::Class::•(value);

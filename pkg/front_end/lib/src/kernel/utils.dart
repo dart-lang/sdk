@@ -153,9 +153,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
 
   Uri uri = new Uri(scheme: 'evaluate', path: 'source');
   Library fakeLibrary = new Library(uri, fileUri: uri)
-    ..setLanguageVersion(realLibrary.languageVersion)
-    ..nonNullableByDefaultCompiledMode =
-        realLibrary.nonNullableByDefaultCompiledMode;
+    ..setLanguageVersion(realLibrary.languageVersion);
 
   // Add deferred library dependencies. They are needed for serializing
   // references to deferred libraries. We can just claim ownership of the ones
@@ -209,8 +207,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
 
   // TODO(vegorov) find a way to preserve metadata.
   Component component = new Component(libraries: [fakeLibrary]);
-  component.setMainMethodAndMode(
-      null, false, fakeLibrary.nonNullableByDefaultCompiledMode);
+  component.setMainMethodAndMode(null, false);
   return component;
 }
 

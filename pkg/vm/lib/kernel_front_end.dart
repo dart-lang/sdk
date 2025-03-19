@@ -34,8 +34,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         parseExperimentalFlags,
         printDiagnosticMessage,
         resolveInputUri;
-import 'package:kernel/ast.dart'
-    show Component, Library, NonNullableByDefaultCompiledMode;
+import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -482,12 +481,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     // If Dart component in JIT, write as concatenated dill, to not mess with
     // the incremental compiler.
     final BinaryPrinter printer = new BinaryPrinter(sink);
-    printer.writeComponentFile(
-      Component(
-        libraries: [nativeAssetsLibrary],
-        mode: NonNullableByDefaultCompiledMode.Strong,
-      ),
-    );
+    printer.writeComponentFile(Component(libraries: [nativeAssetsLibrary]));
   }
   await sink.close();
 
@@ -1116,13 +1110,12 @@ Future<void> forEachPackage(
 
   final mainMethod = component.mainMethod;
   final problemsAsJson = component.problemsAsJson;
-  final compilationMode = component.mode;
-  component.setMainMethodAndMode(null, true, compilationMode);
+  component.setMainMethodAndMode(null, true);
   component.problemsAsJson = null;
   for (String package in packages.keys) {
     await action(package, packages[package]!);
   }
-  component.setMainMethodAndMode(mainMethod?.reference, true, compilationMode);
+  component.setMainMethodAndMode(mainMethod?.reference, true);
   component.problemsAsJson = problemsAsJson;
 
   if (!mainFirst) {
