@@ -476,6 +476,17 @@
         "timeout": 120
       }
     },
+    "dart2wasm-asserts-(linux|mac|win)-minify-(d8|jsshell|jsc|chrome|firefox)": {
+      "options": {
+        "dart2wasm-options": [
+          "--minify"
+        ],
+        "host-asserts": true,
+        "enable-asserts": true,
+        "use-sdk": false,
+        "timeout": 120
+      }
+    },
     "dart2wasm-(linux|mac|win)-jscm-(d8|jsshell|jsc|chrome|firefox)": {
       "options": {
         "dart2wasm-options": [
