@@ -643,8 +643,9 @@ Rti _substitute(Object? universe, Rti rti, Object? typeArguments, int depth) {
       if (_Utils.isIdentical(
         substitutedInterfaceTypeArguments,
         interfaceTypeArguments,
-      ))
+      )) {
         return rti;
+      }
       return _Universe._lookupInterfaceRti(
         universe,
         Rti._getInterfaceName(rti),
@@ -661,8 +662,9 @@ Rti _substitute(Object? universe, Rti rti, Object? typeArguments, int depth) {
         depth,
       );
       if (_Utils.isIdentical(substitutedBase, base) &&
-          _Utils.isIdentical(substitutedArguments, arguments))
+          _Utils.isIdentical(substitutedArguments, arguments)) {
         return rti;
+      }
       return _Universe._lookupBindingRti(
         universe,
         substitutedBase,
@@ -696,8 +698,12 @@ Rti _substitute(Object? universe, Rti rti, Object? typeArguments, int depth) {
             depth,
           );
       if (_Utils.isIdentical(substitutedReturnType, returnType) &&
-          _Utils.isIdentical(substitutedFunctionParameters, functionParameters))
+          _Utils.isIdentical(
+            substitutedFunctionParameters,
+            functionParameters,
+          )) {
         return rti;
+      }
       return _Universe._lookupFunctionRti(
         universe,
         substitutedReturnType,
@@ -715,8 +721,9 @@ Rti _substitute(Object? universe, Rti rti, Object? typeArguments, int depth) {
       Rti base = Rti._getGenericFunctionBase(rti);
       Rti substitutedBase = _substitute(universe, base, typeArguments, depth);
       if (_Utils.isIdentical(substitutedBounds, bounds) &&
-          _Utils.isIdentical(substitutedBase, base))
+          _Utils.isIdentical(substitutedBase, base)) {
         return rti;
+      }
       return _Universe._lookupGenericFunctionRti(
         universe,
         substitutedBase,
@@ -825,8 +832,9 @@ _FunctionParameters _substituteFunctionParameters(
   );
   if (_Utils.isIdentical(substitutedRequiredPositional, requiredPositional) &&
       _Utils.isIdentical(substitutedOptionalPositional, optionalPositional) &&
-      _Utils.isIdentical(substitutedNamed, named))
+      _Utils.isIdentical(substitutedNamed, named)) {
     return functionParameters;
+  }
   _FunctionParameters result = _FunctionParameters.allocate();
   _FunctionParameters._setRequiredPositional(
     result,
@@ -1439,8 +1447,9 @@ Object? _generalAsCheckImplementation(Object? object) {
     if (isNullable(testRti)) {
       return object;
     }
-  } else if (Rti._isCheck(testRti, object))
+  } else if (Rti._isCheck(testRti, object)) {
     return object;
+  }
   throw _errorForAsCheck(object, testRti);
 }
 
@@ -1451,10 +1460,9 @@ Object? _generalNullableAsCheckImplementation(Object? object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  if (object == null) {
+  if (object == null || Rti._isCheck(testRti, object)) {
     return object;
-  } else if (Rti._isCheck(testRti, object))
-    return object;
+  }
   throw _errorForAsCheck(object, testRti);
 }
 
@@ -1571,18 +1579,6 @@ bool _asBool(Object? object) {
   throw _TypeError.forType(object, 'bool');
 }
 
-/// Specialization for 'as bool*'.
-/// Called from generated code.
-@pragma('dart2js:stack-starts-at-throw')
-bool? _asBoolS(dynamic object) {
-  if (true == object) return true;
-  if (false == object) return false;
-  if (object == null) {
-    return _Utils.asNull(object);
-  }
-  throw _TypeError.forType(object, 'bool');
-}
-
 /// Specialization for 'as bool?'.
 /// Called from generated code.
 @pragma('dart2js:stack-starts-at-throw')
@@ -1598,17 +1594,6 @@ bool? _asBoolQ(dynamic object) {
 @pragma('dart2js:stack-starts-at-throw')
 double _asDouble(Object? object) {
   if (_isNum(object)) return _Utils.asDouble(object);
-  throw _TypeError.forType(object, 'double');
-}
-
-/// Specialization for 'as double*'.
-/// Called from generated code.
-@pragma('dart2js:stack-starts-at-throw')
-double? _asDoubleS(dynamic object) {
-  if (_isNum(object)) return _Utils.asDouble(object);
-  if (object == null) {
-    return _Utils.asNull(object);
-  }
   throw _TypeError.forType(object, 'double');
 }
 
@@ -1636,17 +1621,6 @@ int _asInt(Object? object) {
   throw _TypeError.forType(object, 'int');
 }
 
-/// Specialization for 'as int*'.
-/// Called from generated code.
-@pragma('dart2js:stack-starts-at-throw')
-int? _asIntS(dynamic object) {
-  if (_isInt(object)) return _Utils.asInt(object);
-  if (object == null) {
-    return _Utils.asNull(object);
-  }
-  throw _TypeError.forType(object, 'int');
-}
-
 /// Specialization for 'as int?'.
 /// Called from generated code.
 @pragma('dart2js:stack-starts-at-throw')
@@ -1670,17 +1644,6 @@ num _asNum(Object? object) {
   throw _TypeError.forType(object, 'num');
 }
 
-/// Specialization for 'as num*'.
-/// Called from generated code.
-@pragma('dart2js:stack-starts-at-throw')
-num? _asNumS(dynamic object) {
-  if (_isNum(object)) return _Utils.asNum(object);
-  if (object == null) {
-    return _Utils.asNull(object);
-  }
-  throw _TypeError.forType(object, 'num');
-}
-
 /// Specialization for 'as num?'.
 /// Called from generated code.
 @pragma('dart2js:stack-starts-at-throw')
@@ -1701,17 +1664,6 @@ bool _isString(Object? object) {
 @pragma('dart2js:stack-starts-at-throw')
 String _asString(Object? object) {
   if (_isString(object)) return _Utils.asString(object);
-  throw _TypeError.forType(object, 'String');
-}
-
-/// Specialization for 'as String*'.
-/// Called from generated code.
-@pragma('dart2js:stack-starts-at-throw')
-String? _asStringS(dynamic object) {
-  if (_isString(object)) return _Utils.asString(object);
-  if (object == null) {
-    return _Utils.asNull(object);
-  }
   throw _TypeError.forType(object, 'String');
 }
 
@@ -3697,8 +3649,9 @@ bool _isFunctionSubtype(
   int sOptionalPositionalLength = _Utils.arrayLength(sOptionalPositional);
   int tOptionalPositionalLength = _Utils.arrayLength(tOptionalPositional);
   if (sRequiredPositionalLength + sOptionalPositionalLength <
-      tRequiredPositionalLength + tOptionalPositionalLength)
+      tRequiredPositionalLength + tOptionalPositionalLength) {
     return false;
+  }
 
   for (int i = 0; i < sRequiredPositionalLength; i++) {
     Rti sParameter = _Utils.asRti(_Utils.arrayAt(sRequiredPositional, i));

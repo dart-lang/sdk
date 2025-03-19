@@ -2611,7 +2611,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     final specializedCheck = SpecializedChecks.findAsCheck(
       node.checkedTypeExpression,
       _closedWorld.commonElements,
-      _options.useLegacySubtyping,
     );
     if (specializedCheck != null) {
       AbstractValueWithPrecision checkedType = _abstractValueDomain
