@@ -1020,7 +1020,6 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Make final',
   );
-
   // TODO(pq): consider parameterizing: 'Make {fields} final...'
   static const MAKE_FINAL_MULTI = FixKind(
     'dart.fix.makeFinal.multi',
@@ -1071,6 +1070,38 @@ abstract final class DartFixKind {
     'dart.fix.matchEmptyMap',
     DartFixKindPriority.standard,
     'Match an empty map',
+  );
+
+  /// Used when the user has at least one `show` combinator to suggest merging
+  /// using `show`.
+  static const MERGE_COMBINATORS_SHOW_SHOW = FixKind(
+    'dart.fix.mergeCombinatorsShow.show',
+    DartFixKindPriority.standard + 1,
+    "Merge combinators into a single 'show'",
+  );
+
+  /// Used when the user has only `hide` combinators to suggest merging using
+  /// `show`.
+  static const MERGE_COMBINATORS_SHOW_HIDE = FixKind(
+    'dart.fix.mergeCombinatorsShow.hide',
+    DartFixKindPriority.standard,
+    "Merge combinators into a single 'show'",
+  );
+
+  /// Used when the user has only `hide` combinators to suggest merging using
+  /// `hide`.
+  static const MERGE_COMBINATORS_HIDE_HIDE = FixKind(
+    'dart.fix.mergeCombinatorsHide.hide',
+    DartFixKindPriority.standard + 1,
+    "Merge combinators into a single 'hide'",
+  );
+
+  /// Used when the user has at least one `show` combinator to suggest merging
+  /// using `hide`.
+  static const MERGE_COMBINATORS_HIDE_SHOW = FixKind(
+    'dart.fix.mergeCombinatorsHide.show',
+    DartFixKindPriority.standard,
+    "Merge combinators into a single 'hide'",
   );
   static const MOVE_ANNOTATION_TO_LIBRARY_DIRECTIVE = FixKind(
     'dart.fix.moveAnnotationToLibraryDirective',

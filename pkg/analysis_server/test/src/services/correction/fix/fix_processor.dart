@@ -25,6 +25,8 @@ import '../../../../utils/test_instrumentation_service.dart';
 
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
+typedef ErrorFilter = bool Function(AnalysisError error);
+
 abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   /// The source change associated with the fix that was found.
   late SourceChange change;
@@ -41,9 +43,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   /// using the [errorFilter] to filter out errors that should be ignored, and
   /// expecting that there is a single remaining error. The error filter should
   /// return `true` if the error should not be ignored.
-  Future<AnalysisError> _findErrorToFix({
-    bool Function(AnalysisError)? errorFilter,
-  }) async {
+  Future<AnalysisError> _findErrorToFix({ErrorFilter? errorFilter}) async {
     var errors = testAnalysisResult.errors;
     if (errorFilter != null) {
       if (errors.length == 1) {
@@ -217,9 +217,7 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     expect(resultCode, expected);
   }
 
-  Future<List<Fix>> getFixesForFirst(
-    bool Function(AnalysisError error) test,
-  ) async {
+  Future<List<Fix>> getFixesForFirst(ErrorFilter test) async {
     var errors = testAnalysisResult.errors.where(test);
     expect(errors, isNotEmpty);
     String? errorCode;
@@ -276,6 +274,17 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
 }
 
 /// A base class defining support for writing fix processor tests that are
+/// specific to fixes associated with the [errorCode] that use the FixKind.
+abstract class FixProcessorErrorCodeTest extends FixProcessorTest {
+  /// Return the error code being tested.
+  ErrorCode get errorCode;
+
+  ErrorFilter get errorCodeFilter => (e) {
+    return e.errorCode == errorCode;
+  };
+}
+
+/// A base class defining support for writing fix processor tests that are
 /// specific to fixes associated with lints that use the FixKind.
 abstract class FixProcessorLintTest extends FixProcessorTest {
   /// Return the lint code being tested.
@@ -296,7 +305,7 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
     return lintCodeSet.single;
   }
 
-  bool Function(AnalysisError) lintNameFilter(String name) {
+  ErrorFilter lintNameFilter(String name) {
     return (e) {
       return e.errorCode is LintCode && e.errorCode.name == name;
     };
@@ -318,7 +327,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// [expected] output.
   Future<void> assertHasFix(
     String expected, {
-    bool Function(AnalysisError error)? errorFilter,
+    ErrorFilter? errorFilter,
     String? target,
     int? expectedNumberOfFixesForKind,
     String? matchFixMessage,
@@ -376,7 +385,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// [expectedNumberOfFixesForKind] fixes of the appropriate kind are found,
   /// and that they have messages equal to [matchFixMessages].
   Future<void> assertHasFixesWithoutApplying({
-    bool Function(AnalysisError)? errorFilter,
+    ErrorFilter? errorFilter,
     required int expectedNumberOfFixesForKind,
     required List<String> matchFixMessages,
   }) async {
@@ -388,9 +397,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     );
   }
 
-  Future<void> assertHasFixWithoutApplying({
-    bool Function(AnalysisError)? errorFilter,
-  }) async {
+  Future<void> assertHasFixWithoutApplying({ErrorFilter? errorFilter}) async {
     var error = await _findErrorToFix(errorFilter: errorFilter);
     var fix = await _assertHasFix(error);
     change = fix.change;
@@ -419,7 +426,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   /// Compute fixes and ensure that there is no fix of the [kind] being tested by
   /// this class.
-  Future<void> assertNoFix({bool Function(AnalysisError)? errorFilter}) async {
+  Future<void> assertNoFix({ErrorFilter? errorFilter}) async {
     var error = await _findErrorToFix(errorFilter: errorFilter);
     await _assertNoFix(error);
   }
