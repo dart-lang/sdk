@@ -33,9 +33,6 @@ main() {
 
     for (FunctionTypeData data in signatures) {
       DartType functionType = env.getElementType('t${data.name}');
-      Expect.isTrue(
-        functionType is! LegacyType || env.options.useLegacySubtyping,
-      );
       functionType = functionType.withoutNullability;
       final method = env.getElement('m${data.name}') as FunctionEntity;
       final methodType = env.getElementType('m${data.name}') as FunctionType;

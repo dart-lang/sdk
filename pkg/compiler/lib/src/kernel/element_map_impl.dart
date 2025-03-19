@@ -1579,7 +1579,6 @@ class KernelToElementMap implements IrToElementMap {
       this,
       member,
       reporter,
-      options,
       _constantValuefier,
       // TODO(johnniwinther): Pull the static type context from the cached
       // static types.

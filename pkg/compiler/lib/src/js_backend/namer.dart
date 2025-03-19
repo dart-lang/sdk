@@ -1167,10 +1167,6 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
   String _represent(DartType type) => visit(type, null);
 
   @override
-  String visitLegacyType(LegacyType type, _) =>
-      'legacy_${_represent(type.baseType)}';
-
-  @override
   String visitNullableType(NullableType type, _) =>
       'nullable_${_represent(type.baseType)}';
 

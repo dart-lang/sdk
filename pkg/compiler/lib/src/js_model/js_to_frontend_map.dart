@@ -192,10 +192,6 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
   }
 
   @override
-  DartType visitLegacyType(LegacyType type, _EntityConverter converter) =>
-      _dartTypes.legacyType(visit(type.baseType, converter));
-
-  @override
   DartType visitNullableType(NullableType type, _EntityConverter converter) =>
       _dartTypes.nullableType(visit(type.baseType, converter));
 

@@ -466,19 +466,6 @@ class PowersetBitsDomain {
       return _createFromStaticType(type.baseType, true);
     }
 
-    if (type is LegacyType) {
-      DartType baseType = type.baseType;
-      if (baseType is NeverType) {
-        // Never* is same as Null, for both 'is' and 'as'.
-        return nullMask;
-      }
-
-      // Object* is a top type for both 'is' and 'as'. This is handled in the
-      // 'cone of top type' case above.
-
-      return _createFromStaticType(baseType, nullable);
-    }
-
     if (dartTypes.useLegacySubtyping) {
       // In legacy and weak mode, `String` is nullable depending on context.
       return _createFromStaticType(type, nullable);

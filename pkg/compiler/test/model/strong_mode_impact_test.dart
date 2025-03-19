@@ -78,14 +78,13 @@ main() {
   );
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler!;
-  var options = compiler.options;
 
   KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting!;
   DartTypes types = closedWorld.dartTypes;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
   String printType(DartType type) {
-    return type.toStructuredText(types, options);
+    return type.toStructuredText(types);
   }
 
   elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary!, (

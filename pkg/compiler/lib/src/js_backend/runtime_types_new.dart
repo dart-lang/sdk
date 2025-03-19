@@ -227,12 +227,6 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   void visit(DartType type, _) => type.accept(this, null);
 
   @override
-  void visitLegacyType(LegacyType type, _) {
-    visit(type.baseType, null);
-    _emitCode(Recipe.wrapStar);
-  }
-
-  @override
   void visitNullableType(NullableType type, _) {
     visit(type.baseType, null);
     _emitCode(Recipe.wrapQuestion);

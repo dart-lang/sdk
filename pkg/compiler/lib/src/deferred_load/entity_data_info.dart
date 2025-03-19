@@ -392,11 +392,6 @@ class TypeEntityDataVisitor implements DartTypeVisitor<void, Null> {
   }
 
   @override
-  void visitLegacyType(LegacyType type, Null argument) {
-    visit(type.baseType);
-  }
-
-  @override
   void visitNullableType(NullableType type, Null argument) {
     visit(type.baseType);
   }

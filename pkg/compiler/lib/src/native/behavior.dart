@@ -892,7 +892,6 @@ class BehaviorBuilder {
     // native APIs are typed unsoundly because they don't consider browser
     // compatibility or conditional support by context.
     if (type is NullableType ||
-        type is LegacyType ||
         (options.useLegacySubtyping && type is! VoidType)) {
       _behavior.typesReturned.add(commonElements.nullType);
     }

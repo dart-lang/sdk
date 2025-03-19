@@ -4612,10 +4612,6 @@ AbstractBool _typeTest(
 
   bool nullIs(DartType type) =>
       dartTypes.isStrongTopType(type) ||
-      type is LegacyType &&
-          (type.baseType.isObject ||
-              type.baseType is NeverType ||
-              nullIs(type.baseType)) ||
       type is NullableType ||
       type is FutureOrType && nullIs(type.typeArgument) ||
       type.isNull;
@@ -4692,10 +4688,6 @@ AbstractBool _typeTest(
     if (type is InterfaceType) {
       if (type.isNull) return expressionIsNull;
       return ~(isNullAsCheck | isNullIsTest) & checkInterface(type);
-    }
-    if (type is LegacyType) {
-      assert(!type.baseType.isObject);
-      return ~isNullIsTest & unwrapAndCheck(type.baseType);
     }
     if (type is NullableType) {
       return unwrapAndCheck(type.baseType);

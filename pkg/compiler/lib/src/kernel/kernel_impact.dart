@@ -25,7 +25,6 @@ import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/elements.dart';
 import '../native/behavior.dart';
 import '../native/enqueue.dart';
-import '../options.dart';
 import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
@@ -39,7 +38,6 @@ import 'element_map.dart';
 class KernelImpactConverter implements ImpactRegistry {
   final KernelToElementMap elementMap;
   final DiagnosticReporter reporter;
-  final CompilerOptions _options;
   final MemberEntity currentMember;
   final ConstantValuefier _constantValuefier;
   final ir.StaticTypeContext staticTypeContext;
@@ -56,7 +54,6 @@ class KernelImpactConverter implements ImpactRegistry {
     this.elementMap,
     this.currentMember,
     this.reporter,
-    this._options,
     this._constantValuefier,
     this.staticTypeContext,
     this._impacts,
@@ -77,8 +74,7 @@ class KernelImpactConverter implements ImpactRegistry {
 
   DartTypes get dartTypes => commonElements.dartTypes;
 
-  String typeToString(DartType type) =>
-      type.toStructuredText(dartTypes, _options);
+  String typeToString(DartType type) => type.toStructuredText(dartTypes);
 
   Object? _computeReceiverConstraint(ir.DartType receiverType) {
     if (receiverType is ir.InterfaceType) {

@@ -35,33 +35,6 @@ class SpecializedChecks {
     JClosedWorld closedWorld, {
     required bool experimentNullSafetyChecks,
   }) {
-    if (dartType is LegacyType) {
-      DartType base = dartType.baseType;
-      // `Never*` accepts only `null`.
-      if (base is NeverType) return SimpleIsTestSpecialization.isNull;
-      // `Object*` is top and should be handled by constant folding.
-      if (base.isObject) return null;
-      return _findIsTestSpecialization(
-        base,
-        compiland,
-        closedWorld,
-        experimentNullSafetyChecks: experimentNullSafetyChecks,
-      );
-    }
-    return _findIsTestSpecialization(
-      dartType,
-      compiland,
-      closedWorld,
-      experimentNullSafetyChecks: experimentNullSafetyChecks,
-    );
-  }
-
-  static IsTestSpecialization? _findIsTestSpecialization(
-    DartType dartType,
-    MemberEntity compiland,
-    JClosedWorld closedWorld, {
-    required bool experimentNullSafetyChecks,
-  }) {
     if (dartType is InterfaceType) {
       ClassEntity element = dartType.element;
       JCommonElements commonElements = closedWorld.commonElements;
@@ -177,18 +150,6 @@ class SpecializedChecks {
         nullable: false,
         legacy: useLegacySubtyping,
       );
-    }
-    if (dartType is LegacyType) {
-      DartType baseType = dartType.baseType;
-      if (baseType is InterfaceType && baseType.typeArguments.isEmpty) {
-        return _findAsCheck(
-          baseType.element,
-          commonElements,
-          nullable: false,
-          legacy: true,
-        );
-      }
-      return null;
     }
     if (dartType is NullableType) {
       DartType baseType = dartType.baseType;
