@@ -599,12 +599,12 @@ class _ForCompletionTest extends StatementCompletionTest {
   Future<void> test_emptyCondition() async {
     await _prepareCompletion('0;', '''
 void f() {
-  for (int i = 0;)      /**/  ////
+  for (int i = 0;)      /* */  ////
 }
 ''', atEnd: true);
     _assertHasChange('Complete for-statement', '''
 void f() {
-  for (int i = 0; ; ) /**/ {
+  for (int i = 0; ; ) /* */ {
     ////
   }
 }
@@ -659,14 +659,14 @@ void f() {
   }
 
   Future<void> test_emptyInitializersEmptyCondition() async {
-    await _prepareCompletion('/**/', '''
+    await _prepareCompletion('/* */', '''
 void f() {
-  for (;/**/)
+  for (;/* */)
 }
 ''', atEnd: true);
     _assertHasChange('Complete for-statement', '''
 void f() {
-  for (; /**/; ) {
+  for (; /* */; ) {
     ////
   }
 }
@@ -689,14 +689,14 @@ void f() {
   }
 
   Future<void> test_emptyUpdaters() async {
-    await _prepareCompletion('/**/', '''
+    await _prepareCompletion('/* */', '''
 void f() {
-  for (int i = 0; i < 10 /**/)
+  for (int i = 0; i < 10 /* */)
 }
 ''', atEnd: true);
     _assertHasChange('Complete for-statement', '''
 void f() {
-  for (int i = 0; i < 10 /**/; ) {
+  for (int i = 0; i < 10 /* */; ) {
     ////
   }
 }
@@ -704,15 +704,15 @@ void f() {
   }
 
   Future<void> test_emptyUpdatersWithBody() async {
-    await _prepareCompletion('/**/', '''
+    await _prepareCompletion('/* */', '''
 void f() {
-  for (int i = 0; i < 10 /**/) {
+  for (int i = 0; i < 10 /* */) {
   }
 }
 ''', atEnd: true);
     _assertHasChange('Complete for-statement', '''
 void f() {
-  for (int i = 0; i < 10 /**/; ) {
+  for (int i = 0; i < 10 /* */; ) {
   }
 }
 ''', (s) => _after(s, '*/; '));
