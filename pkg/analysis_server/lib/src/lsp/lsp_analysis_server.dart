@@ -28,8 +28,8 @@ import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/message_scheduler.dart';
-import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/utilities/process.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
@@ -1205,7 +1205,12 @@ class LspAnalysisServer extends AnalysisServer {
                       // TODO(dantup): Consider supporting per-workspace config by
                       // calling workspace/configuration whenever workspace folders change
                       // and caching the config for each one.
-                      : _workspaceFolders.map((root) => resourceProvider.pathContext.join(root, excludePath)),
+                      : _workspaceFolders.map(
+                        (root) => resourceProvider.pathContext.join(
+                          root,
+                          excludePath,
+                        ),
+                      ),
             )
             .map(pathContext.normalize)
             .toSet();

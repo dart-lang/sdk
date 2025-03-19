@@ -5,20 +5,20 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisOptions, Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/assist_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
+import 'package:analysis_server_plugin/src/correction/assist_core.dart';
+import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
+import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/results.dart';

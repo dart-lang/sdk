@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
-import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
-import 'package:analysis_server/src/services/correction/assist_generators.dart';
-import 'package:analysis_server/src/services/correction/assist_performance.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
@@ -76,15 +72,8 @@ import 'package:analysis_server/src/services/correction/dart/split_and_condition
 import 'package:analysis_server/src/services/correction/dart/split_variable_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/surround_with.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
-import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/src/correction/assist_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer_plugin/utilities/assist/assist.dart'
-    hide AssistContributor;
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
 /// The set of built-in generators used to produce assists.
 const Set<ProducerGenerator> _builtInGenerators = {
@@ -177,132 +166,4 @@ void registerBuiltInAssistGenerators() {
   _builtInMultiGenerators.forEach(
     registeredAssistGenerators.registerMultiGenerator,
   );
-}
-
-/// The computer for Dart assists.
-class AssistProcessor {
-  final AssistPerformance? _performance;
-  final DartAssistContext _assistContext;
-  final Stopwatch _timer = Stopwatch();
-
-  final List<Assist> _assists = [];
-
-  AssistProcessor(this._assistContext, {AssistPerformance? performance})
-    : _performance = performance;
-
-  Future<List<Assist>> compute() async {
-    _timer.start();
-    await _addFromProducers();
-    _timer.stop();
-    _performance?.computeTime = _timer.elapsed;
-    return _assists;
-  }
-
-  void _addAssistFromBuilder(
-    ChangeBuilder builder,
-    AssistKind kind, {
-    List<Object>? args,
-  }) {
-    var change = builder.sourceChange;
-    if (change.edits.isEmpty) {
-      return;
-    }
-    change.id = kind.id;
-    change.message = formatList(kind.message, args);
-    _assists.add(Assist(kind, change));
-  }
-
-  Future<void> _addFromProducers() async {
-    var context = CorrectionProducerContext.createResolved(
-      libraryResult: _assistContext.libraryResult,
-      unitResult: _assistContext.unitResult,
-      selectionOffset: _assistContext.selectionOffset,
-      selectionLength: _assistContext.selectionLength,
-    );
-
-    Future<void> compute(CorrectionProducer producer) async {
-      var builder = ChangeBuilder(
-        workspace: _assistContext.workspace,
-        eol: producer.eol,
-      );
-      try {
-        if (_performance != null) {
-          var startTime = _timer.elapsedMilliseconds;
-          await producer.compute(builder);
-          _performance.producerTimings.add((
-            className: producer.runtimeType.toString(),
-            elapsedTime: _timer.elapsedMilliseconds - startTime,
-          ));
-        } else {
-          await producer.compute(builder);
-        }
-
-        var assistKind = producer.assistKind;
-        if (assistKind != null) {
-          _addAssistFromBuilder(
-            builder,
-            assistKind,
-            args: producer.assistArguments,
-          );
-        }
-      } on ConflictingEditException catch (exception, stackTrace) {
-        // Handle the exception by (a) not adding an assist based on the
-        // producer and (b) logging the exception.
-        _assistContext.instrumentationService.logException(
-          exception,
-          stackTrace,
-        );
-      }
-    }
-
-    for (var generator in registeredAssistGenerators.producerGenerators) {
-      if (!_generatorAppliesToAnyLintRule(
-        generator,
-        registeredAssistGenerators.lintRuleMap[generator] ?? {},
-      )) {
-        var producer = generator(context: context);
-        await compute(producer);
-      }
-    }
-    for (var multiGenerator
-        in registeredAssistGenerators.multiProducerGenerators) {
-      var multiProducer = multiGenerator(context: context);
-      for (var producer in await multiProducer.producers) {
-        await compute(producer);
-      }
-    }
-  }
-
-  /// Returns whether [generator] applies to any enabled lint rule, among
-  /// [errorCodes].
-  bool _generatorAppliesToAnyLintRule(
-    ProducerGenerator generator,
-    Set<LintCode> errorCodes,
-  ) {
-    if (errorCodes.isEmpty) {
-      return false;
-    }
-
-    var selectionEnd =
-        _assistContext.selectionOffset + _assistContext.selectionLength;
-    var locator = NodeLocator(_assistContext.selectionOffset, selectionEnd);
-    var node = locator.searchWithin(_assistContext.unitResult.unit);
-    if (node == null) {
-      return false;
-    }
-
-    var fileOffset = node.offset;
-    for (var error in _assistContext.unitResult.errors) {
-      var errorSource = error.source;
-      if (_assistContext.unitResult.path == errorSource.fullName) {
-        if (fileOffset >= error.offset &&
-            fileOffset <= error.offset + error.length) {
-          if (errorCodes.contains(error.errorCode)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
 }

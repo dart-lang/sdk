@@ -7,16 +7,14 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
 /// A description of a single proposed assist.
-///
-/// Clients may not extend, implement or mix-in this class.
-class Assist {
+final class Assist {
   /// A description of the assist being proposed.
   final AssistKind kind;
 
   /// The change to be made in order to apply the assist.
   final SourceChange change;
 
-  /// Initialize a newly created assist to have the given [kind] and [change].
+  /// Initializes a newly created assist to have the given [kind] and [change].
   Assist(this.kind, this.change);
 
   @override
@@ -24,10 +22,7 @@ class Assist {
     return 'Assist(kind=$kind, change=$change)';
   }
 
-  /// A function that can be used to sort assists by their relevance.
-  ///
-  /// The most relevant assists will be sorted before assists with a lower
-  /// relevance. Assists with the same relevance are sorted alphabetically.
+  /// Compares two assists by their relevance, then their message.
   static int compareAssists(Assist a, Assist b) {
     if (a.kind.priority != b.kind.priority) {
       // A higher priority indicates a higher relevance
