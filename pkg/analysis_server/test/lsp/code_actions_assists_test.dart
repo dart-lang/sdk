@@ -216,6 +216,10 @@ bar
       expectedContent,
       kind: CodeActionKind('refactor.fooToBar'),
       title: "Change 'foo' to 'bar'",
+      command: 'dart.logAction',
+      commandArgs: [
+        {'action': 'assist from plugin'},
+      ],
     );
   }
 

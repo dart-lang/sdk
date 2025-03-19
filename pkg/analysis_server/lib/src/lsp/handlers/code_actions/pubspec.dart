@@ -81,7 +81,13 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
       var diagnostic = createDiagnostic(lineInfo, result, error);
       codeActions.addAll(
         fixes.map((fix) {
-          var action = createFixAction(fix.change, diagnostic, path, lineInfo);
+          var action = createFixAction(
+            fix.change,
+            fix.change.id,
+            diagnostic,
+            path,
+            lineInfo,
+          );
           return (action: action, priority: fix.kind.priority);
         }),
       );

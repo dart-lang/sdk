@@ -164,6 +164,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       return assists.map((assist) {
         var action = createAssistAction(
           assist.change,
+          assist.change.id,
           unitResult.path,
           unitResult.lineInfo,
         );
@@ -242,6 +243,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             fixes.map((fix) {
               var action = createFixAction(
                 fix.change,
+                fix.change.id,
                 diagnostic,
                 path,
                 lineInfo,
