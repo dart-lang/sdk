@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:dap/dap.dart' as dap;
-import 'package:dds/dap.dart';
+import 'package:dds/dap.dart' hide Response;
 import 'package:dds/dds.dart';
 import 'package:dds/dds_launcher.dart';
 import 'package:dds/src/dap/adapters/dart_cli_adapter.dart';
@@ -168,6 +168,10 @@ class MockVmService implements VmService {
   /// tests.
   final List<String> requests = [];
 
+  /// A list of methods that were called on the Mock VM Service.
+  List<({String method, String? isolateId, Map<String, dynamic>? args})>
+      calledMethods = [];
+
   @override
   Future<Success> setLibraryDebuggable(
     String isolateId,
@@ -214,6 +218,30 @@ class MockVmService implements VmService {
   }
 
   @override
+  Future<Response> callMethod(
+    String method, {
+    String? isolateId,
+    Map<String, dynamic>? args,
+  }) async {
+    calledMethods.add((method: method, isolateId: isolateId, args: args));
+
+    // Some DDS methods are implemented as extensions so we can't override
+    // them in the mock, we need to override callMethod and handle them here
+    // (and provide their responses) instead.
+
+    if (method == 'getDartDevelopmentServiceVersion') {
+      return Version(major: 2, minor: 0);
+    } else if (method == 'readyToResume') {
+      isolateId ??= args != null ? args['isolateId'] : null;
+      return {isolate1.id, isolate2.id}.contains(isolateId)
+          ? Success()
+          : throw SentinelException.parse(method, {});
+    }
+
+    throw 'MockVmService does not handle $method ($isolateId, $args)';
+  }
+
+  @override
   Future<Success> resume(
     String isolateId, {
     String? step,
@@ -223,6 +251,18 @@ class MockVmService implements VmService {
     return {isolate1.id, isolate2.id}.contains(isolateId)
         ? Success()
         : throw SentinelException.parse('resume', {});
+  }
+
+  @override
+  Future<Success> setIsolatePauseMode(
+    String isolateId, {
+    /*ExceptionPauseMode*/ String? exceptionPauseMode,
+    bool? shouldPauseOnExit,
+  }) async {
+    // Do nothing, just pretend.
+    return {isolate1.id, isolate2.id}.contains(isolateId)
+        ? Success()
+        : throw SentinelException.parse('setIsolatePauseMode', {});
   }
 }
 
