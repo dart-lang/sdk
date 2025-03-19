@@ -9,12 +9,14 @@ callable:
     member: sfield9
   - library: 'lib3.dart'
     class: ['A', 'B']
+  - library: 'lib4.dart'
   - library: 'prefix/lib*'
 
 extendable:
   - library: 'lib1.dart'
     class: ['A', 'O', 'Q', 'S', 'T', 'V']
   - library: 'lib2.dart'
+  - library: 'lib4.dart'
 
 can-be-overridden:
   - library: 'lib1.dart'
@@ -22,3 +24,4 @@ can-be-overridden:
   - library: 'lib2.dart'
     class: 'D'
     member: 'build'
+  - library: 'lib4.dart'

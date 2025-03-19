@@ -152,6 +152,16 @@ class _Annotator extends RecursiveVisitor {
         c.accept(this);
       }
     }
+    for (final ext in node.extensions) {
+      if (ext.name[0] != '_') {
+        ext.accept(this);
+      }
+    }
+    for (final extensionType in node.extensionTypeDeclarations) {
+      if (extensionType.name[0] != '_') {
+        extensionType.accept(this);
+      }
+    }
     for (final exportRef in node.additionalExports) {
       exportRef.node!.accept(this);
     }
@@ -205,6 +215,34 @@ class _Annotator extends RecursiveVisitor {
         annotatedMembers.add(node)) {
       debugPrint("Annotated $node with $pragma");
       node.addAnnotation(ConstantExpression(pragma));
+    }
+  }
+
+  @override
+  void visitExtension(Extension node) {
+    for (final md in node.memberDescriptors) {
+      final member = md.memberReference?.node;
+      if (member != null) {
+        annotateMember(member as Member);
+      }
+      final tearOff = md.tearOffReference?.node;
+      if (tearOff != null) {
+        annotateMember(tearOff as Member);
+      }
+    }
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    for (final md in node.memberDescriptors) {
+      final member = md.memberReference?.node;
+      if (member != null) {
+        annotateMember(member as Member);
+      }
+      final tearOff = md.tearOffReference?.node;
+      if (tearOff != null) {
+        annotateMember(tearOff as Member);
+      }
     }
   }
 }
