@@ -2197,10 +2197,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       fragment.builder.becomeNative(loader);
     }
     for (GetterFragment fragment in _nativeGetterFragments) {
-      fragment.becomeNative(loader);
+      fragment.declaration.becomeNative(loader);
     }
     for (SetterFragment fragment in _nativeSetterFragments) {
-      fragment.becomeNative(loader);
+      fragment.declaration.becomeNative(loader);
     }
     for (MethodFragment fragment in _nativeMethodFragments) {
       fragment.becomeNative(loader);

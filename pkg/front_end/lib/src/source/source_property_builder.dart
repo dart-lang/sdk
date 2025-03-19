@@ -18,6 +18,8 @@ import '../builder/metadata_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
+import '../fragment/getter/declaration.dart';
+import '../fragment/setter/declaration.dart';
 import '../kernel/augmentation_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
@@ -54,8 +56,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   /// same name must be augmentations.
   // TODO(johnniwinther): Add [_augmentations] field.
   FieldDeclaration? _introductoryField;
-  GetterFragment? _introductoryGetable;
-  SetterFragment? _introductorySetable;
+  GetterDeclaration? _introductoryGetable;
+  SetterDeclaration? _introductorySetable;
 
   Modifiers _modifiers;
 
@@ -87,11 +89,12 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       required this.libraryBuilder,
       required this.declarationBuilder,
       required NameScheme nameScheme,
-      required GetterFragment fragment,
+      required GetterDeclaration declaration,
+      required Modifiers modifiers,
       required PropertyReferences references})
       : _nameScheme = nameScheme,
-        _introductoryGetable = fragment,
-        _modifiers = fragment.modifiers,
+        _introductoryGetable = declaration,
+        _modifiers = modifiers,
         _references = references,
         _memberName = nameScheme.getDeclaredName(name);
 
@@ -102,11 +105,12 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       required this.libraryBuilder,
       required this.declarationBuilder,
       required NameScheme nameScheme,
-      required SetterFragment fragment,
+      required SetterDeclaration declaration,
+      required Modifiers modifiers,
       required PropertyReferences references})
       : _nameScheme = nameScheme,
-        _introductorySetable = fragment,
-        _modifiers = fragment.modifiers,
+        _introductorySetable = declaration,
+        _modifiers = modifiers,
         _references = references,
         _memberName = nameScheme.getDeclaredName(name);
 
@@ -435,12 +439,20 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
           ],
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
-      _introductoryGetable?.buildOutlineExpressions(classHierarchy,
-          libraryBuilder, declarationBuilder, readTarget as Annotatable,
+      _introductoryGetable?.buildOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          propertyBuilder: this,
+          annotatable: readTarget as Annotatable,
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
-      _introductorySetable?.buildOutlineExpressions(classHierarchy,
-          libraryBuilder, declarationBuilder, writeTarget as Annotatable,
+      _introductorySetable?.buildOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          propertyBuilder: this,
+          annotatable: writeTarget as Annotatable,
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression: isAugmented);
       List<SourcePropertyBuilder>? getterAugmentations = _getterAugmentations;
@@ -619,8 +631,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   // Coverage-ignore(suite): Not run.
   List<FormalParameterBuilder>? get formalsForTesting =>
-      _introductoryGetable?.formalsForTesting ??
-      _introductorySetable?.formalsForTesting;
+      _introductoryGetable?.formals ?? _introductorySetable?.formals;
 
   // Coverage-ignore(suite): Not run.
   TypeBuilder? get returnTypeForTesting =>
@@ -684,9 +695,15 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       _introductoryField?.ensureTypes(_classMembersBuilder!,
           _getterOverrideDependencies, _setterOverrideDependencies);
       _introductoryGetable?.ensureTypes(
-          _classMembersBuilder!, _getterOverrideDependencies);
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          membersBuilder: _classMembersBuilder!,
+          getterOverrideDependencies: _getterOverrideDependencies);
       _introductorySetable?.ensureTypes(
-          _classMembersBuilder!, _setterOverrideDependencies);
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          membersBuilder: _classMembersBuilder!,
+          setterOverrideDependencies: _setterOverrideDependencies);
       _getterOverrideDependencies = null;
       _setterOverrideDependencies = null;
       _classMembersBuilder = null;
@@ -793,12 +810,12 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
 class _GetterClassMember implements ClassMember {
   final SourcePropertyBuilder _builder;
-  final GetterFragment _fragment;
+  final GetterDeclaration _declaration;
 
-  _GetterClassMember(this._builder, this._fragment);
+  _GetterClassMember(this._builder, this._declaration);
 
   @override
-  int get charOffset => _fragment.nameOffset;
+  int get charOffset => _declaration.nameOffset;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -809,7 +826,7 @@ class _GetterClassMember implements ClassMember {
       throw new UnsupportedError('$runtimeType.declarations');
 
   @override
-  Uri get fileUri => _fragment.fileUri;
+  Uri get fileUri => _declaration.fileUri;
 
   @override
   bool get forSetter => false;
@@ -872,7 +889,7 @@ class _GetterClassMember implements ClassMember {
   // property can have a non-abstract getter and an abstract setter or the
   // reverse. With augmentations, abstract introductory declarations might even
   // be implemented by augmentations.
-  bool get isAbstract => _fragment.modifiers.isAbstract;
+  bool get isAbstract => _declaration.isAbstract;
 
   @override
   bool get isDuplicate => _builder.isDuplicate;
@@ -915,7 +932,7 @@ class _GetterClassMember implements ClassMember {
   bool get isSourceDeclaration => true;
 
   @override
-  bool get isStatic => _fragment.modifiers.isStatic;
+  bool get isStatic => _builder.isStatic;
 
   @override
   bool get isSynthesized => false;
@@ -939,14 +956,14 @@ class _GetterClassMember implements ClassMember {
 
 class _SetterClassMember implements ClassMember {
   final SourcePropertyBuilder _builder;
-  final SetterFragment _fragment;
+  final SetterDeclaration _declaration;
   late final Covariance _covariance =
       new Covariance.fromSetter(_builder.writeTarget as Procedure);
 
-  _SetterClassMember(this._builder, this._fragment);
+  _SetterClassMember(this._builder, this._declaration);
 
   @override
-  int get charOffset => _fragment.nameOffset;
+  int get charOffset => _declaration.nameOffset;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -957,7 +974,7 @@ class _SetterClassMember implements ClassMember {
       throw new UnsupportedError('$runtimeType.declarations');
 
   @override
-  Uri get fileUri => _fragment.fileUri;
+  Uri get fileUri => _declaration.fileUri;
 
   @override
   bool get forSetter => true;
@@ -1020,7 +1037,7 @@ class _SetterClassMember implements ClassMember {
   // property can have a non-abstract getter and an abstract setter or the
   // reverse. With augmentations, abstract introductory declarations might even
   // be implemented by augmentations.
-  bool get isAbstract => _fragment.modifiers.isAbstract;
+  bool get isAbstract => _declaration.isAbstract;
 
   @override
   bool get isDuplicate => _builder.isDuplicate;
@@ -1062,7 +1079,7 @@ class _SetterClassMember implements ClassMember {
   bool get isSourceDeclaration => true;
 
   @override
-  bool get isStatic => _fragment.modifiers.isStatic;
+  bool get isStatic => _builder.isStatic;
 
   @override
   bool get isSynthesized => false;
