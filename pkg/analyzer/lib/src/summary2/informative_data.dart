@@ -21,10 +21,9 @@ import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
 
 Uint8List writeUnitInformative(CompilationUnit unit) {
-  var byteSink = ByteSink();
-  var sink = BufferedSink(byteSink);
+  var sink = BufferedSink();
   _InformativeDataWriter(sink).write(unit);
-  return sink.flushAndTake();
+  return sink.takeBytes();
 }
 
 /// We want to have actual offsets for tokens of various constants in the

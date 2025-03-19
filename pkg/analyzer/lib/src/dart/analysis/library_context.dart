@@ -535,8 +535,7 @@ class LinkedBundleProvider {
     required String key,
     required LinkedBundleEntry entry,
   }) {
-    var byteSink = ByteSink();
-    var sink = BufferedSink(byteSink);
+    var sink = BufferedSink();
 
     sink.writeStringUtf8(entry.apiSignature);
     sink.writeMap(
@@ -547,7 +546,7 @@ class LinkedBundleProvider {
     entry.requirements.write(sink);
     sink.writeUint8List(entry.linkedBytes);
 
-    var bytes = sink.flushAndTake();
+    var bytes = sink.takeBytes();
     byteStore.putGet(key, bytes);
 
     map[key] = entry;

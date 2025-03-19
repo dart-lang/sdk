@@ -1451,24 +1451,23 @@ class AnalysisDriver {
 
         if (withFineDependencies && libraryRequirements != null) {
           performance.run('writeResolvedLibrary', (_) {
-            var mapSink = BufferedSink(ByteSink());
+            var mapSink = BufferedSink();
             mapSink.writeMap(
               fileResultBytesMap,
               writeKey: (uri) => mapSink.writeUri(uri),
               writeValue: (bytes) => mapSink.writeUint8List(bytes),
             );
-            var mapBytes = mapSink.flushAndTake();
+            var mapBytes = mapSink.takeBytes();
 
             library.lastResolutionResult = LibraryResolutionResult(
               requirements: libraryRequirements!,
               bytes: mapBytes,
             );
 
-            var byteSink = ByteSink();
-            var sink = BufferedSink(byteSink);
+            var sink = BufferedSink();
             libraryRequirements.write(sink);
             sink.writeUint8List(mapBytes);
-            var allBytes = sink.flushAndTake();
+            var allBytes = sink.takeBytes();
 
             var key = library.resolvedKey;
             _byteStore.putGet(key, allBytes);
