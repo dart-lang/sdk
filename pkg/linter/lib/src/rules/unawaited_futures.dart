@@ -54,18 +54,20 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type == null) {
       return;
     }
-    if (type.implementsInterface('Future', 'dart.async')) {
-      // Ignore a couple of special known cases.
-      if (_isFutureDelayedInstanceCreationWithComputation(expr) ||
-          _isMapPutIfAbsentInvocation(expr)) {
-        return;
-      }
+    if (!type.implementsInterface('Future', 'dart.async')) {
+      return;
+    }
 
-      if (_isEnclosedInAsyncFunctionBody(node)) {
-        // Future expression statement that isn't awaited in an async function:
-        // while this is legal, it's a very frequent sign of an error.
-        rule.reportLint(node);
-      }
+    // Ignore a couple of special known cases.
+    if (_isFutureDelayedInstanceCreationWithComputation(expr) ||
+        _isMapPutIfAbsentInvocation(expr)) {
+      return;
+    }
+
+    if (_isEnclosedInAsyncFunctionBody(node)) {
+      // Future expression statement that isn't awaited in an async function:
+      // while this is legal, it's a very frequent sign of an error.
+      rule.reportLint(node);
     }
   }
 
@@ -97,6 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       _isMapClass(expr.methodName.element?.enclosingElement2);
 
   void _visit(Expression expr) {
+    // TODO(srawlins): Check whether `expr`'s static type _implements_ `Future`.
     if ((expr.staticType?.isDartAsyncFuture ?? false) &&
         _isEnclosedInAsyncFunctionBody(expr) &&
         expr is! AssignmentExpression) {
