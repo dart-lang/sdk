@@ -326,7 +326,7 @@ class CheckinTask : public StateMachineTask {
   virtual void RunInternal() {
     data_->WaitUntil(kStartLoop);
 
-    uword last_sync = OS::GetCurrentTimeMillis();
+    uword last_sync = OS::GetCurrentMonotonicMicros();
     while (!data()->IsIn(kPleaseExit)) {
       OS::SleepMicros(100);  // Make test avoid consuming 100% CPU x kTaskCount.
       switch (data()->level) {
@@ -335,14 +335,14 @@ class CheckinTask : public StateMachineTask {
           RuntimeCallDeoptScope no_deopt(
               Thread::Current(), RuntimeCallDeoptAbility::kCannotLazyDeopt);
           if (SafepointIfRequested(thread_, data()->gc_only_checkins)) {
-            last_sync = OS::GetCurrentTimeMillis();
+            last_sync = OS::GetCurrentMonotonicMicros();
           }
           break;
         }
         case SafepointLevel::kGCAndDeopt: {
           // This thread should join only GC and Deopt safepoint operations.
           if (SafepointIfRequested(thread_, data()->deopt_checkin)) {
-            last_sync = OS::GetCurrentTimeMillis();
+            last_sync = OS::GetCurrentMonotonicMicros();
           }
           break;
         }
@@ -350,7 +350,7 @@ class CheckinTask : public StateMachineTask {
           // This thread should join any safepoint operations.
           ReloadParticipationScope allow_reload(thread_);
           if (SafepointIfRequested(thread_, data()->reload_checkin)) {
-            last_sync = OS::GetCurrentTimeMillis();
+            last_sync = OS::GetCurrentMonotonicMicros();
           }
           break;
         }
@@ -367,8 +367,8 @@ class CheckinTask : public StateMachineTask {
       // After being quite sure to not have joined deopt safepoint if we only
       // support GC safepoints, we will eventually comply here to make main
       // thread continue.
-      const auto now = OS::GetCurrentTimeMillis();
-      if ((now - last_sync) > 1000) {
+      const auto now = OS::GetCurrentMonotonicMicros();
+      if ((now - last_sync) > 1000000) {
         ReloadParticipationScope allow_reload(thread_);
         if (SafepointIfRequested(thread_, data()->timeout_checkin)) {
           last_sync = now;
@@ -494,25 +494,27 @@ ISOLATE_UNIT_TEST_CASE(SafepointOperation_SafepointPointTest) {
     for (intptr_t i = 0; i < kTaskCount; i++) {
       threads[i]->WaitUntil(CheckinTask::kExited);
     }
+    // Unlucky scheduling may result in more timeout checkins than intended, but
+    // never checkins of otherwise the wrong type.
     for (intptr_t i = 0; i < kTaskCount; ++i) {
       switch (task_to_level(i)) {
         case SafepointLevel::kGC:
-          EXPECT_EQ(2, gc_only_checkins[i]);
-          EXPECT_EQ(0, deopt_checkins[i]);
-          EXPECT_EQ(0, reload_checkins[i]);
-          EXPECT_EQ(4, timeout_checkins[i]);
+          EXPECT_LE(gc_only_checkins[i], 2);
+          EXPECT_EQ(deopt_checkins[i], 0);
+          EXPECT_EQ(reload_checkins[i], 0);
+          EXPECT_GE(timeout_checkins[i], 4);
           break;
         case SafepointLevel::kGCAndDeopt:
-          EXPECT_EQ(0, gc_only_checkins[i]);
-          EXPECT_EQ(4, deopt_checkins[i]);
-          EXPECT_EQ(0, reload_checkins[i]);
-          EXPECT_EQ(2, timeout_checkins[i]);
+          EXPECT_EQ(gc_only_checkins[i], 0);
+          EXPECT_LE(deopt_checkins[i], 4);
+          EXPECT_EQ(reload_checkins[i], 0);
+          EXPECT_GE(timeout_checkins[i], 2);
           break;
         case SafepointLevel::kGCAndDeoptAndReload:
-          EXPECT_EQ(0, gc_only_checkins[i]);
-          EXPECT_EQ(0, deopt_checkins[i]);
-          EXPECT_EQ(6, reload_checkins[i]);
-          EXPECT_EQ(0, timeout_checkins[i]);
+          EXPECT_EQ(gc_only_checkins[i], 0);
+          EXPECT_EQ(deopt_checkins[i], 0);
+          EXPECT_LE(reload_checkins[i], 6);
+          EXPECT_GE(timeout_checkins[i], 0);
           break;
         case SafepointLevel::kNumLevels:
         case SafepointLevel::kNoSafepoint:
