@@ -5561,8 +5561,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       _handleCreateInvocationMirror(invocation, sourceInformation);
     } else if (name == 'TYPE_REF') {
       _handleForeignTypeRef(invocation, sourceInformation);
-    } else if (name == 'LEGACY_TYPE_REF') {
-      _handleForeignLegacyTypeRef(invocation, sourceInformation);
     } else if (name == 'createJsSentinel') {
       _handleForeignCreateJsSentinel(invocation, sourceInformation);
     } else if (name == 'isJsSentinel') {
@@ -6647,32 +6645,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       return;
     }
     DartType type = _elementMap.getDartType(invocation.arguments.types.single);
-    push(
-      HLoadType.type(type, _abstractValueDomain.dynamicType)
-        ..sourceInformation = sourceInformation,
-    );
-  }
-
-  void _handleForeignLegacyTypeRef(
-    ir.StaticInvocation invocation,
-    SourceInformation? sourceInformation,
-  ) {
-    if (_unexpectedForeignArguments(
-      invocation,
-      minPositional: 0,
-      maxPositional: 0,
-      typeArgumentCount: 1,
-    )) {
-      stack.add(
-        // Result expected on stack.
-        graph.addConstantNull(closedWorld)
-          ..sourceInformation = sourceInformation,
-      );
-      return;
-    }
-    DartType type = closedWorld.dartTypes.legacyType(
-      _elementMap.getDartType(invocation.arguments.types.single),
-    );
     push(
       HLoadType.type(type, _abstractValueDomain.dynamicType)
         ..sourceInformation = sourceInformation,

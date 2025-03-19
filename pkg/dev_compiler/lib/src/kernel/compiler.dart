@@ -6115,12 +6115,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           if (name == 'TYPE_REF') {
             return _emitType(typeArgs.single);
           }
-          // TODO(nshahan): Delete after uses are deleted from dart:_rti and the
-          // external signature is removed from dart:_foreign_helper.
-          if (name == 'LEGACY_TYPE_REF') {
-            return _emitType(
-                typeArgs.single.withDeclaredNullability(Nullability.legacy));
-          }
         }
       }
 

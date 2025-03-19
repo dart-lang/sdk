@@ -16,8 +16,7 @@ import 'dart:_foreign_helper'
         JS_GET_NAME,
         JS_STRING_CONCAT,
         RAW_DART_FUNCTION_REF,
-        TYPE_REF,
-        LEGACY_TYPE_REF;
+        TYPE_REF;
 import 'dart:_interceptors'
     show JavaScriptFunction, JSArray, JSNull, JSUnmodifiableArray;
 import 'dart:_js_helper'
@@ -1477,8 +1476,6 @@ Object? _installSpecializedAsCheck(Object? object) {
 bool _nullIs(Rti testRti) {
   int kind = Rti._getKind(testRti);
   return isSoundTopType(testRti) ||
-      isLegacyObjectType(testRti) ||
-      _Utils.isIdentical(testRti, LEGACY_TYPE_REF<Never>()) ||
       kind == Rti.kindQuestion ||
       kind == Rti.kindStar && _nullIs(Rti._getStarArgument(testRti)) ||
       kind == Rti.kindFutureOr && _nullIs(Rti._getFutureOrArgument(testRti)) ||
@@ -2686,8 +2683,7 @@ class _Universe {
           baseKind == Rti.kindFutureOr &&
               isNullable(Rti._getFutureOrArgument(baseType))) {
         return baseType;
-      } else if (baseKind == Rti.kindNever ||
-          _Utils.isIdentical(baseType, LEGACY_TYPE_REF<Never>())) {
+      } else if (baseKind == Rti.kindNever) {
         return TYPE_REF<Null>();
       } else if (baseKind == Rti.kindStar) {
         Rti starArgument = Rti._getStarArgument(baseType);
@@ -2731,9 +2727,7 @@ class _Universe {
   ) {
     if (normalize) {
       int baseKind = Rti._getKind(baseType);
-      if (isSoundTopType(baseType) ||
-          isObjectType(baseType) ||
-          isLegacyObjectType(baseType)) {
+      if (isSoundTopType(baseType) || isObjectType(baseType)) {
         return baseType;
       } else if (baseKind == Rti.kindNever) {
         return _lookupFutureRti(universe, baseType);
@@ -4358,7 +4352,7 @@ bool isDefinitelyTopType(Rti t) => isTopType(
 
 @pragma('dart2js:parameter:trust')
 bool isTopType(Rti t, bool isLegacy) =>
-    isSoundTopType(t) || isLegacyObjectType(t) || isLegacy && isObjectType(t);
+    isSoundTopType(t) || isLegacy && isObjectType(t);
 
 bool isSoundTopType(Rti t) {
   int kind = Rti._getKind(t);
@@ -4373,8 +4367,6 @@ bool isBottomType(Rti t, bool isLegacy) =>
     Rti._getKind(t) == Rti.kindNever || isLegacy && isNullType(t);
 
 bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
-bool isLegacyObjectType(Rti t) =>
-    _Utils.isIdentical(t, LEGACY_TYPE_REF<Object>());
 bool isNullableObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object?>());
 bool isNullType(Rti t) =>
     _Utils.isIdentical(t, TYPE_REF<Null>()) ||
