@@ -468,21 +468,17 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _buildMetadataForOutlineExpressions(
-        libraryBuilder,
-        _fragment.enclosingScope,
-        bodyBuilderContext,
-        annotatable,
-        _fragment.metadata,
+    buildMetadataForOutlineExpressions(libraryBuilder, _fragment.enclosingScope,
+        bodyBuilderContext, annotatable, _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
-    _buildTypeParametersForOutlineExpressions(
+    buildTypeParametersForOutlineExpressions(
         classHierarchy,
         libraryBuilder,
         bodyBuilderContext,
         _fragment.typeParameterScope,
         _fragment.declaredTypeParameters);
-    _buildFormalsForOutlineExpressions(
+    buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
         scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
@@ -965,33 +961,29 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
       Annotatable annotatable,
       {required bool isClassInstanceMember,
       required bool createFileUriExpression}) {
-    _buildMetadataForOutlineExpressions(
-        libraryBuilder,
-        _fragment.enclosingScope,
-        bodyBuilderContext,
-        annotatable,
-        _fragment.metadata,
+    buildMetadataForOutlineExpressions(libraryBuilder, _fragment.enclosingScope,
+        bodyBuilderContext, annotatable, _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
 
-    _buildTypeParametersForOutlineExpressions(
+    buildTypeParametersForOutlineExpressions(
         classHierarchy,
         libraryBuilder,
         bodyBuilderContext,
         _fragment.typeParameterScope,
         _fragment.declaredTypeParameters);
-    _buildFormalsForOutlineExpressions(
+    buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
         scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
 
-    _buildTypeParametersForOutlineExpressions(
+    buildTypeParametersForOutlineExpressions(
         classHierarchy,
         libraryBuilder,
         bodyBuilderContext,
         _fragment.typeParameterScope,
         _clonedDeclarationTypeParameters);
-    _buildFormalForOutlineExpressions(
+    buildFormalForOutlineExpressions(
         libraryBuilder, declarationBuilder, _thisFormal,
         scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);

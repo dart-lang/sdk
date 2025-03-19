@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
+import 'package:front_end/src/fragment/getter/declaration.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 
@@ -22,6 +23,7 @@ import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/constructor/declaration.dart';
 import '../fragment/fragment.dart';
+import '../fragment/setter/declaration.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
@@ -1546,6 +1548,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         final bool isInstanceMember = containerType != ContainerType.Library &&
             !fragment.modifiers.isStatic;
 
+        Modifiers modifiers = fragment.modifiers;
+
         PropertyEncodingStrategy propertyEncodingStrategy =
             new PropertyEncodingStrategy(declarationBuilder,
                 isInstanceMember: isInstanceMember);
@@ -1568,6 +1572,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             name, nameScheme, indexedContainer,
             isAugmentation: isAugmentation);
 
+        GetterDeclaration declaration = new GetterDeclarationImpl(fragment);
+
         SourcePropertyBuilder propertyBuilder =
             new SourcePropertyBuilder.forGetter(
                 fileUri: fragment.fileUri,
@@ -1575,10 +1581,12 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 name: name,
                 libraryBuilder: enclosingLibraryBuilder,
                 declarationBuilder: declarationBuilder,
-                fragment: fragment,
+                declaration: declaration,
+                modifiers: modifiers,
                 nameScheme: nameScheme,
                 references: references);
-        fragment.setBuilder(problemReporting, propertyBuilder,
+        fragment.builder = propertyBuilder;
+        declaration.createEncoding(problemReporting, propertyBuilder,
             propertyEncodingStrategy, unboundNominalParameters);
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset,
@@ -1589,6 +1597,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         String name = fragment.name;
         final bool isInstanceMember = containerType != ContainerType.Library &&
             !fragment.modifiers.isStatic;
+
+        Modifiers modifiers = fragment.modifiers;
 
         PropertyEncodingStrategy propertyEncodingStrategy =
             new PropertyEncodingStrategy(declarationBuilder,
@@ -1612,6 +1622,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             name, nameScheme, indexedContainer,
             isAugmentation: isAugmentation);
 
+        SetterDeclaration declaration = new SetterDeclarationImpl(fragment);
+
         SourcePropertyBuilder propertyBuilder =
             new SourcePropertyBuilder.forSetter(
                 fileUri: fragment.fileUri,
@@ -1619,10 +1631,12 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 name: name,
                 libraryBuilder: enclosingLibraryBuilder,
                 declarationBuilder: declarationBuilder,
-                fragment: fragment,
+                declaration: declaration,
+                modifiers: modifiers,
                 nameScheme: nameScheme,
                 references: references);
-        fragment.setBuilder(problemReporting, propertyBuilder,
+        fragment.builder = propertyBuilder;
+        declaration.createEncoding(problemReporting, propertyBuilder,
             propertyEncodingStrategy, unboundNominalParameters);
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset,

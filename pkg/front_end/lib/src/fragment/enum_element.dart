@@ -133,7 +133,7 @@ class EnumElementFragment
       required bool createFileUriExpression}) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
-      _buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
+      buildMetadataForOutlineExpressions(libraryBuilder, enclosingScope,
           bodyBuilderContext, annotatable, metadata,
           fileUri: fileUri, createFileUriExpression: createFileUriExpression);
     }
