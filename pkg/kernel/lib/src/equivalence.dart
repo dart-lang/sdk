@@ -1810,9 +1810,6 @@ class EquivalenceStrategy {
     if (!checkComponent_mainMethodName(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkComponent_mode(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkComponent_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -5918,11 +5915,6 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, Component node, Component other) {
     return visitor.checkReferences(
         node.mainMethodName, other.mainMethodName, 'mainMethodName');
-  }
-
-  bool checkComponent_mode(
-      EquivalenceVisitor visitor, Component node, Component other) {
-    return visitor.checkValues(node.mode, other.mode, 'mode');
   }
 
   bool checkTreeNode_fileOffset(

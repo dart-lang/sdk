@@ -78,7 +78,6 @@ class _ComponentIndex {
   final int binaryOffsetForConstantTableIndex;
   final int binaryOffsetForStartOfComponentIndex;
   final int mainMethodReference;
-  final NonNullableByDefaultCompiledMode compiledMode;
   final List<int> libraryOffsets;
   final int libraryCount;
   final int componentFileSizeInBytes;
@@ -93,7 +92,6 @@ class _ComponentIndex {
       required this.binaryOffsetForConstantTableIndex,
       required this.binaryOffsetForStartOfComponentIndex,
       required this.mainMethodReference,
-      required this.compiledMode,
       required this.libraryOffsets,
       required this.libraryCount,
       required this.componentFileSizeInBytes});
@@ -155,7 +153,6 @@ class BinaryBuilder {
   int _transformerFlags = 0;
   Library? _currentLibrary;
   int _componentStartOffset = 0;
-  NonNullableByDefaultCompiledMode? compilationMode;
 
   // If something goes wrong, this list should indicate what library,
   // class, and member was being built.
@@ -808,8 +805,8 @@ class BinaryBuilder {
     int binaryOffsetForStartOfComponentIndex =
         _componentStartOffset + readUint32();
     int mainMethodReference = readUint32();
-    NonNullableByDefaultCompiledMode compiledMode =
-        NonNullableByDefaultCompiledMode.values[readUint32()];
+    // TODO(jensj): Previously the component mode. Remove this.
+    readUint32();
     for (int i = 0; i < libraryCount + 1; ++i) {
       libraryOffsets[i] = _componentStartOffset + readUint32();
     }
@@ -829,8 +826,7 @@ class BinaryBuilder {
         binaryOffsetForConstantTableIndex: binaryOffsetForConstantTableIndex,
         binaryOffsetForStartOfComponentIndex:
             binaryOffsetForStartOfComponentIndex,
-        mainMethodReference: mainMethodReference,
-        compiledMode: compiledMode);
+        mainMethodReference: mainMethodReference);
   }
 
   void _readOneComponentSource(Component component, int componentFileSize) {
@@ -892,11 +888,6 @@ class BinaryBuilder {
 
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
-    if (compilationMode == null) {
-      compilationMode = component.modeRaw;
-    }
-    compilationMode =
-        mergeCompilationModeOrThrow(compilationMode, index.compiledMode);
 
     _byteOffset = index.binaryOffsetForStringTable;
     readStringTable();
@@ -938,7 +929,7 @@ class BinaryBuilder {
 
     Reference? mainMethod =
         getNullableMemberReferenceFromInt(index.mainMethodReference);
-    component.setMainMethodAndMode(mainMethod, false, compilationMode!);
+    component.setMainMethodAndMode(mainMethod, false);
 
     _byteOffset = _componentStartOffset + componentFileSize;
 
@@ -1243,13 +1234,6 @@ class BinaryBuilder {
     library.name = name;
     library.fileUri = fileUri;
     library.problemsAsJson = problemsAsJson;
-
-    assert(
-        mergeCompilationModeOrThrow(
-                compilationMode, library.nonNullableByDefaultCompiledMode) ==
-            compilationMode,
-        "Cannot load ${library.nonNullableByDefaultCompiledMode} "
-        "into component with mode $compilationMode");
 
     assert(() {
       debugPath.add(library!.name ?? library.importUri.toString());
@@ -4481,22 +4465,4 @@ class _MetadataSubsection {
   final Map<int, int> mapping;
 
   _MetadataSubsection(this.repository, this.mapping);
-}
-
-/// Merges two compilation modes or throws if they are not compatible.
-NonNullableByDefaultCompiledMode mergeCompilationModeOrThrow(
-    NonNullableByDefaultCompiledMode? a, NonNullableByDefaultCompiledMode b) {
-  if (a == null || a == b) {
-    return b;
-  }
-
-  // If something is invalid, it should always merge as invalid.
-  if (a == NonNullableByDefaultCompiledMode.Invalid) {
-    return a;
-  }
-  if (b == NonNullableByDefaultCompiledMode.Invalid) {
-    return b;
-  }
-
-  throw new CompilationModeError("Mixed compilation mode found: $a and $b");
 }

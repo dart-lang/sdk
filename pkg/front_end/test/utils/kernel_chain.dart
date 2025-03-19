@@ -475,7 +475,7 @@ class MatchExpectation
       ByteSink sink = new ByteSink();
       Component writeMe = new Component(
           libraries: component.libraries.where(result.isUserLibrary).toList())
-        ..setMainMethodAndMode(null, false, component.mode);
+        ..setMainMethodAndMode(null, false);
       writeMe.uriToSource.addAll(component.uriToSource);
       if (component.problemsAsJson != null) {
         writeMe.problemsAsJson =
@@ -637,8 +637,7 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
       Component userCode = new Component(
           nameRoot: component.root,
           uriToSource: new Map<Uri, Source>.from(component.uriToSource));
-      userCode.setMainMethodAndMode(
-          component.mainMethodName, true, component.mode);
+      userCode.setMainMethodAndMode(component.mainMethodName, true);
       List<Library> auxiliaryLibraries = [];
       for (Library library in component.libraries) {
         bool includeLibrary;

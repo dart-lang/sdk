@@ -984,8 +984,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   void buildOutlineNode(Library library) {
-    library.nonNullableByDefaultCompiledMode =
-        NonNullableByDefaultCompiledMode.Strong;
     for (LibraryPart libraryPart in _builderFactoryResult.libraryParts) {
       library.addPart(libraryPart);
     }

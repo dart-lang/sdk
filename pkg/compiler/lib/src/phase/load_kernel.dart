@@ -242,7 +242,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(
   if (options.entryUri != null) {
     entryLibrary = _findEntryLibrary(component, options.entryUri!);
     var mainMethod = _findMainMethod(entryLibrary);
-    component.setMainMethodAndMode(mainMethod, true, component.mode);
+    component.setMainMethodAndMode(mainMethod, true);
   }
 
   _doTransformsOnKernelLoad(component, options, reporter);

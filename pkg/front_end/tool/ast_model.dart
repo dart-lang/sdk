@@ -87,7 +87,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'Component': {
     'root': null,
     '_mainMethodName': FieldRule(name: 'mainMethodName'),
-    '_mode': FieldRule(name: 'mode'),
   },
   'Library': {
     '_languageVersion': FieldRule(name: 'languageVersion'),

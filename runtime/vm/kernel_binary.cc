@@ -174,6 +174,7 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   program->component_index_offset_ = reader->ReadUInt32();
 
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
+  // TODO(jensj): Remove this.
   reader->ReadUInt32();  // Read and ignore NNBD compilation mode.
 
   return program;

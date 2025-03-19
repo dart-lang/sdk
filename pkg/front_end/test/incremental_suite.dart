@@ -751,7 +751,7 @@ Future<Map<String, Uint8List>> createModules(
       throw "Module probably not setup right.";
     }
     Component result = new Component(libraries: wantedLibs)
-      ..setMainMethodAndMode(null, false, c.mode);
+      ..setMainMethodAndMode(null, false);
     Uint8List resultBytes = util.postProcess(result);
     moduleResult[moduleName] = resultBytes;
   }
@@ -1387,9 +1387,6 @@ class NewWorldTest {
           world, data, compilerResult.neededDillLibraries, base);
       if (result != null) return result;
 
-      Result? nnbdCheck = checkNNBDSettings(component!);
-      if (nnbdCheck != null) return nnbdCheck.copyWithOutput(data);
-
       if (!world.noFullComponent) {
         Set<Library> allLibraries = new Set<Library>();
         for (Library lib in component!.libraries) {
@@ -1885,26 +1882,6 @@ class Strategy extends EquivalenceStrategy {
   }
 }
 
-Result? checkNNBDSettings(Component component) {
-  NonNullableByDefaultCompiledMode mode = component.mode;
-  if (mode == NonNullableByDefaultCompiledMode.Invalid) return null;
-  for (Library lib in component.libraries) {
-    if (mode == lib.nonNullableByDefaultCompiledMode) continue;
-
-    if (mode == NonNullableByDefaultCompiledMode.Strong ||
-        lib.nonNullableByDefaultCompiledMode ==
-            NonNullableByDefaultCompiledMode.Strong) {
-      // Non agnostic and one (but not both) are strong => error.
-      return new Result(
-          null,
-          NNBDModeMismatch,
-          "Component mode was $mode but ${lib.importUri} had mode "
-          "${lib.nonNullableByDefaultCompiledMode}.");
-    }
-  }
-  return null;
-}
-
 Result<TestData>? checkExpectFile(TestData data, int worldNum,
     String extraUriString, Context context, String actualSerialized) {
   Uri uri = data.loadedFrom.resolve(data.loadedFrom.pathSegments.last +
@@ -2158,7 +2135,7 @@ Result<Uint8List?> checkIncrementalSerialization(
     World world) {
   if (incrementalSerialization == true) {
     Component c = new Component(nameRoot: component.root)
-      ..setMainMethodAndMode(null, false, component.mode);
+      ..setMainMethodAndMode(null, false);
     c.libraries.addAll(component.libraries);
     c.uriToSource.addAll(component.uriToSource);
     Map<String, Set<String>> originalContent = buildMapOfContent(c);
@@ -2397,7 +2374,7 @@ String componentToStringSdkFiltered(Component component,
       c.libraries.add(lib);
     }
   }
-  c.setMainMethodAndMode(component.mainMethodName, true, component.mode);
+  c.setMainMethodAndMode(component.mainMethodName, true);
   c.problemsAsJson = component.problemsAsJson;
 
   StringBuffer s = new StringBuffer();

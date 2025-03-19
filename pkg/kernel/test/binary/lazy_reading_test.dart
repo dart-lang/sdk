@@ -34,7 +34,7 @@ void main() {
     classA.addConstructor(classAConstructor);
   }
   Component c = new Component(libraries: [lib]);
-  c.setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Strong);
+  c.setMainMethodAndMode(null, false);
   Uint8List loadMe = serializeComponent(c);
 
   // Load and make sure we can get at class B from class A (i.e. that it's

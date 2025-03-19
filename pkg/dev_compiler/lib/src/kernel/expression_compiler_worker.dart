@@ -429,8 +429,7 @@ class ExpressionCompilerWorker {
         libraries: libraries,
         nameRoot: originalComponent.root,
         uriToSource: originalComponent.uriToSource,
-      )..setMainMethodAndMode(
-          originalComponent.mainMethodName, true, originalComponent.mode);
+      )..setMainMethodAndMode(originalComponent.mainMethodName, true);
       _processedOptions.ticker.logMs('Collected libraries for $moduleName');
     }
 
@@ -491,8 +490,7 @@ class ExpressionCompilerWorker {
         libraries: librariesToEmit,
         nameRoot: finalComponent.root,
         uriToSource: finalComponent.uriToSource)
-      ..setMainMethodAndMode(
-          originalComponent.mainMethodName, true, originalComponent.mode);
+      ..setMainMethodAndMode(originalComponent.mainMethodName, true);
 
     kernel2jsCompiler.emitModule(componentToEmit);
     _processedOptions.ticker.logMs('Emitted module for expression');

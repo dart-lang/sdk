@@ -928,7 +928,6 @@ class FrontendCompiler implements CompilerInterface {
       final BinaryPrinter printer = new BinaryPrinter(sink);
       printer.writeComponentFile(new Component(
         libraries: [nativeAssetsLibrary],
-        mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
       ));
     }
     await sink.close();
@@ -956,7 +955,6 @@ class FrontendCompiler implements CompilerInterface {
     final BinaryPrinter printer = new BinaryPrinter(sink);
     printer.writeComponentFile(new Component(
       libraries: [nativeAssetsLibrary],
-      mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
     ));
     await sink.close();
   }
@@ -1254,7 +1252,7 @@ class FrontendCompiler implements CompilerInterface {
           libraries: libraries,
           uriToSource: deltaProgram.uriToSource,
           nameRoot: deltaProgram.root);
-      singleLibrary.setMainMethodAndMode(null, false, deltaProgram.mode);
+      singleLibrary.setMainMethodAndMode(null, false);
       ByteSink byteSink = new ByteSink();
       final BinaryPrinter printer = printerFactory.newBinaryPrinter(byteSink);
       printer.writeComponentFile(singleLibrary);

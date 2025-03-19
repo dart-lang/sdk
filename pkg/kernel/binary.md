@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 122;
+  UInt32 formatVersion = 123;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -188,7 +188,7 @@ type ComponentIndex {
   UInt32 binaryOffsetForStringTable;
   UInt32 binaryOffsetForStartOfComponentIndex;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
-  UInt32 compilationMode; // enum NonNullableByDefaultCompiledMode { Disabled = 0, Weak = 1, Strong = 2, Agnostic = 3 } with a fixed-size integer.
+  UInt32 _dummy; // TODO(jensj): Previously the component mode. Remove this.
   UInt32[libraryCount + 1] libraryOffsets;
   UInt32 libraryCount;
   UInt32 componentFileSizeInBytes;

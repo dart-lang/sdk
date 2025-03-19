@@ -33,22 +33,14 @@ class Component extends TreeNode {
   /// Reference to the main method in one of the libraries.
   Reference? _mainMethodName;
   Reference? get mainMethodName => _mainMethodName;
-  NonNullableByDefaultCompiledMode? _mode;
-  NonNullableByDefaultCompiledMode get mode {
-    return _mode ?? NonNullableByDefaultCompiledMode.Strong;
-  }
-
-  NonNullableByDefaultCompiledMode? get modeRaw => _mode;
 
   Component(
       {CanonicalName? nameRoot,
       List<Library>? libraries,
-      Map<Uri, Source>? uriToSource,
-      NonNullableByDefaultCompiledMode? mode})
+      Map<Uri, Source>? uriToSource})
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
-        uriToSource = uriToSource ?? <Uri, Source>{},
-        _mode = mode {
+        uriToSource = uriToSource ?? <Uri, Source>{} {
     adoptChildren();
   }
 
@@ -121,12 +113,10 @@ class Component extends TreeNode {
 
   Procedure? get mainMethod => mainMethodName?.asProcedure;
 
-  void setMainMethodAndMode(Reference? main, bool overwriteMainIfSet,
-      NonNullableByDefaultCompiledMode mode) {
+  void setMainMethodAndMode(Reference? main, bool overwriteMainIfSet) {
     if (_mainMethodName == null || overwriteMainIfSet) {
       _mainMethodName = main;
     }
-    _mode = mode;
   }
 
   @override

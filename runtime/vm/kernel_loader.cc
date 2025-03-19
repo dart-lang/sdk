@@ -828,21 +828,6 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
 
   if (library.Loaded()) return library.ptr();
 
-  const NNBDCompiledMode mode =
-      library_helper.GetNonNullableByDefaultCompiledMode();
-  if (mode == NNBDCompiledMode::kInvalid) {
-    H.ReportError(
-        "Library '%s' was compiled in an unsupported mixed mode between sound "
-        "null safety and not sound null safety.",
-        String::Handle(library.url()).ToCString());
-  }
-  if (mode == NNBDCompiledMode::kWeak) {
-    H.ReportError(
-        "Library '%s' was compiled without sound null safety (in weak mode) "
-        "and it cannot be used at runtime",
-        String::Handle(library.url()).ToCString());
-  }
-
   library_kernel_data_ = helper_.reader_.ViewFromTo(
       library_kernel_offset_, library_kernel_offset_ + library_size);
   library.set_kernel_library_index(index);

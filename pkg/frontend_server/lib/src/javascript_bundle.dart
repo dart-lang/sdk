@@ -137,8 +137,7 @@ class IncrementalJavaScriptBundler {
     _lastFullComponent = new Component(
       libraries: combined.values.toList(),
       uriToSource: uriToSource,
-    )..setMainMethodAndMode(
-        candidate.mainMethod?.reference, true, candidate.mode);
+    )..setMainMethodAndMode(candidate.mainMethod?.reference, true);
     for (final MetadataRepository repo in candidate.metadata.values) {
       _lastFullComponent.addMetadataRepository(repo);
     }
@@ -155,8 +154,7 @@ class IncrementalJavaScriptBundler {
         nameRoot: _lastFullComponent.root,
         uriToSource: _lastFullComponent.uriToSource,
       );
-      summaryComponent.setMainMethodAndMode(
-          null, false, _currentComponent.mode);
+      summaryComponent.setMainMethodAndMode(null, false);
 
       String baseName = urlForComponentUri(uri, packageConfig);
       _summaryToLibraryBundleJSPath[uri] = '$baseName.lib.js';

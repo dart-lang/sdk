@@ -33,8 +33,7 @@ import 'package:front_end/src/api_prototype/front_end.dart'
     show CompilerResult;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:kernel/ast.dart'
-    show Component, Library, NonNullableByDefaultCompiledMode, Procedure;
+import 'package:kernel/ast.dart' show Component, Library, Procedure;
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -1010,10 +1009,7 @@ Future _processLoadRequest(request) async {
             pragmaClass: compilerResult.coreTypes?.pragmaClass,
           );
       if (nativeAssetsLibrary != null) {
-        nativeAssetsComponent = Component(
-          libraries: [nativeAssetsLibrary],
-          mode: NonNullableByDefaultCompiledMode.Strong,
-        );
+        nativeAssetsComponent = Component(libraries: [nativeAssetsLibrary]);
       }
     }
 
