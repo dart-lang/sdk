@@ -6433,7 +6433,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   @override
-  ConstructorElementMixin2? get unnamedConstructor2 {
+  ConstructorElementImpl2? get unnamedConstructor2 {
     return getNamedConstructor2('new');
   }
 
@@ -6454,7 +6454,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
           .getMember4(this, name);
 
   @override
-  ConstructorElementMixin2? getNamedConstructor2(String name) {
+  ConstructorElementImpl2? getNamedConstructor2(String name) {
     return constructors2.firstWhereOrNull((e) => e.name3 == name);
   }
 

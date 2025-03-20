@@ -8650,6 +8650,253 @@ library
 ''');
   }
 
+  test_class_constructor_redirectedConstructor_generic01() async {
+    // Note, this code has compile-time errors.
+    // `A` returned  by the redirected constructor is not `B<U>`.
+    // But we still have some element model.
+    var library = await buildLibrary(r'''
+class A implements B<int> {}
+
+class B<U> implements C<U> {
+  factory B() = A;
+}
+
+class C<V> {
+  factory C() = B<V>;
+}
+''');
+
+    configuration
+      ..forClassConstructors(classNames: {'C'})
+      ..elementPrinterConfiguration.withRedirectedConstructors = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class C @87
+          reference: <testLibraryFragment>::@class::C
+          enclosingElement3: <testLibraryFragment>
+          constructors
+            factory @104
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::C
+              redirectedConstructor: ConstructorMember
+                base: <testLibraryFragment>::@class::B::@constructor::new
+                substitution: {U: V}
+                redirectedConstructor: <testLibraryFragment>::@class::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @87
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          constructors
+            factory new
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
+              typeNameOffset: 104
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        factory new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          redirectedConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+''');
+  }
+
+  test_class_constructor_redirectedConstructor_generic11() async {
+    var library = await buildLibrary(r'''
+class A<T> implements B<T> {}
+
+class B<U> implements C<U> {
+  factory B() = A<U>;
+}
+
+class C<V> {
+  factory C() = B<V>;
+}
+''');
+
+    configuration
+      ..forClassConstructors(classNames: {'C'})
+      ..elementPrinterConfiguration.withRedirectedConstructors = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class C @91
+          reference: <testLibraryFragment>::@class::C
+          enclosingElement3: <testLibraryFragment>
+          constructors
+            factory @108
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::C
+              redirectedConstructor: ConstructorMember
+                base: <testLibraryFragment>::@class::B::@constructor::new
+                substitution: {U: V}
+                redirectedConstructor: ConstructorMember
+                  base: <testLibraryFragment>::@class::A::@constructor::new
+                  substitution: {T: V}
+                  redirectedConstructor: <null>
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @91
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          constructors
+            factory new
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
+              typeNameOffset: 108
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      constructors
+        factory new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          redirectedConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+''');
+  }
+
+  test_class_constructor_superConstructor_generic01() async {
+    var library = await buildLibrary(r'''
+class A {}
+class B<U> extends A {}
+class C extends B<int> {}
+''');
+
+    configuration
+      ..forClassConstructors(classNames: {'C'})
+      ..elementPrinterConfiguration.withSuperConstructors = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class C @41
+          reference: <testLibraryFragment>::@class::C
+          enclosingElement3: <testLibraryFragment>
+          supertype: B<int>
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::C
+              superConstructor: ConstructorMember
+                base: <testLibraryFragment>::@class::B::@constructor::new
+                substitution: {U: int}
+                superConstructor: <testLibraryFragment>::@class::A::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @41
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          constructors
+            synthetic new
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      supertype: B<int>
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+''');
+  }
+
+  test_class_constructor_superConstructor_generic11() async {
+    var library = await buildLibrary(r'''
+class A<T> {}
+class B<U> extends A<String> {}
+class C extends B<int> {}
+''');
+
+    configuration
+      ..forClassConstructors(classNames: {'C'})
+      ..elementPrinterConfiguration.withSuperConstructors = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class C @52
+          reference: <testLibraryFragment>::@class::C
+          enclosingElement3: <testLibraryFragment>
+          supertype: B<int>
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::C
+              superConstructor: ConstructorMember
+                base: <testLibraryFragment>::@class::B::@constructor::new
+                substitution: {U: int}
+                superConstructor: ConstructorMember
+                  base: <testLibraryFragment>::@class::A::@constructor::new
+                  substitution: {T: String}
+                  superConstructor: dart:core::<fragment>::@class::Object::@constructor::new
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class C @52
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+          constructors
+            synthetic new
+              reference: <testLibraryFragment>::@class::C::@constructor::new
+              element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      supertype: B<int>
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
+''');
+  }
+
   test_class_constructor_superConstructor_generic_named() async {
     var library = await buildLibrary('''
 class A<T> {

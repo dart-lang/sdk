@@ -411,10 +411,18 @@ class ElementPrinter {
 
       writeSubstitution('substitution', element.substitution);
 
-      if (_configuration.withRedirectedConstructors) {
-        if (element is ConstructorMember) {
-          var redirected = element.redirectedConstructor;
-          writeNamedElement('redirectedConstructor', redirected);
+      if (element is ConstructorMember) {
+        if (_configuration.withRedirectedConstructors) {
+          writeNamedElement(
+            'redirectedConstructor',
+            element.redirectedConstructor,
+          );
+        }
+        if (_configuration.withSuperConstructors) {
+          writeNamedElement(
+            'superConstructor',
+            element.superConstructor,
+          );
         }
       }
     });
@@ -432,4 +440,5 @@ class ElementPrinter {
 class ElementPrinterConfiguration {
   bool withInterfaceTypeElements = false;
   bool withRedirectedConstructors = false;
+  bool withSuperConstructors = false;
 }

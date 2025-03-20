@@ -96,6 +96,25 @@ class ElementTextConfiguration {
     this.filter = _filterTrue,
   });
 
+  void forClassConstructors({
+    Set<String> classNames = const {},
+  }) {
+    filter = (o) {
+      switch (o) {
+        case LibraryFragment():
+          return true;
+        case ClassElement():
+          return classNames.contains(o.name);
+        case ClassElement2():
+          return classNames.contains(o.name3);
+        case ConstructorFragment():
+        case ConstructorElement2():
+          return true;
+      }
+      return false;
+    };
+  }
+
   void forPromotableFields({
     Set<String> classNames = const {},
     Set<String> enumNames = const {},

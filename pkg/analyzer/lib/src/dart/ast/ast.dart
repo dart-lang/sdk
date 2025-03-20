@@ -15265,7 +15265,7 @@ final class RedirectingConstructorInvocationImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElementMixin? staticElement;
+  ConstructorElementImpl? staticElement;
 
   /// Initializes a newly created redirecting invocation to invoke the
   /// constructor with the given name with the given arguments.
@@ -15302,9 +15302,9 @@ final class RedirectingConstructorInvocationImpl
 
   @experimental
   @override
-  ConstructorElementMixin2? get element => staticElement?.asElement2;
+  ConstructorElementImpl2? get element => staticElement?.asElement2;
 
-  set element(ConstructorElementMixin2? value) {
+  set element(ConstructorElementImpl2? value) {
     staticElement = value?.asElement;
   }
 
