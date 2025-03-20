@@ -160,7 +160,7 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "134.0.6998.35",
+  "chrome_tag": "135.0.7049.28",
   "download_firefox": False,
   "firefox_tag": "136.0",
 
