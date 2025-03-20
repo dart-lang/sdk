@@ -275,13 +275,13 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     }
 
     // Handle Dart exceptions.
-    b.catch_(translator.getExceptionTag(b.module));
+    b.catch_legacy(translator.getExceptionTag(b.module));
     b.local_set(stackTraceLocal);
     b.local_set(exceptionLocal);
     callCompleteError();
 
     // Handle JS exceptions.
-    b.catch_all();
+    b.catch_all_legacy();
 
     // Create a generic JavaScript error.
     call(translator.javaScriptErrorFactory.reference);
