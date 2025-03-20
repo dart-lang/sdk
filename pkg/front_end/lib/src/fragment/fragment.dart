@@ -62,6 +62,7 @@ import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 import 'constructor/declaration.dart';
+import 'factory/declaration.dart';
 import 'getter/declaration.dart';
 import 'getter/encoding.dart';
 import 'setter/declaration.dart';

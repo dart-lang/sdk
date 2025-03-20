@@ -22,6 +22,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/constructor/declaration.dart';
+import '../fragment/factory/declaration.dart';
 import '../fragment/fragment.dart';
 import '../fragment/setter/declaration.dart';
 import 'builder_factory.dart';
