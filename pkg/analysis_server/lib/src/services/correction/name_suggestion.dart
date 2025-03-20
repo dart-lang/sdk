@@ -9,8 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 
-final List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
-
 /// Returns all variants of names by removing leading words one by one.
 List<String> getCamelWordCombinations(String name) {
   var result = <String>[];
@@ -215,15 +213,15 @@ String? _getBaseNameFromUnwrappedExpression(Expression expression) {
       name = name.substring(0, name.length - 1);
     }
   }
-  // strip known prefixes
+  // Strip known prefixes.
   if (name != null) {
-    for (var i = 0; i < _KNOWN_METHOD_NAME_PREFIXES.length; i++) {
-      var curr = _KNOWN_METHOD_NAME_PREFIXES[i];
-      if (name.startsWith(curr)) {
-        if (name == curr) {
+    const knownMethodNamePrefixes = ['get', 'is', 'to'];
+    for (var knownPrefix in knownMethodNamePrefixes) {
+      if (name.startsWith(knownPrefix)) {
+        if (name == knownPrefix) {
           return null;
-        } else if (isUpperCase(name.codeUnitAt(curr.length))) {
-          return name.substring(curr.length);
+        } else if (isUpperCase(name.codeUnitAt(knownPrefix.length))) {
+          return name.substring(knownPrefix.length);
         }
       }
     }

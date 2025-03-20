@@ -251,8 +251,8 @@ bool _isSimpleType(TypeBase type) {
 bool _isSpecType(TypeBase type) {
   type = resolveTypeAlias(type);
   return type is TypeReference &&
-      type != TypeReference.LspObject &&
-      type != TypeReference.LspAny &&
+      type != TypeReference.lspObject &&
+      type != TypeReference.lspAny &&
       (_interfaces.containsKey(type.name) ||
           (_namespaces.containsKey(type.name)));
 }
