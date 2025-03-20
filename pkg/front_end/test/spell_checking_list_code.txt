@@ -859,6 +859,7 @@ increasing
 incrementally
 incremented
 incrementing
+indentations
 independently
 indexer
 indexing
@@ -895,6 +896,7 @@ inst
 instanceof
 instantiable
 instantiator
+instructed
 instrument
 integrate
 intel
@@ -1103,6 +1105,7 @@ mimic
 min
 mini
 minutes
+misaligned
 misc
 miss
 misses
@@ -1159,6 +1162,7 @@ nk
 nm
 nnbd
 node's
+noise
 noisy
 nomenclature
 nominality
@@ -1907,6 +1911,7 @@ token's
 tokenize
 tokenized
 tokenizer
+tokenizing
 tolerant
 tolerate
 tolerated
