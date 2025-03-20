@@ -1,12 +1,6 @@
-name: heap_snapshot
+name: front_end_testcases
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
-
 environment:
-  sdk: ^3.5.0
-
+  sdk: ^3.8.0-0
 resolution: workspace
-
-dependencies:
-  vm_service: any
-

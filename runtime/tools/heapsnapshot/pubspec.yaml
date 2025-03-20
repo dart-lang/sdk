@@ -20,8 +20,3 @@ dev_dependencies:
   path: ^1.8.0
   test: ^1.21.6
 
-dependency_overrides:
-  heap_snapshot:
-    path: ../../../pkg/heap_snapshot
-  mmap:
-    path: ../../../pkg/mmap
