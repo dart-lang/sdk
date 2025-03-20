@@ -1239,6 +1239,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       do {
         _unfinishedNullShorts.removeLast();
         flowAnalysis.flow!.nullAwareAccess_end();
+        nullSafetyDeadCodeVerifier.flowEnd(node);
       } while (identical(_unfinishedNullShorts.last, node));
       if (node is! CascadeExpression) {
         // Make the static type of `node` (or whatever it was rewritten to)
@@ -1404,6 +1405,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (node.isNullAware) {
         _startNullAwareAccess(node, node.target);
+        nullSafetyDeadCodeVerifier.visitNode(node.index);
       }
 
       var result = _propertyElementResolver.resolveIndexExpression(
@@ -1457,6 +1459,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
       if (node.isNullAware) {
         _startNullAwareAccess(node, node.target);
+        nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
       }
 
       inferenceLogWriter?.exitLValue(node);
@@ -2838,6 +2841,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     if (node.isNullAware) {
       _startNullAwareAccess(node, node.target);
+      nullSafetyDeadCodeVerifier.visitNode(node.index);
     }
 
     var result = _propertyElementResolver.resolveIndexExpression(
@@ -3055,6 +3059,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     if (node.isNullAware) {
       _startNullAwareAccess(node, target);
+      nullSafetyDeadCodeVerifier.visitNode(node.methodName);
     }
 
     node.typeArguments?.accept(this);
@@ -3945,6 +3950,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       PropertyAccessImpl node, TypeImpl contextType) {
     if (node.isNullAware) {
       _startNullAwareAccess(node, node.target);
+      nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
     }
 
     var result = _propertyElementResolver.resolvePropertyAccess(
@@ -4009,6 +4015,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     if (function is PropertyAccessImpl && function.isNullAware) {
       _startNullAwareAccess(function, function.target);
+      nullSafetyDeadCodeVerifier.visitNode(node.argumentList);
     }
 
     _functionExpressionInvocationResolver.resolve(node, whyNotPromotedArguments,
