@@ -8163,7 +8163,7 @@ FunctionExpressionInvocation
       token: first
       staticElement: GetterMember
         base: dart:core::<fragment>::@class::Iterable::@getter::first
-        substitution: {E: T, E: T}
+        substitution: {E: T}
       element: dart:core::<fragment>::@class::Iterable::@getter::first#element
       staticType: T
     staticType: T
@@ -8193,7 +8193,7 @@ FunctionExpressionInvocation
     token: first
     staticElement: GetterMember
       base: dart:core::<fragment>::@class::Iterable::@getter::first
-      substitution: {E: T, E: T}
+      substitution: {E: T}
     element: dart:core::<fragment>::@class::Iterable::@getter::first#element
     staticType: T
   argumentList: ArgumentList

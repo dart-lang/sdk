@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
@@ -12,8 +11,9 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/assist_performance.dart';
+import 'package:analysis_server_plugin/src/correction/assist_core.dart';
+import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
+import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/exception/exception.dart';

@@ -100,7 +100,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 447;
+  static const int DATA_VERSION = 448;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1451,24 +1451,23 @@ class AnalysisDriver {
 
         if (withFineDependencies && libraryRequirements != null) {
           performance.run('writeResolvedLibrary', (_) {
-            var mapSink = BufferedSink(ByteSink());
+            var mapSink = BufferedSink();
             mapSink.writeMap(
               fileResultBytesMap,
               writeKey: (uri) => mapSink.writeUri(uri),
               writeValue: (bytes) => mapSink.writeUint8List(bytes),
             );
-            var mapBytes = mapSink.flushAndTake();
+            var mapBytes = mapSink.takeBytes();
 
             library.lastResolutionResult = LibraryResolutionResult(
               requirements: libraryRequirements!,
               bytes: mapBytes,
             );
 
-            var byteSink = ByteSink();
-            var sink = BufferedSink(byteSink);
+            var sink = BufferedSink();
             libraryRequirements.write(sink);
             sink.writeUint8List(mapBytes);
-            var allBytes = sink.flushAndTake();
+            var allBytes = sink.takeBytes();
 
             var key = library.resolvedKey;
             _byteStore.putGet(key, allBytes);

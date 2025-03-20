@@ -176,6 +176,10 @@ main() {
       '${Flags.stage}=closed-world',
       '--out=/some/path/prefix-',
     ], writeClosedWorld: '/some/path/prefix-world.data');
+    await test([
+      '${Flags.stage}=closed-world',
+      'foo.dart',
+    ], writeClosedWorld: 'world.data');
 
     // Run global inference only
     await test(
@@ -233,6 +237,11 @@ main() {
       ],
       readClosedWorld: '/some/path/foo.dataworld.data',
       writeData: '/some/path/foo.dataglobal.data',
+    );
+    await test(
+      ['foo.dart', '${Flags.stage}=global-inference'],
+      readClosedWorld: 'world.data',
+      writeData: 'global.data',
     );
 
     // Run codegen only
@@ -361,6 +370,19 @@ main() {
       codegenShard: 10,
       codegenShards: 11,
     );
+    await test(
+      [
+        '${Flags.stage}=codegen',
+        '${Flags.codegenShard}=10',
+        '${Flags.codegenShards}=11',
+        'foo.dart',
+      ],
+      readClosedWorld: 'world.data',
+      readData: 'global.data',
+      writeCodegen: 'codegen',
+      codegenShard: 10,
+      codegenShards: 11,
+    );
 
     // Run emitter only
     await test(
@@ -450,6 +472,14 @@ main() {
       codegenShards: 11,
       out: '/some/path/prefix-out.js',
     );
+    await test(
+      ['${Flags.stage}=emit-js', '${Flags.codegenShards}=11', 'foo.dart'],
+      readClosedWorld: 'world.data',
+      readData: 'global.data',
+      readCodegen: 'codegen',
+      codegenShards: 11,
+      out: 'out.js',
+    );
 
     // Run codegen and emitter only
     await test(
@@ -502,6 +532,12 @@ main() {
       readClosedWorld: '/some/path/prefix-world.data',
       readData: '/some/path/prefix-global.data',
       out: '/some/path/prefix-out.js',
+    );
+    await test(
+      ['${Flags.stage}=codegen-emit-js', 'foo.dart'],
+      readClosedWorld: 'world.data',
+      readData: 'global.data',
+      out: 'out.js',
     );
 
     // Invalid states with stage flag

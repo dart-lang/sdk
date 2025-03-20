@@ -605,7 +605,7 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult _resolveTargetExtensionOverride({
-    required ExtensionOverride target,
+    required ExtensionOverrideImpl target,
     required SimpleIdentifier propertyName,
     required bool hasRead,
     required bool hasWrite,

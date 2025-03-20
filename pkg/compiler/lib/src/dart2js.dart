@@ -531,7 +531,6 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.generateCodeWithCompileTimeErrors, ignoreOption),
     _OneOption(Flags.useMultiSourceInfo, passThrough),
     _OneOption(Flags.useNewSourceInfo, passThrough),
-    _OneOption(Flags.useOldRti, passThrough),
     _OneOption(Flags.useSimpleLoadIds, passThrough),
     _OneOption(Flags.testMode, passThrough),
     _OneOption('${Flags.dumpSsa}=.+', passThrough),
@@ -552,8 +551,6 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.experimentToBoolean, passThrough),
     _OneOption(Flags.experimentUnreachableMethodsThrow, passThrough),
     _OneOption(Flags.experimentCallInstrumentation, passThrough),
-    _OneOption(Flags.experimentNullSafetyChecks, ignoreOption),
-    _OneOption(Flags.experimentNewRti, ignoreOption),
     _OneOption('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
     // Wire up feature flags.

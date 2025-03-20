@@ -1109,7 +1109,7 @@ abstract class CommonElements {
   FunctionEntity get specializedAsStringNullable =>
       _findRtiFunction('_asStringQ');
 
-  FunctionEntity get instantiatedGenericFunctionTypeNewRti =>
+  FunctionEntity get instantiatedGenericFunctionType =>
       _findRtiFunction('instantiatedGenericFunctionType');
 
   FunctionEntity get closureFunctionType =>

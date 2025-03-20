@@ -237,7 +237,7 @@ class EntityDataInfoBuilder {
         break;
       case TypeUseKind.rtiValue:
       case TypeUseKind.typeArgument:
-      case TypeUseKind.namedTypeVariableNewRti:
+      case TypeUseKind.namedTypeVariable:
       case TypeUseKind.constructorReference:
         failedAt(parent!, "Unexpected type use: $typeUse.");
     }

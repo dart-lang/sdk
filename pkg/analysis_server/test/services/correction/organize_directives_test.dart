@@ -318,25 +318,85 @@ void f() {
 }''', removeUnused: true);
   }
 
-  Future<void> test_remove_unusedImports_hasUnresolvedError() async {
-    Future<void> check(String declaration) async {
-      var code = '''
+  Future<void> test_remove_unusedImports_hasUnresolvedError1() async {
+    var code = '''
 import 'dart:async';
-$declaration
+void f() { Unresolved v; }
 ''';
-      await _computeUnitAndErrors(code);
-      _assertOrganize(code, removeUnused: true);
-    }
+    await _computeUnitAndErrors(code);
+    _assertOrganize(code, removeUnused: true);
+  }
 
-    await check('void f() { Unresolved v; }');
-    await check('void f() { new Unresolved(); }');
-    await check('void f() { const Unresolved(); }');
-    await check('void f() { unresolvedFunction(); }');
-    await check('void f() { print(unresolvedVariable); }');
-    await check('void f() { unresolvedVariable = 0; }');
-    await check('void f() { Unresolved.field = 0; }');
-    await check('class A extends Unresolved {}');
-    await check('List<Unresolved> v;');
+  Future<void> test_remove_unusedImports_hasUnresolvedError2() async {
+    var code = '''
+import 'dart:async';
+void f() { new Unresolved(); }
+''';
+    await _computeUnitAndErrors(code);
+    _assertOrganize(code, removeUnused: true);
+  }
+
+  Future<void> test_remove_unusedImports_hasUnresolvedError3() async {
+    var code = '''
+import 'dart:async';
+void f() { const Unresolved(); }
+''';
+    await _computeUnitAndErrors(code);
+    _assertOrganize(code, removeUnused: true);
+  }
+
+  Future<void> test_remove_unusedImports_hasUnresolvedError4() async {
+    var code = '''
+import 'dart:async';
+void f() { unresolvedFunction(); }
+''';
+    await _computeUnitAndErrors(code);
+    _assertOrganize(code, removeUnused: true);
+  }
+
+  Future<void> test_remove_unusedImports_hasUnresolvedError5() async {
+    var code = '''
+import 'dart:async';
+void f() { print(unresolvedVariable); }
+''';
+    await _computeUnitAndErrors(code);
+    _assertOrganize(code, removeUnused: true);
+  }
+
+  Future<void> test_remove_unusedImports_hasUnresolvedError6() async {
+    var code = '''
+import 'dart:async';
+void f() { unresolvedVariable = 0; }
+''';
+    await _computeUnitAndErrors(code);
+    _assertOrganize(code, removeUnused: true);
+  }
+
+  Future<void> test_remove_unusedImports_hasUnresolvedError7() async {
+    var code = '''
+import 'dart:async';
+void f() { Unresolved.field = 0; }
+''';
+    await _computeUnitAndErrors(code);
+    _assertOrganize(code, removeUnused: true);
+  }
+
+  Future<void> test_remove_unusedImports_hasUnresolvedError8() async {
+    var code = '''
+import 'dart:async';
+class A extends Unresolved {}
+''';
+    await _computeUnitAndErrors(code);
+    _assertOrganize(code, removeUnused: true);
+  }
+
+  Future<void> test_remove_unusedImports_hasUnresolvedError9() async {
+    var code = '''
+import 'dart:async';
+List<Unresolved> v;
+''';
+    await _computeUnitAndErrors(code);
+    _assertOrganize(code, removeUnused: true);
   }
 
   Future<void> test_sort() async {

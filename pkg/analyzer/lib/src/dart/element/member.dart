@@ -404,6 +404,9 @@ abstract class ExecutableMember extends Member
     ExecutableElement element,
     MapSubstitution substitution,
   ) {
+    // TODO(scheglov): There is (E, E) substitution in `test_rewrite_without_target`.
+    // TODO(scheglov): Shortcut on `_NullSubstitution`.
+
     ExecutableElementImpl declaration;
     var combined = substitution;
     if (element is ExecutableMember) {
@@ -413,7 +416,6 @@ abstract class ExecutableMember extends Member
       var map = <TypeParameterElement2, DartType>{
         for (var MapEntry(:key, :value) in member.substitution.map.entries)
           key: substitution.substituteType(value),
-        ...substitution.map,
       };
       combined = Substitution.fromMap2(map);
     } else {
@@ -1025,7 +1027,7 @@ abstract class Member implements Element, ElementOrMember {
 class MethodMember extends ExecutableMember
     implements MethodElementOrMember, MethodElement2OrMember {
   factory MethodMember({
-    required MethodElement declaration,
+    required MethodElementImpl declaration,
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
@@ -1040,13 +1042,13 @@ class MethodMember extends ExecutableMember
   }
 
   MethodMember._({
-    required MethodElement super.declaration,
+    required MethodElementImpl super.declaration,
     required super.substitution,
     required super.typeParameters,
   });
 
   @override
-  MethodElement2 get baseElement => _element2;
+  MethodElementImpl2 get baseElement => _element2;
 
   @override
   MethodElementImpl get declaration => _declaration as MethodElementImpl;
@@ -1083,7 +1085,7 @@ class MethodMember extends ExecutableMember
   Source get source => _declaration.source!;
 
   @override
-  MethodElement2 get _element2 => declaration.asElement2;
+  MethodElementImpl2 get _element2 => declaration.asElement2;
 
   @Deprecated('Use Element2 and accept2() instead')
   @override
@@ -1298,7 +1300,6 @@ class ParameterMember extends VariableMember
       var map = <TypeParameterElement2, DartType>{
         for (var MapEntry(:key, :value) in member.substitution.map.entries)
           key: substitution.substituteType(value),
-        ...substitution.map,
       };
       combined = Substitution.fromMap2(map);
     }

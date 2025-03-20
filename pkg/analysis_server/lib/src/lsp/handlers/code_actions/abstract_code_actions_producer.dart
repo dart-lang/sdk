@@ -70,6 +70,7 @@ abstract class AbstractCodeActionsProducer
   @protected
   CodeAction createAssistAction(
     protocol.SourceChange change,
+    String? loggedAssistId,
     String path,
     LineInfo lineInfo,
   ) {
@@ -77,7 +78,7 @@ abstract class AbstractCodeActionsProducer
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.Refactor),
       diagnostics: const [],
-      command: createLogActionCommand(change.id),
+      command: createLogActionCommand(loggedAssistId),
       edit: createWorkspaceEdit(
         server,
         capabilities,
@@ -112,6 +113,7 @@ abstract class AbstractCodeActionsProducer
   @protected
   CodeAction createFixAction(
     protocol.SourceChange change,
+    String? loggedFixId,
     Diagnostic diagnostic,
     String path,
     LineInfo lineInfo,
@@ -120,7 +122,7 @@ abstract class AbstractCodeActionsProducer
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.QuickFix),
       diagnostics: [diagnostic],
-      command: createLogActionCommand(change.id),
+      command: createLogActionCommand(loggedFixId),
       edit: createWorkspaceEdit(
         server,
         capabilities,

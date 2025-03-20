@@ -101,7 +101,7 @@ class ProgramBuilder {
   /// True if the program should store function types in the metadata.
   bool _storeFunctionTypesInMetadata = false;
 
-  final Set<TypeVariableType> _lateNamedTypeVariablesNewRti = {};
+  final Set<TypeVariableType> _lateNamedTypeVariables = {};
 
   ClassHierarchy get _classHierarchy => _closedWorld.classHierarchy;
   DartTypes get _dartTypes => _closedWorld.dartTypes;
@@ -262,7 +262,7 @@ class ProgramBuilder {
 
     _markEagerClasses();
 
-    associateNamedTypeVariablesNewRti();
+    associateNamedTypeVariables();
 
     bool needsNativeSupport =
         _nativeCodegenEnqueuer.hasInstantiatedNativeClasses ||
@@ -914,9 +914,9 @@ class ProgramBuilder {
         () => ClassTypeData(cls, _rtiChecks.requiredChecks[cls]),
       );
 
-  void associateNamedTypeVariablesNewRti() {
-    for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariablesNewRti
-        .union(_lateNamedTypeVariablesNewRti)) {
+  void associateNamedTypeVariables() {
+    for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariables
+        .union(_lateNamedTypeVariables)) {
       final declaration = typeVariable.element.typeDeclaration as ClassEntity;
       Iterable<ClassEntity> subtypes =
           new_rti.mustCheckAllSubtypes(_closedWorld, declaration)
@@ -1086,12 +1086,6 @@ class ProgramBuilder {
     ClassEntity? enclosingClass,
     FunctionType type,
     OutputUnit outputUnit,
-  ) => _generateFunctionTypeNewRti(enclosingClass, type, outputUnit);
-
-  js.Expression _generateFunctionTypeNewRti(
-    ClassEntity? enclosingClass,
-    FunctionType type,
-    OutputUnit outputUnit,
   ) {
     InterfaceType? enclosingType;
     if (enclosingClass != null && type.containsTypeVariables) {
@@ -1118,7 +1112,7 @@ class ProgramBuilder {
         FullTypeEnvironmentStructure(classType: enclosingType),
         TypeExpressionRecipe(type),
       );
-      _lateNamedTypeVariablesNewRti.addAll(encoding.typeVariables);
+      _lateNamedTypeVariables.addAll(encoding.typeVariables);
       return encoding.recipe;
     } else {
       return _task.metadataCollector.reifyType(type, outputUnit);

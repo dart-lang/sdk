@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../type_inference/nullability_suffix.dart';
-
 /// Common interface for data structures used by the implementations to
 /// represent the type `dynamic`.
 abstract interface class SharedDynamicType implements SharedType {}
@@ -73,9 +71,19 @@ abstract interface class SharedRecordType implements SharedType {
 /// Common interface for data structures used by the implementations to
 /// represent a type.
 abstract interface class SharedType {
-  /// If this type ends in a suffix (`?` or `*`), the suffix it ends with;
-  /// otherwise [NullabilitySuffix.none].
-  NullabilitySuffix get nullabilitySuffix;
+  /// Whether this type ends in a `?` suffix.
+  ///
+  /// Note that some types are nullable even though they do not end in a `?`
+  /// suffix (for example, `Null`, `dynamic`, and `FutureOr<int?>`). These types
+  /// all respond to this query with `false`.
+  bool get isQuestionType;
+
+  /// Returns a modified version of this type, with the nullability suffix
+  /// changed to [isQuestionType].
+  ///
+  /// For types that don't accept a nullability suffix (`dynamic`, InvalidType,
+  /// `Null`, `_`, and `void`), the type is returned unchanged.
+  SharedType asQuestionType(bool isQuestionType);
 
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
@@ -163,7 +171,7 @@ extension type SharedTypeParameterView(SharedTypeParameter _typeParameter)
 
 extension type SharedTypeSchemaView(SharedType _typeStructure)
     implements Object {
-  NullabilitySuffix get nullabilitySuffix => _typeStructure.nullabilitySuffix;
+  bool get isQuestionType => _typeStructure.isQuestionType;
 
   String getDisplayString() => _typeStructure.getDisplayString();
 
@@ -175,7 +183,7 @@ extension type SharedTypeSchemaView(SharedType _typeStructure)
 }
 
 extension type SharedTypeView(SharedType _typeStructure) implements Object {
-  NullabilitySuffix get nullabilitySuffix => _typeStructure.nullabilitySuffix;
+  bool get isQuestionType => _typeStructure.isQuestionType;
 
   String getDisplayString() => _typeStructure.getDisplayString();
 

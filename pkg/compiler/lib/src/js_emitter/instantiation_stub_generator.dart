@@ -114,7 +114,7 @@ class InstantiationStubGenerator {
   ///
   /// ```
   /// $signature:: function() {
-  ///   return H.instantiatedGenericFunctionTypeNewRti(
+  ///   return H.instantiatedGenericFunctionType(
   ///       H.closureFunctionType(this._genericClosure),
   ///       this.$ti);
   /// }
@@ -124,7 +124,7 @@ class InstantiationStubGenerator {
       _namer.fixedNames.operatorSignature,
     );
 
-    js_ast.Fun function = _generateSignatureNewRti(functionField);
+    js_ast.Fun function = _generateSignature(functionField);
 
     // TODO(sra): Generate source information for stub that has no member.
     // TODO(sra): .withSourceInformation(sourceInformation);
@@ -137,10 +137,10 @@ class InstantiationStubGenerator {
     );
   }
 
-  js_ast.Fun _generateSignatureNewRti(FieldEntity functionField) =>
+  js_ast.Fun _generateSignature(FieldEntity functionField) =>
       js('function() { return #(#(this.#), this.#); }', [
             _emitter.staticFunctionAccess(
-              _commonElements.instantiatedGenericFunctionTypeNewRti,
+              _commonElements.instantiatedGenericFunctionType,
             ),
             _emitter.staticFunctionAccess(_commonElements.closureFunctionType),
             _namer.instanceFieldPropertyName(functionField),

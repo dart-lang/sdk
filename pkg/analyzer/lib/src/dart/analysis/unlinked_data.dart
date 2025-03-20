@@ -50,10 +50,9 @@ class AnalysisDriverUnlinkedUnit {
   }
 
   Uint8List toBytes() {
-    var byteSink = ByteSink();
-    var sink = BufferedSink(byteSink);
+    var sink = BufferedSink();
     write(sink);
-    return sink.flushAndTake();
+    return sink.takeBytes();
   }
 
   void write(BufferedSink sink) {

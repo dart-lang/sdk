@@ -43,14 +43,12 @@ class BundleWriter {
   /// errors, or whether a parameter inherits `covariant`, or a class is
   /// simply bounded.
   late final _SummaryDataWriter _sink = _SummaryDataWriter(
-    sink: ByteSink(),
     stringIndexer: _stringIndexer,
   );
 
   /// The resolution sink - any data that references elements, so can only
   /// be read after elements are created and available via its [Reference]s.
   late final ResolutionSink _resolutionSink = ResolutionSink(
-    sink: ByteSink(),
     stringIndexer: _stringIndexer,
     references: _references,
   );
@@ -70,7 +68,7 @@ class BundleWriter {
 
   BundleWriterResult finish() {
     var baseResolutionOffset = _sink.offset;
-    _sink.addBytes(_resolutionSink.flushAndTake());
+    _sink.addBytes(_resolutionSink.takeBytes());
 
     var librariesOffset = _sink.offset;
     _sink.writeList<_Library>(_libraries, (library) {
@@ -92,7 +90,7 @@ class BundleWriter {
     _sink.writeUInt32(referencesOffset);
     _sink.writeUInt32(stringTableOffset);
 
-    var bytes = _sink.flushAndTake();
+    var bytes = _sink.takeBytes();
     return BundleWriterResult(
       resolutionBytes: bytes,
     );
@@ -718,7 +716,6 @@ class ResolutionSink extends _SummaryDataWriter {
   final _LocalElementIndexer localElements = _LocalElementIndexer();
 
   ResolutionSink({
-    required super.sink,
     required super.stringIndexer,
     required _BundleWriterReferences references,
   }) : _references = references;
@@ -1197,10 +1194,8 @@ class _SummaryDataWriter extends BufferedSink {
   final StringIndexer _stringIndexer;
 
   _SummaryDataWriter({
-    required ByteSink sink,
     required StringIndexer stringIndexer,
-  })  : _stringIndexer = stringIndexer,
-        super(sink);
+  }) : _stringIndexer = stringIndexer;
 
   void _writeFormalParameterKind(ParameterElement p) {
     if (p.isRequiredPositional) {

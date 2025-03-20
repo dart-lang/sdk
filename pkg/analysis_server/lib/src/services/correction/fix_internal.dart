@@ -122,6 +122,7 @@ import 'package:analysis_server/src/services/correction/dart/make_return_type_nu
 import 'package:analysis_server/src/services/correction/dart/make_super_invocation_last.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_nullable.dart';
+import 'package:analysis_server/src/services/correction/dart/merge_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/move_annotation_to_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/move_doc_comment_to_library_directive.dart';
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
@@ -1432,6 +1433,7 @@ final _builtInNonLintMultiGenerators = {
   HintCode.DEPRECATED_MEMBER_USE: [DataDriven.new],
   HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [DataDriven.new],
   WarningCode.DEPRECATED_EXPORT_USE: [DataDriven.new],
+  WarningCode.MULTIPLE_COMBINATORS: [MergeCombinators.new],
   WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [DataDriven.new],
 };
 

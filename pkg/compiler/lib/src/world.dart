@@ -22,7 +22,7 @@ abstract class BuiltWorld {
   Iterable<DartType> get isChecks;
 
   /// All type variables named in recipes.
-  Set<TypeVariableType> get namedTypeVariablesNewRti;
+  Set<TypeVariableType> get namedTypeVariables;
 
   /// All directly instantiated types, that is, the types of
   /// [directlyInstantiatedClasses].

@@ -18,7 +18,7 @@ abstract final class Instantiation extends Closure {
     if (JS('bool', 'false')) {
       // [instantiatedGenericFunctionType] is called from injected $signature
       // methods with runtime type representations.
-      newRti.instantiatedGenericFunctionType(JS('', '0'), JS('', '0'));
+      rti.instantiatedGenericFunctionType(JS('', '0'), JS('', '0'));
     }
   }
 
@@ -107,133 +107,318 @@ final class Instantiation12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
   List get _types => [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12];
 }
 
-final class Instantiation13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13> extends Instantiation {
+final class Instantiation13<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13
+>
+    extends Instantiation {
   Instantiation13(Closure f) : super(f);
   List get _types => [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13];
 }
 
-final class Instantiation14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14> extends Instantiation {
+final class Instantiation14<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14
+>
+    extends Instantiation {
   Instantiation14(Closure f) : super(f);
-  List get _types =>
-      [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14];
+  List get _types => [
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+  ];
 }
 
-final class Instantiation15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15> extends Instantiation {
+final class Instantiation15<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15
+>
+    extends Instantiation {
   Instantiation15(Closure f) : super(f);
-  List get _types =>
-      [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15];
+  List get _types => [
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+  ];
 }
 
-final class Instantiation16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15, T16> extends Instantiation {
+final class Instantiation16<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15,
+  T16
+>
+    extends Instantiation {
   Instantiation16(Closure f) : super(f);
-  List get _types =>
-      [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16];
+  List get _types => [
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+    T16,
+  ];
 }
 
-final class Instantiation17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15, T16, T17> extends Instantiation {
+final class Instantiation17<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15,
+  T16,
+  T17
+>
+    extends Instantiation {
   Instantiation17(Closure f) : super(f);
   List get _types => [
-        T1,
-        T2,
-        T3,
-        T4,
-        T5,
-        T6,
-        T7,
-        T8,
-        T9,
-        T10,
-        T11,
-        T12,
-        T13,
-        T14,
-        T15,
-        T16,
-        T17
-      ];
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+    T16,
+    T17,
+  ];
 }
 
-final class Instantiation18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15, T16, T17, T18> extends Instantiation {
+final class Instantiation18<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15,
+  T16,
+  T17,
+  T18
+>
+    extends Instantiation {
   Instantiation18(Closure f) : super(f);
   List get _types => [
-        T1,
-        T2,
-        T3,
-        T4,
-        T5,
-        T6,
-        T7,
-        T8,
-        T9,
-        T10,
-        T11,
-        T12,
-        T13,
-        T14,
-        T15,
-        T16,
-        T17,
-        T18
-      ];
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+    T16,
+    T17,
+    T18,
+  ];
 }
 
-final class Instantiation19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15, T16, T17, T18, T19> extends Instantiation {
+final class Instantiation19<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15,
+  T16,
+  T17,
+  T18,
+  T19
+>
+    extends Instantiation {
   Instantiation19(Closure f) : super(f);
   List get _types => [
-        T1,
-        T2,
-        T3,
-        T4,
-        T5,
-        T6,
-        T7,
-        T8,
-        T9,
-        T10,
-        T11,
-        T12,
-        T13,
-        T14,
-        T15,
-        T16,
-        T17,
-        T18,
-        T19
-      ];
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+    T16,
+    T17,
+    T18,
+    T19,
+  ];
 }
 
-final class Instantiation20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15, T16, T17, T18, T19, T20> extends Instantiation {
+final class Instantiation20<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15,
+  T16,
+  T17,
+  T18,
+  T19,
+  T20
+>
+    extends Instantiation {
   Instantiation20(Closure f) : super(f);
   List get _types => [
-        T1,
-        T2,
-        T3,
-        T4,
-        T5,
-        T6,
-        T7,
-        T8,
-        T9,
-        T10,
-        T11,
-        T12,
-        T13,
-        T14,
-        T15,
-        T16,
-        T17,
-        T18,
-        T19,
-        T20
-      ];
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+    T16,
+    T17,
+    T18,
+    T19,
+    T20,
+  ];
 }
 
 Instantiation instantiate1<T1>(Closure f) {
@@ -273,66 +458,331 @@ Instantiation instantiate9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Closure f) {
 }
 
 Instantiation instantiate10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
-    Closure f) {
+  Closure f,
+) {
   return Instantiation10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(f);
 }
 
 Instantiation instantiate11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
-    Closure f) {
+  Closure f,
+) {
   return Instantiation11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(f);
 }
 
 Instantiation instantiate12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
-    Closure f) {
+  Closure f,
+) {
   return Instantiation12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(f);
 }
 
-Instantiation
-    instantiate13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(
-        Closure f) {
-  return Instantiation13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-      T13>(f);
+Instantiation instantiate13<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13
+>(Closure f) {
+  return Instantiation13<
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13
+  >(f);
 }
 
-Instantiation
-    instantiate14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(
-        Closure f) {
-  return Instantiation14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
-      T14>(f);
+Instantiation instantiate14<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14
+>(Closure f) {
+  return Instantiation14<
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14
+  >(f);
 }
 
-Instantiation instantiate15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15>(Closure f) {
-  return Instantiation15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
-      T14, T15>(f);
+Instantiation instantiate15<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15
+>(Closure f) {
+  return Instantiation15<
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15
+  >(f);
 }
 
-Instantiation instantiate16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15, T16>(Closure f) {
-  return Instantiation16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
-      T14, T15, T16>(f);
+Instantiation instantiate16<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15,
+  T16
+>(Closure f) {
+  return Instantiation16<
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+    T16
+  >(f);
 }
 
-Instantiation instantiate17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15, T16, T17>(Closure f) {
-  return Instantiation17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
-      T14, T15, T16, T17>(f);
+Instantiation instantiate17<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15,
+  T16,
+  T17
+>(Closure f) {
+  return Instantiation17<
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+    T16,
+    T17
+  >(f);
 }
 
-Instantiation instantiate18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15, T16, T17, T18>(Closure f) {
-  return Instantiation18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
-      T14, T15, T16, T17, T18>(f);
+Instantiation instantiate18<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15,
+  T16,
+  T17,
+  T18
+>(Closure f) {
+  return Instantiation18<
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+    T16,
+    T17,
+    T18
+  >(f);
 }
 
-Instantiation instantiate19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15, T16, T17, T18, T19>(Closure f) {
-  return Instantiation19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
-      T14, T15, T16, T17, T18, T19>(f);
+Instantiation instantiate19<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15,
+  T16,
+  T17,
+  T18,
+  T19
+>(Closure f) {
+  return Instantiation19<
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+    T16,
+    T17,
+    T18,
+    T19
+  >(f);
 }
 
-Instantiation instantiate20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
-    T13, T14, T15, T16, T17, T18, T19, T20>(Closure f) {
-  return Instantiation20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
-      T14, T15, T16, T17, T18, T19, T20>(f);
+Instantiation instantiate20<
+  T1,
+  T2,
+  T3,
+  T4,
+  T5,
+  T6,
+  T7,
+  T8,
+  T9,
+  T10,
+  T11,
+  T12,
+  T13,
+  T14,
+  T15,
+  T16,
+  T17,
+  T18,
+  T19,
+  T20
+>(Closure f) {
+  return Instantiation20<
+    T1,
+    T2,
+    T3,
+    T4,
+    T5,
+    T6,
+    T7,
+    T8,
+    T9,
+    T10,
+    T11,
+    T12,
+    T13,
+    T14,
+    T15,
+    T16,
+    T17,
+    T18,
+    T19,
+    T20
+  >(f);
 }

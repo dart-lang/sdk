@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/server/performance.dart';
-import 'package:analysis_server/src/utilities/strings.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
+import 'package:analysis_server_plugin/src/utilities/string_extensions.dart';
 
 /// Overall performance of a code completion operation.
 class CompletionPerformance extends RequestPerformance {
@@ -18,7 +18,7 @@ class CompletionPerformance extends RequestPerformance {
     super.requestLatency,
     required String content,
     required int offset,
-  }) : snippet = addCaretAtOffset(content, offset),
+  }) : snippet = content.withCaretAt(offset),
        super(operation: 'Completion');
 
   String get computedSuggestionCountStr {

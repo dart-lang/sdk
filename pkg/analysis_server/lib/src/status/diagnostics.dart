@@ -16,9 +16,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
     show LspAnalysisServer;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
-import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
-import 'package:analysis_server/src/services/correction/assist_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
@@ -26,6 +24,8 @@ import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analysis_server/src/utilities/stream_string_stink.dart';
+import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
+import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/context/source.dart';

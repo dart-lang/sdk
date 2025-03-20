@@ -130,7 +130,7 @@ class _BatchHelper {
 
   Future<void> _doIteration(ParsedArguments batchArgs, String line) async {
     totalTests++;
-    var args = batchArgs.merge(splitLine(line));
+    var args = batchArgs.merge(splitLine(line, windows: Platform.isWindows));
 
     String outcome;
     try {

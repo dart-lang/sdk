@@ -20,6 +20,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     String content, {
     CodeActionKind? kind,
     String? command,
+    List<Object>? commandArgs,
     String? title,
     CodeActionTriggerKind? triggerKind,
     String? filePath,
@@ -47,6 +48,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
       codeActions,
       kind: kind,
       command: command,
+      commandArgs: commandArgs,
       title: title,
     );
     if (action == null) {
@@ -100,18 +102,23 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
 
   /// Finds the single action matching [title], [kind] and [command].
   ///
+  /// If [command] and/or [commandArgs] are supplied, ensures the action has
+  /// a matching command/args.
+  ///
   /// Throws if zero or more than one actions match.
   CodeAction? findAction(
     List<Either2<Command, CodeAction>> actions, {
     String? title,
     CodeActionKind? kind,
     String? command,
+    List<Object>? commandArgs,
   }) {
     return findActions(
       actions,
       title: title,
       kind: kind,
       command: command,
+      commandArgs: commandArgs,
     ).singleOrNull;
   }
 
@@ -120,21 +127,38 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     String? title,
     CodeActionKind? kind,
     String? command,
+    List<Object>? commandArgs,
   }) {
     return actions
         .map((action) => action.map((cmd) => null, (action) => action))
         .where((action) => title == null || action?.title == title)
         .where((action) => kind == null || action?.kind == kind)
+        // Some tests filter by only supplying a command, so if there is no
+        // title given, filter by the command. If a title was given, don't
+        // filter by the command and assert it below. This results in a better
+        // failure message if the action existed by title but without the correct
+        // command.
         .where(
-          (action) => command == null || action?.command?.command == command,
+          (action) =>
+              title != null ||
+              command == null ||
+              action?.command?.command == command,
         )
         .map((action) {
           // Always expect a command (either to execute, or for logging)
-          assert(action!.command != null);
-          // Expect an edit if we weren't looking for a command-action.
-          if (command == null) {
-            assert(action!.edit != null);
+          expect(action!.command, isNotNull);
+
+          if (command != null) {
+            expect(action.command!.command, command);
+          } else {
+            // Expect an edit if we weren't looking for a command-action.
+            expect(action.edit, isNotNull);
           }
+
+          if (commandArgs != null) {
+            expect(action.command!.arguments, equals(commandArgs));
+          }
+
           return action;
         })
         .nonNulls
@@ -183,6 +207,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     String? filePath,
     CodeActionKind? kind,
     String? command,
+    List<Object>? commandArgs,
     String? title,
     ProgressToken? commandWorkDoneToken,
     bool openTargetFile = false,
@@ -202,13 +227,16 @@ $expected''';
       content,
       kind: kind,
       command: command,
+      commandArgs: commandArgs,
       title: title,
       openTargetFile: openTargetFile,
     );
 
     // Verify the edits either by executing the command we expected, or
     // the edits attached directly to the code action.
-    if (command != null) {
+    // Don't try to execute 'dart.logAction' because it will never produce
+    // edits.
+    if (command != null && command != 'dart.logAction') {
       return await verifyCommandEdits(
         action.command!,
         expected,

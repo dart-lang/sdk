@@ -23,8 +23,7 @@ class _RegisteredAssistGenerators {
 
   /// A mapping from registered _assist_ producer generators to the [LintCode]s
   /// for which they may also act as a _fix_ producer generator.
-  Map<ProducerGenerator, Set<LintCode>> get lintRuleMap =>
-      _lintRuleMap ??= {
+  Map<ProducerGenerator, Set<LintCode>> get lintRuleMap => _lintRuleMap ??= {
         for (var generator in producerGenerators)
           generator: {
             for (var MapEntry(key: lintName, value: generators)

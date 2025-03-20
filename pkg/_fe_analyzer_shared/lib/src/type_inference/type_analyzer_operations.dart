@@ -4,7 +4,6 @@
 
 import '../flow_analysis/flow_analysis_operations.dart';
 import '../types/shared_type.dart';
-import 'nullability_suffix.dart';
 import 'type_constraint.dart';
 
 /// Callback API used by the shared type analyzer to query and manipulate the
@@ -692,10 +691,6 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
 
   /// Converts a type into a corresponding type schema.
   SharedTypeSchemaView typeToSchema(SharedTypeView type);
-
-  /// Returns [type] suffixed with the [suffix].
-  SharedType withNullabilitySuffixInternal(
-      covariant SharedType type, NullabilitySuffix suffix);
 }
 
 mixin TypeAnalyzerOperationsMixin<Variable extends Object,
@@ -965,7 +960,7 @@ abstract class TypeConstraintGenerator<
   /// be rolled back to a state via [restoreState].
   TypeConstraintGeneratorState get currentState;
 
-  /// True if FutureOr types are required to have the empty [NullabilitySuffix]
+  /// True if FutureOr types are required to have `isQuestionType == false`
   /// when they are matched.
   ///
   /// For more information about the discrepancy between the Analyzer and the
@@ -1073,9 +1068,8 @@ abstract class TypeConstraintGenerator<
       SharedType p, SharedType q,
       {required bool leftSchema, required AstNode? astNodeForTesting}) {
     // If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:
-    NullabilitySuffix pNullability = p.nullabilitySuffix;
     if (typeAnalyzerOperations.matchFutureOrInternal(p) case var p0?
-        when pNullability == NullabilitySuffix.none) {
+        when !p.isQuestionType) {
       final TypeConstraintGeneratorState state = currentState;
 
       // If `Future<P0>` is a subtype match for `Q` under constraint set `C1`.
@@ -1110,10 +1104,8 @@ abstract class TypeConstraintGenerator<
       SharedType p, SharedType q,
       {required bool leftSchema, required AstNode? astNodeForTesting}) {
     // If `P` is `P0?` the match holds under constraint set `C1 + C2`:
-    NullabilitySuffix pNullability = p.nullabilitySuffix;
-    if (pNullability == NullabilitySuffix.question) {
-      SharedType p0 = typeAnalyzerOperations.withNullabilitySuffixInternal(
-          p, NullabilitySuffix.none);
+    if (p.isQuestionType) {
+      SharedType p0 = p.asQuestionType(false);
       final TypeConstraintGeneratorState state = currentState;
 
       // If `P0` is a subtype match for `Q` under constraint set `C1`.
@@ -1204,14 +1196,14 @@ abstract class TypeConstraintGenerator<
     // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
     if (typeAnalyzerOperations.matchFutureOrInternal(q) case SharedType q0?
         when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
-            q.nullabilitySuffix == NullabilitySuffix.none) {
+            !q.isQuestionType) {
       final TypeConstraintGeneratorState state = currentState;
 
       // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
       // constraint set `C`.
       if (typeAnalyzerOperations.matchFutureOrInternal(p) case SharedType p0?
           when enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr ||
-              p.nullabilitySuffix == NullabilitySuffix.none) {
+              !p.isQuestionType) {
         if (performSubtypeConstraintGenerationInternal(p0, q0,
             leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
           return true;
@@ -1260,18 +1252,14 @@ abstract class TypeConstraintGenerator<
       SharedType p, SharedType q,
       {required bool leftSchema, required AstNode? astNodeForTesting}) {
     // If `Q` is `Q0?` the match holds under constraint set `C`:
-    NullabilitySuffix qNullability = q.nullabilitySuffix;
-    if (qNullability == NullabilitySuffix.question) {
-      SharedType q0 = typeAnalyzerOperations.withNullabilitySuffixInternal(
-          q, NullabilitySuffix.none);
+    if (q.isQuestionType) {
+      SharedType q0 = q.asQuestionType(false);
       final TypeConstraintGeneratorState state = currentState;
 
       // If `P` is `P0?` and `P0` is a subtype match for `Q0` under
       // constraint set `C`.
-      NullabilitySuffix pNullability = p.nullabilitySuffix;
-      if (pNullability == NullabilitySuffix.question) {
-        SharedType p0 = typeAnalyzerOperations.withNullabilitySuffixInternal(
-            p, NullabilitySuffix.none);
+      if (p.isQuestionType) {
+        SharedType p0 = p.asQuestionType(false);
         if (performSubtypeConstraintGenerationInternal(p0, q0,
             leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
           return true;
@@ -1409,10 +1397,9 @@ abstract class TypeConstraintGenerator<
 
     // If `P` is a type variable `X` in `L`, then the match holds:
     //   Under constraint `_ <: X <: Q`.
-    NullabilitySuffix pNullability = p.nullabilitySuffix;
     if (typeAnalyzerOperations.matchInferableParameterInternal(p)
         case var pParameter?
-        when pNullability == NullabilitySuffix.none &&
+        when !p.isQuestionType &&
             typeParametersToConstrain.contains(pParameter)) {
       addUpperConstraintForParameter(pParameter, q,
           astNodeForTesting: astNodeForTesting);
@@ -1421,10 +1408,9 @@ abstract class TypeConstraintGenerator<
 
     // If `Q` is a type variable `X` in `L`, then the match holds:
     //   Under constraint `P <: X <: _`.
-    NullabilitySuffix qNullability = q.nullabilitySuffix;
     if (typeAnalyzerOperations.matchInferableParameterInternal(q)
         case var qParameter?
-        when qNullability == NullabilitySuffix.none &&
+        when !q.isQuestionType &&
             typeParametersToConstrain.contains(qParameter) &&
             (!inferenceUsingBoundsIsEnabled ||
                 (qParameter.boundShared == null ||
@@ -1832,11 +1818,11 @@ abstract class TypeConstraintGenerator<
   /// and `false` is returned.
   bool _interfaceTypes(SharedType p, SharedType q, bool leftSchema,
       {required AstNode? astNodeForTesting}) {
-    if (p.nullabilitySuffix != NullabilitySuffix.none) {
+    if (p.isQuestionType) {
       return false;
     }
 
-    if (q.nullabilitySuffix != NullabilitySuffix.none) {
+    if (q.isQuestionType) {
       return false;
     }
 

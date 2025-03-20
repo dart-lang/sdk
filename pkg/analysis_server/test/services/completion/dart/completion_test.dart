@@ -4845,7 +4845,7 @@ suggestions
   Future<void> test_commentSnippets019_1() async {
     allowedIdentifiers = {'toString'};
     await computeSuggestions('''
-class A{m(){Object x;x.^/**/clear()
+class A{m(){Object x;x.^/* */clear()
 ''');
     assertResponse(r'''
 suggestions
@@ -4857,7 +4857,7 @@ suggestions
   Future<void> test_commentSnippets020_1() async {
     allowedIdentifiers = {'newt', 'newf', 'newz', 'Map'};
     await computeSuggestions('''
-classMap{}class tst {var newt;void newf(){}test() {var newz;new^/**/;}}
+classMap{}class tst {var newt;void newf(){}test() {var newz;new^/* */;}}
 ''');
     assertResponse(r'''
 replacement
@@ -4875,7 +4875,7 @@ suggestions
   Future<void> test_commentSnippets021_1() async {
     allowedIdentifiers = {'Map', 'newt'};
     await computeSuggestions('''
-class Map{}class tst {var newt;void newf(){}test() {var newz;new ^/**/;}}
+class Map{}class tst {var newt;void newf(){}test() {var newz;new ^/* */;}}
 ''');
     assertResponse(r'''
 suggestions
@@ -5037,7 +5037,7 @@ suggestions
   Future<void> test_commentSnippets025_1() async {
     allowedIdentifiers = {'q'};
     await computeSuggestions('''
-class C {num m() {var q; num x=^ q + /**/;}}
+class C {num m() {var q; num x=^ q + /* */;}}
 ''');
     assertResponse(r'''
 suggestions
@@ -5063,7 +5063,7 @@ suggestions
   Future<void> test_commentSnippets025_2() async {
     allowedIdentifiers = {'q'};
     await computeSuggestions('''
-class C {num m() {var q; num x= q + ^/**/;}}
+class C {num m() {var q; num x= q + ^/* */;}}
 ''');
     assertResponse(r'''
 suggestions
@@ -5089,7 +5089,7 @@ suggestions
   Future<void> test_commentSnippets025_3() async {
     allowedIdentifiers = {'q'};
     await computeSuggestions('''
-class C {num m() {var q; num x= q^ + /**/;}}
+class C {num m() {var q; num x= q^ + /* */;}}
 ''');
     assertResponse(r'''
 replacement
@@ -11145,7 +11145,6 @@ suggestions
     kind: getter
 ''');
   }
-
 
   Future<void> test_partial_code_before_nested_function_2() async {
     // Variant of issue https://github.com/dart-lang/sdk/issues/49477,

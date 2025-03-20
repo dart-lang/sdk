@@ -61,7 +61,7 @@ class KClosedWorld implements BuiltWorld {
   final Set<DartType> isChecks;
 
   @override
-  final Set<TypeVariableType> namedTypeVariablesNewRti;
+  final Set<TypeVariableType> namedTypeVariables;
 
   final Map<Entity, Set<DartType>> staticTypeArgumentDependencies;
 
@@ -114,7 +114,7 @@ class KClosedWorld implements BuiltWorld {
     required this.classHierarchy,
     required this.annotationsData,
     required this.isChecks,
-    required this.namedTypeVariablesNewRti,
+    required this.namedTypeVariables,
     required this.staticTypeArgumentDependencies,
     required this.dynamicTypeArgumentDependencies,
     required this.typeVariableTypeLiterals,

@@ -10,22 +10,22 @@ import 'package:analyzer/instrumentation/service.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartAssistContext {
-  /// Return the instrumentation service used to report errors that prevent a
-  /// fix from being composed.
+  /// The instrumentation service used to report errors that prevent a fix from
+  /// being composed.
   InstrumentationService get instrumentationService;
 
-  /// The resolved library result in which assist operates.
+  /// The resolved library result in which an assist operates.
   ResolvedLibraryResult get libraryResult;
 
   /// The length of the selection.
   int get selectionLength;
 
-  /// The start of the selection.
+  /// The starting offset of the selection.
   int get selectionOffset;
 
-  /// The unit result in which assist operates.
+  /// The unit result in which an assist operates.
   ResolvedUnitResult get unitResult;
 
-  /// The workspace in which the fix contributor operates.
+  /// The workspace in which an assist operates.
   ChangeWorkspace get workspace;
 }

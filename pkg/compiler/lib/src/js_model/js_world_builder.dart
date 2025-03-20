@@ -150,7 +150,7 @@ class JClosedWorldBuilder {
       closedWorld.liveMemberUsage.keys,
     );
 
-    Set<ClassEntity> extractTypeArgumentsInterfacesNewRti = {};
+    Set<ClassEntity> extractTypeArgumentsInterfaces = {};
 
     RuntimeTypesNeed rtiNeed;
 
@@ -281,7 +281,7 @@ class JClosedWorldBuilder {
       liveAbstractInstanceMembers,
       assignedInstanceMembers,
       processedMembers,
-      extractTypeArgumentsInterfacesNewRti,
+      extractTypeArgumentsInterfaces,
       mixinUses,
       typesImplementedBySubclasses,
       ClassHierarchyImpl(

@@ -163,6 +163,7 @@ import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
 import 'make_super_invocation_last_test.dart' as make_super_invocation_last;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'make_variable_nullable_test.dart' as make_variable_nullable;
+import 'merge_combinators_test.dart' as merge_combinators;
 import 'move_annotation_to_library_directive_test.dart'
     as move_annotation_to_library_directive;
 import 'move_doc_comment_to_library_directive_test.dart'
@@ -454,6 +455,7 @@ void main() {
     make_super_invocation_last.main();
     make_variable_not_final.main();
     make_variable_nullable.main();
+    merge_combinators.main();
     move_annotation_to_library_directive.main();
     move_doc_comment_to_library_directive.main();
     move_type_arguments_to_class.main();

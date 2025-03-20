@@ -3657,9 +3657,7 @@ WarningCode.MIXIN_ON_SEALED_CLASS:
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
 WarningCode.MULTIPLE_COMBINATORS:
-  status: needsFix
-  notes: |-
-    Aggregate the combinators into a single one.
+  status: hasFix
 WarningCode.MUST_BE_IMMUTABLE:
   status: noFix
 WarningCode.MUST_CALL_SUPER:

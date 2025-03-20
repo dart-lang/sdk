@@ -78,7 +78,12 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
   CodeActionWithPriority _convertAssist(plugin.PrioritizedSourceChange assist) {
     return (
-      action: createAssistAction(assist.change, path, lineInfo),
+      action: createAssistAction(
+        assist.change,
+        'assist from plugin',
+        path,
+        lineInfo,
+      ),
       priority: assist.priority,
     );
   }
@@ -95,7 +100,13 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     );
     return fixes.fixes.map(
       (fix) => (
-        action: createFixAction(fix.change, diagnostic, path, lineInfo),
+        action: createFixAction(
+          fix.change,
+          'fix from plugin',
+          diagnostic,
+          path,
+          lineInfo,
+        ),
         priority: fix.priority,
       ),
     );

@@ -58,11 +58,6 @@ class Flags {
   static const String experimentCallInstrumentation =
       '--experiment-call-instrumentation';
 
-  static const String experimentNewRti = '--experiment-new-rti';
-
-  static const String experimentNullSafetyChecks =
-      '--experiment-null-safety-checks';
-
   static const String enableLanguageExperiments = '--enable-experiment';
 
   static const String fastStartup = '--fast-startup';
@@ -110,7 +105,6 @@ class Flags {
       '--experimental-trust-js-interop-type-annotations';
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
-  static const String useOldRti = '--use-old-rti';
   static const String useSimpleLoadIds = '--simple-load-ids';
   static const String verbose = '--verbose';
   static const String verbosity = '--verbosity';
