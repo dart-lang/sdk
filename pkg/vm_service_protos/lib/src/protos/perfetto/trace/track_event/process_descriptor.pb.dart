@@ -10,9 +10,9 @@
 //  Generated code. Do not modify.
 //  source: protos/perfetto/trace/track_event/process_descriptor.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -21,8 +21,26 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
+///  Describes a process's attributes. Emitted as part of a TrackDescriptor,
+///  usually by the process's main thread.
+///
+///  Next id: 9.
 class ProcessDescriptor extends $pb.GeneratedMessage {
-  factory ProcessDescriptor() => create();
+  factory ProcessDescriptor({
+    $core.int? pid,
+    $core.String? processName,
+  }) {
+    final $result = create();
+    if (pid != null) {
+      $result.pid = pid;
+    }
+    if (processName != null) {
+      $result.processName = processName;
+    }
+    return $result;
+  }
   ProcessDescriptor._() : super();
   factory ProcessDescriptor.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -73,7 +91,7 @@ class ProcessDescriptor extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool hasPid() => $_has(0);
   @$pb.TagNumber(1)
-  void clearPid() => clearField(1);
+  void clearPid() => $_clearField(1);
 
   @$pb.TagNumber(6)
   $core.String get processName => $_getSZ(1);
@@ -85,7 +103,7 @@ class ProcessDescriptor extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   $core.bool hasProcessName() => $_has(1);
   @$pb.TagNumber(6)
-  void clearProcessName() => clearField(6);
+  void clearProcessName() => $_clearField(6);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

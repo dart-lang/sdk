@@ -10,9 +10,9 @@
 //  Generated code. Do not modify.
 //  source: protos/perfetto/trace/track_event/thread_descriptor.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -21,8 +21,30 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
+///  Describes a thread's attributes. Emitted as part of a TrackDescriptor,
+///  usually by the thread's trace writer.
+///
+///  Next id: 9.
 class ThreadDescriptor extends $pb.GeneratedMessage {
-  factory ThreadDescriptor() => create();
+  factory ThreadDescriptor({
+    $core.int? pid,
+    $core.int? tid,
+    $core.String? threadName,
+  }) {
+    final $result = create();
+    if (pid != null) {
+      $result.pid = pid;
+    }
+    if (tid != null) {
+      $result.tid = tid;
+    }
+    if (threadName != null) {
+      $result.threadName = threadName;
+    }
+    return $result;
+  }
   ThreadDescriptor._() : super();
   factory ThreadDescriptor.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -74,7 +96,7 @@ class ThreadDescriptor extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool hasPid() => $_has(0);
   @$pb.TagNumber(1)
-  void clearPid() => clearField(1);
+  void clearPid() => $_clearField(1);
 
   @$pb.TagNumber(2)
   $core.int get tid => $_getIZ(1);
@@ -86,7 +108,7 @@ class ThreadDescriptor extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.bool hasTid() => $_has(1);
   @$pb.TagNumber(2)
-  void clearTid() => clearField(2);
+  void clearTid() => $_clearField(2);
 
   @$pb.TagNumber(5)
   $core.String get threadName => $_getSZ(2);
@@ -98,7 +120,7 @@ class ThreadDescriptor extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.bool hasThreadName() => $_has(2);
   @$pb.TagNumber(5)
-  void clearThreadName() => clearField(5);
+  void clearThreadName() => $_clearField(5);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

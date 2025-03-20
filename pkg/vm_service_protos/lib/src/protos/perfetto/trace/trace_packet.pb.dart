@@ -10,9 +10,9 @@
 //  Generated code. Do not modify.
 //  source: protos/perfetto/trace/trace_packet.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -27,6 +27,8 @@ import 'interned_data/interned_data.pb.dart' as $7;
 import 'profiling/profile_packet.pb.dart' as $9;
 import 'track_event/track_descriptor.pb.dart' as $8;
 import 'track_event/track_event.pb.dart' as $6;
+
+export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 export 'trace_packet.pbenum.dart';
 
@@ -43,8 +45,69 @@ enum TracePacket_OptionalTrustedPacketSequenceId {
   notSet
 }
 
+///  TracePacket is the root object of a Perfetto trace.
+///  A Perfetto trace is a linear sequence of TracePacket(s).
+///
+///  The tracing service guarantees that all TracePacket(s) written by a given
+///  TraceWriter are seen in-order, without gaps or duplicates. If, for any
+///  reason, a TraceWriter sequence becomes invalid, no more packets are returned
+///  to the Consumer (or written into the trace file).
+///  TracePacket(s) written by different TraceWriter(s), hence even different
+///  data sources, can be seen in arbitrary order.
+///  The consumer can re-establish a total order, if interested, using the packet
+///  timestamps, after having synchronized the different clocks onto a global
+///  clock.
+///
+///  The tracing service is agnostic of the content of TracePacket, with the
+///  exception of few fields (e.g.. trusted_*, trace_config) that are written by
+///  the service itself.
+///
+///  See the [Buffers and Dataflow](/docs/concepts/buffers.md) doc for details.
+///
+///  Next reserved id: 14 (up to 15).
+///  Next id: 88.
 class TracePacket extends $pb.GeneratedMessage {
-  factory TracePacket() => create();
+  factory TracePacket({
+    $5.ClockSnapshot? clockSnapshot,
+    $fixnum.Int64? timestamp,
+    $core.int? trustedPacketSequenceId,
+    $6.TrackEvent? trackEvent,
+    $7.InternedData? internedData,
+    $core.int? sequenceFlags,
+    $core.int? timestampClockId,
+    $8.TrackDescriptor? trackDescriptor,
+    $9.PerfSample? perfSample,
+  }) {
+    final $result = create();
+    if (clockSnapshot != null) {
+      $result.clockSnapshot = clockSnapshot;
+    }
+    if (timestamp != null) {
+      $result.timestamp = timestamp;
+    }
+    if (trustedPacketSequenceId != null) {
+      $result.trustedPacketSequenceId = trustedPacketSequenceId;
+    }
+    if (trackEvent != null) {
+      $result.trackEvent = trackEvent;
+    }
+    if (internedData != null) {
+      $result.internedData = internedData;
+    }
+    if (sequenceFlags != null) {
+      $result.sequenceFlags = sequenceFlags;
+    }
+    if (timestampClockId != null) {
+      $result.timestampClockId = timestampClockId;
+    }
+    if (trackDescriptor != null) {
+      $result.trackDescriptor = trackDescriptor;
+    }
+    if (perfSample != null) {
+      $result.perfSample = perfSample;
+    }
+    return $result;
+  }
   TracePacket._() : super();
   factory TracePacket.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -116,27 +179,33 @@ class TracePacket extends $pb.GeneratedMessage {
   static TracePacket? _defaultInstance;
 
   TracePacket_Data whichData() => _TracePacket_DataByTag[$_whichOneof(0)]!;
-  void clearData() => clearField($_whichOneof(0));
+  void clearData() => $_clearField($_whichOneof(0));
 
   TracePacket_OptionalTrustedPacketSequenceId
       whichOptionalTrustedPacketSequenceId() =>
           _TracePacket_OptionalTrustedPacketSequenceIdByTag[$_whichOneof(1)]!;
-  void clearOptionalTrustedPacketSequenceId() => clearField($_whichOneof(1));
+  void clearOptionalTrustedPacketSequenceId() => $_clearField($_whichOneof(1));
 
   @$pb.TagNumber(6)
   $5.ClockSnapshot get clockSnapshot => $_getN(0);
   @$pb.TagNumber(6)
   set clockSnapshot($5.ClockSnapshot v) {
-    setField(6, v);
+    $_setField(6, v);
   }
 
   @$pb.TagNumber(6)
   $core.bool hasClockSnapshot() => $_has(0);
   @$pb.TagNumber(6)
-  void clearClockSnapshot() => clearField(6);
+  void clearClockSnapshot() => $_clearField(6);
   @$pb.TagNumber(6)
   $5.ClockSnapshot ensureClockSnapshot() => $_ensure(0);
 
+  /// The timestamp of the TracePacket.
+  /// By default this timestamps refers to the trace clock (CLOCK_BOOTTIME on
+  /// Android). It can be overridden using a different timestamp_clock_id.
+  /// The clock domain definition in ClockSnapshot can also override:
+  /// - The unit (default: 1ns).
+  /// - The absolute vs delta encoding (default: absolute timestamp).
   @$pb.TagNumber(8)
   $fixnum.Int64 get timestamp => $_getI64(1);
   @$pb.TagNumber(8)
@@ -147,7 +216,7 @@ class TracePacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   $core.bool hasTimestamp() => $_has(1);
   @$pb.TagNumber(8)
-  void clearTimestamp() => clearField(8);
+  void clearTimestamp() => $_clearField(8);
 
   @$pb.TagNumber(10)
   $core.int get trustedPacketSequenceId => $_getIZ(2);
@@ -159,33 +228,38 @@ class TracePacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.bool hasTrustedPacketSequenceId() => $_has(2);
   @$pb.TagNumber(10)
-  void clearTrustedPacketSequenceId() => clearField(10);
+  void clearTrustedPacketSequenceId() => $_clearField(10);
 
   @$pb.TagNumber(11)
   $6.TrackEvent get trackEvent => $_getN(3);
   @$pb.TagNumber(11)
   set trackEvent($6.TrackEvent v) {
-    setField(11, v);
+    $_setField(11, v);
   }
 
   @$pb.TagNumber(11)
   $core.bool hasTrackEvent() => $_has(3);
   @$pb.TagNumber(11)
-  void clearTrackEvent() => clearField(11);
+  void clearTrackEvent() => $_clearField(11);
   @$pb.TagNumber(11)
   $6.TrackEvent ensureTrackEvent() => $_ensure(3);
 
+  /// Incrementally emitted interned data, valid only on the packet's sequence
+  /// (packets with the same |trusted_packet_sequence_id|). The writer will
+  /// usually emit new interned data in the same TracePacket that first refers to
+  /// it (since the last reset of interning state). It may also be emitted
+  /// proactively in advance of referring to them in later packets.
   @$pb.TagNumber(12)
   $7.InternedData get internedData => $_getN(4);
   @$pb.TagNumber(12)
   set internedData($7.InternedData v) {
-    setField(12, v);
+    $_setField(12, v);
   }
 
   @$pb.TagNumber(12)
   $core.bool hasInternedData() => $_has(4);
   @$pb.TagNumber(12)
-  void clearInternedData() => clearField(12);
+  void clearInternedData() => $_clearField(12);
   @$pb.TagNumber(12)
   $7.InternedData ensureInternedData() => $_ensure(4);
 
@@ -199,8 +273,13 @@ class TracePacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   $core.bool hasSequenceFlags() => $_has(5);
   @$pb.TagNumber(13)
-  void clearSequenceFlags() => clearField(13);
+  void clearSequenceFlags() => $_clearField(13);
 
+  /// Specifies the ID of the clock used for the TracePacket |timestamp|. Can be
+  /// one of the built-in types from ClockSnapshot::BuiltinClocks, or a
+  /// producer-defined clock id.
+  /// If unspecified and if no default per-sequence value has been provided via
+  /// TracePacketDefaults, it defaults to BuiltinClocks::BOOTTIME.
   @$pb.TagNumber(58)
   $core.int get timestampClockId => $_getIZ(6);
   @$pb.TagNumber(58)
@@ -211,19 +290,20 @@ class TracePacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(58)
   $core.bool hasTimestampClockId() => $_has(6);
   @$pb.TagNumber(58)
-  void clearTimestampClockId() => clearField(58);
+  void clearTimestampClockId() => $_clearField(58);
 
+  /// Only used by TrackEvent.
   @$pb.TagNumber(60)
   $8.TrackDescriptor get trackDescriptor => $_getN(7);
   @$pb.TagNumber(60)
   set trackDescriptor($8.TrackDescriptor v) {
-    setField(60, v);
+    $_setField(60, v);
   }
 
   @$pb.TagNumber(60)
   $core.bool hasTrackDescriptor() => $_has(7);
   @$pb.TagNumber(60)
-  void clearTrackDescriptor() => clearField(60);
+  void clearTrackDescriptor() => $_clearField(60);
   @$pb.TagNumber(60)
   $8.TrackDescriptor ensureTrackDescriptor() => $_ensure(7);
 
@@ -231,13 +311,13 @@ class TracePacket extends $pb.GeneratedMessage {
   $9.PerfSample get perfSample => $_getN(8);
   @$pb.TagNumber(66)
   set perfSample($9.PerfSample v) {
-    setField(66, v);
+    $_setField(66, v);
   }
 
   @$pb.TagNumber(66)
   $core.bool hasPerfSample() => $_has(8);
   @$pb.TagNumber(66)
-  void clearPerfSample() => clearField(66);
+  void clearPerfSample() => $_clearField(66);
   @$pb.TagNumber(66)
   $9.PerfSample ensurePerfSample() => $_ensure(8);
 }

@@ -10,9 +10,9 @@
 //  Generated code. Do not modify.
 //  source: protos/perfetto/trace/profiling/profile_packet.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -22,8 +22,44 @@ import 'dart:core' as $core;
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
+export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
+///  Packet emitted by the traced_perf sampling performance profiler, which
+///  gathers data via the perf_event_open syscall. Each packet contains an
+///  individual sample with a counter value, and optionally a
+///  callstack.
+///
+///  Timestamps are within the root packet. The config can specify the clock, or
+///  the implementation will default to CLOCK_MONOTONIC_RAW. Within the Android R
+///  timeframe, the default was CLOCK_BOOTTIME.
+///
+///  There are several distinct views of this message:
+///  * indication of kernel buffer data loss (kernel_records_lost set)
+///  * indication of skipped samples (sample_skipped_reason set)
+///  * notable event in the sampling implementation (producer_event set)
+///  * normal sample (timebase_count set, typically also callstack_iid)
 class PerfSample extends $pb.GeneratedMessage {
-  factory PerfSample() => create();
+  factory PerfSample({
+    $core.int? cpu,
+    $core.int? pid,
+    $core.int? tid,
+    $fixnum.Int64? callstackIid,
+  }) {
+    final $result = create();
+    if (cpu != null) {
+      $result.cpu = cpu;
+    }
+    if (pid != null) {
+      $result.pid = pid;
+    }
+    if (tid != null) {
+      $result.tid = tid;
+    }
+    if (callstackIid != null) {
+      $result.callstackIid = callstackIid;
+    }
+    return $result;
+  }
   PerfSample._() : super();
   factory PerfSample.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -76,7 +112,7 @@ class PerfSample extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool hasCpu() => $_has(0);
   @$pb.TagNumber(1)
-  void clearCpu() => clearField(1);
+  void clearCpu() => $_clearField(1);
 
   @$pb.TagNumber(2)
   $core.int get pid => $_getIZ(1);
@@ -88,7 +124,7 @@ class PerfSample extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.bool hasPid() => $_has(1);
   @$pb.TagNumber(2)
-  void clearPid() => clearField(2);
+  void clearPid() => $_clearField(2);
 
   @$pb.TagNumber(3)
   $core.int get tid => $_getIZ(2);
@@ -100,8 +136,10 @@ class PerfSample extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $core.bool hasTid() => $_has(2);
   @$pb.TagNumber(3)
-  void clearTid() => clearField(3);
+  void clearTid() => $_clearField(3);
 
+  /// Unwound callstack. Might be partial, in which case a synthetic "error"
+  /// frame is appended, and |unwind_error| is set accordingly.
   @$pb.TagNumber(4)
   $fixnum.Int64 get callstackIid => $_getI64(3);
   @$pb.TagNumber(4)
@@ -112,7 +150,7 @@ class PerfSample extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   $core.bool hasCallstackIid() => $_has(3);
   @$pb.TagNumber(4)
-  void clearCallstackIid() => clearField(4);
+  void clearCallstackIid() => $_clearField(4);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

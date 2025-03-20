@@ -118,10 +118,11 @@ class TracePacket : public ::protozero::Message {
   static inline const char* SequenceFlags_Name(SequenceFlags value) {
     return ::perfetto::protos::pbzero::TracePacket_SequenceFlags_Name(value);
   }
-  static const SequenceFlags SEQ_UNSPECIFIED = SequenceFlags::SEQ_UNSPECIFIED;
-  static const SequenceFlags SEQ_INCREMENTAL_STATE_CLEARED =
+  static inline const SequenceFlags SEQ_UNSPECIFIED =
+      SequenceFlags::SEQ_UNSPECIFIED;
+  static inline const SequenceFlags SEQ_INCREMENTAL_STATE_CLEARED =
       SequenceFlags::SEQ_INCREMENTAL_STATE_CLEARED;
-  static const SequenceFlags SEQ_NEEDS_INCREMENTAL_STATE =
+  static inline const SequenceFlags SEQ_NEEDS_INCREMENTAL_STATE =
       SequenceFlags::SEQ_NEEDS_INCREMENTAL_STATE;
 
   using FieldMetadata_Timestamp = ::protozero::proto_utils::FieldMetadata<
@@ -131,14 +132,7 @@ class TracePacket : public ::protozero::Message {
       uint64_t,
       TracePacket>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_Timestamp kTimestamp() { return {}; }
+  static constexpr FieldMetadata_Timestamp kTimestamp{};
   void set_timestamp(uint64_t value) {
     static constexpr uint32_t field_id = FieldMetadata_Timestamp::kFieldId;
     // Call the appropriate protozero::Message::Append(field_id, ...)
@@ -157,16 +151,7 @@ class TracePacket : public ::protozero::Message {
           uint32_t,
           TracePacket>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_TimestampClockId kTimestampClockId() {
-    return {};
-  }
+  static constexpr FieldMetadata_TimestampClockId kTimestampClockId{};
   void set_timestamp_clock_id(uint32_t value) {
     static constexpr uint32_t field_id =
         FieldMetadata_TimestampClockId::kFieldId;
@@ -185,14 +170,7 @@ class TracePacket : public ::protozero::Message {
       ClockSnapshot,
       TracePacket>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_ClockSnapshot kClockSnapshot() { return {}; }
+  static constexpr FieldMetadata_ClockSnapshot kClockSnapshot{};
   template <typename T = ClockSnapshot>
   T* set_clock_snapshot() {
     return BeginNestedMessage<T>(6);
@@ -205,14 +183,7 @@ class TracePacket : public ::protozero::Message {
       TrackEvent,
       TracePacket>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_TrackEvent kTrackEvent() { return {}; }
+  static constexpr FieldMetadata_TrackEvent kTrackEvent{};
   template <typename T = TrackEvent>
   T* set_track_event() {
     return BeginNestedMessage<T>(11);
@@ -225,16 +196,7 @@ class TracePacket : public ::protozero::Message {
       TrackDescriptor,
       TracePacket>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_TrackDescriptor kTrackDescriptor() {
-    return {};
-  }
+  static constexpr FieldMetadata_TrackDescriptor kTrackDescriptor{};
   template <typename T = TrackDescriptor>
   T* set_track_descriptor() {
     return BeginNestedMessage<T>(60);
@@ -247,14 +209,7 @@ class TracePacket : public ::protozero::Message {
       PerfSample,
       TracePacket>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_PerfSample kPerfSample() { return {}; }
+  static constexpr FieldMetadata_PerfSample kPerfSample{};
   template <typename T = PerfSample>
   T* set_perf_sample() {
     return BeginNestedMessage<T>(66);
@@ -268,17 +223,8 @@ class TracePacket : public ::protozero::Message {
           uint32_t,
           TracePacket>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
   static constexpr FieldMetadata_TrustedPacketSequenceId
-  kTrustedPacketSequenceId() {
-    return {};
-  }
+      kTrustedPacketSequenceId{};
   void set_trusted_packet_sequence_id(uint32_t value) {
     static constexpr uint32_t field_id =
         FieldMetadata_TrustedPacketSequenceId::kFieldId;
@@ -297,14 +243,7 @@ class TracePacket : public ::protozero::Message {
       InternedData,
       TracePacket>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_InternedData kInternedData() { return {}; }
+  static constexpr FieldMetadata_InternedData kInternedData{};
   template <typename T = InternedData>
   T* set_interned_data() {
     return BeginNestedMessage<T>(12);
@@ -317,14 +256,7 @@ class TracePacket : public ::protozero::Message {
       uint32_t,
       TracePacket>;
 
-  // Ceci n'est pas une pipe.
-  // This is actually a variable of FieldMetadataHelper<FieldMetadata<...>>
-  // type (and users are expected to use it as such, hence kCamelCase name).
-  // It is declared as a function to keep protozero bindings header-only as
-  // inline constexpr variables are not available until C++17 (while inline
-  // functions are).
-  // TODO(altimin): Use inline variable instead after adopting C++17.
-  static constexpr FieldMetadata_SequenceFlags kSequenceFlags() { return {}; }
+  static constexpr FieldMetadata_SequenceFlags kSequenceFlags{};
   void set_sequence_flags(uint32_t value) {
     static constexpr uint32_t field_id = FieldMetadata_SequenceFlags::kFieldId;
     // Call the appropriate protozero::Message::Append(field_id, ...)

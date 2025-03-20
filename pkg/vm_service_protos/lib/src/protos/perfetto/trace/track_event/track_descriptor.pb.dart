@@ -10,9 +10,9 @@
 //  Generated code. Do not modify.
 //  source: protos/perfetto/trace/track_event/track_descriptor.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -25,8 +25,48 @@ import 'package:protobuf/protobuf.dart' as $pb;
 import 'process_descriptor.pb.dart' as $3;
 import 'thread_descriptor.pb.dart' as $4;
 
+export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
+///  Defines a track for TrackEvents. Slices and instant events on the same track
+///  will be nested based on their timestamps, see TrackEvent::Type.
+///
+///  A TrackDescriptor only needs to be emitted by one trace writer / producer and
+///  is valid for the entirety of the trace. To ensure the descriptor isn't lost
+///  when the ring buffer wraps, it should be reemitted whenever incremental state
+///  is cleared.
+///
+///  As a fallback, TrackEvents emitted without an explicit track association will
+///  be associated with an implicit trace-global track (uuid = 0), see also
+///  |TrackEvent::track_uuid|. It is possible but not necessary to emit a
+///  TrackDescriptor for this implicit track.
+///
+///  Next id: 9.
 class TrackDescriptor extends $pb.GeneratedMessage {
-  factory TrackDescriptor() => create();
+  factory TrackDescriptor({
+    $fixnum.Int64? uuid,
+    $core.String? name,
+    $3.ProcessDescriptor? process,
+    $4.ThreadDescriptor? thread,
+    $fixnum.Int64? parentUuid,
+  }) {
+    final $result = create();
+    if (uuid != null) {
+      $result.uuid = uuid;
+    }
+    if (name != null) {
+      $result.name = name;
+    }
+    if (process != null) {
+      $result.process = process;
+    }
+    if (thread != null) {
+      $result.thread = thread;
+    }
+    if (parentUuid != null) {
+      $result.parentUuid = parentUuid;
+    }
+    return $result;
+  }
   TrackDescriptor._() : super();
   factory TrackDescriptor.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -75,6 +115,12 @@ class TrackDescriptor extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<TrackDescriptor>(create);
   static TrackDescriptor? _defaultInstance;
 
+  ///  Unique ID that identifies this track. This ID is global to the whole trace.
+  ///  Producers should ensure that it is unlikely to clash with IDs emitted by
+  ///  other producers. A value of 0 denotes the implicit trace-global track.
+  ///
+  ///  For example, legacy TRACE_EVENT macros may use a hash involving the async
+  ///  event id + id_scope, pid, and/or tid to compute this ID.
   @$pb.TagNumber(1)
   $fixnum.Int64 get uuid => $_getI64(0);
   @$pb.TagNumber(1)
@@ -85,8 +131,11 @@ class TrackDescriptor extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $core.bool hasUuid() => $_has(0);
   @$pb.TagNumber(1)
-  void clearUuid() => clearField(1);
+  void clearUuid() => $_clearField(1);
 
+  /// Name of the track. Optional - if unspecified, it may be derived from the
+  /// process/thread name (process/thread tracks), the first event's name (async
+  /// tracks), or counter name (counter tracks).
   @$pb.TagNumber(2)
   $core.String get name => $_getSZ(1);
   @$pb.TagNumber(2)
@@ -97,36 +146,56 @@ class TrackDescriptor extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.bool hasName() => $_has(1);
   @$pb.TagNumber(2)
-  void clearName() => clearField(2);
+  void clearName() => $_clearField(2);
 
+  ///  Associate the track with a process, making it the process-global track.
+  ///  There should only be one such track per process (usually for instant
+  ///  events; trace processor uses this fact to detect pid reuse). If you need
+  ///  more (e.g. for asynchronous events), create child tracks using parent_uuid.
+  ///
+  ///  Trace processor will merge events on a process track with slice-type events
+  ///  from other sources (e.g. ftrace) for the same process into a single
+  ///  timeline view.
   @$pb.TagNumber(3)
   $3.ProcessDescriptor get process => $_getN(2);
   @$pb.TagNumber(3)
   set process($3.ProcessDescriptor v) {
-    setField(3, v);
+    $_setField(3, v);
   }
 
   @$pb.TagNumber(3)
   $core.bool hasProcess() => $_has(2);
   @$pb.TagNumber(3)
-  void clearProcess() => clearField(3);
+  void clearProcess() => $_clearField(3);
   @$pb.TagNumber(3)
   $3.ProcessDescriptor ensureProcess() => $_ensure(2);
 
+  ///  Associate the track with a thread, indicating that the track's events
+  ///  describe synchronous code execution on the thread. There should only be one
+  ///  such track per thread (trace processor uses this fact to detect tid reuse).
+  ///
+  ///  Trace processor will merge events on a thread track with slice-type events
+  ///  from other sources (e.g. ftrace) for the same thread into a single timeline
+  ///  view.
   @$pb.TagNumber(4)
   $4.ThreadDescriptor get thread => $_getN(3);
   @$pb.TagNumber(4)
   set thread($4.ThreadDescriptor v) {
-    setField(4, v);
+    $_setField(4, v);
   }
 
   @$pb.TagNumber(4)
   $core.bool hasThread() => $_has(3);
   @$pb.TagNumber(4)
-  void clearThread() => clearField(4);
+  void clearThread() => $_clearField(4);
   @$pb.TagNumber(4)
   $4.ThreadDescriptor ensureThread() => $_ensure(3);
 
+  /// A parent track reference can be used to describe relationships between
+  /// tracks. For example, to define an asynchronous track which is scoped to a
+  /// specific process, specify the uuid for that process's process track here.
+  /// Similarly, to associate a COUNTER_THREAD_TIME_NS counter track with a
+  /// thread, specify the uuid for that thread's thread track here.
   @$pb.TagNumber(5)
   $fixnum.Int64 get parentUuid => $_getI64(4);
   @$pb.TagNumber(5)
@@ -137,7 +206,7 @@ class TrackDescriptor extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   $core.bool hasParentUuid() => $_has(4);
   @$pb.TagNumber(5)
-  void clearParentUuid() => clearField(5);
+  void clearParentUuid() => $_clearField(5);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
