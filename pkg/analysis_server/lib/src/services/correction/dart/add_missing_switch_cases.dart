@@ -16,10 +16,9 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // Adding the missing cases is not a sufficient fix (user logic needs
-          // to be added as well).
-          CorrectionApplicability
-          .singleLocation;
+      // Adding the missing cases is not a sufficient fix (user logic needs
+      // to be added as well).
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_SWITCH_CASES;

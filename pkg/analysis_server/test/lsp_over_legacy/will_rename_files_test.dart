@@ -40,7 +40,10 @@ class WillRenameFilesTest extends LspOverLegacyTest {
     );
     var req1 = handleRequest(cancelRequest);
     // Expect the cancellation was forwarded and handled by the LSP handler.
-    await expectLater(editFuture, throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+    await expectLater(
+      editFuture,
+      throwsA(isResponseError(ErrorCodes.RequestCancelled)),
+    );
     await req1;
   }
 
@@ -65,7 +68,10 @@ class WillRenameFilesTest extends LspOverLegacyTest {
       // refactor won't complete because it's waiting for the future we control.
       var request = updateOverlay(testFilePath, SourceEdit(0, 0, 'inserted'));
       completer.complete();
-      await expectLater(editFuture, throwsA(isResponseError(ErrorCodes.ContentModified)));
+      await expectLater(
+        editFuture,
+        throwsA(isResponseError(ErrorCodes.ContentModified)),
+      );
       await request;
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.

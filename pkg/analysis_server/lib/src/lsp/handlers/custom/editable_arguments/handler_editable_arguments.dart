@@ -42,6 +42,10 @@ class EditableArgumentsHandler
     MessageInfo message,
     CancellationToken token,
   ) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(null);
+    }
+
     var textDocument = params.textDocument;
     var position = params.position;
 

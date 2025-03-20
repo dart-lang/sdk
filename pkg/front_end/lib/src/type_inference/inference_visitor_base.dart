@@ -1149,8 +1149,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Finds a constructor of [type] called [name].
   Member? findConstructor(TypeDeclarationType type, Name name, int fileOffset) {
-    assert(isKnown(type));
-
     // TODO(Dart Model team): Seems like an abstraction level issue to require
     // going from `Class` objects back to builders to find a `Member`.
     DeclarationBuilder builder;
@@ -1184,8 +1182,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType, Name name, int fileOffset,
       {required bool isSetter,
       bool instrumented = true,
-      bool includeExtensionMethods = false,
-      bool isDotShorthand = false}) {
+      bool includeExtensionMethods = false}) {
     assert(isKnown(receiverType));
 
     DartType receiverBound = receiverType.nonTypeParameterBound;
@@ -1204,7 +1201,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             classNode: classNode,
             receiverBound: receiverBound,
             hasNonObjectMemberAccess: hasNonObjectMemberAccess,
-            isDotShorthand: isDotShorthand,
             isSetter: isSetter,
             fileOffset: fileOffset);
 
@@ -1266,6 +1262,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     return target;
+  }
+
+  /// Finds a static member of [type] called [name].
+  Member? findStaticMember(DartType type, Name name, int fileOffset) {
+    if (type is! TypeDeclarationType) return null;
+    switch (type) {
+      case InterfaceType():
+        return _getStaticMember(type.classNode, name, false);
+      case ExtensionType():
+        ObjectAccessTarget? target = _findExtensionTypeMember(
+            type, type, name, fileOffset,
+            isSetter: false,
+            hasNonObjectMemberAccess: type.hasNonObjectMemberAccess,
+            isDotShorthand: true);
+        return target?.member;
+    }
   }
 
   /// If target is missing on a non-dynamic receiver, an error is reported
@@ -4639,7 +4651,6 @@ class _ObjectAccessDescriptor {
   final DartType receiverBound;
   final Class classNode;
   final bool hasNonObjectMemberAccess;
-  final bool isDotShorthand;
   final bool isSetter;
   final int fileOffset;
 
@@ -4649,7 +4660,6 @@ class _ObjectAccessDescriptor {
       required this.receiverBound,
       required this.classNode,
       required this.hasNonObjectMemberAccess,
-      required this.isDotShorthand,
       required this.isSetter,
       required this.fileOffset});
 
@@ -4734,17 +4744,15 @@ class _ObjectAccessDescriptor {
       ObjectAccessTarget? target = visitor._findExtensionTypeMember(
           receiverType, receiverBound, name, fileOffset,
           isSetter: isSetter,
-          hasNonObjectMemberAccess: hasNonObjectMemberAccess,
-          isDotShorthand: isDotShorthand);
+          hasNonObjectMemberAccess: hasNonObjectMemberAccess);
       if (target != null) {
         return target;
       }
     }
 
     ObjectAccessTarget? target;
-    Member? interfaceMember = isDotShorthand
-        ? visitor._getStaticMember(classNode, name, false)
-        : visitor._getInterfaceMember(classNode, name, isSetter);
+    Member? interfaceMember =
+        visitor._getInterfaceMember(classNode, name, isSetter);
     if (interfaceMember != null) {
       target = new ObjectAccessTarget.interfaceMember(
           receiverType, interfaceMember,

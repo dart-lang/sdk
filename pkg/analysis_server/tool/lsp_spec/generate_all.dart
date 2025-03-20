@@ -184,12 +184,12 @@ List<LspEntity> getCustomClasses() {
   var customTypes = <LspEntity>[
     TypeAlias(
       name: 'LSPAny',
-      baseType: TypeReference.LspAny,
+      baseType: TypeReference.lspAny,
       renameReferences: false,
     ),
     TypeAlias(
       name: 'LSPObject',
-      baseType: TypeReference.LspObject,
+      baseType: TypeReference.lspObject,
       renameReferences: false,
     ),
     // The DocumentFilter more complex in v3.17's meta_model (to allow
@@ -443,7 +443,7 @@ List<LspEntity> getCustomClasses() {
       ),
       Field(
         name: 'value',
-        type: TypeReference.LspAny,
+        type: TypeReference.lspAny,
         allowsNull: false,
         allowsUndefined: true,
         comment:
@@ -466,7 +466,7 @@ List<LspEntity> getCustomClasses() {
       ),
       Field(
         name: 'defaultValue',
-        type: TypeReference.LspAny,
+        type: TypeReference.lspAny,
         allowsNull: false,
         allowsUndefined: true,
         comment:
@@ -536,7 +536,7 @@ List<LspEntity> getCustomClasses() {
       field('name', type: 'string'),
       Field(
         name: 'newValue',
-        type: TypeReference.LspAny,
+        type: TypeReference.lspAny,
         allowsNull: true,
         allowsUndefined: false,
       ),
@@ -574,7 +574,7 @@ List<LspEntity> getCustomClasses() {
         ),
         AbstractGetter(
           name: 'defaultValue',
-          type: TypeReference.LspAny,
+          type: TypeReference.lspAny,
           comment:
               'An optional default value for the parameter. The type of '
               'this value may vary between parameter kinds but must always be '

@@ -120,6 +120,11 @@ abstract class AstCodeGenerator
   }
 
   DartType dartTypeOf(Expression exp) {
+    if (exp is ConstantExpression) {
+      // For constant expressions `getStaticType` returns often `DynamicType`
+      // instead of a more precise type. See http://dartbug.com/60368
+      return exp.constant.getType(typeContext);
+    }
     return exp.getStaticType(typeContext);
   }
 

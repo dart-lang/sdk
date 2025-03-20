@@ -248,6 +248,11 @@ class Translator with KernelNodes {
   late final w.RefType nullableObjectArrayTypeRef =
       w.RefType.def(nullableObjectArrayType, nullable: false);
 
+  late final boxedIntType =
+      boxedIntClass.getThisType(coreTypes, Nullability.nonNullable);
+  late final boxedDoubleType =
+      boxedDoubleClass.getThisType(coreTypes, Nullability.nonNullable);
+
   final Map<w.ModuleBuilder, PartialInstantiator> _partialInstantiators = {};
   PartialInstantiator getPartialInstantiatorForModule(w.ModuleBuilder module) {
     return _partialInstantiators[module] ??= PartialInstantiator(this, module);
@@ -605,11 +610,39 @@ class Translator with KernelNodes {
   }
 
   Class classForType(DartType type) {
-    return type is InterfaceType
-        ? type.classNode
-        : type is TypeParameterType
-            ? classForType(type.bound)
-            : coreTypes.objectClass;
+    return toMostSpecificInterfaceType(type).classNode;
+  }
+
+  InterfaceType toMostSpecificInterfaceType(DartType originalType) {
+    var type = originalType;
+    while (type is TypeParameterType) {
+      type = type.bound;
+    }
+    while (type is StructuralParameterType) {
+      type = type.bound;
+    }
+    final objectType = coreTypes.objectNonNullableRawType;
+    final nullability = originalType.isPotentiallyNullable
+        ? Nullability.nullable
+        : Nullability.nonNullable;
+    return (switch (type) {
+      InterfaceType() => type,
+      FunctionType() => coreTypes.functionNonNullableRawType,
+      RecordType() => coreTypes.recordNonNullableRawType,
+      IntersectionType() => toMostSpecificInterfaceType(type.right),
+      ExtensionType() => toMostSpecificInterfaceType(type.extensionTypeErasure),
+      DynamicType() || VoidType() => objectType,
+      NullType() => objectType,
+      NeverType() => objectType,
+      FutureOrType() => objectType,
+      StructuralParameterType() ||
+      TypeParameterType() =>
+        throw 'unreachable, handled above',
+      TypedefType() => throw 'unreachable, should be desugared by CFE',
+      InvalidType() => throw 'unreachable, should be compile-time error',
+      AuxiliaryType() => throw 'unreachable, unused by dart2wasm',
+    })
+        .withDeclaredNullability(nullability);
   }
 
   void pushModuleId(w.InstructionsBuilder b) {

@@ -24,6 +24,9 @@ abstract interface class SharedTestInterface {
   /// be overridden for tests that are deliberately testing invalid code.
   set failTestOnErrorDiagnostic(bool value);
 
+  /// Gets the full normalized path of the test project folder.
+  String get projectFolderPath;
+
   /// Gets the full normalized file path of a file named "test.dart" in the test
   /// project.
   String get testFilePath;

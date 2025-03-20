@@ -16,10 +16,9 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // Adding the missing case is not a sufficient fix (user logic needs
-          // adding too).
-          CorrectionApplicability
-          .singleLocation;
+      // Adding the missing case is not a sufficient fix (user logic needs
+      // adding too).
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;

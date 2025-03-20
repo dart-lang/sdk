@@ -262,10 +262,10 @@ class TypeReference extends TypeBase {
   static final TypeBase int = TypeReference('int');
 
   /// Any object (but not null).
-  static final TypeBase LspObject = TypeReference('Object');
+  static final TypeBase lspObject = TypeReference('Object');
 
   /// Any object (or null/undefined).
-  static final TypeBase LspAny = NullableType(TypeReference.LspObject);
+  static final TypeBase lspAny = NullableType(TypeReference.lspObject);
 
   final String name;
   final List<TypeBase> typeArgs;

@@ -14,9 +14,8 @@ class RemoveUnusedImport extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // Bulk application is supported by a distinct import cleanup fix phase.
-          CorrectionApplicability
-          .acrossSingleFile;
+      // Bulk application is supported by a distinct import cleanup fix phase.
+      CorrectionApplicability.acrossSingleFile;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_IMPORT;

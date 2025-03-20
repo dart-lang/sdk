@@ -16,9 +16,8 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.MOVE_ANNOTATION_TO_LIBRARY_DIRECTIVE;

@@ -19,7 +19,7 @@ import 'operation.dart';
 
 /// Common input converter superclass for sharing implementation.
 abstract class CommonInputConverter extends Converter<String, Operation?> {
-  static final ERROR_PREFIX = 'Server responded with an error: ';
+  static const _errorPrefix = 'Server responded with an error: ';
   final Logger logger = Logger('InstrumentationInputConverter');
   final Set<String> eventsSeen = <String>{};
 
@@ -172,8 +172,8 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
     var result = exception;
     if (exception is UnimplementedError) {
       var message = exception.message;
-      if (message!.startsWith(ERROR_PREFIX)) {
-        result = json.decode(message.substring(ERROR_PREFIX.length));
+      if (message!.startsWith(_errorPrefix)) {
+        result = json.decode(message.substring(_errorPrefix.length));
       }
     }
     processResponseResult(id, result);

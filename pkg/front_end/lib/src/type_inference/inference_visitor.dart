@@ -12134,15 +12134,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       cachedContext = cachedContext.typeArgument;
     }
 
-    Member? member = findInterfaceMember(
-            cachedContext, node.name, node.fileOffset,
-            includeExtensionMethods: false,
-            isSetter: false,
-            isDotShorthand: true)
-        .member;
+    Member? member =
+        findStaticMember(cachedContext, node.name, node.fileOffset);
 
     Expression expr;
-    if (member is Procedure) {
+    if (member is Procedure && member.kind == ProcedureKind.Method) {
       expr = new StaticInvocation(member, node.arguments)
         ..fileOffset = node.fileOffset;
     } else if (member == null && cachedContext is TypeDeclarationType) {
@@ -12223,10 +12219,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       cachedContext = cachedContext.typeArgument;
     }
 
-    Member? member = findInterfaceMember(
-            cachedContext, node.name, node.fileOffset,
-            isSetter: false, isDotShorthand: true)
-        .member;
+    Member? member =
+        findStaticMember(cachedContext, node.name, node.fileOffset);
 
     ExpressionInferenceResult expressionInferenceResult;
     if (member == null) {

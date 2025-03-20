@@ -35,40 +35,40 @@ int levenshtein(
     t = t.toLowerCase();
   }
 
-  var s_len = s.length;
-  var t_len = t.length;
+  var sLength = s.length;
+  var tLength = t.length;
 
   // if one string is empty,
   // the edit distance is necessarily the length of the other
-  if (s_len == 0) {
-    return t_len <= threshold ? t_len : LEVENSHTEIN_MAX;
+  if (sLength == 0) {
+    return tLength <= threshold ? tLength : LEVENSHTEIN_MAX;
   }
-  if (t_len == 0) {
-    return s_len <= threshold ? s_len : LEVENSHTEIN_MAX;
+  if (tLength == 0) {
+    return sLength <= threshold ? sLength : LEVENSHTEIN_MAX;
   }
   // the distance can never be less than abs(s_len - t_len)
-  if ((s_len - t_len).abs() > threshold) {
+  if ((sLength - tLength).abs() > threshold) {
     return LEVENSHTEIN_MAX;
   }
 
   // swap the two strings to consume less memory
-  if (s_len > t_len) {
+  if (sLength > tLength) {
     var tmp = s;
     s = t;
     t = tmp;
-    s_len = t_len;
-    t_len = t.length;
+    sLength = tLength;
+    tLength = t.length;
   }
 
   // 'previous' cost array, horizontally
-  var p = List<int>.filled(s_len + 1, 0);
+  var p = List<int>.filled(sLength + 1, 0);
   // cost array, horizontally
-  var d = List<int>.filled(s_len + 1, 0);
+  var d = List<int>.filled(sLength + 1, 0);
   // placeholder to assist in swapping p and d
   List<int> holder;
 
   // fill in starting table values
-  var boundary = math.min(s_len, threshold) + 1;
+  var boundary = math.min(sLength, threshold) + 1;
   for (var i = 0; i < boundary; i++) {
     p[i] = i;
   }
@@ -79,14 +79,14 @@ int levenshtein(
   _setRange(d, 0, d.length, _MAX_VALUE);
 
   // iterates through t
-  for (var j = 1; j <= t_len; j++) {
+  for (var j = 1; j <= tLength; j++) {
     // jth character of t
-    var t_j = t.codeUnitAt(j - 1);
+    var tAtJ = t.codeUnitAt(j - 1);
     d[0] = j;
 
     // compute stripe indices, constrain to array size
     var min = math.max(1, j - threshold);
-    var max = math.min(s_len, j + threshold);
+    var max = math.min(sLength, j + threshold);
 
     // the stripe may lead off of the table if s and t are of different sizes
     if (min > max) {
@@ -100,7 +100,7 @@ int levenshtein(
 
     // iterates through [min, max] in s
     for (var i = min; i <= max; i++) {
-      if (s.codeUnitAt(i - 1) == t_j) {
+      if (s.codeUnitAt(i - 1) == tAtJ) {
         // diagonally left and up
         d[i] = p[i - 1];
       } else {
@@ -117,8 +117,8 @@ int levenshtein(
 
   // if p[n] is greater than the threshold,
   // there's no guarantee on it being the correct distance
-  if (p[s_len] <= threshold) {
-    return p[s_len];
+  if (p[sLength] <= threshold) {
+    return p[sLength];
   }
 
   return LEVENSHTEIN_MAX;

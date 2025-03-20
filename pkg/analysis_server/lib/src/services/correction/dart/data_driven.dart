@@ -80,9 +80,8 @@ class DataDrivenFix extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   /// Return a description of the element that was changed.
   ElementDescriptor get element => _transform.element;

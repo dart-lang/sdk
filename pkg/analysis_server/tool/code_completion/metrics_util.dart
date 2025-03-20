@@ -215,10 +215,10 @@ class DistributionComputer {
 }
 
 /// A computer for the mean reciprocal rank. The MRR as well as the MRR only
-/// if the item was in the top 5 in the list see [MAX_RANK], is computed.
+/// if the item was in the top 5 in the list see [_maxRank], is computed.
 /// https://en.wikipedia.org/wiki/Mean_reciprocal_rank.
 class MeanReciprocalRankComputer {
-  static final int MAX_RANK = 5;
+  static const int _maxRank = 5;
   final String name;
   double _sum = 0;
   double _sum_5 = 0;
@@ -252,7 +252,7 @@ class MeanReciprocalRankComputer {
   void addRank(int rank) {
     if (rank != 0) {
       _sum += 1 / rank;
-      if (rank <= MAX_RANK) {
+      if (rank <= _maxRank) {
         _sum_5 += 1 / rank;
       }
     }
