@@ -41,74 +41,19 @@ group("kernel") {
   }
 }
 
-# Generates a pair of executables for kernel and AOT snapshots.
-template("sample") {
-  executable("${target_name}_kernel") {
-    # Otherwise build with --no-clang fails.
-    if (is_linux) {
-      ldflags = [ "-Wl,--allow-shlib-undefined" ]
-    }
-    include_dirs = [
-      "../../runtime",
-      "../../runtime/engine",
-    ]
-    deps = [ "../../runtime/engine:dart_engine_jit_shared" ]
-    if (defined(invoker.deps)) {
-      deps += invoker.deps
-    }
-    data_deps = []
-    foreach(snapshot, invoker.snapshots) {
-      data_deps += [ "${snapshot}_kernel" ]
-    }
-    forward_variables_from(invoker,
-                           "*",
-                           [
-                             "snapshots",
-                             "deps",
-                             "data_deps",
-                           ])
-  }
-
-  executable("${target_name}_aot") {
-    # Otherwise build with MSAN fails.
-    if (is_linux) {
-      ldflags = [ "-Wl,--allow-shlib-undefined" ]
-    }
-    include_dirs = [
-      "../../runtime",
-      "../../runtime/engine",
-    ]
-    deps = [ "../../runtime/engine:dart_engine_aot_shared" ]
-    if (defined(invoker.deps)) {
-      deps += invoker.deps
-    }
-    data_deps = []
-    foreach(snapshot, invoker.snapshots) {
-      data_deps += [ "${snapshot}_aot" ]
-    }
-    forward_variables_from(invoker,
-                           "*",
-                           [
-                             "snapshots",
-                             "deps",
-                             "data_deps",
-                           ])
-  }
-}
-
-# For a given main_dart generates Kernel and AOT snapshots
-template("snapshots") {
-  # Kernel snapshot
-  application_snapshot("${target_name}_kernel") {
-    main_dart = invoker.main_dart
+_all_configs = [
+  {
+    suffix = "_kernel"
+    dart_shared_lib = "../../runtime/engine:dart_engine_jit_shared"
     dart_snapshot_kind = "kernel"
-    training_args = []  # Not used
     gen_kernel_args = [ "--link-platform" ]
-  }
-
-  # AOT snapshot
-  aot_snapshot("${target_name}_aot") {
-    main_dart = invoker.main_dart
+    snapshot_target = "application_snapshot"
+    training_args = []  # Not used
+  },
+  {
+    suffix = "_aot"
+    dart_shared_lib = "../../runtime/engine:dart_engine_aot_shared"
+    snapshot_target = "aot_snapshot"
 
     # AOT snapshots as shared libraries on Windows are not
     # supported, and in fact we don't build AOT samples on
@@ -117,13 +62,148 @@ template("snapshots") {
     # and it will fail the assert if as_shared_library is
     # true, and the current platform is Windows.
     as_shared_library = !is_win
+  },
+]
+
+template("sample") {
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  foreach(conf, _all_configs) {
+    executable("${target_name}${conf.suffix}") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (!defined(include_dirs)) {
+        include_dirs = []
+      }
+
+      include_dirs += [
+        ".",
+        "../../runtime",
+        "../../runtime/engine",
+      ]
+
+      # Otherwise build with --no-clang (jit) or MSAN (aot) fails.
+      if (is_linux) {
+        if (!defined(ldflags)) {
+          ldflags = []
+        }
+        ldflags += [ "-Wl,--allow-shlib-undefined" ]
+      }
+      deps = [ conf.dart_shared_lib ]
+      foreach(dep, configurable_deps) {
+        deps += [ "${dep}${conf.suffix}" ]
+      }
+      deps += extra_deps
+    }
+  }
+}
+
+template("snapshots") {
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  foreach(conf, _all_configs) {
+    target(conf.snapshot_target, "${target_name}${conf.suffix}") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (defined(conf.dart_snapshot_kind)) {
+        dart_snapshot_kind = conf.dart_snapshot_kind
+      }
+      if (defined(conf.training_args)) {
+        training_args = conf.training_args
+      }
+      if (defined(conf.gen_kernel_args)) {
+        gen_kernel_args = conf.gen_kernel_args
+      }
+      if (defined(conf.as_shared_library)) {
+        as_shared_library = conf.as_shared_library
+      }
+      deps = []
+      foreach(dep, configurable_deps) {
+        deps += [ "${dep}${conf.suffix}" ]
+      }
+      deps += extra_deps
+    }
+  }
+}
+
+_dart_root = get_path_info("../..", "abspath")
+
+template("shims") {
+  name = target_name
+  if (defined(invoker.name)) {
+    name = invoker.name
+  }
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+
+  foreach(conf, _all_configs) {
+    shared_library("${target_name}${conf.suffix}") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "name",
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      output_name = "${name}${conf.suffix}"
+      if (!defined(include_dirs)) {
+        include_dirs = []
+      }
+      include_dirs += [
+        ".",
+        "../../runtime",
+        "../../runtime/engine",
+      ]
+      if (is_mac) {
+        if (!defined(ldflags)) {
+          ldflags = []
+        }
+        ldflags += [ "-Wl,-install_name,@rpath/lib${output_name}.dylib" ]
+      }
+      sources = [
+        "$name.cc",
+        "$name.h",
+      ]
+      public = [ "$name.h" ]
+      deps = [ conf.dart_shared_lib ]
+      foreach(dep, configurable_deps) {
+        deps += [ "$dep${conf.suffix}" ]
+      }
+      deps += extra_deps
+    }
   }
 }
 
 # Sample binary to run given kernel snapshot.
 sample("run_main") {
   sources = [ "run_main.cc" ]
-  snapshots = [ ":hello" ]
+  configurable_deps = [ ":hello" ]
 }
 
 snapshots("hello") {
@@ -133,7 +213,7 @@ snapshots("hello") {
 # Sample binary to run two snapshots simultaneously.
 sample("run_two_programs") {
   sources = [ "run_two_programs.cc" ]
-  snapshots = [
+  configurable_deps = [
     ":program1",
     ":program2",
   ]
@@ -147,18 +227,28 @@ snapshots("program2") {
   main_dart = "program2.dart"
 }
 
+snapshots("timer") {
+  main_dart = "timer.dart"
+}
+
+shims("timer_library") {
+  name = "timer"
+}
+
 sample("run_timer") {
   sources = [ "run_timer.cc" ]
-  snapshots = [ ":timer" ]
+  configurable_deps = [
+    ":timer",
+    ":timer_library",
+  ]
 }
 
 sample("run_timer_async") {
   sources = [ "run_timer_async.cc" ]
-  snapshots = [ ":timer" ]
-}
-
-snapshots("timer") {
-  main_dart = "timer.dart"
+  configurable_deps = [
+    ":timer",
+    ":timer_library",
+  ]
 }
 
 # FFI can't execute on the VM's simulator
@@ -169,6 +259,6 @@ if (dart_target_arch == host_cpu) {
 
   sample("run_futures") {
     sources = [ "run_futures.cc" ]
-    snapshots = [ ":futures" ]
+    configurable_deps = [ ":futures" ]
   }
 }
