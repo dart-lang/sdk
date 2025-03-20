@@ -56,7 +56,7 @@ void f(String a) {
 void f() {
   List<String> row = ['h', 'e', 'l'];
   switch (row) {
-    case ['user', var name!]:
+    case ['user', var name! ]:
     print(name);
   }
 }

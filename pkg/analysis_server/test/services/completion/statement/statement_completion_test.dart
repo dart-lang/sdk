@@ -1051,7 +1051,7 @@ void f() {
 ''', (s) => _afterLast(s, '  '));
   }
 
-  Future<void> test_noCloseParenWithSemicolon() async {
+  Future<void> test_noCloseParenWithSemicolon1() async {
     var before = '''
 void f() {
   var s = 'sample'.substring(3;
@@ -1063,13 +1063,28 @@ void f() {
   ////
 }
 ''';
-    // Check completion both before and after the semicolon.
+    // Check completion both before semicolon.
     await _prepareCompletion('ing(3', before, atEnd: true);
     _assertHasChange(
       'Insert a newline at the end of the current line',
       after,
       (s) => _afterLast(s, '  '),
     );
+  }
+
+  Future<void> test_noCloseParenWithSemicolon2() async {
+    var before = '''
+void f() {
+  var s = 'sample'.substring(3;
+}
+''';
+    var after = '''
+void f() {
+  var s = 'sample'.substring(3);
+  ////
+}
+''';
+    // Check completion after the semicolon.
     await _prepareCompletion('ing(3;', before, atEnd: true);
     _assertHasChange(
       'Insert a newline at the end of the current line',

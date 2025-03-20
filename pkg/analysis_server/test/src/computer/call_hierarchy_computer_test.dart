@@ -1039,7 +1039,7 @@ void two() {
     expect(calls, isNotEmpty);
 
     // Modify the file so that the target offset is no longer the original item.
-    addTestSource(testCode.replaceAll('one()', 'three()'));
+    updateTestSource(testCode.replaceAll('one()', 'three()'));
 
     // Ensure there are now no results for the original target.
     calls = await findIncomingCallsForTarget(target);
@@ -1790,7 +1790,7 @@ void two() {}
     expect(calls, isNotEmpty);
 
     // Modify the file so that the target offset is no longer the original item.
-    addTestSource(testCode.replaceAll('one()', 'three()'));
+    updateTestSource(testCode.replaceAll('one()', 'three()'));
 
     // Ensure there are now no results for the original target.
     calls = await findOutgoingCallsForTarget(target);

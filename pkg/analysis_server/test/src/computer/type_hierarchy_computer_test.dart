@@ -6,7 +6,6 @@ import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,15 +13,13 @@ import '../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TypeHierarchyComputerFindTargetTest);
-    defineReflectiveTests(TypeHierarchyComputerFindSupertypesTest);
     defineReflectiveTests(TypeHierarchyComputerFindSubtypesTest);
+    defineReflectiveTests(TypeHierarchyComputerFindSupertypesTest);
+    defineReflectiveTests(TypeHierarchyComputerFindTargetTest);
   });
 }
 
 abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
-  late TestCode code;
-
   /// Matches a [TypeHierarchyItem] for [Enum].
   Matcher get _isEnum => TypeMatcher<TypeHierarchyItem>()
       .having((e) => e.displayName, 'displayName', 'Enum')
@@ -53,18 +50,16 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
         greaterThan('class Object {}'.length),
       );
 
-  @override
-  void addTestSource(String content) {
-    code = TestCode.parse(content);
-    super.addTestSource(code.code);
-  }
-
   Future<TypeHierarchyItem?> findTarget() async {
-    expect(code, isNotNull, reason: 'addTestSource should be called first');
+    expect(
+      parsedTestCode,
+      isNotNull,
+      reason: 'addTestSource should be called first',
+    );
     var result = await getResolvedUnit(testFile);
     return DartLazyTypeHierarchyComputer(
       result,
-    ).findTarget(code.position.offset);
+    ).findTarget(parsedTestCode.position.offset);
   }
 
   /// Matches a [TypeHierarchyItem] with the given values.
@@ -130,8 +125,8 @@ class My^Class1<T1, T2> {}
         'MyClass2<T1>',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -150,8 +145,8 @@ class ^MyClass1 {}
         'MyClass2',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -171,15 +166,15 @@ mixin MyMi^xin1 {}
         'MyClass1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
       _isRelatedItem(
         'MyClass2',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
-        codeRange: code.ranges[2].sourceRange,
-        nameRange: code.ranges[3].sourceRange,
+        codeRange: parsedTestCode.ranges[2].sourceRange,
+        nameRange: parsedTestCode.ranges[3].sourceRange,
       ),
     ]);
   }
@@ -198,8 +193,8 @@ class ^MyClass1 {}
         'MyClass2',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.extends_,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -220,8 +215,8 @@ class MyCla^ss1 {}
         'MyEnum1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -242,8 +237,8 @@ mixin MyMi^xin1 {}
         'MyEnum1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -262,8 +257,8 @@ class MyCl^ass1 {}
         'MyMixin1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -282,8 +277,8 @@ class MyCl^ass1 {}
         'MyMixin1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.constrainedTo,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -315,7 +310,9 @@ class ^MyClass2 extends MyClass1 {}
     var target = await findTarget();
 
     // Update the content so that offsets have changed since we got `target`.
-    addTestSource('// extra\n$content');
+    updateTestSource('''
+// extra
+$content''');
 
     var supertypes = await findSupertypes(target!);
     expect(supertypes, [
@@ -323,8 +320,8 @@ class ^MyClass2 extends MyClass1 {}
         'MyClass1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.extends_,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -344,8 +341,8 @@ class ^MyClass2<T1> implements MyClass1<T1, String> {}
         'MyClass1<T1, String>',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -400,8 +397,8 @@ class ^MyClass2 implements MyClass1 {}
         'MyClass1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -422,15 +419,15 @@ class ^MyClass1 with MyMixin1, MyMixin2 {}
         'MyMixin1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
       _isRelatedItem(
         'MyMixin2',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
-        codeRange: code.ranges[2].sourceRange,
-        nameRange: code.ranges[3].sourceRange,
+        codeRange: parsedTestCode.ranges[2].sourceRange,
+        nameRange: parsedTestCode.ranges[3].sourceRange,
       ),
     ]);
   }
@@ -449,8 +446,8 @@ class ^MyClass2 extends MyClass1 {}
         'MyClass1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.extends_,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -470,8 +467,8 @@ enum MyEn^um1 implements MyClass1 { one }
         'MyClass1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -491,8 +488,8 @@ enum MyEn^um1 with MyMixin1 { one }
         'MyMixin1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.mixesIn,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -512,8 +509,8 @@ mixin MyMix^in2 implements MyClass1 {}
         'MyClass1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.implements,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -532,8 +529,8 @@ mixin MyMix^in2 on MyClass1 {}
         'MyClass1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.constrainedTo,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     ]);
   }
@@ -562,8 +559,8 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
       _isItem(
         'MyClass1',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }
@@ -578,8 +575,8 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
       _isItem(
         'MyClass1<T1, T2>',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }
@@ -595,8 +592,8 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
       _isItem(
         'MyClass1',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }
@@ -612,8 +609,8 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
       _isItem(
         'MyClass1',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }
@@ -630,8 +627,8 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
       _isItem(
         'MyEnum1',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }
@@ -648,8 +645,8 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
       _isItem(
         'MyEnum1',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }
@@ -666,8 +663,8 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
       _isItem(
         'MyEnum1',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }
@@ -704,8 +701,8 @@ int? b;
       _isItem(
         'MyMixin1',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }
@@ -721,8 +718,8 @@ int? b;
       _isItem(
         'MyMixin1',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }
@@ -738,8 +735,8 @@ int? b;
       _isItem(
         'MyMixin1',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }
@@ -756,8 +753,8 @@ MyCl^ass1<String, String>? a;
       _isItem(
         'MyClass1<String, String>?',
         testFile.path,
-        codeRange: code.ranges[0].sourceRange,
-        nameRange: code.ranges[1].sourceRange,
+        codeRange: parsedTestCode.ranges[0].sourceRange,
+        nameRange: parsedTestCode.ranges[1].sourceRange,
       ),
     );
   }

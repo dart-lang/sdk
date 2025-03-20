@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:test/test.dart';
 
@@ -18,19 +19,32 @@ import 'abstract_context.dart';
 class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
-  late String testCode;
+  TestCode? _parsedTestCode;
   late ParsedUnitResult testParsedResult;
   late ResolvedLibraryResult? testLibraryResult;
   late ResolvedUnitResult testAnalysisResult;
   late CompilationUnit testUnit;
   late FindNode findNode;
   late FindElement2 findElement2;
-
   late LibraryElement2 testLibraryElement;
+  TestCode get parsedTestCode => _parsedTestCode!;
+  set parsedTestCode(TestCode value) {
+    if (_parsedTestCode != null) {
+      throw ArgumentError(
+        'parsedTestCode is already set to ${_parsedTestCode!.code}',
+      );
+    }
+    _parsedTestCode = value;
+  }
+
+  String get testCode => parsedTestCode.code;
+  set testCode(String value) {
+    parsedTestCode = TestCode.parse(normalizeSource(value));
+  }
 
   void addTestSource(String code) {
     testCode = code;
-    newFile(testFile.path, code);
+    newFile(testFile.path, testCode);
   }
 
   int findEnd(String search) {
@@ -94,5 +108,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<void> resolveTestFile() async {
     await getResolvedUnit(testFile);
+  }
+
+  void updateTestSource(String code) {
+    if (_parsedTestCode == null) {
+      throw StateError('testCode is not set');
+    }
+    _parsedTestCode = null;
+    addTestSource(code);
   }
 }
