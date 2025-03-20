@@ -445,7 +445,7 @@ abstract class ExecutableMember extends Member
 class FieldFormalParameterMember extends ParameterMember
     implements FieldFormalParameterElement {
   factory FieldFormalParameterMember({
-    required FieldFormalParameterElement declaration,
+    required FieldFormalParameterElementImpl declaration,
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
@@ -460,14 +460,19 @@ class FieldFormalParameterMember extends ParameterMember
   }
 
   FieldFormalParameterMember._({
-    required FieldFormalParameterElement super.declaration,
+    required FieldFormalParameterElementImpl super.declaration,
     required super.substitution,
     required super.typeParameters,
   }) : super._();
 
   @override
+  FieldFormalParameterElementImpl get declaration {
+    return _declaration as FieldFormalParameterElementImpl;
+  }
+
+  @override
   FieldElementOrMember? get field {
-    var field = (declaration as FieldFormalParameterElement).field;
+    var field = declaration.field;
     if (field == null) {
       return null;
     }
@@ -497,7 +502,7 @@ class FieldMember extends VariableMember
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember({
-    required FieldElement super.declaration,
+    required FieldElementImpl super.declaration,
     required super.substitution,
   });
 
@@ -539,7 +544,7 @@ class FieldMember extends VariableMember
   }
 
   @override
-  PropertyAccessorElement? get getter {
+  PropertyAccessorElementOrMember? get getter {
     var baseGetter = declaration.getter;
     if (baseGetter == null) {
       return null;
@@ -603,7 +608,7 @@ class FieldMember extends VariableMember
   Element2 get nonSynthetic2 => _element2.nonSynthetic2;
 
   @override
-  PropertyAccessorElement? get setter {
+  PropertyAccessorElementOrMember? get setter {
     var baseSetter = declaration.setter;
     if (baseSetter == null) {
       return null;
@@ -667,24 +672,26 @@ class FieldMember extends VariableMember
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 
-  /// If the given [field]'s type is different when any type parameters from the
+  /// If the given [element]'s type is different when any type parameters from the
   /// defining type's declaration are replaced with the actual type arguments
   /// from the [definingType], create a field member representing the given
   /// field. Return the member that was created, or the base field if no member
   /// was created.
   static FieldElementOrMember from(
-      FieldElementOrMember field, InterfaceType definingType) {
+    FieldElementImpl element,
+    InterfaceType definingType,
+  ) {
     if (definingType.typeArguments.isEmpty) {
-      return field;
+      return element;
     }
     return FieldMember(
-      declaration: field,
+      declaration: element,
       substitution: Substitution.fromInterfaceType(definingType),
     );
   }
 
-  static FieldElement from2(
-    FieldElement element,
+  static FieldElementOrMember from2(
+    FieldElementImpl element,
     MapSubstitution substitution,
   ) {
     if (substitution.map.isEmpty) {
@@ -1112,7 +1119,7 @@ class ParameterMember extends VariableMember
   final List<TypeParameterElement> typeParameters;
 
   factory ParameterMember({
-    required ParameterElement declaration,
+    required ParameterElementImpl declaration,
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
@@ -1129,7 +1136,7 @@ class ParameterMember extends VariableMember
   /// Initialize a newly created element to represent a parameter, based on the
   /// [declaration], with applied [substitution].
   ParameterMember._({
-    required ParameterElement super.declaration,
+    required ParameterElementImpl super.declaration,
     required super.substitution,
     required this.typeParameters,
   });
@@ -1282,16 +1289,19 @@ class ParameterMember extends VariableMember
 
   static ParameterElementMixin from(
       ParameterElementMixin element, MapSubstitution substitution) {
+    ParameterElementImpl declaration;
     var combined = substitution;
     if (element is ParameterMember) {
       var member = element;
-      element = member.declaration;
+      declaration = member.declaration;
 
       var map = <TypeParameterElement2, DartType>{
         for (var MapEntry(:key, :value) in member.substitution.map.entries)
           key: substitution.substituteType(value),
       };
       combined = Substitution.fromMap2(map);
+    } else {
+      declaration = element as ParameterElementImpl;
     }
 
     if (combined.map.isEmpty) {
@@ -1299,7 +1309,7 @@ class ParameterMember extends VariableMember
     }
 
     return ParameterMember(
-      declaration: element,
+      declaration: declaration,
       substitution: combined,
     );
   }
@@ -1518,7 +1528,7 @@ class SetterMember extends PropertyAccessorMember
 class SuperFormalParameterMember extends ParameterMember
     implements SuperFormalParameterElement {
   factory SuperFormalParameterMember({
-    required SuperFormalParameterElement declaration,
+    required SuperFormalParameterElementImpl declaration,
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
@@ -1533,10 +1543,15 @@ class SuperFormalParameterMember extends ParameterMember
   }
 
   SuperFormalParameterMember._({
-    required SuperFormalParameterElement super.declaration,
+    required SuperFormalParameterElementImpl super.declaration,
     required super.substitution,
     required super.typeParameters,
   }) : super._();
+
+  @override
+  SuperFormalParameterElementImpl get declaration {
+    return _declaration as SuperFormalParameterElementImpl;
+  }
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -1546,9 +1561,7 @@ class SuperFormalParameterMember extends ParameterMember
 
   @override
   ParameterElement? get superConstructorParameter {
-    var superConstructorParameter =
-        (declaration as SuperFormalParameterElementImpl)
-            .superConstructorParameter;
+    var superConstructorParameter = declaration.superConstructorParameter;
     if (superConstructorParameter == null) {
       return null;
     }
@@ -1574,7 +1587,7 @@ abstract class VariableMember extends Member
   /// Initialize a newly created element to represent a variable, based on the
   /// [declaration], with applied [substitution].
   VariableMember({
-    required VariableElement super.declaration,
+    required VariableElementImpl super.declaration,
     required super.substitution,
   });
 

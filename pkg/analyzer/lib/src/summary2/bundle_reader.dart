@@ -326,7 +326,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
         }
       }
       if (parameter is FieldFormalParameterElementImpl) {
-        parameter.field = reader.readElement() as FieldElementOrMember?;
+        parameter.field = reader.readElement() as FieldElementImpl?;
       }
     }
   }
@@ -2011,7 +2011,7 @@ class ResolutionReader {
       if (element is ExecutableElement) {
         element = ExecutableMember.from2(element, substitution);
       } else {
-        element as FieldElement;
+        element as FieldElementImpl;
         element = FieldMember.from2(element, substitution);
       }
     }

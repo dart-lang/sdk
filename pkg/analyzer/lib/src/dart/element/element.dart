@@ -4350,7 +4350,7 @@ abstract class FieldElementOrMember
 class FieldFormalParameterElementImpl extends ParameterElementImpl
     implements FieldFormalParameterElement, FieldFormalParameterFragment {
   @override
-  FieldElementOrMember? field;
+  FieldElementImpl? field;
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
