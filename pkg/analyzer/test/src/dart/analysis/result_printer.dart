@@ -147,6 +147,10 @@ class DriverEventsPrinter {
   }
 
   void _writeGetLibraryByUriEvent(GetLibraryByUriEvent event) {
+    if (!configuration.withGetLibraryByUri) {
+      return;
+    }
+
     _writeGetEvent(event);
     sink.withIndent(() {
       _writeLibraryElementResult(event.result);
@@ -653,6 +657,10 @@ class DriverEventsPrinter {
   }
 
   void _writeSchedulerStatusEvent(SchedulerStatusEvent event) {
+    if (!configuration.withSchedulerStatus) {
+      return;
+    }
+
     sink.writeIndentedLine(() {
       sink.write('[status] ');
       switch (event.status) {
@@ -694,9 +702,11 @@ class DriverEventsPrinterConfiguration {
   var errorsConfiguration = ErrorsResultPrinterConfiguration();
   var elementTextConfiguration = ElementTextConfiguration();
   var withBundleRequirements = false;
+  var withGetLibraryByUri = true;
   var withElementManifests = false;
   var withLibraryManifest = false;
   var withLinkBundleEvents = false;
+  var withSchedulerStatus = true;
   var withStreamResolvedUnitResults = true;
 
   var ignoredManifestInstanceMemberNames = <String>{
