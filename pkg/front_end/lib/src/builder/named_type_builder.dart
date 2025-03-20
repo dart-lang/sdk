@@ -194,7 +194,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   void bind(
       ProblemReporting problemReporting, TypeDeclarationBuilder declaration) {
-    _declaration = declaration.origin;
+    _declaration = declaration;
     _check(problemReporting);
   }
 

@@ -175,10 +175,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  SourceFactoryBuilder get origin => this;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isRegularMethod => false;
 
   @override

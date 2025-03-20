@@ -543,7 +543,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           import.prefixFragment?.builder.dependency != null) {
         libraryDependency = import.prefixFragment!.builder.dependency!;
       } else {
-        LibraryBuilder imported = import.importedLibraryBuilder!.origin;
+        LibraryBuilder imported = import.importedLibraryBuilder!;
         Library targetLibrary = imported.library;
         libraryDependency = new LibraryDependency.import(targetLibrary,
             name: import.prefix, combinators: toCombinators(import.combinators))
@@ -947,8 +947,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       // TODO(johnniwinther): Can we create the core import as a parent scope
       //  instead of copying it everywhere?
       NameIterator<Builder> iterator = loader.coreLibrary.exportNameSpace
-          .filteredNameIterator(
-              includeDuplicates: false, includeAugmentations: false);
+          .filteredNameIterator(includeDuplicates: false);
       while (iterator.moveNext()) {
         addImportedBuilderToScope(
             name: iterator.name, builder: iterator.current, charOffset: -1);

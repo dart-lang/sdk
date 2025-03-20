@@ -142,9 +142,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   bool get isUnnamedExtension => extensionName.isUnnamedExtension;
 
   @override
-  SourceExtensionBuilder get origin => this;
-
-  @override
   Reference get reference => _reference;
 
   @override
@@ -204,8 +201,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
           augmentation, classHierarchy, bodyBuilderContext);
     }
 
-    Iterator<SourceMemberBuilder> iterator = nameSpace.filteredIterator(
-        parent: this, includeDuplicates: false, includeAugmentations: true);
+    Iterator<SourceMemberBuilder> iterator =
+        nameSpace.filteredIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       iterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);

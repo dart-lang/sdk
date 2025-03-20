@@ -395,7 +395,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   bool get isDartLibrary =>
-      libraryBuilder.origin.importUri.isScheme("dart") ||
+      libraryBuilder.importUri.isScheme("dart") ||
       uri.isScheme("org-dartlang-sdk");
 
   @override
@@ -3194,11 +3194,6 @@ class BodyBuilder extends StackListenerImpl
     }
     bool isQualified = prefixToken != null;
     Builder? declaration = scope.lookupGetable(name, nameOffset, uri);
-    if (declaration == null && prefix == null && _context.isAugmentationClass) {
-      // Coverage-ignore-block(suite): Not run.
-      // The scope of an augmented method includes the origin class.
-      declaration = _context.lookupStaticOriginMember(name, nameOffset, uri);
-    }
     if (declaration != null &&
         declaration.isDeclarationInstanceMember &&
         (inFieldInitializer &&

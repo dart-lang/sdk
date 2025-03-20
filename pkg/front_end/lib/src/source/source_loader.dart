@@ -332,8 +332,6 @@ class SourceLoader extends Loader {
 
   void registerLoadedDillLibraryBuilder(DillLibraryBuilder libraryBuilder) {
     assert(!libraryBuilder.isPart, "Unexpected part $libraryBuilder.");
-    assert(!libraryBuilder.isAugmenting,
-        "Unexpected augmenting library $libraryBuilder.");
     Uri uri = libraryBuilder.importUri;
     _markDartLibraries(uri, libraryBuilder.mainCompilationUnit);
     _compilationUnits[uri] = libraryBuilder.mainCompilationUnit;
@@ -1438,8 +1436,7 @@ severity: $severity
       }
       for (Export export in exported.exporters) {
         exported.exportNameSpace
-            .filteredNameIterator(
-                includeDuplicates: false, includeAugmentations: false)
+            .filteredNameIterator(includeDuplicates: false)
             .forEach(export.addToExportScope);
       }
     }
@@ -1449,8 +1446,7 @@ severity: $severity
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
           NameIterator<Builder> iterator = exported.exportNameSpace
-              .filteredNameIterator(
-                  includeDuplicates: false, includeAugmentations: false);
+              .filteredNameIterator(includeDuplicates: false);
           while (iterator.moveNext()) {
             if (export.addToExportScope(iterator.name, iterator.current)) {
               wasChanged = true;
@@ -1719,9 +1715,8 @@ severity: $severity
 
   void _checkConstructorsForMixin(
       SourceClassBuilder cls, ClassBuilder builder) {
-    Iterator<MemberBuilder> iterator = builder.nameSpace
-        .filteredConstructorIterator(
-            includeDuplicates: false, includeAugmentations: true);
+    Iterator<MemberBuilder> iterator =
+        builder.nameSpace.filteredConstructorIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       MemberBuilder constructor = iterator.current;
       if (constructor.isConstructor && !constructor.isSynthetic) {
@@ -1964,8 +1959,7 @@ severity: $severity
 
       if (implementsBuilder != null &&
           superclass.isSealed &&
-          baseOrFinalSuperClass.libraryBuilder.origin !=
-              cls.libraryBuilder.origin) {
+          baseOrFinalSuperClass.libraryBuilder != cls.libraryBuilder) {
         // This error is reported at the call site.
         // TODO(johnniwinther): Merge supertype checking with class hierarchy
         //  computation to better support transitive checking.
@@ -2005,8 +1999,7 @@ severity: $severity
         if (baseOrFinalSuperClass.isFinal) {
           // Don't check base and final subtyping restriction if the supertype
           // is a final type used outside of its library.
-          if (cls.libraryBuilder.origin !=
-              baseOrFinalSuperClass.libraryBuilder.origin) {
+          if (cls.libraryBuilder != baseOrFinalSuperClass.libraryBuilder) {
             // In the special case where the 'baseOrFinalSuperClass' is a core
             // library class and we are indirectly subtyping from a superclass
             // that's from a pre-feature library, we want to produce a final
@@ -2017,8 +2010,8 @@ severity: $severity
             // [FinalClassImplementedOutsideOfLibrary] error.
             //
             // TODO(kallentu): Avoid over-reporting for with clauses.
-            if (baseOrFinalSuperClass.libraryBuilder.origin ==
-                    superclass.libraryBuilder.origin ||
+            if (baseOrFinalSuperClass.libraryBuilder ==
+                    superclass.libraryBuilder ||
                 !baseOrFinalSuperClass.libraryBuilder.importUri
                     .isScheme("dart") ||
                 implementsBuilder != null) {
@@ -2056,8 +2049,7 @@ severity: $severity
         checkForBaseFinalRestriction(supertypeDeclaration);
 
         if (isClassModifiersEnabled(supertypeDeclaration)) {
-          if (cls.libraryBuilder.origin !=
-                  supertypeDeclaration.libraryBuilder.origin &&
+          if (cls.libraryBuilder != supertypeDeclaration.libraryBuilder &&
               !mayIgnoreClassModifiers(supertypeDeclaration)) {
             if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
               cls.addProblem(
@@ -2086,8 +2078,7 @@ severity: $severity
         // Report error for extending a sealed class outside of its library.
         if (isSealedClassEnabled(supertypeDeclaration) &&
             supertypeDeclaration.isSealed &&
-            cls.libraryBuilder.origin !=
-                supertypeDeclaration.libraryBuilder.origin) {
+            cls.libraryBuilder != supertypeDeclaration.libraryBuilder) {
           cls.addProblem(
               templateSealedClassSubtypeOutsideOfLibrary
                   .withArguments(supertypeDeclaration.fullNameForErrors),
@@ -2122,8 +2113,7 @@ severity: $severity
         // Report error for mixing in a sealed mixin outside of its library.
         if (isSealedClassEnabled(mixedInTypeDeclaration) &&
             mixedInTypeDeclaration.isSealed &&
-            cls.libraryBuilder.origin !=
-                mixedInTypeDeclaration.libraryBuilder.origin) {
+            cls.libraryBuilder != mixedInTypeDeclaration.libraryBuilder) {
           cls.addProblem(
               templateSealedClassSubtypeOutsideOfLibrary
                   .withArguments(mixedInTypeDeclaration.fullNameForErrors),
@@ -2144,8 +2134,7 @@ severity: $severity
 
           ClassBuilder? checkedClass = interfaceDeclaration;
           while (checkedClass != null) {
-            if (cls.libraryBuilder.origin !=
-                    checkedClass.libraryBuilder.origin &&
+            if (cls.libraryBuilder != checkedClass.libraryBuilder &&
                 !mayIgnoreClassModifiers(checkedClass)) {
               final List<LocatedMessage> context = [
                 if (checkedClass != interfaceDeclaration)
@@ -2194,8 +2183,7 @@ severity: $severity
           // outside of its library.
           if (isSealedClassEnabled(interfaceDeclaration) &&
               interfaceDeclaration.isSealed &&
-              cls.libraryBuilder.origin !=
-                  interfaceDeclaration.libraryBuilder.origin) {
+              cls.libraryBuilder != interfaceDeclaration.libraryBuilder) {
             cls.addProblem(
                 templateSealedClassSubtypeOutsideOfLibrary
                     .withArguments(interfaceDeclaration.fullNameForErrors),
@@ -2231,8 +2219,6 @@ severity: $severity
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
     for (LibraryBuilder libraryBuilder in loadedLibraryBuilders) {
-      assert(!libraryBuilder.isAugmenting,
-          "Unexpected augmentation library $libraryBuilder.");
       if ((libraryBuilder.loader == this ||
           libraryBuilder.importUri.isScheme("dart") ||
           roots.contains(libraryBuilder.importUri))) {
@@ -2307,13 +2293,13 @@ severity: $severity
       Class enumClass,
       Class underscoreEnumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
-      assert(builder.libraryBuilder.loader == this && !builder.isAugmenting);
+      assert(builder.libraryBuilder.loader == this);
       builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
           enumClass, underscoreEnumClass);
     }
     for (SourceExtensionTypeDeclarationBuilder builder
         in sourceExtensionTypeDeclarations) {
-      assert(builder.libraryBuilder.loader == this && !builder.isAugmenting);
+      assert(builder.libraryBuilder.loader == this);
       builder.checkSupertypes(coreTypes, hierarchyBuilder);
     }
     ticker.logMs("Checked supertypes");
@@ -2416,14 +2402,14 @@ severity: $severity
           sourceExtensionTypeDeclarationBuilders) {
     // TODO(ahe): Move this to [ClassHierarchyBuilder].
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.libraryBuilder.loader == this && !builder.isAugmenting) {
+      if (builder.libraryBuilder.loader == this) {
         builder.checkRedirectingFactories(
             typeInferenceEngine.typeSchemaEnvironment);
       }
     }
     for (SourceExtensionTypeDeclarationBuilder builder
         in sourceExtensionTypeDeclarationBuilders) {
-      if (builder.libraryBuilder.loader == this && !builder.isAugmenting) {
+      if (builder.libraryBuilder.loader == this) {
         builder.checkRedirectingFactories(
             typeInferenceEngine.typeSchemaEnvironment);
       }
@@ -2436,7 +2422,7 @@ severity: $severity
   void computeFieldPromotability() {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       // TODO(paulberry): what should we do for augmentation libraries?
-      if (library.loader == this && !library.isAugmenting) {
+      if (library.loader == this) {
         library.computeFieldPromotability();
       }
     }
@@ -2445,11 +2431,9 @@ severity: $severity
 
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
-      if (!builder.isAugmenting) {
-        Class? mixedInClass = builder.cls.mixedInClass;
-        if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
-          builder.checkMixinApplication(hierarchy, coreTypes);
-        }
+      Class? mixedInClass = builder.cls.mixedInClass;
+      if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
+        builder.checkMixinApplication(hierarchy, coreTypes);
       }
     }
     ticker.logMs("Checked mixin declaration applications");
@@ -2467,33 +2451,31 @@ severity: $severity
       for (MapEntry<SourceClassBuilder, TypeBuilder> entry
           in mixinApplications.entries) {
         SourceClassBuilder mixinApplication = entry.key;
-        if (!mixinApplication.isAugmenting) {
-          ClassHierarchyNode node =
-              hierarchyBuilder.getNodeFromClassBuilder(mixinApplication);
-          ClassHierarchyNode? mixedInNode = node.mixedInNode;
-          if (mixedInNode != null) {
-            Class mixedInClass = mixedInNode.classBuilder.cls;
-            List<Supertype> onClause = mixedInClass.onClause;
-            if (onClause.isNotEmpty) {
-              for (Procedure procedure in mixedInClass.procedures) {
-                if (procedure.containsSuperCalls) {
-                  procedure.function.body?.accept(new _CheckSuperAccess(
-                      libraryBuilder,
-                      mixinApplication.cls,
-                      entry.value,
-                      procedure,
-                      superMemberCache));
-                }
+        ClassHierarchyNode node =
+            hierarchyBuilder.getNodeFromClassBuilder(mixinApplication);
+        ClassHierarchyNode? mixedInNode = node.mixedInNode;
+        if (mixedInNode != null) {
+          Class mixedInClass = mixedInNode.classBuilder.cls;
+          List<Supertype> onClause = mixedInClass.onClause;
+          if (onClause.isNotEmpty) {
+            for (Procedure procedure in mixedInClass.procedures) {
+              if (procedure.containsSuperCalls) {
+                procedure.function.body?.accept(new _CheckSuperAccess(
+                    libraryBuilder,
+                    mixinApplication.cls,
+                    entry.value,
+                    procedure,
+                    superMemberCache));
               }
-              for (Field field in mixedInClass.fields) {
-                if (field.containsSuperCalls) {
-                  field.initializer?.accept(new _CheckSuperAccess(
-                      libraryBuilder,
-                      mixinApplication.cls,
-                      entry.value,
-                      field,
-                      superMemberCache));
-                }
+            }
+            for (Field field in mixedInClass.fields) {
+              if (field.containsSuperCalls) {
+                field.initializer?.accept(new _CheckSuperAccess(
+                    libraryBuilder,
+                    mixinApplication.cls,
+                    entry.value,
+                    field,
+                    superMemberCache));
               }
             }
           }

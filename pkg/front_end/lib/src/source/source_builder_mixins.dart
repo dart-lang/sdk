@@ -97,12 +97,9 @@ mixin SourceDeclarationBuilderMixin
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
     Iterator<SourceMemberBuilder> iterator = nameSpace
-        .filteredIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true)
+        .filteredIterator<SourceMemberBuilder>(includeDuplicates: false)
         .join(nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
-            parent: this,
-            includeDuplicates: false,
-            includeAugmentations: true));
+            includeDuplicates: false));
     while (iterator.moveNext()) {
       SourceMemberBuilder declaration = iterator.current;
       count += declaration.buildBodyNodes(
@@ -126,7 +123,7 @@ mixin SourceDeclarationBuilderMixin
 
     Iterator<SourceMemberBuilder> iterator =
         nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true);
+            includeDuplicates: false);
     while (iterator.moveNext()) {
       count += iterator.current
           .computeDefaultTypes(context, inErrorRecovery: hasErrors);
@@ -162,9 +159,7 @@ mixin SourceDeclarationBuilderMixin
   void _buildMember(SourceMemberBuilder memberBuilder, Member member,
       Member? tearOff, BuiltMemberKind memberKind,
       {required bool addMembersToLibrary}) {
-    if (!memberBuilder.isAugmenting &&
-        !memberBuilder.isDuplicate &&
-        !memberBuilder.isConflictingSetter) {
+    if (!memberBuilder.isDuplicate && !memberBuilder.isConflictingSetter) {
       if (memberKind == BuiltMemberKind.ExtensionTypeRepresentationField) {
         addMemberInternal(memberBuilder, memberKind, member, tearOff);
       } else {

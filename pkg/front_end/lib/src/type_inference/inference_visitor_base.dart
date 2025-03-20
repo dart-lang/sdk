@@ -4418,13 +4418,12 @@ class _WhyNotPromotedVisitor
   List<LocatedMessage> visitPropertyNotPromotedForNonInherentReason(
       PropertyNotPromotedForNonInherentReason reason) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
-        this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
+        inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
-      // `fieldPromotabilityInfo` is computed for all library builders except
-      // those for augmentation libraries.
-      assert(this.inferrer.libraryBuilder.isAugmenting);
-      // "why not promoted" functionality is not supported in augmentation
-      // libraries, so just don't generate a context message.
+      assert(
+          false,
+          "Missing field non-promotability info for "
+          "${inferrer.libraryBuilder}.");
       return const [];
     }
     FieldNameNonPromotabilityInfo<Class, SourceMemberBuilder,

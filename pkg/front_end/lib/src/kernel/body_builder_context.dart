@@ -114,23 +114,12 @@ abstract class BodyBuilderContext {
     return declarationContext.lookupLocalMember(name, required: required);
   }
 
-  /// Returns `true` if the enclosing class in an augmenting class.
-  bool get isAugmentationClass => declarationContext.isAugmentationClass;
-
   /// Returns `true` if the enclosing entity is an extension type.
   bool get isExtensionTypeDeclaration =>
       declarationContext.isExtensionTypeDeclaration;
 
   /// Returns `true` if the enclosing entity is an extension.
   bool get isExtensionDeclaration => declarationContext.isExtensionDeclaration;
-
-  // Coverage-ignore(suite): Not run.
-  /// Looks up the static member by the given [name] in the origin of the
-  /// enclosing declaration.
-  Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
-    return declarationContext.lookupStaticOriginMember(
-        name, fileOffset, fileUri);
-  }
 
   /// Returns the [FormalParameterBuilder] by the given [name] declared in the
   /// member whose body is being built.
@@ -436,16 +425,10 @@ abstract class BodyBuilderDeclarationContext {
 
   Builder? lookupLocalMember(String name, {bool required = false});
 
-  bool get isAugmentationClass => false;
-
   bool get isExtensionTypeDeclaration => false;
 
   // Coverage-ignore(suite): Not run.
   bool get isExtensionDeclaration => false;
-
-  Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
-    throw new UnsupportedError('${runtimeType}.lookupStaticOriginMember');
-  }
 
   bool get isMixinClass => false;
 
@@ -539,17 +522,6 @@ class _SourceClassBodyBuilderDeclarationContext
   @override
   Constructor? lookupSuperConstructor(Name name) {
     return _sourceClassBuilder.lookupSuperConstructor(name);
-  }
-
-  @override
-  bool get isAugmentationClass => _sourceClassBuilder.isAugmenting;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
-    // The scope of an augmented method includes the origin class.
-    return _sourceClassBuilder.origin
-        .findStaticBuilder(name, fileOffset, fileUri, _libraryBuilder);
   }
 
   @override

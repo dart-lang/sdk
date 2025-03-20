@@ -133,9 +133,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// Reference for the class built by this builder.
   Reference get reference;
 
-  @override
-  ClassBuilder get origin;
-
   abstract bool isNullClass;
 
   @override
@@ -187,8 +184,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Builder? findStaticBuilder(
       String name, int fileOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter = false}) {
-    if (accessingLibrary.nameOriginBuilder.origin !=
-            libraryBuilder.nameOriginBuilder.origin &&
+    if (accessingLibrary.nameOriginBuilder !=
+            libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
@@ -206,12 +203,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           isSetter: isSetter,
           forStaticAccess: true);
     }
-    if (declaration == null && isAugmenting) {
-      // Coverage-ignore-block(suite): Not run.
-      return origin.findStaticBuilder(
-          name, fileOffset, fileUri, accessingLibrary,
-          isSetter: isSetter);
-    }
     return declaration;
   }
 
@@ -219,10 +210,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
     Builder? builder = nameSpace.lookupLocalMember(name, setter: setter);
-    if (builder == null && isAugmenting) {
-      // Coverage-ignore-block(suite): Not run.
-      builder = origin.nameSpace.lookupLocalMember(name, setter: setter);
-    }
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(
@@ -374,11 +361,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder>? arguments) {
-    Class cls = isAugmenting
-        ?
-        // Coverage-ignore(suite): Not run.
-        origin.cls
-        : this.cls;
     if (arguments != null) {
       List<DartType> typeArguments =
           buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
@@ -405,26 +387,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false, bool isSuper = false}) {
     Class? instanceClass = cls;
-    if (isAugmenting) {
-      // Coverage-ignore-block(suite): Not run.
-      assert(identical(instanceClass, origin.cls),
-          "Found ${origin.cls} expected $instanceClass");
-      if (isSuper) {
-        // The super class is only correctly found through the origin class.
-        instanceClass = origin.cls;
-      } else {
-        Member? member =
-            hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
-        if (member?.parent == instanceClass) {
-          // Only if the member is found in the augmentation can we use it.
-          return member;
-        } else {
-          // Otherwise, we need to keep searching in the origin class.
-          instanceClass = origin.cls;
-        }
-      }
-    }
-
     if (isSuper) {
       instanceClass = instanceClass.superclass;
       if (instanceClass == null) return null;

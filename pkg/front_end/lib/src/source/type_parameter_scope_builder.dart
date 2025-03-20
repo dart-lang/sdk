@@ -1577,13 +1577,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
 
         indexedContainer ??= indexedLibrary;
 
-        bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
-            // Coverage-ignore(suite): Not run.
-            fragment.modifiers.isAugment;
-
-        GetterReference references = new GetterReference(
-            name, nameScheme, indexedContainer,
-            isAugmentation: isAugmentation);
+        GetterReference references =
+            new GetterReference(name, nameScheme, indexedContainer);
 
         GetterDeclaration declaration = new GetterDeclarationImpl(fragment);
         List<GetterDeclaration> augmentationDeclarations = [];
@@ -1658,13 +1653,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
 
         indexedContainer ??= indexedLibrary;
 
-        bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
-            // Coverage-ignore(suite): Not run.
-            fragment.modifiers.isAugment;
-
-        SetterReference references = new SetterReference(
-            name, nameScheme, indexedContainer,
-            isAugmentation: isAugmentation);
+        SetterReference references =
+            new SetterReference(name, nameScheme, indexedContainer);
 
         SetterDeclaration declaration = new SetterDeclarationImpl(fragment);
         List<SetterDeclaration> augmentationDeclarations = [];
@@ -1749,10 +1739,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         Reference? tearOffReference;
         indexedContainer ??= indexedLibrary;
 
-        bool isAugmentation = enclosingLibraryBuilder.isAugmenting &&
-            // Coverage-ignore(suite): Not run.
-            fragment.modifiers.isAugment;
-        if (indexedContainer != null && !isAugmentation) {
+        if (indexedContainer != null) {
           Name nameToLookup =
               nameScheme.getProcedureMemberName(kind, name).name;
           procedureReference =

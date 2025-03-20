@@ -12,9 +12,6 @@ abstract class ITypeDeclarationBuilder implements Builder {
 
   int get typeParametersCount => 0;
 
-  @override
-  TypeDeclarationBuilder get origin;
-
   /// Return `true` if this type declaration is an enum.
   bool get isEnum;
 
@@ -61,9 +58,6 @@ abstract class ITypeDeclarationBuilder implements Builder {
 abstract class TypeDeclarationBuilderImpl extends BuilderImpl
     implements ITypeDeclarationBuilder {
   @override
-  TypeDeclarationBuilder get origin => this as TypeDeclarationBuilder;
-
-  @override
   // Coverage-ignore(suite): Not run.
   bool get isNamedMixinApplication => false;
 
@@ -81,6 +75,6 @@ abstract class TypeDeclarationBuilderImpl extends BuilderImpl
 
   @override
   String toString() {
-    return '$runtimeType(${isAugmenting ? 'augmentation ' : ''}$name)';
+    return '$runtimeType($name)';
   }
 }

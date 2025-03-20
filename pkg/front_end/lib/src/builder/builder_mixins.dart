@@ -23,8 +23,8 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   Builder? findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter = false}) {
-    if (accessingLibrary.nameOriginBuilder.origin !=
-            libraryBuilder.nameOriginBuilder.origin &&
+    if (accessingLibrary.nameOriginBuilder !=
+            libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
@@ -68,10 +68,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   }
 
   void forEach(void f(String name, Builder builder)) {
-    nameSpace
-        .filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: false)
-        .forEach(f);
+    nameSpace.filteredNameIterator(includeDuplicates: false).forEach(f);
   }
 
   @override

@@ -124,11 +124,11 @@ class SourceExtensionTypeDeclarationBuilder
       count += constructorReferences.length;
     }
     if (count > 0) {
-      Iterator<MemberBuilder> iterator = nameSpace.filteredConstructorIterator(
-          parent: null, includeDuplicates: true, includeAugmentations: false);
+      Iterator<MemberBuilder> iterator =
+          nameSpace.filteredConstructorIterator(includeDuplicates: true);
       while (iterator.moveNext()) {
         MemberBuilder declaration = iterator.current;
-        if (declaration.declarationBuilder?.origin != origin) {
+        if (declaration.declarationBuilder != this) {
           unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
               fileOffset, fileUri);
         }
@@ -184,14 +184,8 @@ class SourceExtensionTypeDeclarationBuilder
       _representationFieldFragment?.type;
 
   @override
-  SourceExtensionTypeDeclarationBuilder get origin => this;
-
-  @override
-  ExtensionTypeDeclaration get extensionTypeDeclaration => isAugmenting
-      ?
-      // Coverage-ignore(suite): Not run.
-      origin._extensionTypeDeclaration
-      : _extensionTypeDeclaration;
+  ExtensionTypeDeclaration get extensionTypeDeclaration =>
+      _extensionTypeDeclaration;
 
   @override
   Annotatable get annotatable => extensionTypeDeclaration;
@@ -714,7 +708,7 @@ class SourceExtensionTypeDeclarationBuilder
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     Iterator<SourceFactoryBuilder> iterator =
         nameSpace.filteredConstructorIterator<SourceFactoryBuilder>(
-            parent: this, includeDuplicates: true, includeAugmentations: true);
+            includeDuplicates: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
@@ -740,16 +734,15 @@ class SourceExtensionTypeDeclarationBuilder
       }
     }
 
-    Iterator<SourceMemberBuilder> iterator = nameSpace.filteredIterator(
-        parent: this, includeDuplicates: false, includeAugmentations: true);
+    Iterator<SourceMemberBuilder> iterator =
+        nameSpace.filteredIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       iterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
-        nameSpace.filteredConstructorIterator(
-            parent: this, includeDuplicates: false, includeAugmentations: true);
+        nameSpace.filteredConstructorIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       constructorIterator.current
           .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
@@ -872,40 +865,20 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      new ClassDeclarationMemberIterator<SourceExtensionTypeDeclarationBuilder,
-              T>.full(
-          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
-          this,
-          includeDuplicates: false);
+      nameSpace.filteredIterator<T>(includeDuplicates: false);
 
   @override
   // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      new ClassDeclarationMemberNameIterator<
-              SourceExtensionTypeDeclarationBuilder, T>(
-          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
-          this,
-          includeDuplicates: false);
+      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
 
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorIterator<
-              SourceExtensionTypeDeclarationBuilder, T>.full(
-          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
-          this,
-          includeDuplicates: false);
+      nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
 
   @override
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorNameIterator<
-              SourceExtensionTypeDeclarationBuilder, T>(
-          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
-          this,
-          includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isMixinDeclaration => false;
+      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
 
   BodyBuilderContext createBodyBuilderContext() {
     return new ExtensionTypeBodyBuilderContext(this);
@@ -935,46 +908,14 @@ class SourceExtensionTypeDeclarationBuilder
     return result;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterator<T> localMemberIterator<T extends Builder>() =>
-      new ClassDeclarationMemberIterator<SourceExtensionTypeDeclarationBuilder,
-          T>.local(this, includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterator<T> localConstructorIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorIterator<
-          SourceExtensionTypeDeclarationBuilder,
-          T>.local(this, includeDuplicates: false);
-
   // Coverage-ignore(suite): Not run.
   /// Returns an iterator the origin extension type declaration and all
   /// augmentations in application order.
   Iterator<SourceExtensionTypeDeclarationBuilder> get declarationIterator =>
       new AugmentationIterator<SourceExtensionTypeDeclarationBuilder>(
-          // TODO(johnniwinther): Support augmentations.
-          origin,
-          null);
+          this, null);
 
   @override
   // Coverage-ignore(suite): Not run.
   Reference get reference => _extensionTypeDeclaration.reference;
-}
-
-class _SourceExtensionTypeDeclarationBuilderAugmentationAccess
-    implements
-        ClassDeclarationAugmentationAccess<
-            SourceExtensionTypeDeclarationBuilder> {
-  const _SourceExtensionTypeDeclarationBuilderAugmentationAccess();
-
-  @override
-  SourceExtensionTypeDeclarationBuilder getOrigin(
-          SourceExtensionTypeDeclarationBuilder classDeclaration) =>
-      classDeclaration.origin;
-
-  @override
-  Iterable<SourceExtensionTypeDeclarationBuilder>? getAugmentations(
-          SourceExtensionTypeDeclarationBuilder classDeclaration) =>
-      null;
 }

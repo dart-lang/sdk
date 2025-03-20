@@ -215,10 +215,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   Name get memberName => _memberName.name;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  SourceConstructorBuilderImpl get origin => this;
-
-  @override
   bool get isRedirecting => _lastDeclaration.isRedirecting;
 
   @override
@@ -229,16 +225,11 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   Reference get readTargetReference => _readTargetReference;
 
   @override
-  Member get invokeTarget => isAugmenting
-      ?
-      // Coverage-ignore(suite): Not run.
-      origin.invokeTarget
-      : _invokeTarget;
+  Member get invokeTarget => _invokeTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference =>
-      isAugmenting ? origin.invokeTargetReference : _invokeTargetReference;
+  Reference get invokeTargetReference => _invokeTargetReference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -543,11 +534,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (_hasBuiltOutlines) return;
 
-    if (isConst && isAugmenting) {
-      // Coverage-ignore-block(suite): Not run.
-      origin.buildOutlineExpressions(
-          classHierarchy, delayedDefaultValueCloners);
-    }
     if (!hasBuiltOutlineExpressions) {
       _introductory.buildOutlineExpressions(
           annotatables: annotatables,

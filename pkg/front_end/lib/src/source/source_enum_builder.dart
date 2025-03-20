@@ -137,8 +137,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     _createSynthesizedMembers(coreLibrary);
 
     Iterator<MemberBuilder> constructorIterator =
-        nameSpace.filteredConstructorIterator(
-            includeDuplicates: false, includeAugmentations: true);
+        nameSpace.filteredConstructorIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
       MemberBuilder constructorBuilder = constructorIterator.current;
       if (!constructorBuilder.isFactory && !constructorBuilder.isConst) {
