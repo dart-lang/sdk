@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
+import '../../tool/codebase/failing_tests.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../utils/test_code_extensions.dart';
 import 'shared_test_interface.dart';
@@ -762,6 +763,23 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) => crea^te('value1');
 }
 ''');
+    expect(result, isNull);
+  }
+
+  Future<void> test_location_bad_nonDart() async {
+    var textFilePath = pathContext.join(projectFolderPath, 'lib', 'test.txt');
+    var textFileUri = Uri.file(textFilePath);
+
+    var content = 'my text';
+    createFile(textFilePath, content);
+    await initializeServer();
+    await openFile(textFileUri, content);
+    await currentAnalysis;
+    var result = await getEditableArguments(
+      textFileUri,
+      Position(line: 0, character: 0),
+    );
+
     expect(result, isNull);
   }
 
