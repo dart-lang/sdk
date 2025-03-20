@@ -29,4 +29,9 @@ void main() {
   // ^
   // [analyzer] unspecified
   // [cfe] unspecified
+
+  Integer i = .one();
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
 }
