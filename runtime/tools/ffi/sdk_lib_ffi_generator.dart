@@ -38,36 +38,20 @@ class Container {
 
   const Container(this.name, this.since);
 
-  static const pointer = Container(
-    'Pointer',
-    null,
-  );
-  static const array = Container(
-    'Array',
-    Version(2, 13),
-  );
+  static const pointer = Container('Pointer', null);
+  static const array = Container('Array', Version(2, 13));
 
-  static const typedData = Container(
-    'TypedData',
-    Version(3, 5),
-  );
+  static const typedData = Container('TypedData', Version(3, 5));
 
-  static const values = [
-    pointer,
-    array,
-    typedData,
-  ];
+  static const values = [pointer, array, typedData];
 }
 
 //
 // Generator.
 //
 
-void main(List<String> arguments) {
-  update(
-    Uri.file('sdk/lib/ffi/ffi.dart'),
-    generatePublicExtension,
-  );
+void main() {
+  update(Uri.file('sdk/lib/ffi/ffi.dart'), generatePublicExtension);
   update(
     Uri.file('sdk/lib/_internal/vm/lib/ffi_patch.dart'),
     generatePatchExtension,
@@ -107,11 +91,15 @@ void update(Uri fileName, Function(StringBuffer, Config, Container) generator) {
   buffer.write(split2[1]);
 
   file.writeAsStringSync(buffer.toString());
-  final fmtResult =
-      Process.runSync(dartPath(), ["format", fileName.toFilePath()]);
+  final fmtResult = Process.runSync(Platform.resolvedExecutable, [
+    "format",
+    fileName.toFilePath(),
+  ]);
   if (fmtResult.exitCode != 0) {
-    throw Exception(
-        "Formatting failed:\n${fmtResult.stdout}\n${fmtResult.stderr}\n");
+    stderr.writeln(
+      "Formatting failed:\n${fmtResult.stdout}\n${fmtResult.stderr}\n",
+    );
+    exit(1);
   }
   print("Updated $fileName.");
 }
@@ -218,9 +206,10 @@ void generatePublicExtension(
     alignment = alignmentDefault;
   }
 
-  final asTypedList = typedListType == kDoNotEmit
-      ? ""
-      : """
+  final asTypedList =
+      typedListType == kDoNotEmit
+          ? ""
+          : """
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
@@ -291,12 +280,22 @@ $asTypedList
 
 """);
     case Container.array:
+      final elementsGetterReturnType =
+          _isBool(nativeType) ? 'List<$dartType>' : typedListType;
+
       buffer.write("""
 /// Bounds checking indexing methods on [Array]s of [$nativeType].
 $since extension ${nativeType}Array on Array<$nativeType> {
   external $dartType operator [](int index);
 
   external void operator []=(int index, $dartType value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external $elementsGetterReturnType get elements;
 }
 
 """);
@@ -351,9 +350,10 @@ void generatePatchExtension(
   final sizeTimes =
       elementSize != 1 ? '${sizeOfIntPtrSize(elementSize)} * ' : '';
 
-  final asTypedList = typedListType == kDoNotEmit
-      ? ""
-      : """
+  final asTypedList =
+      typedListType == kDoNotEmit
+          ? ""
+          : """
   @patch
   @pragma("vm:prefer-inline")
   $typedListType asTypedList(
@@ -399,6 +399,50 @@ $asTypedList
 
 """);
     case Container.array:
+      final String elementsGetter;
+      final String listHelperClass;
+      if (_isBool(nativeType)) {
+        elementsGetter = """
+  List<$dartType> get elements => _${nativeType}ArrayList(this);
+""";
+        listHelperClass = """
+class _${nativeType}ArrayList with ListMixin<$dartType>, UnmodifiableListMixin<$dartType> {
+  _${nativeType}ArrayList(this._array);
+
+  final Array<$nativeType> _array;
+
+  @override
+  int get length => _array._size;
+
+  @override
+  $dartType operator [](int index) => _array[index];
+
+  @override
+  operator []=(int index, $dartType value) {
+    _array[index] = value;
+  }
+}
+""";
+      } else {
+        elementsGetter = """
+  $typedListType get elements {
+    assert(_nestedDimensionsFlattened == 1);
+    final length = _size;
+    final typedDataBase = _typedDataBase;
+    if (typedDataBase is Pointer) {
+      return typedDataBase
+          ._offsetBy(_offsetInBytes)
+          .cast<$nativeType>()
+          .asTypedList(length);
+    }
+    final typedData = _typedDataBase as TypedData;
+    final start = typedData.offsetInBytes + _offsetInBytes;
+    return $typedListType.view(typedData.buffer, start, length);
+  }
+""";
+        listHelperClass = "";
+      }
+
       buffer.write("""
 @patch
 extension ${nativeType}Array on Array<$nativeType> {
@@ -415,7 +459,11 @@ extension ${nativeType}Array on Array<$nativeType> {
     _checkIndex(index);
     return _store$nativeType(_typedDataBase, _offsetInBytes + ${sizeTimes}index , value,);
   }
+
+  @patch
+$elementsGetter
 }
+$listHelperClass
 
 """);
     case Container.typedData:
@@ -440,38 +488,33 @@ void generateFooter(StringBuffer buffer) {
 bool _isInt(String type) => type.startsWith("Int") || type.startsWith("Uint");
 bool _isSigned(String type) => type.startsWith("Int");
 
+bool _isBool(String type) => type == "Bool";
+
 String sizeOf(int size) => "$size";
 
 String sizeOfBits(int size) => "${size * 8}";
 
 String sizeOfIntPtrSize(int size) => "$size";
 
-String bracketOr(String input) {
-  if (input.contains("or")) {
-    return "($input)";
-  }
-  return input;
-}
-
 final Uri _containingFolder = File.fromUri(Platform.script).parent.uri;
 
 ArgParser argParser() {
   final parser = ArgParser(allowTrailingOptions: false);
-  parser.addOption('path',
-      abbr: 'p',
-      help: 'Path to generate the files at.',
-      defaultsTo: _containingFolder.toString());
-  parser.addFlag('help', abbr: 'h', help: 'Display usage information.',
-      callback: (help) {
-    if (help) print(parser.usage);
-  });
+  parser.addOption(
+    'path',
+    abbr: 'p',
+    help: 'Path to generate the files at.',
+    defaultsTo: _containingFolder.toString(),
+  );
+  parser.addFlag(
+    'help',
+    abbr: 'h',
+    help: 'Display usage information.',
+    callback: (help) {
+      if (help) print(parser.usage);
+    },
+  );
   return parser;
-}
-
-String dartPath() {
-  return File.fromUri(
-          Platform.script.resolve("../../../tools/sdks/dart-sdk/bin/dart"))
-      .path;
 }
 
 class Config {
