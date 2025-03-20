@@ -114,6 +114,10 @@ abstract class AbstractScanner implements Scanner {
   @override
   bool hasErrors = false;
 
+  Token? openBraceWithMissingEndForPossibleRecovery;
+
+  int? offsetForCurlyBracketRecoveryStart;
+
   /**
    * A pointer to the stream of comment tokens created by this scanner
    * before they are assigned to the [Token] precedingComments field
@@ -352,9 +356,136 @@ abstract class AbstractScanner implements Scanner {
     appendToken(new KeywordToken(keyword, tokenStart, comments));
   }
 
+  /// Find the indentation of the logical line of [token].
+  ///
+  /// By logical take this as an example:
+  ///
+  /// ```
+  ///   if (a &&
+  ///       b) {
+  ///   }
+  /// ```
+  ///
+  /// the indentation of `{` should logically be the same as the indentation of
+  /// `a` because it's the indentation of the `if`, even though the _line_ of a
+  /// has a different indentation of the _line_ of `{`.
+  int _spacesAtStartOfLogicalLineOf(Token token) {
+    if (lineStarts.isEmpty) return -1;
+
+    // If the previous token is a `)`, e.g. if this is the start curly brace in
+    // an if, we find the first token before the corresponding `(` (in this case
+    // the if) in an attempt to find "the right" token to get the indentation
+    // for - e.g. if the if is spread over several lines the given token itself
+    // will - if formatted by the formatter - be indented more than the "if".
+    if (token.isA(TokenType.OPEN_CURLY_BRACKET)) {
+      if (token.previous == null) return -1;
+      Token previous = token.previous!;
+      bool foundWanted = false;
+      if (previous.isA(TokenType.CLOSE_PAREN)) {
+        Token closeParen = token.previous!;
+        Token? candidate = closeParen.previous;
+        while (candidate != null && candidate.endGroup != closeParen) {
+          candidate = candidate.previous;
+        }
+        if (candidate?.endGroup == closeParen && candidate!.previous != null) {
+          token = candidate.previous!;
+          if (token.isA(Keyword.IF) ||
+              token.isA(Keyword.FOR) ||
+              token.isA(Keyword.WHILE) ||
+              token.isA(Keyword.SWITCH) ||
+              token.isA(Keyword.CATCH)) {
+            foundWanted = true;
+          }
+        }
+      } else if (previous.isA(Keyword.ELSE) ||
+          previous.isA(Keyword.TRY) ||
+          previous.isA(Keyword.FINALLY)) {
+        foundWanted = true;
+      } else if (previous.isA(TokenType.EQ) &&
+          (previous.previous?.isA(TokenType.IDENTIFIER) ?? false)) {
+        // `someIdentifier = {`
+        foundWanted = true;
+      } else if (previous.isA(Keyword.CONST) &&
+          (previous.previous?.isA(TokenType.EQ) ?? false) &&
+          (previous.previous?.previous?.isA(TokenType.IDENTIFIER) ?? false)) {
+        // `someIdentifier = const {`
+        foundWanted = true;
+      }
+      if (!foundWanted) return -1;
+    }
+
+    // Now find the line of [token].
+    final int offset = token.offset;
+    int low = 0, high = lineStarts.length - 1;
+    while (low < high) {
+      int mid = high - ((high - low) >> 1); // Get middle, rounding up.
+      int pivot = lineStarts[mid];
+      if (pivot <= offset) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    final int lineIndex = low;
+    if (lineIndex == 0) {
+      // On first line.
+      return tokens.next?.charOffset ?? -1;
+    }
+
+    // Find the first token of the line.
+    int lineStartOfToken = lineStarts[lineIndex];
+    Token? candidate = token.previous;
+    while (candidate != null && candidate.offset >= lineStartOfToken) {
+      candidate = candidate.previous;
+    }
+    if (candidate != null) {
+      // candidate.next is the first token of the line.
+      return candidate.next!.offset - lineStartOfToken;
+    }
+
+    return -1;
+  }
+
+  /// If there was a single missing `}` when tokenizing, try to find the actual
+  /// `{` that is missing the `}`.
+  ///
+  /// This is done by checking all `{` tokens between the one (currently)
+  /// missing a `}` and the end of the token stream. For each we try to identify
+  /// the indentation of the `{` and the indentation of the endGroup (i.e. the
+  /// `}` it has been matched with). If the indentations mismatch we assume this
+  /// is a bad match. There might be more bad matches because of how the curly
+  /// braces are nested and we pick the last one, which should be the inner-most
+  /// one and thus the one introducing the error: That is going to be the one
+  /// that has "misaligned" the rest of the end-braces.
+  int? getOffsetForCurlyBracketRecoveryStart() {
+    if (openBraceWithMissingEndForPossibleRecovery == null) return null;
+    Token? next = openBraceWithMissingEndForPossibleRecovery!.next;
+    Token? lastMismatch;
+    while (next != null && !next.isEof) {
+      if (next.isA(TokenType.OPEN_CURLY_BRACKET)) {
+        int indentOfNext = _spacesAtStartOfLogicalLineOf(next);
+        if (indentOfNext >= 0 &&
+            indentOfNext != _spacesAtStartOfLogicalLineOf(next.endGroup!)) {
+          lastMismatch = next;
+        }
+      }
+      next = next.next;
+    }
+    if (lastMismatch != null) {
+      return lastMismatch.offset;
+    }
+    return null;
+  }
+
   void appendEofToken() {
     beginToken();
     discardOpenLt();
+    if (!groupingStack.isEmpty &&
+        groupingStack.head.isA(TokenType.OPEN_CURLY_BRACKET) &&
+        groupingStack.tail!.isEmpty) {
+      // We have a single `{` that's missing a `}`. Maybe the user is typing?
+      openBraceWithMissingEndForPossibleRecovery = groupingStack.head;
+    }
     while (!groupingStack.isEmpty) {
       unmatchedBeginGroup(groupingStack.head);
       groupingStack = groupingStack.tail!;
@@ -870,6 +1001,15 @@ abstract class AbstractScanner implements Scanner {
     }
 
     if (next == $CLOSE_CURLY_BRACKET) {
+      if (offsetForCurlyBracketRecoveryStart != null &&
+          !groupingStack.isEmpty &&
+          groupingStack.head.isA(TokenType.OPEN_CURLY_BRACKET) &&
+          groupingStack.head.offset == offsetForCurlyBracketRecoveryStart) {
+        // This instance of the scanner was instructed to recover this
+        // opening curly bracket.
+        unmatchedBeginGroup(groupingStack.head);
+        groupingStack = groupingStack.tail!;
+      }
       return appendEndGroup(
           TokenType.CLOSE_CURLY_BRACKET, OPEN_CURLY_BRACKET_TOKEN);
     }

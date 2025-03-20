@@ -13,10 +13,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show ClassMemberParser, Parser;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ScannerConfiguration;
+    show ScannerConfiguration, ScannerResult, scan;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
-    show Utf8BytesScanner;
 
 import '../source/diet_parser.dart';
 import 'parser_ast_helper.dart';
@@ -37,7 +35,7 @@ CompilationUnitEnd getAST(
   ScannerConfiguration scannerConfiguration =
       new ScannerConfiguration(enableTripleShift: enableTripleShift);
 
-  Utf8BytesScanner scanner = new Utf8BytesScanner(
+  ScannerResult scanResult = scan(
     rawBytes,
     includeComments: includeComments,
     configuration: scannerConfiguration,
@@ -50,10 +48,11 @@ CompilationUnitEnd getAST(
       // on or after ExperimentalFlag.patterns.enabledVersion or something
     },
   );
-  Token firstToken = scanner.tokenize();
+
+  Token firstToken = scanResult.tokens;
   if (lineStarts != null) {
     // Coverage-ignore-block(suite): Not run.
-    lineStarts.addAll(scanner.lineStarts);
+    lineStarts.addAll(scanResult.lineStarts);
   }
   ParserASTListener listener = new ParserASTListener();
   Parser parser;

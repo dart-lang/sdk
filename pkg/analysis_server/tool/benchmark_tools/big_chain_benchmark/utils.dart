@@ -161,7 +161,11 @@ Future<void> runHelper(
         print('====================');
         sb.writeln();
       } finally {
-        tmpDir.deleteSync(recursive: true);
+        try {
+          tmpDir.deleteSync(recursive: true);
+        } catch (e) {
+          print('Warning: $e');
+        }
       }
     }
   }

@@ -901,11 +901,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   AugmentSuperTarget? get augmentSuperTarget {
     throw new UnsupportedError('$runtimeType.augmentSuperTarget}');
   }
-
-  @override
-  Iterable<Annotatable> get annotatables {
-    throw new UnsupportedError('$runtimeType.annotatables}');
-  }
 }
 
 class AmbiguousMemberBuilder extends AmbiguousBuilder

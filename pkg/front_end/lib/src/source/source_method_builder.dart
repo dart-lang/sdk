@@ -119,21 +119,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   @override
   bool get isEnumElement => false;
 
-  // TODO(johnniwinther): What is this supposed to return?
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Annotatable> get annotatables => [
-        if (readTarget != null && invokeTarget != readTarget)
-          readTarget as Annotatable,
-        invokeTarget as Annotatable,
-      ];
-
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): Remove this. This is only needed for detecting patches
-  // and macro annotations and we should use the fragment directly once
-  // augmentations are fragments.
-  List<MetadataBuilder>? get metadata => _introductory.metadata;
-
   @override
   int buildBodyNodes(BuildNodesCallback f) {
     // TODO(johnniwinther): Generate the needed augmented methods.
@@ -223,7 +208,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   @override
   List<ClassMember> get localMembers =>
-      _localMembers ??= [new _MethodClassMember(this, _introductory)];
+      _localMembers ??= [new _MethodClassMember(this)];
 
   @override
   List<ClassMember> get localSetters => const [];
@@ -318,14 +303,13 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
 class _MethodClassMember implements ClassMember {
   final SourceMethodBuilder _builder;
-  final MethodFragment _fragment;
   late final Covariance _covariance =
       new Covariance.fromMethod(_builder.invokeTarget as Procedure);
 
-  _MethodClassMember(this._builder, this._fragment);
+  _MethodClassMember(this._builder);
 
   @override
-  int get charOffset => _fragment.nameOffset;
+  int get charOffset => _builder.fileOffset;
 
   @override
   DeclarationBuilder get declarationBuilder => _builder.declarationBuilder!;
@@ -336,7 +320,7 @@ class _MethodClassMember implements ClassMember {
       throw new UnsupportedError('$runtimeType.declarations');
 
   @override
-  Uri get fileUri => _fragment.fileUri;
+  Uri get fileUri => _builder.fileUri;
 
   @override
   bool get forSetter => false;
@@ -400,11 +384,7 @@ class _MethodClassMember implements ClassMember {
   ClassMember get interfaceMember => this;
 
   @override
-  // TODO(johnniwinther): This should not be determined by the builder. A
-  // property can have a non-abstract getter and an abstract setter or the
-  // reverse. With augmentations, abstract introductory declarations might even
-  // be implemented by augmentations.
-  bool get isAbstract => _fragment.modifiers.isAbstract;
+  bool get isAbstract => _builder.isAbstract;
 
   @override
   bool get isDuplicate => _builder.isDuplicate;
@@ -445,7 +425,7 @@ class _MethodClassMember implements ClassMember {
   bool get isSourceDeclaration => true;
 
   @override
-  bool get isStatic => _fragment.modifiers.isStatic;
+  bool get isStatic => _builder.isStatic;
 
   @override
   bool get isSynthesized => false;

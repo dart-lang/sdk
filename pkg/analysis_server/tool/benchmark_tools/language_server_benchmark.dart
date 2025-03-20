@@ -104,6 +104,10 @@ abstract class DartLanguageServerBenchmark {
     return result;
   }
 
+  Future<bool> waitUntilIsAnalyzingChanges() async {
+    return await _analyzingCompleter.future;
+  }
+
   Future<void> waitWhileAnalyzing() async {
     // Wait until it's done analyzing.
     bool isAnalyzing = await _analyzingCompleter.future;

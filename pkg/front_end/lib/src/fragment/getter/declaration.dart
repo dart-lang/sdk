@@ -67,13 +67,15 @@ abstract class GetterDeclaration {
       required bool isClassInstanceMember,
       required bool createFileUriExpression});
 
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, GetterReference references,
-      {required List<TypeParameter>? classTypeParameters});
+  void buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required GetterReference? references,
+      required List<TypeParameter>? classTypeParameters});
 
   void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
-      {required bool isAbstract, required bool isExternal});
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder);
 
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
@@ -180,10 +182,17 @@ class GetterDeclarationImpl implements GetterDeclaration {
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, GetterReference references,
-      {required List<TypeParameter>? classTypeParameters}) {
-    _encoding.buildOutlineNode(libraryBuilder, nameScheme, f, references,
+  void buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required GetterReference? references,
+      required List<TypeParameter>? classTypeParameters}) {
+    _encoding.buildOutlineNode(
+        libraryBuilder: libraryBuilder,
+        nameScheme: nameScheme,
+        f: f,
+        references: references,
         isAbstractOrExternal:
             _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
         classTypeParameters: classTypeParameters);
@@ -191,8 +200,7 @@ class GetterDeclarationImpl implements GetterDeclaration {
 
   @override
   void checkTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
-      {required bool isAbstract, required bool isExternal}) {
+      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {
     _encoding.checkTypes(libraryBuilder, typeEnvironment, setterBuilder,
         isAbstract: isAbstract, isExternal: isExternal);
   }

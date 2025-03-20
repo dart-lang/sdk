@@ -4,12 +4,11 @@
 
 library _fe_analyzer_shared.scanner;
 
-import 'dart:convert' show Utf8Encoder, unicodeReplacementCharacterRune;
+import 'dart:convert' show unicodeReplacementCharacterRune;
 import 'dart:typed_data' show Uint8List;
 
 import 'abstract_scanner.dart'
     show LanguageVersionChanged, ScannerConfiguration;
-import 'recover.dart' show scannerRecovery;
 import 'string_scanner.dart' show StringScanner;
 import 'token.dart' show Token;
 import 'utf8_bytes_scanner.dart' show Utf8BytesScanner;
@@ -32,8 +31,6 @@ export 'token_impl.dart'
 export 'utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
 const int unicodeReplacementCharacter = unicodeReplacementCharacterRune;
-
-typedef Token Recover(List<int> bytes, Token tokens, List<int> lineStarts);
 
 abstract class Scanner {
   /// Returns true if an error occurred during [tokenize].
@@ -61,12 +58,30 @@ ScannerResult scan(Uint8List bytes,
     bool includeComments = false,
     LanguageVersionChanged? languageVersionChanged,
     bool allowLazyStrings = true}) {
-  Scanner scanner = new Utf8BytesScanner(bytes,
+  Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
       configuration: configuration,
       includeComments: includeComments,
       languageVersionChanged: languageVersionChanged,
       allowLazyStrings: allowLazyStrings);
-  return _tokenizeAndRecover(scanner, bytes: bytes);
+  Token tokens = scanner.tokenize();
+  if (scanner.hasErrors) {
+    // If there was a single missing `}` and the scanner can identify a good
+    // candidate for better recovery, create a new scanner and instruct it to
+    // do that recovery.
+    int? offsetForCurlyBracketRecoveryStart =
+        scanner.getOffsetForCurlyBracketRecoveryStart();
+    if (offsetForCurlyBracketRecoveryStart != null) {
+      scanner = new Utf8BytesScanner(bytes,
+          configuration: configuration,
+          includeComments: includeComments,
+          languageVersionChanged: languageVersionChanged,
+          allowLazyStrings: allowLazyStrings);
+      scanner.offsetForCurlyBracketRecoveryStart =
+          offsetForCurlyBracketRecoveryStart;
+      tokens = scanner.tokenize();
+    }
+  }
+  return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);
 }
 
 /// Scan/tokenize the given [source].
@@ -78,15 +93,22 @@ ScannerResult scanString(String source,
       configuration: configuration,
       includeComments: includeComments,
       languageVersionChanged: languageVersionChanged);
-  return _tokenizeAndRecover(scanner, source: source);
-}
-
-ScannerResult _tokenizeAndRecover(Scanner scanner,
-    {List<int>? bytes, String? source}) {
   Token tokens = scanner.tokenize();
   if (scanner.hasErrors) {
-    if (bytes == null) bytes = const Utf8Encoder().convert(source!);
-    tokens = scannerRecovery(bytes, tokens, scanner.lineStarts);
+    // If there was a single missing `}` and the scanner can identify a good
+    // candidate for better recovery, create a new scanner and instruct it to
+    // do that recovery.
+    int? offsetForCurlyBracketRecoveryStart =
+        scanner.getOffsetForCurlyBracketRecoveryStart();
+    if (offsetForCurlyBracketRecoveryStart != null) {
+      scanner = new StringScanner(source,
+          configuration: configuration,
+          includeComments: includeComments,
+          languageVersionChanged: languageVersionChanged);
+      scanner.offsetForCurlyBracketRecoveryStart =
+          offsetForCurlyBracketRecoveryStart;
+      tokens = scanner.tokenize();
+    }
   }
   return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);
 }

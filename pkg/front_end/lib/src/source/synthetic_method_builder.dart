@@ -69,10 +69,6 @@ class SyntheticMethodBuilder extends SourceMemberBuilderImpl
       libraryBuilder;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Annotatable> get annotatables => [];
-
-  @override
   int buildBodyNodes(BuildNodesCallback f) {
     return 0;
   }

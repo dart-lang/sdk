@@ -91,16 +91,14 @@ void buildTypeParametersAndFormals(
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Reports an error if [augmentation] is from a patch library and [origin] is
 /// not external.
 bool checkAugmentation(
     {required SourceLibraryBuilder augmentationLibraryBuilder,
     required Builder origin,
     required Builder augmentation}) {
-  if (!origin.isExternal &&
-      // Coverage-ignore(suite): Not run.
-      !augmentationLibraryBuilder.isAugmentationLibrary) {
-    // Coverage-ignore-block(suite): Not run.
+  if (!origin.isExternal && !augmentationLibraryBuilder.isAugmentationLibrary) {
     augmentationLibraryBuilder.addProblem(messagePatchNonExternal,
         augmentation.fileOffset, noLength, augmentation.fileUri!,
         context: [

@@ -739,16 +739,29 @@ class _PropertyPreBuilder extends _PreBuilder {
       void Function(Fragment,
               {bool conflictingSetter, List<Fragment>? augmentations})
           createBuilder) {
+    List<Fragment>? getterAugmentations;
+    List<Fragment>? setterAugmentations;
+    for (_FragmentName fragmentName in augmentations) {
+      if (fragmentName.fragment is GetterFragment) {
+        (getterAugmentations ??= []).add(fragmentName.fragment);
+      } else if (fragmentName.fragment is SetterFragment) {
+        (setterAugmentations ??= []).add(fragmentName.fragment);
+      } else {
+        throw new UnsupportedError("Unexpected augmentation $fragmentName");
+      }
+    }
+    augmentations.clear();
     if (getter != null) {
-      createBuilder(getter!.fragment);
+      createBuilder(getter!.fragment, augmentations: getterAugmentations);
     }
     if (setter != null && setter!.propertyKind == _PropertyKind.Setter) {
-      createBuilder(setter!.fragment);
+      createBuilder(setter!.fragment, augmentations: setterAugmentations);
     }
     for (_FragmentName fragmentName in conflictingSetters) {
       createBuilder(fragmentName.fragment, conflictingSetter: true);
     }
     for (_FragmentName fragmentName in augmentations) {
+      // Coverage-ignore-block(suite): Not run.
       createBuilder(fragmentName.fragment);
     }
   }
@@ -1573,6 +1586,21 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             isAugmentation: isAugmentation);
 
         GetterDeclaration declaration = new GetterDeclarationImpl(fragment);
+        List<GetterDeclaration> augmentationDeclarations = [];
+        if (augmentations != null) {
+          for (Fragment augmentation in augmentations) {
+            // Promote [augmentation] to [GetterFragment].
+            augmentation as GetterFragment;
+
+            augmentationDeclarations
+                .add(new GetterDeclarationImpl(augmentation));
+            if (!(augmentation.modifiers.isAbstract ||
+                augmentation.modifiers.isExternal)) {
+              modifiers -= Modifiers.Abstract;
+              modifiers -= Modifiers.External;
+            }
+          }
+        }
 
         SourcePropertyBuilder propertyBuilder =
             new SourcePropertyBuilder.forGetter(
@@ -1582,12 +1610,28 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 libraryBuilder: enclosingLibraryBuilder,
                 declarationBuilder: declarationBuilder,
                 declaration: declaration,
+                augmentations: augmentationDeclarations,
                 modifiers: modifiers,
                 nameScheme: nameScheme,
                 references: references);
         fragment.builder = propertyBuilder;
+        if (augmentations != null) {
+          for (Fragment augmentation in augmentations) {
+            // Promote [augmentation] to [GetterFragment].
+            augmentation as GetterFragment;
+
+            augmentation.builder = propertyBuilder;
+          }
+          augmentations = null;
+        }
+
         declaration.createEncoding(problemReporting, propertyBuilder,
             propertyEncodingStrategy, unboundNominalParameters);
+        for (GetterDeclaration augmentation in augmentationDeclarations) {
+          augmentation.createEncoding(problemReporting, propertyBuilder,
+              propertyEncodingStrategy, unboundNominalParameters);
+        }
+
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset,
             inPatch: fragment.enclosingDeclaration?.isPatch ??
@@ -1623,6 +1667,21 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             isAugmentation: isAugmentation);
 
         SetterDeclaration declaration = new SetterDeclarationImpl(fragment);
+        List<SetterDeclaration> augmentationDeclarations = [];
+        if (augmentations != null) {
+          for (Fragment augmentation in augmentations) {
+            // Promote [augmentation] to [SetterFragment].
+            augmentation as SetterFragment;
+
+            augmentationDeclarations
+                .add(new SetterDeclarationImpl(augmentation));
+            if (!(augmentation.modifiers.isAbstract ||
+                augmentation.modifiers.isExternal)) {
+              modifiers -= Modifiers.Abstract;
+              modifiers -= Modifiers.External;
+            }
+          }
+        }
 
         SourcePropertyBuilder propertyBuilder =
             new SourcePropertyBuilder.forSetter(
@@ -1632,12 +1691,28 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                 libraryBuilder: enclosingLibraryBuilder,
                 declarationBuilder: declarationBuilder,
                 declaration: declaration,
+                augmentations: augmentationDeclarations,
                 modifiers: modifiers,
                 nameScheme: nameScheme,
                 references: references);
         fragment.builder = propertyBuilder;
+        if (augmentations != null) {
+          for (Fragment augmentation in augmentations) {
+            // Promote [augmentation] to [SetterFragment].
+            augmentation as SetterFragment;
+
+            augmentation.builder = propertyBuilder;
+          }
+          augmentations = null;
+        }
+
         declaration.createEncoding(problemReporting, propertyBuilder,
             propertyEncodingStrategy, unboundNominalParameters);
+        for (SetterDeclaration augmentation in augmentationDeclarations) {
+          augmentation.createEncoding(problemReporting, propertyBuilder,
+              propertyEncodingStrategy, unboundNominalParameters);
+        }
+
         builders.add(new _AddBuilder(fragment.name, propertyBuilder,
             fragment.fileUri, fragment.nameOffset,
             inPatch: fragment.enclosingDeclaration?.isPatch ??
@@ -2229,6 +2304,7 @@ class LibraryNameSpaceBuilder {
 
       if (declaration.isAugment) {
         if (existing != null) {
+          // Coverage-ignore-block(suite): Not run.
           existing.addAugmentation(declaration);
           return;
         } else {
@@ -2543,6 +2619,7 @@ class DeclarationNameSpaceBuilder {
 
       if (declaration.isAugment) {
         if (existing != null) {
+          // Coverage-ignore-block(suite): Not run.
           existing.addAugmentation(declaration);
           return;
         } else {

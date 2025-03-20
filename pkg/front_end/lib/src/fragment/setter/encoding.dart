@@ -146,9 +146,12 @@ sealed class SetterEncoding {
       {required bool isClassInstanceMember,
       required bool createFileUriExpression});
 
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, SetterReference references,
-      {required bool isAbstractOrExternal,
+  void buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required SetterReference? references,
+      required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters});
 
   void checkTypes(
@@ -236,10 +239,13 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, SetterReference references,
-      {required bool isAbstractOrExternal,
-      List<TypeParameter>? classTypeParameters}) {
+  void buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required SetterReference? references,
+      required bool isAbstractOrExternal,
+      required List<TypeParameter>? classTypeParameters}) {
     FunctionNode function = new FunctionNode(
         isAbstractOrExternal ? null : new EmptyStatement(),
         asyncMarker: _fragment.asyncModifier)
@@ -275,7 +281,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
         nameScheme.getProcedureMemberName(ProcedureKind.Setter, _fragment.name);
     Procedure procedure = _procedure = new Procedure(
         memberName.name, ProcedureKind.Setter, function,
-        reference: references.setterReference, fileUri: _fragment.fileUri)
+        reference: references?.setterReference, fileUri: _fragment.fileUri)
       ..fileStartOffset = _fragment.startOffset
       ..fileOffset = _fragment.nameOffset
       ..fileEndOffset = _fragment.endOffset
@@ -470,9 +476,12 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, SetterReference references,
-      {required bool isAbstractOrExternal,
+  void buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required SetterReference? references,
+      required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     List<TypeParameter>? typeParameters;
     if (_clonedDeclarationTypeParameters != null) {
@@ -527,7 +536,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         nameScheme.getProcedureMemberName(ProcedureKind.Setter, _fragment.name);
     Procedure procedure = _procedure = new Procedure(
         memberName.name, ProcedureKind.Method, function,
-        reference: references.setterReference, fileUri: _fragment.fileUri)
+        reference: references?.setterReference, fileUri: _fragment.fileUri)
       ..fileStartOffset = _fragment.startOffset
       ..fileOffset = _fragment.nameOffset
       ..fileEndOffset = _fragment.endOffset

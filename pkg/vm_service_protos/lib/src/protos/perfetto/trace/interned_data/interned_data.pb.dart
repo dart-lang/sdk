@@ -10,9 +10,9 @@
 //  Generated code. Do not modify.
 //  source: protos/perfetto/trace/interned_data/interned_data.proto
 //
-// @dart = 2.12
+// @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -23,8 +23,43 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 import '../profiling/profile_common.pb.dart' as $2;
 
+export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
+///  Message that contains new entries for the interning indices of a packet
+///  sequence.
+///
+///  The writer will usually emit new entries in the same TracePacket that first
+///  refers to them (since the last reset of interning state). They may also be
+///  emitted proactively in advance of referring to them in later packets.
+///
+///  Next reserved id: 8 (up to 15).
+///  Next id: 29.
 class InternedData extends $pb.GeneratedMessage {
-  factory InternedData() => create();
+  factory InternedData({
+    $core.Iterable<$2.InternedString>? functionNames,
+    $core.Iterable<$2.Frame>? frames,
+    $core.Iterable<$2.Callstack>? callstacks,
+    $core.Iterable<$2.InternedString>? mappingPaths,
+    $core.Iterable<$2.Mapping>? mappings,
+  }) {
+    final $result = create();
+    if (functionNames != null) {
+      $result.functionNames.addAll(functionNames);
+    }
+    if (frames != null) {
+      $result.frames.addAll(frames);
+    }
+    if (callstacks != null) {
+      $result.callstacks.addAll(callstacks);
+    }
+    if (mappingPaths != null) {
+      $result.mappingPaths.addAll(mappingPaths);
+    }
+    if (mappings != null) {
+      $result.mappings.addAll(mappings);
+    }
+    return $result;
+  }
   InternedData._() : super();
   factory InternedData.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
@@ -76,20 +111,25 @@ class InternedData extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<InternedData>(create);
   static InternedData? _defaultInstance;
 
+  /// Names of functions used in frames below.
   @$pb.TagNumber(5)
-  $core.List<$2.InternedString> get functionNames => $_getList(0);
+  $pb.PbList<$2.InternedString> get functionNames => $_getList(0);
 
+  /// Frames of callstacks of a program.
   @$pb.TagNumber(6)
-  $core.List<$2.Frame> get frames => $_getList(1);
+  $pb.PbList<$2.Frame> get frames => $_getList(1);
 
+  /// A callstack of a program.
   @$pb.TagNumber(7)
-  $core.List<$2.Callstack> get callstacks => $_getList(2);
+  $pb.PbList<$2.Callstack> get callstacks => $_getList(2);
 
+  /// Paths to executable files.
   @$pb.TagNumber(17)
-  $core.List<$2.InternedString> get mappingPaths => $_getList(3);
+  $pb.PbList<$2.InternedString> get mappingPaths => $_getList(3);
 
+  /// Executable files mapped into processes.
   @$pb.TagNumber(19)
-  $core.List<$2.Mapping> get mappings => $_getList(4);
+  $pb.PbList<$2.Mapping> get mappings => $_getList(4);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

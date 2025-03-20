@@ -138,8 +138,13 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   })  : _introductory = introductory,
         _augmentations = augmentations,
         _memberName = nameScheme.getDeclaredName(name) {
-    _augmentedDeclarations = [_introductory, ..._augmentations];
-    _lastDeclaration = _augmentedDeclarations.removeLast();
+    if (augmentations.isEmpty) {
+      _augmentedDeclarations = augmentations;
+      _lastDeclaration = introductory;
+    } else {
+      _augmentedDeclarations = [_introductory, ..._augmentations];
+      _lastDeclaration = _augmentedDeclarations.removeLast();
+    }
     for (ConstructorDeclaration declaration in _augmentedDeclarations) {
       declaration.createNode(
           name: name,
@@ -248,7 +253,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   Iterable<Reference> get exportedMemberReferences => [invokeTargetReference];
 
   // TODO(johnniwinther): Add annotations to tear-offs.
-  @override
   Iterable<Annotatable> get annotatables => [invokeTarget];
 
   @override
@@ -766,10 +770,6 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters =>
       throw new UnsupportedError('${runtimeType}.localSetters');
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Annotatable> get annotatables => [_constructor];
 
   @override
   FunctionNode get function => _constructor.function;
