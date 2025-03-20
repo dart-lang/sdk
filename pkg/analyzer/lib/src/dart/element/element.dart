@@ -1496,7 +1496,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  Element get nonSynthetic {
+  ElementImpl get nonSynthetic {
     return isSynthetic ? enclosingElement3 : this;
   }
 
@@ -3033,7 +3033,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
   }
 
   @override
-  Element get nonSynthetic => this;
+  ElementImpl get nonSynthetic => this;
 
   @override
   AnalysisSession? get session {
@@ -8303,7 +8303,7 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  Element get nonSynthetic {
+  ElementImpl get nonSynthetic {
     if (isSynthetic && enclosingElement3 is EnumElementImpl) {
       return enclosingElement3;
     }
@@ -9461,7 +9461,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   }
 
   @override
-  Element get nonSynthetic {
+  ElementImpl get nonSynthetic {
     return setter.variable2;
   }
 
@@ -10031,7 +10031,7 @@ class PropertyAccessorElementImpl_ImplicitGetter extends GetterFragmentImpl {
   String? get name2 => variable2.name2;
 
   @override
-  Element get nonSynthetic {
+  ElementImpl get nonSynthetic {
     if (!variable2.isSynthetic) {
       return variable2;
     }
@@ -10096,7 +10096,7 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
   String? get name2 => variable2.name2;
 
   @override
-  Element get nonSynthetic => variable2;
+  ElementImpl get nonSynthetic => variable2;
 
   @override
   int get offset => variable2.offset;
@@ -10245,7 +10245,7 @@ abstract class PropertyInducingElementImpl
       thisOrAncestorOfType<CompilationUnitElementImpl>()!;
 
   @override
-  Element get nonSynthetic {
+  ElementImpl get nonSynthetic {
     if (isSynthetic) {
       if (enclosingElement3 is EnumElementImpl) {
         // TODO(scheglov): remove 'index'?
