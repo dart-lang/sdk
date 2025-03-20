@@ -42,67 +42,11 @@ class AddNullCheck extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    Expression? target;
-    var coveringNode = this.coveringNode;
-    var coveringNodeParent = coveringNode?.parent;
-
     if (await _isNullAware(builder, coveringNode)) {
       return;
     }
 
-    if (coveringNode is SimpleIdentifier) {
-      if (coveringNodeParent is MethodInvocation) {
-        target = coveringNodeParent.realTarget;
-      } else if (coveringNodeParent is PrefixedIdentifier) {
-        target = coveringNodeParent.prefix;
-      } else if (coveringNodeParent is PropertyAccess) {
-        target = coveringNodeParent.realTarget;
-      } else if (coveringNodeParent is CascadeExpression &&
-          await _isNullAware(
-            builder,
-            coveringNodeParent.cascadeSections.first,
-          )) {
-        return;
-      } else {
-        target = coveringNode;
-      }
-    } else if (coveringNode is IndexExpression) {
-      target = coveringNode.realTarget;
-      if (target.staticType?.nullabilitySuffix != NullabilitySuffix.question) {
-        target = coveringNode;
-      }
-    } else if (coveringNode is Expression &&
-        coveringNodeParent is FunctionExpressionInvocation) {
-      target = coveringNode;
-    } else if (coveringNodeParent is AssignmentExpression) {
-      target = coveringNodeParent.rightHandSide;
-    } else if (coveringNode is PostfixExpression) {
-      target = coveringNode.operand;
-    } else if (coveringNode is PrefixExpression) {
-      target = coveringNode.operand;
-    } else if (coveringNode is BinaryExpression) {
-      if (coveringNode.operator.type != TokenType.QUESTION_QUESTION) {
-        target = coveringNode.leftOperand;
-      } else {
-        var expectedType = coveringNode.correspondingParameter?.type;
-        if (expectedType == null) return;
-
-        var leftType = coveringNode.leftOperand.staticType;
-        var leftAssignable =
-            leftType != null &&
-            typeSystem.isAssignableTo(
-              typeSystem.promoteToNonNull(leftType),
-              expectedType,
-              strictCasts: analysisOptions.strictCasts,
-            );
-        if (leftAssignable) {
-          target = coveringNode.rightOperand;
-        }
-      }
-    } else if (coveringNode is AsExpression) {
-      target = coveringNode.expression;
-    }
-
+    var target = await _computeTarget(builder);
     if (target == null) {
       return;
     }
@@ -199,13 +143,12 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       return;
     }
 
-    var target_final = target;
     var needsParentheses = target.precedence < Precedence.postfix;
     await builder.addDartFileEdit(file, (builder) {
       if (needsParentheses) {
-        builder.addSimpleInsertion(target_final.offset, '(');
+        builder.addSimpleInsertion(target.offset, '(');
       }
-      builder.addInsertion(target_final.end, (builder) {
+      builder.addInsertion(target.end, (builder) {
         if (needsParentheses) {
           builder.write(')');
         }
@@ -214,8 +157,70 @@ class AddNullCheck extends ResolvedCorrectionProducer {
     });
   }
 
-  /// Return `true` if the specified [node] or one of its parents `isNullAware`,
-  /// in which case [_replaceWithNullCheck] would also be called.
+  /// Computes the target for which we need to add a null check.
+  Future<Expression?> _computeTarget(ChangeBuilder builder) async {
+    var coveringNode = this.coveringNode;
+    var coveringNodeParent = coveringNode?.parent;
+
+    if (coveringNode is SimpleIdentifier) {
+      if (coveringNodeParent is MethodInvocation) {
+        return coveringNodeParent.realTarget;
+      } else if (coveringNodeParent is PrefixedIdentifier) {
+        return coveringNodeParent.prefix;
+      } else if (coveringNodeParent is PropertyAccess) {
+        return coveringNodeParent.realTarget;
+      } else if (coveringNodeParent is CascadeExpression &&
+          await _isNullAware(
+            builder,
+            coveringNodeParent.cascadeSections.first,
+          )) {
+        return null;
+      } else {
+        return coveringNode;
+      }
+    } else if (coveringNode is IndexExpression) {
+      var target = coveringNode.realTarget;
+      if (target.staticType?.nullabilitySuffix != NullabilitySuffix.question) {
+        target = coveringNode;
+      }
+      return target;
+    } else if (coveringNode is Expression &&
+        coveringNodeParent is FunctionExpressionInvocation) {
+      return coveringNode;
+    } else if (coveringNodeParent is AssignmentExpression) {
+      return coveringNodeParent.rightHandSide;
+    } else if (coveringNode is PostfixExpression) {
+      return coveringNode.operand;
+    } else if (coveringNode is PrefixExpression) {
+      return coveringNode.operand;
+    } else if (coveringNode is BinaryExpression) {
+      if (coveringNode.operator.type != TokenType.QUESTION_QUESTION) {
+        return coveringNode.leftOperand;
+      } else {
+        var expectedType = coveringNode.correspondingParameter?.type;
+        if (expectedType == null) return null;
+
+        var leftType = coveringNode.leftOperand.staticType;
+        var leftAssignable =
+            leftType != null &&
+            typeSystem.isAssignableTo(
+              typeSystem.promoteToNonNull(leftType),
+              expectedType,
+              strictCasts: analysisOptions.strictCasts,
+            );
+        if (leftAssignable) {
+          return coveringNode.rightOperand;
+        }
+      }
+    } else if (coveringNode is AsExpression) {
+      return coveringNode.expression;
+    }
+    return null;
+  }
+
+  /// Returns whether the specified [node] or, in some cases, a certain child
+  /// node is null-aware, in which case the null-aware operator is replaced with
+  /// a null check operator.
   Future<bool> _isNullAware(ChangeBuilder builder, AstNode? node) async {
     if (node is PropertyAccess) {
       if (node.isNullAware) {
@@ -241,7 +246,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
     return false;
   }
 
-  /// Replaces the null aware [token] with the null check operator.
+  /// Replaces the null-aware [token] with the null check operator.
   Future<void> _replaceWithNullCheck(ChangeBuilder builder, Token token) async {
     fixKind = DartFixKind.REPLACE_WITH_NULL_AWARE;
     var lexeme = token.lexeme;
