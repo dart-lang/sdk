@@ -1248,7 +1248,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<Uri> seenUris = new Set<Uri>();
     for (DillLibraryBuilder builder in reusedResult.notReusedLibraries) {
       if (builder.isPart) continue;
-      if (builder.isAugmenting) continue;
       if (rebuildBodies!.contains(builder)) continue;
       if (!seenUris.add(builder.importUri)) continue;
       reusedResult.reusedLibraries.add(builder);
@@ -2213,9 +2212,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // builder can exist multiple times in the values list.
     for (DillLibraryBuilder builder in builders.values) {
       if (builder.isPart) continue;
-      // TODO(jensj/ahe): This line can probably go away once
-      // https://dart-review.googlesource.com/47442 lands.
-      if (builder.isAugmenting) continue;
       if (!seenUris.add(builder.importUri)) continue;
       reusedLibraries.add(builder);
     }

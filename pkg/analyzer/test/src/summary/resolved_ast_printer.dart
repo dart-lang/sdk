@@ -2141,6 +2141,10 @@ class ResolvedNodeTextConfiguration {
   /// should be printer.
   bool withRedirectedConstructors = false;
 
+  /// If `true`, `superConstructor` properties of [ConstructorElement]s
+  /// should be printer.
+  bool withSuperConstructors = false;
+
   /// If `true`, print IDs of each token, `previous` and `next` tokens.
   bool withTokenPreviousNext = false;
 }

@@ -10,34 +10,7 @@
 #include "helpers.h"
 #include "include/dart_api.h"
 #include "include/dart_engine.h"
-
-// Calls `startTimer` from timer.dart
-void StartTimer(Dart_Isolate isolate, uint32_t millis) {
-  WithIsolate<void>(isolate, [&]() {
-    std::initializer_list<Dart_Handle> args{Dart_NewInteger(millis)};
-    CheckError(
-        Dart_Invoke(Dart_RootLibrary(), Dart_NewStringFromCString("startTimer"),
-                    1, const_cast<Dart_Handle*>(args.begin())),
-        "calling startTimer");
-  });
-}
-
-// Calls `stopTimer` from timer.dart
-void StopTimer(Dart_Isolate isolate) {
-  WithIsolate<void>(isolate, [&]() {
-    CheckError(Dart_Invoke(Dart_RootLibrary(),
-                           Dart_NewStringFromCString("stopTimer"), 0, nullptr),
-               "calling stopTimer");
-  });
-}
-
-// Gets `ticks` from timer.dart
-int64_t GetTicks(Dart_Isolate isolate) {
-  return WithIsolate<int64_t>(isolate, []() {
-    return IntFromHandle(
-        Dart_GetField(Dart_RootLibrary(), Dart_NewStringFromCString("ticks")));
-  });
-}
+#include "timer.h"
 
 std::mutex shutdown_mutex;
 
@@ -64,16 +37,16 @@ int main(int argc, char** argv) {
   CheckError(error, "creating isolate");
 
   // Call Dart function to start a timer.
-  StartTimer(isolate, 1);
+  Call_startTimer(isolate, 1);
 
   // Wait a bit.
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Stop the timer.
-  StopTimer(isolate);
+  Call_stopTimer(isolate);
 
   // Get timer value.
-  std::cout << "Ticks: " << GetTicks(isolate) << std::endl;
+  std::cout << "Ticks: " << Get_ticks(isolate) << std::endl;
 
   DartEngine_Shutdown();
 }

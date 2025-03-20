@@ -167,9 +167,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   bool get isEnumElement => _introductoryField?.isEnumElement ?? false;
 
   @override
-  SourcePropertyBuilder get origin => this;
-
-  @override
   int buildBodyNodes(BuildNodesCallback f) => 0;
 
   @override
@@ -445,9 +442,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   // Coverage-ignore(suite): Not run.
   TypeBuilder? get typeForTesting => _introductoryField?.type;
-
-  @override
-  bool get isAugmenting => this != origin;
 
   @override
   bool get isProperty => true;
@@ -940,11 +934,10 @@ class GetterReference extends PropertyReferences {
   GetterReference._(this._getterReference);
 
   factory GetterReference(
-      String name, NameScheme nameScheme, IndexedContainer? indexedContainer,
-      {required bool isAugmentation}) {
+      String name, NameScheme nameScheme, IndexedContainer? indexedContainer) {
     Reference? procedureReference;
     ProcedureKind kind = ProcedureKind.Getter;
-    if (indexedContainer != null && !isAugmentation) {
+    if (indexedContainer != null) {
       Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
       procedureReference = indexedContainer.lookupGetterReference(nameToLookup);
     }
@@ -971,11 +964,10 @@ class SetterReference extends PropertyReferences {
   SetterReference._(this._setterReference);
 
   factory SetterReference(
-      String name, NameScheme nameScheme, IndexedContainer? indexedContainer,
-      {required bool isAugmentation}) {
+      String name, NameScheme nameScheme, IndexedContainer? indexedContainer) {
     Reference? procedureReference;
     ProcedureKind kind = ProcedureKind.Setter;
-    if (indexedContainer != null && !isAugmentation) {
+    if (indexedContainer != null) {
       Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
       if ((nameScheme.isExtensionMember || nameScheme.isExtensionTypeMember) &&
           nameScheme.isInstanceMember) {

@@ -1440,6 +1440,7 @@ class Translator with KernelNodes {
 
   bool canUseUncheckedEntry(Expression receiver, Expression node) {
     if (receiver is ThisExpression) return true;
+    if (node is InstanceInvocation && node.isInvariant) return true;
     return inferredTypeMetadata[node]?.skipCheck ?? false;
   }
 

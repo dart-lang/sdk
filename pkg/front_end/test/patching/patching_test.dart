@@ -118,8 +118,7 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
       features.add(Tags.isAbstract);
     }
     clsBuilder.nameSpace
-        .filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: false)
+        .filteredNameIterator(includeDuplicates: false)
         .forEach((String name, Builder builder) {
       features.addElement(Tags.scope, name);
     });

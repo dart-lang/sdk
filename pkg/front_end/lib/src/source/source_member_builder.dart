@@ -160,9 +160,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
     StringBuffer sb = new StringBuffer();
     sb.write(runtimeType);
     sb.write('(');
-    if (isAugmenting) {
-      sb.write('augmentation ');
-    }
     if (isClassMember) {
       sb.write(classBuilder!.name);
       sb.write('.');

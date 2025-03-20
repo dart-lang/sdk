@@ -796,10 +796,8 @@ class KernelTarget {
   void installSyntheticConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
-      if (builder.cls != objectClass && !builder.isAugmenting) {
-        if (builder.isAugmenting ||
-            builder.isMixinDeclaration ||
-            builder.isExtension) {
+      if (builder.cls != objectClass) {
+        if (builder.isMixinDeclaration || builder.isExtension) {
           continue;
         }
         if (builder.isMixinApplication) {
@@ -1234,7 +1232,6 @@ class KernelTarget {
   /// Ensure constructors of [classBuilder] have the correct initializers and
   /// other requirements.
   void finishConstructors(SourceClassBuilder classBuilder) {
-    if (classBuilder.isAugmenting) return;
     Class cls = classBuilder.cls;
 
     Constructor? superTarget;

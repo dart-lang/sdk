@@ -263,6 +263,13 @@ class FfiTransformer extends Transformer {
   final Procedure unionPointerMinusOperator;
   final Procedure unionPointerElementAtTearoff;
   final Procedure uint8PointerAsTypedList;
+  final Constructor arrayListConstructor;
+  final Constructor arrayArrayListConstructor;
+  final Constructor abiSpecificIntegerArrayListConstructor;
+  final Procedure arrayArrayElements;
+  final Procedure structArrayElements;
+  final Procedure unionArrayElements;
+  final Procedure abiSpecificIntegerArrayElements;
   final Procedure structArrayElemAt;
   final Procedure unionArrayElemAt;
   final Procedure arrayArrayElemAt;
@@ -697,6 +704,37 @@ class FfiTransformer extends Transformer {
         'dart:ffi',
         'Uint8Pointer',
         'asTypedList',
+      ),
+      arrayArrayElements = index.getProcedure(
+        'dart:ffi',
+        'ArrayArray',
+        'get:elements',
+      ),
+      structArrayElements = index.getProcedure(
+        'dart:ffi',
+        'StructArray',
+        'get:elements',
+      ),
+      unionArrayElements = index.getProcedure(
+        'dart:ffi',
+        'UnionArray',
+        'get:elements',
+      ),
+      abiSpecificIntegerArrayElements = index.getProcedure(
+        'dart:ffi',
+        'AbiSpecificIntegerArray',
+        'get:elements',
+      ),
+      arrayArrayListConstructor = index.getConstructor(
+        'dart:ffi',
+        '_ArrayArrayList',
+        '',
+      ),
+      arrayListConstructor = index.getConstructor('dart:ffi', '_ArrayList', ''),
+      abiSpecificIntegerArrayListConstructor = index.getConstructor(
+        'dart:ffi',
+        '_AbiSpecificIntegerArrayList',
+        '',
       ),
       structArrayElemAt = index.getProcedure('dart:ffi', 'StructArray', '[]'),
       unionArrayElemAt = index.getProcedure('dart:ffi', 'UnionArray', '[]'),

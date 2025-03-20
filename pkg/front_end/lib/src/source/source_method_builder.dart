@@ -265,9 +265,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   TypeBuilder? get returnTypeForTesting => _introductory.returnType;
 
   @override
-  bool get isAugmenting => this != origin;
-
-  @override
   bool get isProperty => false;
 
   @override

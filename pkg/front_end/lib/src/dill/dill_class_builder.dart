@@ -22,24 +22,20 @@ mixin DillClassMemberAccessMixin implements ClassMemberAccess {
   @override
   // Coverage-ignore(suite): Not run.
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
+      nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
 
   @override
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      nameSpace.filteredConstructorNameIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
+      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
 
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      nameSpace.filteredIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
+      nameSpace.filteredIterator<T>(includeDuplicates: false);
 
   @override
   // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      nameSpace.filteredNameIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
+      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
 }
 
 class DillClassBuilder extends ClassBuilderImpl
@@ -75,9 +71,6 @@ class DillClassBuilder extends ClassBuilderImpl
 
   @override
   bool get isEnum => cls.isEnum;
-
-  @override
-  DillClassBuilder get origin => this;
 
   @override
   DillLibraryBuilder get libraryBuilder =>

@@ -6,6 +6,8 @@ repository: https://github.com/dart-lang/sdk/tree/main/pkg/dtd
 environment:
   sdk: ^3.5.0
 
+resolution: workspace
+
 dependencies:
   json_rpc_2: ^3.0.2
   stream_channel: ^2.1.2

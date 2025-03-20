@@ -181,11 +181,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       count += augmentation.resolveConstructorReferences(libraryBuilder);
     }
     if (count > 0) {
-      Iterator<MemberBuilder> iterator = nameSpace.filteredConstructorIterator(
-          parent: null, includeDuplicates: true, includeAugmentations: false);
+      Iterator<MemberBuilder> iterator =
+          nameSpace.filteredConstructorIterator(includeDuplicates: true);
       while (iterator.moveNext()) {
         MemberBuilder declaration = iterator.current;
-        if (declaration.declarationBuilder?.origin != origin) {
+        if (declaration.declarationBuilder != this) {
           unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
               fileOffset, fileUri);
         }
@@ -366,16 +366,13 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  SourceClassBuilder get origin => this;
-
-  @override
   SourceLibraryBuilder get parent => libraryBuilder;
 
   Class build(LibraryBuilder coreLibrary) {
     void buildBuilders(Builder declaration) {
       if (declaration.parent != this) {
         // Coverage-ignore-block(suite): Not run.
-        if (declaration.parent?.origin != origin) {
+        if (declaration.parent != this) {
           if (fileUri != declaration.parent?.fileUri) {
             unexpected("$fileUri", "${declaration.parent?.fileUri}", fileOffset,
                 fileUri);
@@ -527,7 +524,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         bodyBuilderContext: bodyBuilderContext,
         libraryBuilder: libraryBuilder,
         classHierarchy: classHierarchy,
-        createFileUriExpression: isAugmenting);
+        createFileUriExpression: false);
     for (ClassDeclaration augmentation in _augmentations) {
       augmentation.buildOutlineExpressions(
           annotatable: cls,
@@ -538,51 +535,27 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     nameSpace
-        .filteredConstructorIterator(
-            parent: this, includeDuplicates: false, includeAugmentations: true)
+        .filteredConstructorIterator(includeDuplicates: false)
         .forEach(build);
-    nameSpace
-        .filteredIterator(
-            parent: this, includeDuplicates: false, includeAugmentations: true)
-        .forEach(build);
+    nameSpace.filteredIterator(includeDuplicates: false).forEach(build);
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Iterator<T> localMemberIterator<T extends Builder>() =>
-      new ClassDeclarationMemberIterator<SourceClassBuilder, T>.local(this,
-          includeDuplicates: false);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterator<T> localConstructorIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorIterator<SourceClassBuilder, T>.local(this,
-          includeDuplicates: false);
-
-  @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      new ClassDeclarationMemberIterator<SourceClassBuilder, T>.full(
-          const _SourceClassBuilderAugmentationAccess(), this,
-          includeDuplicates: false);
+      nameSpace.filteredIterator<T>(includeDuplicates: false);
 
   @override
   // Coverage-ignore(suite): Not run.
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      new ClassDeclarationMemberNameIterator<SourceClassBuilder, T>(
-          const _SourceClassBuilderAugmentationAccess(), this,
-          includeDuplicates: false);
+      nameSpace.filteredNameIterator<T>(includeDuplicates: false);
 
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorIterator<SourceClassBuilder, T>.full(
-          const _SourceClassBuilderAugmentationAccess(), this,
-          includeDuplicates: false);
+      nameSpace.filteredConstructorIterator<T>(includeDuplicates: false);
 
   @override
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorNameIterator<SourceClassBuilder, T>(
-          const _SourceClassBuilderAugmentationAccess(), this,
-          includeDuplicates: false);
+      nameSpace.filteredConstructorNameIterator<T>(includeDuplicates: false);
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
@@ -1021,8 +994,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     Iterator<SourceFactoryBuilder> iterator =
-        nameSpace.filteredConstructorIterator(
-            parent: this, includeDuplicates: true, includeAugmentations: true);
+        nameSpace.filteredConstructorIterator(includeDuplicates: true);
     while (iterator.moveNext()) {
       iterator.current.checkRedirectingFactories(typeEnvironment);
     }
@@ -1236,7 +1208,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     Iterator<SourceMemberBuilder> iterator =
         nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true);
+            includeDuplicates: false);
     while (iterator.moveNext()) {
       count += iterator.current
           .computeDefaultTypes(context, inErrorRecovery: hasErrors);
@@ -1308,22 +1280,16 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
+    nameSpace.filteredIterator(includeDuplicates: true).forEach(buildMembers);
     nameSpace
-        .filteredIterator(
-            parent: this, includeDuplicates: true, includeAugmentations: true)
-        .forEach(buildMembers);
-    nameSpace
-        .filteredConstructorIterator(
-            parent: this, includeDuplicates: true, includeAugmentations: true)
+        .filteredConstructorIterator(includeDuplicates: true)
         .forEach(buildMembers);
     return count;
   }
 
   void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member) {
     member.parent = cls;
-    if (!memberBuilder.isAugmenting &&
-        !memberBuilder.isDuplicate &&
-        !memberBuilder.isConflictingSetter) {
+    if (!memberBuilder.isDuplicate && !memberBuilder.isConflictingSetter) {
       if (memberBuilder.isConflictingAugmentationMember) {
         // Coverage-ignore-block(suite): Not run.
         if (member is Field && member.isStatic ||
@@ -2093,7 +2059,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   /// Returns an iterator the origin class and all augmentations in application
   /// order.
   Iterator<SourceClassBuilder> get declarationIterator =>
-      new AugmentationIterator<SourceClassBuilder>(origin, null);
+      new AugmentationIterator<SourceClassBuilder>(this, null);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -2129,20 +2095,6 @@ int? getOverlookedOverrideProblemChoice(DeclarationBuilder declarationBuilder) {
     return 1;
   }
   return null;
-}
-
-class _SourceClassBuilderAugmentationAccess
-    implements ClassDeclarationAugmentationAccess<SourceClassBuilder> {
-  const _SourceClassBuilderAugmentationAccess();
-
-  @override
-  SourceClassBuilder getOrigin(SourceClassBuilder classDeclaration) =>
-      classDeclaration.origin;
-
-  @override
-  Iterable<SourceClassBuilder>? getAugmentations(
-          SourceClassBuilder classDeclaration) =>
-      null;
 }
 
 TypeBuilder? _applyMixins(

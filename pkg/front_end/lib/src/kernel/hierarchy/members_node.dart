@@ -2619,7 +2619,7 @@ class _Overrides {
     if (_classBuilder is SourceClassBuilder && !declaredMember.isStatic) {
       assert(
           declaredMember.isSourceDeclaration &&
-              declaredMember.declarationBuilder.origin == _classBuilder,
+              declaredMember.declarationBuilder == _classBuilder,
           "Only declared members can override: ${declaredMember}");
       hasDeclaredMembers = true;
       if (declaredMember.isProperty) {

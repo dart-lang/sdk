@@ -240,6 +240,8 @@ if (is_fuchsia) {
     "tests/ffi/address_of_typeddata_generated_test.dart",
     "tests/ffi/aliasing_test.dart",
     "tests/ffi/allocator_test.dart",
+    "tests/ffi/array_compound_elements_test.dart",
+    "tests/ffi/array_primitive_elements_generated_test.dart",
     "tests/ffi/async_void_function_callbacks_test.dart",
     "tests/ffi/bool_test.dart",
     "tests/ffi/c_types_test.dart",

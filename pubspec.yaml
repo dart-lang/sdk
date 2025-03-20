@@ -1,0 +1,320 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This file defines pub workspace for the sdk enabling a common resolution.
+name: _
+publish_to: none
+environment:
+  # This constraint decides the langage-version for all dart code in the
+  # repository that doesn't have its own package. Mainly the code in `tests/`.
+  #
+  # It needs to be updated before testing language features introduced in the
+  # next language version.
+  sdk: ^3.8.0-0
+
+# These are the packages that are contained in the SDK.
+workspace:
+  - pkg/analysis_server
+  - pkg/analysis_server_client
+  - pkg/analysis_server_plugin
+  - pkg/analyzer
+  - pkg/analyzer_cli
+  - pkg/analyzer_plugin
+  - pkg/analyzer_utilities
+  - pkg/async_helper
+  - pkg/bisect_dart
+  - pkg/build_integration
+  - pkg/compiler
+  - pkg/dart2bytecode
+  - pkg/dart2js_info
+  - pkg/dart2js_runtime_metrics
+  - pkg/dart2js_tools
+  - pkg/dart2native
+  - pkg/dart2wasm
+  - pkg/dartdev
+  - pkg/dart_internal
+  - pkg/dart_service_protocol_shared
+  - pkg/dds
+  - pkg/dds_service_extensions
+  - pkg/dev_compiler
+  - pkg/dtd
+  - pkg/dtd_impl
+  - pkg/dynamic_modules
+  - pkg/expect
+  - pkg/_fe_analyzer_shared
+  - pkg/front_end
+  - pkg/frontend_server
+  - pkg/heap_snapshot
+  - pkg/js
+  - pkg/js_ast
+  - pkg/_js_interop_checks
+  - pkg/js_runtime
+  - pkg/js_shared
+  - pkg/kernel
+  - pkg/linter
+  - pkg/_macros
+  - pkg/macros
+  - pkg/meta
+  - pkg/mmap
+  - pkg/modular_test
+  - pkg/native_stack_traces
+  - pkg/node_preamble
+  - pkg/record_use
+  - pkg/reload_test
+  - pkg/scrape
+  - pkg/server_plugin
+  - pkg/shell_arg_splitter
+  - pkg/smith
+  - pkg/sourcemap_testing
+  - pkg/status_file
+  - pkg/telemetry
+  - pkg/testing
+  - pkg/test_runner
+  - pkg/vm
+  - pkg/vm_service
+  - pkg/vm_service_interface
+  - pkg/vm_service_protos
+  - pkg/vm_snapshot_analysis
+  - pkg/wasm_builder
+  - samples/ffi/http
+  # dap and language_server_protocol are checked in to and
+  # developed in the sdk repo, though they are located in `third_party/`.
+  - third_party/pkg/dap
+  - third_party/pkg/language_server_protocol
+  - tools/package_deps
+  - tools
+
+# All third_party packages here are retrieved via the DEPS-file and overridden
+# here.
+dependency_overrides:
+  _experiment_sound:
+    path: third_party/pkg/webdev/fixtures/_experimentSound
+  _test_circular1_sound:
+    path: third_party/pkg/webdev/fixtures/_testCircular1Sound
+  _test_circular2_sound:
+    path: third_party/pkg/webdev/fixtures/_testCircular2Sound
+  _test_hot_restart1:
+    path: third_party/pkg/webdev/fixtures/_testHotRestart1Sound
+  _test_hot_restart2:
+    path: third_party/pkg/webdev/fixtures/_testHotRestart2Sound
+  _test_package_sound:
+    path: third_party/pkg/webdev/fixtures/_testPackageSound
+  _test_sound:
+    path: third_party/pkg/webdev/fixtures/_testSound
+  _webdev_sound_smoke:
+    path: third_party/pkg/webdev/fixtures/_webdevSoundSmoke
+  analysis_config:
+    path: third_party/pkg/webdev/_analysis_config
+  api_benchmark:
+    path: third_party/pkg/protobuf/api_benchmark
+  args:
+    path: third_party/pkg/core/pkgs/args
+  async:
+    path: third_party/pkg/core/pkgs/async
+  bazel_worker:
+    path: third_party/pkg/tools/pkgs/bazel_worker
+  benchmark_harness:
+    path: third_party/pkg/tools/pkgs/benchmark_harness
+  boolean_selector:
+    path: third_party/pkg/tools/pkgs/boolean_selector
+  browser_launcher:
+    path: third_party/pkg/tools/pkgs/browser_launcher
+  checks:
+    path: third_party/pkg/test/pkgs/checks
+  cli_config:
+    path: third_party/pkg/tools/pkgs/cli_config
+  cli_util:
+    path: third_party/pkg/tools/pkgs/cli_util
+  clock:
+    path: third_party/pkg/tools/pkgs/clock
+  collection:
+    path: third_party/pkg/core/pkgs/collection
+  convert:
+    path: third_party/pkg/core/pkgs/convert
+  corpus:
+    path: third_party/pkg/ecosystem/pkgs/corpus
+  coverage:
+    path: third_party/pkg/tools/pkgs/coverage
+  crypto:
+    path: third_party/pkg/core/pkgs/crypto
+  csslib:
+    path: third_party/pkg/tools/pkgs/csslib
+  dart_flutter_team_lints:
+    path: third_party/pkg/ecosystem/pkgs/dart_flutter_team_lints
+  dart_style:
+    path: third_party/pkg/dart_style
+  dartdoc:
+    path: third_party/pkg/dartdoc
+  extension_discovery:
+    path: third_party/pkg/tools/pkgs/extension_discovery
+  fake_async:
+    path: third_party/pkg/test/pkgs/fake_async
+  ffi:
+    path: third_party/pkg/native/pkgs/ffi
+  file:
+    path: third_party/pkg/tools/pkgs/file
+  file_testing:
+    path: third_party/pkg/tools/pkgs/file_testing
+  fixnum:
+    path: third_party/pkg/core/pkgs/fixnum
+  frontend_server_client:
+    path: third_party/pkg/webdev/frontend_server_client
+  glob:
+    path: third_party/pkg/tools/pkgs/glob
+  graphs:
+    path: third_party/pkg/tools/pkgs/graphs
+  html:
+    path: third_party/pkg/tools/pkgs/html
+  http:
+    path: third_party/pkg/http/pkgs/http
+  http2:
+    path: third_party/pkg/http/pkgs/http2
+  http_client_conformance_tests:
+    path: third_party/pkg/http/pkgs/http_client_conformance_tests
+  http_multi_server:
+    path: third_party/pkg/http/pkgs/http_multi_server
+  http_parser:
+    path: third_party/pkg/http/pkgs/http_parser
+  http_profile:
+    path: third_party/pkg/http/pkgs/http_profile
+  intl:
+    path: third_party/pkg/i18n/pkgs/intl
+  json_rpc_2:
+    path: third_party/pkg/tools/pkgs/json_rpc_2
+  leak_tracker:
+    path: third_party/pkg/leak_tracker/pkgs/leak_tracker
+  leak_tracker_testing:
+    path: third_party/pkg/leak_tracker/pkgs/leak_tracker_testing
+  lints:
+    path: third_party/pkg/core/pkgs/lints
+  logging:
+    path: third_party/pkg/core/pkgs/logging
+  markdown:
+    path: third_party/pkg/tools/pkgs/markdown
+  matcher:
+    path: third_party/pkg/test/pkgs/matcher
+  memory_usage:
+    path: third_party/pkg/leak_tracker/pkgs/memory_usage
+  mime:
+    path: third_party/pkg/tools/pkgs/mime
+  native_assets_builder:
+    path: third_party/pkg/native/pkgs/native_assets_builder
+  native_assets_cli:
+    path: third_party/pkg/native/pkgs/native_assets_cli
+  native_toolchain_c:
+    path: third_party/pkg/native/pkgs/native_toolchain_c
+  oauth2:
+    path: third_party/pkg/tools/pkgs/oauth2
+  os_detect:
+    path: third_party/pkg/core/pkgs/os_detect
+  package_config:
+    path: third_party/pkg/tools/pkgs/package_config
+  path:
+    path: third_party/pkg/core/pkgs/path
+  platform:
+    path: third_party/pkg/core/pkgs/platform
+  pool:
+    path: third_party/pkg/tools/pkgs/pool
+  protobuf:
+    path: third_party/pkg/protobuf/protobuf
+  protobuf_benchmarks:
+    path: third_party/pkg/protobuf/benchmarks
+  protoc_plugin:
+    path: third_party/pkg/protobuf/protoc_plugin
+  pub:
+    path: third_party/pkg/pub
+  pub_semver:
+    path: third_party/pkg/tools/pkgs/pub_semver
+  regression_tests:
+    path: third_party/pkg/test/integration_tests/regression
+  shelf:
+    path: third_party/pkg/shelf/pkgs/shelf
+  shelf_packages_handler:
+    path: third_party/pkg/shelf/pkgs/shelf_packages_handler
+  shelf_proxy:
+    path: third_party/pkg/shelf/pkgs/shelf_proxy
+  shelf_static:
+    path: third_party/pkg/shelf/pkgs/shelf_static
+  shelf_test_handler:
+    path: third_party/pkg/shelf/pkgs/shelf_test_handler
+  shelf_web_socket:
+    path: third_party/pkg/shelf/pkgs/shelf_web_socket
+  source_map_stack_trace:
+    path: third_party/pkg/tools/pkgs/source_map_stack_trace
+  source_maps:
+    path: third_party/pkg/tools/pkgs/source_maps
+  source_span:
+    path: third_party/pkg/tools/pkgs/source_span
+  spawn_hybrid:
+    path: third_party/pkg/test/integration_tests/spawn_hybrid
+  sse:
+    path: third_party/pkg/tools/pkgs/sse
+  stack_trace:
+    path: third_party/pkg/tools/pkgs/stack_trace
+  stream_channel:
+    path: third_party/pkg/tools/pkgs/stream_channel
+  string_scanner:
+    path: third_party/pkg/tools/pkgs/string_scanner
+  swift2objc:
+    path: third_party/pkg/native/pkgs/swift2objc
+  swiftgen:
+    path: third_party/pkg/native/pkgs/swiftgen
+  sync_http:
+    path: third_party/pkg/sync_http
+  tar:
+    path: third_party/pkg/tar
+  term_glyph:
+    path: third_party/pkg/tools/pkgs/term_glyph
+  test:
+    path: third_party/pkg/test/pkgs/test
+  test_api:
+    path: third_party/pkg/test/pkgs/test_api
+  test_core:
+    path: third_party/pkg/test/pkgs/test_core
+  test_descriptor:
+    path: third_party/pkg/test/pkgs/test_descriptor
+  test_process:
+    path: third_party/pkg/test/pkgs/test_process
+  test_reflective_loader:
+    path: third_party/pkg/tools/pkgs/test_reflective_loader
+  tool:
+    path: third_party/pkg/webdev/tool
+  typed_data:
+    path: third_party/pkg/core/pkgs/typed_data
+  unified_analytics:
+    path: third_party/pkg/tools/pkgs/unified_analytics
+  vector_math:
+    path: third_party/pkg/vector_math
+  wasm_tests:
+    path: third_party/pkg/test/integration_tests/wasm
+  watcher:
+    path: third_party/pkg/tools/pkgs/watcher
+  web:
+    path: third_party/pkg/web/web
+  web_socket:
+    path: third_party/pkg/http/pkgs/web_socket
+  web_socket_channel:
+    path: third_party/pkg/http/pkgs/web_socket_channel
+  webdriver:
+    path: third_party/pkg/webdriver
+  webkit_inspection_protocol:
+    path: third_party/pkg/webkit_inspection_protocol
+  yaml:
+    path: third_party/pkg/tools/pkgs/yaml
+  yaml_edit:
+    path: third_party/pkg/tools/pkgs/yaml_edit
+  io:
+    path: third_party/pkg/tools/pkgs/io
+  devtools_shared:
+    path: third_party/devtools/devtools_shared
+  observatory_test_package:
+    path: runtime/observatory/tests/service/observatory_test_package
+  # heapsnapshot has dependencies from outside the sdk, so cannot be part of
+  # the workspace. https://github.com/dart-lang/sdk/issues/50061
+  heapsnapshot:
+    path: runtime/tools/heapsnapshot
+  # observatory needs a migration to language version 3.6 before it can be
+  # included in the workspace. (If it is not deleted before)
+  observatory:
+    path: runtime/observatory

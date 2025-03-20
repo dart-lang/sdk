@@ -957,7 +957,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   ConstructorElementMixin2? lookUpConstructor2(
       String? constructorName, LibraryElement2 library) {
     // prepare base ConstructorElement
-    ConstructorElementMixin2? constructorElement;
+    ConstructorElementImpl2? constructorElement;
     if (constructorName == null) {
       constructorElement = element3.unnamedConstructor2;
     } else {

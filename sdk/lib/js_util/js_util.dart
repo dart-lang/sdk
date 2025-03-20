@@ -150,10 +150,10 @@ class NullRejectionException implements Exception {
 /// Converts a JavaScript Promise to a Dart [Future].
 ///
 /// ```dart
-/// // ignore: deprecated_member_use_from_same_package
+/// // ignore: deprecated_member_use_from_same_package, deprecated_member_use
 /// import 'dart:js_util';
 ///
-/// // ignore: deprecated_member_use_from_same_package
+/// // ignore: deprecated_member_use_from_same_package, deprecated_member_use
 /// import 'package:js/js.dart';
 ///
 /// @JS()

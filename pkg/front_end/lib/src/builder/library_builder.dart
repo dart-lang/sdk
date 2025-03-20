@@ -324,9 +324,6 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
 
   List<Export> get exporters;
 
-  @override
-  LibraryBuilder get origin;
-
   LibraryBuilder? get partOfLibrary;
 
   LibraryBuilder get nameOriginBuilder;
@@ -466,20 +463,17 @@ abstract class LibraryBuilderImpl extends BuilderImpl
 
   @override
   Iterator<Builder> get localMembersIterator {
-    return libraryNameSpace.filteredIterator(
-        parent: this, includeDuplicates: true, includeAugmentations: true);
+    return libraryNameSpace.filteredIterator(includeDuplicates: true);
   }
 
   @override
   Iterator<T> localMembersIteratorOfType<T extends Builder>() {
-    return libraryNameSpace.filteredIterator<T>(
-        parent: this, includeDuplicates: true, includeAugmentations: true);
+    return libraryNameSpace.filteredIterator<T>(includeDuplicates: true);
   }
 
   @override
   NameIterator<Builder> get localMembersNameIterator {
-    return libraryNameSpace.filteredNameIterator(
-        parent: this, includeDuplicates: true, includeAugmentations: true);
+    return libraryNameSpace.filteredNameIterator(includeDuplicates: true);
   }
 
   @override
@@ -654,6 +648,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
 
   @override
   String toString() {
-    return '$runtimeType(${isPart || isAugmenting ? fileUri : importUri})';
+    return '$runtimeType(${isPart ? fileUri : importUri})';
   }
 }

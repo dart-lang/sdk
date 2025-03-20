@@ -74,7 +74,6 @@ sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
     return sb.toString();
   }
 
-  @override
   // Coverage-ignore(suite): Not run.
   TypeParameterBuilder get origin => actualOrigin ?? this;
 
@@ -407,7 +406,6 @@ class NominalParameterBuilder extends TypeParameterBuilder {
   @override
   void finish(SourceLibraryBuilder library, ClassBuilder object,
       TypeBuilder dynamicType) {
-    if (isAugmenting) return;
     DartType objectType = object.buildAliasedType(
         library,
         const NullabilityBuilder.nullable(),
@@ -704,7 +702,6 @@ class StructuralParameterBuilder extends TypeParameterBuilder {
   @override
   void finish(
       LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
-    if (isAugmenting) return;
     DartType objectType = object.buildAliasedType(
         library,
         const NullabilityBuilder.nullable(),

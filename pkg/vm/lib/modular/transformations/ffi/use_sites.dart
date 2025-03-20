@@ -436,6 +436,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
 
         return _replaceRefArray(node);
+      } else if (target == structArrayElements ||
+          target == unionArrayElements) {
+        final DartType nativeType = node.arguments.types[0];
+
+        ensureNativeTypeValid(nativeType, node, allowStructAndUnion: true);
+
+        return _replaceArrayElements(node);
       } else if (target == arrayArrayElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
@@ -447,6 +454,28 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         );
 
         return _replaceArrayArrayElemAt(node);
+      } else if (target == abiSpecificIntegerArrayElements) {
+        final DartType nativeType = node.arguments.types[0];
+
+        ensureNativeTypeValid(
+          nativeType,
+          node,
+          allowStructAndUnion: true,
+          allowInlineArray: true,
+        );
+
+        return _replaceAbiSpecificIntegerElements(node);
+      } else if (target == arrayArrayElements) {
+        final DartType nativeType = node.arguments.types[0];
+
+        ensureNativeTypeValid(
+          nativeType,
+          node,
+          allowInlineArray: true,
+          allowStructAndUnion: true,
+        );
+
+        return _replaceArrayArrayElements(node);
       } else if (target == arrayArrayAssignAt) {
         final DartType nativeType = node.arguments.types[0];
 
@@ -1351,6 +1380,156 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             multiply(VariableGet(indexVar), inlineSizeOf(dartType)!),
           ),
         ]),
+      ),
+    );
+  }
+
+  /// Replaces `StructArray<MyCompound>.elements` and `UnionArray<MyCompound>.elements` with:
+  ///
+  /// ```
+  /// _ArrayList<MyCompound>(this._array, sizeOf(MyCompound), MyCompound.#fromTypedDataBase);
+  /// ```
+  Expression _replaceArrayElements(StaticInvocation node) {
+    final dartType = node.arguments.types[0];
+    final clazz = (dartType as InterfaceType).classNode;
+    final constructor = clazz.constructors.firstWhere(
+      (c) => c.name == Name("#fromTypedDataBase"),
+    );
+
+    return ConstructorInvocation(
+      arrayListConstructor,
+      Arguments(
+        [
+          node.arguments.positional[0],
+          inlineSizeOf(dartType)!,
+          ConstantExpression(
+            dartType.typeArguments.isNotEmpty
+                ? InstantiationConstant(
+                  ConstructorTearOffConstant(constructor),
+                  dartType.typeArguments,
+                )
+                : ConstructorTearOffConstant(constructor),
+          ),
+        ],
+        types: [dartType],
+      ),
+    );
+  }
+
+  /// Replaces `ArrayArray<Type>.elements` with:
+  ///
+  /// ```
+  /// _ArrayArrayList<Type>(this._array, sizeOf(Type));
+  /// ```
+  Expression _replaceArrayArrayElements(StaticInvocation node) {
+    final dartType = node.arguments.types[0];
+    final elementType = arraySingleElementType(dartType as InterfaceType);
+
+    return ConstructorInvocation(
+      arrayArrayListConstructor,
+      Arguments(
+        [
+          node.arguments.positional[0],
+          inlineSizeOf(elementType as InterfaceType)!,
+        ],
+        types: [dartType],
+      ),
+    );
+  }
+
+  /// Replaces `AbiSpecificIntegerArray<Type>.elements` with:
+  ///
+  /// ```
+  /// AbiSpecificIntegerArrayList<Type>(
+  ///   this._array,
+  ///   (Array<Type> array, int index) {
+  ///     return _loadAbiSpecificIntAtIndex(array._typedDataBase, array._offsetInBytes, index);
+  ///   },
+  ///   (Array<Type> array, int index, int value) {
+  ///     return _storeAbiSpecificIntAtIndex(array._typedDataBase, array._offsetInBytes, index, value);
+  ///   }
+  /// );
+  /// ```
+  Expression _replaceAbiSpecificIntegerElements(StaticInvocation node) {
+    final typeArg = node.arguments.types[0];
+    final nativeTypeCfe =
+        NativeTypeCfe(this, typeArg) as AbiSpecificNativeTypeCfe;
+
+    final arrayLoadVar = VariableDeclaration(
+      "#array",
+      type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
+      isSynthesized: true,
+    )..fileOffset = node.fileOffset;
+    final indexLoadVar = VariableDeclaration(
+      "#index",
+      type: coreTypes.intNonNullableRawType,
+      isSynthesized: true,
+    )..fileOffset = node.fileOffset;
+    final loadClosure = FunctionExpression(
+      FunctionNode(
+        ReturnStatement(
+          abiSpecificLoadOrStoreExpression(
+            nativeTypeCfe,
+            typedDataBase: getCompoundTypedDataBaseField(
+              VariableGet(arrayLoadVar),
+              node.fileOffset,
+            ),
+            offsetInBytes: getCompoundOffsetInBytesField(
+              VariableGet(arrayLoadVar),
+              node.fileOffset,
+            ),
+            index: VariableGet(indexLoadVar),
+            fileOffset: node.fileOffset,
+          ),
+        ),
+        positionalParameters: [arrayLoadVar, indexLoadVar],
+        returnType: coreTypes.intNonNullableRawType,
+      ),
+    );
+
+    final arrayStoreVar = VariableDeclaration(
+      "#array",
+      type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
+      isSynthesized: true,
+    )..fileOffset = node.fileOffset;
+    final indexStoreVar = VariableDeclaration(
+      "#index",
+      type: coreTypes.intNonNullableRawType,
+      isSynthesized: true,
+    )..fileOffset = node.fileOffset;
+    final valueStoreVar = VariableDeclaration(
+      "#value",
+      type: coreTypes.intNullableRawType,
+      isSynthesized: true,
+    )..fileOffset = node.fileOffset;
+    final storeClosure = FunctionExpression(
+      FunctionNode(
+        ReturnStatement(
+          abiSpecificLoadOrStoreExpression(
+            nativeTypeCfe,
+            typedDataBase: getCompoundTypedDataBaseField(
+              VariableGet(arrayStoreVar),
+              node.fileOffset,
+            ),
+            offsetInBytes: getCompoundOffsetInBytesField(
+              VariableGet(arrayStoreVar),
+              node.fileOffset,
+            ),
+            index: VariableGet(indexStoreVar),
+            value: VariableGet(valueStoreVar),
+            fileOffset: node.fileOffset,
+          ),
+        ),
+        positionalParameters: [arrayStoreVar, indexStoreVar, valueStoreVar],
+        returnType: coreTypes.intNonNullableRawType,
+      ),
+    );
+
+    return ConstructorInvocation(
+      abiSpecificIntegerArrayListConstructor,
+      Arguments(
+        [node.arguments.positional[0], loadClosure, storeClosure],
+        types: [typeArg],
       ),
     );
   }

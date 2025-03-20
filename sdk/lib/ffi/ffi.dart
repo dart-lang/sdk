@@ -70,7 +70,11 @@ final class Pointer<T extends NativeType> implements SizedNativeType {
   /// On 32-bit systems, the upper 32-bits of the result are 0.
   external int get address;
 
-  /// Cast Pointer<T> to a Pointer<U>.
+  /// Reinterprets the address of this pointer as the address of a [U].
+  ///
+  /// This function is completely unchecked, no attempts are made to validate
+  /// that the bytes at the address are actually a valid native value
+  /// of type [U].
   external Pointer<U> cast<U extends NativeType>();
 
   /// Equality for Pointers only depends on their address.
@@ -1314,6 +1318,13 @@ extension Int8Array on Array<Int8> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external Int8List get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Int16].
@@ -1322,6 +1333,13 @@ extension Int16Array on Array<Int16> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external Int16List get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Int32].
@@ -1330,6 +1348,13 @@ extension Int32Array on Array<Int32> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external Int32List get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Int64].
@@ -1338,6 +1363,13 @@ extension Int64Array on Array<Int64> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external Int64List get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Uint8].
@@ -1346,6 +1378,13 @@ extension Uint8Array on Array<Uint8> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external Uint8List get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Uint16].
@@ -1354,6 +1393,13 @@ extension Uint16Array on Array<Uint16> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external Uint16List get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Uint32].
@@ -1362,6 +1408,13 @@ extension Uint32Array on Array<Uint32> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external Uint32List get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Uint64].
@@ -1370,6 +1423,13 @@ extension Uint64Array on Array<Uint64> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external Uint64List get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Float].
@@ -1378,6 +1438,13 @@ extension FloatArray on Array<Float> {
   external double operator [](int index);
 
   external void operator []=(int index, double value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external Float32List get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Double].
@@ -1386,6 +1453,13 @@ extension DoubleArray on Array<Double> {
   external double operator [](int index);
 
   external void operator []=(int index, double value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external Float64List get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Bool].
@@ -1394,6 +1468,13 @@ extension BoolArray on Array<Bool> {
   external bool operator [](int index);
 
   external void operator []=(int index, bool value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external List<bool> get elements;
 }
 
 @Since('3.5')
@@ -1986,6 +2067,13 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   external Pointer<T> operator [](int index);
 
   external void operator []=(int index, Pointer<T> value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external List<Pointer<T>> get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Struct].
@@ -1994,6 +2082,13 @@ extension StructArray<T extends Struct> on Array<T> {
   /// This extension method must be invoked on a receiver of type `Pointer<T>`
   /// where `T` is a compile-time constant type.
   external T operator [](int index);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array.
+  @Since('3.8')
+  external List<T> get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Union].
@@ -2002,6 +2097,13 @@ extension UnionArray<T extends Union> on Array<T> {
   /// This extension method must be invoked on a receiver of type `Pointer<T>`
   /// where `T` is a compile-time constant type.
   external T operator [](int index);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array.
+  @Since('3.8')
+  external List<T> get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [Array].
@@ -2010,6 +2112,13 @@ extension ArrayArray<T extends NativeType> on Array<Array<T>> {
   external Array<T> operator [](int index);
 
   external void operator []=(int index, Array<T> value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external List<Array<T>> get elements;
 }
 
 /// Bounds checking indexing methods on [Array]s of [AbiSpecificInteger].
@@ -2018,6 +2127,13 @@ extension AbiSpecificIntegerArray<T extends AbiSpecificInteger> on Array<T> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);
+
+  /// A list view of the bytes of this array.
+  ///
+  /// Has the same length and elements (as accessed using the index operator)
+  /// as this array, and writes to either the list or this arrary are visible in both.
+  @Since('3.8')
+  external List<int> get elements;
 }
 
 @Since('3.5')

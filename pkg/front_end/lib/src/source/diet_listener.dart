@@ -95,7 +95,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   bool get isDartLibrary =>
-      libraryBuilder.origin.importUri.isScheme("dart") ||
+      libraryBuilder.importUri.isScheme("dart") ||
       uri.isScheme("org-dartlang-sdk");
 
   @override

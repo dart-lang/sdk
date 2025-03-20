@@ -28,7 +28,7 @@ class ConstructorMember extends ExecutableMember
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
   ConstructorMember({
-    required ConstructorElement super.declaration,
+    required ConstructorElementImpl super.declaration,
     required super.substitution,
   }) : super(
           typeParameters: const <TypeParameterElementImpl>[],
@@ -90,7 +90,7 @@ class ConstructorMember extends ExecutableMember
   @override
   ConstructorElementMixin? get redirectedConstructor {
     var element = declaration.redirectedConstructor;
-    return _from2(element);
+    return _redirect(element);
   }
 
   @override
@@ -114,7 +114,7 @@ class ConstructorMember extends ExecutableMember
   @override
   ConstructorElement? get superConstructor {
     var element = declaration.superConstructor;
-    return _from2(element);
+    return _redirect(element);
   }
 
   @override
@@ -138,71 +138,61 @@ class ConstructorMember extends ExecutableMember
     builder.writeConstructorElement(this);
   }
 
-  ConstructorMember? _from2(ConstructorElement? element) {
-    if (element == null) {
-      return null;
+  ConstructorElementMixin? _redirect(ConstructorElementMixin? element) {
+    switch (element) {
+      case null:
+        return null;
+      case ConstructorElementImpl():
+        return element;
+      case ConstructorMember():
+        var memberMap = element.substitution.map;
+        var map = <TypeParameterElement2, DartType>{
+          for (var MapEntry(:key, :value) in memberMap.entries)
+            key: substitution.substituteType(value),
+        };
+        return ConstructorMember(
+          declaration: element.declaration,
+          substitution: Substitution.fromMap2(map),
+        );
+      default:
+        throw UnimplementedError('(${element.runtimeType}) $element');
     }
-
-    ConstructorElement declaration;
-    MapSubstitution substitution;
-    if (element is ConstructorMember) {
-      declaration = element._declaration as ConstructorElement;
-      var map = <TypeParameterElement2, DartType>{};
-      var elementMap = element.substitution.map;
-      for (var typeParameter in elementMap.keys) {
-        var type = elementMap[typeParameter]!;
-        map[typeParameter] = this.substitution.substituteType(type);
-      }
-      substitution = Substitution.fromMap2(map);
-    } else {
-      declaration = element;
-      substitution = this.substitution;
-    }
-
-    return ConstructorMember(
-      declaration: declaration,
-      substitution: substitution,
-    );
   }
 
-  /// If the given [constructor]'s type is different when any type parameters
+  /// If the given [element]'s type is different when any type parameters
   /// from the defining type's declaration are replaced with the actual type
   /// arguments from the [definingType], create a constructor member
   /// representing the given constructor. Return the member that was created, or
   /// the original constructor if no member was created.
   static ConstructorElementMixin from(
-      ConstructorElementMixin constructor, InterfaceType definingType) {
+    ConstructorElementImpl element,
+    InterfaceType definingType,
+  ) {
     if (definingType.typeArguments.isEmpty) {
-      return constructor;
-    }
-
-    if (constructor is ConstructorMember) {
-      constructor = constructor.declaration;
+      return element;
     }
 
     return ConstructorMember(
-      declaration: constructor,
+      declaration: element,
       substitution: Substitution.fromInterfaceType(definingType),
     );
   }
 
-  /// If the given [constructor]'s type is different when any type parameters
+  /// If the given [element]'s type is different when any type parameters
   /// from the defining type's declaration are replaced with the actual type
   /// arguments from the [definingType], create a constructor member
   /// representing the given constructor. Return the member that was created, or
   /// the original constructor if no member was created.
   static ConstructorElementMixin2 from2(
-      ConstructorElementMixin2 constructor, InterfaceType definingType) {
+    ConstructorElementImpl2 element,
+    InterfaceType definingType,
+  ) {
     if (definingType.typeArguments.isEmpty) {
-      return constructor;
-    }
-
-    if (constructor is ConstructorMember) {
-      constructor = constructor.baseElement;
+      return element;
     }
 
     return ConstructorMember(
-      declaration: constructor.asElement,
+      declaration: element.asElement,
       substitution: Substitution.fromInterfaceType(definingType),
     );
   }

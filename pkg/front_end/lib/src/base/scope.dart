@@ -556,8 +556,8 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   void forEachExtension(void Function(ExtensionBuilder) f) {
     if (_extensions == null) {
       Set<ExtensionBuilder> extensions = _extensions = {};
-      Iterator<PrefixBuilder> iterator = _nameSpace.filteredIterator(
-          includeDuplicates: false, includeAugmentations: false);
+      Iterator<PrefixBuilder> iterator =
+          _nameSpace.filteredIterator(includeDuplicates: false);
       while (iterator.moveNext()) {
         iterator.current.forEachExtension((e) {
           extensions.add(e);
@@ -1114,22 +1114,15 @@ class ConstructorNameSpaceNameIterator extends ConstructorNameSpaceIterator
 /// Filtered builder [Iterator].
 class FilteredIterator<T extends Builder> implements Iterator<T> {
   final Iterator<Builder> _iterator;
-  final Builder? parent;
   final bool includeDuplicates;
-  final bool includeAugmentations;
 
-  FilteredIterator(this._iterator,
-      {required this.parent,
-      required this.includeDuplicates,
-      required this.includeAugmentations});
+  FilteredIterator(this._iterator, {required this.includeDuplicates});
 
   bool _include(Builder element) {
-    if (parent != null && element.parent != parent) return false;
     if (!includeDuplicates &&
         (element.isDuplicate || element.isConflictingAugmentationMember)) {
       return false;
     }
-    if (!includeAugmentations && element.isAugmenting) return false;
     return element is T;
   }
 
@@ -1154,22 +1147,15 @@ class FilteredIterator<T extends Builder> implements Iterator<T> {
 /// access to the name that the builders are mapped to.
 class FilteredNameIterator<T extends Builder> implements NameIterator<T> {
   final NameIterator<Builder> _iterator;
-  final Builder? parent;
   final bool includeDuplicates;
-  final bool includeAugmentations;
 
-  FilteredNameIterator(this._iterator,
-      {required this.parent,
-      required this.includeDuplicates,
-      required this.includeAugmentations});
+  FilteredNameIterator(this._iterator, {required this.includeDuplicates});
 
   bool _include(Builder element) {
-    if (parent != null && element.parent != parent) return false;
     if (!includeDuplicates &&
         (element.isDuplicate || element.isConflictingAugmentationMember)) {
       return false;
     }
-    if (!includeAugmentations && element.isAugmenting) return false;
     return element is T;
   }
 

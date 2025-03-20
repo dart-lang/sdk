@@ -2,4 +2,7 @@
 name: node_preamble
 environment:
   sdk: ^3.7.0
+
+resolution: workspace
+
 publish_to: none

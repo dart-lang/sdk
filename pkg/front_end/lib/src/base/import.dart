@@ -92,8 +92,7 @@ class Import {
       };
     }
     NameIterator<Builder> iterator = importedLibraryBuilder!.exportNameSpace
-        .filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: false);
+        .filteredNameIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       String name = iterator.name;
       Builder member = iterator.current;
