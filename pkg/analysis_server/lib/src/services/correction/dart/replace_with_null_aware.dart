@@ -24,11 +24,10 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // NNBD makes this obsolete in the "chain" application; for the "single"
-          // application, there are other options and a null-aware replacement is
-          // not predictably correct.
-          CorrectionApplicability
-          .singleLocation;
+      // NNBD makes this obsolete in the "chain" application; for the "single"
+      // application, there are other options and a null-aware replacement is
+      // not predictably correct.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_operator, '?$_operator'];

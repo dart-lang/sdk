@@ -351,7 +351,10 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
                     // Because we don't know what prefix we're looking for (any is
                     // allowed), use the imports own prefix when checking for the
                     // element.
-                    import.namespace.getPrefixed2(import.prefix2?.element.name3 ?? '', lookupName) ==
+                    import.namespace.getPrefixed2(
+                      import.prefix2?.element.name3 ?? '',
+                      lookupName,
+                    ) ==
                     element,
               )
               .firstOrNull;

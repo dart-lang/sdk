@@ -60,9 +60,9 @@ class IdentifierHelper {
       return;
     }
     for (var childElement in state.libraryElement.children2) {
-        if (childElement.name3 == candidateName) {
-          // Don't suggest a name that's already declared in the library.
-          return;
+      if (childElement.name3 == candidateName) {
+        // Don't suggest a name that's already declared in the library.
+        return;
       }
     }
     var matcherScore = state.matcher.score(candidateName);

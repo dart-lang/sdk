@@ -27,9 +27,8 @@ class AddAsync extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // Not predictably the correct action.
-          CorrectionApplicability
-          .singleLocation;
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_ASYNC;

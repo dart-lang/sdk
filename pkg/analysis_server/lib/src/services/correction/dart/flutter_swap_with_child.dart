@@ -15,9 +15,8 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   Future<void> swapParentAndChild(
     ChangeBuilder builder,

@@ -18,10 +18,9 @@ class MakeConditionalOnDebugMode extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // This fix isn't enabled for fix-all or bulk fix because it doesn't
-          // currently account for having multiple `print` invocations in sequence.
-          CorrectionApplicability
-          .singleLocation;
+      // This fix isn't enabled for fix-all or bulk fix because it doesn't
+      // currently account for having multiple `print` invocations in sequence.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_CONDITIONAL_ON_DEBUG_MODE;

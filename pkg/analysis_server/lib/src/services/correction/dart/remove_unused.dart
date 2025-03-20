@@ -19,9 +19,8 @@ class RemoveUnusedElement extends _RemoveUnused {
 
   @override
   CorrectionApplicability get applicability =>
-          // Not predictably the correct action.
-          CorrectionApplicability
-          .singleLocation;
+      // Not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_ELEMENT;

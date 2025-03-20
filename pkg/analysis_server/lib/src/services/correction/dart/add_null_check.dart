@@ -27,8 +27,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   //
   // > Producers used in bulk fixes must not modify the FixKind during
   // > computation.
-  FixKind
-  fixKind = DartFixKind.ADD_NULL_CHECK;
+  FixKind fixKind = DartFixKind.ADD_NULL_CHECK;
 
   @override
   List<String>? fixArguments;

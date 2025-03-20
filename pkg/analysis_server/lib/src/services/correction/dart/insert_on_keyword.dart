@@ -14,9 +14,8 @@ class InsertOnKeyword extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // Supports single instance and in file corrections
-          CorrectionApplicability
-          .acrossSingleFile;
+      // Supports single instance and in file corrections
+      CorrectionApplicability.acrossSingleFile;
 
   @override
   FixKind get fixKind => DartFixKind.INSERT_ON_KEYWORD;

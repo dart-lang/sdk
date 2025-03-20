@@ -17,9 +17,8 @@ class AddCallSuper extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // Adding as the first statement is not predictably the correct action.
-          CorrectionApplicability
-          .singleLocation;
+      // Adding as the first statement is not predictably the correct action.
+      CorrectionApplicability.singleLocation;
 
   @override
   List<String> get fixArguments => [_addition];

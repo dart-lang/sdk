@@ -14,9 +14,8 @@ class RemoveParenthesesInGetterInvocation extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION;

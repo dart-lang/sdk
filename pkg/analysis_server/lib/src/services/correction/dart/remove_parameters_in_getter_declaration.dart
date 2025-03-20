@@ -14,9 +14,8 @@ class RemoveParametersInGetterDeclaration extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-          // TODO(applicability): comment on why.
-          CorrectionApplicability
-          .singleLocation;
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION;
