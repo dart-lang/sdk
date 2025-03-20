@@ -128,9 +128,12 @@ sealed class GetterEncoding implements InferredTypeListener {
       {required bool isClassInstanceMember,
       required bool createFileUriExpression});
 
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, GetterReference references,
-      {required bool isAbstractOrExternal,
+  void buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required GetterReference? references,
+      required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters});
 
   void checkTypes(SourceLibraryBuilder libraryBuilder,
@@ -234,10 +237,13 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, GetterReference references,
-      {required bool isAbstractOrExternal,
-      List<TypeParameter>? classTypeParameters}) {
+  void buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required GetterReference? references,
+      required bool isAbstractOrExternal,
+      required List<TypeParameter>? classTypeParameters}) {
     FunctionNode function = new FunctionNode(
         isAbstractOrExternal ? null : new EmptyStatement(),
         asyncMarker: _fragment.asyncModifier)
@@ -262,7 +268,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         nameScheme.getProcedureMemberName(ProcedureKind.Getter, _fragment.name);
     Procedure procedure = _procedure = new Procedure(
         memberName.name, ProcedureKind.Getter, function,
-        reference: references.getterReference, fileUri: _fragment.fileUri)
+        reference: references?.getterReference, fileUri: _fragment.fileUri)
       ..fileStartOffset = _fragment.startOffset
       ..fileOffset = _fragment.nameOffset
       ..fileEndOffset = _fragment.endOffset
@@ -462,9 +468,12 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, GetterReference references,
-      {required bool isAbstractOrExternal,
+  void buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required GetterReference? references,
+      required bool isAbstractOrExternal,
       required List<TypeParameter>? classTypeParameters}) {
     List<TypeParameter>? typeParameters;
     if (_clonedDeclarationTypeParameters != null) {
@@ -502,7 +511,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         nameScheme.getProcedureMemberName(ProcedureKind.Getter, _fragment.name);
     Procedure procedure = _procedure = new Procedure(
         memberName.name, ProcedureKind.Method, function,
-        reference: references.getterReference, fileUri: _fragment.fileUri)
+        reference: references?.getterReference, fileUri: _fragment.fileUri)
       ..fileStartOffset = _fragment.startOffset
       ..fileOffset = _fragment.nameOffset
       ..fileEndOffset = _fragment.endOffset

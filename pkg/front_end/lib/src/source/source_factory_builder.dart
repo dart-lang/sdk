@@ -92,8 +92,13 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
       : _memberName = nameScheme.getDeclaredName(name),
         _introductory = introductory,
         _augmentations = augmentations {
-    _augmentedDeclarations = [introductory, ...augmentations];
-    _lastDeclaration = _augmentedDeclarations.removeLast();
+    if (augmentations.isEmpty) {
+      _augmentedDeclarations = augmentations;
+      _lastDeclaration = introductory;
+    } else {
+      _augmentedDeclarations = [introductory, ...augmentations];
+      _lastDeclaration = _augmentedDeclarations.removeLast();
+    }
 
     for (FactoryDeclaration augmentedDeclaration in _augmentedDeclarations) {
       augmentedDeclaration.createNode(
@@ -321,7 +326,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   }
 
   // TODO(johnniwinther): Add annotations to tear-offs.
-  @override
   Iterable<Annotatable> get annotatables => [_procedure];
 
   @override

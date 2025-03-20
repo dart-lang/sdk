@@ -26,22 +26,27 @@ class Class extends core::Object {
   constructor •() → self2::Class
     ;
   @_in::patch
-  external get instanceGetter() → core::int;
+  get /* from org-dartlang-testcase:///patch_lib.dart */ instanceGetter() → core::int
+    ;
   @_in::patch
-  external static get staticGetter() → core::int;
+  static get /* from org-dartlang-testcase:///patch_lib.dart */ staticGetter() → core::int
+    ;
 }
 @_in::patch
 extension Extension on core::int {
   get instanceGetter = self2::Extension|get#instanceGetter;
   static get staticGetter = get self2::Extension|staticGetter;
 }
-@_in::patch
-external static get topLevelGetter() → core::int;
-@_in::patch
-external static extension-member method Extension|get#instanceGetter(lowered final core::int #this) → core::int;
-@_in::patch
-external static extension-member get Extension|staticGetter() → core::int;
 static method methodInOrigin() → dynamic
+  ;
+@_in::patch
+static get /* from org-dartlang-testcase:///patch_lib.dart */ topLevelGetter() → core::int
+  ;
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#instanceGetter(lowered final core::int #this) → core::int
+  ;
+@_in::patch
+static extension-member get /* from org-dartlang-testcase:///patch_lib.dart */ Extension|staticGetter() → core::int
   ;
 static method /* from org-dartlang-testcase:///patch_lib.dart */ methodInPatch() → dynamic
   ;
@@ -49,10 +54,10 @@ static method /* from org-dartlang-testcase:///patch_lib.dart */ methodInPatch()
 
 Extra constant evaluation status:
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:11:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:12:28 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:15:27 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:13:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:18:9 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:10:3 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:21:4 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:23:9 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:8:2 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:22:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:25:4 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 7, effectively constant: 7

@@ -313,6 +313,7 @@ void adjustAnnotationFileUri(Annotatable annotatable, Uri annotatableFileUri) {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 /// Copies properties, function parameters and body from the [augmentation]
 /// procedure to its [origin].
 void finishProcedureAugmentation(Procedure origin, Procedure augmentation) {

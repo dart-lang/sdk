@@ -67,13 +67,15 @@ abstract class SetterDeclaration {
       required bool isClassInstanceMember,
       required bool createFileUriExpression});
 
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, SetterReference references,
-      {required List<TypeParameter>? classTypeParameters});
+  void buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required SetterReference? references,
+      required List<TypeParameter>? classTypeParameters});
 
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment,
-      {required bool isAbstract, required bool isExternal});
+      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment);
 
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
@@ -123,6 +125,7 @@ class SetterDeclarationImpl implements SetterDeclaration {
   FunctionNode get function => _encoding.function;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAbstract => _fragment.modifiers.isAbstract;
 
   @override
@@ -180,10 +183,17 @@ class SetterDeclarationImpl implements SetterDeclaration {
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f, SetterReference references,
-      {required List<TypeParameter>? classTypeParameters}) {
-    _encoding.buildOutlineNode(libraryBuilder, nameScheme, f, references,
+  void buildOutlineNode(
+      {required SourceLibraryBuilder libraryBuilder,
+      required NameScheme nameScheme,
+      required BuildNodesCallback f,
+      required SetterReference? references,
+      required List<TypeParameter>? classTypeParameters}) {
+    _encoding.buildOutlineNode(
+        libraryBuilder: libraryBuilder,
+        nameScheme: nameScheme,
+        f: f,
+        references: references,
         isAbstractOrExternal:
             _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
         classTypeParameters: classTypeParameters);
@@ -191,10 +201,10 @@ class SetterDeclarationImpl implements SetterDeclaration {
 
   @override
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment,
-      {required bool isAbstract, required bool isExternal}) {
+      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
     _encoding.checkTypes(libraryBuilder, typeEnvironment,
-        isAbstract: isAbstract, isExternal: isExternal);
+        isAbstract: _fragment.modifiers.isAbstract,
+        isExternal: _fragment.modifiers.isExternal);
   }
 
   @override
