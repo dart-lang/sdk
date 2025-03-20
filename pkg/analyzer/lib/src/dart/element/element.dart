@@ -5445,10 +5445,10 @@ class GetterFragmentImpl extends PropertyAccessorElementImpl
       : super.forVariable();
 
   @override
-  PropertyAccessorElement? get correspondingGetter => null;
+  PropertyAccessorElementImpl? get correspondingGetter => null;
 
   @override
-  PropertyAccessorElement? get correspondingSetter => variable2?.setter;
+  PropertyAccessorElementImpl? get correspondingSetter => variable2?.setter;
 
   @override
   GetterElementImpl get element {
@@ -9893,6 +9893,12 @@ sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  PropertyAccessorElementImpl? get correspondingGetter;
+
+  @override
+  PropertyAccessorElementImpl? get correspondingSetter;
+
+  @override
   PropertyAccessorElementImpl get declaration => this;
 
   @override
@@ -10494,10 +10500,10 @@ class SetterFragmentImpl extends PropertyAccessorElementImpl
       : super.forVariable();
 
   @override
-  PropertyAccessorElement? get correspondingGetter => variable2?.getter;
+  PropertyAccessorElementImpl? get correspondingGetter => variable2?.getter;
 
   @override
-  PropertyAccessorElement? get correspondingSetter => null;
+  PropertyAccessorElementImpl? get correspondingSetter => null;
 
   @override
   SetterElementImpl get element {

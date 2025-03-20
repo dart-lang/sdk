@@ -711,12 +711,12 @@ class GetterMember extends PropertyAccessorMember
   GetterElement get baseElement => _element2;
 
   @override
-  SetterElement? get correspondingSetter2 {
+  SetterElement2OrMember? get correspondingSetter2 {
     var setter = correspondingSetter;
     if (setter is SetterMember) {
       return setter;
     }
-    return setter.asElement2 as SetterElement?;
+    return setter.asElement2 as SetterElementImpl?;
   }
 
   @override
@@ -1312,7 +1312,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
         PropertyAccessorElementOrMember,
         PropertyAccessorElement2OrMember {
   factory PropertyAccessorMember({
-    required PropertyAccessorElement declaration,
+    required PropertyAccessorElementImpl declaration,
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
@@ -1335,13 +1335,13 @@ abstract class PropertyAccessorMember extends ExecutableMember
   }
 
   PropertyAccessorMember._({
-    required PropertyAccessorElement super.declaration,
+    required PropertyAccessorElementImpl super.declaration,
     required super.substitution,
     required super.typeParameters,
   });
 
   @override
-  PropertyAccessorElement? get correspondingGetter {
+  PropertyAccessorElementOrMember? get correspondingGetter {
     var baseGetter = declaration.correspondingGetter;
     if (baseGetter == null) {
       return null;
@@ -1353,7 +1353,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
   }
 
   @override
-  PropertyAccessorElement? get correspondingSetter {
+  PropertyAccessorElementOrMember? get correspondingSetter {
     var baseSetter = declaration.correspondingSetter;
     if (baseSetter == null) {
       return null;
@@ -1419,19 +1419,21 @@ abstract class PropertyAccessorMember extends ExecutableMember
     );
   }
 
-  /// If the given [accessor]'s type is different when any type parameters from
+  /// If the given [element]'s type is different when any type parameters from
   /// the defining type's declaration are replaced with the actual type
   /// arguments from the [definingType], create an accessor member representing
   /// the given accessor. Return the member that was created, or the base
   /// accessor if no member was created.
   static PropertyAccessorElementOrMember? from(
-      PropertyAccessorElementOrMember? accessor, InterfaceType definingType) {
-    if (accessor == null || definingType.typeArguments.isEmpty) {
-      return accessor;
+    PropertyAccessorElementImpl? element,
+    InterfaceType definingType,
+  ) {
+    if (element == null || definingType.typeArguments.isEmpty) {
+      return element;
     }
 
     return PropertyAccessorMember(
-      declaration: accessor,
+      declaration: element,
       substitution: Substitution.fromInterfaceType(definingType),
     );
   }
@@ -1451,12 +1453,12 @@ class SetterMember extends PropertyAccessorMember
   SetterElement get baseElement => _element2;
 
   @override
-  GetterElement? get correspondingGetter2 {
+  GetterElement2OrMember? get correspondingGetter2 {
     var getter = correspondingGetter;
     if (getter is GetterMember) {
       return getter;
     }
-    return getter.asElement2 as GetterElement?;
+    return getter.asElement2 as GetterElementImpl?;
   }
 
   @override
