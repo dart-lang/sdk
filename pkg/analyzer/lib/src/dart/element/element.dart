@@ -3839,6 +3839,9 @@ abstract class ExecutableElementOrMember
 
   @override
   FunctionTypeImpl get type;
+
+  @override
+  List<TypeParameterElementImpl> get typeParameters;
 }
 
 /// A concrete implementation of an [ExtensionElement].
