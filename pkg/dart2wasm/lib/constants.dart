@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart'
@@ -69,8 +71,7 @@ class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
   final Map<Constant, ConstantInfo> dynamicModuleConstantInfo = {};
-  w.DataSegmentBuilder? oneByteStringSegment;
-  w.DataSegmentBuilder? twoByteStringSegment;
+  w.DataSegmentBuilder? int32Segment;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
 
   final Map<DartType, InstanceConstant> _loweredTypeConstants = {};
@@ -673,6 +674,37 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     return createConstant(constant, w.RefType.def(arrayType, nullable: false),
         lazy: lazy, (b) {
       if (tooLargeForArrayNewFixed) {
+        // We use WasmArray<WasmI32> for some RTT data structures. Those arrays
+        // can get rather large and cross the 10k limit.
+        //
+        // If so, we prefer to initialize the array from data section over
+        // emitting a *lot* of code to store individual array elements.
+        //
+        // This can be a little bit larger than individual array stores, but the
+        // data section will compress better, so for app.wasm.gz it'a a win and
+        // will cause much faster validation & faster initialization.
+        if (arrayType.elementType.type == w.NumType.i32) {
+          // Initialize array contents from passive data segment.
+          final w.DataSegmentBuilder segment =
+              constants.int32Segment ??= targetModule.dataSegments.define();
+
+          final field = translator.wasmI32Value.fieldReference;
+
+          final list = Uint32List(elements.length);
+          for (int i = 0; i < list.length; ++i) {
+            // The constant is a `const WasmI32 {WasmI32._value: <XXX>}`
+            final constant = elements[i] as InstanceConstant;
+            assert(constant.classNode == translator.wasmI32Class);
+            list[i] = (constant.fieldValues[field] as IntConstant).value;
+          }
+          final offset = segment.length;
+          segment.append(list.buffer.asUint8List());
+          b.i32_const(offset);
+          b.i32_const(elements.length);
+          b.array_new_data(arrayType, segment);
+          return;
+        }
+
         // We will initialize the array with one of the elements (using
         // `array.new`) and update the fields.
         //
