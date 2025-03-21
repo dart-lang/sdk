@@ -48,23 +48,17 @@ class CoreTypesUtil {
             coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'JS'),
         isDartFunctionWrappedTarget = coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', '_isDartFunctionWrapped'),
-        numToIntTarget = coreTypes.index
-            .getClass('dart:core', 'num')
-            .procedures
-            .firstWhere((p) => p.name.text == 'toInt'),
+        numToIntTarget =
+            coreTypes.index.getProcedure('dart:core', 'num', 'toInt'),
         jsifyRawTarget =
             coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'jsifyRaw'),
         jsObjectFromDartObjectTarget = coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', 'jsObjectFromDartObject'),
-        jsValueBoxTarget = coreTypes.index
-            .getClass('dart:_js_helper', 'JSValue')
-            .procedures
-            .firstWhere((p) => p.name.text == 'box'),
+        jsValueBoxTarget =
+            coreTypes.index.getProcedure('dart:_js_helper', 'JSValue', 'box'),
         jsValueClass = coreTypes.index.getClass('dart:_js_helper', 'JSValue'),
-        jsValueUnboxTarget = coreTypes.index
-            .getClass('dart:_js_helper', 'JSValue')
-            .procedures
-            .firstWhere((p) => p.name.text == 'unbox'),
+        jsValueUnboxTarget =
+            coreTypes.index.getProcedure('dart:_js_helper', 'JSValue', 'unbox'),
         wasmExternRefClass =
             coreTypes.index.getClass('dart:_wasm', 'WasmExternRef'),
         wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
