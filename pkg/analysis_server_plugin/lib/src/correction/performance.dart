@@ -21,9 +21,7 @@ abstract class ProducerRequestPerformance extends RequestPerformance {
   final List<ProducerTiming> producerTimings;
 
   ProducerRequestPerformance({
-    // TODO(srawlins): This should probably be used in the super call?
-    // ignore: avoid_unused_constructor_parameters
-    required String operation,
+    required super.operation,
     required this.path,
     required super.performance,
     super.requestLatency,
@@ -31,8 +29,7 @@ abstract class ProducerRequestPerformance extends RequestPerformance {
     required String content,
     required int offset,
     required this.producerTimings,
-  })  : snippet = content.withCaretAt(offset),
-        super(operation: 'GetAssists');
+  }) : snippet = content.withCaretAt(offset);
 
   int get elapsedInMilliseconds => performance.elapsed.inMilliseconds;
 }
