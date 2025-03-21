@@ -652,10 +652,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<InterfaceTypeImpl> get allSupertypes {
     var substitution = Substitution.fromInterfaceType(this);
-    return element3.allSupertypes
-        .map((t) => (substitution.substituteType(t) as InterfaceTypeImpl)
-            .withNullability(nullabilitySuffix))
-        .toList();
+    return element3.allSupertypes.map((interface) {
+      return substitution
+          .mapInterfaceType(interface)
+          .withNullability(nullabilitySuffix);
+    }).toList();
   }
 
   @Deprecated('Use constructors2 instead')
@@ -823,8 +824,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return null;
     }
 
-    return (Substitution.fromInterfaceType(this).substituteType(supertype)
-            as InterfaceTypeImpl)
+    return Substitution.fromInterfaceType(this)
+        .mapInterfaceType(supertype)
         .withNullability(nullabilitySuffix);
   }
 
@@ -887,7 +888,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (var rawInterface in element.allSupertypes) {
       if (rawInterface.element == targetElement) {
         var substitution = Substitution.fromInterfaceType(this);
-        return substitution.substituteType(rawInterface) as InterfaceTypeImpl;
+        return substitution.mapInterfaceType(rawInterface);
       }
     }
 
@@ -903,7 +904,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (var rawInterface in element3.allSupertypes) {
       if (rawInterface.element3 == targetElement) {
         var substitution = Substitution.fromInterfaceType(this);
-        return substitution.substituteType(rawInterface) as InterfaceTypeImpl;
+        return substitution.mapInterfaceType(rawInterface);
       }
     }
 

@@ -87,15 +87,18 @@ class _List<E> extends _Array<E> {
   ])
   @pragma("vm:prefer-inline")
   @pragma("vm:external-name", "List_allocate")
+  @pragma('dyn-module:callable')
   external factory _List(length);
 
   // Specialization of List.empty constructor for growable == false.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
+  @pragma('dyn-module:callable')
   factory _List.empty() => _List<E>(0);
 
   // Specialization of List.filled constructor for growable == false.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  @pragma('dyn-module:callable')
   factory _List.filled(int length, E fill) {
     final result = _List<E>(length);
     if (fill != null) {
@@ -109,6 +112,7 @@ class _List<E> extends _Array<E> {
   // Specialization of List.generate constructor for growable == false.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
+  @pragma('dyn-module:callable')
   factory _List.generate(int length, E generator(int index)) {
     final result = _List<E>(length);
     for (int i = 0; i < result.length; ++i) {

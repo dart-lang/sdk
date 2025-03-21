@@ -2041,8 +2041,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             functionElement.type.instantiate(typeArgumentTypes);
         var substitution = _substitution;
         if (substitution != null) {
-          instantiatedType =
-              substitution.substituteType(instantiatedType) as FunctionTypeImpl;
+          instantiatedType = substitution.mapFunctionType(instantiatedType);
         }
         return value.typeInstantiate(
             typeSystem, instantiatedType, typeArgumentTypes);

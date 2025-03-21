@@ -115,31 +115,10 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
       return;
     }
 
-    bool isEmptyListLiteral(Expression expression) =>
-        expression is ListLiteral && expression.elements.isEmpty;
-
     var argument = invocation.argumentList.arguments[0];
     assert(argument is ListLiteral == _isInlineInvocation);
-
-    String? elementText;
-    if (argument is BinaryExpression &&
-        argument.operator.type == TokenType.QUESTION_QUESTION) {
-      var right = argument.rightOperand;
-      if (isEmptyListLiteral(right)) {
-        // ..addAll(things ?? const [])
-        // ..addAll(things ?? [])
-        elementText = '...?${utils.getNodeText(argument.leftOperand)}';
-      }
-    } else if (argument is ConditionalExpression) {
-      var elseExpression = argument.elseExpression;
-      if (isEmptyListLiteral(elseExpression)) {
-        // ..addAll(condition ? things : const [])
-        // ..addAll(condition ? things : [])
-        var conditionText = utils.getNodeText(argument.condition);
-        var thenText = utils.getNodeText(argument.thenExpression);
-        elementText = 'if ($conditionText) ...$thenText';
-      }
-    } else if (argument is ListLiteral) {
+    String elementText;
+    if (argument is ListLiteral) {
       // ..addAll([ ... ])
       var elements = argument.elements;
       if (elements.isEmpty) {
@@ -152,25 +131,51 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
       var endOffset = elements.last.end;
       elementText = utils.getText(startOffset, endOffset - startOffset);
       _args = ['addAll'];
+    } else {
+      elementText = _computeElementText(argument);
     }
-    elementText ??= '...${utils.getNodeText(argument)}';
 
-    var elementText_final = elementText;
     await builder.addDartFileEdit(file, (builder) {
       if (targetList.elements.isNotEmpty) {
         // ['a']..addAll(['b', 'c']);
         builder.addSimpleInsertion(
           targetList.elements.last.end,
-          ', $elementText_final',
+          ', $elementText',
         );
       } else {
         // []..addAll(['b', 'c']);
-        builder.addSimpleInsertion(
-          targetList.leftBracket.end,
-          elementText_final,
-        );
+        builder.addSimpleInsertion(targetList.leftBracket.end, elementText);
       }
       builder.addDeletion(range.node(invocation));
     });
+  }
+
+  String _computeElementText(Expression argument) {
+    if (argument is BinaryExpression &&
+        argument.operator.type == TokenType.QUESTION_QUESTION) {
+      var right = argument.rightOperand;
+      if (right.isEmptyListLiteral) {
+        // ..addAll(things ?? const [])
+        // ..addAll(things ?? [])
+        return '...?${utils.getNodeText(argument.leftOperand)}';
+      }
+    } else if (argument is ConditionalExpression) {
+      var elseExpression = argument.elseExpression;
+      if (elseExpression.isEmptyListLiteral) {
+        // ..addAll(condition ? things : const [])
+        // ..addAll(condition ? things : [])
+        var conditionText = utils.getNodeText(argument.condition);
+        var thenText = utils.getNodeText(argument.thenExpression);
+        return 'if ($conditionText) ...$thenText';
+      }
+    }
+    return '...${utils.getNodeText(argument)}';
+  }
+}
+
+extension on Expression {
+  bool get isEmptyListLiteral {
+    var self = this;
+    return self is ListLiteral && self.elements.isEmpty;
   }
 }

@@ -955,7 +955,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   void _writeByte(int byte) {
     assert((byte & 0xFF) == byte);
-    _sink.addByte(byte);
+    _sink.writeByte(byte);
   }
 
   void _writeDeclarationName(Token token) {
@@ -963,7 +963,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _writeDouble(double value) {
-    _sink.addDouble(value);
+    _sink.writeDouble(value);
   }
 
   void _writeNode(AstNode node) {
@@ -997,8 +997,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _writeUInt32(int value) {
-    _sink.addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF,
-        (value >> 8) & 0xFF, value & 0xFF);
+    _sink.writeUInt32(value);
   }
 
   /// Return `true` if the expression might be successfully serialized.

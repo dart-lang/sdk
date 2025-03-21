@@ -173,7 +173,7 @@ class InstanceGetterItem extends InstanceMemberItem {
   }
 }
 
-abstract class InstanceMemberItem extends ManifestItem {
+sealed class InstanceMemberItem extends ManifestItem {
   final LookupName name;
   final ManifestItemId id;
 

@@ -61,9 +61,7 @@ class Server {
     return this;
   }
 
-  void shutdown() {
-    server.close();
-  }
+  Future<void> shutdown() => server.close();
 
   String get host => server.address.address;
 
@@ -83,7 +81,7 @@ void testCreateInvalidBearerTokens() {
   Expect.throws(() => HttpClientBearerCredentials("     "));
 }
 
-void testBearerWithoutCredentials() async {
+Future<void> testBearerWithoutCredentials() async {
   final server = await Server().start();
   final client = HttpClient();
 
@@ -100,11 +98,11 @@ void testBearerWithoutCredentials() async {
     ],
   ]);
 
-  server.shutdown();
+  await server.shutdown();
   client.close();
 }
 
-void testBearerWithCredentials() async {
+Future<void> testBearerWithCredentials() async {
   final server = await Server().start();
   final client = HttpClient();
 
@@ -130,11 +128,11 @@ void testBearerWithCredentials() async {
     ],
   ]);
 
-  server.shutdown();
+  await server.shutdown();
   client.close();
 }
 
-void testBearerWithAuthenticateCallback() async {
+Future<void> testBearerWithAuthenticateCallback() async {
   final server = await Server().start();
   final client = HttpClient();
 
@@ -165,11 +163,11 @@ void testBearerWithAuthenticateCallback() async {
   // assert that all authenticate callbacks have actually been called
   Expect.setEquals({for (int i = 0; i < 5; i++) "test$i"}, callbacks);
 
-  server.shutdown();
+  await server.shutdown();
   client.close();
 }
 
-void testMalformedAuthenticateHeaderWithoutCredentials() async {
+Future<void> testMalformedAuthenticateHeaderWithoutCredentials() async {
   final server = await Server().start();
   final client = HttpClient();
   final uri = Uri.parse(
@@ -178,13 +176,13 @@ void testMalformedAuthenticateHeaderWithoutCredentials() async {
 
   // the request should resolve normally if no authentication is configured
   final request = await client.getUrl(uri);
-  final response = await request.close();
+  await request.close();
 
-  server.shutdown();
+  await server.shutdown();
   client.close();
 }
 
-void testMalformedAuthenticateHeaderWithCredentials() async {
+Future<void> testMalformedAuthenticateHeaderWithCredentials() async {
   final server = await Server().start();
   final client = HttpClient();
   final uri = Uri.parse(
@@ -197,15 +195,15 @@ void testMalformedAuthenticateHeaderWithCredentials() async {
   await asyncExpectThrows<HttpException>(
     Future(() async {
       final request = await client.getUrl(uri);
-      final response = await request.close();
+      await request.close();
     }),
   );
 
-  server.shutdown();
+  await server.shutdown();
   client.close();
 }
 
-void testMalformedAuthenticateHeaderWithAuthenticateCallback() async {
+Future<void> testMalformedAuthenticateHeaderWithAuthenticateCallback() async {
   final server = await Server().start();
   final client = HttpClient();
   final uri = Uri.parse(
@@ -217,15 +215,15 @@ void testMalformedAuthenticateHeaderWithAuthenticateCallback() async {
   await asyncExpectThrows<HttpException>(
     Future(() async {
       final request = await client.getUrl(uri);
-      final response = await request.close();
+      await request.close();
     }),
   );
 
-  server.shutdown();
+  await server.shutdown();
   client.close();
 }
 
-void testLocalServerBearer() async {
+Future<void> testLocalServerBearer() async {
   final client = HttpClient();
 
   client.authenticate = (url, scheme, realm) async {
@@ -248,16 +246,18 @@ void testLocalServerBearer() async {
   client.close();
 }
 
-main() {
+Future<void> main() async {
+  asyncStart();
   testCreateValidBearerTokens();
   testCreateInvalidBearerTokens();
-  testBearerWithoutCredentials();
-  testBearerWithCredentials();
-  testBearerWithAuthenticateCallback();
-  testMalformedAuthenticateHeaderWithoutCredentials();
-  testMalformedAuthenticateHeaderWithCredentials();
-  testMalformedAuthenticateHeaderWithAuthenticateCallback();
+  await testBearerWithoutCredentials();
+  await testBearerWithCredentials();
+  await testBearerWithAuthenticateCallback();
+  await testMalformedAuthenticateHeaderWithoutCredentials();
+  await testMalformedAuthenticateHeaderWithCredentials();
+  await testMalformedAuthenticateHeaderWithAuthenticateCallback();
   // These tests are not normally run. They can be used for locally
   // testing with another web server (e.g. Apache).
-  // testLocalServerBearer();
+  // await testLocalServerBearer();
+  asyncEnd();
 }

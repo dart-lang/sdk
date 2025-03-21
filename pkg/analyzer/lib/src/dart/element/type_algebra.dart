@@ -154,6 +154,10 @@ abstract class Substitution {
 
   DartType? getSubstitute(TypeParameterElement2 parameter, bool upperBound);
 
+  FunctionTypeImpl mapFunctionType(FunctionType type) {
+    return substituteType(type) as FunctionTypeImpl;
+  }
+
   InterfaceTypeImpl mapInterfaceType(InterfaceType type) {
     return substituteType(type) as InterfaceTypeImpl;
   }
