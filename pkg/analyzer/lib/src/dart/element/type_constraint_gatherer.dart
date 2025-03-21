@@ -192,9 +192,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     for (var interface in type.element3.allSupertypes) {
       if (interface.element3 == typeDeclaration) {
         var substitution = Substitution.fromInterfaceType(type);
-        var substitutedInterface =
-            substitution.substituteType(interface) as InterfaceTypeImpl;
-        return substitutedInterface.typeArguments;
+        return substitution.mapInterfaceType(interface).typeArguments;
       }
     }
     return null;

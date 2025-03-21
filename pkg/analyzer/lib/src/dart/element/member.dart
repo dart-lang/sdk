@@ -329,10 +329,7 @@ abstract class ExecutableMember extends Member
 
   @override
   FunctionTypeImpl get type {
-    if (_type != null) return _type!;
-
-    _type = substitution.substituteType(declaration.type) as FunctionTypeImpl;
-    return _type!;
+    return _type ??= substitution.mapFunctionType(declaration.type);
   }
 
   @override
