@@ -9,7 +9,6 @@ import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
-import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
@@ -51,6 +50,7 @@ class LibraryManifest {
 class LibraryManifestBuilder {
   final LinkedElementFactory elementFactory;
   final List<LibraryFileKind> inputLibraries;
+  late final List<LibraryElementImpl> libraryElements;
 
   /// The previous manifests for libraries.
   ///
@@ -60,32 +60,268 @@ class LibraryManifestBuilder {
   /// element that is not in the manifest, or have different "meaning". This
   /// will cause cascading changes to items that referenced these elements,
   /// new IDs for them, etc.
-  final Map<Uri, LibraryManifest> inputLibraryManifests;
-  final BundleRequirementsManifest requirementsManifest;
+  final Map<Uri, LibraryManifest> inputManifests;
+
+  /// Key: an element from [inputLibraries].
+  /// Value: the item from [inputManifests].
+  ///
+  /// We attempt to reuse the same item, mostly importantly its ID.
+  ///
+  /// It is filled initially during matching element structures.
+  /// Then we remove those that affected by changed elements.
+  final Map<Element2, ManifestItem> itemMap = Map.identity();
+
+  /// The new manifests for libraries.
+  final Map<Uri, LibraryManifest> newManifests = {};
 
   LibraryManifestBuilder({
     required this.elementFactory,
     required this.inputLibraries,
-    required this.inputLibraryManifests,
-    required this.requirementsManifest,
-  });
+    required this.inputManifests,
+  }) {
+    libraryElements = inputLibraries.map((kind) {
+      return elementFactory.libraryOfUri2(kind.file.uri);
+    }).toList(growable: false);
+  }
 
   Map<Uri, LibraryManifest> computeManifests({
     required OperationPerformanceImpl performance,
   }) {
     performance.getDataInt('libraryCount').add(inputLibraries.length);
 
-    var libraryElements = inputLibraries.map((kind) {
-      return elementFactory.libraryOfUri2(kind.file.uri);
-    }).toList(growable: false);
+    _fillItemMapFromInputManifests(
+      performance: performance,
+    );
 
+    _buildManifests();
+    _addReExports();
+
+    return newManifests;
+  }
+
+  void _addClass({
+    required EncodeContext encodingContext,
+    required Map<LookupName, TopLevelItem> newItems,
+    required ClassElementImpl2 element,
+    required LookupName lookupName,
+  }) {
+    var item = itemMap[element];
+    if (item is! ClassItem) {
+      item = ClassItem.fromElement(
+        name: lookupName,
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    }
+    newItems[lookupName] = item;
+
+    var classItem = item;
+    encodingContext.withTypeParameters(
+      element.typeParameters2,
+      (typeParameters) {
+        classItem.members.clear();
+        _addInterfaceExecutables(
+          encodingContext: encodingContext,
+          element: element,
+          classItem: classItem,
+        );
+      },
+    );
+  }
+
+  void _addInstanceGetter({
+    required EncodeContext encodingContext,
+    required ClassItem instanceItem,
+    required GetterElement2OrMember element,
+    required LookupName lookupName,
+  }) {
+    var item = itemMap[element];
+    if (item is! InstanceGetterItem) {
+      item = InstanceGetterItem.fromElement(
+        name: lookupName,
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+      itemMap[element] = item;
+    }
+    instanceItem.members[lookupName] = item;
+  }
+
+  void _addInstanceMethod({
+    required EncodeContext encodingContext,
+    required ClassItem instanceItem,
+    required MethodElement2OrMember element,
+    required LookupName lookupName,
+  }) {
+    var item = itemMap[element];
+    if (item is! InstanceMethodItem) {
+      item = InstanceMethodItem.fromElement(
+        name: lookupName,
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+      itemMap[element] = item;
+    }
+    instanceItem.members[lookupName] = item;
+  }
+
+  void _addInterfaceExecutable({
+    required EncodeContext encodingContext,
+    required ClassItem instanceItem,
+    required Name nameObj,
+    required ExecutableElement2OrMember element,
+  }) {
+    // Skip private names, cannot be used outside this library.
+    if (!nameObj.isPublic) {
+      return;
+    }
+
+    var lookupName = nameObj.name.asLookupName;
+
+    switch (element) {
+      case GetterElement2OrMember():
+        _addInstanceGetter(
+          encodingContext: encodingContext,
+          instanceItem: instanceItem,
+          element: element,
+          lookupName: lookupName,
+        );
+      case MethodElement2OrMember():
+        _addInstanceMethod(
+          encodingContext: encodingContext,
+          instanceItem: instanceItem,
+          element: element,
+          lookupName: lookupName,
+        );
+    }
+  }
+
+  void _addInterfaceExecutables({
+    required EncodeContext encodingContext,
+    required ClassElementImpl2 element,
+    required ClassItem classItem,
+  }) {
+    var map = element.inheritanceManager.getInterface2(element).map2;
+    for (var entry in map.entries) {
+      _addInterfaceExecutable(
+        encodingContext: encodingContext,
+        instanceItem: classItem,
+        nameObj: entry.key,
+        element: entry.value,
+      );
+    }
+  }
+
+  void _addReExports() {
+    for (var libraryElement in libraryElements) {
+      var libraryUri = libraryElement.uri;
+      var manifest = newManifests[libraryUri]!;
+
+      for (var entry in libraryElement.exportNamespace.definedNames2.entries) {
+        var name = entry.key.asLookupName;
+        var element = entry.value;
+
+        // Skip elements that exist in nowhere.
+        var elementLibraryUri = element.library2?.uri;
+        if (elementLibraryUri == null) {
+          continue;
+        }
+
+        // Skip if the element is declared in this library.
+        if (element.library2 == libraryElement) {
+          continue;
+        }
+
+        var id = elementFactory.getElementId(element) ??
+            newManifests[elementLibraryUri]?.items[name]?.id;
+        if (id == null) {
+          // TODO(scheglov): complete
+          continue;
+        }
+        manifest.items[name] = ExportItem(
+          libraryUri: libraryUri,
+          name: name,
+          id: id,
+        );
+      }
+    }
+  }
+
+  void _addTopLevelGetter({
+    required EncodeContext encodingContext,
+    required Map<LookupName, TopLevelItem> newItems,
+    required GetterElementImpl element,
+    required LookupName lookupName,
+  }) {
+    var item = itemMap[element];
+    if (item is! TopLevelGetterItem) {
+      item = TopLevelGetterItem.fromElement(
+        name: lookupName,
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    }
+    newItems[lookupName] = item;
+  }
+
+  /// Fill `result` with new library manifests.
+  /// We reuse existing items when they fully match.
+  /// We build new items for mismatched elements.
+  Map<Uri, LibraryManifest> _buildManifests() {
+    var encodingContext = EncodeContext(
+      elementFactory: elementFactory,
+    );
+
+    for (var libraryElement in libraryElements) {
+      var libraryUri = libraryElement.uri;
+      var newItems = <LookupName, TopLevelItem>{};
+      for (var element in libraryElement.children2) {
+        var lookupName = element.lookupName?.asLookupName;
+        if (lookupName == null) {
+          continue;
+        }
+
+        switch (element) {
+          case ClassElementImpl2():
+            _addClass(
+              encodingContext: encodingContext,
+              newItems: newItems,
+              element: element,
+              lookupName: lookupName,
+            );
+          case GetterElementImpl():
+            _addTopLevelGetter(
+              encodingContext: encodingContext,
+              newItems: newItems,
+              element: element,
+              lookupName: lookupName,
+            );
+          // TODO(scheglov): add remaining elements
+        }
+      }
+
+      var newManifest = LibraryManifest(
+        uri: libraryUri,
+        items: newItems,
+      );
+      libraryElement.manifest = newManifest;
+      newManifests[libraryUri] = newManifest;
+    }
+
+    return newManifests;
+  }
+
+  void _fillItemMapFromInputManifests({
+    required OperationPerformanceImpl performance,
+  }) {
     // Compare structures of the elements against the existing manifests.
     // At the end `affectedElements` is filled with mismatched by structure.
     // And for matched by structure we have reference maps.
-
-    var itemMap = Map<Element2, ManifestItem>.identity();
     var refElementsMap = Map<Element2, List<Element2>>.identity();
-
     var refExternalIds = Map<Element2, ManifestItemId>.identity();
     var affectedElements = Set<Element2>.identity();
     for (var libraryElement in libraryElements) {
@@ -105,7 +341,8 @@ class LibraryManifestBuilder {
       ..getDataInt('structureMatchedCount').add(itemMap.length)
       ..getDataInt('structureMismatchedCount').add(affectedElements.length);
 
-    // See if there are external elements that affect current.
+    // Propagate invalidation from referenced elements.
+    // Both from external elements, and from input library elements.
     for (var element in refElementsMap.keys.toList()) {
       var refElements = refElementsMap[element];
       if (refElements != null) {
@@ -140,146 +377,11 @@ class LibraryManifestBuilder {
     performance
       ..getDataInt('transitiveMatchedCount').add(itemMap.length)
       ..getDataInt('transitiveAffectedCount').add(affectedElements.length);
-
-    // Fill `result` with new library manifests.
-    // We reuse existing items when they fully match.
-    // We build new items for mismatched elements.
-    var result = <Uri, LibraryManifest>{};
-    var encodingContext = EncodeContext(
-      elementFactory: elementFactory,
-    );
-    for (var libraryElement in libraryElements) {
-      var libraryUri = libraryElement.uri;
-      var newItems = <LookupName, TopLevelItem>{};
-      for (var element in libraryElement.children2) {
-        var lookupName = element.lookupName?.asLookupName;
-        if (lookupName == null) {
-          continue;
-        }
-        switch (element) {
-          case ClassElementImpl2():
-            var item = itemMap[element];
-            if (item is! ClassItem) {
-              item = ClassItem.fromElement(
-                name: lookupName,
-                id: ManifestItemId.generate(),
-                context: encodingContext,
-                element: element,
-              );
-              newItems[lookupName] = item;
-            } else {
-              newItems[lookupName] = item;
-            }
-
-            var item0 = item;
-            encodingContext.withTypeParameters(
-              element.typeParameters2,
-              (typeParameters) {
-                item0.members.clear();
-                var map2 =
-                    element.inheritanceManager.getInterface2(element).map2;
-                for (var entry in map2.entries) {
-                  var nameObj = entry.key;
-                  var name = nameObj.name.asLookupName;
-                  var executable = entry.value;
-
-                  // Skip private names, cannot be used outside this library.
-                  if (!nameObj.isPublic) {
-                    continue;
-                  }
-
-                  var item2 = itemMap[executable];
-
-                  switch (executable) {
-                    case GetterElement2OrMember():
-                      if (item2 is! InstanceGetterItem) {
-                        item2 = InstanceGetterItem.fromElement(
-                          name: name,
-                          id: ManifestItemId.generate(),
-                          context: encodingContext,
-                          element: executable,
-                        );
-                        itemMap[executable] = item2;
-                      }
-                      item0.members[name] = item2;
-                    case MethodElement2OrMember():
-                      if (item2 is! InstanceMethodItem) {
-                        item2 = InstanceMethodItem.fromElement(
-                          name: name,
-                          id: ManifestItemId.generate(),
-                          context: encodingContext,
-                          element: executable,
-                        );
-                        itemMap[executable] = item2;
-                      }
-                      item0.members[name] = item2;
-                  }
-                }
-              },
-            );
-
-          case GetterElementImpl():
-            var item = itemMap[element];
-            if (item is! TopLevelGetterItem) {
-              newItems[lookupName] = TopLevelGetterItem.fromElement(
-                name: lookupName,
-                id: ManifestItemId.generate(),
-                context: encodingContext,
-                element: element,
-              );
-            } else {
-              newItems[lookupName] = item;
-            }
-          // TODO(scheglov): add remaining elements
-        }
-        // TODO(scheglov): add remaining elements
-      }
-
-      var newManifest = LibraryManifest(
-        uri: libraryUri,
-        items: newItems,
-      );
-      libraryElement.manifest = newManifest;
-      result[libraryUri] = newManifest;
-    }
-
-    // Add re-exported elements.
-    for (var libraryElement in libraryElements) {
-      var libraryUri = libraryElement.uri;
-      var manifest = result[libraryUri]!;
-
-      for (var entry in libraryElement.exportNamespace.definedNames2.entries) {
-        var name = entry.key.asLookupName;
-        var element = entry.value;
-        if (element is DynamicElementImpl2 || element is NeverElementImpl2) {
-          continue;
-        }
-
-        // Skip if the element is declared in this library.
-        if (element.library2 == libraryElement) {
-          continue;
-        }
-
-        var id = elementFactory.getElementId(element) ??
-            result[element.library2!.uri]?.items[name]?.id;
-        if (id == null) {
-          // TODO(scheglov): complete
-          continue;
-        }
-        manifest.items[name] = ExportItem(
-          libraryUri: libraryUri,
-          name: name,
-          id: id,
-        );
-      }
-    }
-
-    return result;
   }
 
-  /// Returns the manifest from [inputLibraryManifests], empty if absent.
+  /// Returns the manifest from [inputManifests], empty if absent.
   LibraryManifest _getInputManifest(Uri uri) {
-    return inputLibraryManifests[uri] ?? LibraryManifest(uri: uri, items: {});
+    return inputManifests[uri] ?? LibraryManifest(uri: uri, items: {});
   }
 }
 
@@ -362,19 +464,11 @@ class _LibraryMatch {
     refElementsMap[element] = matchContext.elementList;
     refExternalIds.addAll(matchContext.externalIds);
 
-    var map2 = element.inheritanceManager.getInterface2(element).map2;
-    for (var entry in map2.entries) {
-      var nameObj = entry.key;
-      var executable = entry.value;
-      if (!_matchInterfaceExecutable(
-        interfaceMatchContext: matchContext,
-        members: item.members,
-        nameObj: nameObj,
-        executable: executable,
-      )) {
-        structureMismatched.add(executable);
-      }
-    }
+    _matchInterfaceExecutables(
+      matchContext: matchContext,
+      element: element,
+      item: item,
+    );
 
     return true;
   }
@@ -429,6 +523,26 @@ class _LibraryMatch {
 
     // TODO(scheglov): fix it
     throw UnimplementedError('(${executable.runtimeType}) $executable');
+  }
+
+  void _matchInterfaceExecutables({
+    required MatchContext matchContext,
+    required ClassElementImpl2 element,
+    required ClassItem item,
+  }) {
+    var map = element.inheritanceManager.getInterface2(element).map2;
+    for (var entry in map.entries) {
+      var nameObj = entry.key;
+      var executable = entry.value;
+      if (!_matchInterfaceExecutable(
+        interfaceMatchContext: matchContext,
+        members: item.members,
+        nameObj: nameObj,
+        executable: executable,
+      )) {
+        structureMismatched.add(executable);
+      }
+    }
   }
 
   bool _matchTopGetter({
