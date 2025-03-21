@@ -4459,7 +4459,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  List<FormalParameterElement> get formalParameters =>
+  List<FormalParameterElementImpl> get formalParameters =>
       wrappedElement.parameters.map((fragment) => fragment.element).toList();
 
   @override

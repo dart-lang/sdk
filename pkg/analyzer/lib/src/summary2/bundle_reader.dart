@@ -2008,7 +2008,7 @@ class ResolutionReader {
         );
       }
 
-      if (element is ExecutableElement) {
+      if (element is ExecutableElementOrMember) {
         element = ExecutableMember.from2(element, substitution);
       } else {
         element as FieldElementImpl;
