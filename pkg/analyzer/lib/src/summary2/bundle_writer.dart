@@ -68,7 +68,7 @@ class BundleWriter {
 
   BundleWriterResult finish() {
     var baseResolutionOffset = _sink.offset;
-    _sink.addBytes(_resolutionSink.takeBytes());
+    _sink.writeBytes(_resolutionSink.takeBytes());
 
     var librariesOffset = _sink.offset;
     _sink.writeList<_Library>(_libraries, (library) {
@@ -1072,11 +1072,11 @@ class StringIndexer {
       var codeUnit = source.codeUnitAt(i++);
       if (codeUnit < 128) {
         // ASCII.
-        sink.addByte(codeUnit);
+        sink.writeByte(codeUnit);
       } else if (codeUnit < 0x800) {
         // Two-byte sequence (11-bit unicode value).
-        sink.addByte(0xC0 | (codeUnit >> 6));
-        sink.addByte(0x80 | (codeUnit & 0x3f));
+        sink.writeByte(0xC0 | (codeUnit >> 6));
+        sink.writeByte(0x80 | (codeUnit & 0x3f));
       } else if ((codeUnit & 0xFC00) == 0xD800 &&
           i < end &&
           (source.codeUnitAt(i) & 0xFC00) == 0xDC00) {
@@ -1084,16 +1084,16 @@ class StringIndexer {
         int codeUnit2 = source.codeUnitAt(i++);
         int unicode =
             0x10000 + ((codeUnit & 0x3FF) << 10) + (codeUnit2 & 0x3FF);
-        sink.addByte(0xF0 | (unicode >> 18));
-        sink.addByte(0x80 | ((unicode >> 12) & 0x3F));
-        sink.addByte(0x80 | ((unicode >> 6) & 0x3F));
-        sink.addByte(0x80 | (unicode & 0x3F));
+        sink.writeByte(0xF0 | (unicode >> 18));
+        sink.writeByte(0x80 | ((unicode >> 12) & 0x3F));
+        sink.writeByte(0x80 | ((unicode >> 6) & 0x3F));
+        sink.writeByte(0x80 | (unicode & 0x3F));
       } else {
         // Three-byte sequence (16-bit unicode value), including lone
         // surrogates.
-        sink.addByte(0xE0 | (codeUnit >> 12));
-        sink.addByte(0x80 | ((codeUnit >> 6) & 0x3f));
-        sink.addByte(0x80 | (codeUnit & 0x3f));
+        sink.writeByte(0xE0 | (codeUnit >> 12));
+        sink.writeByte(0x80 | ((codeUnit >> 6) & 0x3f));
+        sink.writeByte(0x80 | (codeUnit & 0x3f));
       }
     } while (i < end);
   }

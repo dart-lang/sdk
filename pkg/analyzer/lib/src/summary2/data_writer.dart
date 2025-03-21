@@ -22,43 +22,23 @@ class BufferedSink {
 
   int get offset => _builder.length + _length;
 
-  @pragma("vm:prefer-inline")
-  void addByte(int byte) {
-    _buffer[_length++] = byte;
-    if (_length == _SIZE) {
-      _builder.add(_buffer);
-      _buffer = Uint8List(_SIZE);
-      _length = 0;
-    }
+  Uint8List takeBytes() {
+    _builder.add(_buffer.sublist(0, _length));
+    return _builder.takeBytes();
   }
 
   @pragma("vm:prefer-inline")
-  void addByte2(int byte1, int byte2) {
-    if (_length < _SAFE_LENGTH) {
-      _buffer[_length++] = byte1;
-      _buffer[_length++] = byte2;
-    } else {
-      addByte(byte1);
-      addByte(byte2);
-    }
+  void writeBool(bool value) {
+    writeByte(value ? 1 : 0);
   }
 
   @pragma("vm:prefer-inline")
-  void addByte4(int byte1, int byte2, int byte3, int byte4) {
-    if (_length < _SAFE_LENGTH) {
-      _buffer[_length++] = byte1;
-      _buffer[_length++] = byte2;
-      _buffer[_length++] = byte3;
-      _buffer[_length++] = byte4;
-    } else {
-      addByte(byte1);
-      addByte(byte2);
-      addByte(byte3);
-      addByte(byte4);
-    }
+  void writeByte(int byte) {
+    assert((byte & 0xFF) == byte);
+    _addByte(byte);
   }
 
-  void addBytes(Uint8List bytes) {
+  void writeBytes(Uint8List bytes) {
     if (bytes.isEmpty) {
       return;
     }
@@ -92,36 +72,20 @@ class BufferedSink {
     _length = remainder;
   }
 
-  void addDouble(double value) {
+  void writeDouble(double value) {
     _doubleBuffer[0] = value;
-    addByte4(
+    _addByte4(
       _doubleBufferUint8[0],
       _doubleBufferUint8[1],
       _doubleBufferUint8[2],
       _doubleBufferUint8[3],
     );
-    addByte4(
+    _addByte4(
       _doubleBufferUint8[4],
       _doubleBufferUint8[5],
       _doubleBufferUint8[6],
       _doubleBufferUint8[7],
     );
-  }
-
-  Uint8List takeBytes() {
-    _builder.add(_buffer.sublist(0, _length));
-    return _builder.takeBytes();
-  }
-
-  @pragma("vm:prefer-inline")
-  void writeBool(bool value) {
-    writeByte(value ? 1 : 0);
-  }
-
-  @pragma("vm:prefer-inline")
-  void writeByte(int byte) {
-    assert((byte & 0xFF) == byte);
-    addByte(byte);
   }
 
   void writeEnum(Enum e) {
@@ -229,11 +193,11 @@ class BufferedSink {
   void writeUInt30(int value) {
     assert(value >= 0 && value >> 30 == 0);
     if (value < 0x80) {
-      addByte(value);
+      _addByte(value);
     } else if (value < 0x4000) {
-      addByte2((value >> 8) | 0x80, value & 0xFF);
+      _addByte2((value >> 8) | 0x80, value & 0xFF);
     } else {
-      addByte4((value >> 24) | 0xC0, (value >> 16) & 0xFF, (value >> 8) & 0xFF,
+      _addByte4((value >> 24) | 0xC0, (value >> 16) & 0xFF, (value >> 8) & 0xFF,
           value & 0xFF);
     }
   }
@@ -247,17 +211,53 @@ class BufferedSink {
   }
 
   void writeUInt32(int value) {
-    addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF,
+    _addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF,
         value & 0xFF);
   }
 
   void writeUint8List(Uint8List bytes) {
     writeUInt30(bytes.length);
-    addBytes(bytes);
+    writeBytes(bytes);
   }
 
   void writeUri(Uri uri) {
     var uriStr = uri.toString();
     writeStringUtf8(uriStr);
+  }
+
+  @pragma("vm:prefer-inline")
+  void _addByte(int byte) {
+    _buffer[_length++] = byte;
+    if (_length == _SIZE) {
+      _builder.add(_buffer);
+      _buffer = Uint8List(_SIZE);
+      _length = 0;
+    }
+  }
+
+  @pragma("vm:prefer-inline")
+  void _addByte2(int byte1, int byte2) {
+    if (_length < _SAFE_LENGTH) {
+      _buffer[_length++] = byte1;
+      _buffer[_length++] = byte2;
+    } else {
+      _addByte(byte1);
+      _addByte(byte2);
+    }
+  }
+
+  @pragma("vm:prefer-inline")
+  void _addByte4(int byte1, int byte2, int byte3, int byte4) {
+    if (_length < _SAFE_LENGTH) {
+      _buffer[_length++] = byte1;
+      _buffer[_length++] = byte2;
+      _buffer[_length++] = byte3;
+      _buffer[_length++] = byte4;
+    } else {
+      _addByte(byte1);
+      _addByte(byte2);
+      _addByte(byte3);
+      _addByte(byte4);
+    }
   }
 }
