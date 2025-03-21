@@ -4,6 +4,8 @@
 
 import "dart:math" as math;
 
+import "package:kernel/binary/tag.dart" show numberOfFixedFields;
+
 class BinaryMdDillReader {
   final String _binaryMdContent;
 
@@ -121,8 +123,7 @@ class BinaryMdDillReader {
     numLibs = _peekUint32();
 
     // Skip to the start of the index.
-    _binaryOffset = _dillContent.length -
-        ((numLibs + 1) + 12 /* number of fixed fields */) * 4;
+    _binaryOffset = _dillContent.length - numberOfFixedFields(numLibs) * 4;
 
     // Read index.
     binaryOffsetForSourceTable = _peekUint32();
@@ -143,7 +144,6 @@ class BinaryMdDillReader {
     _binaryOffset += 4;
     mainMethodReference = _peekUint32();
     _binaryOffset += 4;
-    /*int compilationMode = */ _peekUint32();
 
     _binaryOffset = binaryOffsetForStringTable;
     var saved = readingInstructions["ComponentFile"]!;
@@ -157,8 +157,7 @@ class BinaryMdDillReader {
     Map componentFile = _readBinary("ComponentFile", "");
     if (_binaryOffset != _dillContent.length) {
       throw "Didn't read the entire binary: "
-          "Only read $_binaryOffset of ${_dillContent.length} bytes. "
-          "($componentFile)";
+          "Only read $_binaryOffset of ${_dillContent.length} bytes.";
     }
     if (verboseLevel > 0) {
       print("Successfully read the dill file.");
@@ -537,8 +536,8 @@ class BinaryMdDillReader {
       } else if (what == "ComponentIndex" &&
           instruction == "Byte[] 8bitAlignment;") {
         // Special-case 8-byte alignment.
-        int sizeWithoutPadding = _binaryOffset +
-            ((numLibs + 1) + 10 /* number of fixed fields */) * 4;
+        int sizeWithoutPadding =
+            _binaryOffset + numberOfFixedFields(numLibs) * 4;
         int padding = 8 - sizeWithoutPadding % 8;
         if (padding == 8) padding = 0;
         _binaryOffset += padding;

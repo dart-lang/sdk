@@ -1,11 +1,13 @@
 // Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// Generated with:
-//   dart pkg/vm/tools/generate_entry_point_shims.dart \
-//       out/ReleaseX64/gen/samples/embedder/timer_aot.dart.dill \
-//       samples/embedder/timer
+
+/*
+   Generated with:
+     dart pkg/vm/tool/generate_entry_point_shims.dart \
+         out/ReleaseX64/gen/samples/embedder/timer_aot.dart.dill \
+         samples/embedder/timer
+*/
 
 #ifndef SAMPLES_EMBEDDER_TIMER_H
 #define SAMPLES_EMBEDDER_TIMER_H

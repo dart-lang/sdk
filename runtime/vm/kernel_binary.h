@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 123;
+static const uint32_t kSupportedKernelFormatVersion = 124;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -271,9 +271,15 @@ enum class FunctionAccessKind {
 };
 
 static constexpr int SpecializedIntLiteralBias = 3;
-static constexpr int LibraryCountFieldCountFromEnd = 1;
 static constexpr int KernelFormatVersionOffset = 4;
-static constexpr int SourceTableFieldCountFromFirstLibraryOffset = 9;
+
+// These should be kept in sync with the constants in kernels tag.dart.
+static constexpr int KernelFixedFieldsBeforeLibraries = 9;
+static constexpr int KernelFixedFieldsAfterLibraries = 2;
+static inline int KernelNumberOfFixedFields(int numberOfLibraries) {
+  return KernelFixedFieldsBeforeLibraries + numberOfLibraries + 1 +
+         KernelFixedFieldsAfterLibraries;
+}
 
 static constexpr int HeaderSize = 8;  // 'magic', 'formatVersion'.
 
@@ -307,6 +313,12 @@ class Reader : public ValueObject {
                                 intptr_t list_size,
                                 intptr_t list_index) {
     offset_ = end_offset - (fields_before + list_size - list_index) * 4;
+    return ReadUInt32();
+  }
+
+  uint32_t ReadSingleFieldFromIndexNoReset(intptr_t end_offset,
+                                           intptr_t fields_before) {
+    offset_ = end_offset - fields_before * 4;
     return ReadUInt32();
   }
 

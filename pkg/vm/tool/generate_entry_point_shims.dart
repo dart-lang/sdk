@@ -112,18 +112,20 @@ void main(List<String> args) async {
 
   for (final buffer in [declarations, definitions]) {
     buffer.write('''
-// Generated with:
-//   dart pkg/vm/tools/generate_entry_point_shims.dart \\
-//       ''');
+/*
+   Generated with:
+     dart pkg/vm/tool/generate_entry_point_shims.dart \\
+         ''');
     if (createUninitializedInstanceMethods) {
       buffer.write('-u ');
     }
     if (uriString != null) {
       buffer.write('''-p $uriString \\
-//       ''');
+         ''');
     }
     buffer.writeln('''$source \\
-//       $outputPath
+         $outputPath
+*/
 ''');
   }
 

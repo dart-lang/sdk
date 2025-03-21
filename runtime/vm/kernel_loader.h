@@ -273,7 +273,7 @@ class KernelLoader : public ValueObject {
   intptr_t library_offset(intptr_t index) {
     kernel::Reader reader(program_->binary());
     return reader.ReadFromIndexNoReset(reader.size(),
-                                       LibraryCountFieldCountFromEnd + 1,
+                                       KernelFixedFieldsAfterLibraries,
                                        program_->library_count() + 1, index);
   }
 
