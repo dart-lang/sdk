@@ -256,7 +256,7 @@ class CodeActionHandler
             for (var computer in actionComputers)
               ...await performance.runAsync(
                 '${computer.name}.getRefactorActions',
-                (_) => computer.getRefactorActions(),
+                (_) => computer.getRefactorActions(message.performance),
               ),
         ];
 

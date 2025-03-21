@@ -180,7 +180,9 @@ abstract class AbstractCodeActionsProducer
     OperationPerformance? performance,
   );
 
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions();
+  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+    OperationPerformance? performance,
+  );
 
   Future<List<Either2<CodeAction, Command>>> getSourceActions();
 

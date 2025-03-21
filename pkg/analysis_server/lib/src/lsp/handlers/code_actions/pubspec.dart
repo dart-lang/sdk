@@ -97,7 +97,9 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions() async => [];
+  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+    OperationPerformance? performance,
+  ) async => [];
 
   @override
   Future<List<Either2<CodeAction, Command>>> getSourceActions() async => [];
