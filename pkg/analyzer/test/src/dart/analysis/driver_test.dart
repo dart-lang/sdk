@@ -7651,6 +7651,7 @@ class C {}
   }
 
   test_manifest_class_getter_returnType() async {
+    configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {
@@ -7663,7 +7664,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
+        supertype: Object @ dart:core
         foo: #M1
+          returnType: int @ dart:core
 ''',
       updatedCode: r'''
 class A {
@@ -7675,7 +7678,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
+        supertype: Object @ dart:core
         foo: #M2
+          returnType: double @ dart:core
 ''',
     );
   }
@@ -7915,6 +7920,7 @@ class A {
   }
 
   test_manifest_class_method_returnType() async {
+    configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {
@@ -7927,7 +7933,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
+        supertype: Object @ dart:core
         foo: #M1
+          returnType: int @ dart:core
 ''',
       updatedCode: r'''
 class A {
@@ -7939,7 +7947,9 @@ class A {
   package:test/test.dart
     manifest
       A: #M0
+        supertype: Object @ dart:core
         foo: #M2
+          returnType: double @ dart:core
 ''',
     );
   }
@@ -8834,6 +8844,32 @@ Never? a;
     );
   }
 
+  test_manifest_type_recordType_namedFields() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+({int f1}) a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+({int f1}) a = 0;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+    );
+  }
+
   test_manifest_type_recordType_namedFields_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -8978,6 +9014,32 @@ Never? a;
     );
   }
 
+  test_manifest_type_recordType_positionalFields() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+(int,) a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+(int,) a = 0;
+final b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+    );
+  }
+
   test_manifest_type_recordType_positionalFields_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -8998,6 +9060,30 @@ Never? a;
   package:test/test.dart
     manifest
       a: #M1
+''',
+    );
+  }
+
+  test_manifest_type_recordType_positionalFields_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+(int x,) a = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+(int y,) a = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
 ''',
     );
   }
