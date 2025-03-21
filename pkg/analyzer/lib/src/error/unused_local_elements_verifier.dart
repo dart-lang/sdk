@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart'
     show JoinPatternVariableElementImpl2, MetadataImpl;
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/dart/element/type.dart';
@@ -783,21 +784,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   /// Returns whether the name of [element] should be treated as a wildcard.
   bool _isNamedWildcard(LocalElement2 element) {
-    // TODO(pq): ask the element once implemented.
-    var name = element.name3;
-    if (name == null) return false;
-
-    var length = name.length;
-    if (length > 1 && _wildCardVariablesEnabled) return false;
-
-    for (int index = length - 1; index >= 0; --index) {
-      if (name.codeUnitAt(index) != 0x5F) {
-        // 0x5F => '_'
-        return false;
-      }
+    if (_wildCardVariablesEnabled) {
+      return element.isWildcardVariable;
+    } else {
+      var name = element.name3;
+      if (name == null) return false;
+      return name.codeUnits.every((e) => e == 0x5F /* '_' */);
     }
-
-    return true;
   }
 
   bool _isPrivateClassOrExtension(Element2 element) =>

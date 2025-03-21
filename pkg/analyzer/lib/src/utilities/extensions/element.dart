@@ -147,6 +147,8 @@ extension ConstructorElementMixinExtension on ConstructorElementMixin {
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
   }
+
+  ElementImpl? get enclosingElementImpl => enclosingElement3 as ElementImpl?;
 }
 
 extension Element2Extension on Element2 {
@@ -267,9 +269,13 @@ extension Element2OrNullExtension on Element2? {
         throw UnsupportedError('Unsupported type: $runtimeType');
     }
   }
+
+  ElementImpl? get asElementImpl => asElement as ElementImpl;
 }
 
 extension ElementImplExtension on ElementImpl {
+  ElementImpl? get enclosingElementImpl => enclosingElement3 as ElementImpl?;
+
   AnnotationImpl annotationAst(int index) {
     return metadata[index].annotationAst;
   }

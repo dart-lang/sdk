@@ -978,7 +978,7 @@ abstract class AstCodeGenerator
 
     // Insert a catch instruction which will catch any thrown Dart
     // exceptions.
-    b.catch_(translator.getExceptionTag(b.module));
+    b.catch_legacy(translator.getExceptionTag(b.module));
 
     b.local_set(thrownStackTrace);
     b.local_set(thrownException);
@@ -1007,7 +1007,7 @@ abstract class AstCodeGenerator
         .any((c) => guardCanMatchJSException(translator, c.guard))) {
       // This catches any objects that aren't dart exceptions, such as
       // JavaScript exceptions or objects.
-      b.catch_all();
+      b.catch_all_legacy();
 
       // We can't inspect the thrown object in a catch_all and get a stack
       // trace, so we just attach the current stack trace.
@@ -1122,12 +1122,12 @@ abstract class AstCodeGenerator
     }
 
     // Handle Dart exceptions.
-    b.catch_(translator.getExceptionTag(b.module));
+    b.catch_legacy(translator.getExceptionTag(b.module));
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
     // Handle JS exceptions.
-    b.catch_all();
+    b.catch_all_legacy();
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 

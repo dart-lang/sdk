@@ -27,6 +27,7 @@ void main() {
     testMallocedInt8ArrayElements();
     testWriteToInt8ArrayElementsBackedByTypedData();
     testWriteToInt8ArrayElementsBackedByPointer();
+    testInt8ArrayElementsFirstAndLast();
     testInt8ArrayElementsTypedDataListBackedByTypedData();
     testInt8ArrayElementsTypedDataListBackedByPointer();
     testInt16ArrayElements();
@@ -34,6 +35,7 @@ void main() {
     testMallocedInt16ArrayElements();
     testWriteToInt16ArrayElementsBackedByTypedData();
     testWriteToInt16ArrayElementsBackedByPointer();
+    testInt16ArrayElementsFirstAndLast();
     testInt16ArrayElementsTypedDataListBackedByTypedData();
     testInt16ArrayElementsTypedDataListBackedByPointer();
     testInt16Misaligned();
@@ -42,6 +44,7 @@ void main() {
     testMallocedInt32ArrayElements();
     testWriteToInt32ArrayElementsBackedByTypedData();
     testWriteToInt32ArrayElementsBackedByPointer();
+    testInt32ArrayElementsFirstAndLast();
     testInt32ArrayElementsTypedDataListBackedByTypedData();
     testInt32ArrayElementsTypedDataListBackedByPointer();
     testInt32Misaligned();
@@ -50,6 +53,7 @@ void main() {
     testMallocedInt64ArrayElements();
     testWriteToInt64ArrayElementsBackedByTypedData();
     testWriteToInt64ArrayElementsBackedByPointer();
+    testInt64ArrayElementsFirstAndLast();
     testInt64ArrayElementsTypedDataListBackedByTypedData();
     testInt64ArrayElementsTypedDataListBackedByPointer();
     testInt64Misaligned();
@@ -58,6 +62,7 @@ void main() {
     testMallocedUint8ArrayElements();
     testWriteToUint8ArrayElementsBackedByTypedData();
     testWriteToUint8ArrayElementsBackedByPointer();
+    testUint8ArrayElementsFirstAndLast();
     testUint8ArrayElementsTypedDataListBackedByTypedData();
     testUint8ArrayElementsTypedDataListBackedByPointer();
     testUint16ArrayElements();
@@ -65,6 +70,7 @@ void main() {
     testMallocedUint16ArrayElements();
     testWriteToUint16ArrayElementsBackedByTypedData();
     testWriteToUint16ArrayElementsBackedByPointer();
+    testUint16ArrayElementsFirstAndLast();
     testUint16ArrayElementsTypedDataListBackedByTypedData();
     testUint16ArrayElementsTypedDataListBackedByPointer();
     testUint16Misaligned();
@@ -73,6 +79,7 @@ void main() {
     testMallocedUint32ArrayElements();
     testWriteToUint32ArrayElementsBackedByTypedData();
     testWriteToUint32ArrayElementsBackedByPointer();
+    testUint32ArrayElementsFirstAndLast();
     testUint32ArrayElementsTypedDataListBackedByTypedData();
     testUint32ArrayElementsTypedDataListBackedByPointer();
     testUint32Misaligned();
@@ -81,6 +88,7 @@ void main() {
     testMallocedUint64ArrayElements();
     testWriteToUint64ArrayElementsBackedByTypedData();
     testWriteToUint64ArrayElementsBackedByPointer();
+    testUint64ArrayElementsFirstAndLast();
     testUint64ArrayElementsTypedDataListBackedByTypedData();
     testUint64ArrayElementsTypedDataListBackedByPointer();
     testUint64Misaligned();
@@ -89,6 +97,7 @@ void main() {
     testMallocedFloatArrayElements();
     testWriteToFloatArrayElementsBackedByTypedData();
     testWriteToFloatArrayElementsBackedByPointer();
+    testFloatArrayElementsFirstAndLast();
     testFloatArrayElementsTypedDataListBackedByTypedData();
     testFloatArrayElementsTypedDataListBackedByPointer();
     testFloatMisaligned();
@@ -97,6 +106,7 @@ void main() {
     testMallocedDoubleArrayElements();
     testWriteToDoubleArrayElementsBackedByTypedData();
     testWriteToDoubleArrayElementsBackedByPointer();
+    testDoubleArrayElementsFirstAndLast();
     testDoubleArrayElementsTypedDataListBackedByTypedData();
     testDoubleArrayElementsTypedDataListBackedByPointer();
     testDoubleMisaligned();
@@ -105,11 +115,13 @@ void main() {
     testMallocedBoolArrayElements();
     testWriteToBoolArrayElementsBackedByTypedData();
     testWriteToBoolArrayElementsBackedByPointer();
+    testBoolArrayElementsFirstAndLast();
     testWCharArrayElements();
     testWCharArrayBackedByInt64ListElements();
     testMallocedWCharArrayElements();
     testWriteToWCharArrayElementsBackedByTypedData();
     testWriteToWCharArrayElementsBackedByPointer();
+    testWCharArrayElementsFirstAndLast();
   }
 }
 
@@ -193,6 +205,17 @@ void testWriteToInt8ArrayElementsBackedByPointer() {
   }
   Expect.listEquals(expected, actual);
   malloc.free(struct);
+}
+
+void testInt8ArrayElementsFirstAndLast() {
+  final struct = Struct.create<Int8ArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
 }
 
 void testInt8ArrayElementsTypedDataListBackedByTypedData() {
@@ -338,6 +361,17 @@ void testWriteToInt16ArrayElementsBackedByPointer() {
   }
   Expect.listEquals(expected, actual);
   malloc.free(struct);
+}
+
+void testInt16ArrayElementsFirstAndLast() {
+  final struct = Struct.create<Int16ArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
 }
 
 void testInt16ArrayElementsTypedDataListBackedByTypedData() {
@@ -512,6 +546,17 @@ void testWriteToInt32ArrayElementsBackedByPointer() {
   malloc.free(struct);
 }
 
+void testInt32ArrayElementsFirstAndLast() {
+  final struct = Struct.create<Int32ArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
+}
+
 void testInt32ArrayElementsTypedDataListBackedByTypedData() {
   final struct = Struct.create<Int32ArrayStruct>();
   final array = struct.array;
@@ -682,6 +727,17 @@ void testWriteToInt64ArrayElementsBackedByPointer() {
   }
   Expect.listEquals(expected, actual);
   malloc.free(struct);
+}
+
+void testInt64ArrayElementsFirstAndLast() {
+  final struct = Struct.create<Int64ArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
 }
 
 void testInt64ArrayElementsTypedDataListBackedByTypedData() {
@@ -856,6 +912,17 @@ void testWriteToUint8ArrayElementsBackedByPointer() {
   malloc.free(struct);
 }
 
+void testUint8ArrayElementsFirstAndLast() {
+  final struct = Struct.create<Uint8ArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
+}
+
 void testUint8ArrayElementsTypedDataListBackedByTypedData() {
   final struct = Struct.create<Uint8ArrayStruct>();
   final array = struct.array;
@@ -999,6 +1066,17 @@ void testWriteToUint16ArrayElementsBackedByPointer() {
   }
   Expect.listEquals(expected, actual);
   malloc.free(struct);
+}
+
+void testUint16ArrayElementsFirstAndLast() {
+  final struct = Struct.create<Uint16ArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
 }
 
 void testUint16ArrayElementsTypedDataListBackedByTypedData() {
@@ -1173,6 +1251,17 @@ void testWriteToUint32ArrayElementsBackedByPointer() {
   malloc.free(struct);
 }
 
+void testUint32ArrayElementsFirstAndLast() {
+  final struct = Struct.create<Uint32ArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
+}
+
 void testUint32ArrayElementsTypedDataListBackedByTypedData() {
   final struct = Struct.create<Uint32ArrayStruct>();
   final array = struct.array;
@@ -1343,6 +1432,17 @@ void testWriteToUint64ArrayElementsBackedByPointer() {
   }
   Expect.listEquals(expected, actual);
   malloc.free(struct);
+}
+
+void testUint64ArrayElementsFirstAndLast() {
+  final struct = Struct.create<Uint64ArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
 }
 
 void testUint64ArrayElementsTypedDataListBackedByTypedData() {
@@ -1517,6 +1617,17 @@ void testWriteToFloatArrayElementsBackedByPointer() {
   malloc.free(struct);
 }
 
+void testFloatArrayElementsFirstAndLast() {
+  final struct = Struct.create<FloatArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100.0 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100.0 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
+}
+
 void testFloatArrayElementsTypedDataListBackedByTypedData() {
   final struct = Struct.create<FloatArrayStruct>();
   final array = struct.array;
@@ -1687,6 +1798,17 @@ void testWriteToDoubleArrayElementsBackedByPointer() {
   }
   Expect.listEquals(expected, actual);
   malloc.free(struct);
+}
+
+void testDoubleArrayElementsFirstAndLast() {
+  final struct = Struct.create<DoubleArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100.0 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100.0 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
 }
 
 void testDoubleArrayElementsTypedDataListBackedByTypedData() {
@@ -1861,6 +1983,17 @@ void testWriteToBoolArrayElementsBackedByPointer() {
   malloc.free(struct);
 }
 
+void testBoolArrayElementsFirstAndLast() {
+  final struct = Struct.create<BoolArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 3.isEven;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 4.isEven;
+  elements.last = value;
+  Expect.equals(value, elements.last);
+}
+
 final class WCharArrayStruct extends Struct {
   // Placeholder value before array to test the offset calculation logic.
   @Int8()
@@ -1941,4 +2074,15 @@ void testWriteToWCharArrayElementsBackedByPointer() {
   }
   Expect.listEquals(expected, actual);
   malloc.free(struct);
+}
+
+void testWCharArrayElementsFirstAndLast() {
+  final struct = Struct.create<WCharArrayStruct>();
+  final elements = struct.array.elements;
+  var value = 100 + 3;
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = 100 + 4;
+  elements.last = value;
+  Expect.equals(value, elements.last);
 }

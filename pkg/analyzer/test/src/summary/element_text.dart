@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -14,6 +11,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -103,7 +101,7 @@ class ElementTextConfiguration {
       switch (o) {
         case LibraryFragment():
           return true;
-        case ClassElement():
+        case ClassElementImpl():
           return classNames.contains(o.name);
         case ClassElement2():
           return classNames.contains(o.name3);
@@ -178,7 +176,7 @@ abstract class _AbstractElementWriter {
     if (uri is DirectiveUriWithLibraryImpl) {
       _sink.write('${uri.library.source.uri}');
     } else if (uri is DirectiveUriWithUnit) {
-      _sink.write('${uri.unit.source.uri}');
+      _sink.write('${uri.libraryFragment.source.uri}');
     } else if (uri is DirectiveUriWithSource) {
       _sink.write("source '${uri.source.uri}'");
     } else if (uri is DirectiveUriWithRelativeUri) {
@@ -716,9 +714,9 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isFinal, 'final ');
       _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
 
-      if (e is FieldFormalParameterElement) {
+      if (e is FieldFormalParameterElementImpl) {
         _sink.write('this.');
-      } else if (e is SuperFormalParameterElement) {
+      } else if (e is SuperFormalParameterElementImpl) {
         _sink.writeIf(e.hasDefaultValue, 'hasDefaultValue ');
         _sink.write('super.');
       }
@@ -777,9 +775,9 @@ class _Element2Writer extends _AbstractElementWriter {
       // _sink.writeIf(f.isCovariant, 'covariant ');
       // _sink.writeIf(f.isFinal, 'final ');
 
-      if (f is FieldFormalParameterElement) {
+      if (f is FieldFormalParameterElementImpl) {
         _sink.write('this.');
-      } else if (f is SuperFormalParameterElement) {
+      } else if (f is SuperFormalParameterElementImpl) {
         // _sink.writeIf(f.hasDefaultValue, 'hasDefaultValue ');
         _sink.write('super.');
       }
@@ -1948,21 +1946,21 @@ class _ElementWriter extends _AbstractElementWriter {
     });
   }
 
-  void _assertEnclosingElement<E extends Element>(
+  void _assertEnclosingElement<E extends ElementImpl>(
     Iterable<E> elements,
-    Element enclosingElement,
+    ElementImpl enclosingElement,
   ) {
     for (var element in elements) {
-      expect(element.enclosingElement3, same(enclosingElement));
+      expect(element.enclosingElementImpl, same(enclosingElement));
     }
   }
 
-  void _assertNonSyntheticElementSelf(Element element) {
+  void _assertNonSyntheticElementSelf(ElementImpl element) {
     expect(element.isSynthetic, isFalse);
     expect(element.nonSynthetic, same(element));
   }
 
-  void _writeBodyModifiers(ExecutableElement e) {
+  void _writeBodyModifiers(ExecutableElementImpl e) {
     if (e.isAsynchronous) {
       expect(e.isSynchronous, isFalse);
       _sink.write(' async');
@@ -1975,20 +1973,19 @@ class _ElementWriter extends _AbstractElementWriter {
 
     _sink.writeIf(e.isGenerator, '*');
 
-    if (e is ExecutableElementImpl && e.invokesSuperSelf) {
+    if (e.invokesSuperSelf) {
       _sink.write(' invokesSuperSelf');
     }
   }
 
-  void _writeCodeRange(Element e) {
+  void _writeCodeRange(ElementImpl e) {
     if (configuration.withCodeRanges && !e.isSynthetic) {
-      e as ElementImpl;
       _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
       _sink.writelnWithIndent('codeLength: ${e.codeLength}');
     }
   }
 
-  void _writeConstantInitializer(Element e) {
+  void _writeConstantInitializer(ElementImpl e) {
     if (configuration.withConstantInitializers) {
       if (e is ConstVariableElement) {
         var initializer = e.constantInitializer;
@@ -2002,9 +1999,7 @@ class _ElementWriter extends _AbstractElementWriter {
     }
   }
 
-  void _writeConstructorElement(ConstructorElement e) {
-    e as ConstructorElementImpl;
-
+  void _writeConstructorElement(ConstructorElementImpl e) {
     // Check that the reference exists, and filled with the element.
     var reference = e.reference;
     if (reference == null) {
@@ -2047,8 +2042,8 @@ class _ElementWriter extends _AbstractElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        var enclosingElement = superConstructor.enclosingElement3;
-        if (enclosingElement is ClassElement &&
+        var enclosingElement = superConstructor.enclosingElementImpl;
+        if (enclosingElement is ClassElementImpl &&
             !enclosingElement.isDartCoreObject) {
           _elementPrinter.writeNamedElement(
             'superConstructor',
@@ -2079,13 +2074,13 @@ class _ElementWriter extends _AbstractElementWriter {
     }
   }
 
-  void _writeDisplayName(Element e) {
+  void _writeDisplayName(ElementImpl e) {
     if (configuration.withDisplayName) {
       _sink.writelnWithIndent('displayName: ${e.displayName}');
     }
   }
 
-  void _writeDocumentation(Element element) {
+  void _writeDocumentation(ElementImpl element) {
     var documentation = element.documentationComment;
     if (documentation != null) {
       var str = documentation;
@@ -2114,16 +2109,15 @@ class _ElementWriter extends _AbstractElementWriter {
   void _writeEnclosingElement(ElementImpl e) {
     _elementPrinter.writeNamedElement(
       'enclosingElement3',
-      e.enclosingElement3,
+      e.enclosingElementImpl,
     );
   }
 
-  void _writeExportNamespace(LibraryElement e) {
-    // ignore:deprecated_member_use_from_same_package
-    var map = e.exportNamespace.definedNames;
+  void _writeExportNamespace(LibraryElementImpl e) {
+    var map = e.exportNamespace.definedNames2;
     var sortedEntries = map.entries.sortedBy((entry) => entry.key);
     for (var entry in sortedEntries) {
-      _elementPrinter.writeNamedElement(entry.key, entry.value);
+      _elementPrinter.writeNamedElement(entry.key, entry.value.asElementImpl);
     }
   }
 
@@ -2150,8 +2144,8 @@ class _ElementWriter extends _AbstractElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeFieldFormalParameterField(ParameterElement e) {
-    if (e is FieldFormalParameterElement) {
+  void _writeFieldFormalParameterField(ParameterElementImpl e) {
+    if (e is FieldFormalParameterElementImpl) {
       var field = e.field;
       if (field != null) {
         _elementPrinter.writeNamedElement('field', field);
@@ -2188,7 +2182,7 @@ class _ElementWriter extends _AbstractElementWriter {
 
   void _writeImportElementPrefix(ImportElementPrefixImpl? prefix) {
     if (prefix != null) {
-      _sink.writeIf(prefix is DeferredImportElementPrefix, ' deferred');
+      _sink.writeIf(prefix is DeferredImportElementPrefixImpl, ' deferred');
       _sink.write(' as ');
       _writeName(prefix.element);
     }
@@ -2245,7 +2239,7 @@ class _ElementWriter extends _AbstractElementWriter {
       if (!e.isAugmentation) {
         var supertype = e.supertype;
         if (supertype != null &&
-            (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
+            (supertype.element3.name3 != 'Object' || e.mixins.isNotEmpty)) {
           _writeType('supertype', supertype);
         }
       }
@@ -2275,7 +2269,7 @@ class _ElementWriter extends _AbstractElementWriter {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 
       var constructors = e.constructors;
-      if (e is MixinElement) {
+      if (e is MixinElementImpl) {
         expect(constructors, isEmpty);
       } else if (configuration.withConstructors) {
         _writeElements('constructors', constructors, _writeConstructorElement);
@@ -2336,14 +2330,13 @@ class _ElementWriter extends _AbstractElementWriter {
     });
   }
 
-  void _writeMetadata(Element element) {
+  void _writeMetadata(ElementImpl element) {
     if (configuration.withMetadata) {
       var annotations = element.metadata;
       if (annotations.isNotEmpty) {
         _sink.writelnWithIndent('metadata');
         _sink.withIndent(() {
           for (var annotation in annotations) {
-            annotation as ElementAnnotationImpl;
             _writeNode(annotation.annotationAst);
           }
         });
@@ -2390,16 +2383,16 @@ class _ElementWriter extends _AbstractElementWriter {
     _writeElements('methods', elements, _writeMethodElement);
   }
 
-  void _writeName(Element e) {
+  void _writeName(ElementImpl e) {
     String name;
     switch (e) {
-      case ExtensionElement(name: null):
+      case ExtensionElementImpl(name: null):
         name = '<null>';
       default:
         name = e.name!;
     }
 
-    if (e is PropertyAccessorElement && e.isSetter) {
+    if (e is PropertyAccessorElementImpl && e.isSetter) {
       expect(name, endsWith('='));
     }
 
@@ -2425,7 +2418,7 @@ class _ElementWriter extends _AbstractElementWriter {
     _writeElements('combinators', elements, _writeNamespaceCombinator);
   }
 
-  void _writeNonSyntheticElement(Element e) {
+  void _writeNonSyntheticElement(ElementImpl e) {
     if (configuration.withNonSynthetic) {
       _elementPrinter.writeNamedElement('nonSynthetic', e.nonSynthetic);
     }
@@ -2438,10 +2431,8 @@ class _ElementWriter extends _AbstractElementWriter {
     _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
   }
 
-  void _writeParameterElement(ParameterElement e) {
-    e as ParameterElementImpl;
-
-    if (e.isNamed && e.enclosingElement3 is ExecutableElement) {
+  void _writeParameterElement(ParameterElementImpl e) {
+    if (e.isNamed && e.enclosingElementImpl is ExecutableElementImpl) {
       expect(e.reference, isNotNull);
     } else {
       expect(e.reference, isNull);
@@ -2467,9 +2458,9 @@ class _ElementWriter extends _AbstractElementWriter {
       _sink.writeIf(e.isFinal, 'final ');
       _sink.writeIf(e.hasImplicitType, 'hasImplicitType ');
 
-      if (e is FieldFormalParameterElement) {
+      if (e is FieldFormalParameterElementImpl) {
         _sink.write('this.');
-      } else if (e is SuperFormalParameterElement) {
+      } else if (e is SuperFormalParameterElementImpl) {
         _sink.writeIf(e.hasDefaultValue, 'hasDefaultValue ');
         _sink.write('super.');
       }
@@ -2492,7 +2483,7 @@ class _ElementWriter extends _AbstractElementWriter {
     });
   }
 
-  void _writeParameterElements(List<ParameterElement> elements) {
+  void _writeParameterElements(List<ParameterElementImpl> elements) {
     _writeElements('parameters', elements, _writeParameterElement);
   }
 
@@ -2526,9 +2517,7 @@ class _ElementWriter extends _AbstractElementWriter {
     });
   }
 
-  void _writePropertyAccessorElement(PropertyAccessorElement e) {
-    e as PropertyAccessorElementImpl;
-
+  void _writePropertyAccessorElement(PropertyAccessorElementImpl e) {
     var variable = e.variable2;
     if (e.isAugmentation) {
       expect(variable, isNull);
@@ -2593,9 +2582,7 @@ class _ElementWriter extends _AbstractElementWriter {
     });
   }
 
-  void _writePropertyInducingElement(PropertyInducingElement e) {
-    e as PropertyInducingElementImpl;
-
+  void _writePropertyInducingElement(PropertyInducingElementImpl e) {
     DartType type = e.type;
     expect(type, isNotNull);
 
@@ -2678,15 +2665,15 @@ class _ElementWriter extends _AbstractElementWriter {
     );
   }
 
-  void _writeSinceSdkVersion(Element e) {
+  void _writeSinceSdkVersion(ElementImpl e) {
     var sinceSdkVersion = e.sinceSdkVersion;
     if (sinceSdkVersion != null) {
       _sink.writelnWithIndent('sinceSdkVersion: $sinceSdkVersion');
     }
   }
 
-  void _writeSuperConstructorParameter(ParameterElement e) {
-    if (e is SuperFormalParameterElement) {
+  void _writeSuperConstructorParameter(ParameterElementImpl e) {
+    if (e is SuperFormalParameterElementImpl) {
       var superParameter = e.superConstructorParameter;
       if (superParameter != null) {
         _elementPrinter.writeNamedElement(
@@ -2705,15 +2692,14 @@ class _ElementWriter extends _AbstractElementWriter {
     if (configuration.withFunctionTypeParameters) {
       if (type is FunctionTypeImpl) {
         _sink.withIndent(() {
-          _writeParameterElements(type.parameters);
+          _writeParameterElements(
+              type.parameters.map((p) => p.declaration).toList());
         });
       }
     }
   }
 
-  void _writeTypeAliasElement(TypeAliasElement e) {
-    e as TypeAliasElementImpl;
-
+  void _writeTypeAliasElement(TypeAliasElementImpl e) {
     _sink.writeIndentedLine(() {
       _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isFunctionTypeAliasBased, 'functionTypeAliasBased ');
@@ -2736,7 +2722,7 @@ class _ElementWriter extends _AbstractElementWriter {
 
       var aliasedElement = e.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElementImpl) {
-        expect(aliasedElement.enclosingElement3, same(e));
+        expect(aliasedElement.enclosingElementImpl, same(e));
         _sink.writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
         _sink.withIndent(() {
           _assertEnclosingElement(
@@ -2759,7 +2745,7 @@ class _ElementWriter extends _AbstractElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeTypeInferenceError(Element e) {
+  void _writeTypeInferenceError(ElementImpl e) {
     TopLevelInferenceError? inferenceError;
     if (e is MethodElementImpl) {
       inferenceError = e.typeInferenceError;
@@ -2781,9 +2767,7 @@ class _ElementWriter extends _AbstractElementWriter {
     }
   }
 
-  void _writeTypeParameterElement(TypeParameterElement e) {
-    e as TypeParameterElementImpl;
-
+  void _writeTypeParameterElement(TypeParameterElementImpl e) {
     _sink.writeIndentedLine(() {
       _sink.write('${e.variance.name} ');
       _writeName(e);
@@ -2808,7 +2792,7 @@ class _ElementWriter extends _AbstractElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeTypeParameterElements(List<TypeParameterElement> elements) {
+  void _writeTypeParameterElements(List<TypeParameterElementImpl> elements) {
     _writeElements('typeParameters', elements, _writeTypeParameterElement);
   }
 
@@ -2856,23 +2840,23 @@ class _ElementWriter extends _AbstractElementWriter {
 
 class _IdMap {
   final Map<Expression, String> expressionMap = Map.identity();
-  final Map<Element, String> fieldMap = Map.identity();
-  final Map<Element, String> getterMap = Map.identity();
-  final Map<Element, String> partMap = Map.identity();
-  final Map<Element, String> setterMap = Map.identity();
+  final Map<ElementImpl, String> fieldMap = Map.identity();
+  final Map<ElementImpl, String> getterMap = Map.identity();
+  final Map<ElementImpl, String> partMap = Map.identity();
+  final Map<ElementImpl, String> setterMap = Map.identity();
 
   String operator [](Object object) {
     if (object is Expression) {
       return expressionMap[object] ??= 'expression_${expressionMap.length}';
-    } else if (object is FieldElement) {
+    } else if (object is FieldElementImpl) {
       return fieldMap[object] ??= 'field_${fieldMap.length}';
-    } else if (object is TopLevelVariableElement) {
+    } else if (object is TopLevelVariableElementImpl) {
       return fieldMap[object] ??= 'variable_${fieldMap.length}';
-    } else if (object is PropertyAccessorElement && object.isGetter) {
+    } else if (object is PropertyAccessorElementImpl && object.isGetter) {
       return getterMap[object] ??= 'getter_${getterMap.length}';
     } else if (object is PartElementImpl) {
       return partMap[object] ??= 'part_${partMap.length}';
-    } else if (object is PropertyAccessorElement && object.isSetter) {
+    } else if (object is PropertyAccessorElementImpl && object.isSetter) {
       return setterMap[object] ??= 'setter_${setterMap.length}';
     } else {
       return '???';

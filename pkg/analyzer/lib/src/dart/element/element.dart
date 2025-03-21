@@ -1496,7 +1496,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  Element get nonSynthetic {
+  ElementImpl get nonSynthetic {
     return isSynthetic ? enclosingElement3 : this;
   }
 
@@ -3033,7 +3033,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
   }
 
   @override
-  Element get nonSynthetic => this;
+  ElementImpl get nonSynthetic => this;
 
   @override
   AnalysisSession? get session {
@@ -3839,6 +3839,9 @@ abstract class ExecutableElementOrMember
 
   @override
   FunctionTypeImpl get type;
+
+  @override
+  List<TypeParameterElementImpl> get typeParameters;
 }
 
 /// A concrete implementation of an [ExtensionElement].
@@ -4347,7 +4350,7 @@ abstract class FieldElementOrMember
 class FieldFormalParameterElementImpl extends ParameterElementImpl
     implements FieldFormalParameterElement, FieldFormalParameterFragment {
   @override
-  FieldElementOrMember? field;
+  FieldElementImpl? field;
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
@@ -5442,10 +5445,10 @@ class GetterFragmentImpl extends PropertyAccessorElementImpl
       : super.forVariable();
 
   @override
-  PropertyAccessorElement? get correspondingGetter => null;
+  PropertyAccessorElementImpl? get correspondingGetter => null;
 
   @override
-  PropertyAccessorElement? get correspondingSetter => variable2?.setter;
+  PropertyAccessorElementImpl? get correspondingSetter => variable2?.setter;
 
   @override
   GetterElementImpl get element {
@@ -8300,7 +8303,7 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  Element get nonSynthetic {
+  ElementImpl get nonSynthetic {
     if (isSynthetic && enclosingElement3 is EnumElementImpl) {
       return enclosingElement3;
     }
@@ -9458,7 +9461,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   }
 
   @override
-  Element get nonSynthetic {
+  ElementImpl get nonSynthetic {
     return setter.variable2;
   }
 
@@ -9890,6 +9893,12 @@ sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  PropertyAccessorElementImpl? get correspondingGetter;
+
+  @override
+  PropertyAccessorElementImpl? get correspondingSetter;
+
+  @override
   PropertyAccessorElementImpl get declaration => this;
 
   @override
@@ -10028,7 +10037,7 @@ class PropertyAccessorElementImpl_ImplicitGetter extends GetterFragmentImpl {
   String? get name2 => variable2.name2;
 
   @override
-  Element get nonSynthetic {
+  ElementImpl get nonSynthetic {
     if (!variable2.isSynthetic) {
       return variable2;
     }
@@ -10093,7 +10102,7 @@ class PropertyAccessorElementImpl_ImplicitSetter extends SetterFragmentImpl {
   String? get name2 => variable2.name2;
 
   @override
-  Element get nonSynthetic => variable2;
+  ElementImpl get nonSynthetic => variable2;
 
   @override
   int get offset => variable2.offset;
@@ -10242,7 +10251,7 @@ abstract class PropertyInducingElementImpl
       thisOrAncestorOfType<CompilationUnitElementImpl>()!;
 
   @override
-  Element get nonSynthetic {
+  ElementImpl get nonSynthetic {
     if (isSynthetic) {
       if (enclosingElement3 is EnumElementImpl) {
         // TODO(scheglov): remove 'index'?
@@ -10491,10 +10500,10 @@ class SetterFragmentImpl extends PropertyAccessorElementImpl
       : super.forVariable();
 
   @override
-  PropertyAccessorElement? get correspondingGetter => variable2?.getter;
+  PropertyAccessorElementImpl? get correspondingGetter => variable2?.getter;
 
   @override
-  PropertyAccessorElement? get correspondingSetter => null;
+  PropertyAccessorElementImpl? get correspondingSetter => null;
 
   @override
   SetterElementImpl get element {

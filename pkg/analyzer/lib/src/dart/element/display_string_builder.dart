@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -127,10 +126,7 @@ class ElementDisplayStringBuilder {
     _write(name);
 
     if (element.kind != ElementKind.GETTER) {
-      var typeParameters = (element is ExecutableElementImpl)
-          ? element.typeParameters
-          : (element as ExecutableMember).typeParameters;
-      _writeTypeParameters(typeParameters);
+      _writeTypeParameters(element.typeParameters);
       _writeFormalParameters(
         element.parameters,
         forElement: true,

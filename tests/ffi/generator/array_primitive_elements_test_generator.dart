@@ -20,6 +20,7 @@ void main() async {
     buffer.write(testBackedByPointer(type));
     buffer.write(testWriteToElementsBackedByTypedData(type));
     buffer.write(testWriteToElementsBackedByPointer(type));
+    buffer.write(testElementsFirstAndLast(type));
     if (typedDataListTypes.contains(type)) {
       buffer.write(testElementsTypedDataListBackedByTypedData(type));
       buffer.write(testElementsTypedDataListBackedByPointer(type));
@@ -88,6 +89,8 @@ String testWriteToElementsBackedByTypedDataFunctionName(FundamentalType type) =>
     'testWriteTo${type.dartCType}ArrayElementsBackedByTypedData';
 String testWriteToElementsBackedByPointerFunctionName(FundamentalType type) =>
     'testWriteTo${type.dartCType}ArrayElementsBackedByPointer';
+String testElementsFirstAndLastFunctionName(FundamentalType type) =>
+    'test${type.dartCType}ArrayElementsFirstAndLast';
 String testElementsTypedDataListBackedByTypedDataFunctionName(
   FundamentalType type,
 ) => 'test${type.dartCType}ArrayElementsTypedDataListBackedByTypedData';
@@ -108,6 +111,7 @@ String mainFunction(List<FundamentalType> typesToTest) {
       '${testBackedByPointerFunctionName(type)}();',
       '${testWriteToElementsBackedByTypedDataFunctionName(type)}();',
       '${testWriteToElementsBackedByPointerFunctionName(type)}();',
+      '${testElementsFirstAndLastFunctionName(type)}();',
       if (typedDataListTypes.contains(type)) ...[
         '${testElementsTypedDataListBackedByTypedDataFunctionName(type)}();',
         '${testElementsTypedDataListBackedByPointerFunctionName(type)}();',
@@ -228,6 +232,21 @@ void ${testWriteToElementsBackedByPointerFunctionName(type)}() {
   }
   Expect.listEquals(expected, actual);
   malloc.free(struct);
+}
+""";
+}
+
+String testElementsFirstAndLast(FundamentalType type) {
+  return """
+void ${testElementsFirstAndLastFunctionName(type)}() {
+  final struct = Struct.create<${structName(type)}>();
+  final elements = struct.array.elements;
+  var value = ${calculateArrayItem(type, '3')};
+  elements.first = value;
+  Expect.equals(value, elements.first);
+  value = ${calculateArrayItem(type, '4')};
+  elements.last = value;
+  Expect.equals(value, elements.last);
 }
 """;
 }

@@ -102,6 +102,22 @@ class NodeTextExpectationsCollector {
       ),
     ),
     _AssertMethod(
+      className: 'FineAnalysisDriverTest',
+      methodName: '_runLibraryManifestScenario',
+      argument: _ArgumentNamed(
+        'expectedInitialEvents',
+        shouldCheckIntraInvocationId: true,
+      ),
+    ),
+    _AssertMethod(
+      className: 'FineAnalysisDriverTest',
+      methodName: '_runLibraryManifestScenario',
+      argument: _ArgumentNamed(
+        'expectedUpdatedEvents',
+        shouldCheckIntraInvocationId: true,
+      ),
+    ),
+    _AssertMethod(
       className: 'IndexTest',
       methodName: 'assertElementIndexText',
       argument: _ArgumentIndex(1),

@@ -25,10 +25,7 @@ final class ServiceExtensionResponse {
   ServiceExtensionResponse.result(String result)
     : result = result,
       errorCode = null,
-      errorDetail = null {
-    // TODO: When NNBD is complete, delete the following line.
-    checkNotNullable(result, "result");
-  }
+      errorDetail = null;
 
   /// Creates an error response to a service protocol extension RPC.
   ///
@@ -41,8 +38,6 @@ final class ServiceExtensionResponse {
       errorCode = errorCode,
       errorDetail = errorDetail {
     _validateErrorCode(errorCode);
-    // TODO: When NNBD is complete, delete the following line.
-    checkNotNullable(errorDetail, "errorDetail");
   }
 
   /// Invalid method parameter(s) error code.
@@ -66,8 +61,6 @@ final class ServiceExtensionResponse {
   }
 
   static _validateErrorCode(int errorCode) {
-    // TODO: When NNBD is complete, delete the following line.
-    checkNotNullable(errorCode, "errorCode");
     if (errorCode == invalidParams) return;
     if ((errorCode >= extensionErrorMin) && (errorCode <= extensionErrorMax)) {
       return;
@@ -114,16 +107,12 @@ typedef Future<ServiceExtensionResponse> ServiceExtensionHandler(
 /// Because service extensions are isolate specific, clients using extensions
 /// must always include an 'isolateId' parameter with each RPC.
 void registerExtension(String method, ServiceExtensionHandler handler) {
-  // TODO: When NNBD is complete, delete the following line.
-  checkNotNullable(method, 'method');
   if (!method.startsWith('ext.')) {
     throw new ArgumentError.value(method, 'method', 'Must begin with ext.');
   }
   if (_lookupExtension(method) != null) {
     throw new ArgumentError('Extension already registered: $method');
   }
-  // TODO: When NNBD is complete, delete the following line.
-  checkNotNullable(handler, 'handler');
   final zoneHandler = Zone.current.bindBinaryCallback(handler);
   _registerExtension(method, zoneHandler);
 }
@@ -191,10 +180,6 @@ void postEvent(
   if (!extensionStreamHasListener) {
     return;
   }
-  // TODO: When NNBD is complete, delete the following two lines.
-  checkNotNullable(eventKind, 'eventKind');
-  checkNotNullable(eventData, 'eventData');
-  checkNotNullable(stream, 'stream');
   Map mutableEventData = Map.from(eventData); // Shallow copy.
   mutableEventData[destinationStreamKey] = stream;
   String eventDataAsString = json.encode(mutableEventData);
