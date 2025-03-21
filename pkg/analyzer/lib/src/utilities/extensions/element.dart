@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
 class MockLibraryImportElement implements Element2, PrefixFragment {
@@ -378,6 +379,9 @@ extension ExecutableElementExtension on ExecutableElement {
         // switch patterns above.
         as ExecutableElement2OrMember;
   }
+
+  ExecutableElementImpl get declarationImpl =>
+      declaration as ExecutableElementImpl;
 }
 
 extension ExecutableElementImpl2Extension on ExecutableElementImpl2 {
@@ -400,6 +404,8 @@ extension ExecutableElementOrMemberExtension on ExecutableElementOrMember {
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
   }
+
+  ElementImpl get enclosingElementImpl => enclosingElement3 as ElementImpl;
 }
 
 extension ExecutableElementOrNullExtension on ExecutableElement? {
@@ -544,6 +550,10 @@ extension InterfaceElementImplExtension on InterfaceElementImpl {
   InterfaceElementImpl2 get asElement2 {
     return element;
   }
+}
+
+extension InterfaceTypeImplExtension on InterfaceTypeImpl {
+  InterfaceElementImpl get elementImpl => element;
 }
 
 extension JoinPatternVariableElementImplExtension
