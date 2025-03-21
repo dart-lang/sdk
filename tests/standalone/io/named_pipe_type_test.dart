@@ -28,8 +28,8 @@ main() async {
       print(fileStat.type);
     }
   ''';
-  File file = new File(join(dir.path, "typeScript"));
-  file.writeAsString(script);
+  File file = new File(join(dir.path, "pipe_type.dart"));
+  file.writeAsStringSync(script);
 
   // If there's no file system access to the pipe, then we can't do a meaningful
   // test.
@@ -42,13 +42,13 @@ main() async {
 
   StringBuffer output = new StringBuffer();
   Process process = await Process.start(
-      Platform.executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..add('--sound-null-safety')
-        ..add('--verbosity=warning')
-        ..add('--disable-dart-dev')
-        ..add(file.path));
+    Platform.executable,
+    []
+      ..addAll(Platform.executableArguments)
+      ..add('--verbosity=warning')
+      ..add('--disable-dart-dev')
+      ..add(file.path),
+  );
   bool stdinWriteFailed = false;
   process.stdout.transform(utf8.decoder).listen(output.write);
   process.stderr.transform(utf8.decoder).listen((data) {
