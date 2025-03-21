@@ -970,10 +970,13 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
 void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
   const Function& function = parsed_function()->function();
 
-  const intptr_t kernel_offset = function.kernel_offset();
-  ASSERT(kernel_offset >= 0);
-
-  SetOffset(kernel_offset);
+  if (!function.IsNoSuchMethodDispatcher() &&
+      !function.IsInvokeFieldDispatcher() &&
+      !function.IsFfiCallbackTrampoline()) {
+    const intptr_t kernel_offset = function.kernel_offset();
+    ASSERT(kernel_offset >= 0);
+    SetOffset(kernel_offset);
+  }
 
   // Mark forwarding stubs.
   switch (function.kind()) {

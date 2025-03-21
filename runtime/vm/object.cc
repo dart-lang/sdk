@@ -11410,8 +11410,10 @@ KernelProgramInfoPtr Function::KernelProgramInfo() const {
 }
 
 TypedDataViewPtr Function::KernelLibrary() const {
+  const intptr_t kernel_library_index = KernelLibraryIndex();
+  if (kernel_library_index == -1) return TypedDataView::null();
   const auto& info = KernelProgramInfo::Handle(KernelProgramInfo());
-  return info.KernelLibrary(KernelLibraryIndex());
+  return info.KernelLibrary(kernel_library_index);
 }
 
 intptr_t Function::KernelLibraryOffset() const {
@@ -12419,8 +12421,10 @@ void Field::InheritKernelOffsetFrom(const Field& src) const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 TypedDataViewPtr Field::KernelLibrary() const {
+  const intptr_t kernel_library_index = KernelLibraryIndex();
+  if (kernel_library_index == -1) return TypedDataView::null();
   const auto& info = KernelProgramInfo::Handle(KernelProgramInfo());
-  return info.KernelLibrary(KernelLibraryIndex());
+  return info.KernelLibrary(kernel_library_index);
 }
 
 intptr_t Field::KernelLibraryOffset() const {
@@ -15685,6 +15689,7 @@ intptr_t KernelProgramInfo::KernelLibraryStartOffset(
   const intptr_t library_count =
       Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
+  ASSERT((library_index >= 0) && (library_index < library_count));
   const intptr_t library_start =
       Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() -
@@ -15694,6 +15699,7 @@ intptr_t KernelProgramInfo::KernelLibraryStartOffset(
 
 TypedDataViewPtr KernelProgramInfo::KernelLibrary(
     intptr_t library_index) const {
+  ASSERT(library_index >= 0);
   const intptr_t start_offset = KernelLibraryStartOffset(library_index);
   const intptr_t end_offset = KernelLibraryEndOffset(library_index);
   const auto& component = TypedDataBase::Handle(kernel_component());
@@ -15706,6 +15712,7 @@ intptr_t KernelProgramInfo::KernelLibraryEndOffset(
   const intptr_t library_count =
       Utils::BigEndianToHost32(LoadUnaligned(reinterpret_cast<uint32_t*>(
           blob.DataAddr(blob.LengthInBytes() - 2 * 4))));
+  ASSERT((library_index >= 0) && (library_index < library_count));
   const intptr_t library_end = Utils::BigEndianToHost32(
       LoadUnaligned(reinterpret_cast<uint32_t*>(blob.DataAddr(
           blob.LengthInBytes() - (2 + (library_count - library_index)) * 4))));

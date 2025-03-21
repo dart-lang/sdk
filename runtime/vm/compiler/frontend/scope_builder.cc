@@ -122,12 +122,17 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
   parsed_function_->set_scope(scope_);
 
-  helper_.SetOffset(function.kernel_offset());
+  ProcedureAttributesMetadata attrs;
+
+  if (!function.IsNoSuchMethodDispatcher() &&
+      !function.IsInvokeFieldDispatcher() &&
+      !function.IsFfiCallbackTrampoline()) {
+    helper_.SetOffset(function.kernel_offset());
+    attrs = procedure_attributes_metadata_helper_.GetProcedureAttributes(
+        function.kernel_offset());
+  }
 
   FunctionNodeHelper function_node_helper(&helper_);
-  const ProcedureAttributesMetadata attrs =
-      procedure_attributes_metadata_helper_.GetProcedureAttributes(
-          function.kernel_offset());
 
   switch (function.kind()) {
     case UntaggedFunction::kImplicitClosureFunction: {
