@@ -9,17 +9,17 @@
 import '../dot_shorthand_helper.dart';
 
 void main() {
-  StaticMember<StaticMember> memberMember = .memberType(
+  StaticMember<StaticMember<StaticMember>> memberMember = .memberType(
     .memberType(.member()),
   );
 
-  StaticMemberExt<StaticMemberExt> memberMemberExt = .memberType(
+  StaticMemberExt<StaticMemberExt<StaticMemberExt>> memberMemberExt = .memberType(
     .memberType(.member()),
   );
 
-  StaticMember<StaticMember> memberCtor = .memberType(.new(.member()));
+  StaticMember<StaticMember<StaticMember>> memberCtor = .memberType(.new(.member()));
 
-  StaticMemberExt<StaticMemberExt> memberCtorExt = .memberType(
+  StaticMemberExt<StaticMemberExt<StaticMemberExt>> memberCtorExt = .memberType(
     .new(.member()),
   );
 
