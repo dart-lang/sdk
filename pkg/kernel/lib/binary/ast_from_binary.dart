@@ -67,8 +67,6 @@ class CompilationModeError {
 }
 
 class _ComponentIndex {
-  static const int numberOfFixedFields = 12;
-
   final int binaryOffsetForSourceTable;
   final int binaryOffsetForCanonicalNames;
   final int binaryOffsetForMetadataPayloads;
@@ -790,8 +788,7 @@ class BinaryBuilder {
     }
 
     // Skip to the start of the index.
-    _byteOffset -=
-        ((libraryCount + 1) + _ComponentIndex.numberOfFixedFields) * 4;
+    _byteOffset -= numberOfFixedFields(libraryCount) * 4;
 
     // Now read the component index.
     int binaryOffsetForSourceTable = _componentStartOffset + readUint32();
@@ -805,8 +802,6 @@ class BinaryBuilder {
     int binaryOffsetForStartOfComponentIndex =
         _componentStartOffset + readUint32();
     int mainMethodReference = readUint32();
-    // TODO(jensj): Previously the component mode. Remove this.
-    readUint32();
     for (int i = 0; i < libraryCount + 1; ++i) {
       libraryOffsets[i] = _componentStartOffset + readUint32();
     }

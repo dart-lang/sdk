@@ -805,11 +805,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     // is added before component index.
     const int kernelFileAlignment = 8;
 
-    // Keep this in sync with number of writeUInt32 below.
-    int numComponentIndexEntries = 10 + libraryOffsets.length + 3;
     int componentIndexOffset = getBufferOffset();
-
-    int unalignedSize = componentIndexOffset + numComponentIndexEntries * 4;
+    int unalignedSize =
+        componentIndexOffset + numberOfFixedFields(libraryOffsets.length) * 4;
     int padding =
         ((unalignedSize + kernelFileAlignment - 1) & -kernelFileAlignment) -
             unalignedSize;
@@ -817,7 +815,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeByte(0);
     }
 
-    // Fixed-size ints at the end used as an index.
+    // Fixed-size ints at the end used as an index. Including main there's
+    // [fixedFieldsBeforeLibraries] fields.
     assert(_binaryOffsetForSourceTable >= 0);
     writeUInt32(_binaryOffsetForSourceTable);
     assert(_binaryOffsetForConstantTable >= 0);
@@ -843,16 +842,17 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
           _ensureCanonicalName(getNonNullableMemberReferenceGetter(mainMethod));
       writeUInt32(main.index + 1);
     }
-    // TODO(jensj): Previously the component mode. Remove this.
-    writeUInt32(0);
 
+    // Offset for the libraries.
     assert(libraryOffsets.length == libraries.length);
     for (int offset in libraryOffsets) {
       writeUInt32(offset);
     }
-    writeUInt32(_binaryOffsetForSourceTable); // end of last library.
-    writeUInt32(libraries.length);
+    // and the end of the last library.
+    writeUInt32(_binaryOffsetForSourceTable);
 
+    // And an additional [fixedFieldsAfterLibraries] fields.
+    writeUInt32(libraries.length);
     writeUInt32(getBufferOffset() + 4); // total size.
   }
 
