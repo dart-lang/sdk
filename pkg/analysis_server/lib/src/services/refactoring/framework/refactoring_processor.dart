@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/refactoring/convert_all_formal_parameters_to_named.dart';
 import 'package:analysis_server/src/services/refactoring/convert_selected_formal_parameters_to_named.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
@@ -30,11 +31,17 @@ class RefactoringProcessor {
   /// The context in which the refactorings could be applied.
   final RefactoringContext context;
 
-  RefactoringProcessor(this.context);
+  final RefactoringPerformance? _performance;
+
+  final Stopwatch _timer = Stopwatch();
+
+  RefactoringProcessor(this.context, {RefactoringPerformance? performance})
+    : _performance = performance;
 
   /// Return a list containing one code action for each of the refactorings that
   /// are available in the current context.
   Future<List<CodeAction>> compute() async {
+    _timer.start();
     var refactorings = <CodeAction>[];
     for (var entry in RefactoringProcessor.generators.entries) {
       var generator = entry.value;
@@ -43,9 +50,14 @@ class RefactoringProcessor {
       if (producer.isExperimental && !context.includeExperimental) {
         continue;
       }
-
+      var startTime = _timer.elapsedMilliseconds;
       var isAvailable = producer.isAvailable();
       if (!isAvailable) {
+        // Track time checking for availablity before continuing.
+        _performance?.producerTimings.add((
+          className: producer.runtimeType.toString(),
+          elapsedTime: _timer.elapsedMilliseconds - startTime,
+        ));
         continue;
       }
 
@@ -90,7 +102,13 @@ class RefactoringProcessor {
           data: {'parameters': parameters},
         ),
       );
+      _performance?.producerTimings.add((
+        className: producer.runtimeType.toString(),
+        elapsedTime: _timer.elapsedMilliseconds - startTime,
+      ));
     }
+    _timer.stop();
+    _performance?.computeTime = _timer.elapsed;
     return refactorings;
   }
 }

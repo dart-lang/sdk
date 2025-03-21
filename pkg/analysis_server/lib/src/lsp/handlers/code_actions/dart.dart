@@ -12,6 +12,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisOptions, Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
+import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
@@ -264,7 +265,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   @override
-  Future<List<Either2<CodeAction, Command>>> getRefactorActions() async {
+  Future<List<Either2<CodeAction, Command>>> getRefactorActions(
+    OperationPerformance? performance,
+  ) async {
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
     if (!supportsApplyEdit) {
@@ -272,6 +275,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     }
 
     var refactorActions = <Either2<CodeAction, Command>>[];
+    var performanceTracker = RefactoringPerformance();
 
     try {
       // New interactive refactors.
@@ -286,12 +290,16 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         includeExperimental:
             server.lspClientConfiguration.global.experimentalRefactors,
       );
-      var processor = RefactoringProcessor(context);
+      var processor = RefactoringProcessor(
+        context,
+        performance: performanceTracker,
+      );
       var actions = await processor.compute();
       refactorActions.addAll(actions.map(Either2<CodeAction, Command>.t1));
 
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
+        var timer = Stopwatch()..start();
         // Extract Method
         if (ExtractMethodRefactoring(
           server.searchEngine,
@@ -307,6 +315,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'ExtractMethodRefactoring',
+          timer: timer,
+        );
 
         // Extract Local Variable
         if (ExtractLocalRefactoring(unitResult, offset, length).isAvailable()) {
@@ -318,6 +330,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'ExtractLocalRefactoring',
+          timer: timer,
+        );
 
         // Extract Widget
         if (ExtractWidgetRefactoring(
@@ -334,10 +350,16 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'ExtractWidgetRefactoring',
+          timer: timer,
+        );
       }
 
+      var timer = Stopwatch();
       // Inlines
       if (shouldIncludeKind(CodeActionKind.RefactorInline)) {
+        timer.start();
         // Inline Local Variable
         if (InlineLocalRefactoring(
           server.searchEngine,
@@ -352,6 +374,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'InlineLocalRefactoring',
+          timer: timer,
+        );
 
         // Inline Method
         if (InlineMethodRefactoring(
@@ -367,10 +393,16 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'InlineMethodRefactoring',
+          timer: timer,
+        );
       }
 
       // Converts/Rewrites
       if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
+        timer.restart();
+
         var node = NodeLocator(offset).searchWithin(unitResult.unit);
         var element = server.getElementOfNode(node);
 
@@ -389,6 +421,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'ConvertGetterToMethodRefactoring',
+          timer: timer,
+        );
 
         // Method to Getter
         if (element is ExecutableElement2 &&
@@ -405,6 +441,22 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             ),
           );
         }
+        performanceTracker.addTiming(
+          className: 'ConvertMethodToGetterRefactoring',
+          timer: timer,
+        );
+      }
+      if (performance != null) {
+        server.recentPerformance.getRefactorings.add(
+          GetRefactoringsPerformance(
+            performance: performance,
+            path: path,
+            content: unitResult.content,
+            offset: offset,
+            requestLatency: performanceTracker.computeTime!.inMilliseconds,
+            producerTimings: performanceTracker.producerTimings,
+          ),
+        );
       }
 
       return refactorActions;
@@ -455,5 +507,22 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           CodeAction(title: command.title, kind: kind, command: command),
         )
         : Either2<CodeAction, Command>.t2(command);
+  }
+}
+
+extension on Stopwatch {
+  void restart() {
+    reset();
+    start();
+  }
+}
+
+extension on RefactoringPerformance {
+  void addTiming({required String className, required Stopwatch timer}) {
+    producerTimings.add((
+      className: 'InlineMethodRefactoring',
+      elapsedTime: timer.elapsedMilliseconds,
+    ));
+    timer.restart();
   }
 }

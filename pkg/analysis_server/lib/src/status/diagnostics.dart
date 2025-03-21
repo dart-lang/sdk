@@ -18,6 +18,7 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
+import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
@@ -1430,6 +1431,7 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
     pages.add(ByteStoreTimingPage(this));
     pages.add(CompletionPage(this));
     pages.add(FixesPage(this));
+    pages.add(RefactoringsPage(this));
   }
 
   @override
@@ -1962,6 +1964,63 @@ class PluginsPage extends DiagnosticPageWithNav {
   }
 }
 
+class RefactoringsPage extends DiagnosticPageWithNav
+    with PerformanceChartMixin {
+  RefactoringsPage(DiagnosticsSite site)
+    : super(
+        site,
+        'getRefactorings',
+        'Refactorings',
+        description: 'Latency and timing statistics for getting refactorings.',
+        indentInNav: true,
+      );
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  List<GetRefactoringsPerformance> get performanceItems =>
+      server.recentPerformance.getRefactorings.items.toList();
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    var requests = performanceItems;
+
+    if (requests.isEmpty) {
+      blankslate('No refactoring requests recorded.');
+      return;
+    }
+
+    var fastCount =
+        requests.where((c) => c.elapsedInMilliseconds <= 100).length;
+    p(
+      '${requests.length} results; ${printPercentage(fastCount / requests.length)} within 100ms.',
+    );
+
+    drawChart(requests);
+
+    // Emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+      '<tr><th>Time</th><th align = "left" title="Time in refactoring producer `compute()` calls">Producer.compute()</th><th align = "left">Source</th><th>Snippet</th></tr>',
+    );
+
+    for (var request in requests) {
+      var shortName = pathContext.basename(request.path);
+      var (producerTime, producerDetails) = _producerDetails(request);
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${request.id}&kind=getRefactorings">'
+        '${_formatLatencyTiming(request.elapsedInMilliseconds, request.requestLatency)}'
+        '</a></td>'
+        '<td><abbr title="$producerDetails">${printMilliseconds(producerTime)}</abbr></td>'
+        '<td>${escape(shortName)}</td>'
+        '<td><code>${escape(request.snippet)}</code></td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
+  }
+}
+
 class StatusPage extends DiagnosticPageWithNav {
   StatusPage(DiagnosticsSite site)
     : super(
@@ -2065,6 +2124,8 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       items = server.recentPerformance.getAssists.items.toList();
     } else if (kind == 'getFixes') {
       items = server.recentPerformance.getFixes.items.toList();
+    } else if (kind == 'getRefactorings') {
+      items = server.recentPerformance.getRefactorings.items.toList();
     } else {
       items = server.recentPerformance.requests.items.toList();
       itemsSlow = server.recentPerformance.slowRequests.items.toList();

@@ -32,6 +32,7 @@ import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -1222,6 +1223,11 @@ class ServerRecentPerformance {
   /// up to [performanceListMaxLength] measurements.
   final RecentBuffer<GetFixesPerformance> getFixes =
       RecentBuffer<GetFixesPerformance>(performanceListMaxLength);
+
+  /// A list of performance measurements for the latest requests to get refactorings
+  /// up to [performanceListMaxLength] measurements.
+  final RecentBuffer<GetRefactoringsPerformance> getRefactorings =
+      RecentBuffer<GetRefactoringsPerformance>(performanceListMaxLength);
 
   /// A [RecentBuffer] for performance information about the most recent
   /// requests.

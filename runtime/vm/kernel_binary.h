@@ -498,9 +498,14 @@ class Reader : public ValueObject {
       : thread_(nullptr), raw_buffer_(buffer), size_(size) {}
 
   void Init() {
-    ASSERT(typed_data_->IsExternalOrExternalView());
-    raw_buffer_ = reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
-    size_ = typed_data_->LengthInBytes();
+    if (typed_data_->IsNull()) {
+      raw_buffer_ = nullptr;
+      size_ = 0;
+    } else {
+      ASSERT(typed_data_->IsExternalOrExternalView());
+      raw_buffer_ = reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
+      size_ = typed_data_->LengthInBytes();
+    }
     offset_ = 0;
   }
 
