@@ -172,9 +172,7 @@ WasmFuncRef? getUpdateableFuncRef(int moduleId, int key) {
 
 /// Register the updateable function ref implementations into a new module.
 /// [refs] contains implementations of pre-allocated (i.e. defined in main)
-/// keys. [stringKeys] and [stringRefs] contain runtime allocated refs and their
-/// keys. If any of the entries in [stringKeys] are new, an index will be
-/// allocated for them.
+/// keys.
 @pragma('dyn-module:callable')
 void registerUpdateableFuncRefs(WasmArray<WasmFuncRef?> refs) {
   final oldUpdateableRefs = _updateableRefs;

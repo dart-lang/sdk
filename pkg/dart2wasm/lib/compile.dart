@@ -183,7 +183,8 @@ Future<CompilationResult> compileToModule(
 
   Component component = compilerResult!.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
-  ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
+  final classHierarchy =
+      ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   LibraryIndex libraryIndex = LibraryIndex(component, [
     "dart:_boxed_bool",
     "dart:_boxed_double",
@@ -222,12 +223,11 @@ Future<CompilationResult> compileToModule(
     moduleStrategy = DynamicMainModuleStrategy(
         component,
         coreTypes,
-        classHierarchy,
         File.fromUri(dynamicInterfaceUri).readAsStringSync(),
         options.dynamicInterfaceUri!);
   } else if (isDynamicModule) {
-    moduleStrategy = DynamicModuleStrategy(component, options, target,
-        coreTypes, classHierarchy, dynamicModuleMainUri);
+    moduleStrategy = DynamicModuleStrategy(
+        component, options, target, coreTypes, dynamicModuleMainUri);
   } else {
     moduleStrategy = DefaultModuleStrategy(component);
   }
@@ -244,8 +244,8 @@ Future<CompilationResult> compileToModule(
       ? null
       : js.createRuntimeFinalizer(component, coreTypes, classHierarchy);
 
-  final Map<RecordShape, Class> recordClasses =
-      generateRecordClasses(component, coreTypes);
+  final Map<RecordShape, Class> recordClasses = generateRecordClasses(
+      component, coreTypes, isDynamicMainModule || isDynamicModule);
   target.recordClasses = recordClasses;
 
   if (options.dumpKernelBeforeTfa != null) {
@@ -268,19 +268,25 @@ Future<CompilationResult> compileToModule(
     final source = DataDeserializer(dynamicModuleMetadataBytes, component);
     mainModuleMetadata = MainModuleMetadata.deserialize(source);
     mainModuleMetadata.verifyDynamicModuleOptions(options);
+    mainModuleMetadata.initializeDynamicModuleKernel(
+        component,
+        coreTypes,
+        // Create a new hierarchy with generated record classes.
+        ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy);
   } else if (isDynamicMainModule) {
     MainModuleMetadata.verifyMainModuleOptions(options);
     writeComponentToBinary(component, dynamicModuleMainUri.path,
         includeSource: false);
   }
 
-  _patchMainTearOffs(coreTypes, component);
+  if (!isDynamicModule) {
+    _patchMainTearOffs(coreTypes, component);
 
-  // Keep the flags in-sync with
-  // pkg/vm/test/transformations/type_flow/transformer_test.dart
-  // TODO(natebiggs): Only run TFA on main module when dynamic modules enabled.
-  globalTypeFlow.transformComponent(target, coreTypes, component,
-      useRapidTypeAnalysis: false);
+    // Keep the flags in-sync with
+    // pkg/vm/test/transformations/type_flow/transformer_test.dart
+    globalTypeFlow.transformComponent(target, coreTypes, component,
+        useRapidTypeAnalysis: false);
+  }
 
   if (options.dumpKernelAfterTfa != null) {
     writeComponentToText(component,
@@ -294,10 +300,6 @@ Future<CompilationResult> compileToModule(
   }());
 
   final moduleOutputData = moduleStrategy.buildModuleOutputData();
-
-  if (isDynamicMainModule) {
-    mainModuleMetadata.initialize(component, coreTypes);
-  }
 
   var translator = Translator(component, coreTypes, libraryIndex, recordClasses,
       moduleOutputData, options.translatorOptions,
@@ -340,7 +342,7 @@ Future<CompilationResult> compileToModule(
         Uri.parse(
             path.setExtension(dynamicMainModuleUri!.toFilePath(), '.dyndata'));
     final serializer = DataSerializer(translator.component);
-    translator.dynamicModuleInfo!.metadata.serialize(translator, serializer);
+    translator.dynamicModuleInfo!.metadata.serialize(serializer, translator);
     await File.fromUri(filename).writeAsBytes(serializer.takeBytes());
   }
 

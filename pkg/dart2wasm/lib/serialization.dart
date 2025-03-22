@@ -75,8 +75,8 @@ class _IdToEntityMapper {
     return _mapping[id] as Member;
   }
 
-  Reference referenceForId(int classId, int flag) {
-    final member = _mapping[classId] as Member;
+  Reference referenceForId(int memberId, int flag) {
+    final member = _mapping[memberId] as Member;
     return _referenceForFlag(member, flag);
   }
 
@@ -98,11 +98,28 @@ class _IdToEntityMapper {
 class DataSerializer {
   final _BinaryDataSink _sink = _BinaryDataSink();
   final _EntityToIdMapper _mapper;
+  final Map<String, int> _stringIndexer = {};
 
   DataSerializer(Component component) : _mapper = _EntityToIdMapper(component);
 
+  void writeNullable<T>(T? value, void Function(T value) write) {
+    if (value != null) {
+      _sink.writeBool(true);
+      write(value);
+    } else {
+      _sink.writeBool(false);
+    }
+  }
+
   void writeString(String value) {
-    _sink.writeString(value);
+    int? index = _stringIndexer[value];
+    if (index == null) {
+      index = _stringIndexer[value] = _stringIndexer.length;
+      _sink.writeInt(index);
+      _sink.writeString(value);
+    } else {
+      _sink.writeInt(index);
+    }
   }
 
   void writeInt(int value) {
@@ -110,7 +127,16 @@ class DataSerializer {
   }
 
   void writeBool(bool value) {
-    _sink.writeInt(value ? 1 : 0);
+    _sink.writeByte(value ? 1 : 0);
+  }
+
+  void writeBoolList(List<bool> values) {
+    _sink.writeInt(values.length);
+    int index = 0;
+    for (final value in values) {
+      index = (index << 1) | (value ? 1 : 0);
+    }
+    _sink.writeInt(index);
   }
 
   void writeEnum<E extends Enum>(E value) {
@@ -136,6 +162,22 @@ class DataSerializer {
     return true;
   }
 
+  void writeMap<K, V>(Map<K, V> map, void Function(K key) writeKey,
+      void Function(V value) writeValue) {
+    writeInt(map.length);
+    map.forEach((key, value) {
+      writeKey(key);
+      writeValue(value);
+    });
+  }
+
+  void writeList<E>(Iterable<E> list, void Function(E value) writeValue) {
+    writeInt(list.length);
+    for (final value in list) {
+      writeValue(value);
+    }
+  }
+
   Uint8List takeBytes() {
     return _sink.takeBytes();
   }
@@ -144,13 +186,23 @@ class DataSerializer {
 class DataDeserializer {
   final _BinaryDataSource _source;
   final _IdToEntityMapper _mapper;
+  final List<String> _stringIndexer = [];
 
   DataDeserializer(Uint8List bytes, Component component)
       : _source = _BinaryDataSource(bytes),
         _mapper = _IdToEntityMapper(component);
 
+  T? readNullable<T>(T Function() read) {
+    return _source.readBool() ? read() : null;
+  }
+
   String readString() {
-    return _source.readString();
+    final index = _source.readInt();
+    if (index < _stringIndexer.length) return _stringIndexer[index];
+    final value = _source.readString();
+    assert(index == _stringIndexer.length);
+    _stringIndexer.add(value);
+    return value;
   }
 
   int readInt() {
@@ -159,6 +211,12 @@ class DataDeserializer {
 
   bool readBool() {
     return _source.readInt() == 1;
+  }
+
+  List<bool> readBoolList() {
+    final length = _source.readInt();
+    final values = _source.readInt();
+    return List.generate(length, (i) => (values >> (length - i - 1)) & 1 == 1);
   }
 
   E readEnum<E extends Enum>(List<E> values) {
@@ -179,9 +237,29 @@ class DataDeserializer {
   }
 
   Reference readReference() {
-    final classId = _source.readInt();
+    final memberId = _source.readInt();
     final flag = _source.readInt();
-    return _mapper.referenceForId(classId, flag);
+    return _mapper.referenceForId(memberId, flag);
+  }
+
+  Map<K, V> readMap<K, V>(K Function() readKey, V Function() readValue) {
+    final length = _source.readInt();
+    final map = <K, V>{};
+    for (int i = 0; i < length; i++) {
+      final key = readKey();
+      final value = readValue();
+      map[key] = value;
+    }
+    return map;
+  }
+
+  List<E> readList<E>(E Function() readValue) {
+    final length = _source.readInt();
+    final list = <E>[];
+    for (int i = 0; i < length; i++) {
+      list.add(readValue());
+    }
+    return list;
   }
 }
 
