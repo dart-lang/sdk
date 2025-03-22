@@ -244,8 +244,8 @@ Future<CompilationResult> compileToModule(
       ? null
       : js.createRuntimeFinalizer(component, coreTypes, classHierarchy);
 
-  final Map<RecordShape, Class> recordClasses =
-      generateRecordClasses(component, coreTypes);
+  final Map<RecordShape, Class> recordClasses = generateRecordClasses(
+      component, coreTypes, isDynamicMainModule || isDynamicModule);
   target.recordClasses = recordClasses;
 
   if (options.dumpKernelBeforeTfa != null) {

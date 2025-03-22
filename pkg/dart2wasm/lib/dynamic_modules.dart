@@ -183,6 +183,9 @@ class DynamicMainModuleStrategy extends DefaultModuleStrategy with KernelNodes {
       add(procedure, kDynModuleCallablePragmaName);
     }
 
+    // Mark all record classes as dynamic module extendable.
+    addPragma(coreTypes.recordClass, kDynModuleExtendablePragmaName, coreTypes);
+
     // SystemHash.combine used by closures.
     add(systemHashCombine, kDynModuleCallablePragmaName);
   }
@@ -361,6 +364,7 @@ void _recordIdDynamic(w.FunctionBuilder f, Translator translator) {
     ib.i32_const(0);
   } else {
     ib.local_get(ib.locals[0]);
+    translator.callReference(translator.localizeClassId.reference, ib);
     ib.emitClassIdRangeCheck(ranges);
   }
   ib.end();

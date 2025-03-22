@@ -580,6 +580,7 @@ class _RecordType extends _Type {
   _Type get _asNullable => _RecordType(names, fieldTypes, true);
 
   @override
+  @pragma('dyn-module:callable')
   bool _checkInstance(Object o) {
     if (!_isRecordClassId(ClassID.getID(o))) return false;
     return unsafeCast<Record>(o)._checkRecordType(fieldTypes, names);
@@ -1932,6 +1933,7 @@ _Type _getActualRuntimeType(Object object) {
 }
 
 @pragma("wasm:prefer-inline")
+@pragma('dyn-module:callable')
 _Type _getActualRuntimeTypeNullable(Object? object) =>
     object == null ? _literal<Null>() : _getActualRuntimeType(object);
 
