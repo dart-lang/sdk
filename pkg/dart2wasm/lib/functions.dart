@@ -32,13 +32,14 @@ class FunctionCollector {
   // if an allocation of that class is encountered
   final Map<int, List<Reference>> _pendingAllocation = {};
 
-  late final WasmFunctionImporter _importedDynamicModuleFunctions =
-      WasmFunctionImporter(translator, '#dmf');
-
   FunctionCollector(this.translator);
 
   void _collectImportsAndExports() {
+    final isDynamicModule = translator.isDynamicModule;
     for (Library library in translator.libraries) {
+      if (isDynamicModule && library.isFromMainModule(translator.coreTypes)) {
+        continue;
+      }
       library.procedures.forEach(_importOrExport);
       for (Class cls in library.classes) {
         cls.procedures.forEach(_importOrExport);
@@ -84,31 +85,8 @@ class FunctionCollector {
     return null;
   }
 
-  w.BaseFunction importFunctionToDynamicModule(w.BaseFunction fun) {
-    assert(translator.isDynamicModule);
-    assert(fun.enclosingModule == translator.mainModule);
-    if (!_importedDynamicModuleFunctions.has(fun)) {
-      throw StateError('Function not callable from dynamic module: $fun');
-    }
-    return _importedDynamicModuleFunctions.get(fun, translator.dynamicModule);
-  }
-
   void initialize() {
     _collectImportsAndExports();
-
-    if (translator.dynamicModuleSupportEnabled) {
-      // We have to mark any class which can be constructed in a dynamic
-      // module as allocated.
-      for (final library in translator.libraries) {
-        for (final cls in library.classes) {
-          if (!cls.isAbstract &&
-              cls.constructors.any(
-                  (c) => c.isDynamicModuleCallable(translator.coreTypes))) {
-            recordClassAllocation(translator.classInfo[cls]!.classId);
-          }
-        }
-      }
-    }
 
     // Value classes are always implicitly allocated.
     recordClassAllocation(
@@ -148,6 +126,11 @@ class FunctionCollector {
         }
       }
 
+      final module = translator.moduleForReference(target);
+      if (translator.isDynamicModule && module == translator.mainModule) {
+        return _importFunctionToDynamicModule(target);
+      }
+
       // If this function is exported via
       //   * `@pragma('wasm:export', '<name>')` or
       //   * `@pragma('wasm:weak-export', '<name>')`
@@ -164,23 +147,46 @@ class FunctionCollector {
           ? _makeFunctionType(translator, target, null, isImportOrExport: true)
           : translator.signatureForDirectCall(target);
 
-      final module = translator.moduleForReference(target);
       final function = module.functions.define(ftype, getFunctionName(target));
       if (exportName != null) module.exports.export(exportName, function);
-
-      translator.compilationQueue.add(AstCompilationTask(function,
-          getMemberCodeGenerator(translator, function, target), target));
 
       // Export the function from the main module if it is callable from dynamic
       // modules.
       if (translator.dynamicModuleSupportEnabled &&
-          translator.dynamicModuleInfo!.metadata.callableReferences
-              .contains(target)) {
-        _importedDynamicModuleFunctions.get(function, translator.dynamicModule,
-            exportOnly: true);
+          !translator.isDynamicModule) {
+        final callableReferenceId =
+            translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
+        if (callableReferenceId != null) {
+          translator.mainModule.exports.export(
+              _generateDynamicCallableName(callableReferenceId), function);
+        }
       }
+
+      translator.compilationQueue.add(AstCompilationTask(function,
+          getMemberCodeGenerator(translator, function, target), target));
       return function;
     });
+  }
+
+  String _generateDynamicCallableName(int key) => '#dc$key';
+
+  w.BaseFunction _importFunctionToDynamicModule(Reference target) {
+    assert(translator.isDynamicModule);
+
+    // Export the function from the main module if it is callable from dynamic
+    // modules.
+    final dynamicModuleCallableReferenceId =
+        translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
+    if (dynamicModuleCallableReferenceId == null) {
+      throw StateError(
+          'Cannot invoke ${target.asMember} since it is not labeled as '
+          'callable in the dynamic interface.');
+    }
+    return translator.dynamicModule.functions.import(
+        translator.mainModule.moduleName,
+        _generateDynamicCallableName(dynamicModuleCallableReferenceId),
+        translator.signatureForMainModule(target),
+        getFunctionName(target));
   }
 
   w.BaseFunction getLambdaFunction(
@@ -227,8 +233,9 @@ class FunctionCollector {
 
     if (target.isTearOffReference) {
       assert(!translator.dispatchTable
-          .selectorForTarget(target)
-          .containsTarget(target));
+              .selectorForTarget(target)
+              .containsTarget(target) ||
+          translator.dynamicModuleSupportEnabled);
       return translator.signatureForDirectCall(target);
     }
 
@@ -286,21 +293,10 @@ class FunctionCollector {
     final set =
         useUncheckedEntry ? _calledUncheckedSelectors : _calledSelectors;
     if (set.add(selector.id)) {
-      for (final (:range, :target) in selector
-          .targets(unchecked: useUncheckedEntry, dynamicModule: false)
-          .targetRanges) {
+      for (final (:range, :target)
+          in selector.targets(unchecked: useUncheckedEntry).targetRanges) {
         for (int classId = range.start; classId <= range.end; ++classId) {
           recordClassTargetUse(classId, target);
-        }
-      }
-
-      if (translator.isDynamicModule) {
-        for (final (:range, :target) in selector
-            .targets(unchecked: useUncheckedEntry, dynamicModule: true)
-            .targetRanges) {
-          for (int classId = range.start; classId <= range.end; ++classId) {
-            recordClassTargetUse(classId, target);
-          }
         }
       }
     }

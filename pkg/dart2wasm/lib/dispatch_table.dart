@@ -13,13 +13,8 @@ import 'class_info.dart';
 import 'dynamic_modules.dart';
 import 'param_info.dart';
 import 'reference_extensions.dart';
+import 'serialization.dart';
 import 'translator.dart';
-
-typedef ModuleSelectorTargets = ({
-  SelectorTargets? checked,
-  SelectorTargets? unchecked,
-  SelectorTargets? normal
-});
 
 /// Information for a dispatch table selector.
 ///
@@ -32,14 +27,12 @@ typedef ModuleSelectorTargets = ({
 /// generated one. For example, for torn-off methods, we generate a [Reference]
 /// for the tear-off getter a selector for it.
 class SelectorInfo {
-  final Translator translator;
+  final DispatchTable dispatchTable;
+
+  Translator get translator => dispatchTable.translator;
 
   /// Unique ID of the selector.
   final int id;
-
-  // The ID of the selector in the main module. Only populated for dynamic
-  // modules.
-  final Map<Member, int> _mainModuleIds = {};
 
   /// Number of use sites of the selector.
   final int callCount;
@@ -72,25 +65,23 @@ class SelectorInfo {
   /// `noSuchMethod` overrides to the dispatch table.
   final bool isNoSuchMethod;
 
-  late final ModuleSelectorTargets _mainModuleTargets;
-  late final ModuleSelectorTargets _dynamicModuleTargets;
+  SelectorTargets? _checked;
+  SelectorTargets? _unchecked;
+  SelectorTargets? _normal;
 
-  SelectorTargets targets(
-      {required bool unchecked, required bool dynamicModule}) {
-    final selectorTargets =
-        dynamicModule ? _dynamicModuleTargets : _mainModuleTargets;
+  final List<Reference> _references = [];
+
+  SelectorTargets targets({required bool unchecked}) {
     if (useMultipleEntryPoints) {
-      assert(selectorTargets.checked!.targetRanges.length ==
-          selectorTargets.unchecked!.targetRanges.length);
-      return (unchecked ? selectorTargets.unchecked : selectorTargets.checked)!;
+      assert(_checked!.targetRanges.length == _unchecked!.targetRanges.length);
+      return unchecked ? _unchecked! : _checked!;
     }
-    assert(
-        selectorTargets.checked == null && selectorTargets.unchecked == null);
-    return selectorTargets.normal!;
+    assert(_checked == null && _unchecked == null);
+    return _normal!;
   }
 
   SelectorInfo._(
-    this.translator,
+    this.dispatchTable,
     this.id,
     this.name,
     this.callCount,
@@ -99,7 +90,60 @@ class SelectorInfo {
     required this.isNoSuchMethod,
   });
 
-  int mainModuleIdForTarget(Member member) => _mainModuleIds[member]!;
+  void serialize(DataSerializer sink) {
+    sink.writeInt(id);
+    sink.writeString(name);
+    sink.writeInt(callCount);
+    sink.writeBoolList([
+      isSetter,
+      useMultipleEntryPoints,
+      isDynamicModuleOverrideable,
+      isDynamicModuleCallable,
+      isNoSuchMethod
+    ]);
+    sink.writeNullable(_checked, (targets) => targets.serialize(sink));
+    sink.writeNullable(_unchecked, (targets) => targets.serialize(sink));
+    sink.writeNullable(_normal, (targets) => targets.serialize(sink));
+    sink.writeList(_references, sink.writeReference);
+  }
+
+  factory SelectorInfo.deserialize(
+      DataDeserializer source, DispatchTable dispatchTable) {
+    final id = source.readInt();
+    final name = source.readString();
+    final callCount = source.readInt();
+    final [
+      isSetter,
+      useMultipleEntryPoints,
+      isDynamicModuleOverrideable,
+      isDynamicModuleCallable,
+      isNoSuchMethod
+    ] = source.readBoolList();
+    final checked =
+        source.readNullable(() => SelectorTargets.deserialize(source));
+    final unchecked =
+        source.readNullable(() => SelectorTargets.deserialize(source));
+    final normal =
+        source.readNullable(() => SelectorTargets.deserialize(source));
+    final references = source.readList(source.readReference);
+
+    final paramInfo = references.skip(1).fold(
+        ParameterInfo.fromMember(references.first),
+        (p, e) => p..merge(ParameterInfo.fromMember(e)));
+    return SelectorInfo._(dispatchTable, id, name, callCount, paramInfo,
+        isSetter: isSetter, isNoSuchMethod: isNoSuchMethod)
+      ..useMultipleEntryPoints = useMultipleEntryPoints
+      ..isDynamicModuleCallable = isDynamicModuleCallable
+      ..isDynamicModuleOverrideable = isDynamicModuleOverrideable
+      .._checked = checked
+      .._unchecked = unchecked
+      .._normal = normal;
+  }
+
+  void _addImplementationReference(Reference reference) {
+    _references.add(reference);
+    paramInfo.merge(ParameterInfo.fromMember(reference));
+  }
 
   String entryPointName(bool unchecked) {
     if (!useMultipleEntryPoints) return name;
@@ -121,11 +165,7 @@ class SelectorInfo {
     List<Set<w.ValueType>> outputSets = List.generate(returnCount, (_) => {});
     List<bool> ensureBoxed = List.filled(1 + paramInfo.paramCount, false);
     Iterable<({Reference target, Range range})> targetRanges =
-        targets(unchecked: false, dynamicModule: false).targetRanges;
-    if (translator.isDynamicModule) {
-      targetRanges = targetRanges.followedBy(
-          targets(unchecked: false, dynamicModule: true).targetRanges);
-    }
+        targets(unchecked: false).targetRanges;
     for (final (range: _, :target) in targetRanges) {
       Member member = target.asMember;
       DartType receiver =
@@ -248,18 +288,10 @@ class SelectorInfo {
 
   late final Set<Reference> _targetSet = useMultipleEntryPoints
       ? {
-          ..._mainModuleTargets.checked!._targetSet,
-          ..._mainModuleTargets.unchecked!._targetSet,
-          if (translator.isDynamicModule) ...{
-            ..._dynamicModuleTargets.checked!._targetSet,
-            ..._dynamicModuleTargets.unchecked!._targetSet,
-          }
+          ..._checked!._targetSet,
+          ..._unchecked!._targetSet,
         }
-      : {
-          ..._mainModuleTargets.normal!._targetSet,
-          if (translator.isDynamicModule)
-            ..._dynamicModuleTargets.normal!._targetSet
-        };
+      : _normal!._targetSet;
 
   bool containsTarget(Reference target) => _targetSet.contains(target);
 }
@@ -291,14 +323,66 @@ class SelectorTargets {
 
   late final Set<Reference> _targetSet =
       targetRanges.map((e) => e.target).toSet();
+
+  void serialize(DataSerializer sink) {
+    sink.writeInt(offset == null ? 0 : offset! + 1);
+    sink.writeInt(targetRanges.length);
+    for (final (:range, :target) in targetRanges) {
+      range.serialize(sink);
+      sink.writeReference(target);
+    }
+    sink.writeInt(staticDispatchRanges.length);
+    for (final (:range, :target) in staticDispatchRanges) {
+      range.serialize(sink);
+      sink.writeReference(target);
+    }
+  }
+
+  factory SelectorTargets.deserialize(DataDeserializer source) {
+    final offset = source.readInt();
+    final targetRangesLength = source.readInt();
+    final targetRanges = <({Range range, Reference target})>[];
+    for (int i = 0; i < targetRangesLength; i++) {
+      final range = Range.deserialize(source);
+      final target = source.readReference();
+      targetRanges.add((range: range, target: target));
+    }
+    final staticDispatchRangesLength = source.readInt();
+    final staticDispatchRanges = <({Range range, Reference target})>[];
+    for (int i = 0; i < staticDispatchRangesLength; i++) {
+      final range = Range.deserialize(source);
+      final target = source.readReference();
+      staticDispatchRanges.add((range: range, target: target));
+    }
+    return SelectorTargets(targetRanges, staticDispatchRanges)
+      ..offset = offset == 0 ? null : offset - 1;
+  }
 }
 
 /// Builds the dispatch table for member calls.
 class DispatchTable {
   static const _functionType = w.RefType.func(nullable: true);
+  final bool isDynamicModuleTable;
 
-  final Translator translator;
-  final List<TableSelectorInfo> _selectorMetadata;
+  late final Map<TreeNode, ProcedureAttributesMetadata>
+      procedureAttributeMetadata =
+      translator.isDynamicModule && !isDynamicModuleTable
+          ? translator.dynamicModuleInfo!.mainModuleProcedureAttributes
+          : translator.procedureAttributeMetadata;
+
+  late final Translator translator;
+
+  late final List<TableSelectorInfo> _selectorMetadata =
+      (translator.component.metadata["vm.table-selector.metadata"]
+              as TableSelectorMetadataRepository)
+          .mapping[translator.component]!
+          .selectors;
+  late final int minClassId = isDynamicModuleTable
+      ? translator.classIdNumbering.firstDynamicModuleClassId
+      : 0;
+  late final int maxClassId = isDynamicModuleTable
+      ? translator.classIdNumbering.maxDynamicModuleConcreteClassId!
+      : translator.classIdNumbering.maxConcreteClassId;
 
   /// Maps selector IDs to selectors.
   final Map<int, SelectorInfo> _selectorInfo = {};
@@ -315,32 +399,42 @@ class DispatchTable {
   /// Contents of [_definedWasmTable]. For a selector with ID S and a target
   /// class of the selector with ID C, `table[S + C]` gives the reference to the
   /// class member for the selector.
-  late final List<Reference?> table;
-  List<Reference?>? _dynamicModuleTable;
+  late final List<Reference?> _table;
 
   late final w.TableBuilder _definedWasmTable;
-  final WasmTableImporter _importedWasmTables;
-
-  w.TableBuilder? _dynamicModuleDefinedWasmTable;
-  w.Table get dynamicModuleDefinedWasmTable => _dynamicModuleDefinedWasmTable!;
+  late final WasmTableImporter _importedWasmTables =
+      WasmTableImporter(translator, 'dispatch');
 
   /// The Wasm table for the dispatch table.
   w.Table getWasmTable(w.ModuleBuilder module) =>
       _importedWasmTables.get(_definedWasmTable, module);
 
-  DispatchTable(this.translator)
-      : _selectorMetadata =
-            (translator.component.metadata["vm.table-selector.metadata"]
-                    as TableSelectorMetadataRepository)
-                .mapping[translator.component]!
-                .selectors,
-        _importedWasmTables = WasmTableImporter(translator, 'dispatch');
+  DispatchTable({this.isDynamicModuleTable = false});
+
+  void serialize(DataSerializer sink) {
+    sink.writeList(_selectorInfo.values, (s) => s.serialize(sink));
+    sink.writeList(_table, (r) => sink.writeNullable(r, sink.writeReference));
+  }
+
+  factory DispatchTable.deserialize(DataDeserializer source) {
+    final dispatchTable = DispatchTable();
+
+    final selectors =
+        source.readList(() => SelectorInfo.deserialize(source, dispatchTable));
+    final table = source
+        .readList(() => source.readNullable(() => source.readReference()));
+
+    for (final selector in selectors) {
+      dispatchTable._selectorInfo[selector.id] = selector;
+    }
+    dispatchTable._table = table;
+    return dispatchTable;
+  }
 
   SelectorInfo selectorForTarget(Reference target) {
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
-    ProcedureAttributesMetadata metadata =
-        translator.procedureAttributeMetadata[member]!;
+    ProcedureAttributesMetadata metadata = procedureAttributeMetadata[member]!;
     int selectorId = isGetter
         ? metadata.getterSelectorId
         : metadata.methodOrSetterSelectorId;
@@ -351,12 +445,10 @@ class DispatchTable {
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
     bool isSetter = target.isSetter;
-    ProcedureAttributesMetadata metadata =
-        translator.procedureAttributeMetadata[member]!;
+    ProcedureAttributesMetadata metadata = procedureAttributeMetadata[member]!;
     int selectorId = isGetter
         ? metadata.getterSelectorId
         : metadata.methodOrSetterSelectorId;
-    ParameterInfo paramInfo = ParameterInfo.fromMember(target);
 
     // _WasmBase and its subclass methods cannot be called dynamically
     final cls = member.enclosingClass;
@@ -372,8 +464,12 @@ class DispatchTable {
 
     final selector = _selectorInfo.putIfAbsent(
         selectorId,
-        () => SelectorInfo._(translator, selectorId, member.name.text,
-            _selectorMetadata[selectorId].callCount, paramInfo,
+        () => SelectorInfo._(
+            this,
+            selectorId,
+            member.name.text,
+            _selectorMetadata[selectorId].callCount,
+            ParameterInfo.fromMember(target),
             isSetter: isSetter,
             isNoSuchMethod: member == translator.objectNoSuchMethod));
     assert(selector.isSetter == isSetter);
@@ -387,7 +483,8 @@ class DispatchTable {
     selector.isDynamicModuleCallable |=
         member.isDynamicModuleCallable(translator.coreTypes);
 
-    selector.paramInfo.merge(paramInfo);
+    selector._addImplementationReference(target);
+
     if (calledDynamically) {
       if (isGetter) {
         (_dynamicGetters[member.name.text] ??= {}).add(selector);
@@ -398,13 +495,6 @@ class DispatchTable {
       }
     }
 
-    final mainModuleIds = translator.dynamicModuleInfo?.selectorIds[member];
-    if (mainModuleIds != null) {
-      selector._mainModuleIds[member] =
-          isGetter ? mainModuleIds.$1 : mainModuleIds.$2;
-    } else {
-      selector._mainModuleIds[member] = selectorId;
-    }
     return selector;
   }
 
@@ -420,7 +510,24 @@ class DispatchTable {
   Iterable<SelectorInfo> dynamicMethodSelectors(String memberName) =>
       _dynamicMethods[memberName] ?? Iterable.empty();
 
+  void _initializeWasmTable() {
+    final module =
+        isDynamicModuleTable ? translator.dynamicModule : translator.mainModule;
+    _definedWasmTable = module.tables.define(_functionType, _table.length);
+    if (!isDynamicModuleTable) {
+      for (final module in translator.modules) {
+        // Ensure the dispatch table is imported into every module as the first
+        // table.
+        getWasmTable(module);
+      }
+    }
+  }
+
   void build() {
+    if (!isDynamicModuleTable && translator.isDynamicModule) {
+      _initializeWasmTable();
+      return;
+    }
     // Collect class/selector combinations
 
     // Maps class to selector IDs of the class
@@ -443,6 +550,9 @@ class DispatchTable {
             superInfo.cls ?? translator.coreTypes.objectClass;
         selectors = Map.of(selectorsInClass[superCls]!);
       }
+
+      final classIsDynamicModuleExtendable =
+          cls.isDynamicModuleExtendable(translator.coreTypes);
 
       /// Add a method (or getter, setter) of the current class ([info]) to
       /// [reference]'s selector's targets.
@@ -485,21 +595,15 @@ class DispatchTable {
         } else if (member is Procedure) {
           final target = member.reference;
           addMember(target, staticDispatch);
-          final procedureMetadata =
-              translator.procedureAttributeMetadata[member]!;
+          final procedureMetadata = procedureAttributeMetadata[member]!;
           // `hasTearOffUses` can be true for operators as well, even though
           // it's not possible to tear-off an operator. (no syntax for it)
           if (member.kind == ProcedureKind.Method &&
               (procedureMetadata.hasTearOffUses ||
-                  // Only concrete members have 'hasTearOffUse' but for dynamic
-                  // module compilations, there may be any concrete
-                  // implementations yet. We check if the member is dynamically
-                  // overrideable at the tearoff sites as they might not be
-                  // tree-shaken. We still need a selector at the tearoff site.
-                  (translator.dynamicModuleSupportEnabled &&
-                      _selectorMetadata[
-                              procedureMetadata.methodOrSetterSelectorId]
-                          .tornOff))) {
+                  // If the member can be invoked from a dynamic module then
+                  // we need to include the tearoff too.
+                  member.isDynamicModuleCallable(translator.coreTypes) ||
+                  classIsDynamicModuleExtendable)) {
             addMember(member.tearOffReference, staticDispatch);
           }
         }
@@ -507,238 +611,152 @@ class DispatchTable {
       selectorsInClass[cls] = selectors;
     }
 
-    List<Reference?> processTargets(int start, int end, bool isDynamicModule) {
-      final selectorTargets = <SelectorInfo, Map<int, Reference>>{};
-      for (int classId = start; classId <= end; ++classId) {
-        final cls = translator.classes[classId].cls;
-        if (cls != null) {
-          selectorsInClass[cls]!.forEach((selectorInfo, target) {
-            if (!target.asMember.isAbstract) {
-              selectorTargets.putIfAbsent(selectorInfo, () => {})[classId] =
-                  target;
-            }
-          });
+    final selectorTargets = <SelectorInfo, Map<int, Reference>>{};
+    for (int classId = minClassId; classId <= maxClassId; ++classId) {
+      final cls = translator.classes[classId].cls;
+      if (cls != null) {
+        selectorsInClass[cls]!.forEach((selectorInfo, target) {
+          if (!target.asMember.isAbstract) {
+            selectorTargets.putIfAbsent(selectorInfo, () => {})[classId] =
+                target;
+          }
+        });
+      }
+    }
+
+    selectorTargets
+        .forEach((SelectorInfo selector, Map<int, Reference> targets) {
+      final List<({Range range, Reference target})> ranges = targets.entries
+          .map((entry) =>
+              (range: Range(entry.key, entry.key), target: entry.value))
+          .toList()
+        ..sort((a, b) => a.range.start.compareTo(b.range.start));
+      assert(ranges.isNotEmpty);
+      int writeIndex = 0;
+      for (int readIndex = 1; readIndex < ranges.length; ++readIndex) {
+        final current = ranges[writeIndex];
+        final next = ranges[readIndex];
+        assert(next.range.length == 1);
+        if ((current.range.end + 1) == next.range.start &&
+            identical(current.target, next.target)) {
+          ranges[writeIndex] = (
+            range: Range(current.range.start, next.range.end),
+            target: current.target
+          );
+        } else {
+          ranges[++writeIndex] = next;
         }
       }
+      ranges.length = writeIndex + 1;
 
-      selectorTargets
-          .forEach((SelectorInfo selector, Map<int, Reference> targets) {
-        final List<({Range range, Reference target})> ranges = targets.entries
-            .map((entry) =>
-                (range: Range(entry.key, entry.key), target: entry.value))
-            .toList()
-          ..sort((a, b) => a.range.start.compareTo(b.range.start));
-        assert(ranges.isNotEmpty);
-        int writeIndex = 0;
-        for (int readIndex = 1; readIndex < ranges.length; ++readIndex) {
-          final current = ranges[writeIndex];
-          final next = ranges[readIndex];
-          assert(next.range.length == 1);
-          if ((current.range.end + 1) == next.range.start &&
-              identical(current.target, next.target)) {
-            ranges[writeIndex] = (
-              range: Range(current.range.start, next.range.end),
-              target: current.target
+      final staticDispatchRanges = selector.isDynamicModuleOverrideable
+          ? const <({Range range, Reference target})>[]
+          : (translator.options.polymorphicSpecialization || ranges.length == 1)
+              ? ranges
+              : ranges
+                  .where(
+                      (range) => staticDispatchPragmas.contains(range.target))
+                  .toList();
+      if (selector.useMultipleEntryPoints) {
+        ({Range range, Reference target}) getChecked(
+          ({Range range, Reference target}) targetRange,
+          bool unchecked,
+        ) =>
+            (
+              range: targetRange.range,
+              target: translator.getFunctionEntry(targetRange.target,
+                  uncheckedEntry: unchecked)
             );
-          } else {
-            ranges[++writeIndex] = next;
+        final checkedTargets = SelectorTargets(
+          ranges.map((r) => getChecked(r, false)).toList(),
+          staticDispatchRanges.map((r) => getChecked(r, false)).toList(),
+        );
+        final uncheckedTargets = SelectorTargets(
+          ranges.map((r) => getChecked(r, true)).toList(),
+          staticDispatchRanges.map((r) => getChecked(r, true)).toList(),
+        );
+        selector._checked = checkedTargets;
+        selector._unchecked = uncheckedTargets;
+      } else {
+        final normalTargets = SelectorTargets(ranges, staticDispatchRanges);
+        selector._normal = normalTargets;
+      }
+    });
+
+    // Assign selector offsets
+
+    final List<SelectorInfo> selectors =
+        selectorTargets.keys.where(_isUsedViaDispatchTableCall).toList();
+
+    // Sort the selectors based on number of targets and number of use sites.
+    // This is a heuristic to keep the table small.
+    //
+    // Place selectors with more targets first as they are less likely to fit
+    // into the gaps left by selectors placed earlier.
+    //
+    // Among the selectors with approximately same number of targets, place
+    // more used ones first, as the smaller selector offset will have a smaller
+    // instruction encoding.
+    int selectorSortWeight(SelectorInfo selector) =>
+        selectorTargets[selector]!.length * 10 + selector.callCount;
+
+    selectors.sort((a, b) => selectorSortWeight(b) - selectorSortWeight(a));
+
+    final rows = <Row<Reference>>[];
+    for (final selector in selectors) {
+      Row<Reference> buildRow(
+          List<({Range range, Reference target})> targetRanges) {
+        final rowValues = <({int index, Reference value})>[];
+        for (final (:range, :target) in targetRanges) {
+          for (int classId = range.start; classId <= range.end; ++classId) {
+            final adjustedClassId = classId - minClassId;
+            rowValues.add((index: adjustedClassId, value: target));
           }
         }
-        ranges.length = writeIndex + 1;
-
-        final staticDispatchRanges = selector.isDynamicModuleOverrideable
-            ? const <({Range range, Reference target})>[]
-            : (translator.options.polymorphicSpecialization ||
-                    ranges.length == 1)
-                ? ranges
-                : ranges
-                    .where(
-                        (range) => staticDispatchPragmas.contains(range.target))
-                    .toList();
-        if (selector.useMultipleEntryPoints) {
-          ({Range range, Reference target}) getChecked(
-            ({Range range, Reference target}) targetRange,
-            bool unchecked,
-          ) =>
-              (
-                range: targetRange.range,
-                target: translator.getFunctionEntry(targetRange.target,
-                    uncheckedEntry: unchecked)
-              );
-          final checkedTargets = SelectorTargets(
-            ranges.map((r) => getChecked(r, false)).toList(),
-            staticDispatchRanges.map((r) => getChecked(r, false)).toList(),
-          );
-          final uncheckedTargets = SelectorTargets(
-            ranges.map((r) => getChecked(r, true)).toList(),
-            staticDispatchRanges.map((r) => getChecked(r, true)).toList(),
-          );
-          final targets = (
-            normal: null,
-            checked: checkedTargets,
-            unchecked: uncheckedTargets
-          );
-          if (isDynamicModule) {
-            selector._dynamicModuleTargets = targets;
-          } else {
-            selector._mainModuleTargets = targets;
-          }
-        } else {
-          final normalTargets = SelectorTargets(ranges, staticDispatchRanges);
-          final targets =
-              (normal: normalTargets, checked: null, unchecked: null);
-          if (isDynamicModule) {
-            selector._dynamicModuleTargets = targets;
-          } else {
-            selector._mainModuleTargets = targets;
-          }
-        }
-      });
-
-      // Assign selector offsets
-
-      bool isUsedViaDispatchTableCall(SelectorInfo selector) {
-        // Special case for `objectNoSuchMethod`: we introduce instance
-        // invocations of `objectNoSuchMethod` in dynamic calls, so keep it alive
-        // even if there was no references to it from the Dart code.
-        if (selector.isNoSuchMethod) {
-          return true;
-        }
-        if (selector.isDynamicModuleCallable) return true;
-
-        if (selector.callCount == 0) {
-          return false;
-        }
-        if (selector.isDynamicModuleOverrideable) return true;
-
-        final targets =
-            selector.targets(unchecked: false, dynamicModule: isDynamicModule);
-
-        if (targets.targetRanges.length <= 1) return false;
-        if (!isDynamicModule &&
-            targets.staticDispatchRanges.length ==
-                targets.targetRanges.length) {
-          return false;
-        }
-
-        return true;
+        rowValues.sort((a, b) => a.index.compareTo(b.index));
+        return Row(rowValues);
       }
 
-      final List<SelectorInfo> selectors =
-          selectorTargets.keys.where(isUsedViaDispatchTableCall).toList();
-
-      // Sort the selectors based on number of targets and number of use sites.
-      // This is a heuristic to keep the table small.
-      //
-      // Place selectors with more targets first as they are less likely to fit
-      // into the gaps left by selectors placed earlier.
-      //
-      // Among the selectors with approximately same number of targets, place
-      // more used ones first, as the smaller selector offset will have a smaller
-      // instruction encoding.
-      int selectorSortWeight(SelectorInfo selector) =>
-          selectorTargets[selector]!.length * 10 + selector.callCount;
-
-      selectors.sort((a, b) => selectorSortWeight(b) - selectorSortWeight(a));
-
-      final rows = <Row<Reference>>[];
-      for (final selector in selectors) {
-        Row<Reference> buildRow(
-            List<({Range range, Reference target})> targetRanges) {
-          final rowValues = <({int index, Reference value})>[];
-          for (final (:range, :target) in targetRanges) {
-            for (int classId = range.start; classId <= range.end; ++classId) {
-              final adjustedClassId = classId - start;
-              rowValues.add((index: adjustedClassId, value: target));
-            }
-          }
-          rowValues.sort((a, b) => a.index.compareTo(b.index));
-          return Row(rowValues);
-        }
-
-        final selectorTargets = isDynamicModule
-            ? selector._dynamicModuleTargets
-            : selector._mainModuleTargets;
-
-        if (selector.useMultipleEntryPoints) {
-          rows.add(buildRow((selectorTargets.checked!.targetRanges)));
-          rows.add(buildRow((selectorTargets.unchecked!.targetRanges)));
-        } else {
-          rows.add(buildRow((selectorTargets.normal!.targetRanges)));
-        }
-      }
-
-      final table = buildRowDisplacementTable<Reference>(rows);
-
-      int rowIndex = 0;
-      for (final selector in selectors) {
-        final selectorTargets = isDynamicModule
-            ? selector._dynamicModuleTargets
-            : selector._mainModuleTargets;
-        if (selector.useMultipleEntryPoints) {
-          selectorTargets.checked!.offset = rows[rowIndex++].offset;
-          selectorTargets.unchecked!.offset = rows[rowIndex++].offset;
-        } else {
-          selectorTargets.normal!.offset = rows[rowIndex++].offset;
-        }
-      }
-
-      _selectorInfo.forEach((_, selector) {
-        if (!selectorTargets.containsKey(selector)) {
-          // There are no concrete implementations for the given [selector].
-          // But there may be an abstract interface target which is targed by a
-          // call. In this case the call should be unreachable.
-          final targets = selector.useMultipleEntryPoints
-              ? (
-                  normal: null,
-                  checked: SelectorTargets(const [], const []),
-                  unchecked: SelectorTargets(const [], const [])
-                )
-              : (
-                  normal: SelectorTargets(const [], const []),
-                  checked: null,
-                  unchecked: null,
-                );
-          if (isDynamicModule) {
-            selector._dynamicModuleTargets = targets;
-          } else {
-            selector._mainModuleTargets = targets;
-          }
-        }
-      });
-
-      return table;
-    }
-
-    table = processTargets(
-        0, translator.classIdNumbering.maxConcreteClassId, false);
-
-    _definedWasmTable =
-        translator.mainModule.tables.define(_functionType, table.length);
-    if (!translator.dynamicModuleSupportEnabled) {
-      // Dynamic modules don't need direct access to the main module's table.
-      // Accesses are routed through global dispatch function refs.
-      for (final module in translator.modules) {
-        // Ensure the dispatch table is imported into every module as the first
-        // table.
-        getWasmTable(module);
+      if (selector.useMultipleEntryPoints) {
+        rows.add(buildRow((selector._checked!.targetRanges)));
+        rows.add(buildRow((selector._unchecked!.targetRanges)));
+      } else {
+        rows.add(buildRow((selector._normal!.targetRanges)));
       }
     }
 
-    if (translator.isDynamicModule) {
-      _dynamicModuleTable = processTargets(
-          translator.classIdNumbering.firstDynamicModuleClassId,
-          translator.classIdNumbering.maxDynamicModuleConcreteClassId!,
-          true);
+    _table = buildRowDisplacementTable<Reference>(rows);
 
-      _dynamicModuleDefinedWasmTable = translator.dynamicModule.tables
-          .define(_functionType, _dynamicModuleTable!.length);
+    int rowIndex = 0;
+    for (final selector in selectors) {
+      if (selector.useMultipleEntryPoints) {
+        selector._checked!.offset = rows[rowIndex++].offset;
+        selector._unchecked!.offset = rows[rowIndex++].offset;
+      } else {
+        selector._normal!.offset = rows[rowIndex++].offset;
+      }
     }
+
+    _selectorInfo.forEach((_, selector) {
+      if (!selectorTargets.containsKey(selector)) {
+        // There are no concrete implementations for the given [selector].
+        // But there may be an abstract interface target which is targed by a
+        // call. In this case the call should be unreachable.
+        if (selector.useMultipleEntryPoints) {
+          selector._checked = SelectorTargets(const [], const []);
+          selector._unchecked = SelectorTargets(const [], const []);
+        } else {
+          selector._normal = SelectorTargets(const [], const []);
+        }
+      }
+    });
+
+    _initializeWasmTable();
   }
 
   void output() {
-    for (int i = 0; i < table.length; i++) {
-      Reference? target = table[i];
+    for (int i = 0; i < _table.length; i++) {
+      Reference? target = _table[i];
       if (target != null) {
         w.BaseFunction? fun = translator.functions.getExistingFunction(target);
         // Any call to the dispatch table is guaranteed to hit a target.
@@ -750,7 +768,7 @@ class DispatchTable {
         // allocated. In order for the class to be allocated, the deferred
         // module must've been loaded to call the constructor.
         if (fun != null) {
-          final targetModule = translator.moduleForReference(target);
+          final targetModule = fun.enclosingModule;
           if (targetModule == _definedWasmTable.enclosingModule) {
             _definedWasmTable.setElement(i, fun);
           } else {
@@ -762,30 +780,31 @@ class DispatchTable {
         }
       }
     }
-    final dynamicModuleDefinedWasmTable = _dynamicModuleDefinedWasmTable;
-    if (dynamicModuleDefinedWasmTable != null) {
-      final dynamicModuleTable = _dynamicModuleTable!;
-      final targetModule = dynamicModuleDefinedWasmTable.enclosingModule;
-      for (int i = 0; i < dynamicModuleTable.length; i++) {
-        Reference? target = dynamicModuleTable[i];
-        if (target != null) {
-          w.BaseFunction? fun =
-              translator.functions.getExistingFunction(target);
-          if (fun != null) {
-            if (fun.enclosingModule != targetModule) {
-              if (target.asMember
-                  .isDynamicModuleCallable(translator.coreTypes)) {
-                fun = translator.functions.importFunctionToDynamicModule(fun);
-              } else {
-                continue;
-              }
-            }
-            dynamicModuleDefinedWasmTable.setElement(i, fun);
-          }
-        }
-      }
-    }
   }
+}
+
+bool _isUsedViaDispatchTableCall(SelectorInfo selector) {
+  // Special case for `objectNoSuchMethod`: we introduce instance
+  // invocations of `objectNoSuchMethod` in dynamic calls, so keep it alive
+  // even if there was no references to it from the Dart code.
+  if (selector.isNoSuchMethod) {
+    return true;
+  }
+  if (selector.isDynamicModuleCallable) return true;
+
+  if (selector.callCount == 0) {
+    return false;
+  }
+  if (selector.isDynamicModuleOverrideable) return true;
+
+  final targets = selector.targets(unchecked: false);
+
+  if (targets.targetRanges.length <= 1) return false;
+  if (targets.staticDispatchRanges.length == targets.targetRanges.length) {
+    return false;
+  }
+
+  return true;
 }
 
 /// Build a row-displacement table based on fitting the [rows].

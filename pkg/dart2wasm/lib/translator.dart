@@ -166,6 +166,7 @@ class Translator with KernelNodes {
   late final ClassInfoCollector classInfoCollector;
   late final StaticDispatchTables staticTablesPerType;
   late final DispatchTable dispatchTable;
+  DispatchTable? dynamicMainModuleDispatchTable;
   late final Globals globals;
   late final Constants constants;
   late final Types types;
@@ -419,19 +420,24 @@ class Translator with KernelNodes {
       : libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
+    if (enableDynamicModules) {
+      dynamicModuleInfo = DynamicModuleInfo(this, mainModuleMetadata);
+    }
     typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
     subtypes = hierarchy.computeSubtypesInformation();
     closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);
     staticTablesPerType = StaticDispatchTables(this);
-    dispatchTable = DispatchTable(this);
-    compilationQueue = CompilationQueue();
+    dispatchTable = DispatchTable(isDynamicModuleTable: isDynamicModule)
+      ..translator = this;
+    if (isDynamicModule) {
+      dynamicMainModuleDispatchTable = mainModuleMetadata.dispatchTable
+        ..translator = this;
+    }
+    compilationQueue = CompilationQueue(this);
     functions = FunctionCollector(this);
     types = Types(this);
     exceptionTag = ExceptionTag(this);
-    if (enableDynamicModules) {
-      dynamicModuleInfo = DynamicModuleInfo(this, mainModuleMetadata);
-    }
   }
 
   void _initLoadLibraryImportMap() {
@@ -493,6 +499,7 @@ class Translator with KernelNodes {
     constants = Constants(this);
 
     dispatchTable.build();
+    dynamicMainModuleDispatchTable?.build();
 
     functions.initialize();
 
@@ -564,12 +571,6 @@ class Translator with KernelNodes {
     final targetModule = function.enclosingModule;
     if (targetModule == b.module) {
       b.call(function);
-    } else if (dynamicModuleSupportEnabled) {
-      // This is a function that the dynamic interface spec has indicated is
-      // callable from the dynamic module.
-      final importedFunction =
-          functions.importFunctionToDynamicModule(function);
-      b.call(importedFunction);
     } else if (isMainModule(targetModule)) {
       final importedFunction = _importedFunctions.get(function, b.module);
       b.call(importedFunction);
@@ -584,18 +585,20 @@ class Translator with KernelNodes {
   }
 
   void callDispatchTable(w.InstructionsBuilder b, SelectorInfo selector,
-      {Member? interfaceTarget, required bool useUncheckedEntry}) {
+      {Reference? interfaceTarget,
+      required bool useUncheckedEntry,
+      DispatchTable? table}) {
+    table ??= dispatchTable;
+    functions.recordSelectorUse(selector, useUncheckedEntry);
+
     if (dynamicModuleSupportEnabled && selector.isDynamicModuleOverrideable) {
-      dynamicModuleInfo!.callUpdateableDispatch(b, selector, interfaceTarget!,
+      dynamicModuleInfo!.callOverrideableDispatch(b, selector, interfaceTarget!,
           useUncheckedEntry: useUncheckedEntry);
     } else {
       b.struct_get(topInfo.struct, FieldIndex.classId);
-      final offset = selector
-          .targets(unchecked: useUncheckedEntry, dynamicModule: false)
-          .offset;
+      final offset = selector.targets(unchecked: useUncheckedEntry).offset;
       if (offset == null) {
         b.unreachable();
-        b.end();
         return;
       }
 
@@ -603,10 +606,10 @@ class Translator with KernelNodes {
         b.i32_const(offset);
         b.i32_add();
       }
-      b.call_indirect(selector.signature, dispatchTable.getWasmTable(b.module));
-      b.emitUnreachableIfNoResult(selector.signature.outputs);
+      final signature = selector.signature;
+      b.call_indirect(signature, table.getWasmTable(b.module));
+      b.emitUnreachableIfNoResult(signature.outputs);
     }
-    functions.recordSelectorUse(selector, useUncheckedEntry);
   }
 
   Class classForType(DartType type) {
@@ -1175,16 +1178,6 @@ class Translator with KernelNodes {
     }
   }
 
-  w.FunctionType signatureForDispatchTableCall(Reference target) {
-    assert(target.asMember.isInstanceMember);
-    return dispatchTable.selectorForTarget(target).signature;
-  }
-
-  ParameterInfo paramInfoForDispatchTableCall(Reference target) {
-    assert(target.asMember.isInstanceMember);
-    return dispatchTable.selectorForTarget(target).paramInfo;
-  }
-
   Reference getFunctionEntry(Reference target, {required bool uncheckedEntry}) {
     final Member member = target.asMember;
     if (member.isAbstract || !member.isInstanceMember) return target;
@@ -1321,14 +1314,30 @@ class Translator with KernelNodes {
     );
   }
 
+  DispatchTable dispatchTableForTarget(Reference target) {
+    if (!isDynamicModule) return dispatchTable;
+    if (moduleForReference(target) == dynamicModule) return dispatchTable;
+    assert(target.asMember.isDynamicModuleCallable(coreTypes));
+    return dynamicMainModuleDispatchTable!;
+  }
+
   AstCallTarget directCallTarget(Reference target) {
     final signature = signatureForDirectCall(target);
     return AstCallTarget(signature, this, target);
   }
 
   w.FunctionType signatureForDirectCall(Reference target) {
+    return _signatureFromDispatchTable(target, dispatchTableForTarget(target));
+  }
+
+  w.FunctionType signatureForMainModule(Reference target) {
+    return _signatureFromDispatchTable(target, dynamicMainModuleDispatchTable!);
+  }
+
+  w.FunctionType _signatureFromDispatchTable(
+      Reference target, DispatchTable table) {
     if (target.asMember.isInstanceMember && !target.isBodyReference) {
-      final selector = dispatchTable.selectorForTarget(target);
+      final selector = table.selectorForTarget(target);
       if (selector.containsTarget(target)) {
         return selector.signature;
       }
@@ -1338,7 +1347,8 @@ class Translator with KernelNodes {
 
   ParameterInfo paramInfoForDirectCall(Reference target) {
     if (target.asMember.isInstanceMember) {
-      final selector = dispatchTable.selectorForTarget(target);
+      final table = dispatchTableForTarget(target);
+      final selector = table.selectorForTarget(target);
       if (selector.containsTarget(target)) {
         return selector.paramInfo;
       }
@@ -1396,7 +1406,9 @@ class Translator with KernelNodes {
   }
 
   Member? singleTarget(TreeNode node) {
-    return directCallMetadata[node]?.targetMember;
+    final member = directCallMetadata[node]?.targetMember;
+    if (!dynamicModuleSupportEnabled || member == null) return member;
+    return member.isDynamicModuleOverrideable(coreTypes) ? null : member;
   }
 
   /// Direct call information of a [FunctionInvocation] based on TFA's direct
@@ -1540,16 +1552,18 @@ class Translator with KernelNodes {
   }
 
   DartType? _inferredTypeOfParameterVariable(VariableDeclaration node) {
-    return _filterInferredType(node.type, inferredArgTypeMetadata[node]);
+    return _filterInferredType(node.type,
+        dynamicModuleSupportEnabled ? null : inferredArgTypeMetadata[node]);
   }
 
   DartType? _inferredTypeOfReturnValue(Member node) {
-    return _filterInferredType(
-        node.function!.returnType, inferredReturnTypeMetadata[node]);
+    return _filterInferredType(node.function!.returnType,
+        dynamicModuleSupportEnabled ? null : inferredReturnTypeMetadata[node]);
   }
 
   DartType? _inferredTypeOfField(Field node) {
-    return _filterInferredType(node.type, inferredTypeMetadata[node]);
+    return _filterInferredType(node.type,
+        dynamicModuleSupportEnabled ? null : inferredTypeMetadata[node]);
   }
 
   DartType? _inferredTypeOfLocalVariable(VariableDeclaration node) {
@@ -1790,10 +1804,18 @@ class Translator with KernelNodes {
 }
 
 class CompilationQueue {
+  final Translator translator;
   final List<CompilationTask> _pending = [];
 
+  CompilationQueue(this.translator);
+
   bool get isEmpty => _pending.isEmpty;
-  void add(CompilationTask entry) => _pending.add(entry);
+  void add(CompilationTask entry) {
+    assert(!translator.isDynamicModule ||
+        entry.function.enclosingModule == translator.dynamicModule);
+    _pending.add(entry);
+  }
+
   CompilationTask pop() => _pending.removeLast();
 }
 
@@ -2316,11 +2338,8 @@ class PolymorphicDispatchers {
 
   CallTarget getPolymorphicDispatcher(SelectorInfo selector,
       {required bool useUncheckedEntry}) {
-    assert(selector
-            .targets(unchecked: useUncheckedEntry, dynamicModule: false)
-            .targetRanges
-            .length >
-        1);
+    assert(
+        selector.targets(unchecked: useUncheckedEntry).targetRanges.length > 1);
     return (useUncheckedEntry && selector.useMultipleEntryPoints
             ? uncheckedCache
             : cache)
@@ -2351,7 +2370,7 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
   @override
   bool get shouldInline =>
       selector
-          .targets(unchecked: useUncheckedEntry, dynamicModule: false)
+          .targets(unchecked: useUncheckedEntry)
           .staticDispatchRanges
           .length <=
       2;
@@ -2385,10 +2404,7 @@ class PolymorphicDispatcherCodeGenerator implements CodeGenerator {
       w.Label? returnLabel) {
     final signature = selector.signature;
 
-    final targets = selector.targets(
-        unchecked: useUncheckedEntry,
-        dynamicModule:
-            translator.isDynamicModule && b.module == translator.dynamicModule);
+    final targets = selector.targets(unchecked: useUncheckedEntry);
 
     final targetRanges = targets.staticDispatchRanges
         .map((entry) => (range: entry.range, value: entry.target))
@@ -2557,14 +2573,13 @@ abstract class _WasmImporter<T extends w.Exportable> {
 
   Iterable<T> get imports => _map.values.expand((v) => v.values);
 
-  T get(T key, w.ModuleBuilder module, {bool exportOnly = false}) {
+  T get(T key, w.ModuleBuilder module) {
     if (key.enclosingModule == module) return key;
 
     final innerMap = _map.putIfAbsent(key, () {
       key.enclosingModule.exports.export('$_exportPrefix${_map.length}', key);
       return {};
     });
-    if (exportOnly) return key;
     return innerMap.putIfAbsent(module, () {
       return _import(module, key,
           _translator.nameForModule(key.enclosingModule), key.exportedName);
@@ -2583,7 +2598,7 @@ class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {
   w.BaseFunction _import(w.ModuleBuilder importingModule,
       w.BaseFunction definition, String moduleName, String importName) {
     return importingModule.functions
-        .import(moduleName, importName, definition.type);
+        .import(moduleName, importName, definition.type, definition.name);
   }
 }
 

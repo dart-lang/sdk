@@ -595,6 +595,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     if (cls == Constants._relativeInterfaceTypeIndicator) {
       cls = translator.interfaceTypeClass;
+      constant = InstanceConstant(
+          cls.reference, constant.typeArguments, constant.fieldValues);
       isRelativeInterfaceType = true;
     }
 

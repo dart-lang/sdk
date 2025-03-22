@@ -270,6 +270,7 @@ class _FutureOrType extends _Type {
 
 @pragma("wasm:entry-point")
 class _InterfaceType extends _Type {
+  @pragma("wasm:entry-point")
   final WasmI32 classId;
   final WasmArray<_Type> typeArguments;
 

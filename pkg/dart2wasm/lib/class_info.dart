@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'dynamic_modules.dart';
+import 'serialization.dart';
 import 'translator.dart';
 
 /// Wasm struct field indices for fields that are accessed explicitly from Wasm
@@ -375,8 +376,8 @@ class ClassInfoCollector {
       }
 
       if (translator.isDynamicModule) {
-        final brandIndex =
-            translator.dynamicModuleInfo!.classMetadata[cls]?.brandIndex;
+        final brandIndex = translator
+            .dynamicModuleInfo!.metadata.classMetadata[cls]?.brandIndex;
         if (brandIndex != null) {
           translator.typesBuilder.addBrandTypeAssignment(struct, brandIndex);
         }
@@ -551,16 +552,20 @@ class ClassInfoCollector {
 
         final mainModuleConcreteRange =
             classIdNumbering.getConcreteClassIdRangeForMainModule(cls);
-        final dynamicModuleConcreteRange =
-            classIdNumbering.getConcreteClassIdRangeForDynamicModule(cls);
-
         // Only non-extendable classes can get here so they should only have
         // concrete implementations in either the main module or the dynamic
         // module, not both.
-        assert(mainModuleConcreteRange.isEmpty ||
-            dynamicModuleConcreteRange.isEmpty);
-        addRanges(mainModuleConcreteRange);
-        addRanges(dynamicModuleConcreteRange);
+        if (translator.isDynamicModule && mainModuleConcreteRange.isEmpty) {
+          final dynamicModuleConcreteRange =
+              classIdNumbering.getConcreteClassIdRangeForDynamicModule(cls);
+          assert(dynamicModuleConcreteRange.isNotEmpty);
+          addRanges(dynamicModuleConcreteRange);
+        } else {
+          assert(classIdNumbering
+              .getConcreteClassIdRangeForDynamicModule(cls)
+              .isEmpty);
+          addRanges(mainModuleConcreteRange);
+        }
       }
       final info = translator.classInfo[cls]!;
       info._repr = representation ?? info;
@@ -709,9 +714,9 @@ class ClassIdNumbering {
     final classIds = <Class, ClassId>{};
 
     if (translator.isDynamicModule) {
-      final savedMapping = translator.dynamicModuleInfo!.classMetadata;
-      savedMapping.forEach((cls, info) {
-        final classId = info.classId;
+      final savedMapping = translator.dynamicModuleInfo!.metadata.classMetadata;
+      savedMapping.forEach((cls, metadata) {
+        final classId = metadata.classId;
         classIds[cls] = AbsoluteClassId(classId);
         savedMaxClassId = max(savedMaxClassId ?? -2, classId);
         if (!cls.isAbstract && !cls.isAnonymousMixin) {
@@ -805,7 +810,9 @@ class ClassIdNumbering {
     }
 
     // Make a list of the depth-first pre-order traversal.
-    final dfsOrder = [...?translator.dynamicModuleInfo?.dfsOrderClassIds];
+    final dfsOrder = [
+      ...?translator.dynamicModuleInfo?.metadata.dfsOrderClassIds
+    ];
     final inDfsOrder = {...dfsOrder};
 
     // Maps any class to a dense range of concrete class ids that are subclasses
@@ -943,6 +950,17 @@ class Range {
   factory Range(int start, int end) {
     if (end < start) return Range.empty();
     return Range._(start, end);
+  }
+
+  void serialize(DataSerializer sink) {
+    sink.writeInt(start);
+    sink.writeInt(end);
+  }
+
+  factory Range.deserialize(DataDeserializer source) {
+    final start = source.readInt();
+    final end = source.readInt();
+    return Range(start, end);
   }
 
   int get length => 1 + (end - start);

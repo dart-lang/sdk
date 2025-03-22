@@ -1828,8 +1828,14 @@ abstract class AstCodeGenerator
     w.ValueType? intrinsicResult = intrinsifier.generateEqualsIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
+    final leftType = translator.translateType(dartTypeOf(node.left));
     Member? singleTarget = translator.singleTarget(node);
-    if (singleTarget == translator.coreTypes.objectEquals) {
+    if (singleTarget == translator.coreTypes.objectEquals ||
+        // If leftType is not a Dart type (or builtin value type) then use
+        // reference equality (e.g. the vtable type is not a subtype of
+        // topType).
+        (leftType is w.RefType &&
+            !leftType.isSubtypeOf(translator.topInfo.nullableType))) {
       // Plain reference comparison
       translateExpression(node.left, w.RefType.eq(nullable: true));
       translateExpression(node.right, w.RefType.eq(nullable: true));
@@ -1924,64 +1930,51 @@ abstract class AstCodeGenerator
       void Function(w.FunctionType signature, ParameterInfo) pushArguments,
       {required bool useUncheckedEntry}) {
     assert(kind != _VirtualCallKind.Get || !useUncheckedEntry);
-    SelectorInfo selector = translator.dispatchTable.selectorForTarget(
-        interfaceTarget.referenceAs(
-            getter: kind.isGetter, setter: kind.isSetter));
+    final reference = interfaceTarget.referenceAs(
+        getter: kind.isGetter, setter: kind.isSetter);
+    final dispatchTable = translator.dispatchTableForTarget(reference);
+    SelectorInfo selector = dispatchTable.selectorForTarget(reference);
+    final signature = selector.signature;
     final name = selector.entryPointName(useUncheckedEntry);
     assert(selector.name == interfaceTarget.name.text);
 
-    pushReceiver(selector.signature);
+    pushReceiver(signature);
 
-    SelectorTargets targets;
-
-    if (!translator.dynamicModuleSupportEnabled ||
-        b.module == translator.mainModule) {
-      targets =
-          selector.targets(unchecked: useUncheckedEntry, dynamicModule: false);
-    } else {
-      targets =
-          selector.targets(unchecked: useUncheckedEntry, dynamicModule: true);
-    }
-
-    final isDynamicModuleOverrideable = selector.isDynamicModuleOverrideable;
-    if (!isDynamicModuleOverrideable) {
-      w.ValueType? checkRanges(List<({Range range, Reference target})> ranges) {
-        if (ranges.length == 1) {
-          final target = translator.getFunctionEntry(ranges[0].target,
-              uncheckedEntry: useUncheckedEntry);
-          final signature = translator.signatureForDirectCall(target);
-          final paramInfo = translator.paramInfoForDirectCall(target);
-          pushArguments(signature, paramInfo);
-          return translator.outputOrVoid(call(target));
-        }
-        if (ranges.isEmpty) {
-          // Unreachable call
-          b.comment("Virtual call of $name with no targets"
-              " at ${node.location}");
-          pushArguments(selector.signature, selector.paramInfo);
-          for (int i = 0; i < selector.signature.inputs.length; ++i) {
-            b.drop();
-          }
-          b.block(const [], selector.signature.outputs);
-          b.unreachable();
-          b.end();
-          return translator.outputOrVoid(selector.signature.outputs);
-        }
-        return null;
+    final targets = selector.targets(unchecked: useUncheckedEntry);
+    List<({Range range, Reference target})> targetRanges = targets.targetRanges;
+    List<({Range range, Reference target})> staticDispatchRanges =
+        targets.staticDispatchRanges;
+    if (!selector.isDynamicModuleOverrideable) {
+      if (targetRanges.length == 1) {
+        final target = translator.getFunctionEntry(targetRanges[0].target,
+            uncheckedEntry: useUncheckedEntry);
+        final directCallSignature = translator.signatureForDirectCall(target);
+        final paramInfo = translator.paramInfoForDirectCall(target);
+        pushArguments(directCallSignature, paramInfo);
+        return translator.outputOrVoid(call(target));
       }
-
-      final result = checkRanges(targets.targetRanges);
-      if (result != null) return result;
+      if (targetRanges.isEmpty) {
+        // Unreachable call
+        b.comment("Virtual call of $name with no targets"
+            " at ${node.location}");
+        pushArguments(signature, selector.paramInfo);
+        for (int i = 0; i < signature.inputs.length; ++i) {
+          b.drop();
+        }
+        b.block(const [], signature.outputs);
+        b.unreachable();
+        b.end();
+        return translator.outputOrVoid(signature.outputs);
+      }
     }
 
     // Receiver is already on stack.
-    w.Local receiverVar = addLocal(selector.signature.inputs.first);
+    w.Local receiverVar = addLocal(signature.inputs.first);
     assert(!receiverVar.type.nullable);
     b.local_tee(receiverVar);
-    pushArguments(selector.signature, selector.paramInfo);
+    pushArguments(signature, selector.paramInfo);
 
-    if (targets.staticDispatchRanges.isNotEmpty) {
-      assert(!translator.dynamicModuleSupportEnabled);
+    if (staticDispatchRanges.isNotEmpty) {
       b.invoke(translator
           .getPolymorphicDispatchersForModule(b.module)
           .getPolymorphicDispatcher(selector,
@@ -1990,11 +1983,12 @@ abstract class AstCodeGenerator
       b.comment("Instance $kind of '$name'");
       b.local_get(receiverVar);
       translator.callDispatchTable(b, selector,
-          interfaceTarget: interfaceTarget,
-          useUncheckedEntry: useUncheckedEntry);
+          interfaceTarget: reference,
+          useUncheckedEntry: useUncheckedEntry,
+          table: dispatchTable);
     }
 
-    return translator.outputOrVoid(selector.signature.outputs);
+    return translator.outputOrVoid(signature.outputs);
   }
 
   @override
@@ -2102,7 +2096,7 @@ abstract class AstCodeGenerator
           () => visitThis(w.RefType.struct(nullable: false)));
       return w.RefType.def(closureStruct, nullable: false);
     }
-    return _directGet(target, ThisExpression(), () => null);
+    return _directGet(target, ThisExpression());
   }
 
   @override
@@ -2143,10 +2137,13 @@ abstract class AstCodeGenerator
       b.end(); // doneLabel
       return resultType;
     }
+
     Member? singleTarget = translator.singleTarget(node);
     if (singleTarget != null) {
-      return _directGet(singleTarget, node.receiver,
-          () => intrinsifier.generateInstanceGetterIntrinsic(node));
+      final intrinsic = intrinsifier.generateInstanceGetterIntrinsic(node);
+      if (intrinsic != null) return intrinsic;
+
+      return _directGet(singleTarget, node.receiver);
     } else {
       return _virtualCall(
           node,
@@ -2229,11 +2226,7 @@ abstract class AstCodeGenerator
     return translator.topInfo.nullableType;
   }
 
-  w.ValueType _directGet(
-      Member target, Expression receiver, w.ValueType? Function() intrinsify) {
-    w.ValueType? intrinsicResult = intrinsify();
-    if (intrinsicResult != null) return intrinsicResult;
-
+  w.ValueType _directGet(Member target, Expression receiver) {
     if (target is Field) {
       ClassInfo info = translator.classInfo[target.enclosingClass]!;
       int fieldIndex = translator.fieldIndex[target]!;

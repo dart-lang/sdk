@@ -1115,26 +1115,8 @@ class Intrinsifier {
           b.local_tee(classIdLocal);
           b.local_get(classIdLocal);
           translator.dynamicModuleInfo!.callClassIdBranchBuiltIn(
-              BuiltinUpdatableFunctions.recordId,
-              b,
-              translator.typesBuilder
-                  .defineFunction(const [w.NumType.i32], const [w.NumType.i32]),
-              skipDynamic: dynamicModuleRanges.isEmpty,
-              buildMainMatch: (w.FunctionBuilder f) {
-            final ib = f.body;
-            ib.local_get(ib.locals[0]);
-            ib.emitClassIdRangeCheck(ranges);
-            ib.end();
-          }, buildDynamicMatch: (w.FunctionBuilder f) {
-            final ib = f.body;
-            if (dynamicModuleRanges.isEmpty) {
-              ib.i32_const(0);
-            } else {
-              ib.local_get(ib.locals[0]);
-              ib.emitClassIdRangeCheck(dynamicModuleRanges);
-            }
-            ib.end();
-          });
+              BuiltinUpdatableFunctions.recordId, b,
+              skipDynamic: dynamicModuleRanges.isEmpty);
         } else {
           codeGen.translateExpression(classId, w.NumType.i32);
           b.emitClassIdRangeCheck(ranges);
