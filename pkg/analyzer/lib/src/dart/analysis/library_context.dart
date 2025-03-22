@@ -224,8 +224,7 @@ class LibraryContext {
               newLibraryManifests = LibraryManifestBuilder(
                 elementFactory: elementFactory,
                 inputLibraries: cycle.libraries,
-                inputLibraryManifests: inputLibraryManifests,
-                requirementsManifest: requirementsManifest,
+                inputManifests: inputLibraryManifests,
               ).computeManifests(
                 performance: performance,
               );

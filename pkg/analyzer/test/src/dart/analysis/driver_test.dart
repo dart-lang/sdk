@@ -7650,6 +7650,88 @@ class C {}
     );
   }
 
+  test_manifest_class_getter_add_extended() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+      B: #M2
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  int get foo => 0;
+  int get bar => 0;
+}
+
+class B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M3
+        foo: #M1
+      B: #M2
+        bar: #M3
+        foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_getter_add_extended_generic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  T get foo => 0;
+}
+
+class B extends A<int> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+      B: #M2
+        foo: #M3
+''',
+      updatedCode: r'''
+class A<T> {
+  T get foo => 0;
+  T get bar => 0;
+}
+
+class B extends A<int> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M4
+        foo: #M1
+      B: #M2
+        bar: #M5
+        foo: #M3
+''',
+    );
+  }
+
   test_manifest_class_getter_returnType() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
