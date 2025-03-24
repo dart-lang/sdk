@@ -3990,7 +3990,10 @@ package:analyzer/dart/element/element2.dart:
     fragments (getter: List<LocalFunctionFragment>)
   LocalFunctionFragment (class extends Object implements ExecutableFragment, LocalFragment):
     new (constructor: LocalFunctionFragment Function())
+    element (getter: LocalFunctionElement)
+    nextFragment (getter: LocalFunctionFragment?)
     offset (getter: int)
+    previousFragment (getter: LocalFunctionFragment?)
   LocalVariableElement2 (class extends Object implements PromotableElement2, LocalElement2, Annotatable):
     new (constructor: LocalVariableElement2 Function())
     baseElement (getter: LocalVariableElement2)
@@ -4191,6 +4194,9 @@ package:analyzer/dart/element/element2.dart:
     isEntryPoint (getter: bool)
   TopLevelFunctionFragment (class extends Object implements ExecutableFragment):
     new (constructor: TopLevelFunctionFragment Function())
+    element (getter: TopLevelFunctionElement)
+    nextFragment (getter: TopLevelFunctionFragment?)
+    previousFragment (getter: TopLevelFunctionFragment?)
   TopLevelVariableElement2 (class extends Object implements PropertyInducingElement2):
     new (constructor: TopLevelVariableElement2 Function())
     baseElement (getter: TopLevelVariableElement2)
