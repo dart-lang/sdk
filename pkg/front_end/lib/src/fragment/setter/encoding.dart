@@ -23,6 +23,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/source_type_parameter_builder.dart';
 import '../fragment.dart';
 
 class ExtensionInstanceSetterEncoding extends SetterEncoding
@@ -31,7 +32,7 @@ class ExtensionInstanceSetterEncoding extends SetterEncoding
   final SetterFragment _fragment;
 
   @override
-  final List<NominalParameterBuilder>? _clonedDeclarationTypeParameters;
+  final List<SourceNominalParameterBuilder>? _clonedDeclarationTypeParameters;
 
   @override
   final FormalParameterBuilder _thisFormal;
@@ -72,7 +73,7 @@ class ExtensionTypeInstanceSetterEncoding extends SetterEncoding
   final SetterFragment _fragment;
 
   @override
-  final List<NominalParameterBuilder>? _clonedDeclarationTypeParameters;
+  final List<SourceNominalParameterBuilder>? _clonedDeclarationTypeParameters;
 
   @override
   final FormalParameterBuilder _thisFormal;
@@ -125,7 +126,7 @@ class RegularSetterEncoding extends SetterEncoding
 }
 
 sealed class SetterEncoding {
-  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
+  List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
   List<FormalParameterBuilder>? get formals;
   FunctionNode get function;
 
@@ -175,7 +176,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   Procedure? _procedure;
 
   @override
-  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
+  List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _fragment
           .declaredTypeParameters
           // Coverage-ignore(suite): Not run.
@@ -300,7 +301,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   void checkTypes(
       SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment,
       {required bool isAbstract, required bool isExternal}) {
-    List<TypeParameterBuilder>? typeParameters = _fragment
+    List<SourceNominalParameterBuilder>? typeParameters = _fragment
         .declaredTypeParameters
         // Coverage-ignore(suite): Not run.
         ?.builders;
@@ -388,7 +389,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   Procedure? _procedure;
 
   @override
-  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
+  List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _clonedDeclarationTypeParameters != null ||
               _fragment.declaredTypeParameters != null
           ? [
@@ -419,7 +420,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
 
   BuiltMemberKind get _builtMemberKind;
 
-  List<NominalParameterBuilder>? get _clonedDeclarationTypeParameters;
+  List<SourceNominalParameterBuilder>? get _clonedDeclarationTypeParameters;
 
   SetterFragment get _fragment;
 
@@ -555,7 +556,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   void checkTypes(
       SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment,
       {required bool isAbstract, required bool isExternal}) {
-    List<TypeParameterBuilder>? typeParameters = _fragment
+    List<SourceNominalParameterBuilder>? typeParameters = _fragment
         .declaredTypeParameters
         // Coverage-ignore(suite): Not run.
         ?.builders;

@@ -19,6 +19,7 @@ import '../kernel/type_algorithms.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
+import 'source_type_parameter_builder.dart';
 
 abstract class SourceDeclarationBuilder implements IDeclarationBuilder {
   void buildScopes(LibraryBuilder coreLibrary);
@@ -30,6 +31,9 @@ mixin SourceDeclarationBuilderMixin
     implements DeclarationBuilderMixin, SourceDeclarationBuilder {
   @override
   SourceLibraryBuilder get libraryBuilder;
+
+  @override
+  List<SourceNominalParameterBuilder>? get typeParameters;
 
   @override
   Uri get fileUri;

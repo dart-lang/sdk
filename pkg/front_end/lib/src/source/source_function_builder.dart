@@ -13,13 +13,13 @@ import '../base/messages.dart'
         noLength,
         templateRequiredNamedParameterHasDefaultValueError;
 import '../builder/builder.dart';
-import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import 'source_library_builder.dart';
+import 'source_type_parameter_builder.dart';
 
 /// Builds the [TypeParameter]s for [declaredTypeParameters] and the parameter
 /// [VariableDeclaration]s for [declaredFormals] and adds them to [function].
@@ -34,7 +34,7 @@ import 'source_library_builder.dart';
 void buildTypeParametersAndFormals(
     SourceLibraryBuilder libraryBuilder,
     FunctionNode function,
-    List<NominalParameterBuilder>? declaredTypeParameters,
+    List<SourceNominalParameterBuilder>? declaredTypeParameters,
     List<FormalParameterBuilder>? declaredFormals,
     {required List<TypeParameter>? classTypeParameters,
     required bool supportsTypeParameters}) {
@@ -47,7 +47,7 @@ void buildTypeParametersAndFormals(
             initialVariance: Variance.contravariant);
   }
   if (declaredTypeParameters != null) {
-    for (NominalParameterBuilder t in declaredTypeParameters) {
+    for (SourceNominalParameterBuilder t in declaredTypeParameters) {
       TypeParameter parameter = t.parameter;
       if (supportsTypeParameters) {
         function.typeParameters.add(parameter);

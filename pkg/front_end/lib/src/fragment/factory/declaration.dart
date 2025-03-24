@@ -9,7 +9,6 @@ import 'package:kernel/type_environment.dart';
 import '../../base/identifiers.dart';
 import '../../base/name_space.dart';
 import '../../builder/constructor_reference_builder.dart';
-import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/type_builder.dart';
@@ -23,6 +22,7 @@ import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../../source/source_loader.dart' show SourceLoader;
 import '../../source/source_member_builder.dart';
+import '../../source/source_type_parameter_builder.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
 
@@ -33,7 +33,7 @@ abstract class FactoryDeclaration {
 
   FunctionNode get function;
 
-  List<NominalParameterBuilder>? get typeParameters;
+  List<SourceNominalParameterBuilder>? get typeParameters;
 
   TypeBuilder get returnType;
 
@@ -121,7 +121,7 @@ abstract class FactoryDeclaration {
 class FactoryDeclarationImpl implements FactoryDeclaration {
   final FactoryFragment _fragment;
   @override
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? typeParameters;
   @override
   final TypeBuilder returnType;
   final FactoryEncoding _encoding;

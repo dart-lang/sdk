@@ -37,6 +37,7 @@ import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
+import 'source_type_parameter_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
@@ -68,7 +69,7 @@ class SourceExtensionTypeDeclarationBuilder
   late final DeclarationNameSpace _nameSpace;
 
   @override
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? typeParameters;
 
   @override
   List<TypeBuilder>? interfaceBuilders;
@@ -108,8 +109,9 @@ class SourceExtensionTypeDeclarationBuilder
     _extensionTypeDeclaration = new ExtensionTypeDeclaration(
         name: name,
         fileUri: fileUri,
-        typeParameters: NominalParameterBuilder.typeParametersFromBuilders(
-            fragment.typeParameters?.builders),
+        typeParameters:
+            SourceNominalParameterBuilder.typeParametersFromBuilders(
+                fragment.typeParameters?.builders),
         reference: indexedContainer?.reference)
       ..fileOffset = nameOffset;
   }

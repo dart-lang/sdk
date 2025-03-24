@@ -72,6 +72,7 @@ import 'source_loader.dart'
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
+import 'source_type_parameter_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 part 'source_compilation_unit.dart';
@@ -1572,25 +1573,29 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is SourceMemberBuilder) {
         declaration.checkTypes(this, libraryNameSpace, typeEnvironment);
       } else if (declaration is SourceClassBuilder) {
-        List<TypeParameterBuilder>? typeParameters = declaration.typeParameters;
+        List<SourceNominalParameterBuilder>? typeParameters =
+            declaration.typeParameters;
         if (typeParameters != null && typeParameters.isNotEmpty) {
           checkTypeParameterDependencies(typeParameters);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {
-        List<TypeParameterBuilder>? typeParameters = declaration.typeParameters;
+        List<SourceNominalParameterBuilder>? typeParameters =
+            declaration.typeParameters;
         if (typeParameters != null && typeParameters.isNotEmpty) {
           checkTypeParameterDependencies(typeParameters);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
-        List<TypeParameterBuilder>? typeParameters = declaration.typeParameters;
+        List<SourceNominalParameterBuilder>? typeParameters =
+            declaration.typeParameters;
         if (typeParameters != null && typeParameters.isNotEmpty) {
           checkTypeParameterDependencies(typeParameters);
         }
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceTypeAliasBuilder) {
-        List<TypeParameterBuilder>? typeParameters = declaration.typeParameters;
+        List<SourceNominalParameterBuilder>? typeParameters =
+            declaration.typeParameters;
         if (typeParameters != null && typeParameters.isNotEmpty) {
           checkTypeParameterDependencies(typeParameters);
         }

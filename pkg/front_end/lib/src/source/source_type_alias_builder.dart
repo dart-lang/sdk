@@ -25,6 +25,7 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart';
+import 'source_type_parameter_builder.dart';
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
@@ -90,7 +91,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       super.libraryBuilder as SourceLibraryBuilder;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters =>
+  List<SourceNominalParameterBuilder>? get typeParameters =>
       _introductory.typeParameters?.builders;
 
   @override
@@ -105,7 +106,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     if (_hasCheckedForCyclicDependency) return;
     _typedef = new Typedef(name, null,
         typeParameters:
-            NominalParameterBuilder.typeParametersFromBuilders(typeParameters),
+            SourceNominalParameterBuilder.typeParametersFromBuilders(
+                typeParameters),
         fileUri: fileUri,
         reference: _reference)
       ..fileOffset = fileOffset;
