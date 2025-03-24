@@ -8140,6 +8140,265 @@ class B extends A<int> {}
     );
   }
 
+  test_manifest_class_method_formalParameter_optionalNamed() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo({int a}) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo({int a}) {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M2
+        foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_optionalPositional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo([int a]) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo([int a]) {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M2
+        foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredNamed() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo({required int a}) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo({required int a}) {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M2
+        foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredNamed_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo({required int a}) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo({required int b}) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredNamed_type() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo({required int a}) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        supertype: Object @ dart:core
+        foo: #M1
+          functionType: FunctionType
+            named
+              a: required int @ dart:core
+            returnType: void
+''',
+      updatedCode: r'''
+class A {
+  void foo({required double a}) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        supertype: Object @ dart:core
+        foo: #M2
+          functionType: FunctionType
+            named
+              a: required double @ dart:core
+            returnType: void
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredPositional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo(int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo(int a) {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M2
+        foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredPositional_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo(int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo(int b) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_method_formalParameter_requiredPositional_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo(int a) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo(double a) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
+''',
+    );
+  }
+
   test_manifest_class_method_remove() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -8188,7 +8447,8 @@ class A {
       A: #M0
         supertype: Object @ dart:core
         foo: #M1
-          returnType: int @ dart:core
+          functionType: FunctionType
+            returnType: int @ dart:core
 ''',
       updatedCode: r'''
 class A {
@@ -8202,7 +8462,8 @@ class A {
       A: #M0
         supertype: Object @ dart:core
         foo: #M2
-          returnType: double @ dart:core
+          functionType: FunctionType
+            returnType: double @ dart:core
 ''',
     );
   }
@@ -8225,11 +8486,12 @@ class A<T> {
           bound: <null>
         supertype: Object @ dart:core
         foo: #M1
-          typeParameters
-            bound: <null>
-          returnType: Map @ dart:core
-            typeParameter#1
-            typeParameter#0
+          functionType: FunctionType
+            typeParameters
+              bound: <null>
+            returnType: Map @ dart:core
+              typeParameter#1
+              typeParameter#0
 ''',
       updatedCode: r'''
 class A<T> {
@@ -8246,13 +8508,15 @@ class A<T> {
           bound: <null>
         supertype: Object @ dart:core
         bar: #M2
-          returnType: void
+          functionType: FunctionType
+            returnType: void
         foo: #M1
-          typeParameters
-            bound: <null>
-          returnType: Map @ dart:core
-            typeParameter#1
-            typeParameter#0
+          functionType: FunctionType
+            typeParameters
+              bound: <null>
+            returnType: Map @ dart:core
+              typeParameter#1
+              typeParameter#0
 ''',
     );
   }
@@ -8571,6 +8835,30 @@ void bar() {}
     );
   }
 
+  test_manifest_topLevelFunction_formalParameter_requiredNamed_toRequiredPositional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({required int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo(int a) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M1
+''',
+    );
+  }
+
   test_manifest_topLevelFunction_formalParameter_requiredNamed_type() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -8645,6 +8933,30 @@ void bar() {}
     manifest
       bar: #M1
       foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_requiredPositional_toRequiredNamed() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo(int a) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({required int a}) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M1
 ''',
     );
   }
@@ -9045,6 +9357,30 @@ void Function({int p1}) a;
     );
   }
 
+  test_manifest_type_functionType_named_toPositional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void Function({int p}) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+void Function(int p) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+''',
+    );
+  }
+
   test_manifest_type_functionType_named_toRequiredFalse() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -9205,6 +9541,30 @@ void Function(int p1, double p2) a;
 ''',
       updatedCode: r'''
 void Function(int p1) a;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_type_functionType_positional_toNamed() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void Function(int p) a;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+void Function({int p}) a;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle

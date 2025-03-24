@@ -796,10 +796,7 @@ class LibraryManifestPrinter {
           case InstanceGetterItem():
             _writeNamedType('returnType', item.returnType);
           case InstanceMethodItem():
-            _writeTypeParameters(item.typeParameters);
-            _writeNamedType('returnType', item.returnType);
-            // TODO(scheglov): formal parameters.
-            expect(item.formalParameterTypes, isEmpty);
+            _writeNamedType('functionType', item.functionType);
         }
       });
     }
@@ -822,7 +819,7 @@ class LibraryManifestPrinter {
   void _writeTopLevelFunctionItem(TopLevelFunctionItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
-        _writeType(item.functionType);
+        _writeNamedType('functionType', item.functionType);
       });
     }
   }
@@ -863,10 +860,7 @@ class LibraryManifestPrinter {
             }
             _writeType(field.type);
           });
-          {
-            sink.writeWithIndent('returnType: ');
-            _writeType(type.returnType);
-          }
+          _writeNamedType('returnType', type.returnType);
         });
       case ManifestInterfaceType():
         var element = type.element;
