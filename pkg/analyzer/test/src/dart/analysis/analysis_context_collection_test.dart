@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_options.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -380,12 +378,9 @@ name: test
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    _assertWorkspaceCollectionText(workspaceRootPath, updateAnalysisOptions: (
-            {required AnalysisOptions analysisOptions,
-            required ContextRoot contextRoot,
-            required DartSdk sdk}) {
-      (analysisOptions as AnalysisOptionsImpl).contextFeatures =
-          FeatureSet.fromEnableFlags2(
+    _assertWorkspaceCollectionText(workspaceRootPath,
+        updateAnalysisOptions: ({required analysisOptions, required sdk}) {
+      analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
         sdkLanguageVersion: ExperimentStatus.currentVersion,
         flags: ['digit-separators', 'variance'],
       );
@@ -458,12 +453,9 @@ name: test
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    _assertWorkspaceCollectionText(workspaceRootPath, updateAnalysisOptions: (
-            {required AnalysisOptions analysisOptions,
-            required ContextRoot contextRoot,
-            required DartSdk sdk}) {
-      (analysisOptions as AnalysisOptionsImpl).contextFeatures =
-          FeatureSet.fromEnableFlags2(
+    _assertWorkspaceCollectionText(workspaceRootPath,
+        updateAnalysisOptions: ({required analysisOptions, required sdk}) {
+      analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
         sdkLanguageVersion: ExperimentStatus.currentVersion,
         flags: ['variance'],
       );
@@ -1093,7 +1085,6 @@ workspaces
     File? optionsFile,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
-      required ContextRoot contextRoot,
       required DartSdk sdk,
     })? updateAnalysisOptions,
   }) {
@@ -1107,7 +1098,7 @@ workspaces
         getFolder(workspaceRootPath).path,
       ],
       optionsFile: optionsFile?.path,
-      updateAnalysisOptions2: updateAnalysisOptions,
+      updateAnalysisOptions3: updateAnalysisOptions,
     );
 
     _assertCollectionText(collection, expected);
