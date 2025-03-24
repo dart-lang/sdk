@@ -356,6 +356,22 @@ abstract class AbstractScanner implements Scanner {
     appendToken(new KeywordToken(keyword, tokenStart, comments));
   }
 
+  int _getLineOf(Token token) {
+    if (lineStarts.isEmpty) return -1;
+    final int offset = token.offset;
+    int low = 0, high = lineStarts.length - 1;
+    while (low < high) {
+      int mid = high - ((high - low) >> 1); // Get middle, rounding up.
+      int pivot = lineStarts[mid];
+      if (pivot <= offset) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    return low;
+  }
+
   /// Find the indentation of the logical line of [token].
   ///
   /// By logical take this as an example:
@@ -415,18 +431,7 @@ abstract class AbstractScanner implements Scanner {
     }
 
     // Now find the line of [token].
-    final int offset = token.offset;
-    int low = 0, high = lineStarts.length - 1;
-    while (low < high) {
-      int mid = high - ((high - low) >> 1); // Get middle, rounding up.
-      int pivot = lineStarts[mid];
-      if (pivot <= offset) {
-        low = mid;
-      } else {
-        high = mid - 1;
-      }
-    }
-    final int lineIndex = low;
+    final int lineIndex = _getLineOf(token);
     if (lineIndex == 0) {
       // On first line.
       return tokens.next?.charOffset ?? -1;
@@ -463,10 +468,12 @@ abstract class AbstractScanner implements Scanner {
     Token? lastMismatch;
     while (next != null && !next.isEof) {
       if (next.isA(TokenType.OPEN_CURLY_BRACKET)) {
-        int indentOfNext = _spacesAtStartOfLogicalLineOf(next);
-        if (indentOfNext >= 0 &&
-            indentOfNext != _spacesAtStartOfLogicalLineOf(next.endGroup!)) {
-          lastMismatch = next;
+        if (_getLineOf(next) != _getLineOf(next.endGroup!)) {
+          int indentOfNext = _spacesAtStartOfLogicalLineOf(next);
+          if (indentOfNext >= 0 &&
+              indentOfNext != _spacesAtStartOfLogicalLineOf(next.endGroup!)) {
+            lastMismatch = next;
+          }
         }
       }
       next = next.next;
