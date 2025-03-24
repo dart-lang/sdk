@@ -266,7 +266,6 @@ WasmExternRef? _jsifyRawList(List<Object?> list) {
 }
 
 external JSStringImpl jsStringFromDartString(String s);
-external String jsStringToDartString(JSStringImpl s);
 
 WasmExternRef? newObjectRaw() => JS<WasmExternRef?>('() => ({})');
 

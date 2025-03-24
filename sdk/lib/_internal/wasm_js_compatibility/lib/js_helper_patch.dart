@@ -13,10 +13,6 @@ JSStringImpl jsStringFromDartString(String s) => unsafeCast<JSStringImpl>(s);
 
 @patch
 @pragma('wasm:prefer-inline')
-String jsStringToDartString(JSStringImpl s) => s;
-
-@patch
-@pragma('wasm:prefer-inline')
 WasmExternRef jsUint8ArrayFromDartUint8List(Uint8List l) =>
     throw UnsupportedError(
       'In JS compatibility mode we only support JS typed data implementations.',

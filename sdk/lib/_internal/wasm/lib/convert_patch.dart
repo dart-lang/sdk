@@ -9,7 +9,7 @@ import "dart:_internal"
     show patch, POWERS_OF_TEN, unsafeCast, pushWasmArray, popWasmArray;
 import "dart:_js_string_convert";
 import "dart:_js_types";
-import "dart:_js_helper" show JS, jsStringToDartString, jsStringFromDartString;
+import "dart:_js_helper" show JS, jsStringFromDartString;
 import "dart:_list"
     show GrowableList, WasmListBaseUnsafeExtensions, WasmListBase;
 import "dart:_string";
