@@ -243,22 +243,23 @@ class FunctionCollector {
   }
 
   String getFunctionName(Reference target) {
+    final Member member = target.asMember;
+    String memberName = member.toString();
+
     if (target.isTearOffReference) {
-      return "${target.asMember} tear-off";
+      return "$memberName tear-off";
     }
 
     if (target.isCheckedEntryReference) {
-      return "${target.asMember} (checked entry)";
+      return "$memberName (checked entry)";
     }
     if (target.isUncheckedEntryReference) {
-      return "${target.asMember} (unchecked entry)";
+      return "$memberName (unchecked entry)";
     }
     if (target.isBodyReference) {
-      return "${target.asMember} (body)";
+      return "$memberName (body)";
     }
 
-    final Member member = target.asMember;
-    String memberName = member.toString();
     if (memberName.endsWith('.')) {
       memberName = memberName.substring(0, memberName.length - 1);
     }

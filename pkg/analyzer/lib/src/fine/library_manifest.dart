@@ -250,6 +250,24 @@ class LibraryManifestBuilder {
     }
   }
 
+  void _addTopLevelFunction({
+    required EncodeContext encodingContext,
+    required Map<LookupName, TopLevelItem> newItems,
+    required TopLevelFunctionElementImpl element,
+    required LookupName lookupName,
+  }) {
+    var item = itemMap[element];
+    if (item is! TopLevelFunctionItem) {
+      item = TopLevelFunctionItem.fromElement(
+        name: lookupName,
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+    }
+    newItems[lookupName] = item;
+  }
+
   void _addTopLevelGetter({
     required EncodeContext encodingContext,
     required Map<LookupName, TopLevelItem> newItems,
@@ -295,6 +313,13 @@ class LibraryManifestBuilder {
             );
           case GetterElementImpl():
             _addTopLevelGetter(
+              encodingContext: encodingContext,
+              newItems: newItems,
+              element: element,
+              lookupName: lookupName,
+            );
+          case TopLevelFunctionElementImpl():
+            _addTopLevelFunction(
               encodingContext: encodingContext,
               newItems: newItems,
               element: element,
@@ -442,6 +467,10 @@ class _LibraryMatch {
           if (!_matchTopGetter(name: name, element: element)) {
             structureMismatched.add(element);
           }
+        case TopLevelFunctionElementImpl():
+          if (!_matchTopFunction(name: name, element: element)) {
+            structureMismatched.add(element);
+          }
       }
     }
   }
@@ -543,6 +572,27 @@ class _LibraryMatch {
         structureMismatched.add(executable);
       }
     }
+  }
+
+  bool _matchTopFunction({
+    required LookupName? name,
+    required TopLevelFunctionElementImpl element,
+  }) {
+    var item = manifest.items[name];
+    if (item is! TopLevelFunctionItem) {
+      return false;
+    }
+
+    var matchContext = item.match(element);
+    if (matchContext == null) {
+      return false;
+    }
+
+    // TODO(scheglov): it looks that this code is repeating
+    itemMap[element] = item;
+    refElementsMap[element] = matchContext.elementList;
+    refExternalIds.addAll(matchContext.externalIds);
+    return true;
   }
 
   bool _matchTopGetter({
