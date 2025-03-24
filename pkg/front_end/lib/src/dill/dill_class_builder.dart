@@ -15,6 +15,7 @@ import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
+import 'dill_type_parameter_builder.dart';
 
 mixin DillClassMemberAccessMixin implements ClassMemberAccess {
   DeclarationNameSpace get nameSpace;
@@ -240,11 +241,11 @@ TypeBuilder? computeTypeBuilder(
       : library.loader.computeTypeBuilder(supertype.asInterfaceType);
 }
 
-List<NominalParameterBuilder>? computeTypeParameterBuilders(
+List<DillNominalParameterBuilder>? computeTypeParameterBuilders(
     List<TypeParameter>? typeParameters, Loader loader) {
   if (typeParameters == null || typeParameters.length == 0) return null;
-  return <NominalParameterBuilder>[
+  return <DillNominalParameterBuilder>[
     for (TypeParameter typeParameter in typeParameters)
-      new NominalParameterBuilder.fromKernel(typeParameter, loader: loader)
+      new DillNominalParameterBuilder(typeParameter, loader: loader)
   ];
 }

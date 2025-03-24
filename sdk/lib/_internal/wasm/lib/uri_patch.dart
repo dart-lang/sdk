@@ -18,7 +18,7 @@ class Uri {
     }"""),
     );
     if (currentUri != null) {
-      return Uri.parse(jsStringToDartString(currentUri));
+      return Uri.parse(currentUri);
     }
     throw UnsupportedError("'Uri.base' is not supported");
   }

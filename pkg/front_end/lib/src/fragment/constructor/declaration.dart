@@ -34,6 +34,7 @@ import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
+import '../../source/source_type_parameter_builder.dart';
 import '../fragment.dart';
 import 'encoding.dart';
 
@@ -46,7 +47,7 @@ abstract class ConstructorDeclaration {
 
   OmittedTypeBuilder get returnType;
 
-  List<NominalParameterBuilder>? get typeParameters;
+  List<SourceNominalParameterBuilder>? get typeParameters;
 
   List<FormalParameterBuilder>? get formals;
 
@@ -786,7 +787,7 @@ class RegularConstructorDeclaration
   final RegularConstructorEncoding _encoding;
 
   @override
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? typeParameters;
 
   @override
   Token? _beginInitializers;
@@ -942,7 +943,7 @@ class PrimaryConstructorDeclaration
   List<FormalParameterBuilder>? get formals => _fragment.formals;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters => null;
+  List<SourceNominalParameterBuilder>? get typeParameters => null;
 
   @override
   bool get isConst => _fragment.modifiers.isConst;
@@ -1072,7 +1073,7 @@ class DefaultEnumConstructorDeclaration
   List<MetadataBuilder>? get metadata => null;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters => null;
+  List<SourceNominalParameterBuilder>? get typeParameters => null;
 
   @override
   bool get isConst => true;
@@ -1316,7 +1317,7 @@ class ExtensionTypeConstructorDeclaration
   final ConstructorFragment _fragment;
 
   @override
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? typeParameters;
 
   @override
   final ExtensionTypeConstructorEncoding _encoding;
@@ -1439,7 +1440,7 @@ class ExtensionTypePrimaryConstructorDeclaration
   final PrimaryConstructorFragment _fragment;
 
   @override
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? typeParameters;
 
   @override
   final ExtensionTypeConstructorEncoding _encoding;

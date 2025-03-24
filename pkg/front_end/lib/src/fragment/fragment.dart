@@ -56,6 +56,7 @@ import '../source/source_member_builder.dart';
 import '../source/source_method_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
+import '../source/source_type_parameter_builder.dart';
 import '../source/type_parameter_scope_builder.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';

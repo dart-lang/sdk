@@ -41,6 +41,7 @@ import 'offset_map.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_library_builder.dart';
 import 'source_loader.dart' show SourceLoader;
+import 'source_type_parameter_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
@@ -1116,7 +1117,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       TypeBuilder type,
       int nameOffset) {
     if (typeParameters != null) {
-      for (NominalParameterBuilder typeParameter in typeParameters.builders) {
+      for (SourceNominalParameterBuilder typeParameter
+          in typeParameters.builders) {
         typeParameter.varianceCalculationValue =
             VarianceCalculationValue.pending;
       }
@@ -2001,7 +2003,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   @override
   FunctionTypeBuilder addFunctionType(
       TypeBuilder returnType,
-      List<StructuralParameterBuilder>? structuralVariableBuilders,
+      List<SourceStructuralParameterBuilder>? structuralVariableBuilders,
       List<FormalParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri fileUri,
@@ -2017,7 +2019,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
     _checkStructuralParameters(structuralVariableBuilders);
     if (structuralVariableBuilders != null) {
-      for (StructuralParameterBuilder builder in structuralVariableBuilders) {
+      for (SourceStructuralParameterBuilder builder
+          in structuralVariableBuilders) {
         if (builder.metadata != null) {
           if (!libraryFeatures.genericMetadata.isEnabled) {
             _problemReporting.addProblem(
@@ -2085,9 +2088,10 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         isWildcard: isWildcard,
         variableName: variableName);
 
-    NominalParameterBuilder builder = new NominalParameterBuilder(
-        variableName, charOffset, fileUri,
-        bound: bound, metadata: metadata, kind: kind, isWildcard: isWildcard);
+    SourceNominalParameterBuilder builder = new SourceNominalParameterBuilder(
+        new RegularNominalParameterDeclaration(fragment),
+        bound: bound,
+        metadata: metadata);
 
     _unboundNominalParameters.add(builder);
 
@@ -2109,9 +2113,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       variableName = createWildcardTypeParameterName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    StructuralParameterBuilder builder = new StructuralParameterBuilder(
-        variableName, charOffset, fileUri,
-        bound: bound, metadata: metadata, isWildcard: isWildcard);
+    StructuralParameterBuilder builder = new SourceStructuralParameterBuilder(
+        new RegularStructuralParameterDeclaration(
+            metadata: metadata,
+            name: variableName,
+            bound: bound,
+            fileOffset: charOffset,
+            fileUri: fileUri,
+            isWildcard: isWildcard),
+        bound: bound,
+        metadata: metadata);
 
     _unboundStructuralVariables.add(builder);
     return builder;

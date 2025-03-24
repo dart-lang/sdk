@@ -30,7 +30,7 @@ class MethodFragment implements Fragment, FunctionFragment {
   final NominalParameterNameSpace typeParameterNameSpace;
 
   /// The declared type parameters on this method.
-  final List<NominalParameterBuilder>? declaredTypeParameters;
+  final List<SourceNominalParameterBuilder>? declaredTypeParameters;
 
   /// The scope in which the method is declared.
   ///
@@ -396,7 +396,7 @@ sealed class _MethodEncoding implements InferredTypeListener {
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
 
-  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
+  List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
 
   List<FormalParameterBuilder>? get formalsForTesting;
 }
@@ -562,7 +562,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
   @override
   void checkTypes(
       SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
-    List<TypeParameterBuilder>? typeParameters =
+    List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters;
     if (typeParameters != null && typeParameters.isNotEmpty) {
       libraryBuilder.checkTypeParameterDependencies(typeParameters);
@@ -586,7 +586,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
   }
 
   @override
-  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
+  List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _fragment.declaredTypeParameters;
 
   @override
@@ -695,7 +695,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
   Procedure? _procedure;
   Procedure? _extensionTearOff;
 
-  List<NominalParameterBuilder>? get _clonedDeclarationTypeParameters;
+  List<SourceNominalParameterBuilder>? get _clonedDeclarationTypeParameters;
 
   FormalParameterBuilder get _thisFormal;
 
@@ -998,7 +998,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
   @override
   void checkTypes(
       SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
-    List<TypeParameterBuilder>? typeParameters =
+    List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters;
     if (typeParameters != null && typeParameters.isNotEmpty) {
       libraryBuilder.checkTypeParameterDependencies(typeParameters);
@@ -1110,7 +1110,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
   }
 
   @override
-  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
+  List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _clonedDeclarationTypeParameters != null ||
               _fragment.declaredTypeParameters != null
           ? [
@@ -1131,7 +1131,7 @@ class _ExtensionInstanceOperatorEncoding extends _MethodEncoding
   final MethodFragment _fragment;
 
   @override
-  final List<NominalParameterBuilder>? _clonedDeclarationTypeParameters;
+  final List<SourceNominalParameterBuilder>? _clonedDeclarationTypeParameters;
 
   @override
   final FormalParameterBuilder _thisFormal;
@@ -1159,7 +1159,7 @@ class _ExtensionInstanceMethodEncoding extends _MethodEncoding
   final MethodFragment _fragment;
 
   @override
-  final List<NominalParameterBuilder>? _clonedDeclarationTypeParameters;
+  final List<SourceNominalParameterBuilder>? _clonedDeclarationTypeParameters;
 
   @override
   final FormalParameterBuilder _thisFormal;
@@ -1187,7 +1187,7 @@ class _ExtensionTypeInstanceOperatorEncoding extends _MethodEncoding
   final MethodFragment _fragment;
 
   @override
-  final List<NominalParameterBuilder>? _clonedDeclarationTypeParameters;
+  final List<SourceNominalParameterBuilder>? _clonedDeclarationTypeParameters;
 
   @override
   final FormalParameterBuilder _thisFormal;
@@ -1215,7 +1215,7 @@ class _ExtensionTypeInstanceMethodEncoding extends _MethodEncoding
   final MethodFragment _fragment;
 
   @override
-  final List<NominalParameterBuilder>? _clonedDeclarationTypeParameters;
+  final List<SourceNominalParameterBuilder>? _clonedDeclarationTypeParameters;
 
   @override
   final FormalParameterBuilder _thisFormal;

@@ -33,6 +33,7 @@ import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../../source/source_loader.dart'
     show CompilationPhaseForProblemReporting, SourceLoader;
 import '../../source/source_member_builder.dart';
+import '../../source/source_type_parameter_builder.dart';
 import '../../type_inference/inference_helper.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
@@ -45,7 +46,7 @@ class FactoryEncoding implements InferredTypeListener {
 
   AsyncMarker _asyncModifier;
 
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? typeParameters;
 
   final TypeBuilder returnType;
 

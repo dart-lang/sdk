@@ -63,7 +63,7 @@ void buildTypeParametersForOutlineExpressions(
     SourceLibraryBuilder libraryBuilder,
     BodyBuilderContext bodyBuilderContext,
     LookupScope typeParameterScope,
-    List<NominalParameterBuilder>? typeParameters) {
+    List<SourceNominalParameterBuilder>? typeParameters) {
   if (typeParameters != null) {
     for (int i = 0; i < typeParameters.length; i++) {
       typeParameters[i].buildOutlineExpressions(libraryBuilder,

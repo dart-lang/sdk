@@ -14,15 +14,7 @@ import 'dart:typed_data';
 
 @patch
 @pragma('wasm:prefer-inline')
-JSStringImpl jsStringFromDartString(String s) {
-  return unsafeCast<JSStringImpl>(s);
-}
-
-@patch
-@pragma('wasm:prefer-inline')
-String jsStringToDartString(JSStringImpl s) {
-  return s;
-}
+JSStringImpl jsStringFromDartString(String s) => unsafeCast<JSStringImpl>(s);
 
 @pragma('wasm:prefer-inline')
 void _copyFromWasmI8Array(

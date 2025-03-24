@@ -65,7 +65,7 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
     Map<TypeParameter, DartType> map = {};
     for (MapEntry<NominalParameterBuilder, TypeBuilder> entry
         in _substitutionMap.entries) {
-      map[entry.key.actualParameter] =
+      map[entry.key.parameter] =
           entry.value.build(libraryBuilder, typeUse, hierarchy: hierarchy);
     }
     return _substitution = Substitution.fromMap(map);

@@ -39,6 +39,7 @@ import 'source_member_builder.dart';
 import 'source_method_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_alias_builder.dart';
+import 'source_type_parameter_builder.dart';
 
 enum _PropertyKind {
   Getter,
@@ -1333,7 +1334,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case MixinFragment():
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
-        List<NominalParameterBuilder>? typeParameters =
+        List<SourceNominalParameterBuilder>? typeParameters =
             fragment.typeParameters?.map((p) => p.builder).toList();
         SourceClassBuilder mixinBuilder = new SourceClassBuilder(
             modifiers: fragment.modifiers,
@@ -1396,8 +1397,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case EnumFragment():
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
-        List<NominalParameterBuilder>? typeParameters =
-            fragment.typeParameters?.map((p) => p.builder).toList();
+        List<SourceNominalParameterBuilder>? typeParameters =
+            fragment.typeParameters?.builders;
         SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
             name: fragment.name,
             typeParameters: typeParameters,
@@ -1823,7 +1824,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             ConstructorFragment fragment) {
           switch (declarationBuilder!) {
             case ExtensionTypeDeclarationBuilder():
-              List<NominalParameterBuilder>? typeParameters = fragment
+              List<SourceNominalParameterBuilder>? typeParameters = fragment
                   .typeParameters
                   // Coverage-ignore(suite): Not run.
                   ?.builders;
@@ -1872,7 +1873,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                       hasImmediatelyDeclaredInitializer: false),
                 ];
               }
-              List<NominalParameterBuilder>? typeParameters =
+              List<SourceNominalParameterBuilder>? typeParameters =
                   fragment.typeParameters?.builders;
               fragment.typeParameterNameSpace.addTypeParameters(
                   problemReporting, typeParameters,
@@ -1882,7 +1883,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                   syntheticFormals: syntheticFormals,
                   isEnumConstructor: declarationBuilder.isEnum);
             case ExtensionBuilder():
-              List<NominalParameterBuilder>? typeParameters = fragment
+              List<SourceNominalParameterBuilder>? typeParameters = fragment
                   .typeParameters
                   // Coverage-ignore(suite): Not run.
                   ?.builders;
@@ -1998,7 +1999,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                     instanceTypeParameterAccess:
                         InstanceTypeParameterAccessState.Allowed);
 
-            List<NominalParameterBuilder>? typeParameters =
+            List<SourceNominalParameterBuilder>? typeParameters =
                 nominalVariableCopy?.newParameterBuilders;
             fragment.typeParameterNameSpace.addTypeParameters(
                 problemReporting, typeParameters,
@@ -2063,7 +2064,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                   kind: TypeParameterKind.function,
                   instanceTypeParameterAccess:
                       InstanceTypeParameterAccessState.Allowed);
-          List<NominalParameterBuilder>? typeParameters =
+          List<SourceNominalParameterBuilder>? typeParameters =
               nominalParameterCopy?.newParameterBuilders;
           TypeBuilder returnType;
           switch (declarationBuilder) {
@@ -2395,17 +2396,17 @@ class NominalParameterScope extends AbstractTypeParameterScope {
 }
 
 class NominalParameterNameSpace {
-  Map<String, NominalParameterBuilder> _typeParametersByName = {};
+  Map<String, SourceNominalParameterBuilder> _typeParametersByName = {};
 
-  NominalParameterBuilder? getTypeParameter(String name) =>
+  SourceNominalParameterBuilder? getTypeParameter(String name) =>
       _typeParametersByName[name];
 
   void addTypeParameters(ProblemReporting _problemReporting,
-      List<NominalParameterBuilder>? typeParameters,
+      List<SourceNominalParameterBuilder>? typeParameters,
       {required String? ownerName, required bool allowNameConflict}) {
     if (typeParameters == null || typeParameters.isEmpty) return;
-    for (NominalParameterBuilder tv in typeParameters) {
-      NominalParameterBuilder? existing = _typeParametersByName[tv.name];
+    for (SourceNominalParameterBuilder tv in typeParameters) {
+      SourceNominalParameterBuilder? existing = _typeParametersByName[tv.name];
       if (tv.isWildcard) continue;
       if (existing != null) {
         if (existing.kind == TypeParameterKind.extensionSynthesized) {

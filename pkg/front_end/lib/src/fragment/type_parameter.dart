@@ -14,7 +14,7 @@ class TypeParameterFragment {
   final bool isWildcard;
   final String variableName;
 
-  late final NominalParameterBuilder _builder;
+  late final SourceNominalParameterBuilder _builder;
 
   TypeParameterFragment(
       {required this.metadata,
@@ -26,16 +26,16 @@ class TypeParameterFragment {
       required this.isWildcard,
       required this.variableName});
 
-  NominalParameterBuilder get builder => _builder;
+  SourceNominalParameterBuilder get builder => _builder;
 
-  void set builder(NominalParameterBuilder value) {
+  void set builder(SourceNominalParameterBuilder value) {
     _builder = value;
   }
 }
 
 // TODO(johnniwinther): Avoid this.
 extension TypeParameterFragmentHelper on List<TypeParameterFragment> {
-  List<NominalParameterBuilder> get builders {
+  List<SourceNominalParameterBuilder> get builders {
     return this.map((p) => p.builder).toList();
   }
 }

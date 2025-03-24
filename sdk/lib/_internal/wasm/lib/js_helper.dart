@@ -266,7 +266,6 @@ WasmExternRef? _jsifyRawList(List<Object?> list) {
 }
 
 external JSStringImpl jsStringFromDartString(String s);
-external String jsStringToDartString(JSStringImpl s);
 
 WasmExternRef? newObjectRaw() => JS<WasmExternRef?>('() => ({})');
 
@@ -346,10 +345,7 @@ WasmExternRef? jsifyRaw(Object? o) {
   if (o is bool) return toJSBoolean(o);
   if (o is num) return toJSNumber(o.toDouble());
   if (o is JSValue) return o.toExternRef;
-  if (o is String) {
-    if (o is JSStringImpl) return o.toExternRef;
-    return jsStringFromDartString(o).toExternRef;
-  }
+  if (o is String) return jsStringFromDartString(o).toExternRef;
   if (o is js_types.JSArrayBase) {
     if (o is js_types.JSInt8ArrayImpl) return o.toJSArrayExternRef();
     if (o is js_types.JSUint8ArrayImpl) return o.toJSArrayExternRef();

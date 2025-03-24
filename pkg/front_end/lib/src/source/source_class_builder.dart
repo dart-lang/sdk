@@ -54,10 +54,11 @@ import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
+import 'source_type_parameter_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 Class initializeClass(
-    List<NominalParameterBuilder>? typeParameters,
+    List<SourceNominalParameterBuilder>? typeParameters,
     String name,
     Uri fileUri,
     int startOffset,
@@ -67,8 +68,8 @@ Class initializeClass(
     {required bool isAugmentation}) {
   Class cls = new Class(
       name: name,
-      typeParameters:
-          NominalParameterBuilder.typeParametersFromBuilders(typeParameters),
+      typeParameters: SourceNominalParameterBuilder.typeParametersFromBuilders(
+          typeParameters),
       // If the class is an augmentation class it shouldn't use the reference
       // from index even when available.
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
@@ -114,7 +115,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   late final DeclarationNameSpace _nameSpace;
 
   @override
-  List<NominalParameterBuilder>? typeParameters;
+  List<SourceNominalParameterBuilder>? typeParameters;
 
   /// The scope in which the [typeParameters] are declared.
   final LookupScope typeParameterScope;
@@ -1087,13 +1088,13 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkVarianceInTypeParameters(TypeEnvironment typeEnvironment,
-      List<NominalParameterBuilder>? typeParameters) {
+      List<SourceNominalParameterBuilder>? typeParameters) {
     List<TypeParameter> classTypeParameters = cls.typeParameters;
     if (typeParameters != null && classTypeParameters.isNotEmpty) {
       for (NominalParameterBuilder nominalParameter in typeParameters) {
         for (TypeParameter classTypeParameter in classTypeParameters) {
           Variance typeVariance = Variance.invariant.combine(computeVariance(
-              classTypeParameter, nominalParameter.actualParameter.bound));
+              classTypeParameter, nominalParameter.parameter.bound));
           reportVariancePositionIfInvalid(typeVariance, classTypeParameter,
               fileUri, nominalParameter.fileOffset);
         }
@@ -2112,7 +2113,7 @@ TypeBuilder? _applyMixins(
     required LookupScope compilationUnitScope,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
     required Uri fileUri,
-    List<NominalParameterBuilder>? typeParameters,
+    List<SourceNominalParameterBuilder>? typeParameters,
     required Modifiers modifiers,
     required TypeBuilder objectTypeBuilder,
     required void Function(SourceClassBuilder) onAnonymousMixin}) {
@@ -2199,7 +2200,7 @@ TypeBuilder? _applyMixins(
       runningName += "&${typeName.name}";
     }
     String fullname = "_$subclassName&$runningName";
-    List<NominalParameterBuilder>? applicationTypeParameters;
+    List<SourceNominalParameterBuilder>? applicationTypeParameters;
     List<TypeBuilder>? applicationTypeArguments;
     ClassDeclaration classDeclaration;
     final int computedStartOffset;

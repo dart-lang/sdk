@@ -11,7 +11,7 @@ import "dart:_internal"
         WasmStringBase;
 
 import 'dart:_error_utils';
-import 'dart:_js_helper' show JS, jsStringFromDartString, jsStringToDartString;
+import 'dart:_js_helper' show JS, jsStringFromDartString;
 import 'dart:_string';
 import 'dart:_list';
 import 'dart:_object_helper';
@@ -130,21 +130,17 @@ extension OneByteStringUnsafeExtensions on String {
 const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
 
-String _toUpperCase(String string) => jsStringToDartString(
-  JSStringImpl(
-    JS<WasmExternRef>(
-      "s => s.toUpperCase()",
-      jsStringFromDartString(string).toExternRef,
-    ),
+String _toUpperCase(String string) => JSStringImpl(
+  JS<WasmExternRef>(
+    "s => s.toUpperCase()",
+    jsStringFromDartString(string).toExternRef,
   ),
 );
 
-String _toLowerCase(String string) => jsStringToDartString(
-  JSStringImpl(
-    JS<WasmExternRef>(
-      "s => s.toLowerCase()",
-      jsStringFromDartString(string).toExternRef,
-    ),
+String _toLowerCase(String string) => JSStringImpl(
+  JS<WasmExternRef>(
+    "s => s.toLowerCase()",
+    jsStringFromDartString(string).toExternRef,
   ),
 );
 
@@ -1040,9 +1036,6 @@ abstract final class StringBase extends WasmStringBase
     for (int i = 0; i < numValues; ++i) {
       final value = values[i];
       var stringValue = value is String ? value : value.toString();
-      if (stringValue is JSStringImpl) {
-        stringValue = jsStringToDartString(stringValue);
-      }
       values[i] = stringValue;
       isOneByteString = isOneByteString && stringValue is OneByteString;
       totalLength += stringValue.length;
@@ -1218,10 +1211,6 @@ abstract final class StringBase extends WasmStringBase
     bool isOneByteString = true;
     for (int i = start; i < end; i++) {
       String stringValue = strings[i];
-      if (stringValue is JSStringImpl) {
-        stringValue = jsStringToDartString(stringValue);
-        strings[i] = stringValue;
-      }
       isOneByteString = isOneByteString && stringValue is OneByteString;
       totalLength += stringValue.length;
     }

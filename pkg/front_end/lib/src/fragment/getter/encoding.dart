@@ -22,6 +22,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/source_type_parameter_builder.dart';
 import '../fragment.dart';
 
 class ExtensionInstanceGetterEncoding extends GetterEncoding
@@ -30,7 +31,7 @@ class ExtensionInstanceGetterEncoding extends GetterEncoding
   final GetterFragment _fragment;
 
   @override
-  final List<NominalParameterBuilder>? _clonedDeclarationTypeParameters;
+  final List<SourceNominalParameterBuilder>? _clonedDeclarationTypeParameters;
 
   @override
   final FormalParameterBuilder _thisFormal;
@@ -71,7 +72,7 @@ class ExtensionTypeInstanceGetterEncoding extends GetterEncoding
   final GetterFragment _fragment;
 
   @override
-  final List<NominalParameterBuilder>? _clonedDeclarationTypeParameters;
+  final List<SourceNominalParameterBuilder>? _clonedDeclarationTypeParameters;
 
   @override
   final FormalParameterBuilder _thisFormal;
@@ -107,7 +108,7 @@ class ExtensionTypeStaticGetterEncoding extends GetterEncoding
 }
 
 sealed class GetterEncoding implements InferredTypeListener {
-  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
+  List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
   List<FormalParameterBuilder>? get formals;
   FunctionNode get function;
 
@@ -174,7 +175,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   Procedure? _procedure;
 
   @override
-  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
+  List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _fragment
           .declaredTypeParameters
           // Coverage-ignore(suite): Not run.
@@ -287,7 +288,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   void checkTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
       {required bool isAbstract, required bool isExternal}) {
-    List<TypeParameterBuilder>? typeParameters = _fragment
+    List<SourceNominalParameterBuilder>? typeParameters = _fragment
         .declaredTypeParameters
         // Coverage-ignore(suite): Not run.
         ?.builders;
@@ -379,7 +380,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   Procedure? _procedure;
 
   @override
-  List<NominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
+  List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _clonedDeclarationTypeParameters != null ||
               _fragment.declaredTypeParameters != null
           ? [
@@ -411,7 +412,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
 
   BuiltMemberKind get _builtMemberKind;
 
-  List<NominalParameterBuilder>? get _clonedDeclarationTypeParameters;
+  List<SourceNominalParameterBuilder>? get _clonedDeclarationTypeParameters;
 
   GetterFragment get _fragment;
 
@@ -530,7 +531,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   void checkTypes(SourceLibraryBuilder libraryBuilder,
       TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder,
       {required bool isAbstract, required bool isExternal}) {
-    List<TypeParameterBuilder>? typeParameters = _fragment
+    List<SourceNominalParameterBuilder>? typeParameters = _fragment
         .declaredTypeParameters
         // Coverage-ignore(suite): Not run.
         ?.builders;

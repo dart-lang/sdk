@@ -13,15 +13,13 @@ String quoteStringForRegExp(String string) =>
 // This method is optimized to test before replacement, which should be
 // much faster. This might be worth measuring in real world use cases
 // though.
-jsStringToDartString(
-  JSStringImpl(
-    JS<WasmExternRef>(r"""s => {
+JSStringImpl(
+  JS<WasmExternRef>(r"""s => {
       if (/[[\]{}()*+?.\\^$|]/.test(s)) {
           s = s.replace(/[[\]{}()*+?.\\^$|]/g, '\\$&');
       }
       return s;
     }""", jsStringFromDartString(string).toExternRef),
-  ),
 );
 
 // TODO(srujzs): Add this to `JSObject`.
@@ -134,8 +132,8 @@ class JSSyntaxRegExp implements RegExp {
     if (isJSRegExp(result)) return JSValue(result!) as JSNativeRegExp;
     // The returned value is the stringified JavaScript exception. Turn it into
     // a Dart exception.
-    String errorMessage = jsStringToDartString(JSStringImpl(result!));
-    throw new FormatException('Illegal RegExp pattern ($errorMessage)', source);
+    String errorMessage = JSStringImpl(result!);
+    throw FormatException('Illegal RegExp pattern ($errorMessage)', source);
   }
 
   RegExpMatch? firstMatch(String string) {

@@ -21,6 +21,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_builder.dart';
+import '../dill/dill_type_parameter_builder.dart';
 import '../kernel/utils.dart';
 
 class TypeBuilderComputer {
@@ -35,7 +36,7 @@ class TypeBuilderComputer {
 class _TypeBuilderComputerHelper
     implements
         DartTypeVisitor1<TypeBuilder,
-            Map<TypeParameter, NominalParameterBuilder>> {
+            Map<TypeParameter, DillNominalParameterBuilder>> {
   final Loader loader;
 
   late final DynamicTypeDeclarationBuilder dynamicDeclaration =
@@ -61,13 +62,13 @@ class _TypeBuilderComputerHelper
       structuralTypeParameters =
       <StructuralParameter, StructuralParameterBuilder>{};
 
-  final Map<TypeParameter, NominalParameterBuilder>
+  final Map<TypeParameter, DillNominalParameterBuilder>
       computedNominalTypeParameters =
-      <TypeParameter, NominalParameterBuilder>{};
+      <TypeParameter, DillNominalParameterBuilder>{};
 
   TypeBuilder visit(DartType type) {
     TypeBuilder typeBuilder =
-        type.accept1(this, <TypeParameter, NominalParameterBuilder>{});
+        type.accept1(this, <TypeParameter, DillNominalParameterBuilder>{});
     structuralTypeParameters.clear();
     computedNominalTypeParameters.clear();
     return typeBuilder;
@@ -75,14 +76,14 @@ class _TypeBuilderComputerHelper
 
   @override
   TypeBuilder visitInvalidType(InvalidType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     return new FixedTypeBuilderImpl(
         node, /* fileUri = */ null, /* charOffset = */ null);
   }
 
   @override
   TypeBuilder visitDynamicType(DynamicType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     // 'dynamic' is always nullable.
     return new NamedTypeBuilderImpl.forDartType(
         node, dynamicDeclaration, const NullabilityBuilder.inherent());
@@ -90,28 +91,28 @@ class _TypeBuilderComputerHelper
 
   @override
   TypeBuilder visitVoidType(VoidType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     return new VoidTypeBuilder(/* fileUri = */ null, /* charOffset = */ null);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   TypeBuilder visitNeverType(NeverType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     return new NamedTypeBuilderImpl.forDartType(node, neverDeclaration,
         new NullabilityBuilder.fromNullability(node.nullability));
   }
 
   @override
   TypeBuilder visitNullType(NullType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     return new NamedTypeBuilderImpl.forDartType(
         node, nullDeclaration, const NullabilityBuilder.inherent());
   }
 
   @override
   TypeBuilder visitInterfaceType(InterfaceType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     ClassBuilder cls =
         loader.computeClassBuilderFromTargetClass(node.classNode);
     List<TypeBuilder>? arguments;
@@ -128,7 +129,7 @@ class _TypeBuilderComputerHelper
 
   @override
   TypeBuilder visitExtensionType(ExtensionType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     ExtensionTypeDeclarationBuilder extensionTypeDeclaration =
         loader.computeExtensionTypeBuilderFromTargetExtensionType(
             node.extensionTypeDeclaration);
@@ -147,7 +148,7 @@ class _TypeBuilderComputerHelper
   @override
   // Coverage-ignore(suite): Not run.
   TypeBuilder visitFutureOrType(FutureOrType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     TypeBuilder argument =
         node.typeArgument.accept1(this, pendingNominalVariables);
     return new NamedTypeBuilderImpl.forDartType(node, futureOrDeclaration,
@@ -157,13 +158,13 @@ class _TypeBuilderComputerHelper
 
   @override
   TypeBuilder visitFunctionType(FunctionType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     List<StructuralParameterBuilder>? typeParameters = null;
     if (node.typeParameters.isNotEmpty) {
       typeParameters = <StructuralParameterBuilder>[
         for (StructuralParameter structuralParameter in node.typeParameters)
           structuralTypeParameters[structuralParameter] =
-              new StructuralParameterBuilder.fromKernel(structuralParameter)
+              new DillStructuralParameterBuilder(structuralParameter)
       ];
     }
 
@@ -205,15 +206,16 @@ class _TypeBuilderComputerHelper
 
   @override
   TypeBuilder visitTypeParameterType(TypeParameterType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
-    NominalParameterBuilder nominalVariableBuilder;
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+    DillNominalParameterBuilder nominalVariableBuilder;
     if (pendingNominalVariables.containsKey(node.parameter)) {
       nominalVariableBuilder = pendingNominalVariables[node.parameter]!;
     } else if (computedNominalTypeParameters.containsKey(node.parameter)) {
       nominalVariableBuilder = computedNominalTypeParameters[node.parameter]!;
     } else {
-      nominalVariableBuilder =
-          new NominalParameterBuilder.fromKernel(node.parameter, loader: null);
+      nominalVariableBuilder = new DillNominalParameterBuilder(
+          node.parameter,
+          loader: null);
       nominalVariableBuilder.bound = node.parameter.bound.accept1(this,
           {...pendingNominalVariables, node.parameter: nominalVariableBuilder});
       nominalVariableBuilder.defaultType = node.parameter.defaultType.accept1(
@@ -230,7 +232,7 @@ class _TypeBuilderComputerHelper
 
   @override
   TypeBuilder visitStructuralParameterType(StructuralParameterType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     assert(structuralTypeParameters.containsKey(node.parameter));
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
         structuralTypeParameters[node.parameter]!,
@@ -242,20 +244,20 @@ class _TypeBuilderComputerHelper
   @override
   // Coverage-ignore(suite): Not run.
   TypeBuilder visitIntersectionType(IntersectionType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     throw "Not implemented";
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   TypeBuilder visitTypedefType(TypedefType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     throw "Not implemented";
   }
 
   @override
   TypeBuilder visitRecordType(RecordType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     List<RecordTypeFieldBuilder>? positionalBuilders;
     List<DartType> positional = node.positional;
     if (positional.isNotEmpty) {
@@ -292,7 +294,7 @@ class _TypeBuilderComputerHelper
 
   @override
   TypeBuilder visitAuxiliaryType(AuxiliaryType node,
-      Map<TypeParameter, NominalParameterBuilder> pendingNominalVariables) {
+      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
     throw new UnsupportedError(
         "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }

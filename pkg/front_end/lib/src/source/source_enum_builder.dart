@@ -47,6 +47,7 @@ import 'source_constructor_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
+import 'source_type_parameter_builder.dart';
 import 'synthetic_method_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
@@ -72,7 +73,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   SourceEnumBuilder.internal(
       {required String name,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<SourceNominalParameterBuilder>? typeParameters,
       required TypeBuilder underscoreEnumTypeBuilder,
       required LookupScope typeParameterScope,
       required DeclarationNameSpaceBuilder nameSpaceBuilder,
@@ -101,7 +102,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   factory SourceEnumBuilder(
       {required String name,
-      required List<NominalParameterBuilder>? typeParameters,
+      required List<SourceNominalParameterBuilder>? typeParameters,
       required TypeBuilder underscoreEnumTypeBuilder,
       required List<TypeBuilder>? interfaceBuilders,
       required List<EnumElementFragment> enumElements,

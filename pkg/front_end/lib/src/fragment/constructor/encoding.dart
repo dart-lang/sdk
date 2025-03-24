@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
-import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
@@ -20,6 +19,7 @@ import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_member_builder.dart';
+import '../../source/source_type_parameter_builder.dart';
 import '../../type_inference/type_schema.dart';
 import 'body_builder_context.dart';
 import 'declaration.dart';
@@ -115,7 +115,7 @@ class RegularConstructorEncoding {
     required int formalsOffset,
     required bool isConst,
     required TypeBuilder returnType,
-    required List<NominalParameterBuilder>? typeParameters,
+    required List<SourceNominalParameterBuilder>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
@@ -146,7 +146,7 @@ class RegularConstructorEncoding {
     required int formalsOffset,
     required bool isConst,
     required TypeBuilder returnType,
-    required List<NominalParameterBuilder>? typeParameters,
+    required List<SourceNominalParameterBuilder>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
@@ -391,7 +391,7 @@ class ExtensionTypeConstructorEncoding {
     required int formalsOffset,
     required bool isConst,
     required TypeBuilder returnType,
-    required List<NominalParameterBuilder>? typeParameters,
+    required List<SourceNominalParameterBuilder>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
@@ -424,7 +424,7 @@ class ExtensionTypeConstructorEncoding {
     required int formalsOffset,
     required bool isConst,
     required TypeBuilder returnType,
-    required List<NominalParameterBuilder>? typeParameters,
+    required List<SourceNominalParameterBuilder>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {

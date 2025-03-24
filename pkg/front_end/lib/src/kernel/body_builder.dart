@@ -91,11 +91,13 @@ import '../codes/cfe_codes.dart'
         templateLocalVariableUsedBeforeDeclaredContext;
 import '../codes/cfe_codes.dart' as cfe;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
+import '../dill/dill_type_parameter_builder.dart';
 import '../fragment/fragment.dart';
 import '../source/diet_parser.dart';
 import '../source/offset_map.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
+import '../source/source_type_parameter_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
@@ -1615,7 +1617,7 @@ class BodyBuilder extends StackListenerImpl
     List<NominalParameterBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
       typeParameterBuilders ??= <NominalParameterBuilder>[];
-      typeParameterBuilders.add(new NominalParameterBuilder.fromKernel(
+      typeParameterBuilders.add(new DillNominalParameterBuilder(
           typeParameter,
           loader: libraryBuilder.loader));
     }
@@ -8866,12 +8868,21 @@ class BodyBuilder extends StackListenerImpl
       wildcardVariableIndex++;
     }
     TypeParameterBuilder variable = inFunctionType
-        ? new StructuralParameterBuilder(
-            typeParameterName, typeParameterNameOffset, uri,
-            isWildcard: isWildcard)
-        : new NominalParameterBuilder(
-            typeParameterName, typeParameterNameOffset, uri,
-            kind: TypeParameterKind.function, isWildcard: isWildcard);
+        ? new SourceStructuralParameterBuilder(
+            new RegularStructuralParameterDeclaration(
+                metadata: null,
+                name: typeParameterName,
+                bound: null,
+                fileOffset: typeParameterNameOffset,
+                fileUri: uri,
+                isWildcard: isWildcard))
+        : new SourceNominalParameterBuilder(
+            new DirectNominalParameterDeclaration(
+                name: typeParameterName,
+                kind: TypeParameterKind.function,
+                isWildcard: isWildcard,
+                fileOffset: typeParameterNameOffset,
+                fileUri: uri));
     if (annotations != null) {
       switch (variable) {
         case StructuralParameterBuilder():

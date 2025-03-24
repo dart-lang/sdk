@@ -13,7 +13,7 @@ abstract class ClassDeclaration {
   int get nameOffset;
   int get startOffset;
   int get endOffset;
-  List<NominalParameterBuilder>? get typeParameters;
+  List<SourceNominalParameterBuilder>? get typeParameters;
   bool get isMixinDeclaration;
 
   TypeBuilder? get supertype;
@@ -61,7 +61,7 @@ class RegularClassDeclaration implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters =>
+  List<SourceNominalParameterBuilder>? get typeParameters =>
       _fragment.typeParameters?.builders;
 
   @override
@@ -143,7 +143,7 @@ class EnumDeclaration implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters =>
+  List<SourceNominalParameterBuilder>? get typeParameters =>
       _fragment.typeParameters?.builders;
 
   @override
@@ -223,7 +223,7 @@ class NamedMixinApplication implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters =>
+  List<SourceNominalParameterBuilder>? get typeParameters =>
       _fragment.typeParameters?.builders;
 
   @override
@@ -285,7 +285,7 @@ class AnonymousMixinApplication implements ClassDeclaration {
   final Uri fileUri;
 
   @override
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? typeParameters;
 
   @override
   final TypeBuilder? supertype;
@@ -364,7 +364,7 @@ class MixinDeclaration implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<NominalParameterBuilder>? get typeParameters =>
+  List<SourceNominalParameterBuilder>? get typeParameters =>
       _fragment.typeParameters?.builders;
 
   @override

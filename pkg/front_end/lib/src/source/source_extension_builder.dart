@@ -19,6 +19,7 @@ import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'source_type_parameter_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
@@ -40,7 +41,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   late final DeclarationNameSpace _nameSpace;
 
   @override
-  final List<NominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? typeParameters;
 
   @override
   final TypeBuilder onType;
@@ -88,7 +89,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         name: extensionName.name,
         fileUri: fileUri,
         typeParameters:
-            NominalParameterBuilder.typeParametersFromBuilders(typeParameters),
+            SourceNominalParameterBuilder.typeParametersFromBuilders(
+                typeParameters),
         reference: _reference)
       ..isUnnamedExtension = extensionName.isUnnamedExtension
       ..fileOffset = _nameOffset;
