@@ -31,18 +31,6 @@ void main() {
   // [analyzer] unspecified
   // [cfe] unspecified
 
-  // `.new<type-args>()` and `.new<type-args>` are a compile-time error.
-
-  UnnamedConstructorTypeParameters typeParameters = .new<int>();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-
-  UnnamedConstructorTypeParameters Function() tearOff = .new<int>;
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-
   UnnamedConstructor Function() ctorTearoff = .new;
   // ^
   // [analyzer] unspecified

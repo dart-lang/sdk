@@ -41,6 +41,8 @@ void main() {
   const FutureOr<ConstructorClass?> constNullableCtor = .constRegular(1);
   const FutureOr<ConstructorClass?> constNullableCtorNamed = .constNamed(x: 1);
   const FutureOr<ConstructorClass?> constNullableCtorOptional = .constOptional(1);
+  FutureOr<FutureOr<ConstructorClass>> ctorNested = .new(1);
+  const FutureOr<FutureOr<ConstructorClass>> constCtorNested = .constRegular(1);
 
   var ctorList = <FutureOr<ConstructorClass>>[.new(1), .regular(1), .optional(1), .named(x: 1)];
   var nullableCtorList = <FutureOr<ConstructorClass?>>[.new(1), .regular(1), .optional(1), .named(x: 1)];
@@ -65,6 +67,8 @@ void main() {
   const FutureOr<ConstructorExt?> constNullableCtorExt = .constRegular(1);
   const FutureOr<ConstructorExt?> constNullableCtorExtNamed = .constNamed(x: 1);
   const FutureOr<ConstructorExt?> constNullableCtorExtOptional = .constOptional(1);
+  FutureOr<FutureOr<ConstructorExt>> ctorExtNested = .new(1);
+  const FutureOr<FutureOr<ConstructorExt>> constCtorExtNested = .constRegular(1);
 
   var ctorExtList = <FutureOr<ConstructorExt>>[.new(1), .regular(1), .optional(1), .named(x: 1)];
   var nullableIntegerExtList = <FutureOr<ConstructorExt?>>[.new(1), .regular(1), .optional(1), .named(x: 1)];

@@ -45,6 +45,7 @@ class IntegerMixinFutureOrContext {
 void main() {
   // Enum
   FutureOr<Color> color = .blue;
+  FutureOr<FutureOr<Color>> colorNested = .blue;
   FutureOr<Color?> nullableColor = .blue;
   const FutureOr<Color> constColor = .blue;
   const FutureOr<Color?> constNullableColor = .blue;
@@ -68,6 +69,7 @@ void main() {
 
   // Class
   FutureOr<Integer> integer = .one;
+  FutureOr<FutureOr<Integer>> integerNested = .one;
   FutureOr<Integer?> nullableInteger = .one;
   const FutureOr<Integer> constInteger = .constOne;
   const FutureOr<Integer?> constNullableInteger = .constOne;
@@ -81,6 +83,7 @@ void main() {
 
   // Extension type
   FutureOr<IntegerExt> integerExt = .one;
+  FutureOr<FutureOr<IntegerExt>> integerExtNested = .one;
   FutureOr<IntegerExt?> nullableIntegerExt = .one;
   const FutureOr<IntegerExt> constIntegerExt = .constOne;
   const FutureOr<IntegerExt?> constNullableIntegerExt = .constOne;
@@ -94,6 +97,7 @@ void main() {
 
   // Mixin
   FutureOr<IntegerMixin> integerMixin = .mixinOne;
+  FutureOr<FutureOr<IntegerMixin>> integerMixinNested = .mixinOne;
   FutureOr<IntegerMixin?> nullableIntegerMixin = .mixinOne;
   const FutureOr<IntegerMixin> constIntegerMixin = .mixinConstOne;
   const FutureOr<IntegerMixin?> constNullableIntegerMixin = .mixinConstOne;
