@@ -30,6 +30,7 @@ abstract class DartLanguageServerBenchmark {
 
   bool _addedInitialAnalysisDuration = false;
   List<DurationInfo> durationInfo = [];
+  List<MemoryInfo> memoryInfo = [];
 
   final bool _lsp;
 
@@ -48,6 +49,36 @@ abstract class DartLanguageServerBenchmark {
 
   void exit() {
     longRunningRequestsTimer.cancel();
+    if (Platform.isLinux) {
+      try {
+        File f = File('/proc/${p.pid}/status');
+        for (var line in f.readAsLinesSync()) {
+          if (line.startsWith('VmPeak:')) {
+            memoryInfo.addInfoMaybe(
+              'peak virtual memory size',
+              _extractSizeFromProcStatusMemoryLine(line),
+            );
+          } else if (line.startsWith('VmSize:')) {
+            memoryInfo.addInfoMaybe(
+              'total program size (virtual)',
+              _extractSizeFromProcStatusMemoryLine(line),
+            );
+          } else if (line.startsWith('VmHWM:')) {
+            memoryInfo.addInfoMaybe(
+              'peak resident set size ("high water mark")',
+              _extractSizeFromProcStatusMemoryLine(line),
+            );
+          } else if (line.startsWith('VmRSS:')) {
+            memoryInfo.addInfoMaybe(
+              'size of memory portions (rss)',
+              _extractSizeFromProcStatusMemoryLine(line),
+            );
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
     p.kill();
   }
 
@@ -169,6 +200,15 @@ abstract class DartLanguageServerBenchmark {
   bool _endsWithLf() {
     var l = _buffer.length;
     return l > 1 && _buffer[l - 1] == 10;
+  }
+
+  int? _extractSizeFromProcStatusMemoryLine(String line) {
+    int colon = line.indexOf(':');
+    if (colon < 0) return null;
+    int kb = line.indexOf('kB', colon);
+    if (kb < 0) return null;
+    String substring = line.substring(colon + 1, kb).trim();
+    return int.tryParse(substring);
   }
 
   Future<void> _initializeLegacy() async {
@@ -418,10 +458,24 @@ class DurationInfo {
 
 enum LaunchFrom { Source, Dart, Aot }
 
+class MemoryInfo {
+  final String name;
+  final int kb;
+
+  MemoryInfo(this.name, this.kb);
+}
+
 class OutstandingRequest {
   final Stopwatch stopwatch = Stopwatch();
   final Completer<Map<String, dynamic>> completer = Completer();
   OutstandingRequest() {
     stopwatch.start();
+  }
+}
+
+extension on List<MemoryInfo> {
+  void addInfoMaybe(String description, int? value) {
+    if (value == null) return;
+    add(MemoryInfo(description, value));
   }
 }

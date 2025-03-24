@@ -114,6 +114,14 @@ String formatDuration(Duration duration) {
   return '$seconds.${ms.toString().padLeft(6, '0')}';
 }
 
+String formatKb(int kb) {
+  if (kb > 1024) {
+    return '${kb ~/ 1024} MB';
+  } else {
+    return '$kb KB';
+  }
+}
+
 String getFilenameFor(int i) {
   return "file${i.toString().padLeft(5, '0')}.dart";
 }
@@ -158,13 +166,29 @@ Future<void> runHelper(
             '${formatDuration(durationInfo.duration)}',
           );
         }
+        for (var memoryInfo in benchmark.memoryInfo) {
+          print(
+            '${memoryInfo.name}: '
+            '${formatKb(memoryInfo.kb)}',
+          );
+          sb.writeln(
+            '${memoryInfo.name}: '
+            '${formatKb(memoryInfo.kb)}',
+          );
+        }
         print('====================');
         sb.writeln();
       } finally {
         try {
           tmpDir.deleteSync(recursive: true);
         } catch (e) {
-          print('Warning: $e');
+          // Wait a little and retry.
+          sleep(const Duration(milliseconds: 42));
+          try {
+            tmpDir.deleteSync(recursive: true);
+          } catch (e) {
+            print('Warning: $e');
+          }
         }
       }
     }
