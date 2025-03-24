@@ -751,6 +751,8 @@ class LibraryManifestPrinter {
           _writeClassItem(topLevelItem);
         case ExportItem():
           _writeExportItem(topLevelItem);
+        case TopLevelFunctionItem():
+          _writeTopLevelFunctionItem(topLevelItem);
         case TopLevelGetterItem():
           _writeTopLevelGetterItem(topLevelItem);
       }
@@ -814,6 +816,14 @@ class LibraryManifestPrinter {
       _writeType(type);
     } else {
       sink.writeln('<null>');
+    }
+  }
+
+  void _writeTopLevelFunctionItem(TopLevelFunctionItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeType(item.functionType);
+      });
     }
   }
 

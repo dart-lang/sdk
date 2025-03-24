@@ -5370,6 +5370,8 @@ void f(A a) {
         int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      f: #M3
   requirements
     topLevels
       dart:core
@@ -5410,11 +5412,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        foo: #M3
+        foo: #M4
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -5428,7 +5430,7 @@ class A {
     interfaceName: A
     memberName: foo
     expectedId: #M1
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -5448,7 +5450,7 @@ class A {
     interfaceMembers
       package:test/a.dart
         A
-          foo: #M3
+          foo: #M4
           foo=: <null>
 [status] idle
 ''',
@@ -5490,6 +5492,8 @@ void f(A a) {
         int: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      f: #M4
   requirements
     topLevels
       dart:core
@@ -5573,6 +5577,8 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      foo: #M0
   requirements
     topLevels
       dart:core
@@ -5607,7 +5613,7 @@ class A {}
 [operation] linkLibraryCycle
   package:test/a.dart
     manifest
-      A: #M0
+      A: #M1
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -5622,12 +5628,14 @@ class A {}
     name: A
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      foo: #M2
   requirements
     topLevels
       dart:core
         A: <null>
       package:test/a.dart
-        A: #M0
+        A: #M1
 [operation] getErrorsCannotReuse
   topLevelPresent
     libraryUri: package:test/a.dart
@@ -5649,7 +5657,7 @@ class A {}
       dart:core
         A: <null>
       package:test/a.dart
-        A: #M0
+        A: #M1
 [status] idle
 ''',
     );
@@ -5682,6 +5690,8 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      foo: #M1
   requirements
     topLevels
       dart:core
@@ -5718,7 +5728,7 @@ class B {}
   package:test/a.dart
     manifest
       A: #M0
-      B: #M1
+      B: #M2
   requirements
 [future] getErrors T2
   ErrorsResult #2
@@ -5766,6 +5776,8 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      foo: #M2
   requirements
     topLevels
       dart:core
@@ -5801,7 +5813,7 @@ class B {}
 [operation] linkLibraryCycle
   package:test/a.dart
     manifest
-      A: #M2
+      A: #M3
       B: #M1
   requirements
 [future] getErrors T2
@@ -5816,21 +5828,23 @@ class B {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M2
+    actualId: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      foo: #M4
   requirements
     topLevels
       dart:core
         A: <null>
       package:test/a.dart
-        A: #M2
+        A: #M3
 [operation] getErrorsCannotReuse
   topLevelIdMismatch
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M2
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -5848,7 +5862,7 @@ class B {}
       dart:core
         A: <null>
       package:test/a.dart
-        A: #M2
+        A: #M3
 [status] idle
 ''',
     );
@@ -5885,6 +5899,8 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      foo: #M3
   requirements
     topLevels
       dart:core
@@ -5922,7 +5938,7 @@ class C {}
   package:test/a.dart
     manifest
       A: #M0
-      B: #M3
+      B: #M4
       C: #M2
   requirements
 [future] getErrors T2
@@ -5967,6 +5983,8 @@ A foo() => throw 0;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      foo: #M1
   requirements
     topLevels
       dart:core
@@ -6010,6 +6028,8 @@ A foo() => throw 0;
     name: A
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      foo: #M2
   requirements
     topLevels
       dart:core
@@ -6070,6 +6090,8 @@ A foo() => throw 0;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      foo: #M2
   requirements
     topLevels
       dart:core
@@ -6152,6 +6174,8 @@ void f(A a) {
         int: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      f: #M3
   requirements
     topLevels
       dart:core
@@ -6192,11 +6216,11 @@ class A {
   package:test/a.dart
     manifest
       A: #M0
-        foo: #M3
+        foo: #M4
   requirements
     topLevels
       dart:core
-        double: #M4
+        double: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -6210,7 +6234,7 @@ class A {
     interfaceName: A
     memberName: foo
     expectedId: #M1
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6230,7 +6254,7 @@ class A {
     interfaceMembers
       package:test/a.dart
         A
-          foo: #M3
+          foo: #M4
           foo=: <null>
 [status] idle
 ''',
@@ -6269,6 +6293,8 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    manifest
+      f: #M3
   requirements
     topLevels
       dart:core
@@ -7203,6 +7229,151 @@ final a = 1.2;
         a: <null>
       package:test/b.dart
         a: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_topLevelFunction() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+int foo() {}
+''',
+      testCode: r'''
+import 'a.dart';
+final x = foo();
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      foo: #M0
+  requirements
+    topLevels
+      dart:core
+        int: #M1
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M2
+  requirements
+    topLevels
+      dart:core
+        foo: <null>
+      package:test/a.dart
+        foo: #M0
+[status] idle
+''',
+      updatedA: r'''
+double foo() {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      foo: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M4
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: double
+[operation] cannotReuseLinkedBundle
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: foo
+    expectedId: #M0
+    actualId: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M5
+  requirements
+    topLevels
+      dart:core
+        foo: <null>
+      package:test/a.dart
+        foo: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_topLevelFunction_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+int foo() {}
+int bar() {}
+''',
+      testCode: r'''
+import 'a.dart';
+final x = foo();
+''',
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      bar: #M0
+      foo: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      x: #M3
+  requirements
+    topLevels
+      dart:core
+        foo: <null>
+      package:test/a.dart
+        foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+int foo() {}
+double bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    manifest
+      bar: #M4
+      foo: #M1
+  requirements
+    topLevels
+      dart:core
+        double: #M5
+        int: #M2
+[future] getLibraryByUri T2
+  library
+    topLevelVariables
+      final hasInitializer x
+        type: int
+[operation] readLibraryCycleBundle
+  package:test/test.dart
 [status] idle
 ''',
     );
@@ -8162,6 +8333,466 @@ class A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo() {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_optionalNamed() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({int a}) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_optionalNamed_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({int b}) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M2
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_optionalNamed_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({double a}) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M2
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_optionalPositional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo([int a]) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo([int a]) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_optionalPositional_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo([int a]) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo([int b]) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_optionalPositional_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo([int a]) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo([double a]) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M2
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_requiredNamed() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({required int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({required int a}) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_requiredNamed_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({required int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({required int b}) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M2
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_requiredNamed_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({required int a}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({required double a}) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M2
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_requiredPositional() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo(int a) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo(int a) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_requiredPositional_name() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo(int a) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo(int b) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_requiredPositional_type() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo(int a) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo(double a) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M2
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_returnType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int foo() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+double foo() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M1
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_typeParameter() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+Map<T, U> foo<T extends num, U>() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+Map<T, U> foo<T, U>() {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      bar: #M1
+      foo: #M2
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_typeParameter_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo<T>() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo<T, U>() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M1
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_typeParameter_bound() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo<T extends num>() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo<T extends int>() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M1
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_typeParameter_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo<T, U>() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo<T>() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      foo: #M1
 ''',
     );
   }

@@ -281,6 +281,60 @@ sealed class ManifestItem {
   void write(BufferedSink sink);
 }
 
+class TopLevelFunctionItem extends TopLevelItem {
+  final ManifestFunctionType functionType;
+
+  TopLevelFunctionItem({
+    required super.libraryUri,
+    required super.name,
+    required super.id,
+    required this.functionType,
+  });
+
+  factory TopLevelFunctionItem.fromElement({
+    required LookupName name,
+    required ManifestItemId id,
+    required EncodeContext context,
+    required TopLevelFunctionElementImpl element,
+  }) {
+    return TopLevelFunctionItem(
+      libraryUri: element.library2.uri,
+      name: name,
+      id: id,
+      functionType: ManifestFunctionType.encode(context, element.type),
+    );
+  }
+
+  factory TopLevelFunctionItem.read(SummaryDataReader reader) {
+    return TopLevelFunctionItem(
+      libraryUri: reader.readUri(),
+      name: LookupName.read(reader),
+      id: ManifestItemId.read(reader),
+      functionType: ManifestFunctionType.read(reader),
+    );
+  }
+
+  MatchContext? match(
+    TopLevelFunctionElementImpl element,
+  ) {
+    var context = MatchContext(parent: null);
+    if (!functionType.match(context, element.type)) {
+      return null;
+    }
+
+    return context;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ManifestItemKind.topLevelFunction);
+    sink.writeUri(libraryUri);
+    name.write(sink);
+    id.write(sink);
+    functionType.write(sink);
+  }
+}
+
 class TopLevelGetterItem extends TopLevelItem {
   final ManifestType returnType;
 
@@ -355,6 +409,8 @@ sealed class TopLevelItem extends ManifestItem {
         return ClassItem.read(reader);
       case _ManifestItemKind.export_:
         return ExportItem.read(reader);
+      case _ManifestItemKind.topLevelFunction:
+        return TopLevelFunctionItem.read(reader);
       case _ManifestItemKind.topLevelGetter:
         return TopLevelGetterItem.read(reader);
     }
@@ -364,6 +420,7 @@ sealed class TopLevelItem extends ManifestItem {
 enum _ManifestItemKind {
   class_,
   export_,
+  topLevelFunction,
   topLevelGetter,
 }
 
