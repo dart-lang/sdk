@@ -1373,6 +1373,10 @@ void Thread::UnwindScopes(uword stack_marker) {
 }
 
 void Thread::HandleStolen() {
+  {
+    // To make sure we're sequenced after MarkWorkerAsBlocked.
+    MonitorLocker ml(isolate_group()->thread_registry()->threads_lock());
+  }
   isolate_group()->IncreaseMutatorCount(this, /*is_nested_reenter=*/false,
                                         /*was_stolen=*/true);
 }
