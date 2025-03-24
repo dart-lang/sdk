@@ -60,7 +60,7 @@ class ClassItem extends TopLevelItem {
       typeParameters: reader.readTypedList(
         () => ManifestTypeParameter.read(reader),
       ),
-      supertype: reader.readOptionalObject((_) => ManifestType.read(reader)),
+      supertype: reader.readOptionalObject(() => ManifestType.read(reader)),
       interfaces: reader.readTypedList(() => ManifestType.read(reader)),
       mixins: reader.readTypedList(() => ManifestType.read(reader)),
       members: reader.readMap(

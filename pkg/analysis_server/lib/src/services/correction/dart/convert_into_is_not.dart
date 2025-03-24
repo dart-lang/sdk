@@ -32,37 +32,19 @@ class ConvertIntoIsNot extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    // Find the is expression
-    var isExpression = node.thisOrAncestorOfType<IsExpression>();
-    if (isExpression == null) {
-      var node = this.node;
-      if (node is PrefixExpression) {
-        var operand = node.operand;
-        if (operand is ParenthesizedExpression) {
-          var expression = operand.expression;
-          if (expression is IsExpression) {
-            isExpression = expression;
-          }
-        }
-      } else if (node is ParenthesizedExpression) {
-        var expression = node.expression;
-        if (expression is IsExpression) {
-          isExpression = expression;
-        }
-      }
-    }
+    var isExpression = _computeTarget();
     if (isExpression == null) {
       return;
     }
     if (isExpression.notOperator != null) {
       return;
     }
-    // prepare enclosing ()
+    // Prepare enclosing `()`.
     var parExpression = isExpression.parent;
     if (parExpression is! ParenthesizedExpression) {
       return;
     }
-    // prepare enclosing !()
+    // Prepare enclosing `!()`.
     var prefExpression = parExpression.parent;
     if (prefExpression is! PrefixExpression) {
       return;
@@ -71,7 +53,6 @@ class ConvertIntoIsNot extends ResolvedCorrectionProducer {
       return;
     }
 
-    var isExpression_final = isExpression;
     await builder.addDartFileEdit(file, (builder) {
       if (getExpressionParentPrecedence(prefExpression) >=
           Precedence.relational) {
@@ -84,7 +65,28 @@ class ConvertIntoIsNot extends ResolvedCorrectionProducer {
           range.startEnd(parExpression.rightParenthesis, prefExpression),
         );
       }
-      builder.addSimpleInsertion(isExpression_final.isOperator.end, '!');
+      builder.addSimpleInsertion(isExpression.isOperator.end, '!');
     });
+  }
+
+  IsExpression? _computeTarget() {
+    // Find the is-expression.
+    var isExpression = node.thisOrAncestorOfType<IsExpression>();
+    if (isExpression != null) {
+      return isExpression;
+    }
+    if (node case PrefixExpression(:var operand)) {
+      if (operand is ParenthesizedExpression) {
+        var expression = operand.expression;
+        if (expression is IsExpression) {
+          return expression;
+        }
+      }
+    } else if (node case ParenthesizedExpression(:var expression)) {
+      if (expression is IsExpression) {
+        return expression;
+      }
+    }
+    return null;
   }
 }

@@ -75,9 +75,9 @@ class SummaryDataReader {
     };
   }
 
-  T? readOptionalObject<T>(T Function(SummaryDataReader reader) read) {
+  T? readOptionalObject<T>(T Function() read) {
     if (readBool()) {
-      return read(this);
+      return read();
     } else {
       return null;
     }

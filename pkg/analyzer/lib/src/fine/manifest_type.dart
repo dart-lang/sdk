@@ -604,7 +604,7 @@ sealed class ManifestType {
   }
 
   static ManifestType? readOptional(SummaryDataReader reader) {
-    return reader.readOptionalObject(ManifestType.read);
+    return reader.readOptionalObject(() => ManifestType.read(reader));
   }
 }
 

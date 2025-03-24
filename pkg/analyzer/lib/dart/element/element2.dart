@@ -2064,23 +2064,11 @@ abstract class LocalFunctionElement
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalFunctionFragment
     implements ExecutableFragment, LocalFragment {
-  // TODO(brianwilkerson): This should override `element` to be more specific,
-  //  but can't because the Impl class supports both local and top-level
-  //  functions.
-  // @override
-  // LocalFunctionElement get element;
+  @override
+  LocalFunctionElement get element;
 
-  // TODO(brianwilkerson): This should override `nextFragment` to be more
-  //  specific, but can't because the Impl class supports both local and
-  //  top-level functions.
-  // @override
-  // LocalFunctionFragment? get nextFragment;
-
-  // TODO(brianwilkerson): This should override `previousFragment` to be more
-  //  specific, but can't because the Impl class supports both local and
-  //  top-level functions.
-  // @override
-  // LocalFunctionFragment? get previousFragment;
+  @override
+  LocalFunctionFragment? get nextFragment;
 
   /// The offset of the local function name.
   ///
@@ -2088,6 +2076,9 @@ abstract class LocalFunctionFragment
   /// this is the offset of the `(` that begins the function expression.
   @override
   int get offset;
+
+  @override
+  LocalFunctionFragment? get previousFragment;
 }
 
 /// A local variable.
@@ -2758,23 +2749,14 @@ abstract class TopLevelFunctionElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelFunctionFragment implements ExecutableFragment {
-  // TODO(brianwilkerson): This should override `element` to be more specific,
-  //  but can't because the Impl class supports both local and top-level
-  //  functions.
-  // @override
-  // TopLevelFunctionElement get element;
+  @override
+  TopLevelFunctionElement get element;
 
-  // TODO(brianwilkerson): This should override `nextFragment` to be more
-  //  specific, but can't because the Impl class supports both local and
-  //  top-level functions.
-  // @override
-  // TopLevelFunctionFragment? get nextFragment;
+  @override
+  TopLevelFunctionFragment? get nextFragment;
 
-  // TODO(brianwilkerson): This should override `previousFragment` to be more
-  //  specific, but can't because the Impl class supports both local and
-  //  top-level functions.
-  // @override
-  // TopLevelFunctionFragment? get previousFragment;
+  @override
+  TopLevelFunctionFragment? get previousFragment;
 }
 
 /// A top-level variable.

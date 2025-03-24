@@ -40,17 +40,19 @@ class BundleRequirementsManifest {
   factory BundleRequirementsManifest.read(SummaryDataReader reader) {
     var result = BundleRequirementsManifest();
 
+    Map<LookupName, ManifestItemId?> readNameToIdMap() {
+      return reader.readMap(
+        readKey: () => LookupName.read(reader),
+        readValue: () => reader.readOptionalObject(
+          () => ManifestItemId.read(reader),
+        ),
+      );
+    }
+
     result.topLevels.addAll(
       reader.readMap(
         readKey: () => reader.readUri(),
-        readValue: () {
-          return reader.readMap(
-            readKey: () => LookupName.read(reader),
-            readValue: () => reader.readOptionalObject(
-              (reader) => ManifestItemId.read(reader),
-            ),
-          );
-        },
+        readValue: readNameToIdMap,
       ),
     );
 
@@ -60,14 +62,7 @@ class BundleRequirementsManifest {
         readValue: () {
           return reader.readMap(
             readKey: () => LookupName.read(reader),
-            readValue: () {
-              return reader.readMap(
-                readKey: () => LookupName.read(reader),
-                readValue: () => reader.readOptionalObject(
-                  (reader) => ManifestItemId.read(reader),
-                ),
-              );
-            },
+            readValue: readNameToIdMap,
           );
         },
       ),
@@ -268,40 +263,32 @@ class BundleRequirementsManifest {
   }
 
   void write(BufferedSink sink) {
+    void writeNameToIdMap(Map<LookupName, ManifestItemId?> map) {
+      sink.writeMap(
+        map,
+        writeKey: (name) => name.write(sink),
+        writeValue: (id) {
+          sink.writeOptionalObject(id, (id) {
+            id.write(sink);
+          });
+        },
+      );
+    }
+
     sink.writeMap(
       topLevels,
       writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (nameToIdMap) {
-        sink.writeMap(
-          nameToIdMap,
-          writeKey: (name) => name.write(sink),
-          writeValue: (id) {
-            sink.writeOptionalObject(id, (id) {
-              id.write(sink);
-            });
-          },
-        );
-      },
+      writeValue: writeNameToIdMap,
     );
 
     sink.writeMap(
       interfaceMembers,
       writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (nameToIdMap) {
+      writeValue: (nameToInterfaceMap) {
         sink.writeMap(
-          nameToIdMap,
+          nameToInterfaceMap,
           writeKey: (name) => name.write(sink),
-          writeValue: (interface) {
-            sink.writeMap(
-              interface,
-              writeKey: (name) => name.write(sink),
-              writeValue: (id) {
-                sink.writeOptionalObject(id, (id) {
-                  id.write(sink);
-                });
-              },
-            );
-          },
+          writeValue: writeNameToIdMap,
         );
       },
     );
