@@ -47,7 +47,7 @@ class BundleRequirementsManifest {
           return reader.readMap(
             readKey: () => LookupName.read(reader),
             readValue: () => reader.readOptionalObject(
-              (reader) => ManifestItemId.read(reader),
+              () => ManifestItemId.read(reader),
             ),
           );
         },
@@ -64,7 +64,7 @@ class BundleRequirementsManifest {
               return reader.readMap(
                 readKey: () => LookupName.read(reader),
                 readValue: () => reader.readOptionalObject(
-                  (reader) => ManifestItemId.read(reader),
+                  () => ManifestItemId.read(reader),
                 ),
               );
             },

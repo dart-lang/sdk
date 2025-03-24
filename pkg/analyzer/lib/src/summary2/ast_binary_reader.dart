@@ -1137,8 +1137,8 @@ class AstBinaryReader {
     var metadata = _readNodeList<AnnotationImpl>();
     var type = readNode() as TypeAnnotationImpl;
 
-    var name = _reader.readOptionalObject((reader) {
-      var lexeme = reader.readStringReference();
+    var name = _reader.readOptionalObject(() {
+      var lexeme = _reader.readStringReference();
       return TokenFactory.tokenFromString(lexeme);
     });
 

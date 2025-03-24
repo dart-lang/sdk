@@ -564,7 +564,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 
   Map<String, FieldNameNonPromotabilityInfo>?
       _readFieldNameNonPromotabilityInfo(ResolutionReader reader) {
-    return reader.readOptionalObject((_) {
+    return reader.readOptionalObject(() {
       return reader.readMap(
         readKey: () => reader.readStringReference(),
         readValue: () {
@@ -1263,7 +1263,7 @@ class LibraryReader {
   PrefixFragmentImpl? _readLibraryImportPrefixFragment({
     required CompilationUnitElementImpl libraryFragment,
   }) {
-    return _reader.readOptionalObject((reader) {
+    return _reader.readOptionalObject(() {
       var fragmentName = _readFragmentName();
       var reference = _readReference();
       var isDeferred = _reader.readBool();
@@ -1392,9 +1392,7 @@ class LibraryReader {
 
   /// Read the reference of a non-local element.
   Reference? _readOptionalReference() {
-    return _reader.readOptionalObject(
-      (reader) => _readReference(),
-    );
+    return _reader.readOptionalObject(() => _readReference());
   }
 
   // TODO(scheglov): Deduplicate parameter reading implementation.
@@ -2055,7 +2053,7 @@ class ResolutionReader {
     return type is FunctionTypeImpl ? type : null;
   }
 
-  T? readOptionalObject<T>(T Function(SummaryDataReader reader) read) {
+  T? readOptionalObject<T>(T Function() read) {
     return _reader.readOptionalObject(read);
   }
 

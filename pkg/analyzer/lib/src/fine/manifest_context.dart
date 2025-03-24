@@ -88,9 +88,7 @@ final class ManifestElement {
     return ManifestElement(
       libraryUri: reader.readUri(),
       name: reader.readStringUtf8(),
-      id: reader.readOptionalObject((reader) {
-        return ManifestItemId.read(reader);
-      }),
+      id: reader.readOptionalObject(() => ManifestItemId.read(reader)),
     );
   }
 
