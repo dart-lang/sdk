@@ -18685,15 +18685,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
     return parent is VariableDeclarationList && parent.isLate;
   }
 
-  DartType get type {
-    if (declaredElement2 case var declaredElement?) {
-      return declaredElement.type;
-    }
-    // SAFETY: The variable declaration is either a local variable,
-    // of a fragment of: top-level, field, formal parameter.
-    return declaredFragment!.element.type;
-  }
-
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('name', name)

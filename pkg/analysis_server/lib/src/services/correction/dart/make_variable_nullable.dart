@@ -228,7 +228,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
       return;
     }
 
-    var oldType = parent.type;
+    var oldType = parent.declaredFragment!.element.type;
     if (oldType is! InterfaceTypeImpl && oldType is! RecordTypeImpl) {
       return;
     }

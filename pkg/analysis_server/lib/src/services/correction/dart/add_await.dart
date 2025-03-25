@@ -125,7 +125,8 @@ extension on Expression {
 
   DartType? get assignmentType {
     return switch (parent) {
-      VariableDeclarationImpl variableDeclaration => variableDeclaration.type,
+      VariableDeclaration variableDeclaration =>
+        variableDeclaration.declaredFragment!.element.type,
       AssignmentExpression assignment => assignment.writeType,
       _ => null,
     };
