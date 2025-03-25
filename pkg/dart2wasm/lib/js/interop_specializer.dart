@@ -435,8 +435,8 @@ class InteropSpecializerFactory {
         final clsString =
             _getTopLevelJSString(cls, cls.name, node.enclosingLibrary);
         final kind = nodeDescriptor.kind;
-        if ((kind == ExtensionTypeMemberKind.Constructor ||
-            kind == ExtensionTypeMemberKind.Factory)) {
+        if (kind == ExtensionTypeMemberKind.Constructor ||
+            kind == ExtensionTypeMemberKind.Factory) {
           return _getSpecializerForConstructor(
               _extensionIndex.isLiteralConstructor(node),
               node,
@@ -478,26 +478,29 @@ class InteropSpecializerFactory {
   }
 
   bool maybeSpecializeProcedure(Procedure node) {
-    if (node.isExternal) {
-      final specializer = _getSpecializer(node);
-      if (specializer != null) {
-        final expression = specializer.specialize();
-        final transformedBody = specializer.function.returnType is VoidType
-            ? ExpressionStatement(expression)
-            : ReturnStatement(expression);
-
-        // For the time being to support tearoffs we simply replace the body of
-        // the original procedure, but leave all the optional arguments intact.
-        // This unfortunately results in inconsistent behavior between the
-        // tearoff and the original functions.
-        // TODO(joshualitt): Decide if we should disallow tearoffs of external
-        // functions, and if so we can clean this up.
-        FunctionNode function = node.function;
-        function.body = transformedBody..parent = function;
-        node.isExternal = false;
-        return true;
-      }
+    if (!node.isExternal) {
+      return false;
     }
-    return false;
+
+    final specializer = _getSpecializer(node);
+    if (specializer == null) {
+      return false;
+    }
+
+    final expression = specializer.specialize();
+    final transformedBody = specializer.function.returnType is VoidType
+        ? ExpressionStatement(expression)
+        : ReturnStatement(expression);
+
+    // For the time being to support tearoffs we simply replace the body of the
+    // original procedure, but leave all the optional arguments intact. This
+    // unfortunately results in inconsistent behavior between the tearoff and
+    // the original functions.
+    // TODO(joshualitt): Decide if we should disallow tearoffs of external
+    // functions, and if so we can clean this up.
+    FunctionNode function = node.function;
+    function.body = transformedBody..parent = function;
+    node.isExternal = false;
+    return true;
   }
 }
