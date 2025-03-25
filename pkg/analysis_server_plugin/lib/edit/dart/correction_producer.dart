@@ -107,6 +107,12 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
   /// Use [coveringNode] to access this field.
   AstNode? _coveringNode;
 
+  /// Whether the [_coveringNode] field has been set.
+  ///
+  /// The field may be set to `null`, so it's nullity is not a signal of whether
+  /// it needs to be computed.
+  bool _coveringNodeIsSet = false;
+
   CorrectionProducer({required super.context});
 
   /// The applicability of this producer.
@@ -154,18 +160,20 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
   /// not exist.
   AstNode? get coveringNode {
-    if (_coveringNode == null) {
-      var diagnostic = this.diagnostic;
-      if (diagnostic == null) {
-        return null;
-      }
-      var errorOffset = diagnostic.problemMessage.offset;
-      var errorLength = diagnostic.problemMessage.length;
-      _coveringNode =
-          NodeLocator2(errorOffset, math.max(errorOffset + errorLength - 1, 0))
-              .searchWithin(unit);
+    if (_coveringNodeIsSet) {
+      return _coveringNode;
     }
-    return _coveringNode;
+
+    _coveringNodeIsSet = true;
+    var diagnostic = this.diagnostic;
+    if (diagnostic == null) {
+      return null;
+    }
+    var errorOffset = diagnostic.problemMessage.offset;
+    var errorLength = diagnostic.problemMessage.length;
+    var endOffset = math.max(errorOffset + errorLength - 1, 0);
+    return _coveringNode =
+        NodeLocator2(errorOffset, endOffset).searchWithin(unit);
   }
 
   /// The length of the source range associated with the error message being
