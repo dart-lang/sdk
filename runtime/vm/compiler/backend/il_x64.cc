@@ -175,12 +175,12 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
        ((element_size_ == 16) && unboxed_inputs_));
   locs->set_in(kSrcStartPos,
                needs_writable_inputs
-                   ? LocationWritableRegisterOrConstant(src_start())
-                   : LocationRegisterOrConstant(src_start()));
+                   ? LocationWritableRegisterOrSmiConstant(src_start())
+                   : LocationRegisterOrSmiConstant(src_start()));
   locs->set_in(kDestStartPos,
                needs_writable_inputs
-                   ? LocationWritableRegisterOrConstant(dest_start())
-                   : LocationRegisterOrConstant(dest_start()));
+                   ? LocationWritableRegisterOrSmiConstant(dest_start())
+                   : LocationRegisterOrSmiConstant(dest_start()));
   if (length()->BindsToSmiConstant() && length()->BoundSmiConstant() <= 4) {
     locs->set_in(
         kLengthPos,

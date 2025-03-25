@@ -183,8 +183,8 @@ LocationSummary* MemoryCopyInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kSrcPos, Location::RequiresRegister());
   locs->set_in(kDestPos, Location::RequiresRegister());
-  locs->set_in(kSrcStartPos, LocationRegisterOrConstant(src_start()));
-  locs->set_in(kDestStartPos, LocationRegisterOrConstant(dest_start()));
+  locs->set_in(kSrcStartPos, LocationRegisterOrSmiConstant(src_start()));
+  locs->set_in(kDestStartPos, LocationRegisterOrSmiConstant(dest_start()));
   locs->set_in(kLengthPos,
                LocationWritableRegisterOrSmiConstant(length(), 0, 4));
   for (intptr_t i = 0; i < kNumTemps; i++) {
