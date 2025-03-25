@@ -12,12 +12,9 @@
 Generates the Luci configuration for the Dart project.
 """
 
-load("//lib/cron.star", "cron")
 load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
-    "experimental",
-    "focal",
     "js_engines",
     "no_caches",
 )
@@ -142,16 +139,6 @@ exec("//analyzer.star")
 
 # misc
 dart.ci_sandbox_builder("gclient", recipe = "dart/gclient", category = "misc|g")
-
-# Builders that test the dev Linux images. When the image autoroller detects
-# successful builds of these builders with a dev images, that dev image becomes
-# the new prod image. Newly created bots will than use the updated image.
-cron.image_builder(
-    "vm-ffi-qemu-linux-release-arm-experimental",
-    channels = [],
-    dimensions = [experimental, focal],
-    notifies = "infra",
-)
 
 dart.ci_sandbox_builder(
     "ci-test-data",
