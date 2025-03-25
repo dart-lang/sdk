@@ -11,7 +11,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 List<Element2> getChildren(Element2 parent, [String? name]) {
   var children = <Element2>[];
   visitChildren(parent, (element) {
-    if (name == null || _getBaseName(element) == name) {
+    if (name == null || element.name3 == name) {
       children.add(element);
     }
     return false;
@@ -276,14 +276,6 @@ Element2 getSyntheticAccessorVariable(Element2 element) {
     }
   }
   return element;
-}
-
-String? _getBaseName(Element2 element) {
-  if (element is SetterElement) {
-    var name = element.name3;
-    return name?.substring(0, name.length - 1);
-  }
-  return element.name3;
 }
 
 extension on MethodElement2 {
