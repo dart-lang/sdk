@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:kernel/ast.dart';
@@ -74,6 +75,18 @@ class Constants {
   w.DataSegmentBuilder? int32Segment;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
 
+  final Map<String, int> symbolOrdinals = {};
+
+  String minifySymbol(String originalValue) {
+    if (translator.options.minify) {
+      int symbolOrdinal = symbolOrdinals.putIfAbsent(
+          originalValue, () => symbolOrdinals.length);
+      return _intToBase64(symbolOrdinal);
+    } else {
+      return originalValue;
+    }
+  }
+
   final Map<DartType, InstanceConstant> _loweredTypeConstants = {};
   late final BoolConstant _cachedTrueConstant = BoolConstant(true);
   late final BoolConstant _cachedFalseConstant = BoolConstant(false);
@@ -130,7 +143,7 @@ class Constants {
   InstanceConstant makeNamedParameterConstant(NamedType n) =>
       InstanceConstant(translator.namedParameterClass.reference, const [], {
         translator.namedParameterNameField.fieldReference:
-            StringConstant(n.name),
+            SymbolConstant(n.name, null),
         translator.namedParameterTypeField.fieldReference:
             _lowerTypeConstant(n.type),
         translator.namedParameterIsRequiredField.fieldReference:
@@ -1097,7 +1110,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     translator.functions.recordClassAllocation(info.classId);
     w.RefType stringType = translator
         .classInfo[translator.coreTypes.stringClass]!.repr.nonNullableType;
-    StringConstant nameConstant = StringConstant(constant.name);
+    final String symbolStringValue = constants.minifySymbol(constant.name);
+    StringConstant nameConstant = StringConstant(symbolStringValue);
     bool lazy = ensureConstant(nameConstant)?.isLazy ?? false;
     return createConstant(constant, info.nonNullableType, lazy: lazy, (b) {
       b.pushObjectHeaderFields(translator, info);
@@ -1131,3 +1145,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     });
   }
 }
+
+List<int> _intToLittleEndianBytes(int i) {
+  List<int> bytes = [];
+  bytes.add(i & 0xFF);
+  i >>>= 8;
+  while (i != 0) {
+    bytes.add(i & 0xFF);
+    i >>>= 8;
+  }
+  return bytes;
+}
+
+String _intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));

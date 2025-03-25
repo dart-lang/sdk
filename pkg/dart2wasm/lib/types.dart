@@ -300,7 +300,7 @@ class Types {
             : ConstructorInvocation(
                 namedParameterConstructor,
                 Arguments([
-                  StringLiteral(n.name),
+                  ConstantExpression(SymbolConstant(n.name, null)),
                   TypeLiteral(n.type),
                   BoolLiteral(n.isRequired)
                 ])));
