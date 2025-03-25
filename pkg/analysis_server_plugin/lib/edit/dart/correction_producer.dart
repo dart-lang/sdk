@@ -511,11 +511,17 @@ abstract class ResolvedCorrectionProducer
     }
     // `=> myFunction();`.
     if (parent is ExpressionFunctionBody) {
+      if (_closureReturnType(expression) case var returnType?) {
+        return returnType;
+      }
       var executable = expression.enclosingExecutableElement2;
       return executable?.returnType;
     }
     // `return myFunction();`.
     if (parent is ReturnStatement) {
+      if (_closureReturnType(expression) case var returnType?) {
+        return returnType;
+      }
       var executable = expression.enclosingExecutableElement2;
       return executable?.returnType;
     }
@@ -639,6 +645,19 @@ abstract class ResolvedCorrectionProducer
 
   bool isEnabled(Feature feature) =>
       libraryElement2.featureSet.isEnabled(feature);
+
+  /// Looks if the [expression] is directly inside a closure and returns the
+  /// return type of the closure.
+  DartType? _closureReturnType(Expression expression) {
+    if (expression.enclosingClosure
+        case FunctionExpression(:var correspondingParameter, :var staticType)) {
+      if (correspondingParameter?.type ?? staticType
+          case FunctionType(:var returnType)) {
+        return returnType;
+      }
+    }
+    return null;
+  }
 }
 
 final class StubCorrectionProducerContext implements CorrectionProducerContext {
