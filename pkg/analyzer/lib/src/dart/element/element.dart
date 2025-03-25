@@ -1731,6 +1731,9 @@ mixin ConstructorElementMixin
   }
 
   @override
+  LibraryElementImpl get library;
+
+  @override
   ConstructorElementMixin? get redirectedConstructor;
 
   @override
@@ -4342,13 +4345,18 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 abstract class FieldElementOrMember
     implements PropertyInducingElementOrMember, FieldElement {
   @override
+  FieldElementImpl get declaration;
+
+  @override
   TypeImpl get type;
 }
 
 /// A [ParameterElementImpl] that has the additional information of the
 /// [FieldElement] associated with the parameter.
 class FieldFormalParameterElementImpl extends ParameterElementImpl
-    implements FieldFormalParameterElement, FieldFormalParameterFragment {
+    implements
+        FieldFormalParameterElementOrMember,
+        FieldFormalParameterFragment {
   @override
   FieldElementImpl? field;
 
@@ -4421,6 +4429,12 @@ class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
         fragment,
     ];
   }
+}
+
+abstract class FieldFormalParameterElementOrMember
+    implements ParameterElementMixin, FieldFormalParameterElement {
+  @override
+  FieldElementOrMember? get field;
 }
 
 class FormalParameterElementImpl extends PromotableElementImpl2
@@ -10563,7 +10577,9 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 }
 
 class SuperFormalParameterElementImpl extends ParameterElementImpl
-    implements SuperFormalParameterElement, SuperFormalParameterFragment {
+    implements
+        SuperFormalParameterElementOrMember,
+        SuperFormalParameterFragment {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   SuperFormalParameterElementImpl({
@@ -10667,6 +10683,9 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
         .indexOf(this);
   }
 }
+
+abstract class SuperFormalParameterElementOrMember
+    implements ParameterElementMixin, SuperFormalParameterElement {}
 
 class TopLevelFunctionElementImpl extends ExecutableElementImpl2
     with
@@ -10969,37 +10988,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   LibraryFragment? get enclosingFragment =>
       enclosingElement3 as LibraryFragment;
 
-  /// Whether this alias is a "proper rename" of [aliasedType], as defined in
-  /// the constructor-tearoffs specification.
-  bool get isProperRename {
-    var aliasedType_ = aliasedType;
-    if (aliasedType_ is! InterfaceTypeImpl) {
-      return false;
-    }
-    var typeParameters = element.typeParameters2;
-    var aliasedClass = aliasedType_.element;
-    var typeArguments = aliasedType_.typeArguments;
-    var typeParameterCount = typeParameters.length;
-    if (typeParameterCount != aliasedClass.typeParameters.length) {
-      return false;
-    }
-    for (var i = 0; i < typeParameterCount; i++) {
-      var bound = typeParameters[i].bound ?? library.typeProvider.dynamicType;
-      var aliasedBound = aliasedClass.typeParameters[i].bound ??
-          library.typeProvider.dynamicType;
-      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
-          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
-        return false;
-      }
-      var typeArgument = typeArguments[i];
-      if (typeArgument is TypeParameterType &&
-          typeParameters[i] != typeArgument.element3) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   @override
   bool get isSimplyBounded {
     return hasModifier(Modifier.SIMPLY_BOUNDED);
@@ -11133,6 +11121,37 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
           fragment = fragment.nextFragment)
         fragment,
     ];
+  }
+
+  /// Whether this alias is a "proper rename" of [aliasedType], as defined in
+  /// the constructor-tearoffs specification.
+  bool get isProperRename {
+    var aliasedType_ = aliasedType;
+    if (aliasedType_ is! InterfaceTypeImpl) {
+      return false;
+    }
+    var typeParameters = typeParameters2;
+    var aliasedClass = aliasedType_.element;
+    var typeArguments = aliasedType_.typeArguments;
+    var typeParameterCount = typeParameters.length;
+    if (typeParameterCount != aliasedClass.typeParameters.length) {
+      return false;
+    }
+    for (var i = 0; i < typeParameterCount; i++) {
+      var bound = typeParameters[i].bound ?? DynamicTypeImpl.instance;
+      var aliasedBound = aliasedClass.typeParameters[i].bound ??
+          library2.typeProvider.dynamicType;
+      if (!library2.typeSystem.isSubtypeOf(bound, aliasedBound) ||
+          !library2.typeSystem.isSubtypeOf(aliasedBound, bound)) {
+        return false;
+      }
+      var typeArgument = typeArguments[i];
+      if (typeArgument is TypeParameterType &&
+          typeParameters[i] != typeArgument.element3) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
@@ -11793,6 +11812,9 @@ abstract class VariableElementImpl2 extends ElementImpl2
 /// `VariableElement`.
 abstract class VariableElementOrMember
     implements ElementOrMember, VariableElement {
+  @override
+  VariableElementImpl get declaration;
+
   @override
   TypeImpl get type;
 }

@@ -73,6 +73,11 @@ class ConstructorMember extends ExecutableMember
   bool get isFactory => declaration.isFactory;
 
   @override
+  LibraryElementImpl get library {
+    return _declaration.library!;
+  }
+
+  @override
   String? get lookupName => _element2.lookupName;
 
   @override
@@ -430,7 +435,7 @@ abstract class ExecutableMember extends Member
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class FieldFormalParameterMember extends ParameterMember
-    implements FieldFormalParameterElement {
+    implements FieldFormalParameterElementOrMember {
   factory FieldFormalParameterMember({
     required FieldFormalParameterElementImpl declaration,
     required MapSubstitution substitution,
@@ -1513,7 +1518,7 @@ class SetterMember extends PropertyAccessorMember
 }
 
 class SuperFormalParameterMember extends ParameterMember
-    implements SuperFormalParameterElement {
+    implements SuperFormalParameterElementOrMember {
   factory SuperFormalParameterMember({
     required SuperFormalParameterElementImpl declaration,
     required MapSubstitution substitution,
