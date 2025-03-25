@@ -669,7 +669,7 @@ void TimelineEvent::Init(EventType event_type, const char* label) {
 }
 
 bool TimelineEvent::Within(int64_t time_origin_micros,
-                           int64_t time_extent_micros) {
+                           int64_t time_extent_micros) const {
   if ((time_origin_micros == -1) || (time_extent_micros == -1)) {
     // No time range specified.
     return true;
@@ -1610,9 +1610,8 @@ intptr_t TimelineEventFixedBufferRecorder::Size() {
 }
 
 #ifndef PRODUCT
-void TimelineEventFixedBufferRecorder::PrintEventsCommon(
-    const TimelineEventFilter& filter,
-    std::function<void(const TimelineEvent&)>&& print_impl) {
+void TimelineEventFixedBufferRecorder::ForEachNonEmptyBlock(
+    std::function<void(const TimelineEventBlock&)>&& handle_block) {
   // Acquire the recorder's lock to prevent the reclaimed blocks from being
   // handed out again until the trace has been serialized.
   MutexLocker ml(&lock_);
@@ -1629,20 +1628,30 @@ void TimelineEventFixedBufferRecorder::PrintEventsCommon(
     if (!block->ContainsEventsThatCanBeSerializedLocked()) {
       continue;
     }
-    for (intptr_t event_idx = 0; event_idx < block->length(); event_idx++) {
-      TimelineEvent* event = block->At(event_idx);
-      if (filter.IncludeEvent(event) &&
-          event->Within(filter.time_origin_micros(),
-                        filter.time_extent_micros())) {
-        ReportTime(event->LowTime());
-        ReportTime(event->HighTime());
-        print_impl(*event);
-      }
-    }
+    handle_block(*block);
   }
 }
 
-void TimelineEventFixedBufferRecorder::PrintJSONEvents(
+void TimelineEventBufferedRecorder::PrintEventsCommon(
+    const TimelineEventFilter& filter,
+    std::function<void(const TimelineEvent&)>&& print_impl) {
+  ForEachNonEmptyBlock(
+      [this, &filter, print_impl = std::move(print_impl)](auto& block) {
+        for (intptr_t event_idx = 0, length = block.length();
+             event_idx < length; event_idx++) {
+          auto event = block.At(event_idx);
+          if (filter.IncludeEvent(event) &&
+              event->Within(filter.time_origin_micros(),
+                            filter.time_extent_micros())) {
+            ReportTime(event->LowTime());
+            ReportTime(event->HighTime());
+            print_impl(*event);
+          }
+        }
+      });
+}
+
+void TimelineEventBufferedRecorder::PrintJSONEvents(
     const JSONArray& events,
     const TimelineEventFilter& filter) {
   PrintEventsCommon(filter, [&events](const TimelineEvent& event) {
@@ -1704,7 +1713,7 @@ inline void PrintPerfettoEventCallbackBody(
   heap_buffered_packet->Reset();
 }
 
-void TimelineEventFixedBufferRecorder::PrintPerfettoEvents(
+void TimelineEventBufferedRecorder::PrintPerfettoEvents(
     JSONBase64String* jsonBase64String,
     const TimelineEventFilter& filter) {
   PrintEventsCommon(
@@ -1721,8 +1730,8 @@ void TimelineEventFixedBufferRecorder::PrintPerfettoEvents(
 }
 #endif  // defined(SUPPORT_PERFETTO)
 
-void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
-                                                 TimelineEventFilter* filter) {
+void TimelineEventBufferedRecorder::PrintJSON(JSONStream* js,
+                                              TimelineEventFilter* filter) {
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "Timeline");
   {
@@ -1734,30 +1743,26 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
   topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
-#define PRINT_PERFETTO_TIMELINE_BODY                                           \
-  JSONObject jsobj_topLevel(js);                                               \
-  jsobj_topLevel.AddProperty("type", "PerfettoTimeline");                      \
-                                                                               \
-  js->AppendSerializedObject("\"trace\":");                                    \
-  {                                                                            \
-    JSONBase64String jsonBase64String(js);                                     \
-    PrintPerfettoMeta(&jsonBase64String);                                      \
-    PrintPerfettoEvents(&jsonBase64String, filter);                            \
-  }                                                                            \
-                                                                               \
-  jsobj_topLevel.AddPropertyTimeMicros("timeOriginMicros",                     \
-                                       TimeOriginMicros());                    \
-  jsobj_topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
-
 #if defined(SUPPORT_PERFETTO)
-void TimelineEventFixedBufferRecorder::PrintPerfettoTimeline(
+void TimelineEventBufferedRecorder::PrintPerfettoTimeline(
     JSONStream* js,
     const TimelineEventFilter& filter) {
-  PRINT_PERFETTO_TIMELINE_BODY
+  JSONObject jsobj_topLevel(js);
+  jsobj_topLevel.AddProperty("type", "PerfettoTimeline");
+
+  js->AppendSerializedObject("\"trace\":");
+  {
+    JSONBase64String jsonBase64String(js);
+    PrintPerfettoMeta(&jsonBase64String);
+    PrintPerfettoEvents(&jsonBase64String, filter);
+  }
+
+  jsobj_topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
+  jsobj_topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 #endif  // defined(SUPPORT_PERFETTO)
 
-void TimelineEventFixedBufferRecorder::PrintTraceEvent(
+void TimelineEventBufferedRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   JSONArray events(js);
@@ -2225,9 +2230,8 @@ TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {
 }
 
 #ifndef PRODUCT
-void TimelineEventEndlessRecorder::PrintEventsCommon(
-    const TimelineEventFilter& filter,
-    std::function<void(const TimelineEvent&)>&& print_impl) {
+void TimelineEventEndlessRecorder::ForEachNonEmptyBlock(
+    std::function<void(const TimelineEventBlock&)>&& handle_block) {
   // Acquire the recorder's lock to prevent the reclaimed blocks from being
   // handed out again until the trace has been serialized.
   MutexLocker ml(&lock_);
@@ -2238,73 +2242,8 @@ void TimelineEventEndlessRecorder::PrintEventsCommon(
     if (!current->ContainsEventsThatCanBeSerializedLocked()) {
       continue;
     }
-    intptr_t length = current->length();
-    for (intptr_t i = 0; i < length; i++) {
-      TimelineEvent* event = current->At(i);
-      if (filter.IncludeEvent(event) &&
-          event->Within(filter.time_origin_micros(),
-                        filter.time_extent_micros())) {
-        ReportTime(event->LowTime());
-        ReportTime(event->HighTime());
-        print_impl(*event);
-      }
-    }
+    handle_block(*current);
   }
-}
-
-void TimelineEventEndlessRecorder::PrintJSONEvents(
-    const JSONArray& events,
-    const TimelineEventFilter& filter) {
-  PrintEventsCommon(filter, [&events](const TimelineEvent& event) {
-    events.AddValue(&event);
-  });
-}
-
-#if defined(SUPPORT_PERFETTO)
-void TimelineEventEndlessRecorder::PrintPerfettoEvents(
-    JSONBase64String* jsonBase64String,
-    const TimelineEventFilter& filter) {
-  PrintEventsCommon(
-      filter, [this, &jsonBase64String](const TimelineEvent& event) {
-        PrintPerfettoEventCallbackBody(
-            &packet(), event,
-            [&jsonBase64String](
-                protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
-                    packet) {
-              perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
-                                                             packet);
-            });
-      });
-}
-#endif  // defined(SUPPORT_PERFETTO)
-
-void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
-                                             TimelineEventFilter* filter) {
-  JSONObject topLevel(js);
-  topLevel.AddProperty("type", "Timeline");
-  {
-    JSONArray events(&topLevel, "traceEvents");
-    PrintJSONMeta(events);
-    PrintJSONEvents(events, *filter);
-  }
-  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
-  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
-}
-
-#if defined(SUPPORT_PERFETTO)
-void TimelineEventEndlessRecorder::PrintPerfettoTimeline(
-    JSONStream* js,
-    const TimelineEventFilter& filter) {
-  PRINT_PERFETTO_TIMELINE_BODY
-}
-#endif  // defined(SUPPORT_PERFETTO)
-
-void TimelineEventEndlessRecorder::PrintTraceEvent(
-    JSONStream* js,
-    TimelineEventFilter* filter) {
-  JSONArray events(js);
-  PrintJSONMeta(events);
-  PrintJSONEvents(events, *filter);
 }
 #endif  // !defined(PRODUCT)
 
