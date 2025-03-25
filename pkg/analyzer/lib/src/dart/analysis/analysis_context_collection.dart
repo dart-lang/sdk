@@ -56,17 +56,29 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
+    @Deprecated('Use updateAnalysisOptions3 instead')
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required ContextRoot contextRoot,
       required DartSdk sdk,
     })? updateAnalysisOptions2,
+    void Function({
+      required AnalysisOptionsImpl analysisOptions,
+      required DartSdk sdk,
+    })? updateAnalysisOptions3,
     bool enableLintRuleTiming = false,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
 
     performanceLog ??= PerformanceLog(null);
+
+    if (updateAnalysisOptions2 != null && updateAnalysisOptions3 != null) {
+      throw ArgumentError(
+        'Only one of updateAnalysisOptions2 and updateAnalysisOptions3 may be '
+        'given',
+      );
+    }
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
@@ -100,6 +112,17 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     var contextBuilder = ContextBuilderImpl(
       resourceProvider: this.resourceProvider,
     );
+    // While users can use the deprecated `updateAnalysisOptions2` and the new
+    // `updateAnalysisOptions3` parameter, prefer `updateAnalysisOptions3`, but
+    // create a new closure with the signature of the old.
+    var updateAnalysisOptions = updateAnalysisOptions3 != null
+        ? ({
+            required AnalysisOptionsImpl analysisOptions,
+            required ContextRoot? contextRoot,
+            required DartSdk sdk,
+          }) =>
+            updateAnalysisOptions3(analysisOptions: analysisOptions, sdk: sdk)
+        : updateAnalysisOptions2;
     for (var root in roots) {
       var context = contextBuilder.createContext(
         byteStore: byteStore,
@@ -115,7 +138,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        updateAnalysisOptions2: updateAnalysisOptions2,
+        updateAnalysisOptions2: updateAnalysisOptions,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         infoDeclarationStore: infoDeclarationStore,

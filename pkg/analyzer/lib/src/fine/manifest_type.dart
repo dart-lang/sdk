@@ -778,6 +778,12 @@ extension DartTypeExtension on DartType {
   }
 }
 
+extension FunctionTypeImplExtension on FunctionTypeImpl {
+  ManifestFunctionType encode(EncodeContext context) {
+    return ManifestFunctionType.encode(context, this);
+  }
+}
+
 extension IterableOfDartTypeExtension on Iterable<DartType> {
   List<ManifestType> encode(EncodeContext context) {
     return map((type) => type.encode(context)).toFixedList();

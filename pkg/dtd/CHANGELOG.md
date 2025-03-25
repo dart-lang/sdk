@@ -1,6 +1,7 @@
-## 2.4.1-wip
+## 2.5.0
 
 - Update SDK constraints to `^3.5.0`.
+- Add `isClosed` getter to `DartToolingDaemon`.
 
 ## 2.4.0
 

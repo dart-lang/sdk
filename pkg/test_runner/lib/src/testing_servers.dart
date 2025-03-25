@@ -357,7 +357,12 @@ class TestingServers {
       // Chrome respects the standardized Content-Security-Policy header,
       // whereas Firefox and IE10 use X-Content-Security-Policy. Safari
       // still uses the WebKit- prefixed version.
-      var contentHeaderValue = "script-src 'self'; object-src 'self'";
+      var contentHeaderValue = [
+        "script-src 'self'",
+        "object-src 'self'",
+        "require-trusted-types-for: 'script'",
+        "trusted-types dart.deferred-loading",
+      ].join('; ');
       for (var header in [
         "Content-Security-Policy",
         "X-Content-Security-Policy"

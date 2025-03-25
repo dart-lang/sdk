@@ -189,21 +189,35 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final BaseOrFinalTypeVerifier baseOrFinalTypeVerifier;
 
   /// Helper for checking expression that should have the `bool` type.
-  late final BoolExpressionVerifier boolExpressionVerifier;
+  late final BoolExpressionVerifier boolExpressionVerifier =
+      BoolExpressionVerifier(
+    resolver: this,
+    errorReporter: errorReporter,
+    nullableDereferenceVerifier: nullableDereferenceVerifier,
+  );
 
   /// Helper for checking potentially nullable dereferences.
-  late final NullableDereferenceVerifier nullableDereferenceVerifier;
+  late final NullableDereferenceVerifier nullableDereferenceVerifier =
+      NullableDereferenceVerifier(
+    typeSystem: typeSystem,
+    errorReporter: errorReporter,
+    resolver: this,
+  );
 
   /// Helper for extension method resolution.
-  late final ExtensionMemberResolver extensionResolver;
+  late final ExtensionMemberResolver extensionResolver =
+      ExtensionMemberResolver(this);
 
   /// Helper for resolving properties on types.
-  late final TypePropertyResolver typePropertyResolver;
+  late final TypePropertyResolver typePropertyResolver =
+      TypePropertyResolver(this);
 
   /// Helper for resolving [ListLiteral] and [SetOrMapLiteral].
-  late final TypedLiteralResolver _typedLiteralResolver;
+  late final TypedLiteralResolver _typedLiteralResolver =
+      TypedLiteralResolver(this, typeSystem, typeProvider, analysisOptions);
 
-  late final AssignmentExpressionResolver _assignmentExpressionResolver;
+  late final AssignmentExpressionResolver _assignmentExpressionResolver =
+      AssignmentExpressionResolver(resolver: this);
   late final BinaryExpressionResolver _binaryExpressionResolver;
   late final ConstructorReferenceResolver _constructorReferenceResolver =
       ConstructorReferenceResolver(this);
@@ -325,7 +339,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           source,
           definingLibrary.typeSystem,
           typeProvider as TypeProviderImpl,
-          errorListener,
+          ErrorReporter(errorListener, source),
           featureSet,
           analysisOptions,
           flowAnalysisHelper,
@@ -339,13 +353,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     this.source,
     this.typeSystem,
     this.typeProvider,
-    AnalysisErrorListener errorListener,
+    this.errorReporter,
     FeatureSet featureSet,
     this.analysisOptions,
     this.flowAnalysis, {
     required this.libraryFragment,
-  })  : errorReporter = ErrorReporter(errorListener, source),
-        _featureSet = featureSet,
+  })  : _featureSet = featureSet,
         genericMetadataIsEnabled =
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata),
         inferenceUsingBoundsIsEnabled = definingLibrary.featureSet
@@ -354,23 +367,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             patternsEnabled:
                 definingLibrary.featureSet.isEnabled(Feature.patterns),
             inferenceUpdate3Enabled: definingLibrary.featureSet
-                .isEnabled(Feature.inference_update_3)) {
-    nullableDereferenceVerifier = NullableDereferenceVerifier(
-      typeSystem: typeSystem,
-      errorReporter: errorReporter,
-      resolver: this,
-    );
-    baseOrFinalTypeVerifier = BaseOrFinalTypeVerifier(
-        definingLibrary: definingLibrary, errorReporter: errorReporter);
-    boolExpressionVerifier = BoolExpressionVerifier(
-      resolver: this,
-      errorReporter: errorReporter,
-      nullableDereferenceVerifier: nullableDereferenceVerifier,
-    );
-    _typedLiteralResolver =
-        TypedLiteralResolver(this, typeSystem, typeProvider, analysisOptions);
-    extensionResolver = ExtensionMemberResolver(this);
-    typePropertyResolver = TypePropertyResolver(this);
+                .isEnabled(Feature.inference_update_3)),
+        baseOrFinalTypeVerifier = BaseOrFinalTypeVerifier(
+            definingLibrary: definingLibrary, errorReporter: errorReporter) {
     inferenceHelper = InvocationInferenceHelper(
       resolver: this,
       errorReporter: errorReporter,
@@ -378,9 +377,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       dataForTesting: flowAnalysis.dataForTesting != null
           ? TypeConstraintGenerationDataForTesting()
           : null,
-    );
-    _assignmentExpressionResolver = AssignmentExpressionResolver(
-      resolver: this,
     );
     _binaryExpressionResolver = BinaryExpressionResolver(
       resolver: this,

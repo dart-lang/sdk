@@ -3428,7 +3428,7 @@ String _computeBaseUrl() {
 /// [1]: https://w3c.github.io/webappsec-trusted-types/dist/spec/#trusted-type-policy
 final Object _deferredLoadingTrustedTypesPolicy = _computePolicy();
 
-const _deferredLoadingTrustedTypesPolicyName = 'dart:deferred-loading';
+const _deferredLoadingTrustedTypesPolicyName = 'dart.deferred-loading';
 
 Object _computePolicy() {
   // There is no actual validation, since the URLs for deferred loading are safe

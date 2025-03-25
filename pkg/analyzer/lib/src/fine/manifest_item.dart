@@ -9,7 +9,6 @@ import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ClassItem extends TopLevelItem {
   final List<ManifestTypeParameter> typeParameters;
@@ -158,10 +157,10 @@ class InstanceGetterItem extends InstanceMemberItem {
     GetterElement2OrMember element,
   ) {
     var context = MatchContext(parent: instanceContext);
-    if (returnType.match(context, element.returnType)) {
-      return context;
+    if (!returnType.match(context, element.returnType)) {
+      return null;
     }
-    return null;
+    return context;
   }
 
   @override
@@ -194,16 +193,12 @@ sealed class InstanceMemberItem extends ManifestItem {
 }
 
 class InstanceMethodItem extends InstanceMemberItem {
-  final List<ManifestTypeParameter> typeParameters;
-  final ManifestType returnType;
-  final List<ManifestType> formalParameterTypes;
+  final ManifestFunctionType functionType;
 
   InstanceMethodItem({
     required super.name,
     required super.id,
-    required this.typeParameters,
-    required this.returnType,
-    required this.formalParameterTypes,
+    required this.functionType,
   });
 
   factory InstanceMethodItem.fromElement({
@@ -212,21 +207,10 @@ class InstanceMethodItem extends InstanceMemberItem {
     required EncodeContext context,
     required MethodElement2OrMember element,
   }) {
-    return context.withTypeParameters(
-      element.typeParameters2,
-      (typeParameters) {
-        return InstanceMethodItem(
-          name: name,
-          id: id,
-          typeParameters: typeParameters,
-          returnType: element.returnType.encode(context),
-          // TODO(scheglov): not only types
-          formalParameterTypes: element.formalParameters
-              .map((formalParameter) => formalParameter.type)
-              .encode(context)
-              .toFixedList(),
-        );
-      },
+    return InstanceMethodItem(
+      name: name,
+      id: id,
+      functionType: element.type.encode(context),
     );
   }
 
@@ -234,13 +218,7 @@ class InstanceMethodItem extends InstanceMemberItem {
     return InstanceMethodItem(
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
-      typeParameters: reader.readTypedList(
-        () => ManifestTypeParameter.read(reader),
-      ),
-      returnType: ManifestType.read(reader),
-      formalParameterTypes: reader.readTypedList(
-        () => ManifestType.read(reader),
-      ),
+      functionType: ManifestFunctionType.read(reader),
     );
   }
 
@@ -249,19 +227,10 @@ class InstanceMethodItem extends InstanceMemberItem {
     MethodElement2OrMember element,
   ) {
     var context = MatchContext(parent: instanceContext);
-    context.addTypeParameters(element.typeParameters2);
-
-    if (!ManifestTypeParameter.matchList(
-        context, typeParameters, element.typeParameters2)) {
+    if (!functionType.match(context, element.type)) {
       return null;
     }
-
-    if (returnType.match(context, element.returnType) &&
-        formalParameterTypes.match(
-            context, element.formalParameters.map((e) => e.type).toList())) {
-      return context;
-    }
-    return null;
+    return context;
   }
 
   @override
@@ -269,11 +238,7 @@ class InstanceMethodItem extends InstanceMemberItem {
     sink.writeEnum(_ManifestItemKind2.instanceMethod);
     name.write(sink);
     id.write(sink);
-    sink.writeList(typeParameters, (e) => e.write(sink));
-    returnType.write(sink);
-    sink.writeList(formalParameterTypes, (type) {
-      type.write(sink);
-    });
+    functionType.write(sink);
   }
 }
 
@@ -301,7 +266,7 @@ class TopLevelFunctionItem extends TopLevelItem {
       libraryUri: element.library2.uri,
       name: name,
       id: id,
-      functionType: ManifestFunctionType.encode(context, element.type),
+      functionType: element.type.encode(context),
     );
   }
 

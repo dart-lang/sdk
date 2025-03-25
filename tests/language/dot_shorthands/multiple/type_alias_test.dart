@@ -7,7 +7,9 @@
 // SharedOptions=--enable-experiment=dot-shorthands
 
 typedef ClassAlias = A<int>;
+typedef AliasAlias = ClassAlias;
 typedef ExtensionAlias = AExt<int>;
+typedef ExtensionAliasAlias = ExtensionAlias; 
 
 class A<T> {
   static ClassAlias get alias => A(1);
@@ -50,4 +52,15 @@ void main() {
   ExtensionAlias extensionAliasCtor = .new(1).aliasGetter;
   ExtensionAlias extensionAliasMethod = .method();
   const ExtensionAlias constExtensionAlias = .constAlias;
+
+  // Nested typedefs
+  AliasAlias nestedAlias = .alias;
+  AliasAlias nestedAlias2 = .new(1).aliasGetter;
+  AliasAlias nestedAliasMethod = .method();
+  const AliasAlias constNestedAlias = .constAlias;
+
+  ExtensionAliasAlias nestedExtensionAlias = .alias;
+  ExtensionAliasAlias nestedExtensionAliasCtor = .new(1).aliasGetter;
+  ExtensionAliasAlias nestedExtensionAliasMethod = .method();
+  const ExtensionAliasAlias constNestedExtensionExtensionAlias = .constAlias;
 }

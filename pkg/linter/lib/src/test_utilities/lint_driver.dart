@@ -38,11 +38,7 @@ class LintDriver {
       resourceProvider: _resourceProvider,
       sdkPath: _options.dartSdkPath,
       includedPaths: filesPaths,
-      updateAnalysisOptions2: ({
-        required analysisOptions,
-        required contextRoot,
-        required sdk,
-      }) {
+      updateAnalysisOptions3: ({required analysisOptions, required sdk}) {
         analysisOptions.lint = true;
         analysisOptions.warning = false;
         analysisOptions.lintRules = _options.enabledRules.toList(

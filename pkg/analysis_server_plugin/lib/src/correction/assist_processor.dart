@@ -34,6 +34,13 @@ class AssistProcessor {
   }
 
   Future<void> _addFromProducer(CorrectionProducer producer) async {
+    var assistKind = producer.assistKind;
+    // If this producer is not actually designed to work as an assist, ignore
+    // it.
+    if (assistKind == null) {
+      return;
+    }
+
     var builder = ChangeBuilder(
       workspace: _assistContext.workspace,
       eol: producer.eol,
@@ -50,19 +57,16 @@ class AssistProcessor {
         await producer.compute(builder);
       }
 
-      var assistKind = producer.assistKind;
-      if (assistKind != null) {
-        var change = builder.sourceChange;
-        if (change.edits.isEmpty) {
-          return;
-        }
-        change.id = assistKind.id;
-        change.message = formatList(
-          assistKind.message,
-          producer.assistArguments,
-        );
-        _assists.add(Assist(assistKind, change));
+      var change = builder.sourceChange;
+      if (change.edits.isEmpty) {
+        return;
       }
+      change.id = assistKind.id;
+      change.message = formatList(
+        assistKind.message,
+        producer.assistArguments,
+      );
+      _assists.add(Assist(assistKind, change));
     } on ConflictingEditException catch (exception, stackTrace) {
       // Handle the exception by (a) not adding an assist based on the
       // producer and (b) logging the exception.
