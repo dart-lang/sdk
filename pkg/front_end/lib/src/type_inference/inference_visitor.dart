@@ -30,7 +30,7 @@ import '../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 import '../base/problems.dart' as problems
-    show internalProblem, unhandled, unsupported, unimplemented;
+    show internalProblem, unhandled, unsupported;
 import '../base/uri_offset.dart';
 import '../codes/cfe_codes.dart';
 import '../kernel/body_builder.dart' show combineStatements;
@@ -12137,7 +12137,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Member? member =
         findStaticMember(cachedContext, node.name, node.fileOffset);
 
-    Expression expr;
+    Expression? expr;
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       expr = new StaticInvocation(member, node.arguments)
         ..fileOffset = node.fileOffset;
@@ -12181,24 +12181,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               isConst: node.isConst)
             ..fileOffset = node.fileOffset;
         }
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        // TODO(kallentu): This is temporary. Build a problem with an error
-        // specific to not being able to find a member named [node.name].
-        problems.unimplemented(
-            'Cannot find dot shorthand member of name ${node.name}',
-            node.fileOffset,
-            helper.uri);
       }
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      // TODO(kallentu): This is temporary. Build a problem with an error on the
-      // bad context type.
-      problems.unimplemented(
-          'Cannot find dot shorthand member of name ${node.name} with '
-          'context $cachedContext',
-          node.fileOffset,
-          helper.uri);
+    }
+
+    if (expr == null) {
+      Expression replacement;
+      if (isKnown(cachedContext)) {
+        // Error when we can't find the static member or constructor named
+        // [node.name] in the declaration of [cachedContext].
+        replacement = helper.buildProblem(
+            templateDotShorthandsUndefinedInvocation.withArguments(
+                node.name.text, cachedContext),
+            node.nameOffset,
+            node.name.text.length);
+      } else {
+        // Error when no context type or an invalid context type is given to
+        // resolve the dot shorthand.
+        //
+        // e.g. `var x = .one;`
+        replacement = helper.buildProblem(
+            templateDotShorthandsInvalidContext.withArguments(node.name.text),
+            node.nameOffset,
+            node.name.text.length);
+      }
+      return new ExpressionInferenceResult(const DynamicType(), replacement);
     }
 
     ExpressionInferenceResult expressionInferenceResult =

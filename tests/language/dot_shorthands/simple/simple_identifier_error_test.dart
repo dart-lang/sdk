@@ -11,27 +11,27 @@ import '../dot_shorthand_helper.dart';
 
 void main() {
   var color = .blue;
-  // ^
+  //           ^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] No type was provided to find the dot shorthand 'blue'.
 
   const constColor = .blue;
-  // ^
+  //                  ^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] No type was provided to find the dot shorthand 'blue'.
 
   var integer = .one;
-  // ^
+  //             ^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] No type was provided to find the dot shorthand 'one'.
 
   const constInteger = .one;
-  // ^
+  //                    ^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] No type was provided to find the dot shorthand 'one'.
 
   Integer i = .one();
-  // ^
+  //           ^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] The static method or constructor 'one' isn't defined for the type 'Integer'.
 }

@@ -601,7 +601,7 @@ class LinterLintCode extends LintCode {
 
   static const LintCode discarded_futures = LinterLintCode(
     LintNames.discarded_futures,
-    "Asynchronous function invoked in a non-'async' function.",
+    "'Future'-returning calls in a non-'async' function.",
     correctionMessage:
         "Try converting the enclosing function to be 'async' and then 'await' "
         "the future.",

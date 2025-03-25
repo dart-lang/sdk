@@ -11,7 +11,7 @@ import 'legacy_messages.dart';
 import 'lsp_messages.dart';
 
 abstract class DartLanguageServerBenchmark {
-  static const int verbosity = 0;
+  int verbosity = 0;
   final Uri repoDir = computeRepoDirUri();
   late final Process p;
   late final Timer longRunningRequestsTimer;
@@ -20,6 +20,7 @@ abstract class DartLanguageServerBenchmark {
   final _buffer = <int>[];
   int? _headerContentLength;
   bool _printedVmServiceStuff = false;
+  String executableToUse = Platform.resolvedExecutable;
 
   /// There's something weird about getting (several) id 3's that wasn't
   /// requested...
@@ -34,8 +35,13 @@ abstract class DartLanguageServerBenchmark {
 
   final bool _lsp;
 
-  DartLanguageServerBenchmark({required bool useLspProtocol})
+  DartLanguageServerBenchmark(List<String> args, {required bool useLspProtocol})
     : _lsp = useLspProtocol {
+    for (String arg in args) {
+      if (arg.startsWith('--dart=')) {
+        executableToUse = arg.substring('--dart='.length);
+      }
+    }
     _checkCorrectDart();
   }
 
@@ -146,7 +152,9 @@ abstract class DartLanguageServerBenchmark {
     while (isAnalyzing) {
       isAnalyzing = await _analyzingCompleter.future;
     }
-    print('isAnalyzing is now done after ${stopwatch.elapsed}');
+    if (verbosity >= 0) {
+      print('isAnalyzing is now done after ${stopwatch.elapsed}');
+    }
     if (!_addedInitialAnalysisDuration) {
       _addedInitialAnalysisDuration = true;
       durationInfo.add(DurationInfo('Initial analysis', stopwatch.elapsed));
@@ -154,7 +162,7 @@ abstract class DartLanguageServerBenchmark {
   }
 
   void _checkCorrectDart() {
-    Uri exe = Uri.base.resolveUri(Uri.file(Platform.resolvedExecutable));
+    Uri exe = Uri.base.resolveUri(Uri.file(executableToUse));
     Uri librariesDart = exe.resolve(
       '../lib/_internal/sdk_library_metadata/lib/libraries.dart',
     );
@@ -166,6 +174,7 @@ abstract class DartLanguageServerBenchmark {
   }
 
   void _checkLongRunningRequests(Timer timer) {
+    if (verbosity < 0) return;
     bool reportedSomething = false;
     for (MapEntry<int, OutstandingRequest> waitingFor
         in _outstandingRequestsWithId.entries) {
@@ -259,7 +268,7 @@ abstract class DartLanguageServerBenchmark {
         }
 
         // TODO(jensj): Option of passing --profiler
-        p = await Process.start(Platform.resolvedExecutable, [
+        p = await Process.start(executableToUse, [
           '--enable-vm-service',
           '--profiler',
           serverFile.path,
@@ -269,7 +278,7 @@ abstract class DartLanguageServerBenchmark {
         ]);
       case LaunchFrom.Dart:
         // TODO(jensj): Option of wrapping in `perf record -g` call.
-        p = await Process.start(Platform.resolvedExecutable, [
+        p = await Process.start(executableToUse, [
           'language-server',
           lsp ? '--protocol=lsp' : '--protocol=analyzer',
           '--port=9102',
@@ -285,7 +294,7 @@ abstract class DartLanguageServerBenchmark {
         }
 
         // TODO(jensj): Option of passing --profiler
-        Uri dart = Uri.base.resolveUri(Uri.file(Platform.resolvedExecutable));
+        Uri dart = Uri.base.resolveUri(Uri.file(executableToUse));
         File aotRuntime = File.fromUri(dart.resolve('dartaotruntime'));
         if (!aotRuntime.existsSync()) {
           throw "Couldn't find 'dartaotruntime' expected it at $aotRuntime";
@@ -298,7 +307,9 @@ abstract class DartLanguageServerBenchmark {
         ]);
     }
 
-    print('Launched with pid ${p.pid}');
+    if (verbosity >= 0) {
+      print('Launched with pid ${p.pid}');
+    }
   }
 
   void _listenToStdout(List<int> event) {
@@ -325,7 +336,9 @@ abstract class DartLanguageServerBenchmark {
         for (String header in headers) {
           if (!_printedVmServiceStuff &&
               header.startsWith('The Dart VM service')) {
-            print('\n\n$header\n\n');
+            if (verbosity >= 0) {
+              print('\n\n$header\n\n');
+            }
             _printedVmServiceStuff = true;
           }
           if (header.startsWith('Content-Length:')) {
@@ -344,11 +357,11 @@ abstract class DartLanguageServerBenchmark {
         _headerContentLength = null;
 
         if (messageString.startsWith('The Dart VM service')) {
-          print('\n\n$messageString\n\n');
+          if (verbosity >= 0) print('\n\n$messageString\n\n');
           continue;
         }
         if (messageString.startsWith('The Dart DevTools')) {
-          print('\n\n$messageString\n\n');
+          if (verbosity >= 0) print('\n\n$messageString\n\n');
           continue;
         }
 
@@ -427,7 +440,9 @@ abstract class DartLanguageServerBenchmark {
     );
 
     await _initializeLegacy();
-    print('Should now be initialized.');
+    if (verbosity >= 0) {
+      print('Should now be initialized.');
+    }
 
     await afterInitialization();
   }
@@ -443,7 +458,9 @@ abstract class DartLanguageServerBenchmark {
     );
 
     await _initializeLsp();
-    print('Should now be initialized.');
+    if (verbosity >= 0) {
+      print('Should now be initialized.');
+    }
 
     await afterInitialization();
   }

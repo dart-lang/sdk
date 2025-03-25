@@ -32,6 +32,22 @@ class LegacyMessages {
     };
   }
 
+  static Map<String, dynamic> getFlutterSetSubscriptions(
+    int id,
+    List<Uri> files,
+  ) {
+    return {
+      'id': '$id',
+      'method': 'flutter.setSubscriptions',
+      'params': {
+        'subscriptions': {
+          'OUTLINE': [...files.map(_uriToStringWithoutEndingSlash)],
+        },
+        // no 'clientRequestTime' on this one it seems.
+      },
+    };
+  }
+
   static Map<String, dynamic> getHover(int id, Uri file, int offset) {
     return {
       'id': '$id',

@@ -16,8 +16,9 @@ import 'utils.dart';
 /// analyzer starts analyzing, then adding `\n  \n}`, then requesting completion
 /// inside, measuring how long it takes before we get an answer to the
 /// completion request.
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   await runHelper(
+    args,
     LegacyTypingTemporaryMissingEndBraceBenchmark.new,
     runAsLsp: false,
   );
@@ -33,6 +34,7 @@ class LegacyTypingTemporaryMissingEndBraceBenchmark
   final RunDetails runDetails;
 
   LegacyTypingTemporaryMissingEndBraceBenchmark(
+    super.args,
     this.rootUri,
     this.cacheFolder,
     this.runDetails,
@@ -88,7 +90,9 @@ class LegacyTypingTemporaryMissingEndBraceBenchmark
     var stopwatch = Stopwatch()..start();
     var isNowAnalyzing = await isNowAnalyzingFuture;
     if (!isNowAnalyzing) throw 'Unexpectedly switched to not analyzing.';
-    print('Started analyzing after ${stopwatch.elapsedMilliseconds} ms');
+    if (verbosity >= 0) {
+      print('Started analyzing after ${stopwatch.elapsedMilliseconds} ms');
+    }
 
     // End the brace and type `ge` inside the if.
     await send(
@@ -117,9 +121,11 @@ class LegacyTypingTemporaryMissingEndBraceBenchmark
     durationInfo.add(
       DurationInfo('Completion after change', completionAfterChange),
     );
-    print(
-      'Got ${completionItems.length} completion items '
-      'in $completionAfterChange',
-    );
+    if (verbosity >= 0) {
+      print(
+        'Got ${completionItems.length} completion items '
+        'in $completionAfterChange',
+      );
+    }
   }
 }

@@ -4015,7 +4015,7 @@ LintCode:
     correctionMessage: "Try sorting the directives."
     hasPublishedDocs: false
   discarded_futures:
-    problemMessage: "Asynchronous function invoked in a non-'async' function."
+    problemMessage: "'Future'-returning calls in a non-'async' function."
     correctionMessage: "Try converting the enclosing function to be 'async' and then 'await' the future."
     state:
       stable: "2.18"

@@ -5,15 +5,24 @@
 part of "core_patch.dart";
 
 /// Finds a named parameter in a named parameter list passed to a dynamic
-/// forwarder and returns the index of the value of that named parameter.
-/// Returns `null` if the name is not in the list.
+/// forwarder or `Function.apply` and returns the index of the value of that
+/// named parameter. Returns `null` if the name is not in the list.
 @pragma("wasm:entry-point")
 int? _getNamedParameterIndex(
   WasmArray<Object?> namedArguments,
   Symbol paramName,
 ) {
   for (int i = 0; i < namedArguments.length; i += 2) {
-    if (identical(namedArguments[i], paramName)) {
+    // `Symbol.==` does not check identity so we have a fast path here checking
+    // identities.
+    //
+    // We can't check just identities as the symbols in the list may not be
+    // constants in `Function.apply`.
+    //
+    // Also, `paramName` will always be a constant, so with `--minify` it can
+    // only be equal to a symbol in the list if it's also identical to it.
+    if (identical(namedArguments[i], paramName) ||
+        (!minify && unsafeCast<Symbol>(namedArguments[i]) == paramName)) {
       return i + 1;
     }
   }

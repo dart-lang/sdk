@@ -9,8 +9,8 @@ import 'utils.dart';
 /// Change a file in a big project and reports how long it takes before the
 /// analysis server is responsive again (measured by when it responds to a
 /// completion request) and when it's actually done analysing.
-Future<void> main() async {
-  await runHelper(LspCompletionAfterChange.new, runAsLsp: true);
+Future<void> main(List<String> args) async {
+  await runHelper(args, LspCompletionAfterChange.new, runAsLsp: true);
 }
 
 class LspCompletionAfterChange extends DartLanguageServerBenchmark {
@@ -21,8 +21,12 @@ class LspCompletionAfterChange extends DartLanguageServerBenchmark {
 
   final RunDetails runDetails;
 
-  LspCompletionAfterChange(this.rootUri, this.cacheFolder, this.runDetails)
-    : super(useLspProtocol: true);
+  LspCompletionAfterChange(
+    super.args,
+    this.rootUri,
+    this.cacheFolder,
+    this.runDetails,
+  ) : super(useLspProtocol: true);
 
   @override
   LaunchFrom get launchFrom => LaunchFrom.Dart;
@@ -116,14 +120,18 @@ class LspCompletionAfterChange extends DartLanguageServerBenchmark {
     durationInfo.add(
       DurationInfo('Completion after change', completionAfterChange),
     );
-    print(
-      'Got ${completionItems.length} completion items '
-      'in $completionAfterChange',
-    );
+    if (verbosity >= 0) {
+      print(
+        'Got ${completionItems.length} completion items '
+        'in $completionAfterChange',
+      );
+    }
     await waitWhileAnalyzing();
     stopwatch.stop();
     var doneAfterChange = stopwatch.elapsed;
     durationInfo.add(DurationInfo('Fully done after change', doneAfterChange));
-    print('Fully done after $doneAfterChange');
+    if (verbosity >= 0) {
+      print('Fully done after $doneAfterChange');
+    }
   }
 }
