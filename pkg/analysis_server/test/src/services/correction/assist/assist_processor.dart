@@ -39,31 +39,18 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   @override
   void addTestSource(String code) {
     code = normalizeSource(code);
-    var eol = code.contains('\r\n') ? '\r\n' : '\n';
-    var startOffset = code.indexOf('// start$eol');
-    var endOffset = code.indexOf('// end$eol');
-    if (startOffset >= 0 && endOffset >= 0) {
-      var startLength = '// start$eol'.length;
-      code =
-          code.substring(0, startOffset) +
-          code.substring(startOffset + startLength, endOffset) +
-          code.substring(endOffset + '// end$eol'.length);
-      _offset = startOffset;
-      _length = endOffset - startLength - _offset;
+    var parsedCode = TestCode.parse(code);
+    code = parsedCode.code;
+    if (parsedCode.positions.isNotEmpty) {
+      _offset = parsedCode.position.offset;
+      _length = 0;
+    } else if (parsedCode.ranges.isNotEmpty) {
+      var range = parsedCode.range.sourceRange;
+      _offset = range.offset;
+      _length = range.length;
     } else {
-      var parsedCode = TestCode.parse(code);
-      code = parsedCode.code;
-      if (parsedCode.positions.isNotEmpty) {
-        _offset = parsedCode.position.offset;
-        _length = 0;
-      } else if (parsedCode.ranges.isNotEmpty) {
-        var range = parsedCode.range.sourceRange;
-        _offset = range.offset;
-        _length = range.length;
-      } else {
-        _offset = 0;
-        _length = 0;
-      }
+      _offset = 0;
+      _length = 0;
     }
     super.addTestSource(code);
   }
