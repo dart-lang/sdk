@@ -378,12 +378,6 @@ class DriverEventsPrinter {
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
         });
-      case InstanceMemberMissing():
-        // TODO(scheglov): Handle this case.
-        throw UnimplementedError();
-      case InstanceMemberPresent():
-        // TODO(scheglov): Handle this case.
-        throw UnimplementedError();
       case TopLevelIdMismatch():
         sink.writelnWithIndent('topLevelIdMismatch');
         sink.writeProperties({
@@ -392,21 +386,9 @@ class DriverEventsPrinter {
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
         });
-      case TopLevelMissing():
-        sink.writelnWithIndent('topLevelMissing');
-        sink.writeProperties({
-          'libraryUri': failure.libraryUri,
-          'name': failure.name.asString,
-        });
       case TopLevelNotClass():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
-      case TopLevelPresent():
-        sink.writelnWithIndent('topLevelPresent');
-        sink.writeProperties({
-          'libraryUri': failure.libraryUri,
-          'name': failure.name.asString,
-        });
     }
   }
 

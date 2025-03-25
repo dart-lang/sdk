@@ -46,14 +46,12 @@ final class ExportLibraryMissing extends ExportFailure {
   });
 }
 
-sealed class InstanceMemberFailure extends RequirementFailure {}
-
-class InstanceMemberIdMismatch extends InstanceMemberFailure {
+class InstanceMemberIdMismatch extends RequirementFailure {
   final Uri libraryUri;
   final LookupName interfaceName;
   final LookupName memberName;
   final ManifestItemId? expectedId;
-  final ManifestItemId actualId;
+  final ManifestItemId? actualId;
 
   InstanceMemberIdMismatch({
     required this.libraryUri,
@@ -63,10 +61,6 @@ class InstanceMemberIdMismatch extends InstanceMemberFailure {
     required this.actualId,
   });
 }
-
-class InstanceMemberMissing extends InstanceMemberFailure {}
-
-class InstanceMemberPresent extends InstanceMemberFailure {}
 
 class LibraryMissing extends RequirementFailure {
   final Uri uri;
@@ -80,45 +74,29 @@ sealed class RequirementFailure {}
 
 sealed class TopLevelFailure extends RequirementFailure {
   final Uri libraryUri;
+  final LookupName name;
 
   TopLevelFailure({
     required this.libraryUri,
+    required this.name,
   });
 }
 
 class TopLevelIdMismatch extends TopLevelFailure {
-  final LookupName name;
   final ManifestItemId? expectedId;
-  final ManifestItemId actualId;
+  final ManifestItemId? actualId;
 
   TopLevelIdMismatch({
     required super.libraryUri,
-    required this.name,
+    required super.name,
     required this.expectedId,
     required this.actualId,
-  });
-}
-
-class TopLevelMissing extends TopLevelFailure {
-  final LookupName name;
-
-  TopLevelMissing({
-    required super.libraryUri,
-    required this.name,
   });
 }
 
 class TopLevelNotClass extends TopLevelFailure {
   TopLevelNotClass({
     required super.libraryUri,
-  });
-}
-
-class TopLevelPresent extends TopLevelFailure {
-  final LookupName name;
-
-  TopLevelPresent({
-    required super.libraryUri,
-    required this.name,
+    required super.name,
   });
 }

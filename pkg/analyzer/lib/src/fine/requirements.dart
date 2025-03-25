@@ -106,28 +106,13 @@ class BundleRequirementsManifest {
       for (var topLevelEntry in libraryEntry.value.entries) {
         var name = topLevelEntry.key;
         var item = libraryManifest.items[name];
-        if (topLevelEntry.value == null) {
-          if (item != null) {
-            return TopLevelPresent(
-              libraryUri: libraryUri,
-              name: name,
-            );
-          }
-        } else {
-          if (item == null) {
-            return TopLevelMissing(
-              libraryUri: libraryUri,
-              name: name,
-            );
-          }
-          if (item.id != topLevelEntry.value) {
-            return TopLevelIdMismatch(
-              libraryUri: libraryUri,
-              name: name,
-              expectedId: topLevelEntry.value,
-              actualId: item.id,
-            );
-          }
+        if (topLevelEntry.value != item?.id) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: topLevelEntry.value,
+            actualId: item?.id,
+          );
         }
       }
     }
@@ -147,6 +132,7 @@ class BundleRequirementsManifest {
         if (interfaceItem is! ClassItem) {
           return TopLevelNotClass(
             libraryUri: libraryUri,
+            name: interfaceName,
           );
         }
 
@@ -154,24 +140,14 @@ class BundleRequirementsManifest {
           var memberName = memberEntry.key;
           var memberItem = interfaceItem.members[memberName];
           var expectedId = memberEntry.value;
-          if (expectedId == null) {
-            if (memberItem != null) {
-              return InstanceMemberPresent();
-            }
-          } else {
-            if (memberItem == null) {
-              return InstanceMemberMissing();
-            }
-            var actualId = memberItem.id;
-            if (actualId != expectedId) {
-              return InstanceMemberIdMismatch(
-                libraryUri: libraryUri,
-                interfaceName: interfaceName,
-                memberName: memberName,
-                expectedId: expectedId,
-                actualId: actualId,
-              );
-            }
+          if (expectedId != memberItem?.id) {
+            return InstanceMemberIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              memberName: memberName,
+              expectedId: expectedId,
+              actualId: memberItem?.id,
+            );
           }
         }
       }
@@ -203,7 +179,8 @@ class BundleRequirementsManifest {
     var libraryElement = element.library2 as LibraryElementImpl;
     var manifest = libraryElement.manifest;
 
-    // TODO(scheglov): can this happen?
+    // If we are linking the library, its manifest is not set yet.
+    // But then we also don't care about this dependency.
     if (manifest == null) {
       return;
     }
@@ -303,7 +280,8 @@ class BundleRequirementsManifest {
     for (var fragment in libraryElement.fragments) {
       for (var export in fragment.libraryExports) {
         var exportedLibrary = export.exportedLibrary;
-        // TODO(scheglov): record this
+
+        // If no library, then there is nothing to re-export.
         if (exportedLibrary == null) {
           continue;
         }
