@@ -202,6 +202,7 @@ DirectiveAfterDeclaration/script1: Fail
 DirectiveAfterDeclaration/script2: Fail
 DotShorthandsInvalidContext/analyzerCode: Fail # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
 DotShorthandsUndefinedGetter/analyzerCode: Fail # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
+DotShorthandsUndefinedInvocation/analyzerCode: Fail # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
 DuplicateDeferred/example: Fail
 DuplicatePrefix/example: Fail
 DuplicatedDeclarationUse/analyzerCode: Fail # No corresponding analyzer code.

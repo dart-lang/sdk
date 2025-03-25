@@ -1,0 +1,46 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dot_shorthands/static_method_error.dart:12:14: Error: The static method or constructor 'red' isn't defined for the type 'Color'.
+//  - 'Color' is from 'pkg/front_end/testcases/dot_shorthands/static_method_error.dart'.
+// Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named 'red'.
+//   Color c = .red();
+//              ^^^
+//
+// pkg/front_end/testcases/dot_shorthands/static_method_error.dart:13:15: Error: The static method or constructor 'blue' isn't defined for the type 'Color'.
+//  - 'Color' is from 'pkg/front_end/testcases/dot_shorthands/static_method_error.dart'.
+// Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named 'blue'.
+//   Color cc = .blue();
+//               ^^^^
+//
+// pkg/front_end/testcases/dot_shorthands/static_method_error.dart:14:14: Error: No type was provided to find the dot shorthand 'yellow'.
+//   var ccc = .yellow();
+//              ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Color extends core::Object {
+  final field core::int x;
+  constructor •(core::int x) → self::Color
+    : self::Color::x = x, super core::Object::•()
+    ;
+  static get red() → self::Color
+    return new self::Color::•(1);
+}
+static method test() → void {
+  self::Color c = invalid-expression "pkg/front_end/testcases/dot_shorthands/static_method_error.dart:12:14: Error: The static method or constructor 'red' isn't defined for the type 'Color'.
+ - 'Color' is from 'pkg/front_end/testcases/dot_shorthands/static_method_error.dart'.
+Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named 'red'.
+  Color c = .red();
+             ^^^" as{TypeError,ForDynamic} self::Color;
+  self::Color cc = invalid-expression "pkg/front_end/testcases/dot_shorthands/static_method_error.dart:13:15: Error: The static method or constructor 'blue' isn't defined for the type 'Color'.
+ - 'Color' is from 'pkg/front_end/testcases/dot_shorthands/static_method_error.dart'.
+Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named 'blue'.
+  Color cc = .blue();
+              ^^^^" as{TypeError,ForDynamic} self::Color;
+  dynamic ccc = invalid-expression "pkg/front_end/testcases/dot_shorthands/static_method_error.dart:14:14: Error: No type was provided to find the dot shorthand 'yellow'.
+  var ccc = .yellow();
+             ^^^^^^";
+}

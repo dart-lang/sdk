@@ -7440,3 +7440,15 @@ DotShorthandsUndefinedGetter:
     void main() {
       C c = .foo;
     }
+
+DotShorthandsUndefinedInvocation:
+  problemMessage: "The static method or constructor '#name' isn't defined for the type '#type'."
+  correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'."
+  experiments: dot-shorthands
+  script: >
+    class C {
+      C foo() => C();
+    }
+    void main() {
+      C c = .foo();
+    }
