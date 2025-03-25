@@ -9402,6 +9402,78 @@ void foo<T>() {}
     );
   }
 
+  test_manifest_topLevelGetter_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get a => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+int get a => 0;
+int get b => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+    );
+  }
+
+  test_manifest_topLevelGetter_body() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get a => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+int get a => 1;
+''',
+      expectedUpdatedEvents: r'''
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+''',
+    );
+  }
+
+  test_manifest_topLevelGetter_returnType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get a => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+double get a => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+''',
+    );
+  }
+
   test_manifest_topLevelVariable_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
