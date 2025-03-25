@@ -15,8 +15,9 @@ import 'utils.dart';
 /// Here we'll fire both `edit.getFixes` (seen in reports from users)
 /// and `edit.getAssists` (which seems, locally at least, to happen every time
 /// the cursor moves).
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   await runHelper(
+    args,
     LegacyManyGetFixesAndGetAssisstRequestsBenchmark.new,
     runAsLsp: false,
     // The number of files doesn't seem to be important on this one.
@@ -34,6 +35,7 @@ class LegacyManyGetFixesAndGetAssisstRequestsBenchmark
   final RunDetails runDetails;
 
   LegacyManyGetFixesAndGetAssisstRequestsBenchmark(
+    super.args,
     this.rootUri,
     this.cacheFolder,
     this.runDetails,
@@ -97,9 +99,11 @@ class LegacyManyGetFixesAndGetAssisstRequestsBenchmark
     durationInfo.add(
       DurationInfo('Completion after change', completionAfterChange),
     );
-    print(
-      'Got ${completionItems.length} completion items '
-      'in $completionAfterChange',
-    );
+    if (verbosity >= 0) {
+      print(
+        'Got ${completionItems.length} completion items '
+        'in $completionAfterChange',
+      );
+    }
   }
 }

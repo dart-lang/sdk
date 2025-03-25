@@ -11,8 +11,9 @@ import 'utils.dart';
 /// This benchmark does this 500 times (roughly equal to hovering for 4 seconds)
 /// and reports how long it takes before the analysis server is responsive again
 /// (measured by when it responds to a completion request).
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   await runHelper(
+    args,
     LegacyManyHoverRequestsBenchmark.new,
     runAsLsp: false,
     // The number of files doesn't seem to be important on this one.
@@ -29,6 +30,7 @@ class LegacyManyHoverRequestsBenchmark extends DartLanguageServerBenchmark {
   final RunDetails runDetails;
 
   LegacyManyHoverRequestsBenchmark(
+    super.args,
     this.rootUri,
     this.cacheFolder,
     this.runDetails,
@@ -86,9 +88,11 @@ class LegacyManyHoverRequestsBenchmark extends DartLanguageServerBenchmark {
     durationInfo.add(
       DurationInfo('Completion after change', completionAfterChange),
     );
-    print(
-      'Got ${completionItems.length} completion items '
-      'in $completionAfterChange',
-    );
+    if (verbosity >= 0) {
+      print(
+        'Got ${completionItems.length} completion items '
+        'in $completionAfterChange',
+      );
+    }
   }
 }

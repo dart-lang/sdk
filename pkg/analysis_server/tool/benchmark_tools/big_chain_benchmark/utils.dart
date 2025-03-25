@@ -127,7 +127,9 @@ String getFilenameFor(int i) {
 }
 
 Future<void> runHelper(
+  List<String> args,
   DartLanguageServerBenchmark Function(
+    List<String> args,
     Uri rootUri,
     Uri cacheFolder,
     RunDetails runDetails,
@@ -135,9 +137,29 @@ Future<void> runHelper(
   benchmarkCreator, {
   required bool runAsLsp,
   List<int> numberOfFileOptions = const [16, 32, 64, 128, 256, 512, 1024],
+  List<CodeType> codeTypes = CodeType.values,
 }) async {
+  int verbosity = 0;
+  for (String arg in args) {
+    if (arg.startsWith('--files=')) {
+      numberOfFileOptions =
+          arg.substring('--files='.length).split(',').map(int.parse).toList();
+    } else if (arg.startsWith('--types=')) {
+      codeTypes = [];
+      for (var type in arg.substring('--types='.length).split(',')) {
+        type = type.toLowerCase();
+        for (var value in CodeType.values) {
+          if (value.name.toLowerCase().contains(type)) {
+            codeTypes.add(value);
+          }
+        }
+      }
+    } else if (arg.startsWith('--verbosity=')) {
+      verbosity = int.parse(arg.substring('--verbosity='.length));
+    }
+  }
   StringBuffer sb = StringBuffer();
-  for (CodeType codeType in CodeType.values) {
+  for (CodeType codeType in codeTypes) {
     for (int numFiles in numberOfFileOptions) {
       Directory tmpDir = Directory.systemTemp.createTempSync('lsp_benchmark');
       try {
@@ -146,37 +168,47 @@ Future<void> runHelper(
         Directory dartDir = Directory.fromUri(tmpDir.uri.resolve('dart/'))
           ..createSync(recursive: true);
         var runDetails = copyData(dartDir.uri, numFiles, codeType);
-        var benchmark = benchmarkCreator(dartDir.uri, cacheDir.uri, runDetails);
+        var benchmark = benchmarkCreator(
+          args,
+          dartDir.uri,
+          cacheDir.uri,
+          runDetails,
+        );
         try {
+          benchmark.verbosity = verbosity;
           await benchmark.run();
         } finally {
           benchmark.exit();
         }
 
-        print('====================');
-        print('$numFiles files / $codeType:');
+        if (verbosity >= 0) print('====================');
+        if (verbosity >= 0) print('$numFiles files / $codeType:');
         sb.writeln('$numFiles files / $codeType:');
         for (var durationInfo in benchmark.durationInfo) {
-          print(
-            '${durationInfo.name}: '
-            '${formatDuration(durationInfo.duration)}',
-          );
+          if (verbosity >= 0) {
+            print(
+              '${durationInfo.name}: '
+              '${formatDuration(durationInfo.duration)}',
+            );
+          }
           sb.writeln(
             '${durationInfo.name}: '
             '${formatDuration(durationInfo.duration)}',
           );
         }
         for (var memoryInfo in benchmark.memoryInfo) {
-          print(
-            '${memoryInfo.name}: '
-            '${formatKb(memoryInfo.kb)}',
-          );
+          if (verbosity >= 0) {
+            print(
+              '${memoryInfo.name}: '
+              '${formatKb(memoryInfo.kb)}',
+            );
+          }
           sb.writeln(
             '${memoryInfo.name}: '
             '${formatKb(memoryInfo.kb)}',
           );
         }
-        print('====================');
+        if (verbosity >= 0) print('====================');
         sb.writeln();
       } finally {
         try {
@@ -187,7 +219,7 @@ Future<void> runHelper(
           try {
             tmpDir.deleteSync(recursive: true);
           } catch (e) {
-            print('Warning: $e');
+            if (verbosity >= 0) print('Warning: $e');
           }
         }
       }
