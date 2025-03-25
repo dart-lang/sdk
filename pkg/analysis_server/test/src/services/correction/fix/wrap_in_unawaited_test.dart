@@ -11,8 +11,8 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(WrapInUnawaitedTest);
     defineReflectiveTests(WrapDiscardedFutureInUnawaitedTest);
+    defineReflectiveTests(WrapInUnawaitedTest);
   });
 }
 
@@ -64,6 +64,19 @@ void f() {
 
 Future<void> g() async { }
 ''');
+  }
+
+  Future<void> test_futureOr() async {
+    await resolveTestCode('''
+import 'dart:async';
+
+FutureOr<void> g() async { }
+
+Future<void> f() {
+  g();
+}
+''');
+    await assertNoFix();
   }
 }
 
@@ -199,6 +212,25 @@ class C {
 Future<void> f() async {
   var c = C();
   unawaited(c.g());
+}
+''');
+  }
+
+  Future<void> test_subTypeOfFuture() async {
+    await resolveTestCode('''
+abstract class MyFuture implements Future<void> {}
+
+void f(MyFuture myFuture) async {
+  myFuture;
+}
+''');
+    await assertHasFix('''
+import 'dart:async';
+
+abstract class MyFuture implements Future<void> {}
+
+void f(MyFuture myFuture) async {
+  unawaited(myFuture);
 }
 ''');
   }

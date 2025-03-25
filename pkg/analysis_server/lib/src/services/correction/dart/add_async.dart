@@ -12,12 +12,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddAsync extends ResolvedCorrectionProducer {
-  // TODO(pq): consider adding a variation that adds an `await` as well.
-
   final _Type _type;
 
   /// Initialize a newly created producer.
   AddAsync({required super.context}) : _type = _Type.others;
+
+  AddAsync.discardedFutures({required super.context})
+    : _type = _Type.discardedFutures;
 
   AddAsync.missingReturn({required super.context})
     : _type = _Type.missingReturn;
@@ -92,7 +93,23 @@ class AddAsync extends ResolvedCorrectionProducer {
             );
           });
         }
-      case _Type.others:
+      default:
+        int? offset;
+        if (_type == _Type.discardedFutures) {
+          var expr = node;
+          if (expr.parent case MethodInvocation function) {
+            expr = function;
+            offset = function.offset;
+          }
+          if (expr.parent case FunctionExpressionInvocation function) {
+            expr = function;
+            offset = function.offset;
+          }
+          if (expr.parent case AwaitExpression awaitExpression) {
+            expr = awaitExpression;
+            offset = null;
+          }
+        }
         var body = node.thisOrAncestorOfType<FunctionBody>();
         if (body != null && body.keyword == null) {
           await builder.addDartFileEdit(file, (builder) {
@@ -101,6 +118,9 @@ class AddAsync extends ResolvedCorrectionProducer {
               typeSystem: typeSystem,
               typeProvider: typeProvider,
             );
+            if (offset != null) {
+              builder.addSimpleInsertion(offset, 'await ');
+            }
           });
         }
     }
@@ -240,6 +260,10 @@ enum _Type {
   /// Indicates whether the producer is producing a fix in the case
   /// where a function is missing a return at the end.
   missingReturn,
+
+  /// Indicates whether the producer is producing a fix in the case
+  /// where the discaded_futures lint is triggered.
+  discardedFutures,
 
   /// Indicates whether the producer is producing a fix that adds `async`
   /// to a function that is missing it. In cases where the error/lint is

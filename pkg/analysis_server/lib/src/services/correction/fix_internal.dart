@@ -344,7 +344,10 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.directives_ordering_package_before_relative: [
     OrganizeImports.new,
   ],
-  LinterLintCode.discarded_futures: [AddAsync.new, WrapInUnawaited.new],
+  LinterLintCode.discarded_futures: [
+    AddAsync.discardedFutures,
+    WrapInUnawaited.new,
+  ],
   LinterLintCode.empty_catches: [RemoveEmptyCatch.new],
   LinterLintCode.empty_constructor_bodies: [RemoveEmptyConstructorBody.new],
   LinterLintCode.empty_statements: [
