@@ -40,6 +40,11 @@ _dart2wasm_builder(
 )
 
 _dart2wasm_builder(
+    "dart2wasm-asserts-minified-linux-d8",
+    category = "d2w|d|m",
+)
+
+_dart2wasm_builder(
     "dart2wasm-linux-optimized-jsc",
     category = "d2w|j",
     properties = [js_engines],
