@@ -788,6 +788,8 @@ abstract class Member implements Element, ElementOrMember {
     }
   }
 
+  Element2 get baseElement;
+
   @override
   List<Element> get children => const [];
 
@@ -1103,7 +1105,7 @@ class ParameterMember extends VariableMember
     with ParameterElementMixin, FormalParameterElementMixin
     implements ParameterElement {
   @override
-  final List<TypeParameterElement> typeParameters;
+  final List<TypeParameterElementImpl> typeParameters;
 
   factory ParameterMember({
     required ParameterElementImpl declaration,
@@ -1212,12 +1214,12 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElementMixin> get parameters {
     var type = this.type;
     if (type is FunctionTypeImpl) {
       return type.parameters;
     }
-    return const <ParameterElement>[];
+    return const <ParameterElementMixin>[];
   }
 
   @override

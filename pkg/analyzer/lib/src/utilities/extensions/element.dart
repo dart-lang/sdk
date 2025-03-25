@@ -426,6 +426,12 @@ extension ExtensionElementExtension on ExtensionElement {
   }
 }
 
+extension ExtensionElementImpl2Extension on ExtensionElementImpl2 {
+  ExtensionElementImpl get asElement {
+    return firstFragment;
+  }
+}
+
 extension ExtensionElementImplExtension on ExtensionElementImpl {
   ExtensionElementImpl2 get asElement2 {
     return element;
@@ -519,6 +525,12 @@ extension InstanceElement2Extension on InstanceElement2 {
 extension InstanceElementExtension on InstanceElement {
   InstanceElement2 get asElement2 {
     return (this as InstanceElementImpl).element;
+  }
+}
+
+extension InstanceElementImpl2Extension on InstanceElementImpl2 {
+  InstanceElementImpl get asElement {
+    return firstFragment;
   }
 }
 
@@ -833,6 +845,13 @@ extension TopLevelVariableElement2Extension on TopLevelVariableElement2 {
 extension TopLevelVariableElementExtension on TopLevelVariableElement {
   TopLevelVariableElement2 get asElement2 {
     return (this as TopLevelVariableElementImpl).element;
+  }
+}
+
+extension TopLevelVariableElementImpl2Extension
+    on TopLevelVariableElementImpl2 {
+  TopLevelVariableElementImpl get asElement {
+    return firstFragment;
   }
 }
 

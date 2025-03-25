@@ -9516,7 +9516,13 @@ mixin ParameterElementMixin
   ParameterKind get parameterKind;
 
   @override
+  List<ParameterElementMixin> get parameters;
+
+  @override
   TypeImpl get type;
+
+  @override
+  List<TypeParameterElementImpl> get typeParameters;
 
   @override
   void appendToWithoutDelimiters(
@@ -11785,7 +11791,8 @@ abstract class VariableElementImpl2 extends ElementImpl2
 
 /// Common base class for all analyzer-internal classes that implement
 /// `VariableElement`.
-abstract class VariableElementOrMember implements VariableElement {
+abstract class VariableElementOrMember
+    implements ElementOrMember, VariableElement {
   @override
   TypeImpl get type;
 }
