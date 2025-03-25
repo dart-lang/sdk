@@ -1710,6 +1710,9 @@ mixin ConstructorElementMixin
   ConstructorElementImpl get declaration;
 
   @override
+  InterfaceElementImpl get enclosingElement3;
+
+  @override
   bool get isDefaultConstructor {
     // unnamed
     if (name.isNotEmpty) {
@@ -2619,7 +2622,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
   }
 
   @override
-  Element? get enclosingElement3 => _enclosingElement3;
+  ElementImpl? get enclosingElement3 => _enclosingElement3;
 
   /// Set the enclosing element of this element to the given [element].
   set enclosingElement3(Element? element) {
@@ -3629,7 +3632,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   ExecutableElementImpl2 get element;
 
   @override
-  Element get enclosingElement3 {
+  ElementImpl get enclosingElement3 {
     return super.enclosingElement3!;
   }
 
@@ -6784,8 +6787,8 @@ class LabelElementImpl extends ElementImpl
   LabelElement2 get element => element2;
 
   @override
-  ExecutableElement get enclosingElement3 =>
-      super.enclosingElement3 as ExecutableElement;
+  ExecutableElementImpl get enclosingElement3 =>
+      super.enclosingElement3 as ExecutableElementImpl;
 
   @override
   ExecutableFragment get enclosingFragment =>
@@ -9925,11 +9928,6 @@ sealed class PropertyAccessorElementImpl extends ExecutableElementImpl
   PropertyAccessorElementImpl2 get element;
 
   @override
-  ElementImpl get enclosingElement3 {
-    return super.enclosingElement3 as ElementImpl;
-  }
-
-  @override
   Fragment get enclosingFragment {
     var enclosing = enclosingElement3;
     if (enclosing is InstanceFragment) {
@@ -10981,8 +10979,8 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   String get displayName => name;
 
   @override
-  CompilationUnitElement get enclosingElement3 =>
-      super.enclosingElement3 as CompilationUnitElement;
+  CompilationUnitElementImpl get enclosingElement3 =>
+      super.enclosingElement3 as CompilationUnitElementImpl;
 
   @override
   LibraryFragment? get enclosingFragment =>

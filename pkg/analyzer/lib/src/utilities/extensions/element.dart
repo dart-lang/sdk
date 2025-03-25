@@ -275,7 +275,7 @@ extension Element2OrNullExtension on Element2? {
 }
 
 extension ElementImplExtension on ElementImpl {
-  ElementImpl? get enclosingElementImpl => enclosingElement3 as ElementImpl?;
+  ElementImpl? get enclosingElementImpl => enclosingElement3;
 
   AnnotationImpl annotationAst(int index) {
     return metadata[index].annotationAst;

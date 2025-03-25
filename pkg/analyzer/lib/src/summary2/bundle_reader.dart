@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
@@ -276,7 +274,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
   }
 
   /// Ensure that all members of the [element] are available. This includes
-  /// being able to ask them for example using [ClassElement.methods], and
+  /// being able to ask them for example using [ClassElement2.methods2], and
   /// as well access them through their [Reference]s. For a class declaration
   /// this means reading them, for a named mixin application this means
   /// computing constructors.
@@ -287,15 +285,15 @@ abstract class ElementLinkedData<E extends ElementImpl> {
     ElementImpl element,
   ) {
     var enclosing = element.enclosingElement3;
-    if (enclosing is InstanceElement) {
+    if (enclosing is InstanceElementImpl) {
       reader._addTypeParameters(enclosing.typeParameters);
-    } else if (enclosing is CompilationUnitElement) {
+    } else if (enclosing is CompilationUnitElementImpl) {
       // Nothing.
-    } else if (enclosing is EnumElement) {
+    } else if (enclosing is EnumElementImpl) {
       reader._addTypeParameters(enclosing.typeParameters);
-    } else if (enclosing is ExtensionElement) {
+    } else if (enclosing is ExtensionElementImpl) {
       reader._addTypeParameters(enclosing.typeParameters);
-    } else if (enclosing is MixinElement) {
+    } else if (enclosing is MixinElementImpl) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else {
       throw UnimplementedError('${enclosing.runtimeType}');
@@ -308,10 +306,9 @@ abstract class ElementLinkedData<E extends ElementImpl> {
 
   void _readFormalParameters(
     ResolutionReader reader,
-    List<ParameterElement> parameters,
+    List<ParameterElementImpl> parameters,
   ) {
     for (var parameter in parameters) {
-      parameter as ParameterElementImpl;
       parameter.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -333,11 +330,10 @@ abstract class ElementLinkedData<E extends ElementImpl> {
 
   void _readTypeParameters(
     ResolutionReader reader,
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
   ) {
     reader._addTypeParameters(typeParameters);
     for (var typeParameter in typeParameters) {
-      typeParameter as TypeParameterElementImpl;
       typeParameter.metadata = reader._readAnnotationList(
         unitElement: unitElement,
       );
@@ -1126,10 +1122,10 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     ElementImpl classElement,
     Reference classReference,
-    List<PropertyAccessorElement> accessors,
-    List<FieldElement> variables,
+    List<PropertyAccessorElementImpl> accessors,
+    List<FieldElementImpl> variables,
   ) {
-    var createdElements = <FieldElement>[];
+    var createdElements = <FieldElementImpl>[];
     var variableElementCount = _reader.readUInt30();
     for (var i = 0; i < variableElementCount; i++) {
       var variable =
@@ -1520,8 +1516,8 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     ElementImpl enclosingElement,
     Reference enclosingReference,
-    List<PropertyAccessorElement> accessorFragments,
-    List<PropertyInducingElement> propertyFragments,
+    List<PropertyAccessorElementImpl> accessorFragments,
+    List<PropertyInducingElementImpl> propertyFragments,
     String containerRefName, {
     List<TopLevelVariableElementImpl2>? variables2,
   }) {
@@ -1545,7 +1541,7 @@ class LibraryReader {
 
       var name = accessor.displayName;
 
-      bool canUseExisting(PropertyInducingElement property) {
+      bool canUseExisting(PropertyInducingElementImpl property) {
         return property.isSynthetic ||
             accessor.isSetter && property.setter == null;
       }
@@ -1949,12 +1945,12 @@ class ResolutionReader {
   final _ReferenceReader _referenceReader;
   final SummaryDataReader _reader;
 
-  /// The stack of [TypeParameterElement]s and [ParameterElement] that are
+  /// The stack of [TypeParameterElementImpl]s and [ParameterElementImpl] that are
   /// available in the scope of [readElement] and [readType].
   ///
   /// This stack is shared with the client of the reader, and update mostly
   /// by the client. However it is also updated during [_readFunctionType].
-  final List<Element> _localElements = [];
+  final List<ElementImpl> _localElements = [];
 
   ResolutionReader(
     this._elementFactory,
@@ -1987,7 +1983,7 @@ class ResolutionReader {
     }
 
     if (memberFlags == Tag.RawElement) {
-      return element as ElementOrMember;
+      return element;
     }
 
     if (memberFlags == Tag.MemberWithTypeArguments) {
@@ -2006,28 +2002,29 @@ class ResolutionReader {
         );
       }
 
-      if (element is ExecutableElementOrMember) {
-        element = ExecutableMember.from2(element, substitution);
+      if (element is ExecutableElementImpl) {
+        return ExecutableMember.from2(element, substitution);
       } else {
         element as FieldElementImpl;
-        element = FieldMember.from2(element, substitution);
+        return FieldMember.from2(element, substitution);
       }
-    }
-
-    if (memberFlags == Tag.MemberWithTypeArguments) {
-      return element as ElementOrMember;
     }
 
     throw UnimplementedError('memberFlags: $memberFlags');
   }
 
   Element2? readElement2() {
-    var element = readElement() as Element?;
-    return element?.asElement2;
-  }
-
-  List<T> readElementList<T extends Element>() {
-    return _reader.readTypedListCast<T>(readElement);
+    var element = readElement();
+    switch (element) {
+      case null:
+        return null;
+      case ElementImpl():
+        return element.asElement2;
+      case ExecutableMember():
+        return element;
+      default:
+        throw UnimplementedError('${element.runtimeType}');
+    }
   }
 
   List<T> readElementList2<T extends Element2>() {
@@ -2157,13 +2154,13 @@ class ResolutionReader {
     _reader.offset = offset;
   }
 
-  void _addFormalParameters(List<ParameterElement> parameters) {
+  void _addFormalParameters(List<ParameterElementImpl> parameters) {
     for (var parameter in parameters) {
       _localElements.add(parameter);
     }
   }
 
-  void _addTypeParameters(List<TypeParameterElement> typeParameters) {
+  void _addTypeParameters(List<TypeParameterElementImpl> typeParameters) {
     for (var typeParameter in typeParameters) {
       _localElements.add(typeParameter);
     }
@@ -2368,7 +2365,7 @@ class ResolutionReader {
     return readType() as InterfaceType?;
   }
 
-  Element? _readRawElement() {
+  ElementImpl? _readRawElement() {
     var index = _reader.readUInt30();
 
     if ((index & 0x1) == 0x1) {
