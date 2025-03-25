@@ -4,11 +4,13 @@
 
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
+import 'package:analyzer/src/fine/manifest_ast.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ClassItem extends TopLevelItem {
   final List<ManifestTypeParameter> typeParameters;
@@ -242,6 +244,37 @@ class InstanceMethodItem extends InstanceMemberItem {
   }
 }
 
+class ManifestAnnotation {
+  final ManifestNode ast;
+
+  ManifestAnnotation({
+    required this.ast,
+  });
+
+  factory ManifestAnnotation.read(SummaryDataReader reader) {
+    return ManifestAnnotation(
+      ast: ManifestNode.read(reader),
+    );
+  }
+
+  bool match(MatchContext context, ElementAnnotationImpl annotation) {
+    var annotationAst = annotation.annotationAst;
+    if (!ast.match(context, annotationAst)) {
+      return false;
+    }
+    return true;
+  }
+
+  static ManifestAnnotation encode(
+    EncodeContext context,
+    ElementAnnotationImpl annotation,
+  ) {
+    return ManifestAnnotation(
+      ast: ManifestNode.encode(context, annotation.annotationAst),
+    );
+  }
+}
+
 sealed class ManifestItem {
   void write(BufferedSink sink);
 }
@@ -301,12 +334,14 @@ class TopLevelFunctionItem extends TopLevelItem {
 }
 
 class TopLevelGetterItem extends TopLevelItem {
+  final List<ManifestAnnotation> metadata;
   final ManifestType returnType;
 
   TopLevelGetterItem({
     required super.libraryUri,
     required super.name,
     required super.id,
+    required this.metadata,
     required this.returnType,
   });
 
@@ -320,6 +355,9 @@ class TopLevelGetterItem extends TopLevelItem {
       libraryUri: element.library2.uri,
       name: name,
       id: id,
+      metadata: element.metadata2.annotations.map((annotation) {
+        return ManifestAnnotation.encode(context, annotation);
+      }).toFixedList(),
       returnType: element.returnType.encode(context),
     );
   }
@@ -329,16 +367,29 @@ class TopLevelGetterItem extends TopLevelItem {
       libraryUri: reader.readUri(),
       name: LookupName.read(reader),
       id: ManifestItemId.read(reader),
+      metadata: reader.readTypedList(() => ManifestAnnotation.read(reader)),
       returnType: ManifestType.read(reader),
     );
   }
 
   MatchContext? match(GetterElementImpl element) {
     var context = MatchContext(parent: null);
-    if (returnType.match(context, element.returnType)) {
-      return context;
+
+    var annotations = element.metadata2.annotations;
+    if (annotations.length != metadata.length) {
+      return null;
     }
-    return null;
+    for (var i = 0; i < metadata.length; i++) {
+      if (!metadata[i].match(context, annotations[i])) {
+        return null;
+      }
+    }
+
+    if (!returnType.match(context, element.returnType)) {
+      return null;
+    }
+
+    return context;
   }
 
   @override

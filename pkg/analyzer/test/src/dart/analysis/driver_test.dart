@@ -8894,6 +8894,110 @@ class A {}
     );
   }
 
+  test_manifest_metadata() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@deprecated
+int get a => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+@deprecated
+int get a => 0;
+int get b => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+      b: #M1
+''',
+    );
+  }
+
+  test_manifest_metadata_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get a => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+@deprecated
+int get a => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_metadata_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@deprecated
+int get a => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+int get a => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+''',
+    );
+  }
+
+  test_manifest_metadata_simpleIdentifier_change() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@deprecated
+int get a => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M0
+''',
+      updatedCode: r'''
+@override
+int get a => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      a: #M1
+''',
+    );
+  }
+
   test_manifest_topLevelFunction_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''

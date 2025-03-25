@@ -4954,7 +4954,7 @@ mixin FragmentedAnnotatableElementMixin<E extends Fragment>
     return result;
   }
 
-  Metadata get metadata2 =>
+  MetadataImpl get metadata2 =>
       MetadataImpl(-1, metadata.cast<ElementAnnotationImpl>());
 
   Version? get sinceSdkVersion {
