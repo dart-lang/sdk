@@ -11254,8 +11254,7 @@ int get b => 0;
     configuration.elementTextConfiguration
       ..withLibraryFragments = false
       ..withReferences = false
-      ..withSyntheticGetters = false
-      ..withV1 = false;
+      ..withSyntheticGetters = false;
 
     switch (operation) {
       case _FineOperationAddTestFile():

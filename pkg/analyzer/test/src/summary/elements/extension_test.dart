@@ -28,19 +28,6 @@ extension E on int {}''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensions
-        E @34
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          documentationComment: /// aaa\n/// bbbb\n/// cc
-          extendedType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -62,33 +49,6 @@ extension E on int {
   static const x = 0;
 }''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensions
-        E @10
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          fields
-            static const x @36
-              reference: <testLibraryFragment>::@extension::E::@field::x
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              type: int
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                IntegerLiteral
-                  literal: 0 @40
-                  staticType: int
-          accessors
-            synthetic static get x @-1
-              reference: <testLibraryFragment>::@extension::E::@getter::x
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -136,22 +96,6 @@ extension E<T extends num> on int {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensions
-        E @10
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @12
-              bound: num
-              defaultType: num
-          extendedType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -177,21 +121,6 @@ library
 extension E<T> on int {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensions
-        E @10
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @12
-              defaultType: dynamic
-          extendedType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -225,86 +154,6 @@ extension E<@foo T> on int {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensions
-        E @31
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @16
-              name: SimpleIdentifier
-                token: foo @17
-                staticElement: <testLibraryFragment>::@getter::foo
-                element: <testLibraryFragment>::@getter::foo#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::foo
-              element2: <testLibraryFragment>::@getter::foo#element
-          typeParameters
-            covariant T @38
-              defaultType: dynamic
-              metadata
-                Annotation
-                  atSign: @ @33
-                  name: SimpleIdentifier
-                    token: foo @34
-                    staticElement: <testLibraryFragment>::@getter::foo
-                    element: <testLibraryFragment>::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@getter::foo
-                  element2: <testLibraryFragment>::@getter::foo#element
-          extendedType: int
-          fields
-            static const foo @65
-              reference: <testLibraryFragment>::@extension::E::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              type: int
-              shouldUseTypeForInitializerInference: false
-              constantInitializer
-                IntegerLiteral
-                  literal: 1 @71
-                  staticType: int
-          accessors
-            synthetic static get foo @-1
-              reference: <testLibraryFragment>::@extension::E::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              returnType: int
-          methods
-            bar @88
-              reference: <testLibraryFragment>::@extension::E::@method::bar
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              metadata
-                Annotation
-                  atSign: @ @76
-                  name: SimpleIdentifier
-                    token: foo @77
-                    staticElement: <testLibraryFragment>::@extension::E::@getter::foo
-                    element: <testLibraryFragment>::@extension::E::@getter::foo#element
-                    staticType: null
-                  element: <testLibraryFragment>::@extension::E::@getter::foo
-                  element2: <testLibraryFragment>::@extension::E::@getter::foo#element
-              returnType: void
-      topLevelVariables
-        static const foo @6
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @12
-              staticType: int
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -432,63 +281,6 @@ extension E on A {}''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @22
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-      extensions
-        E @50
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          metadata
-            Annotation
-              atSign: @ @27
-              name: SimpleIdentifier
-                token: a @28
-                staticElement: <testLibraryFragment>::@getter::a
-                element: <testLibraryFragment>::@getter::a#element
-                staticType: null
-              element: <testLibraryFragment>::@getter::a
-              element2: <testLibraryFragment>::@getter::a#element
-            Annotation
-              atSign: @ @30
-              name: SimpleIdentifier
-                token: Object @31
-                staticElement: dart:core::<fragment>::@class::Object
-                element: dart:core::@class::Object
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @37
-                rightParenthesis: ) @38
-              element: dart:core::<fragment>::@class::Object::@constructor::new
-              element2: dart:core::<fragment>::@class::Object::@constructor::new#element
-          extendedType: A
-      topLevelVariables
-        static const a @6
-          reference: <testLibraryFragment>::@topLevelVariable::a
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-          shouldUseTypeForInitializerInference: false
-          constantInitializer
-            NullLiteral
-              literal: null @10
-              staticType: Null
-      accessors
-        synthetic static get a @-1
-          reference: <testLibraryFragment>::@getter::a
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -554,30 +346,6 @@ extension E on int {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensions
-        E @10
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@extension::E::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              type: int
-              nonSynthetic: <testLibraryFragment>::@extension::E::@getter::foo
-          accessors
-            get foo @31
-              reference: <testLibraryFragment>::@extension::E::@getter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              returnType: int
-              nonSynthetic: <testLibraryFragment>::@extension::E::@getter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -617,34 +385,6 @@ extension E on int {
 ''');
     configuration.withNonSynthetic = true;
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensions
-        E @10
-          reference: <testLibraryFragment>::@extension::E
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-          fields
-            synthetic foo @-1
-              reference: <testLibraryFragment>::@extension::E::@field::foo
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              type: int
-              nonSynthetic: <testLibraryFragment>::@extension::E::@setter::foo
-          accessors
-            set foo= @27
-              reference: <testLibraryFragment>::@extension::E::@setter::foo
-              enclosingElement3: <testLibraryFragment>::@extension::E
-              parameters
-                requiredPositional value @35
-                  type: int
-                  nonSynthetic: <testLibraryFragment>::@extension::E::@setter::foo::@parameter::value
-              returnType: void
-              nonSynthetic: <testLibraryFragment>::@extension::E::@setter::foo
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -689,18 +429,6 @@ library
 extension on int {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      extensions
-        <null> @-1
-          reference: <testLibraryFragment>::@extension::0
-          enclosingElement3: <testLibraryFragment>
-          extendedType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments

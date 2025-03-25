@@ -28,21 +28,6 @@ Future f() async {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async
-          enclosingElement3: <testLibraryFragment>
-      functions
-        f @28 async
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: Future<dynamic>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -66,21 +51,6 @@ import 'dart:async';
 Stream f() async* {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryImports
-        dart:async
-          enclosingElement3: <testLibraryFragment>
-      functions
-        f @28 async*
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: Stream<dynamic>
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -110,19 +80,6 @@ f() {}''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @60
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          documentationComment: /**\n * Docs\n */
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -143,18 +100,6 @@ library
   test_function_entry_point() async {
     var library = await buildLibrary('main() {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        main @0
-          reference: <testLibraryFragment>::@function::main
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -178,16 +123,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryExports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -200,18 +135,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryExports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          combinators
-            hide: main
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -222,27 +145,6 @@ library
     newFile('$testPackageLibPath/a.dart', 'part of my.lib; main() {}');
     var library = await buildLibrary('library my.lib; part "a.dart";');
     checkElementText(library, r'''
-library
-  name: my.lib
-  nameOffset: 8
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      functions
-        main @16
-          reference: <testLibrary>::@fragment::package:test/a.dart::@function::main
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   name: my.lib
@@ -269,18 +171,6 @@ library
   test_function_external() async {
     var library = await buildLibrary('external f();');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        external f @9
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -321,13 +211,6 @@ f() => 0;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -339,21 +222,6 @@ library
 void f(const x) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional hasImplicitType x @13
-              type: dynamic
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -384,22 +252,6 @@ void f(int this.a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional final this.a @16
-              type: int
-              field: <null>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -426,27 +278,6 @@ library
 void f({int this.a: 42}) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            optionalNamed default final this.a @17
-              reference: <testLibraryFragment>::@function::f::@parameter::a
-              type: int
-              constantInitializer
-                IntegerLiteral
-                  literal: 42 @20
-                  staticType: int
-              field: <null>
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -486,25 +317,6 @@ void f(int this.a(int b)) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional final this.a @16
-              type: int Function(int)
-              parameters
-                requiredPositional b @22
-                  type: int
-              field: <null>
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -534,21 +346,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional final hasImplicitType x @8
-              type: dynamic
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -573,22 +370,6 @@ library
   test_function_parameter_kind_named() async {
     var library = await buildLibrary('f({x}) {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            optionalNamed default hasImplicitType x @3
-              reference: <testLibraryFragment>::@function::f::@parameter::x
-              type: dynamic
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -619,21 +400,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            optionalPositional default hasImplicitType x @3
-              type: dynamic
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -660,21 +426,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional hasImplicitType x @2
-              type: dynamic
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -699,26 +450,6 @@ library
   test_function_parameter_parameters() async {
     var library = await buildLibrary('f(g(x, y)) {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional g @2
-              type: dynamic Function(dynamic, dynamic)
-              parameters
-                requiredPositional hasImplicitType x @4
-                  type: dynamic
-                requiredPositional hasImplicitType y @7
-                  type: dynamic
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -752,21 +483,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional g @6
-              type: int Function()
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -791,21 +507,6 @@ library
   test_function_parameter_return_type_void() async {
     var library = await buildLibrary('f(void g()) {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional g @7
-              type: void Function()
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -834,21 +535,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional i @6
-              type: int
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -875,24 +561,6 @@ library
 void f<T>(T a) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @7
-              defaultType: dynamic
-          parameters
-            requiredPositional a @12
-              type: T
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -928,21 +596,6 @@ void f(A a) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @9
-              type: InvalidType
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -967,23 +620,6 @@ library
   test_function_parameters() async {
     var library = await buildLibrary('f(x, y) {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional hasImplicitType x @2
-              type: dynamic
-            requiredPositional hasImplicitType y @5
-              type: dynamic
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1016,18 +652,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1050,18 +674,6 @@ A f() {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @2
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: InvalidType
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1080,18 +692,6 @@ library
   test_function_return_type_void() async {
     var library = await buildLibrary('void f() {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1116,18 +716,6 @@ int f() => 0;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @4
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1148,21 +736,6 @@ library
 T f<T>() => throw 0;
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @2
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @4
-              defaultType: dynamic
-          returnType: T
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1188,29 +761,6 @@ library
   test_function_type_parameter_with_function_typed_parameter() async {
     var library = await buildLibrary('void f<T, U>(T x(U u)) {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @7
-              defaultType: dynamic
-            covariant U @10
-              defaultType: dynamic
-          parameters
-            requiredPositional x @15
-              type: T Function(U)
-              parameters
-                requiredPositional u @19
-                  type: U
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1259,22 +809,6 @@ void f<T extends num>() {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @7
-              bound: num
-              defaultType: num
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1303,21 +837,6 @@ void f<T>() {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @7
-              defaultType: dynamic
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1341,22 +860,6 @@ library
   test_functions() async {
     var library = await buildLibrary('f() {} g() {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @0
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        g @7
-          reference: <testLibraryFragment>::@function::g
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1388,18 +891,6 @@ get () => 0;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        get @0
-          reference: <testLibraryFragment>::@function::get
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1418,21 +909,6 @@ library
   test_main_class() async {
     var library = await buildLibrary('class main {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class main @6
-          reference: <testLibraryFragment>::@class::main
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::main::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::main
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1461,47 +937,6 @@ library
     var library =
         await buildLibrary('class main = C with D; class C {} class D {}');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class alias main @6
-          reference: <testLibraryFragment>::@class::main
-          enclosingElement3: <testLibraryFragment>
-          supertype: C
-          mixins
-            D
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::main::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::main
-              constantInitializers
-                SuperConstructorInvocation
-                  superKeyword: super @0
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticElement: <testLibraryFragment>::@class::C::@constructor::new
-                  element: <testLibraryFragment>::@class::C::@constructor::new#element
-              superConstructor: <testLibraryFragment>::@class::C::@constructor::new
-        class C @29
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-        class D @40
-          reference: <testLibraryFragment>::@class::D
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::D::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::D
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1573,16 +1008,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryExports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1595,16 +1020,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryExports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1614,23 +1029,6 @@ library
   test_main_getter() async {
     var library = await buildLibrary('get main => null;');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        synthetic static main @-1
-          reference: <testLibraryFragment>::@topLevelVariable::main
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-      accessors
-        static get main @4
-          reference: <testLibraryFragment>::@getter::main
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1663,16 +1061,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryExports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1682,19 +1070,6 @@ library
   test_main_typedef() async {
     var library = await buildLibrary('typedef main();');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      typeAliases
-        functionTypeAliasBased main @8
-          reference: <testLibraryFragment>::@typeAlias::main
-          aliasedType: dynamic Function()
-          aliasedElement: GenericFunctionTypeElement
-            returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1717,16 +1092,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryExports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1736,30 +1101,6 @@ library
   test_main_variable() async {
     var library = await buildLibrary('var main;');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      topLevelVariables
-        static main @4
-          reference: <testLibraryFragment>::@topLevelVariable::main
-          enclosingElement3: <testLibraryFragment>
-          type: dynamic
-      accessors
-        synthetic static get main @-1
-          reference: <testLibraryFragment>::@getter::main
-          enclosingElement3: <testLibraryFragment>
-          returnType: dynamic
-        synthetic static set main= @-1
-          reference: <testLibraryFragment>::@setter::main
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _main @-1
-              type: dynamic
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1807,16 +1148,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      libraryExports
-        package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1828,21 +1159,6 @@ library
 set (int _) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        set @0
-          reference: <testLibraryFragment>::@function::set
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _ @9
-              type: int
-          returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
