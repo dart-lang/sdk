@@ -10035,7 +10035,10 @@ class BodyBuilder extends StackListenerImpl
       } else if (selector is PropertySelector) {
         // e.g. `.zero`
         push(forest.createDotShorthandPropertyGet(
-            offsetForToken(token), selector.name));
+          offsetForToken(token),
+          selector.name,
+          nameOffset: offsetForToken(token.next),
+        ));
       }
     }
   }

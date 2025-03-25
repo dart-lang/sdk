@@ -55,8 +55,6 @@ Map<Symbol, Object?> _namedParametersToMap(WasmArray<Object?> namedArguments) {
 
 /// Converts a named parameter map passed to `Function.apply` to a list that
 /// can be passed to dynamic call vtable entries.
-///
-/// This is the opposite of [_namedParameterListToMap].
 @pragma("wasm:entry-point")
 WasmArray<Object?> _namedParameterMapToArray(
   Map<Symbol, Object?>? namedArguments,

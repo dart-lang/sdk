@@ -4,12 +4,11 @@
 
 class Color {
   final int x;
-  Color.red(this.x);
+  Color get red => Color(1);
+  Color(this.x);
 }
 
 void test() {
-  Color c = const .red(1);
-
-  // With whitespace
-  Color c = const .   red  (1);
+  var c = .red;
+  Color cc = .red;
 }

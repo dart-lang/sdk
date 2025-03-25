@@ -36,8 +36,6 @@ abstract class _Specializer {
       factory._jsObjectLiteralMethods;
   FunctionNode get function => interopMethod.function;
   Uri get fileUri => interopMethod.fileUri;
-  bool get hasOptionalPositionalParameters =>
-      function.requiredParameterCount < function.positionalParameters.length;
 
   /// Whether this config is associated with a constructor or factory.
   bool get isConstructor;
@@ -108,9 +106,8 @@ abstract class _Specializer {
   /// Creates a Dart procedure that calls out to a specialized JS method for the
   /// given [config] and returns the created procedure.
   Procedure _getOrCreateInteropProcedure() {
-    // Procedures with optional arguments are specialized at the
-    // invocation-level, so we cache if we've already created an interop
-    // procedure for the given number of parameters.
+    // Procedures are cached based on number of arguments they're passed at the
+    // call sites.
     Procedure? cachedProcedure =
         _overloadedProcedures[interopMethod]?[parameters.length];
     if (cachedProcedure != null) return cachedProcedure;
@@ -119,10 +116,6 @@ abstract class _Specializer {
         interopMethod, () => {})[parameters.length] = dartProcedure;
     return dartProcedure;
   }
-
-  Procedure _getInteropProcedure() => hasOptionalPositionalParameters
-      ? _getOrCreateInteropProcedure()
-      : _getRawInteropProcedure();
 }
 
 /// Config class for interop members that get lowered on the procedure side.
@@ -138,7 +131,7 @@ abstract class _ProcedureSpecializer extends _Specializer {
   Expression specialize() {
     // Return the replacement body.
     Expression invocation = StaticInvocation(
-        _getInteropProcedure(),
+        _getOrCreateInteropProcedure(),
         Arguments(parameters
             .map<Expression>((value) => StaticInvocation(
                 _util.jsifyTarget(value.type), Arguments([VariableGet(value)])))
@@ -233,7 +226,7 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
     // Create or get the specialized procedure for the invoked number of
     // arguments. Cast as needed and return the final invocation.
     final staticInvocation = StaticInvocation(
-        _getInteropProcedure(),
+        _getOrCreateInteropProcedure(),
         Arguments(invocation.arguments.positional
             .map<Expression>((expr) => StaticInvocation(
                 _util.jsifyTarget(expr.getStaticType(_staticTypeContext)),
@@ -340,7 +333,14 @@ class InteropSpecializerFactory {
   final StatefulStaticTypeContext _staticTypeContext;
   final CoreTypesUtil _util;
   final MethodCollector _methodCollector;
+
+  /// Maps an interop procedure to the trampolines based on number of arguments
+  /// they take.
+  ///
+  /// `_overloadedProcedures[procedure][numberOfArgs]` gives the trampoline that
+  /// should be called with `numberOfArgs` arguments.
   final Map<Procedure, Map<int, Procedure>> _overloadedProcedures = {};
+
   final Map<Procedure, Map<String, Procedure>> _jsObjectLiteralMethods = {};
   late final ExtensionIndex _extensionIndex;
 
@@ -435,8 +435,8 @@ class InteropSpecializerFactory {
         final clsString =
             _getTopLevelJSString(cls, cls.name, node.enclosingLibrary);
         final kind = nodeDescriptor.kind;
-        if ((kind == ExtensionTypeMemberKind.Constructor ||
-            kind == ExtensionTypeMemberKind.Factory)) {
+        if (kind == ExtensionTypeMemberKind.Constructor ||
+            kind == ExtensionTypeMemberKind.Factory) {
           return _getSpecializerForConstructor(
               _extensionIndex.isLiteralConstructor(node),
               node,
@@ -478,26 +478,29 @@ class InteropSpecializerFactory {
   }
 
   bool maybeSpecializeProcedure(Procedure node) {
-    if (node.isExternal) {
-      final specializer = _getSpecializer(node);
-      if (specializer != null) {
-        final expression = specializer.specialize();
-        final transformedBody = specializer.function.returnType is VoidType
-            ? ExpressionStatement(expression)
-            : ReturnStatement(expression);
-
-        // For the time being to support tearoffs we simply replace the body of
-        // the original procedure, but leave all the optional arguments intact.
-        // This unfortunately results in inconsistent behavior between the
-        // tearoff and the original functions.
-        // TODO(joshualitt): Decide if we should disallow tearoffs of external
-        // functions, and if so we can clean this up.
-        FunctionNode function = node.function;
-        function.body = transformedBody..parent = function;
-        node.isExternal = false;
-        return true;
-      }
+    if (!node.isExternal) {
+      return false;
     }
-    return false;
+
+    final specializer = _getSpecializer(node);
+    if (specializer == null) {
+      return false;
+    }
+
+    final expression = specializer.specialize();
+    final transformedBody = specializer.function.returnType is VoidType
+        ? ExpressionStatement(expression)
+        : ReturnStatement(expression);
+
+    // For the time being to support tearoffs we simply replace the body of the
+    // original procedure, but leave all the optional arguments intact. This
+    // unfortunately results in inconsistent behavior between the tearoff and
+    // the original functions.
+    // TODO(joshualitt): Decide if we should disallow tearoffs of external
+    // functions, and if so we can clean this up.
+    FunctionNode function = node.function;
+    function.body = transformedBody..parent = function;
+    node.isExternal = false;
+    return true;
   }
 }

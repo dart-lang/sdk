@@ -7420,3 +7420,23 @@ ImplicitSuperInitializerMissingArguments:
   analyzerCode: IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS
   script: |
     class A { A(int foo); } class B extends A { B(); }
+
+DotShorthandsInvalidContext:
+  problemMessage: "No type was provided to find the dot shorthand '#name'."
+  experiments: dot-shorthands
+  script: >
+    void main() {
+      var x = .one;
+    }
+
+DotShorthandsUndefinedGetter:
+  problemMessage: "The static getter or field '#name' isn't defined for the type '#type'."
+  correctionMessage: "Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#name'."
+  experiments: dot-shorthands
+  script: >
+    class C {
+      C get foo => C();
+    }
+    void main() {
+      C c = .foo;
+    }

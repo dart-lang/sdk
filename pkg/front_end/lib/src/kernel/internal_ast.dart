@@ -3259,8 +3259,8 @@ class DotShorthandInvocation extends InternalExpression {
   final Arguments arguments;
   final bool isConst;
 
-  DotShorthandInvocation(this.name, this.arguments, this.nameOffset,
-      {required this.isConst});
+  DotShorthandInvocation(this.name, this.arguments,
+      {required this.nameOffset, required this.isConst});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3290,9 +3290,10 @@ class DotShorthandInvocation extends InternalExpression {
 ///
 /// This node could represent a shorthand of a static get or a tearoff.
 class DotShorthandPropertyGet extends InternalExpression {
-  Name name;
+  final Name name;
+  final int nameOffset;
 
-  DotShorthandPropertyGet(this.name);
+  DotShorthandPropertyGet(this.name, {required this.nameOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
