@@ -7,13 +7,16 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
 abstract class PluginRegistry {
-  /// Register this fix [generator] for the given lint [code] with the
+  /// Registers this assist [generator] with the analyzer's rule registry.
+  void registerAssist(ProducerGenerator generator);
+
+  /// Registers this fix [generator] for the given lint [code] with the
   /// analyzer's rule registry.
   void registerFixForRule(LintCode code, ProducerGenerator generator);
 
-  /// Register this [rule] with the analyzer's rule registry.
+  /// Registers this [rule] with the analyzer's rule registry.
   void registerLintRule(AnalysisRule rule);
 
-  /// Register this [rule] with the analyzer's rule registry.
+  /// Registers this [rule] with the analyzer's rule registry.
   void registerWarningRule(AnalysisRule rule);
 }

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/src/correction/assist_core.dart';
+import 'package:analysis_server_plugin/src/correction/assist_dart.dart';
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -33,19 +33,16 @@ class CiderAssistsComputer {
 
     await _logger.runAsync('Compute assists', () async {
       try {
-        var workspace = DartChangeWorkspace([resolvedUnit.session]);
-        var context = DartAssistContextImpl(
+        var context = DartAssistContext(
           InstrumentationService.NULL_SERVICE,
-          workspace,
+          DartChangeWorkspace([resolvedUnit.session]),
           resolvedLibrary,
           resolvedUnit,
           offset,
           length,
         );
-        var processor = AssistProcessor(context);
-        var assists = await processor.compute();
-        assists.sort(Assist.compareAssists);
-        result.addAll(assists);
+        var assists = await computeAssists(context);
+        result.addAll(assists..sort(Assist.compareAssists));
       } on InconsistentAnalysisException {
         // If an InconsistentAnalysisException occurs, it's likely the user modified
         // the source and therefore is no longer interested in the results.

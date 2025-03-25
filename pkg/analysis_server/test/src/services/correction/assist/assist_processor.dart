@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/src/correction/assist_core.dart';
+import 'package:analysis_server_plugin/src/correction/assist_dart.dart';
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
@@ -202,7 +202,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     if (libraryResult == null) {
       return const [];
     }
-    var context = DartAssistContextImpl(
+    var context = DartAssistContext(
       TestInstrumentationService(),
       await workspace,
       libraryResult,
@@ -210,8 +210,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       _offset,
       _length,
     );
-    var processor = AssistProcessor(context);
-    return await processor.compute();
+    return await computeAssists(context);
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {

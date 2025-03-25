@@ -7,6 +7,9 @@ import 'dart:async';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/plugin.dart';
+import 'package:analysis_server_plugin/src/correction/assist_core.dart';
+import 'package:analysis_server_plugin/src/correction/assist_dart.dart';
+import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analysis_server_plugin/src/registry.dart';
@@ -96,6 +99,60 @@ class PluginServer {
           protocol.AnalysisSetPriorityFilesParams parameters) async {
     _priorityPaths = parameters.files.toSet();
     return protocol.AnalysisSetPriorityFilesResult();
+  }
+
+  /// Handles an 'edit.getAssists' request.
+  ///
+  /// Throws a [RequestFailure] if the request could not be handled.
+  Future<protocol.EditGetAssistsResult> handleEditGetAssists(
+      protocol.EditGetAssistsParams parameters) async {
+    var path = parameters.file;
+
+    var recentState = _recentState[path];
+    if (recentState == null) {
+      return protocol.EditGetAssistsResult(const []);
+    }
+
+    var (:analysisContext, :errors) = recentState;
+    var libraryResult =
+        await analysisContext.currentSession.getResolvedLibrary(path);
+    if (libraryResult is! ResolvedLibraryResult) {
+      return protocol.EditGetAssistsResult(const []);
+    }
+    var unitResult = libraryResult.unitWithPath(path);
+    if (unitResult is! ResolvedUnitResult) {
+      return protocol.EditGetAssistsResult(const []);
+    }
+
+    var context = DartAssistContext(
+      // TODO(srawlins): Use a real instrumentation service. Other
+      // implementations get InstrumentationService from AnalysisServer.
+      InstrumentationService.NULL_SERVICE,
+      DartChangeWorkspace([analysisContext.currentSession]),
+      libraryResult,
+      unitResult,
+      parameters.offset,
+      parameters.length,
+    );
+
+    List<Assist> assists;
+    try {
+      assists = await computeAssists(context);
+    } on InconsistentAnalysisException {
+      // TODO(srawlins): Is it important to at least log this? Or does it
+      // happen on the regular?
+      assists = [];
+    }
+
+    if (assists.isEmpty) {
+      return protocol.EditGetAssistsResult(const []);
+    }
+
+    var corrections = [
+      for (var assist in assists..sort(Assist.compareAssists))
+        protocol.PrioritizedSourceChange(assist.kind.priority, assist.change)
+    ];
+    return protocol.EditGetAssistsResult(corrections);
   }
 
   /// Handles an 'edit.getFixes' request.

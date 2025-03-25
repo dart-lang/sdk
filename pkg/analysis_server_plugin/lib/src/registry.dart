@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server_plugin/registry.dart';
+import 'package:analysis_server_plugin/src/correction/assist_generators.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -12,6 +13,11 @@ import 'package:analyzer/src/lint/registry.dart';
 final class PluginRegistryImpl implements PluginRegistry {
   /// Returns currently registered lint rules.
   Iterable<AnalysisRule> get registeredRules => Registry.ruleRegistry;
+
+  @override
+  void registerAssist(ProducerGenerator generator) {
+    registeredAssistGenerators.registerGenerator(generator);
+  }
 
   @override
   void registerFixForRule(LintCode code, ProducerGenerator generator) {
