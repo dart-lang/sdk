@@ -72,11 +72,19 @@ import 'dart:async';
 
 FutureOr<void> g() async { }
 
-Future<void> f() {
+void f() {
   g();
 }
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+import 'dart:async';
+
+FutureOr<void> g() async { }
+
+void f() {
+  unawaited(g());
+}
+''');
   }
 }
 

@@ -49,6 +49,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     var expr = node.expression;
     if (expr is AssignmentExpression) return;
 
+    if (_isEnclosedInAsyncFunctionBody(node)) {
+      return;
+    }
+
+    if (expr case AwaitExpression(:var expression)) {
+      expr = expression;
+    }
+
     var type = expr.staticType;
     if (type == null) {
       return;
@@ -60,17 +68,18 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      if (_isNotEnclosedInAsyncFunctionBody(node)) {
-        // Future expression statement that isn't awaited in synchronous
-        // function: while this is legal, it's a very frequent sign of an error.
-        _reportOnExpression(expr);
-      }
+      _reportOnExpression(expr);
     }
   }
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
     _visit(node.expression);
+  }
+
+  bool _isEnclosedInAsyncFunctionBody(AstNode node) {
+    var enclosingFunctionBody = node.thisOrAncestorOfType<FunctionBody>();
+    return enclosingFunctionBody?.isAsynchronous ?? false;
   }
 
   /// Detects `Future.delayed(duration, [computation])` creations with a
@@ -90,12 +99,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       expr.methodName.name == 'putIfAbsent' &&
       _isMapClass(expr.methodName.element?.enclosingElement2);
 
-  bool _isNotEnclosedInAsyncFunctionBody(AstNode node) {
-    var enclosingFunctionBody = node.thisOrAncestorOfType<FunctionBody>();
-    var isAsyncBody = enclosingFunctionBody?.isAsynchronous ?? false;
-    return !isAsyncBody;
-  }
-
   void _reportOnExpression(Expression expr) {
     rule.reportLint(switch (expr) {
       MethodInvocation(:var methodName) => methodName,
@@ -109,7 +112,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visit(Expression expr) {
     if ((expr.staticType.isFutureOrFutureOr) &&
-        _isNotEnclosedInAsyncFunctionBody(expr) &&
+        !_isEnclosedInAsyncFunctionBody(expr) &&
         expr is! AssignmentExpression) {
       _reportOnExpression(expr);
     }
