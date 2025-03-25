@@ -74,7 +74,7 @@ import 'stack_values.dart';
 import 'type_constraint_gatherer.dart';
 import 'type_inference_engine.dart';
 import 'type_inferrer.dart' show TypeInferrerImpl;
-import 'type_schema.dart' show UnknownType;
+import 'type_schema.dart' show UnknownType, isKnown;
 
 abstract class InferenceVisitor {
   /// Performs type inference on the given [expression].
@@ -12221,23 +12221,45 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Member? member =
         findStaticMember(cachedContext, node.name, node.fileOffset);
-
     ExpressionInferenceResult expressionInferenceResult;
-    if (member == null) {
-      // Coverage-ignore-block(suite): Not run.
-      // TODO(kallentu): This is temporary. Build a problem with an error
-      // specific to not being able to find a member named [node.name].
-      problems.unimplemented(
-          'Cannot find dot shorthand member of name ${node.name}',
-          node.fileOffset,
-          helper.uri);
-    } else if (member is Procedure && !member.isGetter) {
-      // Tearoff like `Object.new`;
-      expressionInferenceResult =
-          inferExpression(new StaticTearOff(member), cachedContext);
-    } else {
-      expressionInferenceResult =
-          inferExpression(new StaticGet(member), cachedContext);
+    switch (member) {
+      case Field():
+        expressionInferenceResult =
+            inferExpression(new StaticGet(member), cachedContext);
+      case Procedure():
+        if (member.isGetter) {
+          expressionInferenceResult =
+              inferExpression(new StaticGet(member), cachedContext);
+        } else {
+          // Tearoff like `Object.new`;
+          expressionInferenceResult =
+              inferExpression(new StaticTearOff(member), cachedContext);
+        }
+      case Constructor():
+      case null:
+        if (isKnown(cachedContext)) {
+          // Error when we can't find the static getter or field [node.name] in
+          // the declaration of [cachedContext].
+          expressionInferenceResult = new ExpressionInferenceResult(
+              const DynamicType(),
+              helper.buildProblem(
+                  templateDotShorthandsUndefinedGetter.withArguments(
+                      node.name.text, cachedContext),
+                  node.nameOffset,
+                  node.name.text.length));
+        } else {
+          // Error when no context type or an invalid context type is given to
+          // resolve the dot shorthand.
+          //
+          // e.g. `var x = .one;`
+          expressionInferenceResult = new ExpressionInferenceResult(
+              const DynamicType(),
+              helper.buildProblem(
+                  templateDotShorthandsInvalidContext
+                      .withArguments(node.name.text),
+                  node.nameOffset,
+                  node.name.text.length));
+        }
     }
 
     flowAnalysis.forwardExpression(expressionInferenceResult.expression, node);

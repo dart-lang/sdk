@@ -3,4 +3,4 @@ class Color {
   final int x;
 }
 
-void main() {}
+void test() {}

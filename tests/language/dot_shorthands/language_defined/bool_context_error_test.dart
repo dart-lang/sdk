@@ -17,63 +17,75 @@ extension type const Bool(bool _) implements bool {
 
 void main() {
   if (.one) {
-    // ^
+    // ^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] The static getter or field 'one' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (.isTrue) {
-    // ^
+    // ^^^^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (!.one) {
-    // ^
+    //  ^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] The static getter or field 'one' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (!.isTrue) {
-    // ^
+    //  ^^^^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (.one || .two) {
-    // ^
+    // ^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] The static getter or field 'one' isn't defined for the type 'bool'.
+    //         ^^^
+    // [analyzer] unspecified
+    // [cfe] The static getter or field 'two' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (.isTrue || .isFalse) {
-    // ^
+    // ^^^^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
+    //            ^^^^^^^
+    // [analyzer] unspecified
+    // [cfe] The static getter or field 'isFalse' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (.one && .two) {
-    // ^
+    // ^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] The static getter or field 'one' isn't defined for the type 'bool'.
+    //         ^^^
+    // [analyzer] unspecified
+    // [cfe] The static getter or field 'two' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (.isTrue && .isFalse) {
-    // ^
+    // ^^^^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
+    //            ^^^^^^^
+    // [analyzer] unspecified
+    // [cfe] The static getter or field 'isFalse' isn't defined for the type 'bool'.
     print('not ok');
   }
   while (.two) {
-    // ^
+    //    ^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] The static getter or field 'two' isn't defined for the type 'bool'.
     print('not ok');
   }
   while (.isTrue) {
-    // ^
+    //    ^^^^^^
     // [analyzer] unspecified
-    // [cfe] unspecified
+    // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
     print('not ok');
   }
   var counter = 0;
@@ -81,22 +93,22 @@ void main() {
     counter++;
     if (counter > 2) break;
   } while (.two);
-  // ^
+  //        ^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] The static getter or field 'two' isn't defined for the type 'bool'.
   do {
     counter++;
     if (counter > 2) break;
   } while (.isTrue);
-  // ^
+  //        ^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
   assert(.two, '');
-  // ^
+  //      ^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] The static getter or field 'two' isn't defined for the type 'bool'.
   assert(.isTrue, '');
-  // ^
+  //      ^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
 }

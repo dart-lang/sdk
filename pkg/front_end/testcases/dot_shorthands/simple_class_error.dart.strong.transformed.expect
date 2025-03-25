@@ -1,0 +1,35 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dot_shorthands/simple_class_error.dart:12:12: Error: No type was provided to find the dot shorthand 'red'.
+//   var c = .red;
+//            ^^^
+//
+// pkg/front_end/testcases/dot_shorthands/simple_class_error.dart:13:15: Error: The static getter or field 'red' isn't defined for the type 'Color'.
+//  - 'Color' is from 'pkg/front_end/testcases/dot_shorthands/simple_class_error.dart'.
+// Try correcting the name to the name of an existing static getter or field, or defining a getter or field named 'red'.
+//   Color cc = .red;
+//               ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Color extends core::Object {
+  final field core::int x;
+  constructor •(core::int x) → self::Color
+    : self::Color::x = x, super core::Object::•()
+    ;
+  get red() → self::Color
+    return new self::Color::•(1);
+}
+static method test() → void {
+  dynamic c = invalid-expression "pkg/front_end/testcases/dot_shorthands/simple_class_error.dart:12:12: Error: No type was provided to find the dot shorthand 'red'.
+  var c = .red;
+           ^^^";
+  self::Color cc = invalid-expression "pkg/front_end/testcases/dot_shorthands/simple_class_error.dart:13:15: Error: The static getter or field 'red' isn't defined for the type 'Color'.
+ - 'Color' is from 'pkg/front_end/testcases/dot_shorthands/simple_class_error.dart'.
+Try correcting the name to the name of an existing static getter or field, or defining a getter or field named 'red'.
+  Color cc = .red;
+              ^^^" as{TypeError,ForDynamic,Unchecked} self::Color;
+}

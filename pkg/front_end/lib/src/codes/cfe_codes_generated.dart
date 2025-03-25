@@ -1090,6 +1090,47 @@ Message _withArgumentsDeferredTypeAnnotation(DartType _type, String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, DartType _type)>
+    templateDotShorthandsUndefinedGetter =
+    const Template<Message Function(String name, DartType _type)>(
+  "DotShorthandsUndefinedGetter",
+  problemMessageTemplate:
+      r"""The static getter or field '#name' isn't defined for the type '#type'.""",
+  correctionMessageTemplate:
+      r"""Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#name'.""",
+  withArguments: _withArgumentsDotShorthandsUndefinedGetter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type)>
+    codeDotShorthandsUndefinedGetter =
+    const Code<Message Function(String name, DartType _type)>(
+  "DotShorthandsUndefinedGetter",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDotShorthandsUndefinedGetter(
+    String name, DartType _type) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(
+    codeDotShorthandsUndefinedGetter,
+    problemMessage:
+        """The static getter or field '${name}' isn't defined for the type '${type}'.""" +
+            labeler.originMessages,
+    correctionMessage:
+        """Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '${name}'.""",
+    arguments: {
+      'name': name,
+      'type': _type,
+    },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, DartType _type2)>
     templateFfiDartTypeMismatch =
     const Template<Message Function(DartType _type, DartType _type2)>(
