@@ -1,7 +1,6 @@
 // Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -9,7 +8,9 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
-const _desc = r"Don't invoke asynchronous functions in non-`async` blocks.";
+const _desc =
+    'There should be no `Future`-returning calls in synchronous functions unless they '
+    'are assigned or returned.';
 
 class DiscardedFutures extends LintRule {
   DiscardedFutures()
@@ -24,39 +25,9 @@ class DiscardedFutures extends LintRule {
     LinterContext context,
   ) {
     var visitor = _Visitor(this);
-    registry.addConstructorDeclaration(this, visitor);
-    registry.addFieldDeclaration(this, visitor);
-    registry.addFunctionDeclaration(this, visitor);
-    registry.addMethodDeclaration(this, visitor);
-    registry.addTopLevelVariableDeclaration(this, visitor);
-  }
-}
-
-class _InvocationVisitor extends RecursiveAstVisitor<void> {
-  final LintRule rule;
-  _InvocationVisitor(this.rule);
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    if (node.body.isAsynchronous) return;
-    super.visitFunctionExpression(node);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    if (node.staticInvokeType.isFuture) {
-      rule.reportLint(node.function);
-    }
-    super.visitFunctionExpressionInvocation(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.element.isDartAsyncUnawaited) return;
-    if (node.staticInvokeType.isFuture) {
-      rule.reportLint(node.methodName);
-    }
-    super.visitMethodInvocation(node);
+    registry.addExpressionStatement(this, visitor);
+    registry.addCascadeExpression(this, visitor);
+    registry.addInterpolationExpression(this, visitor);
   }
 }
 
@@ -65,71 +36,92 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  void check(FunctionBody body) {
-    if (body.isAsynchronous) return;
-    var visitor = _InvocationVisitor(rule);
-    body.accept(visitor);
+  @override
+  void visitCascadeExpression(CascadeExpression node) {
+    var sections = node.cascadeSections;
+    for (var i = 0; i < sections.length; i++) {
+      _visit(sections[i]);
+    }
   }
 
-  void checkVariables(VariableDeclarationList variables) {
-    if (variables.type?.type?.isFuture ?? false) return;
-    for (var variable in variables.variables) {
-      var initializer = variable.initializer;
-      if (initializer is FunctionExpression) {
-        check(initializer.body);
+  @override
+  void visitExpressionStatement(ExpressionStatement node) {
+    var expr = node.expression;
+    if (expr is AssignmentExpression) return;
+
+    var type = expr.staticType;
+    if (type == null) {
+      return;
+    }
+    if (type.isFutureOrFutureOr) {
+      // Ignore a couple of special known cases.
+      if (_isFutureDelayedInstanceCreationWithComputation(expr) ||
+          _isMapPutIfAbsentInvocation(expr)) {
+        return;
+      }
+
+      if (_isNotEnclosedInAsyncFunctionBody(node)) {
+        // Future expression statement that isn't awaited in synchronous
+        // function: while this is legal, it's a very frequent sign of an error.
+        _reportOnExpression(expr);
       }
     }
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    check(node.body);
+  void visitInterpolationExpression(InterpolationExpression node) {
+    _visit(node.expression);
   }
 
-  @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    checkVariables(node.fields);
+  /// Detects `Future.delayed(duration, [computation])` creations with a
+  /// computation.
+  bool _isFutureDelayedInstanceCreationWithComputation(Expression expr) =>
+      expr is InstanceCreationExpression &&
+      (expr.staticType.isFutureOrFutureOr) &&
+      expr.constructorName.name?.name == 'delayed' &&
+      expr.argumentList.arguments.length == 2;
+
+  bool _isMapClass(Element2? e) =>
+      e is ClassElement2 && e.name3 == 'Map' && e.library2.name3 == 'dart.core';
+
+  /// Detects Map.putIfAbsent invocations.
+  bool _isMapPutIfAbsentInvocation(Expression expr) =>
+      expr is MethodInvocation &&
+      expr.methodName.name == 'putIfAbsent' &&
+      _isMapClass(expr.methodName.element?.enclosingElement2);
+
+  bool _isNotEnclosedInAsyncFunctionBody(AstNode node) {
+    var enclosingFunctionBody = node.thisOrAncestorOfType<FunctionBody>();
+    var isAsyncBody = enclosingFunctionBody?.isAsynchronous ?? false;
+    return !isAsyncBody;
   }
 
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.returnType?.type.isFuture ?? false) return;
-    check(node.functionExpression.body);
+  void _reportOnExpression(Expression expr) {
+    rule.reportLint(switch (expr) {
+      MethodInvocation(:var methodName) => methodName,
+      InstanceCreationExpression(:var constructorName) => constructorName,
+      FunctionExpressionInvocation(:var function) => function,
+      PrefixedIdentifier(:var identifier) => identifier,
+      PropertyAccess(:var propertyName) => propertyName,
+      _ => expr,
+    });
   }
 
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.returnType?.type.isFuture ?? false) return;
-    check(node.body);
-  }
-
-  @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    checkVariables(node.variables);
+  void _visit(Expression expr) {
+    if ((expr.staticType.isFutureOrFutureOr) &&
+        _isNotEnclosedInAsyncFunctionBody(expr) &&
+        expr is! AssignmentExpression) {
+      _reportOnExpression(expr);
+    }
   }
 }
 
 extension on DartType? {
-  bool get isFuture {
+  bool get isFutureOrFutureOr {
     var self = this;
-    DartType? returnType;
-    if (self is FunctionType) {
-      returnType = self.returnType;
-    }
-    if (self is InterfaceType) {
-      returnType = self;
-    }
-
-    return returnType != null &&
-        (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr);
-  }
-}
-
-extension ElementExtension on Element2? {
-  bool get isDartAsyncUnawaited {
-    var self = this;
-    return self is TopLevelFunctionElement &&
-        self.name3 == 'unawaited' &&
-        self.library2.isDartAsync;
+    if (self == null) return false;
+    if (self.isDartAsyncFuture) return true;
+    if (self.isDartAsyncFutureOr) return true;
+    return false;
   }
 }

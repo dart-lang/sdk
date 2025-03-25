@@ -11498,8 +11498,11 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
 ///      | [IntegerLiteral]
 ///      | [ListLiteral]
 ///      | [NullLiteral]
+///      | [RecordLiteral]
 ///      | [SetOrMapLiteral]
 ///      | [StringLiteral]
+///      | [SymbolLiteral]
+///      | [TypedLiteral]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Literal implements Expression {}
 
