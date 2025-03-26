@@ -360,8 +360,18 @@ class TestingServers {
       var contentHeaderValue = [
         "script-src 'self'",
         "object-src 'self'",
+
+        // Trusted types (https://w3c.github.io/trusted-types/dist/spec/#trusted-types-csp-directive)
+        //
+        // Policy `dart.deferred-loading` is used to trust dart2js's deferred
+        // loading URLs, and is tested by tests/web/deferred/trusted_script_url
+        //
+        // Policy `scriptUrl` is the name of a policy created to test creation
+        // of policies via js-interop, and is tested by
+        // tests/lib/js/static_interop_test/import/import_trustedscripturl_test
         "require-trusted-types-for: 'script'",
-        "trusted-types dart.deferred-loading",
+        "trusted-types dart.deferred-loading scriptUrl"
+        ,
       ].join('; ');
       for (var header in [
         "Content-Security-Policy",
