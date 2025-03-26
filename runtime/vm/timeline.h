@@ -1277,22 +1277,6 @@ class TimelineEventFileRecorder : public TimelineEventFileRecorderBase {
   bool first_;
 };
 
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
-class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
- public:
-  explicit TimelineEventPerfettoFileRecorder(const char* path);
-  virtual ~TimelineEventPerfettoFileRecorder();
-
-  const char* name() const final { return PERFETTO_FILE_RECORDER_NAME; }
-
- private:
-  void WritePacket(
-      protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
-      const;
-  void DrainImpl(const TimelineEvent& event) final;
-};
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
-
 class DartTimelineEventHelpers : public AllStatic {
  public:
   // When reporting an event of type |kAsyncBegin|, |kAsyncEnd|, or

@@ -23,6 +23,9 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 /// Type of the TrackEvent (required if |phase| in LegacyEvent is not set).
 class TrackEvent_Type extends $pb.ProtobufEnum {
+  static const TrackEvent_Type TYPE_UNSPECIFIED =
+      TrackEvent_Type._(0, _omitEnumNames ? '' : 'TYPE_UNSPECIFIED');
+
   ///  Slice events are events that have a begin and end timestamp, i.e. a
   ///  duration. They can be nested similar to a callstack: If, on the same
   ///  track, event B begins after event A, but before A ends, B is a child
@@ -50,6 +53,7 @@ class TrackEvent_Type extends $pb.ProtobufEnum {
       TrackEvent_Type._(3, _omitEnumNames ? '' : 'TYPE_INSTANT');
 
   static const $core.List<TrackEvent_Type> values = <TrackEvent_Type>[
+    TYPE_UNSPECIFIED,
     TYPE_SLICE_BEGIN,
     TYPE_SLICE_END,
     TYPE_INSTANT,

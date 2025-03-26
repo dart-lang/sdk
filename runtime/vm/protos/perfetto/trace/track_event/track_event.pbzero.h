@@ -32,6 +32,7 @@ using TrackEvent_Type = perfetto_pbzero_enum_TrackEvent::Type;
 
 namespace perfetto_pbzero_enum_TrackEvent {
 enum Type : int32_t {
+  TYPE_UNSPECIFIED = 0,
   TYPE_SLICE_BEGIN = 1,
   TYPE_SLICE_END = 2,
   TYPE_INSTANT = 3,
@@ -40,13 +41,16 @@ enum Type : int32_t {
 using TrackEvent_Type = perfetto_pbzero_enum_TrackEvent::Type;
 
 constexpr TrackEvent_Type TrackEvent_Type_MIN =
-    TrackEvent_Type::TYPE_SLICE_BEGIN;
+    TrackEvent_Type::TYPE_UNSPECIFIED;
 constexpr TrackEvent_Type TrackEvent_Type_MAX = TrackEvent_Type::TYPE_INSTANT;
 
 PERFETTO_PROTOZERO_CONSTEXPR14_OR_INLINE
 const char* TrackEvent_Type_Name(
     ::perfetto::protos::pbzero::TrackEvent_Type value) {
   switch (value) {
+    case ::perfetto::protos::pbzero::TrackEvent_Type::TYPE_UNSPECIFIED:
+      return "TYPE_UNSPECIFIED";
+
     case ::perfetto::protos::pbzero::TrackEvent_Type::TYPE_SLICE_BEGIN:
       return "TYPE_SLICE_BEGIN";
 
@@ -116,6 +120,7 @@ class TrackEvent : public ::protozero::Message {
   static inline const char* Type_Name(Type value) {
     return ::perfetto::protos::pbzero::TrackEvent_Type_Name(value);
   }
+  static inline const Type TYPE_UNSPECIFIED = Type::TYPE_UNSPECIFIED;
   static inline const Type TYPE_SLICE_BEGIN = Type::TYPE_SLICE_BEGIN;
   static inline const Type TYPE_SLICE_END = Type::TYPE_SLICE_END;
   static inline const Type TYPE_INSTANT = Type::TYPE_INSTANT;

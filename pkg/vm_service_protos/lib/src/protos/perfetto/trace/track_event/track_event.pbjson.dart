@@ -63,6 +63,7 @@ const TrackEvent$json = {
 const TrackEvent_Type$json = {
   '1': 'Type',
   '2': [
+    {'1': 'TYPE_UNSPECIFIED', '2': 0},
     {'1': 'TYPE_SLICE_BEGIN', '2': 1},
     {'1': 'TYPE_SLICE_END', '2': 2},
     {'1': 'TYPE_INSTANT', '2': 3},
@@ -76,6 +77,6 @@ final $typed_data.Uint8List trackEventDescriptor = $convert.base64Decode(
     'eXBlUgR0eXBlEh0KCnRyYWNrX3V1aWQYCyABKARSCXRyYWNrVXVpZBIZCghmbG93X2lkcxgvIA'
     'MoBlIHZmxvd0lkcxIwChR0ZXJtaW5hdGluZ19mbG93X2lkcxgwIAMoBlISdGVybWluYXRpbmdG'
     'bG93SWRzEk0KEWRlYnVnX2Fubm90YXRpb25zGAQgAygLMiAucGVyZmV0dG8ucHJvdG9zLkRlYn'
-    'VnQW5ub3RhdGlvblIQZGVidWdBbm5vdGF0aW9ucyJCCgRUeXBlEhQKEFRZUEVfU0xJQ0VfQkVH'
-    'SU4QARISCg5UWVBFX1NMSUNFX0VORBACEhAKDFRZUEVfSU5TVEFOVBADQgwKCm5hbWVfZmllbG'
-    'Q=');
+    'VnQW5ub3RhdGlvblIQZGVidWdBbm5vdGF0aW9ucyJYCgRUeXBlEhQKEFRZUEVfVU5TUEVDSUZJ'
+    'RUQQABIUChBUWVBFX1NMSUNFX0JFR0lOEAESEgoOVFlQRV9TTElDRV9FTkQQAhIQCgxUWVBFX0'
+    'lOU1RBTlQQA0IMCgpuYW1lX2ZpZWxk');

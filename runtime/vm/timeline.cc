@@ -141,6 +141,11 @@ static TimelineEventRecorder* CreateDefaultTimelineRecorder() {
 #endif
 }
 
+#if !defined(PRODUCT) && defined(SUPPORT_PERFETTO)
+static TimelineEventRecorder* CreateTimelineEventPerfettoFileRecorder(
+    const char* filename);
+#endif
+
 static TimelineEventRecorder* CreateTimelineRecorder() {
   ASSERT(FLAG_timeline_recorder != nullptr);
   const char* flag = FLAG_timeline_recorder;
@@ -201,7 +206,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
                                  : &flag[kPrefixLength + 1];
       free(const_cast<char*>(FLAG_timeline_dir));
       FLAG_timeline_dir = nullptr;
-      return new TimelineEventPerfettoFileRecorder(filename);
+      return CreateTimelineEventPerfettoFileRecorder(filename);
     }
   }
 #endif  // defined(SUPPORT_PERFETTO)
@@ -795,152 +800,153 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
 }
 
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
-inline void AddSyncEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  track_event->set_track_uuid(OSThread::ThreadIdToIntPtr(event.thread()));
-}
+namespace {
 
-inline void AddAsyncEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  track_event->set_track_uuid(event.Id());
-}
+class TracePacketWriter : public ValueObject {
+ public:
+  using TracePacket = perfetto::protos::pbzero::TracePacket;
+  using TrackEvent = perfetto::protos::pbzero::TrackEvent;
 
-inline void AddBeginAndInstantEventCommonFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  track_event->set_name(event.label());
-  for (intptr_t i = 0; i < event.flow_id_count(); ++i) {
-    // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that we
-    // aren't able to populate right now because we aren't keeping track of
-    // terminating flow IDs in |TimelineEvent|. I'm not even sure if using that
-    // field will provide any benefit though.
-    track_event->add_flow_ids(event.FlowIds()[i]);
-  }
-}
+  using WriteCallback =
+      std::function<void(protozero::HeapBuffered<TracePacket>&)>;
 
-inline void AddBeginEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  AddBeginAndInstantEventCommonFields(track_event, event);
-  track_event->set_type(
-      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_BEGIN);
-}
+  TracePacketWriter(protozero::HeapBuffered<TracePacket>& packet,
+                    WriteCallback&& write_callback)
+      : packet_(packet), write_callback_(std::move(write_callback)) {}
 
-inline void AddInstantEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  AddBeginAndInstantEventCommonFields(track_event, event);
-  track_event->set_type(
-      perfetto::protos::pbzero::TrackEvent::Type::TYPE_INSTANT);
-}
-
-inline void AddEndEventFields(
-    perfetto::protos::pbzero::TrackEvent* track_event) {
-  track_event->set_type(
-      perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_END);
-}
-
-inline void AddDebugAnnotations(
-    perfetto::protos::pbzero::TrackEvent* track_event,
-    const TimelineEvent& event) {
-  if (event.GetNumArguments() > 0) {
-    if (event.ArgsArePreSerialized()) {
-      ASSERT(event.GetNumArguments() == 1);
-      perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-          *track_event->add_debug_annotations();
-      debug_annotation.set_name(event.arguments()[0].name);
-      debug_annotation.set_legacy_json_value(event.arguments()[0].value);
+  // Converting contents of the given |TimelineEvent| into one or more
+  // Perfetto packets and write them out using |write_callback_| which
+  // was specified when this writer was constructed.
+  //
+  // It uses scratch |packet_| which is reset after it is written out.
+  void WriteEvent(const TimelineEvent& event) {
+    if (!CanBeRepresented(event.event_type())) {
+      return;
+    }
+    if (event.IsDuration()) {
+      // Duration events must be converted to pairs of begin and end events to
+      // be serialized in Perfetto's format.
+      PopulateAndWritePacket(TimelineEvent::kBegin, event.TimeOrigin(), event);
+      PopulateAndWritePacket(TimelineEvent::kEnd, event.TimeEnd(), event);
     } else {
-      for (intptr_t i = 0; i < event.GetNumArguments(); ++i) {
-        perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-            *track_event->add_debug_annotations();
-        debug_annotation.set_name(event.arguments()[i].name);
-        debug_annotation.set_string_value(event.arguments()[i].value);
+      PopulateAndWritePacket(event.event_type(), event.TimeOrigin(), event);
+    }
+  }
+
+ private:
+  static TrackEvent::Type ToPerfettoType(TimelineEvent::EventType event_type) {
+    switch (event_type) {
+      case TimelineEvent::kAsyncBegin:
+      case TimelineEvent::kBegin:
+        return TrackEvent::Type::TYPE_SLICE_BEGIN;
+      case TimelineEvent::kAsyncInstant:
+      case TimelineEvent::kInstant:
+        return TrackEvent::Type::TYPE_INSTANT;
+      case TimelineEvent::kAsyncEnd:
+      case TimelineEvent::kEnd:
+        return TrackEvent::Type::TYPE_SLICE_END;
+      default:
+        return TrackEvent::Type::TYPE_UNSPECIFIED;
+    }
+  }
+
+  static bool IsSync(TimelineEvent::EventType event_type) {
+    switch (event_type) {
+      case TimelineEvent::kBegin:
+      case TimelineEvent::kInstant:
+      case TimelineEvent::kEnd:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  static bool CanBeRepresented(TimelineEvent::EventType event_type) {
+    return event_type == TimelineEvent::kDuration ||
+           ToPerfettoType(event_type) != TrackEvent::Type::TYPE_UNSPECIFIED;
+  }
+
+  void PopulateAndWritePacket(TimelineEvent::EventType event_type,
+                              int64_t timestamp,
+                              const TimelineEvent& event) {
+    PopulatePacket(event_type, timestamp, event);
+    write_callback_(packet_);
+    packet_.Reset();
+  }
+
+  void PopulatePacket(TimelineEvent::EventType event_type,
+                      int64_t timestamp,
+                      const TimelineEvent& event) {
+    ASSERT(event_type == event.event_type() ||
+           (event.IsDuration() && (event_type == TimelineEvent::kBegin ||
+                                   event_type == TimelineEvent::kEnd)));
+    perfetto_utils::SetTrustedPacketSequenceId(packet_.get());
+    perfetto_utils::SetTimestampAndMonotonicClockId(packet_.get(), timestamp);
+
+    TrackEvent* track_event = packet_->set_track_event();
+    track_event->add_categories(event.stream()->name());
+
+    track_event->set_track_uuid(IsSync(event_type)
+                                    ? OSThread::ThreadIdToIntPtr(event.thread())
+                                    : event.Id());
+    const auto perfetto_type = ToPerfettoType(event_type);
+    track_event->set_type(perfetto_type);
+    if (perfetto_type != TrackEvent::Type::TYPE_SLICE_END) {
+      track_event->set_name(event.label());
+      for (intptr_t i = 0; i < event.flow_id_count(); ++i) {
+        // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that
+        // we aren't able to populate right now because we aren't keeping track
+        // of terminating flow IDs in |TimelineEvent|. I'm not even sure if
+        // using that field will provide any benefit though.
+        track_event->add_flow_ids(event.FlowIds()[i]);
       }
     }
+    AddDebugAnnotations(track_event, event);
   }
-  if (event.HasIsolateId()) {
-    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-        *track_event->add_debug_annotations();
-    debug_annotation.set_name("isolateId");
-    std::unique_ptr<const char[]> formatted_isolate_id =
-        event.GetFormattedIsolateId();
-    debug_annotation.set_string_value(formatted_isolate_id.get());
-  }
-  if (event.HasIsolateGroupId()) {
-    perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
-        *track_event->add_debug_annotations();
-    debug_annotation.set_name("isolateGroupId");
-    std::unique_ptr<const char[]> formatted_isolate_group =
-        event.GetFormattedIsolateGroupId();
-    debug_annotation.set_string_value(formatted_isolate_group.get());
-  }
-}
 
-bool TimelineEvent::CanBeRepresentedByPerfettoTracePacket() const {
-  switch (event_type()) {
-    case TimelineEvent::kBegin:
-    case TimelineEvent::kEnd:
-    case TimelineEvent::kDuration:
-    case TimelineEvent::kInstant:
-    case TimelineEvent::kAsyncBegin:
-    case TimelineEvent::kAsyncEnd:
-    case TimelineEvent::kAsyncInstant:
-      return true;
-    default:
-      return false;
+  void AddDebugAnnotations(TrackEvent* track_event,
+                           const TimelineEvent& event) {
+    if (event.GetNumArguments() > 0) {
+      if (event.ArgsArePreSerialized()) {
+        ASSERT(event.GetNumArguments() == 1);
+        perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+            *track_event->add_debug_annotations();
+        debug_annotation.set_name(event.arguments()[0].name);
+        debug_annotation.set_legacy_json_value(event.arguments()[0].value);
+      } else {
+        for (intptr_t i = 0; i < event.GetNumArguments(); ++i) {
+          perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+              *track_event->add_debug_annotations();
+          debug_annotation.set_name(event.arguments()[i].name);
+          debug_annotation.set_string_value(event.arguments()[i].value);
+        }
+      }
+    }
+    if (event.HasIsolateId()) {
+      perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+          *track_event->add_debug_annotations();
+      debug_annotation.set_name("isolateId");
+      std::unique_ptr<const char[]> formatted_isolate_id =
+          event.GetFormattedIsolateId();
+      debug_annotation.set_string_value(formatted_isolate_id.get());
+    }
+    if (event.HasIsolateGroupId()) {
+      perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
+          *track_event->add_debug_annotations();
+      debug_annotation.set_name("isolateGroupId");
+      std::unique_ptr<const char[]> formatted_isolate_group =
+          event.GetFormattedIsolateGroupId();
+      debug_annotation.set_string_value(formatted_isolate_group.get());
+    }
   }
-}
 
-void TimelineEvent::PopulateTracePacket(
-    perfetto::protos::pbzero::TracePacket* packet) const {
-  ASSERT(packet != nullptr);
-  ASSERT(CanBeRepresentedByPerfettoTracePacket());
+  protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet_;
+  WriteCallback write_callback_;
 
-  perfetto_utils::SetTrustedPacketSequenceId(packet);
-  perfetto_utils::SetTimestampAndMonotonicClockId(packet, TimeOrigin());
-  perfetto::protos::pbzero::TrackEvent* track_event = packet->set_track_event();
-  track_event->add_categories(stream()->name());
+  DISALLOW_COPY_AND_ASSIGN(TracePacketWriter);
+};
 
-  const TimelineEvent& event = *this;
-  switch (event_type()) {
-    case TimelineEvent::kBegin: {
-      AddSyncEventFields(track_event, event);
-      AddBeginEventFields(track_event, event);
-      break;
-    }
-    case TimelineEvent::kEnd: {
-      AddSyncEventFields(track_event, event);
-      AddEndEventFields(track_event);
-      break;
-    }
-    case TimelineEvent::kInstant: {
-      AddSyncEventFields(track_event, event);
-      AddInstantEventFields(track_event, event);
-      break;
-    }
-    case TimelineEvent::kAsyncBegin: {
-      AddAsyncEventFields(track_event, event);
-      AddBeginEventFields(track_event, event);
-      break;
-    }
-    case TimelineEvent::kAsyncEnd: {
-      AddAsyncEventFields(track_event, event);
-      AddEndEventFields(track_event);
-      break;
-    }
-    case TimelineEvent::kAsyncInstant: {
-      AddAsyncEventFields(track_event, event);
-      AddInstantEventFields(track_event, event);
-      break;
-    }
-    default:
-      break;
-  }
-  AddDebugAnnotations(track_event, event);
-}
+}  // namespace
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 int64_t TimelineEvent::LowTime() const {
@@ -1660,73 +1666,16 @@ void TimelineEventBufferedRecorder::PrintJSONEvents(
 }
 
 #if defined(SUPPORT_PERFETTO)
-// Populates the fields of |heap_buffered_packet| with the data in |event|, and
-// then calls |print_callback| with the populated |heap_buffered_packet| as the
-// only argument. This function resets |heap_buffered_packet| right before
-// returning.
-inline void PrintPerfettoEventCallbackBody(
-    protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
-        heap_buffered_packet,
-    const TimelineEvent& event,
-    const std::function<
-        void(protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*)>&&
-        print_callback) {
-  ASSERT(heap_buffered_packet != nullptr);
-  if (!event.CanBeRepresentedByPerfettoTracePacket()) {
-    return;
-  }
-  if (event.IsDuration()) {
-    // Duration events must be converted to pairs of begin and end events to
-    // be serialized in Perfetto's format.
-    perfetto::protos::pbzero::TracePacket& packet =
-        *heap_buffered_packet->get();
-    {
-      perfetto_utils::SetTrustedPacketSequenceId(&packet);
-      perfetto_utils::SetTimestampAndMonotonicClockId(&packet,
-                                                      event.TimeOrigin());
-
-      perfetto::protos::pbzero::TrackEvent* track_event =
-          packet.set_track_event();
-      track_event->add_categories(event.stream()->name());
-      AddSyncEventFields(track_event, event);
-      AddBeginEventFields(track_event, event);
-      AddDebugAnnotations(track_event, event);
-    }
-    print_callback(heap_buffered_packet);
-    heap_buffered_packet->Reset();
-
-    {
-      perfetto_utils::SetTrustedPacketSequenceId(&packet);
-      perfetto_utils::SetTimestampAndMonotonicClockId(&packet, event.TimeEnd());
-
-      perfetto::protos::pbzero::TrackEvent* track_event =
-          packet.set_track_event();
-      track_event->add_categories(event.stream()->name());
-      AddSyncEventFields(track_event, event);
-      AddEndEventFields(track_event);
-      AddDebugAnnotations(track_event, event);
-    }
-  } else {
-    event.PopulateTracePacket(heap_buffered_packet->get());
-  }
-  print_callback(heap_buffered_packet);
-  heap_buffered_packet->Reset();
-}
-
 void TimelineEventBufferedRecorder::PrintPerfettoEvents(
     JSONBase64String* jsonBase64String,
     const TimelineEventFilter& filter) {
-  PrintEventsCommon(
-      filter, [this, &jsonBase64String](const TimelineEvent& event) {
-        PrintPerfettoEventCallbackBody(
-            &packet(), event,
-            [&jsonBase64String](
-                protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
-                    packet) {
-              perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
-                                                             packet);
-            });
-      });
+  TracePacketWriter writer(packet(), [&jsonBase64String](auto& packet) {
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet);
+  });
+
+  PrintEventsCommon(filter, [&writer](const TimelineEvent& event) {
+    writer.WriteEvent(event);
+  });
 }
 #endif  // defined(SUPPORT_PERFETTO)
 
@@ -2151,9 +2100,31 @@ void TimelineEventFileRecorder::DrainImpl(const TimelineEvent& event) {
 }
 
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
+ public:
+  explicit TimelineEventPerfettoFileRecorder(const char* path);
+  virtual ~TimelineEventPerfettoFileRecorder();
+
+  const char* name() const final { return PERFETTO_FILE_RECORDER_NAME; }
+
+ private:
+  void WritePacket(
+      protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet)
+      const;
+  void DrainImpl(const TimelineEvent& event) final;
+
+  TracePacketWriter writer_;
+};
+
+static TimelineEventRecorder* CreateTimelineEventPerfettoFileRecorder(
+    const char* filename) {
+  return new TimelineEventPerfettoFileRecorder(filename);
+}
+
 TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
     const char* path)
-    : TimelineEventFileRecorderBase(path) {
+    : TimelineEventFileRecorderBase(path),
+      writer_(packet(), [this](auto& packet) { this->WritePacket(&packet); }) {
   protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
       this->packet();
 
@@ -2210,11 +2181,7 @@ void TimelineEventPerfettoFileRecorder::WritePacket(
 }
 
 void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
-  PrintPerfettoEventCallbackBody(
-      &packet(), event,
-      [this](protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>*
-                 packet) { WritePacket(packet); });
-
+  writer_.WriteEvent(event);
   if (event.event_type() == TimelineEvent::kAsyncBegin ||
       event.event_type() == TimelineEvent::kAsyncInstant) {
     AddAsyncTrackMetadataBasedOnEvent(event);
