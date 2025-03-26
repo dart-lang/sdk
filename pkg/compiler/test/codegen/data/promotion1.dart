@@ -11,16 +11,7 @@
   var t1, s, i;
   if (a == null || b == null || c == null || d == null)
     return 0;
-  if (typeof a !== "number")
-    return a.$add();
-  if (typeof b !== "number")
-    return A.iae(b);
-  if (typeof c !== "number")
-    return A.iae(c);
-  t1 = a + b + c + d;
-  s = 0;
-  i = 1;
-  for (; i <= t1; ++i)
+  for (t1 = a + b + c + d, s = 0, i = 1; i <= t1; ++i)
     s += i;
   return s;
 }*/
@@ -35,16 +26,7 @@ int test1(int? a, int? b, int? c, int? d) {
   var t1, s, i;
   if (!A._isInt(a) || !A._isInt(b) || !A._isInt(c) || !A._isInt(d))
     return 0;
-  if (typeof a !== "number")
-    return a.$add();
-  if (typeof b !== "number")
-    return A.iae(b);
-  if (typeof c !== "number")
-    return A.iae(c);
-  t1 = a + b + c + d;
-  s = 0;
-  i = 1;
-  for (; i <= t1; ++i)
+  for (t1 = a + b + c + d, s = 0, i = 1; i <= t1; ++i)
     s += i;
   return s;
 }*/
@@ -57,18 +39,9 @@ int test2(int? a, int? b, int? c, int? d) {
 
 /*member: test3:function(a, b, c, d) {
   var t1, i, s = 0;
-  if (a != null && b != null && c != null && d != null) {
-    if (typeof a !== "number")
-      return a.$add();
-    if (typeof b !== "number")
-      return A.iae(b);
-    if (typeof c !== "number")
-      return A.iae(c);
-    t1 = a + b + c + d;
-    i = 1;
-    for (; i <= t1; ++i)
+  if (a != null && b != null && c != null && d != null)
+    for (t1 = a + b + c + d, i = 1; i <= t1; ++i)
       s += i;
-  }
   return s;
 }*/
 int test3(int? a, int? b, int? c, int? d) {
@@ -81,18 +54,9 @@ int test3(int? a, int? b, int? c, int? d) {
 
 /*member: test4:function(a, b, c, d) {
   var t1, i, s = 0;
-  if (A._isInt(a) && A._isInt(b) && A._isInt(c) && A._isInt(d)) {
-    if (typeof a !== "number")
-      return a.$add();
-    if (typeof b !== "number")
-      return A.iae(b);
-    if (typeof c !== "number")
-      return A.iae(c);
-    t1 = a + b + c + d;
-    i = 1;
-    for (; i <= t1; ++i)
+  if (A._isInt(a) && A._isInt(b) && A._isInt(c) && A._isInt(d))
+    for (t1 = a + b + c + d, i = 1; i <= t1; ++i)
       s += i;
-  }
   return s;
 }*/
 int test4(int? a, int? b, int? c, int? d) {

@@ -162,7 +162,11 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String temporaryId(HInstruction instruction) {
     String prefix;
-    if (instruction is HControlFlow) {
+    if (!instruction.block!.isLive) {
+      // Instruction in unreachable block, usually just a HGoto at end of block
+      // instead of 'c'.
+      prefix = 'X';
+    } else if (instruction is HControlFlow) {
       prefix = 'c';
     } else if (instruction.isNull(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'u';
