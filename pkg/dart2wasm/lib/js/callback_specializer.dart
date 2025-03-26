@@ -43,13 +43,19 @@ class CallbackSpecializer {
       }
       callbackArguments.add(expression);
     }
-    return ReturnStatement(StaticInvocation(
-        _util.jsifyTarget(function.returnType),
-        Arguments([
-          FunctionInvocation(FunctionAccessKind.FunctionType,
-              VariableGet(callbackVariable), Arguments(callbackArguments),
-              functionType: null),
-        ])));
+
+    final callExpr = FunctionInvocation(FunctionAccessKind.FunctionType,
+        VariableGet(callbackVariable), Arguments(callbackArguments),
+        functionType: null);
+
+    final temp = VariableDeclaration(null,
+        initializer: callExpr,
+        type: callExpr.getStaticType(_staticTypeContext),
+        isSynthesized: true);
+
+    final jsified = jsifyValue(temp, _util, _staticTypeContext.typeEnvironment);
+
+    return ReturnStatement(Let(temp, jsified));
   }
 
   /// Creates a callback trampoline for the given [function].
