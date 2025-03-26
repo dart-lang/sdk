@@ -105,14 +105,20 @@ final class ManifestElement {
 
   /// If [element] matches this description, records the reference and id.
   /// If not, returns `false`, it is a mismatch anyway.
-  bool match(MatchContext context, InstanceElement2 element) {
-    if (element.library2.uri == libraryUri && element.name3 == name) {
-      context.elements.add(element);
-      if (id case var id?) {
-        context.externalIds[element] = id;
+  bool match(MatchContext context, Element2 element) {
+    var enclosingElement = element.enclosingElement2;
+    if (enclosingElement case LibraryElement2 library) {
+      if (library.uri == libraryUri && element.name3 == name) {
+        context.elements.add(element);
+        if (id case var id?) {
+          context.externalIds[element] = id;
+        }
+        return true;
       }
-      return true;
+      return false;
     }
+
+    // TODO(scheglov): support also not top-level elements.
     return false;
   }
 
@@ -124,10 +130,11 @@ final class ManifestElement {
 
   static ManifestElement encode(
     EncodeContext context,
-    InstanceElement2 element,
+    Element2 element,
   ) {
+    // TODO(scheglov): support also not top-level elements.
     return ManifestElement(
-      libraryUri: element.library2.uri,
+      libraryUri: element.library2!.uri,
       name: element.name3!,
       id: context.getElementId(element),
     );

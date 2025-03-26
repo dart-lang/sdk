@@ -1590,6 +1590,32 @@ class Sub2 extends Base {
 }
 ''');
   }
+
+  Future<void> test_trailingNumber_add() async {
+    await indexTestUnit('''
+class A {
+  int? foo;
+}
+''');
+    createRenameRefactoringAtString('foo');
+    // check status
+    refactoring.newName = 'foo2';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+  }
+
+  Future<void> test_trailingNumber_remove() async {
+    await indexTestUnit('''
+class A {
+  int? foo2;
+}
+''');
+    createRenameRefactoringAtString('foo2');
+    // check status
+    refactoring.newName = 'foo';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+  }
 }
 
 @reflectiveTest

@@ -14,6 +14,13 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
+Future<List<Assist>> computeAssists(DartAssistContext context,
+        {AssistPerformance? performance}) =>
+    AssistProcessor(
+      context,
+      performance: performance,
+    ).compute();
+
 /// The computer for Dart assists.
 class AssistProcessor {
   final AssistPerformance? _performance;

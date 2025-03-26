@@ -21,21 +21,6 @@ abstract class FormalParameterElementTest extends ElementsBaseTest {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        main @5
-          reference: <testLibraryFragment>::@function::main
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional p @14
-              type: int
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -64,30 +49,6 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            m @17
-              reference: <testLibraryFragment>::@class::A::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                optionalNamed default covariant a @32
-                  reference: <testLibraryFragment>::@class::A::@method::m::@parameter::a
-                  type: A
-              returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -136,29 +97,6 @@ class A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            m @17
-              reference: <testLibraryFragment>::@class::A::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                optionalPositional default covariant a @32
-                  type: A
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -201,29 +139,6 @@ class A {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            m @17
-              reference: <testLibraryFragment>::@class::A::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional covariant a @31
-                  type: A
-              returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -271,54 +186,6 @@ class B<T> extends A<T> {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @8
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            f @20
-              reference: <testLibraryFragment>::@class::A::@method::f
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                requiredPositional covariant t @34
-                  type: T
-              returnType: void
-        class B @48
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant T @50
-              defaultType: dynamic
-          supertype: A<T>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              superConstructor: ConstructorMember
-                base: <testLibraryFragment>::@class::A::@constructor::new
-                substitution: {T: T}
-          methods
-            f @75
-              reference: <testLibraryFragment>::@class::B::@method::f
-              enclosingElement3: <testLibraryFragment>::@class::B
-              parameters
-                requiredPositional covariant t @79
-                  type: T
-              returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -407,48 +274,6 @@ class B extends A {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            m @17
-              reference: <testLibraryFragment>::@class::A::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::A
-              parameters
-                optionalNamed default covariant a @32
-                  reference: <testLibraryFragment>::@class::A::@method::m::@parameter::a
-                  type: A
-              returnType: void
-        class B @47
-          reference: <testLibraryFragment>::@class::B
-          enclosingElement3: <testLibraryFragment>
-          supertype: A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::B
-              superConstructor: <testLibraryFragment>::@class::A::@constructor::new
-          methods
-            m @68
-              reference: <testLibraryFragment>::@class::B::@method::m
-              enclosingElement3: <testLibraryFragment>::@class::B
-              parameters
-                optionalNamed default covariant a @73
-                  reference: <testLibraryFragment>::@class::B::@method::m::@parameter::a
-                  type: B
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -522,34 +347,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            f @10
-              reference: <testLibraryFragment>::@class::C::@method::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional g @12
-                  type: dynamic Function(dynamic, dynamic)
-                  parameters
-                    requiredPositional hasImplicitType x @14
-                      type: dynamic
-                    requiredPositional hasImplicitType y @17
-                      type: dynamic
-              returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -593,37 +390,6 @@ library
   test_parameter_parameters_in_generic_class() async {
     var library = await buildLibrary('class C<A, B> { f(A g(B x)) {} }');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          typeParameters
-            covariant A @8
-              defaultType: dynamic
-            covariant B @11
-              defaultType: dynamic
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            f @16
-              reference: <testLibraryFragment>::@class::C::@method::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional g @20
-                  type: A Function(B)
-                  parameters
-                    requiredPositional x @24
-                      type: B
-              returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -677,29 +443,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            f @10
-              reference: <testLibraryFragment>::@class::C::@method::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional g @16
-                  type: int Function()
-              returnType: dynamic
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -738,29 +481,6 @@ library
   test_parameter_return_type_void() async {
     var library = await buildLibrary('class C { f(void g()) {} }');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            f @10
-              reference: <testLibraryFragment>::@class::C::@method::f
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional g @17
-                  type: void Function()
-              returnType: dynamic
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -805,27 +525,6 @@ void f(T a<T, U>(U u)) {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional a @9
-              type: T Function<T, U>(U)
-              typeParameters
-                covariant T @11
-                covariant U @14
-              parameters
-                requiredPositional u @19
-                  type: U
-          returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -860,43 +559,6 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            positional @14
-              reference: <testLibraryFragment>::@class::C::@constructor::positional
-              enclosingElement3: <testLibraryFragment>::@class::C
-              periodOffset: 13
-              nameEnd: 24
-              parameters
-                optionalPositional default hasImplicitType x @26
-                  type: dynamic
-                  constantInitializer
-                    IntegerLiteral
-                      literal: 1 @30
-                      staticType: int
-            named @39
-              reference: <testLibraryFragment>::@class::C::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::C
-              periodOffset: 38
-              nameEnd: 44
-              parameters
-                optionalNamed default hasImplicitType x @46
-                  reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
-                  type: dynamic
-                  constantInitializer
-                    IntegerLiteral
-                      literal: 1 @49
-                      staticType: int
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -969,62 +631,6 @@ class C {
 }
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          fields
-            x @16
-              reference: <testLibraryFragment>::@class::C::@field::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              type: dynamic
-          constructors
-            positional @23
-              reference: <testLibraryFragment>::@class::C::@constructor::positional
-              enclosingElement3: <testLibraryFragment>::@class::C
-              periodOffset: 22
-              nameEnd: 33
-              parameters
-                optionalPositional default final hasImplicitType this.x @40
-                  type: dynamic
-                  constantInitializer
-                    IntegerLiteral
-                      literal: 1 @44
-                      staticType: int
-                  field: <testLibraryFragment>::@class::C::@field::x
-            named @53
-              reference: <testLibraryFragment>::@class::C::@constructor::named
-              enclosingElement3: <testLibraryFragment>::@class::C
-              periodOffset: 52
-              nameEnd: 58
-              parameters
-                optionalNamed default final hasImplicitType this.x @65
-                  reference: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x
-                  type: dynamic
-                  constantInitializer
-                    IntegerLiteral
-                      literal: 1 @68
-                      staticType: int
-                  field: <testLibraryFragment>::@class::C::@field::x
-          accessors
-            synthetic get x @-1
-              reference: <testLibraryFragment>::@class::C::@getter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              returnType: dynamic
-            synthetic set x= @-1
-              reference: <testLibraryFragment>::@class::C::@setter::x
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                requiredPositional _x @-1
-                  type: dynamic
-              returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments
@@ -1130,45 +736,6 @@ class C {
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::C
-          methods
-            static positional @24
-              reference: <testLibraryFragment>::@class::C::@method::positional
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                optionalPositional default hasImplicitType x @36
-                  type: dynamic
-                  constantInitializer
-                    IntegerLiteral
-                      literal: 1 @40
-                      staticType: int
-              returnType: void
-            static named @61
-              reference: <testLibraryFragment>::@class::C::@method::named
-              enclosingElement3: <testLibraryFragment>::@class::C
-              parameters
-                optionalNamed default hasImplicitType x @68
-                  reference: <testLibraryFragment>::@class::C::@method::named::@parameter::x
-                  type: dynamic
-                  constantInitializer
-                    IntegerLiteral
-                      literal: 1 @71
-                      staticType: int
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
     <testLibraryFragment>
       element: <testLibrary>
@@ -1239,37 +806,6 @@ void positional([x = 1]) {}
 void named({x: 1}) {}
 ''');
     checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      functions
-        positional @5
-          reference: <testLibraryFragment>::@function::positional
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            optionalPositional default hasImplicitType x @17
-              type: dynamic
-              constantInitializer
-                IntegerLiteral
-                  literal: 1 @21
-                  staticType: int
-          returnType: void
-        named @33
-          reference: <testLibraryFragment>::@function::named
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            optionalNamed default hasImplicitType x @40
-              reference: <testLibraryFragment>::@function::named::@parameter::x
-              type: dynamic
-              constantInitializer
-                IntegerLiteral
-                  literal: 1 @43
-                  staticType: int
-          returnType: void
-----------------------------------------
 library
   reference: <testLibrary>
   fragments

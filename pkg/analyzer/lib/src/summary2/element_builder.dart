@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -1624,13 +1621,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var enclosingRef = _enclosingContext.fragmentReference;
     var enclosingElement = _enclosingContext.fragment;
 
-    bool canUseExisting(PropertyInducingElement property) {
+    bool canUseExisting(PropertyInducingElementImpl property) {
       return property.isSynthetic ||
           accessorElement.isSetter && property.setter == null;
     }
 
     PropertyInducingElementImpl? property;
-    if (enclosingElement is CompilationUnitElement) {
+    if (enclosingElement is CompilationUnitElementImpl) {
       // Try to find the variable to attach the accessor.
       var containerRef = enclosingRef.getChild('@topLevelVariable');
       for (var reference in containerRef.getChildrenByName(name)) {

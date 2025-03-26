@@ -29,9 +29,9 @@ class ExtractWidgetTest extends RefactoringTest {
   Future<void> test_checkAllConditions_selection() async {
     await indexTestUnit('''
 import 'package:flutter/material.dart';
-class C {}
+^class C {}
 ''');
-    _createRefactoringForStringOffset('class C');
+    _createRefactoring();
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
@@ -44,11 +44,11 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Text('AAA');
+    return ^Text('AAA');
   }
 }
 ''');
-    _createRefactoringForStringOffset('Text');
+    _createRefactoring();
 
     // empty
     refactoring.name = '';
@@ -70,13 +70,13 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return ^Container();
   }
 }
 
 class Test {}
 ''');
-    _createRefactoringForStringOffset('Container');
+    _createRefactoring();
 
     refactoring.name = 'Test';
     assertRefactoringStatus(
@@ -95,7 +95,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        Column(
+        ^Column(
           children: <Widget>[
             Text('AAA'),
             Text('BBB'),
@@ -108,7 +108,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('Column');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -152,7 +152,7 @@ Widget f() {
   Widget foo() {
     return Row(
       children: <Widget>[
-        Text('AAA'),
+        ^Text('AAA'),
         Text('BBB'),
       ],
     );
@@ -160,7 +160,7 @@ Widget f() {
   return foo();
 }
 ''');
-    _createRefactoringForStringOffset('Text');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -197,11 +197,11 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Con^tainer();
   }
 }
 ''');
-    _createRefactoringForStringOffset('tainer(');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -237,7 +237,7 @@ Widget f() {
 
     Future<void> assertResult(String str) async {
       var offset = findOffset(str);
-      _createRefactoring(offset, str.length);
+      _createRefactoringForRange(offset, str.length);
 
       await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -279,13 +279,13 @@ import 'package:flutter/material.dart';
 Widget f() {
   return Row(
     children: <Widget>[
-      Text('AAA'),
+      ^Text('AAA'),
       Text('BBB'),
     ],
   );
 }
 ''');
-    _createRefactoringForStringOffset('Text');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -319,7 +319,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ^GestureDetector(
       child: Text(''),
       onTap: () {
         foo();
@@ -330,7 +330,7 @@ class MyWidget extends StatelessWidget {
   void foo() {}
 }
 ''');
-    _createRefactoringForStringOffset('GestureDetector');
+    _createRefactoring();
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -347,7 +347,7 @@ abstract class MyInterface {
 abstract class MyWidget extends StatelessWidget implements MyInterface {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ^GestureDetector(
       child: Text(''),
       onTap: () {
         foo();
@@ -356,7 +356,7 @@ abstract class MyWidget extends StatelessWidget implements MyInterface {
   }
 }
 ''');
-    _createRefactoringForStringOffset('GestureDetector');
+    _createRefactoring();
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -375,7 +375,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ^GestureDetector(
       child: Text(''),
       onTap: () {
         c.foo();
@@ -384,7 +384,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('GestureDetector');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -433,7 +433,7 @@ class MyWidget extends StatelessWidget {
     return createColumn();
   }
 
-  Widget createColumn() {
+  Widget ^createColumn() {
     var a = Text('AAA');
     var b = Text('BBB');
     return Column(
@@ -442,7 +442,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('createColumn() {');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -489,7 +489,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  Widget createColumn(String p1, int p2) {
+  Widget ^createColumn(String p1, int p2) {
     var a = Text('$foo $p1');
     var b = Text('$p2');
     return Column(
@@ -498,7 +498,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('createColumn(String');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
@@ -562,7 +562,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  Widget createColumn({required String p1, required int p2}) {
+  Widget ^createColumn({required String p1, required int p2}) {
     var a = Text('$foo $p1');
     var b = Text('$p2');
     return Column(
@@ -571,7 +571,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('createColumn({');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
@@ -630,11 +630,11 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(c.field);
+    return ^Text(c.field);
   }
 }
 ''');
-    _createRefactoringForStringOffset('Text');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -677,11 +677,11 @@ String field = '';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Text(field);
+    return ^Text(field);
   }
 }
 ''');
-    _createRefactoringForStringOffset('Text');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -719,7 +719,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ^GestureDetector(
       child: Text(''),
       onTap: () {
         field = '';
@@ -728,7 +728,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('GestureDetector');
+    _createRefactoring();
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -745,7 +745,7 @@ abstract class MySuperWidget extends StatelessWidget {
 class MyWidget extends MySuperWidget {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ^GestureDetector(
       child: Text(''),
       onTap: () {
         field = '';
@@ -754,7 +754,7 @@ class MyWidget extends MySuperWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('GestureDetector');
+    _createRefactoring();
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -773,7 +773,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ^GestureDetector(
       child: Text(''),
       onTap: () {
         c.field = '';
@@ -782,7 +782,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('GestureDetector');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -829,11 +829,11 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String key = '';
-    return Text('$key $key');
+    return ^Text('$key $key');
   }
 }
 ''');
-    _createRefactoringForStringOffset('Text');
+    _createRefactoring();
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -847,11 +847,11 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local = '';
-    return Text('$local $local');
+    return ^Text('$local $local');
   }
 }
 ''');
-    _createRefactoringForStringOffset('Text');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
@@ -888,7 +888,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local;
-    return GestureDetector(
+    return ^GestureDetector(
       child: Text(''),
       onTap: () {
         local = '';
@@ -897,7 +897,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('GestureDetector');
+    _createRefactoring();
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -914,11 +914,11 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(_field);
+    return ^Text(_field);
   }
 }
 ''');
-    _createRefactoringForStringOffset('Text');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -962,11 +962,11 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('$field $_field');
+    return ^Text('$field $_field');
   }
 }
 ''');
-    _createRefactoringForStringOffset('Text');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
@@ -1013,7 +1013,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local = '';
-    return Column(
+    return ^Column(
       children: <Widget>[
         Text(field),
         Text(local),
@@ -1022,7 +1022,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('Column');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -1069,11 +1069,11 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Text('AAA');
+    return ^Text('AAA');
   }
 }
 ''');
-    _createRefactoringForStringOffset('Text');
+    _createRefactoring();
     expect(refactoring.refactoringName, 'Extract Widget');
   }
 
@@ -1084,18 +1084,16 @@ import 'package:flutter/material.dart';
 Widget f() {
   var index = 0;
   var a = 'a $index';
-// start
-  var b = 'b $index';
+  [!var b = 'b $index';
   return Row(
     children: <Widget>[
       Text(a),
       Text(b),
     ],
-  );
-// end
+  );!]
 }
 ''');
-    _createRefactoringForStartEnd();
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
@@ -1103,9 +1101,7 @@ import 'package:flutter/material.dart';
 Widget f() {
   var index = 0;
   var a = 'a $index';
-// start
   return Test(index: index, a: a);
-// end
 }
 
 class Test extends StatelessWidget {
@@ -1137,11 +1133,10 @@ class Test extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 void f() {
-// start
-// end
+  [! !]
 }
 ''');
-    _createRefactoringForStartEnd();
+    _createRefactoring();
 
     assertRefactoringStatus(
       await refactoring.checkInitialConditions(),
@@ -1154,12 +1149,10 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-// start
-  Text('text');
-// end
+  [!Text('text');!]
 }
 ''');
-    _createRefactoringForStartEnd();
+    _createRefactoring();
 
     assertRefactoringStatus(
       await refactoring.checkInitialConditions(),
@@ -1169,7 +1162,7 @@ void f() {
 
   Future<void> test_useSuperParameters_disabled() async {
     await indexTestUnit('''
-// No super params.    
+// No super params.
 // @dart = 2.15
 import 'package:flutter/material.dart';
 
@@ -1178,7 +1171,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        Column(
+        ^Column(
           children: <Widget>[
             Text('AAA'),
             Text('BBB'),
@@ -1191,10 +1184,10 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('Column');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
-// No super params.    
+// No super params.
 // @dart = 2.15
 import 'package:flutter/material.dart';
 
@@ -1247,12 +1240,12 @@ class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      Text(widget.a + widget.b),
+      ^Text(widget.a + widget.b),
     ]);
   }
 }
 ''');
-    _createRefactoringForStringOffset('Text(');
+    _createRefactoring();
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -1305,7 +1298,22 @@ class Test extends StatelessWidget {
     await _assertRefactoringChange(expectedCode);
   }
 
-  void _createRefactoring(int offset, int length) {
+  void _createRefactoring() {
+    if (parsedTestCode.ranges.isNotEmpty) {
+      if (parsedTestCode.positions.isNotEmpty) {
+        fail('Expected either one range or one position.');
+      }
+      var range = parsedTestCode.range.sourceRange;
+      _createRefactoringForRange(range.offset, range.length);
+    } else if (parsedTestCode.positions.isNotEmpty) {
+      var position = parsedTestCode.position;
+      _createRefactoringForRange(position.offset, 0);
+    } else {
+      fail('Expected either one range or one position.');
+    }
+  }
+
+  void _createRefactoringForRange(int offset, int length) {
     refactoring = ExtractWidgetRefactoringImpl(
       searchEngine,
       testAnalysisResult,
@@ -1313,18 +1321,5 @@ class Test extends StatelessWidget {
       length,
     );
     refactoring.name = 'Test';
-  }
-
-  void _createRefactoringForStartEnd() {
-    var offset = findOffset('// start\n') + '// start\n'.length;
-    var length = findOffset('// end') - offset;
-    _createRefactoring(offset, length);
-  }
-
-  /// Creates a refactoring in [refactoring] at the offset of the given
-  /// [search] pattern.
-  void _createRefactoringForStringOffset(String search) {
-    var offset = findOffset(search);
-    _createRefactoring(offset, 0);
   }
 }

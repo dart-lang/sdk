@@ -8,11 +8,14 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 import 'package:analysis_server_plugin/src/plugin_server.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:async/async.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -84,6 +87,22 @@ bool b = false;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  Future<void> test_handleEditGetAssists() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+
+    var result = await pluginServer.handleEditGetAssists(
+      protocol.EditGetAssistsParams(
+          filePath, 'bool b = f'.length, 3 /* length */),
+    );
+    var assists = result.assists;
+    expect(assists, hasLength(1));
+    var assist = assists.single;
+    expect(assist.change.edits, hasLength(1));
   }
 
   Future<void> test_handleEditGetFixes() async {
@@ -245,6 +264,7 @@ class _NoLiteralsPlugin extends Plugin {
     registry.registerWarningRule(NoBoolsRule());
     registry.registerLintRule(NoDoublesRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
+    registry.registerAssist(_InvertBoolean.new);
   }
 }
 
@@ -268,5 +288,29 @@ class _WrapInQuotes extends ResolvedCorrectionProducer {
       builder.addSimpleInsertion(literal.offset, "'");
       builder.addSimpleInsertion(literal.end, "'");
     });
+  }
+}
+
+class _InvertBoolean extends ResolvedCorrectionProducer {
+  static const _invertBooleanKind =
+      AssistKind('dart.fix.invertBooelan', 50, 'Invert Boolean value');
+
+  _InvertBoolean({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.singleLocation;
+
+  @override
+  AssistKind get assistKind => _invertBooleanKind;
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    if (node case BooleanLiteral(:var value)) {
+      await builder.addDartFileEdit(file, (builder) {
+        var invertedValue = (!value).toString();
+        builder.addSimpleReplacement(range.node(node), invertedValue);
+      });
+    }
   }
 }

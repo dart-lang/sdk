@@ -258,6 +258,36 @@ Future<int> g() async => 0;
 ''');
   }
 
+  Future<void> test_discardedFuture_awaited() async {
+    await assertDiagnostics(
+      '''
+void f() {
+  // ignore: await_in_wrong_context
+  await g();
+}
+
+Future<void> g() async { }
+''',
+      [lint(55, 1)],
+    );
+  }
+
+  Future<void> test_discardedFuture_awaited_method() async {
+    await assertDiagnostics(
+      '''
+class C {
+  void f() {
+    // ignore: await_in_wrong_context
+    await g();
+  }
+
+  Future<void> g() async { }
+}
+''',
+      [lint(71, 1)],
+    );
+  }
+
   Future<void> test_field_assignment() async {
     await assertDiagnostics(
       r'''

@@ -48,7 +48,7 @@ class ConstructorMember extends ExecutableMember
   InterfaceElementImpl2 get enclosingElement2 => _element2.enclosingElement2;
 
   @override
-  InterfaceElement get enclosingElement3 => declaration.enclosingElement3;
+  InterfaceElementImpl get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   ConstructorFragment get firstFragment => _element2.firstFragment;
@@ -71,6 +71,11 @@ class ConstructorMember extends ExecutableMember
 
   @override
   bool get isFactory => declaration.isFactory;
+
+  @override
+  LibraryElementImpl get library {
+    return _declaration.library!;
+  }
 
   @override
   String? get lookupName => _element2.lookupName;
@@ -430,7 +435,7 @@ abstract class ExecutableMember extends Member
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class FieldFormalParameterMember extends ParameterMember
-    implements FieldFormalParameterElement {
+    implements FieldFormalParameterElementOrMember {
   factory FieldFormalParameterMember({
     required FieldFormalParameterElementImpl declaration,
     required MapSubstitution substitution,
@@ -788,6 +793,8 @@ abstract class Member implements Element, ElementOrMember {
     }
   }
 
+  Element2 get baseElement;
+
   @override
   List<Element> get children => const [];
 
@@ -1103,7 +1110,7 @@ class ParameterMember extends VariableMember
     with ParameterElementMixin, FormalParameterElementMixin
     implements ParameterElement {
   @override
-  final List<TypeParameterElement> typeParameters;
+  final List<TypeParameterElementImpl> typeParameters;
 
   factory ParameterMember({
     required ParameterElementImpl declaration,
@@ -1212,12 +1219,12 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElementMixin> get parameters {
     var type = this.type;
     if (type is FunctionTypeImpl) {
       return type.parameters;
     }
-    return const <ParameterElement>[];
+    return const <ParameterElementMixin>[];
   }
 
   @override
@@ -1511,7 +1518,7 @@ class SetterMember extends PropertyAccessorMember
 }
 
 class SuperFormalParameterMember extends ParameterMember
-    implements SuperFormalParameterElement {
+    implements SuperFormalParameterElementOrMember {
   factory SuperFormalParameterMember({
     required SuperFormalParameterElementImpl declaration,
     required MapSubstitution substitution,

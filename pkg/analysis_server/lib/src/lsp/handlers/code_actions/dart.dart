@@ -10,7 +10,6 @@ import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_acti
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     hide AnalysisOptions, Position;
-import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
@@ -18,6 +17,7 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_p
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/src/correction/assist_core.dart';
+import 'package:analysis_server_plugin/src/correction/assist_dart.dart';
 import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
@@ -124,14 +124,13 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   }) async {
     // These assists are only provided as literal CodeActions.
     if (!supportsLiterals) {
-      return [];
+      return const [];
     }
 
     try {
-      var workspace = DartChangeWorkspace(await server.currentSessions);
-      var context = DartAssistContextImpl(
+      var context = DartAssistContext(
         server.instrumentationService,
-        workspace,
+        DartChangeWorkspace(await server.currentSessions),
         libraryResult,
         unitResult,
         offset,
@@ -141,12 +140,11 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       late List<Assist> assists;
       if (performance != null) {
         var performanceTracker = AssistPerformance();
-        var processor = AssistProcessor(
+        assists = await computeAssists(
           context,
           performance: performanceTracker,
         );
 
-        assists = await processor.compute();
         server.recentPerformance.getAssists.add(
           GetAssistsPerformance(
             performance: performance,
@@ -158,8 +156,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           ),
         );
       } else {
-        var processor = AssistProcessor(context);
-        assists = await processor.compute();
+        assists = await computeAssists(context);
       }
 
       return assists.map((assist) {
@@ -175,7 +172,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
       // the source and therefore is no longer interested in the results, so
       // just return an empty set.
-      return [];
+      return const [];
     }
   }
 

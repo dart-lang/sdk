@@ -10,8 +10,8 @@ import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
-import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/src/correction/assist_core.dart';
+import 'package:analysis_server_plugin/src/correction/assist_dart.dart';
 import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
@@ -101,7 +101,7 @@ class EditGetAssistsHandler extends LegacyHandler
 
     if (libraryResult != null) {
       var unitResult = libraryResult.unitWithPath(file)!;
-      var context = DartAssistContextImpl(
+      var context = DartAssistContext(
         server.instrumentationService,
         DartChangeWorkspace(await server.currentSessions),
         libraryResult,
@@ -112,12 +112,10 @@ class EditGetAssistsHandler extends LegacyHandler
 
       try {
         var performanceTracker = AssistPerformance();
-        var processor = AssistProcessor(
+        var assists = await computeAssists(
           context,
           performance: performanceTracker,
         );
-
-        var assists = await processor.compute();
         assists.sort(Assist.compareAssists);
         for (var assist in assists) {
           changes.add(assist.change);
