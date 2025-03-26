@@ -317,8 +317,8 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
           newTypeParameters ??= typeParameters.toList();
           StructuralParameterBuilder newTypeParameterBuilder =
               newTypeParameters[i] = new SourceStructuralParameterBuilder(
-                  new SyntheticStructuralParameterDeclaration(variable),
-                  bound: bound);
+                  new SyntheticStructuralParameterDeclaration(variable))
+                ..bound = bound;
           unboundTypeParameters.add(newTypeParameterBuilder);
           if (functionTypeUpperSubstitution == null) {
             functionTypeUpperSubstitution = {...upperSubstitution};

@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticToken, TokenType;
+import 'package:front_end/src/base/scope.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/clone.dart';
@@ -278,18 +279,17 @@ final TypeParameterFragment dummyTypeParameterFragment =
     new TypeParameterFragment(
         metadata: null,
         name: '',
-        bound: null,
         nameOffset: -1,
         fileUri: dummyUri,
         kind: TypeParameterKind.function,
         isWildcard: false,
-        variableName: '');
+        variableName: '',
+        typeParameterScope: dummyLookupScope);
 final SourceStructuralParameterBuilder dummyStructuralVariableBuilder =
     new SourceStructuralParameterBuilder(
         new RegularStructuralParameterDeclaration(
             metadata: null,
             name: StructuralParameterBuilder.noNameSentinel,
-            bound: null,
             fileOffset: -1,
             fileUri: dummyUri,
             isWildcard: false));
@@ -299,3 +299,5 @@ final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
 final FieldInfo dummyFieldInfo =
     new FieldInfo(dummyIdentifier, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
+final LookupScope dummyLookupScope =
+    new FixedLookupScope(ScopeKind.library, 'dummy');

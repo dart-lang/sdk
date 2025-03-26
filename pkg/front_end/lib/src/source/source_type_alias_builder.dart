@@ -378,10 +378,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
-            libraryBuilder,
-            createBodyBuilderContext(),
-            classHierarchy,
-            _introductory.typeParameterScope);
+            libraryBuilder, createBodyBuilderContext(), classHierarchy);
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {

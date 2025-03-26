@@ -227,8 +227,8 @@ class FactoryDeclarationImpl implements FactoryDeclaration {
     }
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(libraryBuilder,
-            bodyBuilderContext, classHierarchy, _fragment.typeParameterScope);
+        typeParameters![i].buildOutlineExpressions(
+            libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
 

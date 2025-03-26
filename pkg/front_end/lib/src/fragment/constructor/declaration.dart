@@ -736,8 +736,8 @@ mixin RegularConstructorDeclarationMixin
   }) {
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(libraryBuilder,
-            bodyBuilderContext, classHierarchy, typeParameterScope);
+        typeParameters![i].buildOutlineExpressions(
+            libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
 
@@ -1270,8 +1270,8 @@ mixin ExtensionTypeConstructorDeclarationMixin
   }) {
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(libraryBuilder,
-            bodyBuilderContext, classHierarchy, typeParameterScope);
+        typeParameters![i].buildOutlineExpressions(
+            libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
 

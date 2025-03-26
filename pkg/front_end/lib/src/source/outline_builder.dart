@@ -3403,10 +3403,16 @@ class OutlineBuilder extends StackListenerImpl {
       Identifier identifier = name as Identifier;
       if (inFunctionType) {
         push(_builderFactory.addStructuralParameter(
-            metadata, identifier.name, null, identifier.nameOffset, uri));
+            metadata: metadata,
+            name: identifier.name,
+            nameOffset: identifier.nameOffset,
+            fileUri: uri));
       } else {
         push(_builderFactory.addNominalParameter(
-            metadata, identifier.name, null, identifier.nameOffset, uri,
+            metadata: metadata,
+            name: identifier.name,
+            nameOffset: identifier.nameOffset,
+            fileUri: uri,
             kind: declarationContext.typeParameterKind));
       }
     }
@@ -3452,13 +3458,13 @@ class OutlineBuilder extends StackListenerImpl {
       List<TypeParameterFragment>? typeParameters =
           peek() as List<TypeParameterFragment>?;
       if (typeParameters != null) {
-        typeParameters[index].builder.bound = bound;
+        typeParameters[index].bound = bound;
         if (variance != null) {
           if (!libraryFeatures.variance.isEnabled) {
             // Coverage-ignore-block(suite): Not run.
             reportVarianceModifierNotEnabled(variance);
           }
-          typeParameters[index].builder.variance =
+          typeParameters[index].variance =
               new Variance.fromKeywordString(variance.lexeme);
         }
       }

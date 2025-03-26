@@ -30,7 +30,7 @@ class MethodFragment implements Fragment, FunctionFragment {
   final NominalParameterNameSpace typeParameterNameSpace;
 
   /// The declared type parameters on this method.
-  final List<SourceNominalParameterBuilder>? declaredTypeParameters;
+  final List<TypeParameterFragment>? declaredTypeParameters;
 
   /// The scope in which the method is declared.
   ///
@@ -433,7 +433,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
       ..fileOffset = _fragment.formalsOffset
       ..fileEndOffset = _fragment.endOffset;
     buildTypeParametersAndFormals(libraryBuilder, function,
-        _fragment.declaredTypeParameters, _fragment.declaredFormals,
+        _fragment.declaredTypeParameters?.builders, _fragment.declaredFormals,
         classTypeParameters: classTypeParameters, supportsTypeParameters: true);
     if (_fragment.returnType is! InferableTypeBuilder) {
       function.returnType =
@@ -472,12 +472,8 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
         bodyBuilderContext, annotatable, _fragment.metadata,
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
-    buildTypeParametersForOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        bodyBuilderContext,
-        _fragment.typeParameterScope,
-        _fragment.declaredTypeParameters);
+    buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
+        bodyBuilderContext, _fragment.declaredTypeParameters?.builders);
     buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
         scope: _fragment.typeParameterScope,
@@ -512,7 +508,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-        _fragment.declaredTypeParameters);
+        _fragment.declaredTypeParameters?.builders);
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
       hasErrors |=
@@ -521,7 +517,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
           _fragment.returnType);
     }
     return context.computeDefaultTypesForVariables(
-        _fragment.declaredTypeParameters,
+        _fragment.declaredTypeParameters?.builders,
         inErrorRecovery: hasErrors);
   }
 
@@ -563,7 +559,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
   void checkTypes(
       SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
     List<SourceNominalParameterBuilder>? typeParameters =
-        _fragment.declaredTypeParameters;
+        _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
       libraryBuilder.checkTypeParameterDependencies(typeParameters);
     }
@@ -577,7 +573,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     sourceClassBuilder.checkVarianceInTypeParameters(
-        typeEnvironment, _fragment.declaredTypeParameters);
+        typeEnvironment, _fragment.declaredTypeParameters?.builders);
     sourceClassBuilder.checkVarianceInFormals(
         typeEnvironment, _fragment.declaredFormals);
     sourceClassBuilder.checkVarianceInReturnType(
@@ -587,7 +583,7 @@ mixin _DirectMethodEncodingMixin implements _MethodEncoding {
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
-      _fragment.declaredTypeParameters;
+      _fragment.declaredTypeParameters?.builders;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -921,7 +917,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
       ..fileOffset = _fragment.formalsOffset
       ..fileEndOffset = _fragment.endOffset;
     buildTypeParametersAndFormals(libraryBuilder, function,
-        _fragment.declaredTypeParameters, _fragment.declaredFormals,
+        _fragment.declaredTypeParameters?.builders, _fragment.declaredFormals,
         classTypeParameters: classTypeParameters, supportsTypeParameters: true);
     if (_fragment.returnType is! InferableTypeBuilder) {
       function.returnType =
@@ -966,23 +962,15 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
         fileUri: _fragment.fileUri,
         createFileUriExpression: createFileUriExpression);
 
-    buildTypeParametersForOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        bodyBuilderContext,
-        _fragment.typeParameterScope,
-        _fragment.declaredTypeParameters);
+    buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
+        bodyBuilderContext, _fragment.declaredTypeParameters?.builders);
     buildFormalsForOutlineExpressions(
         libraryBuilder, declarationBuilder, _fragment.declaredFormals,
         scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
 
-    buildTypeParametersForOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        bodyBuilderContext,
-        _fragment.typeParameterScope,
-        _clonedDeclarationTypeParameters);
+    buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
+        bodyBuilderContext, _clonedDeclarationTypeParameters);
     buildFormalForOutlineExpressions(
         libraryBuilder, declarationBuilder, _thisFormal,
         scope: _fragment.typeParameterScope,
@@ -999,7 +987,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
   void checkTypes(
       SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
     List<SourceNominalParameterBuilder>? typeParameters =
-        _fragment.declaredTypeParameters;
+        _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
       libraryBuilder.checkTypeParameterDependencies(typeParameters);
     }
@@ -1014,7 +1002,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     sourceClassBuilder.checkVarianceInTypeParameters(
-        typeEnvironment, _fragment.declaredTypeParameters);
+        typeEnvironment, _fragment.declaredTypeParameters?.builders);
     sourceClassBuilder.checkVarianceInFormals(
         typeEnvironment, _fragment.declaredFormals);
     sourceClassBuilder.checkVarianceInReturnType(
@@ -1044,7 +1032,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-        _fragment.declaredTypeParameters);
+        _fragment.declaredTypeParameters?.builders);
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
       hasErrors |=
@@ -1061,7 +1049,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
         //  required and unnecessary.
         // ignore: unnecessary_non_null_assertion
         ..._clonedDeclarationTypeParameters!,
-        ..._fragment.declaredTypeParameters!
+        ..._fragment.declaredTypeParameters!.builders
       ], inErrorRecovery: hasErrors);
     } else if (_clonedDeclarationTypeParameters != null) {
       return context.computeDefaultTypesForVariables(
@@ -1069,7 +1057,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
           inErrorRecovery: hasErrors);
     } else {
       return context.computeDefaultTypesForVariables(
-          _fragment.declaredTypeParameters,
+          _fragment.declaredTypeParameters?.builders,
           inErrorRecovery: hasErrors);
     }
   }
@@ -1115,7 +1103,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements _MethodEncoding {
               _fragment.declaredTypeParameters != null
           ? [
               ...?_clonedDeclarationTypeParameters,
-              ...?_fragment.declaredTypeParameters
+              ...?_fragment.declaredTypeParameters?.builders
             ]
           : null;
 

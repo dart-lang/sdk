@@ -1617,8 +1617,7 @@ class BodyBuilder extends StackListenerImpl
     List<NominalParameterBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
       typeParameterBuilders ??= <NominalParameterBuilder>[];
-      typeParameterBuilders.add(new DillNominalParameterBuilder(
-          typeParameter,
+      typeParameterBuilders.add(new DillNominalParameterBuilder(typeParameter,
           loader: libraryBuilder.loader));
     }
     enterNominalVariablesScope(typeParameterBuilders);
@@ -8872,7 +8871,6 @@ class BodyBuilder extends StackListenerImpl
             new RegularStructuralParameterDeclaration(
                 metadata: null,
                 name: typeParameterName,
-                bound: null,
                 fileOffset: typeParameterNameOffset,
                 fileUri: uri,
                 isWildcard: isWildcard))

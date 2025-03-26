@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
-import 'package:front_end/src/fragment/getter/declaration.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
 import '../base/messages.dart';
 import '../base/modifiers.dart';
@@ -24,6 +24,7 @@ import '../builder/type_builder.dart';
 import '../fragment/constructor/declaration.dart';
 import '../fragment/factory/declaration.dart';
 import '../fragment/fragment.dart';
+import '../fragment/getter/declaration.dart';
 import '../fragment/setter/declaration.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
@@ -1240,6 +1241,20 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       {bool conflictingSetter = false, List<Fragment>? augmentations}) {
     switch (fragment) {
       case TypedefFragment():
+        List<SourceNominalParameterBuilder>? nominalParameters =
+            createNominalParameterBuilders(
+                fragment.typeParameters, unboundNominalParameters);
+        if (nominalParameters != null) {
+          for (SourceNominalParameterBuilder typeParameter
+              in nominalParameters) {
+            typeParameter.varianceCalculationValue =
+                VarianceCalculationValue.pending;
+          }
+        }
+        fragment.nominalParameterNameSpace.addTypeParameters(
+            problemReporting, nominalParameters,
+            ownerName: name, allowNameConflict: true);
+
         Reference? reference = indexedLibrary?.lookupTypedef(fragment.name);
         SourceTypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
             name: fragment.name,
@@ -1260,6 +1275,12 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             fragment.toDeclarationNameSpaceBuilder();
         ClassDeclaration introductoryDeclaration =
             new RegularClassDeclaration(fragment);
+        List<SourceNominalParameterBuilder>? nominalParameters =
+            createNominalParameterBuilders(
+                fragment.typeParameters, unboundNominalParameters);
+        fragment.nominalParameterNameSpace.addTypeParameters(
+            problemReporting, nominalParameters,
+            ownerName: fragment.name, allowNameConflict: false);
 
         Modifiers modifiers = fragment.modifiers;
         List<ClassDeclaration> augmentationDeclarations = [];
@@ -1292,12 +1313,31 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                     messagePatchClassOrigin.withLocation(
                         fragment.fileUri, fragment.nameOffset, name.length)
                   ]);
+
+              // Error recovery. Create fresh type parameters for the
+              // augmentation.
+              augmentation.nominalParameterNameSpace.addTypeParameters(
+                  problemReporting,
+                  createNominalParameterBuilders(
+                      augmentation.typeParameters, unboundNominalParameters),
+                  ownerName: augmentation.name,
+                  allowNameConflict: false);
             } else if (augmentation.typeParameters != null) {
-              int count = 0;
-              for (TypeParameterFragment t in augmentation.typeParameters!) {
-                fragment.typeParameters![count++].builder
-                    .applyAugmentation(t.builder);
+              for (int index = 0;
+                  index < introductoryTypeParameterCount;
+                  index++) {
+                SourceNominalParameterBuilder nominalParameterBuilder =
+                    nominalParameters![index];
+                TypeParameterFragment typeParameterFragment =
+                    augmentation.typeParameters![index];
+                nominalParameterBuilder.addAugmentingDeclaration(
+                    new RegularNominalParameterDeclaration(
+                        typeParameterFragment));
+                typeParameterFragment.builder = nominalParameterBuilder;
               }
+              augmentation.nominalParameterNameSpace.addTypeParameters(
+                  problemReporting, nominalParameters,
+                  ownerName: augmentation.name, allowNameConflict: false);
             }
           }
         }
@@ -1334,8 +1374,13 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case MixinFragment():
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
+        createNominalParameterBuilders(
+            fragment.typeParameters, unboundNominalParameters);
         List<SourceNominalParameterBuilder>? typeParameters =
-            fragment.typeParameters?.map((p) => p.builder).toList();
+            fragment.typeParameters?.builders;
+        fragment.nominalParameterNameSpace.addTypeParameters(
+            problemReporting, typeParameters,
+            ownerName: fragment.name, allowNameConflict: false);
         SourceClassBuilder mixinBuilder = new SourceClassBuilder(
             modifiers: fragment.modifiers,
             name: fragment.name,
@@ -1369,6 +1414,11 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           referencesFromIndexedClass = indexedLibrary.lookupIndexedClass(name);
         }
 
+        createNominalParameterBuilders(
+            fragment.typeParameters, unboundNominalParameters);
+        fragment.nominalParameterNameSpace.addTypeParameters(
+            problemReporting, fragment.typeParameters?.builders,
+            ownerName: name, allowNameConflict: false);
         LookupScope typeParameterScope = TypeParameterScope.fromList(
             fragment.enclosingScope, fragment.typeParameters?.builders);
         DeclarationNameSpaceBuilder nameSpaceBuilder =
@@ -1397,8 +1447,13 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case EnumFragment():
         IndexedClass? indexedClass =
             indexedLibrary?.lookupIndexedClass(fragment.name);
+        createNominalParameterBuilders(
+            fragment.typeParameters, unboundNominalParameters);
         List<SourceNominalParameterBuilder>? typeParameters =
             fragment.typeParameters?.builders;
+        fragment.nominalParameterNameSpace.addTypeParameters(
+            problemReporting, typeParameters,
+            ownerName: fragment.name, allowNameConflict: false);
         SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
             name: fragment.name,
             typeParameters: typeParameters,
@@ -1427,6 +1482,13 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case ExtensionFragment():
         DeclarationNameSpaceBuilder nameSpaceBuilder =
             fragment.toDeclarationNameSpaceBuilder();
+        List<SourceNominalParameterBuilder>? nominalParameters =
+            createNominalParameterBuilders(
+                fragment.typeParameters, unboundNominalParameters);
+        fragment.nominalParameterNameSpace.addTypeParameters(
+            problemReporting, nominalParameters,
+            ownerName: fragment.name, allowNameConflict: false);
+
         List<ExtensionFragment> augmentationFragments = [];
         if (augmentations != null) {
           int introductoryTypeParameterCount =
@@ -1454,12 +1516,31 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
                     messagePatchExtensionOrigin.withLocation(fragment.fileUri,
                         fragment.nameOrExtensionOffset, nameLength)
                   ]);
+
+              // Error recovery. Create fresh type parameters for the
+              // augmentation.
+              augmentation.nominalParameterNameSpace.addTypeParameters(
+                  problemReporting,
+                  createNominalParameterBuilders(
+                      augmentation.typeParameters, unboundNominalParameters),
+                  ownerName: augmentation.name,
+                  allowNameConflict: false);
             } else if (augmentation.typeParameters != null) {
-              int count = 0;
-              for (TypeParameterFragment t in augmentation.typeParameters!) {
-                fragment.typeParameters![count++].builder
-                    .applyAugmentation(t.builder);
+              for (int index = 0;
+                  index < introductoryTypeParameterCount;
+                  index++) {
+                SourceNominalParameterBuilder nominalParameterBuilder =
+                    nominalParameters![index];
+                TypeParameterFragment typeParameterFragment =
+                    augmentation.typeParameters![index];
+                nominalParameterBuilder.addAugmentingDeclaration(
+                    new RegularNominalParameterDeclaration(
+                        typeParameterFragment));
+                typeParameterFragment.builder = nominalParameterBuilder;
               }
+              augmentation.nominalParameterNameSpace.addTypeParameters(
+                  problemReporting, nominalParameters,
+                  ownerName: augmentation.name, allowNameConflict: false);
             }
           }
           augmentations = null;
@@ -1493,6 +1574,11 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         if (primaryConstructorFields.isNotEmpty) {
           representationFieldFragment = primaryConstructorFields.first;
         }
+        createNominalParameterBuilders(
+            fragment.typeParameters, unboundNominalParameters);
+        fragment.nominalParameterNameSpace.addTypeParameters(
+            problemReporting, fragment.typeParameters?.builders,
+            ownerName: fragment.name, allowNameConflict: false);
         SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
             new SourceExtensionTypeDeclarationBuilder(
                 name: fragment.name,
@@ -1565,6 +1651,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
 
         Modifiers modifiers = fragment.modifiers;
 
+        createNominalParameterBuilders(
+            fragment.declaredTypeParameters, unboundNominalParameters);
+
         PropertyEncodingStrategy propertyEncodingStrategy =
             new PropertyEncodingStrategy(declarationBuilder,
                 isInstanceMember: isInstanceMember);
@@ -1618,6 +1707,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             augmentation as GetterFragment;
 
             augmentation.builder = propertyBuilder;
+
+            createNominalParameterBuilders(
+                augmentation.declaredTypeParameters, unboundNominalParameters);
           }
           augmentations = null;
         }
@@ -1640,6 +1732,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             !fragment.modifiers.isStatic;
 
         Modifiers modifiers = fragment.modifiers;
+        createNominalParameterBuilders(
+            fragment.declaredTypeParameters, unboundNominalParameters);
 
         PropertyEncodingStrategy propertyEncodingStrategy =
             new PropertyEncodingStrategy(declarationBuilder,
@@ -1667,6 +1761,10 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
 
             augmentationDeclarations
                 .add(new SetterDeclarationImpl(augmentation));
+
+            createNominalParameterBuilders(
+                augmentation.declaredTypeParameters, unboundNominalParameters);
+
             if (!(augmentation.modifiers.isAbstract ||
                 augmentation.modifiers.isExternal)) {
               modifiers -= Modifiers.Abstract;
@@ -1718,6 +1816,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         final bool isInstanceMember = containerType != ContainerType.Library &&
             !fragment.modifiers.isStatic;
 
+        createNominalParameterBuilders(
+            fragment.declaredTypeParameters, unboundNominalParameters);
+
         MethodEncodingStrategy encodingStrategy = new MethodEncodingStrategy(
             declarationBuilder,
             isInstanceMember: isInstanceMember);
@@ -1763,6 +1864,10 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             augmentation as MethodFragment;
 
             augmentationFragments.add(augmentation);
+
+            createNominalParameterBuilders(
+                augmentation.declaredTypeParameters, unboundNominalParameters);
+
             if (!(augmentation.modifiers.isAbstract ||
                 augmentation.modifiers.isExternal)) {
               modifiers -= Modifiers.Abstract;
@@ -1809,6 +1914,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             libraryName: indexedLibrary != null
                 ? new LibraryName(indexedLibrary.library.reference)
                 : enclosingLibraryBuilder.libraryName);
+
+        createNominalParameterBuilders(
+            fragment.typeParameters, unboundNominalParameters);
 
         Reference? constructorReference;
         Reference? tearOffReference;
@@ -1922,6 +2030,9 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           for (Fragment augmentation in augmentations) {
             // Promote [augmentation] to [ConstructorFragment].
             augmentation as ConstructorFragment;
+
+            createNominalParameterBuilders(
+                augmentation.typeParameters, unboundNominalParameters);
 
             augmentationDeclarations
                 .add(createConstructorDeclaration(augmentation));
@@ -2463,7 +2574,7 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
   @override
   final List<TypeParameterFragment>? typeParameters;
 
-  final NominalParameterNameSpace _nominalParameterNameSpace;
+  final NominalParameterNameSpace nominalParameterNameSpace;
 
   final LibraryFragment enclosingCompilationUnit;
 
@@ -2474,7 +2585,7 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
     required this.typeParameterScope,
     required NominalParameterNameSpace nominalParameterNameSpace,
     required this.enclosingCompilationUnit,
-  })  : _nominalParameterNameSpace = nominalParameterNameSpace,
+  })  : nominalParameterNameSpace = nominalParameterNameSpace,
         bodyScope = new DeclarationBuilderScope(typeParameterScope);
 
   String get name;
@@ -2502,7 +2613,7 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
 
   DeclarationNameSpaceBuilder toDeclarationNameSpaceBuilder() {
     return new DeclarationNameSpaceBuilder._(
-        name, _nominalParameterNameSpace, _fragments);
+        name, nominalParameterNameSpace, _fragments);
   }
 }
 
@@ -2788,4 +2899,28 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
         !other.isMixinApplication;
   }
   return true;
+}
+
+List<SourceNominalParameterBuilder>? createNominalParameterBuilders(
+    List<TypeParameterFragment>? fragments,
+    List<NominalParameterBuilder> unboundNominalParameters) {
+  if (fragments == null) return null;
+  List<SourceNominalParameterBuilder> list = [];
+  for (TypeParameterFragment fragment in fragments) {
+    list.add(createNominalParameterBuilder(fragment, unboundNominalParameters));
+  }
+  return list;
+}
+
+SourceNominalParameterBuilder createNominalParameterBuilder(
+    TypeParameterFragment fragment,
+    List<NominalParameterBuilder> unboundNominalParameters) {
+  SourceNominalParameterBuilder builder = new SourceNominalParameterBuilder(
+      new RegularNominalParameterDeclaration(fragment),
+      bound: fragment.bound,
+      variableVariance: fragment.variance);
+
+  unboundNominalParameters.add(builder);
+  fragment.builder = builder;
+  return builder;
 }

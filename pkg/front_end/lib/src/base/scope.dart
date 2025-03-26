@@ -412,7 +412,6 @@ class TypeParameterScope extends AbstractTypeParameterScope {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 class FixedLookupScope implements LookupScope {
   final LookupScope? _parent;
   @override
@@ -430,6 +429,7 @@ class FixedLookupScope implements LookupScope {
         this._parent = parent;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? lookupGetable(String name, int charOffset, Uri fileUri) {
     Builder? getable = _getables?[name];
     Builder? setable = _setables?[name];
@@ -448,6 +448,7 @@ class FixedLookupScope implements LookupScope {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Builder? lookupSetable(String name, int charOffset, Uri fileUri) {
     Builder? getable = _getables?[name];
     Builder? setable = _setables?[name];
@@ -466,6 +467,7 @@ class FixedLookupScope implements LookupScope {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent?.forEachExtension(f);
   }

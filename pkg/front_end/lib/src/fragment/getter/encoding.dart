@@ -226,7 +226,6 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         classHierarchy,
         libraryBuilder,
         bodyBuilderContext,
-        _fragment.typeParameterScope,
         _fragment
             .declaredTypeParameters
             // Coverage-ignore(suite): Not run.
@@ -446,7 +445,6 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         classHierarchy,
         libraryBuilder,
         bodyBuilderContext,
-        _fragment.typeParameterScope,
         _fragment
             .declaredTypeParameters
             // Coverage-ignore(suite): Not run.
@@ -456,12 +454,8 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
 
-    buildTypeParametersForOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        bodyBuilderContext,
-        _fragment.typeParameterScope,
-        _clonedDeclarationTypeParameters);
+    buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
+        bodyBuilderContext, _clonedDeclarationTypeParameters);
     buildFormalForOutlineExpressions(
         libraryBuilder, declarationBuilder, _thisFormal,
         scope: _fragment.typeParameterScope,

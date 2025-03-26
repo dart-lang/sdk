@@ -77,7 +77,7 @@ abstract class BuilderFactory {
 
   void beginClassBody();
 
-  void endClassDeclaration(String name);
+  ClassFragment endClassDeclaration();
 
   void endClassDeclarationForParserRecovery(
       List<TypeParameterFragment>? typeParameters);
@@ -89,7 +89,7 @@ abstract class BuilderFactory {
 
   void beginMixinBody();
 
-  void endMixinDeclaration(String name);
+  MixinFragment endMixinDeclaration();
 
   void endMixinDeclarationForParserRecovery(
       List<TypeParameterFragment>? typeParameters);
@@ -116,7 +116,7 @@ abstract class BuilderFactory {
 
   void beginEnumBody();
 
-  void endEnumDeclaration(String name);
+  EnumFragment endEnumDeclaration();
 
   void endEnumDeclarationForParserRecovery(
       List<TypeParameterFragment>? typeParameters);
@@ -130,7 +130,7 @@ abstract class BuilderFactory {
 
   void beginExtensionBody();
 
-  void endExtensionDeclaration(String? name);
+  ExtensionFragment endExtensionDeclaration();
 
   /// Registers that this builder is preparing for an extension type declaration
   /// with the given [name] and [typeParameters] located at [nameOffset].
@@ -139,7 +139,7 @@ abstract class BuilderFactory {
 
   void beginExtensionTypeBody();
 
-  void endExtensionTypeDeclaration(String name);
+  ExtensionTypeFragment endExtensionTypeDeclaration();
 
   void beginFactoryMethod();
 
@@ -475,16 +475,18 @@ abstract class BuilderFactory {
 
   InferableTypeBuilder addInferableType();
 
-  TypeParameterFragment addNominalParameter(List<MetadataBuilder>? metadata,
-      String name, TypeBuilder? bound, int charOffset, Uri fileUri,
-      {required TypeParameterKind kind});
+  TypeParameterFragment addNominalParameter(
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required int nameOffset,
+      required Uri fileUri,
+      required TypeParameterKind kind});
 
   StructuralParameterBuilder addStructuralParameter(
-      List<MetadataBuilder>? metadata,
-      String name,
-      TypeBuilder? bound,
-      int charOffset,
-      Uri fileUri);
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required int nameOffset,
+      required Uri fileUri});
 
   void registerUnboundStructuralParameters(
       List<StructuralParameterBuilder> parameterBuilders);
