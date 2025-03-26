@@ -24,80 +24,8 @@ namespace perfetto {
 namespace protos {
 namespace pbzero {
 
-class DebugAnnotationName_Decoder
-    : public ::protozero::TypedProtoDecoder<
-          /*MAX_FIELD_ID=*/2,
-          /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
- public:
-  DebugAnnotationName_Decoder(const uint8_t* data, size_t len)
-      : TypedProtoDecoder(data, len) {}
-  explicit DebugAnnotationName_Decoder(const std::string& raw)
-      : TypedProtoDecoder(reinterpret_cast<const uint8_t*>(raw.data()),
-                          raw.size()) {}
-  explicit DebugAnnotationName_Decoder(const ::protozero::ConstBytes& raw)
-      : TypedProtoDecoder(raw.data, raw.size) {}
-  bool has_iid() const { return at<1>().valid(); }
-  uint64_t iid() const { return at<1>().as_uint64(); }
-  bool has_name() const { return at<2>().valid(); }
-  ::protozero::ConstChars name() const { return at<2>().as_string(); }
-};
-
-class DebugAnnotationName : public ::protozero::Message {
- public:
-  using Decoder = DebugAnnotationName_Decoder;
-  enum : int32_t {
-    kIidFieldNumber = 1,
-    kNameFieldNumber = 2,
-  };
-  static constexpr const char* GetName() {
-    return ".perfetto.protos.DebugAnnotationName";
-  }
-
-  using FieldMetadata_Iid = ::protozero::proto_utils::FieldMetadata<
-      1,
-      ::protozero::proto_utils::RepetitionType::kNotRepeated,
-      ::protozero::proto_utils::ProtoSchemaType::kUint64,
-      uint64_t,
-      DebugAnnotationName>;
-
-  static constexpr FieldMetadata_Iid kIid{};
-  void set_iid(uint64_t value) {
-    static constexpr uint32_t field_id = FieldMetadata_Iid::kFieldId;
-    // Call the appropriate protozero::Message::Append(field_id, ...)
-    // method based on the type of the field.
-    ::protozero::internal::FieldWriter<
-        ::protozero::proto_utils::ProtoSchemaType::kUint64>::Append(*this,
-                                                                    field_id,
-                                                                    value);
-  }
-
-  using FieldMetadata_Name = ::protozero::proto_utils::FieldMetadata<
-      2,
-      ::protozero::proto_utils::RepetitionType::kNotRepeated,
-      ::protozero::proto_utils::ProtoSchemaType::kString,
-      std::string,
-      DebugAnnotationName>;
-
-  static constexpr FieldMetadata_Name kName{};
-  void set_name(const char* data, size_t size) {
-    AppendBytes(FieldMetadata_Name::kFieldId, data, size);
-  }
-  void set_name(::protozero::ConstChars chars) {
-    AppendBytes(FieldMetadata_Name::kFieldId, chars.data, chars.size);
-  }
-  void set_name(std::string value) {
-    static constexpr uint32_t field_id = FieldMetadata_Name::kFieldId;
-    // Call the appropriate protozero::Message::Append(field_id, ...)
-    // method based on the type of the field.
-    ::protozero::internal::FieldWriter<
-        ::protozero::proto_utils::ProtoSchemaType::kString>::Append(*this,
-                                                                    field_id,
-                                                                    value);
-  }
-};
-
 class DebugAnnotation_Decoder : public ::protozero::TypedProtoDecoder<
-                                    /*MAX_FIELD_ID=*/17,
+                                    /*MAX_FIELD_ID=*/10,
                                     /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   DebugAnnotation_Decoder(const uint8_t* data, size_t len)
@@ -107,50 +35,26 @@ class DebugAnnotation_Decoder : public ::protozero::TypedProtoDecoder<
                           raw.size()) {}
   explicit DebugAnnotation_Decoder(const ::protozero::ConstBytes& raw)
       : TypedProtoDecoder(raw.data, raw.size) {}
-  bool has_name_iid() const { return at<1>().valid(); }
-  uint64_t name_iid() const { return at<1>().as_uint64(); }
   bool has_name() const { return at<10>().valid(); }
   ::protozero::ConstChars name() const { return at<10>().as_string(); }
+  bool has_string_value() const { return at<6>().valid(); }
+  ::protozero::ConstChars string_value() const { return at<6>().as_string(); }
   bool has_legacy_json_value() const { return at<9>().valid(); }
   ::protozero::ConstChars legacy_json_value() const {
     return at<9>().as_string();
   }
-  bool has_string_value() const { return at<6>().valid(); }
-  ::protozero::ConstChars string_value() const { return at<6>().as_string(); }
-  bool has_string_value_iid() const { return at<17>().valid(); }
-  uint64_t string_value_iid() const { return at<17>().as_uint64(); }
 };
 
 class DebugAnnotation : public ::protozero::Message {
  public:
   using Decoder = DebugAnnotation_Decoder;
   enum : int32_t {
-    kNameIidFieldNumber = 1,
     kNameFieldNumber = 10,
-    kLegacyJsonValueFieldNumber = 9,
     kStringValueFieldNumber = 6,
-    kStringValueIidFieldNumber = 17,
+    kLegacyJsonValueFieldNumber = 9,
   };
   static constexpr const char* GetName() {
     return ".perfetto.protos.DebugAnnotation";
-  }
-
-  using FieldMetadata_NameIid = ::protozero::proto_utils::FieldMetadata<
-      1,
-      ::protozero::proto_utils::RepetitionType::kNotRepeated,
-      ::protozero::proto_utils::ProtoSchemaType::kUint64,
-      uint64_t,
-      DebugAnnotation>;
-
-  static constexpr FieldMetadata_NameIid kNameIid{};
-  void set_name_iid(uint64_t value) {
-    static constexpr uint32_t field_id = FieldMetadata_NameIid::kFieldId;
-    // Call the appropriate protozero::Message::Append(field_id, ...)
-    // method based on the type of the field.
-    ::protozero::internal::FieldWriter<
-        ::protozero::proto_utils::ProtoSchemaType::kUint64>::Append(*this,
-                                                                    field_id,
-                                                                    value);
   }
 
   using FieldMetadata_Name = ::protozero::proto_utils::FieldMetadata<
@@ -169,32 +73,6 @@ class DebugAnnotation : public ::protozero::Message {
   }
   void set_name(std::string value) {
     static constexpr uint32_t field_id = FieldMetadata_Name::kFieldId;
-    // Call the appropriate protozero::Message::Append(field_id, ...)
-    // method based on the type of the field.
-    ::protozero::internal::FieldWriter<
-        ::protozero::proto_utils::ProtoSchemaType::kString>::Append(*this,
-                                                                    field_id,
-                                                                    value);
-  }
-
-  using FieldMetadata_LegacyJsonValue = ::protozero::proto_utils::FieldMetadata<
-      9,
-      ::protozero::proto_utils::RepetitionType::kNotRepeated,
-      ::protozero::proto_utils::ProtoSchemaType::kString,
-      std::string,
-      DebugAnnotation>;
-
-  static constexpr FieldMetadata_LegacyJsonValue kLegacyJsonValue{};
-  void set_legacy_json_value(const char* data, size_t size) {
-    AppendBytes(FieldMetadata_LegacyJsonValue::kFieldId, data, size);
-  }
-  void set_legacy_json_value(::protozero::ConstChars chars) {
-    AppendBytes(FieldMetadata_LegacyJsonValue::kFieldId, chars.data,
-                chars.size);
-  }
-  void set_legacy_json_value(std::string value) {
-    static constexpr uint32_t field_id =
-        FieldMetadata_LegacyJsonValue::kFieldId;
     // Call the appropriate protozero::Message::Append(field_id, ...)
     // method based on the type of the field.
     ::protozero::internal::FieldWriter<
@@ -227,20 +105,28 @@ class DebugAnnotation : public ::protozero::Message {
                                                                     value);
   }
 
-  using FieldMetadata_StringValueIid = ::protozero::proto_utils::FieldMetadata<
-      17,
+  using FieldMetadata_LegacyJsonValue = ::protozero::proto_utils::FieldMetadata<
+      9,
       ::protozero::proto_utils::RepetitionType::kNotRepeated,
-      ::protozero::proto_utils::ProtoSchemaType::kUint64,
-      uint64_t,
+      ::protozero::proto_utils::ProtoSchemaType::kString,
+      std::string,
       DebugAnnotation>;
 
-  static constexpr FieldMetadata_StringValueIid kStringValueIid{};
-  void set_string_value_iid(uint64_t value) {
-    static constexpr uint32_t field_id = FieldMetadata_StringValueIid::kFieldId;
+  static constexpr FieldMetadata_LegacyJsonValue kLegacyJsonValue{};
+  void set_legacy_json_value(const char* data, size_t size) {
+    AppendBytes(FieldMetadata_LegacyJsonValue::kFieldId, data, size);
+  }
+  void set_legacy_json_value(::protozero::ConstChars chars) {
+    AppendBytes(FieldMetadata_LegacyJsonValue::kFieldId, chars.data,
+                chars.size);
+  }
+  void set_legacy_json_value(std::string value) {
+    static constexpr uint32_t field_id =
+        FieldMetadata_LegacyJsonValue::kFieldId;
     // Call the appropriate protozero::Message::Append(field_id, ...)
     // method based on the type of the field.
     ::protozero::internal::FieldWriter<
-        ::protozero::proto_utils::ProtoSchemaType::kUint64>::Append(*this,
+        ::protozero::proto_utils::ProtoSchemaType::kString>::Append(*this,
                                                                     field_id,
                                                                     value);
   }

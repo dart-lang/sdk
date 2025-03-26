@@ -25,9 +25,7 @@ import 'dart:typed_data' as $typed_data;
 const TrackEvent$json = {
   '1': 'TrackEvent',
   '2': [
-    {'1': 'category_iids', '3': 3, '4': 3, '5': 4, '10': 'categoryIids'},
     {'1': 'categories', '3': 22, '4': 3, '5': 9, '10': 'categories'},
-    {'1': 'name_iid', '3': 10, '4': 1, '5': 4, '9': 0, '10': 'nameIid'},
     {'1': 'name', '3': 23, '4': 1, '5': 9, '9': 0, '10': 'name'},
     {
       '1': 'type',
@@ -74,38 +72,11 @@ const TrackEvent_Type$json = {
 
 /// Descriptor for `TrackEvent`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List trackEventDescriptor = $convert.base64Decode(
-    'CgpUcmFja0V2ZW50EiMKDWNhdGVnb3J5X2lpZHMYAyADKARSDGNhdGVnb3J5SWlkcxIeCgpjYX'
-    'RlZ29yaWVzGBYgAygJUgpjYXRlZ29yaWVzEhsKCG5hbWVfaWlkGAogASgESABSB25hbWVJaWQS'
-    'FAoEbmFtZRgXIAEoCUgAUgRuYW1lEjQKBHR5cGUYCSABKA4yIC5wZXJmZXR0by5wcm90b3MuVH'
-    'JhY2tFdmVudC5UeXBlUgR0eXBlEh0KCnRyYWNrX3V1aWQYCyABKARSCXRyYWNrVXVpZBIZCghm'
-    'bG93X2lkcxgvIAMoBlIHZmxvd0lkcxIwChR0ZXJtaW5hdGluZ19mbG93X2lkcxgwIAMoBlISdG'
-    'VybWluYXRpbmdGbG93SWRzEk0KEWRlYnVnX2Fubm90YXRpb25zGAQgAygLMiAucGVyZmV0dG8u'
-    'cHJvdG9zLkRlYnVnQW5ub3RhdGlvblIQZGVidWdBbm5vdGF0aW9ucyJYCgRUeXBlEhQKEFRZUE'
-    'VfVU5TUEVDSUZJRUQQABIUChBUWVBFX1NMSUNFX0JFR0lOEAESEgoOVFlQRV9TTElDRV9FTkQQ'
-    'AhIQCgxUWVBFX0lOU1RBTlQQA0IMCgpuYW1lX2ZpZWxk');
-
-@$core.Deprecated('Use eventCategoryDescriptor instead')
-const EventCategory$json = {
-  '1': 'EventCategory',
-  '2': [
-    {'1': 'iid', '3': 1, '4': 1, '5': 4, '10': 'iid'},
-    {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
-  ],
-};
-
-/// Descriptor for `EventCategory`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List eventCategoryDescriptor = $convert.base64Decode(
-    'Cg1FdmVudENhdGVnb3J5EhAKA2lpZBgBIAEoBFIDaWlkEhIKBG5hbWUYAiABKAlSBG5hbWU=');
-
-@$core.Deprecated('Use eventNameDescriptor instead')
-const EventName$json = {
-  '1': 'EventName',
-  '2': [
-    {'1': 'iid', '3': 1, '4': 1, '5': 4, '10': 'iid'},
-    {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
-  ],
-};
-
-/// Descriptor for `EventName`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List eventNameDescriptor = $convert.base64Decode(
-    'CglFdmVudE5hbWUSEAoDaWlkGAEgASgEUgNpaWQSEgoEbmFtZRgCIAEoCVIEbmFtZQ==');
+    'CgpUcmFja0V2ZW50Eh4KCmNhdGVnb3JpZXMYFiADKAlSCmNhdGVnb3JpZXMSFAoEbmFtZRgXIA'
+    'EoCUgAUgRuYW1lEjQKBHR5cGUYCSABKA4yIC5wZXJmZXR0by5wcm90b3MuVHJhY2tFdmVudC5U'
+    'eXBlUgR0eXBlEh0KCnRyYWNrX3V1aWQYCyABKARSCXRyYWNrVXVpZBIZCghmbG93X2lkcxgvIA'
+    'MoBlIHZmxvd0lkcxIwChR0ZXJtaW5hdGluZ19mbG93X2lkcxgwIAMoBlISdGVybWluYXRpbmdG'
+    'bG93SWRzEk0KEWRlYnVnX2Fubm90YXRpb25zGAQgAygLMiAucGVyZmV0dG8ucHJvdG9zLkRlYn'
+    'VnQW5ub3RhdGlvblIQZGVidWdBbm5vdGF0aW9ucyJYCgRUeXBlEhQKEFRZUEVfVU5TUEVDSUZJ'
+    'RUQQABIUChBUWVBFX1NMSUNFX0JFR0lOEAESEgoOVFlQRV9TTElDRV9FTkQQAhIQCgxUWVBFX0'
+    'lOU1RBTlQQA0IMCgpuYW1lX2ZpZWxk');

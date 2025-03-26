@@ -1665,14 +1665,13 @@ void Profile::ProcessSampleFrameJSON(JSONArray* stack,
 }
 
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
-namespace {
-void ProcessSampleFramePerfetto(Profile* profile,
-                                GrowableArray<uint64_t>& callstack,
-                                ProfileCodeInlinedFunctionsCache* cache,
-                                ProcessedSample* sample,
-                                intptr_t frame_index) {
+void Profile::ProcessSampleFramePerfetto(
+    perfetto::protos::pbzero::Callstack* callstack,
+    ProfileCodeInlinedFunctionsCache* cache,
+    ProcessedSample* sample,
+    intptr_t frame_index) {
   const uword pc = sample->At(frame_index);
-  ProfileCode* profile_code = profile->GetCodeFromPC(pc, sample->timestamp());
+  ProfileCode* profile_code = GetCodeFromPC(pc, sample->timestamp());
   ASSERT(profile_code != nullptr);
   ProfileFunction* function = profile_code->function();
   ASSERT(function != nullptr);
@@ -1692,6 +1691,14 @@ void ProcessSampleFramePerfetto(Profile* profile,
     code ^= profile_code->code().ptr();
     cache->Get(pc, code, sample, frame_index, &inlined_functions,
                &inlined_token_positions, &token_position);
+    if (FLAG_trace_profiler_verbose && (inlined_functions != NULL)) {
+      for (intptr_t i = 0; i < inlined_functions->length(); i++) {
+        const String& name =
+            String::Handle((*inlined_functions)[i]->QualifiedScrubbedName());
+        THR_Print("InlinedFunction[%" Pd "] = {%s, %s}\n", i, name.ToCString(),
+                  (*inlined_token_positions)[i].ToCString());
+      }
+    }
   }
 
   if (code.IsNull() || (inlined_functions == nullptr) ||
@@ -1699,21 +1706,36 @@ void ProcessSampleFramePerfetto(Profile* profile,
     // This is the ID of a |Frame| that was added to the interned data table in
     // |ProfilerService::PrintProfilePerfetto|. See the comments in that method
     // for more details.
-    callstack.Add(function->table_index() + 1);
+    callstack->add_frame_ids(function->table_index() + 1);
     return;
   }
+
+  if (!code.is_optimized()) {
+    OS::PrintErr("Code that should be optimized is not. Please file a bug\n");
+    OS::PrintErr("Code object: %s\n", code.ToCString());
+    OS::PrintErr("Inlined functions length: %" Pd "\n",
+                 inlined_functions->length());
+    for (intptr_t i = 0; i < inlined_functions->length(); i++) {
+      OS::PrintErr("IF[%" Pd "] = %s\n", i,
+                   (*inlined_functions)[i]->ToFullyQualifiedCString());
+    }
+  }
+
+  ASSERT(code.is_optimized());
 
   for (intptr_t i = 0; i < inlined_functions->length(); ++i) {
     const Function* inlined_function = (*inlined_functions)[i];
     ASSERT(inlined_function != NULL);
     ASSERT(!inlined_function->IsNull());
     ProfileFunction* profile_function =
-        profile->FindFunction(*inlined_function);
+        functions_->LookupOrAdd(*inlined_function);
     ASSERT(profile_function != NULL);
-    callstack.Add(profile_function->table_index() + 1);
+    // This is the ID of a |Frame| that was added to the interned data table in
+    // |ProfilerService::PrintProfilePerfetto|. See the comments in that method
+    // for more details.
+    callstack->add_frame_ids(profile_function->table_index() + 1);
   }
 }
-}  // namespace
 #endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 
 void Profile::ProcessInlinedFunctionFrameJSON(
@@ -1802,31 +1824,12 @@ void Profile::PrintSamplesPerfetto(
   ASSERT(packet_ptr != nullptr);
   auto& packet = *packet_ptr;
 
-  perfetto_utils::BytesInterner<uint64_t, Zone> callstack_interner(zone_);
-  GrowableArray<uint64_t> callstack(128);
-
   // Note that |cache| is zone-allocated, so it does not need to be deallocated
   // manually.
   auto* cache = new ProfileCodeInlinedFunctionsCache();
   for (intptr_t sample_index = 0; sample_index < samples_->length();
        ++sample_index) {
     ProcessedSample* sample = samples_->At(sample_index);
-
-    // Walk the sampled PCs and intern the stack.
-    callstack.Clear();
-    for (intptr_t frame_index = sample->length() - 1; frame_index >= 0;
-         --frame_index) {
-      ASSERT(sample->At(frame_index) != 0);
-      ProcessSampleFramePerfetto(this, callstack, cache, sample, frame_index);
-    }
-
-    // Empty sample (everything is invisible).
-    if (callstack.is_empty()) {
-      continue;
-    }
-
-    const auto callstack_iid =
-        callstack_interner.Intern(&callstack[0], callstack.length());
 
     perfetto_utils::SetTrustedPacketSequenceId(packet.get());
     // We set this flag to indicate that this packet reads from the interned
@@ -1837,24 +1840,26 @@ void Profile::PrintSamplesPerfetto(
     perfetto_utils::SetTimestampAndMonotonicClockId(packet.get(),
                                                     sample->timestamp());
 
+    const intptr_t callstack_iid = sample_index + 1;
+    // Add a |Callstack| to the interned data table that represents the stack
+    // trace stored in |sample|.
+    perfetto::protos::pbzero::Callstack* callstack =
+        packet->set_interned_data()->add_callstacks();
+    callstack->set_iid(callstack_iid);
+    // Walk the sampled PCs.
+    for (intptr_t frame_index = sample->length() - 1; frame_index >= 0;
+         --frame_index) {
+      ASSERT(sample->At(frame_index) != 0);
+      ProcessSampleFramePerfetto(callstack, cache, sample, frame_index);
+    }
+
     // Populate |packet| with a |PerfSample| that is linked to the |Callstack|
     // that we populated above.
-    auto& perf_sample = *packet->set_perf_sample();
+    perfetto::protos::pbzero::PerfSample& perf_sample =
+        *packet->set_perf_sample();
     perf_sample.set_pid(OS::ProcessId());
     perf_sample.set_tid(OSThread::ThreadIdToIntPtr(sample->tid()));
     perf_sample.set_callstack_iid(callstack_iid);
-
-    if (callstack_interner.HasNewlyInternedEntries()) {
-      auto& interned_data = *packet->set_interned_data();
-      callstack_interner.FlushNewlyInternedTo(
-          [&interned_data](const auto& interned) {
-            auto& callstack = *interned_data.add_callstacks();
-            callstack.set_iid(interned.iid);
-            for (intptr_t i = 0; i < interned.length; i++) {
-              callstack.add_frame_ids(interned.data[i]);
-            }
-          });
-    }
 
     perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet);
     packet.Reset();

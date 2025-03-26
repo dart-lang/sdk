@@ -95,11 +95,6 @@ package perfetto.protos;
 //
 // Next reserved id: 13 (up to 15). Next id: 50.
 message TrackEvent {
-  // Names of categories of the event. In the client library, categories are a
-  // way to turn groups of individual events on or off.
-  // interned EventCategoryName.
-  repeated uint64 category_iids = 3;
-  // non-interned variant.
   repeated string categories = 22;
 
   // Optional name of the event for its display in trace viewer. May be left
@@ -109,8 +104,6 @@ message TrackEvent {
   // changing. Instead, they should use typed arguments to identify the events
   // they are interested in.
   oneof name_field {
-    // interned EventName.
-    uint64 name_iid = 10;
     // non-interned variant.
     string name = 23;
   }
@@ -182,18 +175,4 @@ message TrackEvent {
   // Unstable key/value annotations shown in the trace viewer but not intended
   // for metrics use.
   repeated DebugAnnotation debug_annotations = 4;
-}
-
-// --------------------
-// Interned data types:
-// --------------------
-
-message EventCategory {
-  optional uint64 iid = 1;
-  optional string name = 2;
-}
-
-message EventName {
-  optional uint64 iid = 1;
-  optional string name = 2;
 }

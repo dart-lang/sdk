@@ -32,7 +32,6 @@
 #include "vm/perfetto_utils.h"
 #include "vm/protos/perfetto/common/builtin_clock.pbzero.h"
 #include "vm/protos/perfetto/trace/clock_snapshot.pbzero.h"
-#include "vm/protos/perfetto/trace/interned_data/interned_data.pbzero.h"
 #include "vm/protos/perfetto/trace/trace_packet.pbzero.h"
 #include "vm/protos/perfetto/trace/track_event/debug_annotation.pbzero.h"
 #include "vm/protos/perfetto/trace/track_event/process_descriptor.pbzero.h"
@@ -83,10 +82,6 @@ DEFINE_FLAG(charp,
             DEFAULT_TIMELINE_RECORDER,
             "Select the timeline recorder used. "
             "Valid values: none, " SUPPORTED_TIMELINE_RECORDERS)
-DEFINE_FLAG(bool,
-            intern_strings_when_writing_perfetto_timeline,
-            false,
-            "Intern strings when writing timeline in perfetto format.")
 
 // Implementation notes:
 //
@@ -807,156 +802,6 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
 #if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 namespace {
 
-// Trait used to map 64-bit ids (e.g. isolate or isolate group id) to
-// interned id of a corresponding string representation.
-//
-// This way we only need to generate formatted string once, instead of
-// repeatedly formatting it and then interning resulting string to get an
-// iid.
-class IdToIidTrait {
- public:
-  struct Pair {
-    uint64_t id;
-    uint64_t formatted_iid;
-  };
-  using Key = uint64_t;
-  using Value = uint64_t;
-
-  static Key KeyOf(const Pair& kv) { return kv.id; }
-  static Value ValueOf(const Pair& kv) { return kv.formatted_iid; }
-  static uword Hash(Key key) {
-    return Utils::WordHash(static_cast<intptr_t>(key));
-  }
-  static bool IsKeyEqual(const Pair& kv, Key key) { return kv.id == key; }
-};
-
-using IdToIidMap = MallocDirectChainedHashMap<IdToIidTrait>;
-
-class InternedDataBuilder : public ValueObject {
- private:
-  using SequenceFlags = perfetto::protos::pbzero::TracePacket_SequenceFlags;
-
- public:
-  // InternedData contains multiple independent interning dictionaries which
-  // are used for different attributes.
-#define PERFETTO_INTERNED_STRINGS_FIELDS_LIST(V)                               \
-  V(event_categories, name)                                                    \
-  V(event_names, name)                                                         \
-  V(debug_annotation_names, name)                                              \
-  V(debug_annotation_string_values, str)
-
-  // Direct access for known strings.
-#define PERFETTO_COMMON_INTERNED_STRINGS_LIST(V)                               \
-  V(debug_annotation_names, isolateId)                                         \
-  V(debug_annotation_names, isolateGroupId)
-
-  InternedDataBuilder() = default;
-
-  // Emit all strings added since the last invocation of |AttachInternedDataTo|
-  // into |interned_data| of the given |TracePacket|.
-  //
-  // Mark the packet as depending on incremental state.
-  void AttachInternedDataTo(perfetto::protos::pbzero::TracePacket* packet) {
-    if (!AnyInternerHasNewlyInternedEntries()) {
-      return;
-    }
-
-    packet->set_sequence_flags(sequence_flags_);
-    // The first packet will have SEQ_INCREMENTAL_STATE_CLEARED
-    // the rest will just have SEQ_NEEDS_INCREMENTAL_STATE.
-    sequence_flags_ &= ~SequenceFlags::SEQ_INCREMENTAL_STATE_CLEARED;
-
-    auto interned_data = packet->set_interned_data();
-
-    // Flush individual interning dictionaries.
-#define FLUSH_FIELD(name, proto_field)                                         \
-  name##_.FlushNewlyInternedTo([interned_data](auto& iid, auto& str) {         \
-    auto entry = interned_data->add_##name();                                  \
-    entry->set_iid(iid);                                                       \
-    entry->set_##proto_field(str);                                             \
-  });
-
-    PERFETTO_INTERNED_STRINGS_FIELDS_LIST(FLUSH_FIELD)
-#undef FLUSH_FIELD
-  }
-
-#define DEFINE_GETTER(name, proto_field)                                       \
-  perfetto_utils::StringInterner<Malloc>& name() { return name##_; }
-  PERFETTO_INTERNED_STRINGS_FIELDS_LIST(DEFINE_GETTER)
-#undef DEFINE_GETTER
-
-#define DEFINE_GETTER_FOR_COMMON_STRING(category, str)                         \
-  uint64_t iid_##str() {                                                       \
-    if (iid_##str##_ == 0) {                                                   \
-      iid_##str##_ = category().Intern(#str);                                  \
-    }                                                                          \
-    return iid_##str##_;                                                       \
-  }
-
-  PERFETTO_COMMON_INTERNED_STRINGS_LIST(DEFINE_GETTER_FOR_COMMON_STRING)
-
-#undef DEFINE_GETTER_FOR_COMMON_STRING
-
-  uint64_t InternFormattedIsolateId(uint64_t isolate_id) {
-    return InternFormattedIdForDebugAnnotation(
-        isolate_id_to_iid_of_formatted_string_,
-        ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id);
-  }
-
-  uint64_t InternFormattedIsolateGroupId(uint64_t isolate_group_id) {
-    return InternFormattedIdForDebugAnnotation(
-        isolate_group_id_to_iid_of_formatted_string_,
-        ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id);
-  }
-
- private:
-  template <std::size_t kFormatLen>
-  uint64_t InternFormattedIdForDebugAnnotation(IdToIidMap& cache,
-                                               const char (&format)[kFormatLen],
-                                               uint64_t id) {
-    if (auto iid = cache.Lookup(id)) {
-      return iid->formatted_iid;
-    }
-
-    // 20 characters is enough to format any uint64_t (or int64_t) value.
-    char formatted[kFormatLen + 20];
-    Utils::SNPrint(formatted, ARRAY_SIZE(formatted), format, id);
-
-    auto formatted_iid = debug_annotation_string_values().Intern(formatted);
-    cache.Insert({id, formatted_iid});
-    return formatted_iid;
-  }
-
-  bool AnyInternerHasNewlyInternedEntries() const {
-#define CHECK_FIELD(name, proto_field)                                         \
-  if (name##_.HasNewlyInternedEntries()) return true;
-
-    PERFETTO_INTERNED_STRINGS_FIELDS_LIST(CHECK_FIELD)
-#undef CHECK_FIELD
-    return false;
-  }
-
-  uint32_t sequence_flags_ = SequenceFlags::SEQ_INCREMENTAL_STATE_CLEARED |
-                             SequenceFlags::SEQ_NEEDS_INCREMENTAL_STATE;
-
-  // These are interned in debug_annotation_string_values space.
-  IdToIidMap isolate_id_to_iid_of_formatted_string_;
-  IdToIidMap isolate_group_id_to_iid_of_formatted_string_;
-
-#define DEFINE_FIELD_FOR_COMMON_STRING(category, str) uint64_t iid_##str##_ = 0;
-
-  PERFETTO_COMMON_INTERNED_STRINGS_LIST(DEFINE_FIELD_FOR_COMMON_STRING)
-
-#undef DEFINE_FIELD_FOR_COMMON_STRING
-
-#define DEFINE_FIELD(name, proto_field)                                        \
-  perfetto_utils::StringInterner<Malloc> name##_;
-  PERFETTO_INTERNED_STRINGS_FIELDS_LIST(DEFINE_FIELD)
-#undef DEFINE_FIELD
-
-  DISALLOW_COPY_AND_ASSIGN(InternedDataBuilder);
-};
-
 class TracePacketWriter : public ValueObject {
  public:
   using TracePacket = perfetto::protos::pbzero::TracePacket;
@@ -966,11 +811,8 @@ class TracePacketWriter : public ValueObject {
       std::function<void(protozero::HeapBuffered<TracePacket>&)>;
 
   TracePacketWriter(protozero::HeapBuffered<TracePacket>& packet,
-                    WriteCallback&& write_callback,
-                    bool intern_strings)
-      : packet_(packet),
-        write_callback_(std::move(write_callback)),
-        intern_strings_(intern_strings) {}
+                    WriteCallback&& write_callback)
+      : packet_(packet), write_callback_(std::move(write_callback)) {}
 
   // Converting contents of the given |TimelineEvent| into one or more
   // Perfetto packets and write them out using |write_callback_| which
@@ -1028,7 +870,6 @@ class TracePacketWriter : public ValueObject {
                               int64_t timestamp,
                               const TimelineEvent& event) {
     PopulatePacket(event_type, timestamp, event);
-    interned_data_builder_.AttachInternedDataTo(packet_.get());
     write_callback_(packet_);
     packet_.Reset();
   }
@@ -1043,7 +884,7 @@ class TracePacketWriter : public ValueObject {
     perfetto_utils::SetTimestampAndMonotonicClockId(packet_.get(), timestamp);
 
     TrackEvent* track_event = packet_->set_track_event();
-    SetTrackEventCategory(track_event, event.stream()->name());
+    track_event->add_categories(event.stream()->name());
 
     track_event->set_track_uuid(IsSync(event_type)
                                     ? OSThread::ThreadIdToIntPtr(event.thread())
@@ -1051,7 +892,7 @@ class TracePacketWriter : public ValueObject {
     const auto perfetto_type = ToPerfettoType(event_type);
     track_event->set_type(perfetto_type);
     if (perfetto_type != TrackEvent::Type::TYPE_SLICE_END) {
-      SetTrackEventName(track_event, event.label());
+      track_event->set_name(event.label());
       for (intptr_t i = 0; i < event.flow_id_count(); ++i) {
         // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that
         // we aren't able to populate right now because we aren't keeping track
@@ -1070,120 +911,37 @@ class TracePacketWriter : public ValueObject {
         ASSERT(event.GetNumArguments() == 1);
         perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
             *track_event->add_debug_annotations();
-        SetDebugAnnotationName(debug_annotation, event.arguments()[0].name);
+        debug_annotation.set_name(event.arguments()[0].name);
         debug_annotation.set_legacy_json_value(event.arguments()[0].value);
       } else {
         for (intptr_t i = 0; i < event.GetNumArguments(); ++i) {
           perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
               *track_event->add_debug_annotations();
-          SetDebugAnnotationName(debug_annotation, event.arguments()[0].name);
-          SetDebugAnnotationStringValue(debug_annotation,
-                                        event.arguments()[i].value);
+          debug_annotation.set_name(event.arguments()[i].name);
+          debug_annotation.set_string_value(event.arguments()[i].value);
         }
       }
     }
     if (event.HasIsolateId()) {
       perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
           *track_event->add_debug_annotations();
-      SetDebugAnnotationName(debug_annotation, "isolateId", [this](auto name) {
-        return interned_data_builder_.iid_isolateId();
-      });
-      SetDebugAnnotationStringValueFromFormattedId(
-          debug_annotation, ISOLATE_SERVICE_ID_FORMAT_STRING,
-          event.isolate_id(), [this](auto id) {
-            return interned_data_builder_.InternFormattedIsolateId(id);
-          });
+      debug_annotation.set_name("isolateId");
+      std::unique_ptr<const char[]> formatted_isolate_id =
+          event.GetFormattedIsolateId();
+      debug_annotation.set_string_value(formatted_isolate_id.get());
     }
     if (event.HasIsolateGroupId()) {
       perfetto::protos::pbzero::DebugAnnotation& debug_annotation =
           *track_event->add_debug_annotations();
-      SetDebugAnnotationName(
-          debug_annotation, "isolateGroupId", [this](auto name) {
-            return interned_data_builder_.iid_isolateGroupId();
-          });
-      SetDebugAnnotationStringValueFromFormattedId(
-          debug_annotation, ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
-          event.isolate_group_id(), [this](auto id) {
-            return interned_data_builder_.InternFormattedIsolateGroupId(id);
-          });
-    }
-  }
-
-  // Helpers for setting string valued properties on |TrackEvent| and
-  // |DebugAnnotation|, these can use interning if |intern_strings_| is
-  // |true|.
-
-  void SetTrackEventCategory(TrackEvent* track_event, const char* value) {
-    if (intern_strings_) {
-      track_event->add_category_iids(
-          interned_data_builder_.event_categories().Intern(value));
-    } else {
-      track_event->add_categories(value);
-    }
-  }
-
-  void SetTrackEventName(TrackEvent* track_event, const char* value) {
-    if (intern_strings_) {
-      track_event->set_name_iid(
-          interned_data_builder_.event_names().Intern(value));
-    } else {
-      track_event->set_name(value);
-    }
-  }
-
-  template <typename F>
-  void SetDebugAnnotationName(
-      perfetto::protos::pbzero::DebugAnnotation& debug_annotation,
-      const char* name,
-      F&& intern) {
-    if (intern_strings_) {
-      debug_annotation.set_name_iid(intern(name));
-    } else {
-      debug_annotation.set_name(name);
-    }
-  }
-
-  void SetDebugAnnotationName(
-      perfetto::protos::pbzero::DebugAnnotation& debug_annotation,
-      const char* name) {
-    SetDebugAnnotationName(debug_annotation, name, [this](auto name) {
-      return interned_data_builder_.debug_annotation_names().Intern(name);
-    });
-  }
-
-  void SetDebugAnnotationStringValue(
-      perfetto::protos::pbzero::DebugAnnotation& debug_annotation,
-      const char* value) {
-    if (intern_strings_) {
-      debug_annotation.set_string_value_iid(
-          interned_data_builder_.debug_annotation_string_values().Intern(
-              value));
-    } else {
-      debug_annotation.set_string_value(value);
-    }
-  }
-
-  template <std::size_t kFormatLen, typename F>
-  void SetDebugAnnotationStringValueFromFormattedId(
-      perfetto::protos::pbzero::DebugAnnotation& debug_annotation,
-      const char (&format)[kFormatLen],
-      uint64_t id,
-      F&& intern_id) {
-    if (intern_strings_) {
-      debug_annotation.set_string_value_iid(intern_id(id));
-    } else {
-      // 20 characters is enough to format any uint64_t (or int64_t) value.
-      char formatted[kFormatLen + 20];
-      Utils::SNPrint(formatted, ARRAY_SIZE(formatted), format, id);
-      debug_annotation.set_string_value(formatted);
+      debug_annotation.set_name("isolateGroupId");
+      std::unique_ptr<const char[]> formatted_isolate_group =
+          event.GetFormattedIsolateGroupId();
+      debug_annotation.set_string_value(formatted_isolate_group.get());
     }
   }
 
   protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet_;
   WriteCallback write_callback_;
-  const bool intern_strings_;
-
-  InternedDataBuilder interned_data_builder_;
 
   DISALLOW_COPY_AND_ASSIGN(TracePacketWriter);
 };
@@ -1218,6 +976,34 @@ bool TimelineEvent::HasIsolateId() const {
 
 bool TimelineEvent::HasIsolateGroupId() const {
   return isolate_group_id_ != ILLEGAL_ISOLATE_GROUP_ID;
+}
+
+std::unique_ptr<const char[]> TimelineEvent::GetFormattedIsolateId() const {
+  ASSERT(HasIsolateId());
+  intptr_t formatted_isolate_id_buffer_size =
+      Utils::SNPrint(nullptr, 0, ISOLATE_SERVICE_ID_FORMAT_STRING,
+                     isolate_id_) +
+      1;
+  auto formatted_isolate_id =
+      std::make_unique<char[]>(formatted_isolate_id_buffer_size);
+  Utils::SNPrint(formatted_isolate_id.get(), formatted_isolate_id_buffer_size,
+                 ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id_);
+  return formatted_isolate_id;
+}
+
+std::unique_ptr<const char[]> TimelineEvent::GetFormattedIsolateGroupId()
+    const {
+  ASSERT(HasIsolateGroupId());
+  intptr_t formatted_isolate_group_id_buffer_size =
+      Utils::SNPrint(nullptr, 0, ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
+                     isolate_group_id_) +
+      1;
+  auto formatted_isolate_group_id =
+      std::make_unique<char[]>(formatted_isolate_group_id_buffer_size);
+  Utils::SNPrint(formatted_isolate_group_id.get(),
+                 formatted_isolate_group_id_buffer_size,
+                 ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id_);
+  return formatted_isolate_group_id;
 }
 
 TimelineTrackMetadata::TimelineTrackMetadata(intptr_t pid,
@@ -1883,13 +1669,9 @@ void TimelineEventBufferedRecorder::PrintJSONEvents(
 void TimelineEventBufferedRecorder::PrintPerfettoEvents(
     JSONBase64String* jsonBase64String,
     const TimelineEventFilter& filter) {
-  TracePacketWriter writer(
-      packet(),
-      [&jsonBase64String](auto& packet) {
-        perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
-                                                       &packet);
-      },
-      FLAG_intern_strings_when_writing_perfetto_timeline);
+  TracePacketWriter writer(packet(), [&jsonBase64String](auto& packet) {
+    perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet);
+  });
 
   PrintEventsCommon(filter, [&writer](const TimelineEvent& event) {
     writer.WriteEvent(event);
@@ -2342,10 +2124,7 @@ static TimelineEventRecorder* CreateTimelineEventPerfettoFileRecorder(
 TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
     const char* path)
     : TimelineEventFileRecorderBase(path),
-      writer_(
-          packet(),
-          [this](auto& packet) { this->WritePacket(&packet); },
-          FLAG_intern_strings_when_writing_perfetto_timeline) {
+      writer_(packet(), [this](auto& packet) { this->WritePacket(&packet); }) {
   protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
       this->packet();
 

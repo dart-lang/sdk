@@ -22,8 +22,8 @@ import 'dart:core' as $core;
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'process_descriptor.pb.dart' as $4;
-import 'thread_descriptor.pb.dart' as $5;
+import 'process_descriptor.pb.dart' as $3;
+import 'thread_descriptor.pb.dart' as $4;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
@@ -45,8 +45,8 @@ class TrackDescriptor extends $pb.GeneratedMessage {
   factory TrackDescriptor({
     $fixnum.Int64? uuid,
     $core.String? name,
-    $4.ProcessDescriptor? process,
-    $5.ThreadDescriptor? thread,
+    $3.ProcessDescriptor? process,
+    $4.ThreadDescriptor? thread,
     $fixnum.Int64? parentUuid,
   }) {
     final $result = create();
@@ -83,10 +83,10 @@ class TrackDescriptor extends $pb.GeneratedMessage {
     ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'uuid', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..aOS(2, _omitFieldNames ? '' : 'name')
-    ..aOM<$4.ProcessDescriptor>(3, _omitFieldNames ? '' : 'process',
-        subBuilder: $4.ProcessDescriptor.create)
-    ..aOM<$5.ThreadDescriptor>(4, _omitFieldNames ? '' : 'thread',
-        subBuilder: $5.ThreadDescriptor.create)
+    ..aOM<$3.ProcessDescriptor>(3, _omitFieldNames ? '' : 'process',
+        subBuilder: $3.ProcessDescriptor.create)
+    ..aOM<$4.ThreadDescriptor>(4, _omitFieldNames ? '' : 'thread',
+        subBuilder: $4.ThreadDescriptor.create)
     ..a<$fixnum.Int64>(
         5, _omitFieldNames ? '' : 'parentUuid', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
@@ -157,9 +157,9 @@ class TrackDescriptor extends $pb.GeneratedMessage {
   ///  from other sources (e.g. ftrace) for the same process into a single
   ///  timeline view.
   @$pb.TagNumber(3)
-  $4.ProcessDescriptor get process => $_getN(2);
+  $3.ProcessDescriptor get process => $_getN(2);
   @$pb.TagNumber(3)
-  set process($4.ProcessDescriptor v) {
+  set process($3.ProcessDescriptor v) {
     $_setField(3, v);
   }
 
@@ -168,7 +168,7 @@ class TrackDescriptor extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearProcess() => $_clearField(3);
   @$pb.TagNumber(3)
-  $4.ProcessDescriptor ensureProcess() => $_ensure(2);
+  $3.ProcessDescriptor ensureProcess() => $_ensure(2);
 
   ///  Associate the track with a thread, indicating that the track's events
   ///  describe synchronous code execution on the thread. There should only be one
@@ -178,9 +178,9 @@ class TrackDescriptor extends $pb.GeneratedMessage {
   ///  from other sources (e.g. ftrace) for the same thread into a single timeline
   ///  view.
   @$pb.TagNumber(4)
-  $5.ThreadDescriptor get thread => $_getN(3);
+  $4.ThreadDescriptor get thread => $_getN(3);
   @$pb.TagNumber(4)
-  set thread($5.ThreadDescriptor v) {
+  set thread($4.ThreadDescriptor v) {
     $_setField(4, v);
   }
 
@@ -189,7 +189,7 @@ class TrackDescriptor extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   void clearThread() => $_clearField(4);
   @$pb.TagNumber(4)
-  $5.ThreadDescriptor ensureThread() => $_ensure(3);
+  $4.ThreadDescriptor ensureThread() => $_ensure(3);
 
   /// A parent track reference can be used to describe relationships between
   /// tracks. For example, to define an asynchronous track which is scoped to a

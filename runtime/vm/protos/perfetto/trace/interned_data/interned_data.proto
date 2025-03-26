@@ -59,10 +59,6 @@ package perfetto.protos;
 // Next reserved id: 8 (up to 15).
 // Next id: 29.
 message InternedData {
-  repeated EventCategory event_categories = 1;
-  repeated EventName event_names = 2;
-  repeated DebugAnnotationName debug_annotation_names = 3;
-
   // Note: field IDs up to 15 should be used for frequent data only.
 
   // Paths to executable files.
@@ -76,6 +72,4 @@ message InternedData {
   repeated Frame frames = 6;
   // A callstack of a program.
   repeated Callstack callstacks = 7;
-  // Interned string values in the DebugAnnotation proto.
-  repeated InternedString debug_annotation_string_values = 29;
 }
