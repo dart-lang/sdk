@@ -25,6 +25,8 @@ import '../fragment/constructor/declaration.dart';
 import '../fragment/factory/declaration.dart';
 import '../fragment/fragment.dart';
 import '../fragment/getter/declaration.dart';
+import '../fragment/method/declaration.dart';
+import '../fragment/method/encoding.dart';
 import '../fragment/setter/declaration.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
@@ -1857,13 +1859,17 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
 
         Modifiers modifiers = fragment.modifiers;
-        List<MethodFragment> augmentationFragments = [];
+        MethodDeclaration introductoryDeclaration =
+            new MethodDeclarationImpl(fragment);
+
+        List<MethodDeclaration> augmentationDeclarations = [];
         if (augmentations != null) {
           for (Fragment augmentation in augmentations) {
             // Promote [augmentation] to [MethodFragment].
             augmentation as MethodFragment;
 
-            augmentationFragments.add(augmentation);
+            augmentationDeclarations
+                .add(new MethodDeclarationImpl(augmentation));
 
             createNominalParameterBuilders(
                 augmentation.declaredTypeParameters, unboundNominalParameters);
@@ -1874,7 +1880,6 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               modifiers -= Modifiers.External;
             }
           }
-          augmentations = null;
         }
 
         SourceMethodBuilder methodBuilder = new SourceMethodBuilder(
@@ -1885,17 +1890,28 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             declarationBuilder: declarationBuilder,
             isStatic: modifiers.isStatic,
             modifiers: modifiers,
-            introductory: fragment,
-            augmentations: augmentationFragments,
+            introductory: introductoryDeclaration,
+            augmentations: augmentationDeclarations,
             nameScheme: nameScheme,
             reference: procedureReference,
             tearOffReference: tearOffReference);
-        fragment.setBuilder(problemReporting, methodBuilder, encodingStrategy,
-            unboundNominalParameters);
-        for (MethodFragment augmentation in augmentationFragments) {
-          augmentation.setBuilder(problemReporting, methodBuilder,
+        fragment.builder = methodBuilder;
+        if (augmentations != null) {
+          for (Fragment augmentation in augmentations) {
+            // Promote [augmentation] to [MethodFragment].
+            augmentation as MethodFragment;
+
+            augmentation.builder = methodBuilder;
+          }
+          augmentations = null;
+        }
+        introductoryDeclaration.createEncoding(problemReporting, methodBuilder,
+            encodingStrategy, unboundNominalParameters);
+        for (MethodDeclaration augmentation in augmentationDeclarations) {
+          augmentation.createEncoding(problemReporting, methodBuilder,
               encodingStrategy, unboundNominalParameters);
         }
+
         builders.add(new _AddBuilder(
             fragment.name, methodBuilder, fragment.fileUri, fragment.nameOffset,
             inPatch: fragment.enclosingDeclaration?.isPatch ??
