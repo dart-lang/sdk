@@ -406,13 +406,6 @@ class Profile : public ValueObject {
                               ProfileCodeInlinedFunctionsCache* cache,
                               ProcessedSample* sample,
                               intptr_t frame_index);
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
-  void ProcessSampleFramePerfetto(
-      perfetto::protos::pbzero::Callstack* callstack,
-      ProfileCodeInlinedFunctionsCache* cache,
-      ProcessedSample* sample,
-      intptr_t frame_index);
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
   void ProcessInlinedFunctionFrameJSON(JSONArray* stack,
                                        const Function* inlined_function);
   void PrintFunctionFrameIndexJSON(JSONArray* stack, ProfileFunction* function);
