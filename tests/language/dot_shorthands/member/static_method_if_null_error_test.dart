@@ -15,12 +15,10 @@ void memberTest() {
   StaticMember memberLocal = .member() ?? member;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   StaticMember memberType = .memberType<String, int>("s") ?? member;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 }
 
 void memberExtTest() {
@@ -30,10 +28,8 @@ void memberExtTest() {
   StaticMemberExt memberLocal = .member() ?? member;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   StaticMemberExt memberType = .memberType<String, int>("s") ?? member;
   // ^
   // [analyzer] unspecified
-  // [cfe] unspecified
 }
