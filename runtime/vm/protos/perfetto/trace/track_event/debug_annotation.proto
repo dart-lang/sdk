@@ -70,15 +70,29 @@ package perfetto.protos;
 message DebugAnnotation {
   // Name fields are set only for dictionary entries.
   oneof name_field {
+    // interned DebugAnnotationName.
+    uint64 name_iid = 1;
     // non-interned variant.
     string name = 10;
   }
 
   oneof value {
-    string string_value = 6;
-
     // Legacy instrumentation may not support conversion of nested data to
     // NestedValue yet.
     string legacy_json_value = 9;
+
+    // interned and non-interned variants of strings.
+    string string_value = 6;
+    // Corresponds to |debug_annotation_string_values| field in InternedData.
+    uint64 string_value_iid = 17;
   }
+}
+
+// --------------------
+// Interned data types:
+// --------------------
+
+message DebugAnnotationName {
+  optional uint64 iid = 1;
+  optional string name = 2;
 }
