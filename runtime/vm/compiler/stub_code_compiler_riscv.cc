@@ -474,16 +474,12 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Exit the temporary isolate.
   {
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    Label call;
-
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
       GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitTemporaryIsolate, T1, T2);
     } else {
+      Label call;
       const intptr_t kPCRelativeLoadOffset = 12;
       intptr_t start = __ CodeSize();
       __ auipc(T1, 0);
@@ -496,16 +492,20 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #else
       __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitTemporaryIsolate));
 #endif
+      __ Bind(&call);
     }
 #else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kExitTemporaryIsolate, T1);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
-    __ Bind(&call);
-    __ jalr(T1);
+    __ PopRegisterPair(RA, THR);
 
-    __ LeaveFrame();
+    // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
+    // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
+    // enough for VM shutdown.
+    __ jr(T1);
+    __ ebreak();
   }
 
   __ Bind(&done);

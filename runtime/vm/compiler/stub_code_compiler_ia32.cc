@@ -349,14 +349,20 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Exit the temporary isolate.
   {
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
+    // Pop the trampoline type into ECX.
+    __ popl(ECX);
 
+    // Restore callee-saved registers.
+    __ popl(EBX);
+    __ popl(THR);
+
+    // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
+    // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
+    // enough for VM shutdown.
     __ movl(EAX,
             Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
-    __ CallCFunction(EAX);
-
-    __ LeaveFrame();
+    __ jmp(EAX);
+    __ int3();
   }
 
   __ Bind(&done);

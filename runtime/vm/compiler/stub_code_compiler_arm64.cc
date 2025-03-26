@@ -620,10 +620,6 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Exit the temporary isolate.
   {
-    __ SetupDartSP();
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
@@ -640,13 +636,15 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
         FfiCallbackMetadata::kExitTemporaryIsolate, R4);
 #endif
 
-    __ mov(CSP, SP);
-    __ blr(R4);
-    __ mov(SP, CSP);
-    __ mov(THR, R0);
+    // Pop LR and THR from the real stack (CSP).
+    CLOBBERS_LR(__ ldp(
+        THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
 
-    __ LeaveFrame();
-    __ RestoreCSP();
+    // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
+    // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
+    // enough for VM shutdown.
+    __ br(R4);
+    __ brk(0);
   }
 
   __ Bind(&done);

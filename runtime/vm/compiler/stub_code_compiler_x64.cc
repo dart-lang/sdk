@@ -592,12 +592,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
         FfiCallbackMetadata::kExitTemporaryIsolate, RAX);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
+    // Restore THR (callee-saved).
+    __ popq(THR);
 
-    __ CallCFunction(RAX);
-
-    __ LeaveFrame();
+    // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
+    // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
+    // enough for VM shutdown.
+    __ jmp(RAX);
+    __ int3();
   }
 
   __ Bind(&done);
