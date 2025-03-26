@@ -1253,6 +1253,48 @@ class E {}
 ''', target: '$testPackageLibPath/test2.dart');
   }
 
+  Future<void> test_returnType_closure_expression() async {
+    await resolveTestCode('''
+class A {
+  void m(List<A> list) {
+    list.where((a) => a.myMethod());
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  void m(List<A> list) {
+    list.where((a) => a.myMethod());
+  }
+
+  bool myMethod() {}
+}
+''');
+  }
+
+  Future<void> test_returnType_closure_return() async {
+    await resolveTestCode('''
+class A {
+  void m(List<A> list) {
+    list.where((a) {
+      return a.myMethod();
+    });
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  void m(List<A> list) {
+    list.where((a) {
+      return a.myMethod();
+    });
+  }
+
+  bool myMethod() {}
+}
+''');
+  }
+
   Future<void> test_static() async {
     await resolveTestCode('''
 extension E on String {}

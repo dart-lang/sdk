@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/lint/constants.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -31,35 +32,27 @@ class AddConst extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    AstNode? targetNode = node;
-    if (targetNode is SimpleIdentifier) {
-      targetNode = targetNode.parent;
+    var targetNode = _computeTargetNode();
+    if (targetNode == null) {
+      return;
     }
+
     if (targetNode is ConstructorDeclaration) {
-      var node_final = targetNode;
+      var offset = targetNode.firstTokenAfterCommentAndMetadata.offset;
       await builder.addDartFileEdit(file, (builder) {
-        var offset = node_final.firstTokenAfterCommentAndMetadata.offset;
         builder.addSimpleInsertion(offset, 'const ');
       });
       return;
     }
 
-    Future<void> addParensAndConst(AstNode node_final) async {
-      var offset = node_final.offset;
+    Future<void> addParensAndConst(AstNode parent) async {
+      var offset = parent.offset;
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleInsertion(offset + node_final.length, ')');
+        builder.addSimpleInsertion(offset + parent.length, ')');
         builder.addSimpleInsertion(offset, 'const (');
       });
     }
 
-    if (targetNode is TypeArgumentList) {
-      while (targetNode is! CompilationUnit && targetNode is! ConstantPattern) {
-        targetNode = targetNode?.parent;
-      }
-    }
-    if (targetNode is CompilationUnit) {
-      return;
-    }
     if (targetNode is ConstantPattern) {
       var expression = targetNode.expression;
       var canBeConst = expression.canBeConst;
@@ -69,82 +62,39 @@ class AddConst extends ResolvedCorrectionProducer {
           builder.addSimpleInsertion(offset, 'const ');
         });
       } else if (expression is TypeLiteral) {
-        var node_final = targetNode.parent;
-        if (node_final is ParenthesizedPattern) {
+        var parent = targetNode.parent!;
+        if (parent is ParenthesizedPattern) {
           await builder.addDartFileEdit(file, (builder) {
-            builder.addSimpleInsertion(node_final.offset, 'const ');
+            builder.addSimpleInsertion(parent.offset, 'const ');
           });
         } else {
-          await addParensAndConst(node_final!);
+          await addParensAndConst(parent);
         }
       }
       return;
     }
-    if (targetNode is BinaryExpression || targetNode is PrefixExpression) {
-      var node_final = targetNode?.parent;
-      if (node_final?.parent is ParenthesizedPattern) {
-        // add const
-        var offset = node_final!.parent!.offset;
+    if (targetNode case BinaryExpression() || PrefixExpression()) {
+      var parent = targetNode.parent!;
+      if (parent.parent is ParenthesizedPattern) {
+        // Add `const`.
+        var offset = parent.parent!.offset;
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleInsertion(offset, 'const ');
         });
       } else {
-        // add const and parenthesis
-        await addParensAndConst(node_final!);
+        // Add `const` and parentheses.
+        await addParensAndConst(parent);
       }
       return;
-    }
-
-    bool isParentConstant(
-      DartFileEditBuilderImpl builder,
-      Expression targetNode,
-    ) {
-      var edits = builder.fileEdit.edits;
-      var child = targetNode.parent;
-      while (child is Expression ||
-          child is ArgumentList ||
-          child is VariableDeclaration ||
-          child is VariableDeclarationList) {
-        if (edits.any(
-          (element) =>
-              element.replacement.startsWith('const') &&
-              element.offset == child!.offset,
-        )) {
-          return true;
-        }
-        child = child!.parent;
-      }
-      return false;
-    }
-
-    Future<void> insertAtOffset(Expression targetNode) async {
-      var finder = _ConstRangeFinder();
-      targetNode.accept(finder);
-      await builder.addDartFileEdit(file, (builder) {
-        if (builder is DartFileEditBuilderImpl &&
-            isParentConstant(builder, targetNode)) {
-          return;
-        }
-        builder.addSimpleInsertion(targetNode.offset, 'const ');
-        for (var range in finder.ranges) {
-          builder.addDeletion(range);
-        }
-      });
     }
 
     if (targetNode is ListLiteral) {
-      await insertAtOffset(targetNode);
+      await _insertBeforeNode(builder, targetNode);
       return;
     }
     if (targetNode is SetOrMapLiteral) {
-      await insertAtOffset(targetNode);
+      await _insertBeforeNode(builder, targetNode);
       return;
-    }
-    if (targetNode is NamedType) {
-      targetNode = targetNode.parent;
-    }
-    if (targetNode is ConstructorName) {
-      targetNode = targetNode.parent;
     }
     if (targetNode case InstanceCreationExpression(:var parent, :var keyword)) {
       var constDeclarations =
@@ -162,10 +112,33 @@ class AddConst extends ResolvedCorrectionProducer {
         }
       }
       if (keyword == null) {
-        await insertAtOffset(targetNode);
+        await _insertBeforeNode(builder, targetNode);
         return;
       }
     }
+  }
+
+  /// Computes the node which this correction should treat as the target.
+  AstNode? _computeTargetNode() {
+    AstNode? targetNode = node;
+    if (targetNode is SimpleIdentifier) {
+      targetNode = targetNode.parent;
+    }
+    if (targetNode is TypeArgumentList) {
+      while (targetNode is! CompilationUnit && targetNode is! ConstantPattern) {
+        targetNode = targetNode?.parent;
+      }
+    }
+    if (targetNode is CompilationUnit) {
+      return null;
+    }
+    if (targetNode is NamedType) {
+      targetNode = targetNode.parent;
+    }
+    if (targetNode is ConstructorName) {
+      targetNode = targetNode.parent;
+    }
+    return targetNode;
   }
 
   /// Considers if the given [variables] to be declared with `const` if all of
@@ -217,6 +190,46 @@ class AddConst extends ResolvedCorrectionProducer {
     });
     // If each of the variable ranges is contained in the list of error ranges.
     return variablesRanges.every(errorsRanges.contains);
+  }
+
+  /// Inserts `const ` before [targetNode].
+  Future<void> _insertBeforeNode(
+    ChangeBuilder builder,
+    Expression targetNode,
+  ) async {
+    var finder = _ConstRangeFinder();
+    targetNode.accept(finder);
+    await builder.addDartFileEdit(file, (builder) {
+      if (builder is DartFileEditBuilderImpl &&
+          _isAncestorConstant(builder.fileEdit.edits, targetNode)) {
+        return;
+      }
+      builder.addSimpleInsertion(targetNode.offset, 'const ');
+      for (var range in finder.ranges) {
+        builder.addDeletion(range);
+      }
+    });
+  }
+
+  /// Returns whether any [edits] start with 'const' and have the same offset as
+  /// one of [targetNode]s ancestors.
+  bool _isAncestorConstant(List<SourceEdit> edits, Expression targetNode) {
+    var child = targetNode.parent;
+    var editsWhichStartWithConst =
+        edits.where((e) => e.replacement.startsWith('const')).toList();
+    if (editsWhichStartWithConst.isEmpty) {
+      return false;
+    }
+    while (child is Expression ||
+        child is ArgumentList ||
+        child is VariableDeclaration ||
+        child is VariableDeclarationList) {
+      if (editsWhichStartWithConst.any((e) => e.offset == child!.offset)) {
+        return true;
+      }
+      child = child!.parent;
+    }
+    return false;
   }
 }
 

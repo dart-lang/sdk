@@ -593,7 +593,7 @@ class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor<void>
 class SsaTrustedLateCheckRemover extends HBaseVisitor<void>
     implements CodegenPhase {
   @override
-  String get name => 'SsaInstructionSelection';
+  String get name => 'SsaTrustedLateCheckRemover';
 
   final AbstractValueDomain _abstractValueDomain;
 

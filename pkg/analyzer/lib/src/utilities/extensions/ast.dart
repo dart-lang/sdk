@@ -26,6 +26,23 @@ extension AstNodeExtension on AstNode {
     return result;
   }
 
+  /// The [FunctionExpression] that encloses this node directly or `null` if
+  /// there is another enclosing executable element.
+  FunctionExpression? get enclosingClosure {
+    for (var node in withParents) {
+      switch (node) {
+        case FunctionExpression(:var parent)
+            when parent is! FunctionDeclaration:
+          return node;
+        case FunctionDeclaration() ||
+              ConstructorDeclaration() ||
+              MethodDeclaration():
+          break;
+      }
+    }
+    return null;
+  }
+
   /// The [ExecutableElement2] of the enclosing executable [AstNode].
   ExecutableElement2? get enclosingExecutableElement2 {
     for (var node in withParents) {

@@ -726,6 +726,42 @@ void bar(int i) {
     await assert_returnType_bool('while ( test() ) {}');
   }
 
+  Future<void> test_returnType_closure_expression() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.where((i) => myMethod(i));
+}
+''');
+    await assertHasFix('''
+void f(List<int> list) {
+  list.where((i) => myMethod(i));
+}
+
+bool myMethod(int i) {
+}
+''');
+  }
+
+  Future<void> test_returnType_closure_return() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.where((i) {
+    return myMethod(i);
+  });
+}
+''');
+    await assertHasFix('''
+void f(List<int> list) {
+  list.where((i) {
+    return myMethod(i);
+  });
+}
+
+bool myMethod(int i) {
+}
+''');
+  }
+
   Future<void> test_returnType_fromAssignment_eq() async {
     await resolveTestCode('''
 void f() {

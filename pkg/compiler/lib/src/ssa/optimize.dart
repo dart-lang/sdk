@@ -4222,10 +4222,74 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
     List<HBasicBlock>? trueTargets,
     List<HBasicBlock>? falseTargets,
   ) {
+    if (trueTargets == null && falseTargets == null) return;
+
     for (HInstruction user in instruction.usedBy) {
       if (user is HIf) {
         trueTargets?.add(user.thenBlock);
         falseTargets?.add(user.elseBlock);
+
+        final joinBlock = user.joinBlock;
+        if (joinBlock != null) {
+          final joinPredecessors = joinBlock.predecessors;
+          if (joinPredecessors.length == 2) {
+            if (hasUnreachableExit(joinPredecessors[0])) {
+              // The then-branch does not reach the join block, so the join
+              // block is reached only if condition is false.
+              falseTargets?.add(joinBlock);
+            } else if (hasUnreachableExit(joinPredecessors[1])) {
+              // The else-branch does not reach the join block, so the join
+              // block is reached only if condition is true.
+              trueTargets?.add(joinBlock);
+            } else {
+              final phi = joinBlock.phis.firstPhi;
+              if (phi != null && phi.next == null) {
+                assert(phi.inputs.length == 2);
+
+                // This is a single phi controlled by `user`.
+                //
+                // Collect the targets of the phi. The phi is in effectively a
+                // conditional `user ? left : right`.
+
+                final right = phi.inputs[1];
+                if (right.isConstantFalse()) {
+                  // When `c ? x : false` is true, `c` must be true.
+                  // So pass `c`'s trueTargets as the phi's trueTargets.
+                  collectTargets(phi, trueTargets, null);
+                } else if (right.isConstantTrue()) {
+                  // When `c ? x : true` is false, `c` must be true.
+                  // So pass `c`'s trueTargets as the phi's falseTargets.
+                  collectTargets(phi, null, trueTargets);
+                }
+
+                final left = phi.inputs[0];
+                if (left.isConstantFalse()) {
+                  // When `c ? false : x` is true, `c` must be false.
+                  // So pass `c`'s falseTargets as the phi's trueTargets.
+                  collectTargets(phi, falseTargets, null);
+                } else if (left.isConstantTrue()) {
+                  // When `c ? true : x` is false, `c` must be false.
+                  // So pass `c`'s falseTargets as the phi's falseTargets.
+                  collectTargets(phi, null, falseTargets);
+                }
+
+                // Sanity checks:
+                //
+                // For `c ? true : false`, we pass both `c`'s trueTargets and
+                // falseTargets as the same targets of the phi.
+                //
+                // For `c ? false : true`, we pass the targets reversed, like we
+                // for `HNot`.
+                //
+                // For `c ? false : false`, we pass both `c`'s trueTargets and
+                // falseTargets to the unreachable trueTargets of the phi. We
+                // might insert contradictory strengthenings, which might refine
+                // a value to Never, i.e. we potentially 'prove' the code is
+                // unreachable.
+              }
+            }
+          }
+        }
       } else if (user is HLoopBranch) {
         trueTargets?.add(user.block!.successors.first);
         // Don't insert refinements on else-branch - may be a critical edge
@@ -4238,9 +4302,10 @@ class SsaTypeConversionInserter extends HBaseVisitor<void>
           assert(inputs.contains(instruction));
           HInstruction other = inputs[(inputs[0] == instruction) ? 1 : 0];
           if (other.isConstantTrue()) {
-            // The condition flows to a HPhi(true, user), which means that a
-            // downstream HIf has true-branch control flow that does not depend
-            // on the original instruction, so stop collecting [trueTargets].
+            // The condition flows to `HPhi(true, user)` or `HPhi(user, true)`,
+            // which means that a downstream HIf has true-branch control flow
+            // that does not depend on the original instruction, so stop
+            // collecting [trueTargets].
             collectTargets(user, null, falseTargets);
           } else if (other.isConstantFalse()) {
             // Ditto for false.
