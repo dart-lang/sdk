@@ -343,19 +343,21 @@ WasmExternRef? jsArrayBufferFromDartByteBuffer(ByteBuffer buffer) {
 WasmExternRef? jsifyRaw(Object? o) {
   if (o == null) return WasmExternRef.nullRef;
   if (o is bool) return toJSBoolean(o);
-  if (o is num) return toJSNumber(o.toDouble());
-  if (o is JSValue) return o.toExternRef;
-  if (o is String) return jsStringFromDartString(o).toExternRef;
+  if (o is num) return jsifyNum(o);
+  if (o is JSValue) return jsifyJSValue(o);
+  if (o is String) return jsifyString(o);
   if (o is js_types.JSArrayBase) {
-    if (o is js_types.JSInt8ArrayImpl) return o.toJSArrayExternRef();
-    if (o is js_types.JSUint8ArrayImpl) return o.toJSArrayExternRef();
-    if (o is js_types.JSUint8ClampedArrayImpl) return o.toJSArrayExternRef();
-    if (o is js_types.JSInt16ArrayImpl) return o.toJSArrayExternRef();
-    if (o is js_types.JSUint16ArrayImpl) return o.toJSArrayExternRef();
-    if (o is js_types.JSInt32ArrayImpl) return o.toJSArrayExternRef();
-    if (o is js_types.JSUint32ArrayImpl) return o.toJSArrayExternRef();
-    if (o is js_types.JSFloat32ArrayImpl) return o.toJSArrayExternRef();
-    if (o is js_types.JSFloat64ArrayImpl) return o.toJSArrayExternRef();
+    if (o is js_types.JSInt8ArrayImpl) return jsifyJSInt8ArrayImpl(o);
+    if (o is js_types.JSUint8ArrayImpl) return jsifyJSUint8ArrayImpl(o);
+    if (o is js_types.JSUint8ClampedArrayImpl) {
+      return jsifyJSUint8ClampedArrayImpl(o);
+    }
+    if (o is js_types.JSInt16ArrayImpl) return jsifyJSInt16ArrayImpl(o);
+    if (o is js_types.JSUint16ArrayImpl) return jsifyJSUint16ArrayImpl(o);
+    if (o is js_types.JSInt32ArrayImpl) return jsifyJSInt32ArrayImpl(o);
+    if (o is js_types.JSUint32ArrayImpl) return jsifyJSUint32ArrayImpl(o);
+    if (o is js_types.JSFloat32ArrayImpl) return jsifyJSFloat32ArrayImpl(o);
+    if (o is js_types.JSFloat64ArrayImpl) return jsifyJSFloat64ArrayImpl(o);
   } else if (o is TypedData) {
     if (o is Int8List) return jsInt8ArrayFromDartInt8List(o);
     if (o is Uint8List) return jsUint8ArrayFromDartUint8List(o);
@@ -368,22 +370,87 @@ WasmExternRef? jsifyRaw(Object? o) {
     if (o is Uint32List) return jsUint32ArrayFromDartUint32List(o);
     if (o is Float32List) return jsFloat32ArrayFromDartFloat32List(o);
     if (o is Float64List) return jsFloat64ArrayFromDartFloat64List(o);
-    if (o is js_types.JSDataViewImpl) return o.toExternRef;
-    if (o is ByteData) return jsDataViewFromDartByteData(o, o.lengthInBytes);
+    if (o is js_types.JSDataViewImpl) return jsifyJSDataViewImpl(o);
+    if (o is ByteData) return jsifyByteData(o);
   } else if (o is List<Object?>) {
     return _jsifyRawList(o);
   } else if (o is ByteBuffer) {
-    if (o is js_types.JSArrayBufferImpl) return o.toExternRef;
+    if (o is js_types.JSArrayBufferImpl) return jsifyJSArrayBufferImpl(o);
     return jsArrayBufferFromDartByteBuffer(o);
   } else if (o is Function) {
-    assert(
-      functionToJSWrapper.containsKey(o),
-      'Must call `allowInterop` on functions before they flow to JS',
-    );
-    return functionToJSWrapper[o]!.toExternRef;
+    return jsifyFunction(o);
   } else {
     return jsObjectFromDartObject(o);
   }
+}
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyInt(int o) => toJSNumber(o.toDouble());
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyNum(num o) => toJSNumber(o.toDouble());
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSValue(JSValue o) => o.toExternRef;
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyString(String o) => jsStringFromDartString(o).toExternRef;
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSInt8ArrayImpl(js_types.JSInt8ArrayImpl o) =>
+    o.toJSArrayExternRef();
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSUint8ArrayImpl(js_types.JSUint8ArrayImpl o) =>
+    o.toJSArrayExternRef();
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSUint8ClampedArrayImpl(
+  js_types.JSUint8ClampedArrayImpl o,
+) => o.toJSArrayExternRef();
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSInt16ArrayImpl(js_types.JSInt16ArrayImpl o) =>
+    o.toJSArrayExternRef();
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSUint16ArrayImpl(js_types.JSUint16ArrayImpl o) =>
+    o.toJSArrayExternRef();
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSInt32ArrayImpl(js_types.JSInt32ArrayImpl o) =>
+    o.toJSArrayExternRef();
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSUint32ArrayImpl(js_types.JSUint32ArrayImpl o) =>
+    o.toJSArrayExternRef();
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSFloat32ArrayImpl(js_types.JSFloat32ArrayImpl o) =>
+    o.toJSArrayExternRef();
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSFloat64ArrayImpl(js_types.JSFloat64ArrayImpl o) =>
+    o.toJSArrayExternRef();
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSDataViewImpl(js_types.JSDataViewImpl o) => o.toExternRef;
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyJSArrayBufferImpl(js_types.JSArrayBufferImpl o) =>
+    o.toExternRef;
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyByteData(ByteData o) =>
+    jsDataViewFromDartByteData(o, o.lengthInBytes);
+
+@pragma('wasm:prefer-inline')
+WasmExternRef? jsifyFunction(Function o) {
+  assert(
+    functionToJSWrapper.containsKey(o),
+    'Must call `allowInterop` on functions before they flow to JS',
+  );
+  return functionToJSWrapper[o]!.toExternRef;
 }
 
 bool isWasmGCStruct(WasmExternRef? ref) => ref.internalize()?.isObject ?? false;

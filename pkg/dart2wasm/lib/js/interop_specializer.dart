@@ -133,8 +133,8 @@ abstract class _ProcedureSpecializer extends _Specializer {
     Expression invocation = StaticInvocation(
         _getOrCreateInteropProcedure(),
         Arguments(parameters
-            .map<Expression>((value) => StaticInvocation(
-                _util.jsifyTarget(value.type), Arguments([VariableGet(value)])))
+            .map<Expression>((variable) => jsifyValue(variable, factory._util,
+                factory._staticTypeContext.typeEnvironment))
             .toList()));
     return _util.castInvocationForReturn(invocation, function.returnType);
   }
@@ -227,11 +227,16 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
     // arguments. Cast as needed and return the final invocation.
     final staticInvocation = StaticInvocation(
         _getOrCreateInteropProcedure(),
-        Arguments(invocation.arguments.positional
-            .map<Expression>((expr) => StaticInvocation(
-                _util.jsifyTarget(expr.getStaticType(_staticTypeContext)),
-                Arguments([expr])))
-            .toList()));
+        Arguments(invocation.arguments.positional.map<Expression>((expr) {
+          final temp = VariableDeclaration(null,
+              initializer: expr,
+              type: expr.getStaticType(factory._staticTypeContext),
+              isSynthesized: true);
+          return Let(
+              temp,
+              jsifyValue(temp, factory._util,
+                  factory._staticTypeContext.typeEnvironment));
+        }).toList()));
     return _util.castInvocationForReturn(
         staticInvocation, invocation.getStaticType(_staticTypeContext));
   }
@@ -318,11 +323,16 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
     }
     final arguments =
         parameters.map<Expression>((decl) => namedArgs[decl.name!]!).toList();
-    final positionalArgs = arguments
-        .map<Expression>((expr) => StaticInvocation(
-            _util.jsifyTarget(expr.getStaticType(_staticTypeContext)),
-            Arguments([expr])))
-        .toList();
+    final positionalArgs = arguments.map<Expression>((expr) {
+      final temp = VariableDeclaration(null,
+          initializer: expr,
+          type: expr.getStaticType(_staticTypeContext),
+          isSynthesized: true);
+      return Let(
+          temp,
+          jsifyValue(
+              temp, factory._util, factory._staticTypeContext.typeEnvironment));
+    }).toList();
     assert(factory._extensionIndex.isStaticInteropType(function.returnType));
     return invokeOneArg(_util.jsValueBoxTarget,
         StaticInvocation(interopProcedure, Arguments(positionalArgs)));
