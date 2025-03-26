@@ -729,10 +729,7 @@ class SourceExtensionTypeDeclarationBuilder
     if (_introductory.typeParameters != null) {
       for (int i = 0; i < _introductory.typeParameters!.length; i++) {
         _introductory.typeParameters![i].builder.buildOutlineExpressions(
-            libraryBuilder,
-            createBodyBuilderContext(),
-            classHierarchy,
-            _introductory.typeParameterScope);
+            libraryBuilder, createBodyBuilderContext(), classHierarchy);
       }
     }
 

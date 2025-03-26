@@ -181,16 +181,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         libraryBuilder,
         fragment.fileUri,
         fragment.enclosingScope);
-
-    if (fragment.typeParameters != null) {
-      for (int i = 0; i < fragment.typeParameters!.length; i++) {
-        fragment.typeParameters![i].builder.buildOutlineExpressions(
-            libraryBuilder,
-            bodyBuilderContext,
-            classHierarchy,
-            fragment.typeParameterScope);
-      }
-    }
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
@@ -201,6 +191,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     for (ExtensionFragment augmentation in _augmentations) {
       _buildOutlineExpressionsForFragment(
           augmentation, classHierarchy, bodyBuilderContext);
+    }
+
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(
+            libraryBuilder, bodyBuilderContext, classHierarchy);
+      }
     }
 
     Iterator<SourceMemberBuilder> iterator =

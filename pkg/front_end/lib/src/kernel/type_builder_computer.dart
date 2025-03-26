@@ -213,9 +213,8 @@ class _TypeBuilderComputerHelper
     } else if (computedNominalTypeParameters.containsKey(node.parameter)) {
       nominalVariableBuilder = computedNominalTypeParameters[node.parameter]!;
     } else {
-      nominalVariableBuilder = new DillNominalParameterBuilder(
-          node.parameter,
-          loader: null);
+      nominalVariableBuilder =
+          new DillNominalParameterBuilder(node.parameter, loader: null);
       nominalVariableBuilder.bound = node.parameter.bound.accept1(this,
           {...pendingNominalVariables, node.parameter: nominalVariableBuilder});
       nominalVariableBuilder.defaultType = node.parameter.defaultType.accept1(

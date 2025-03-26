@@ -49,9 +49,7 @@ import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_factory_builder.dart';
-import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
-import '../source/source_loader.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_method_builder.dart';
 import '../source/source_property_builder.dart';
@@ -66,6 +64,7 @@ import 'constructor/declaration.dart';
 import 'factory/declaration.dart';
 import 'getter/declaration.dart';
 import 'getter/encoding.dart';
+import 'method/declaration.dart';
 import 'setter/declaration.dart';
 import 'setter/encoding.dart';
 

@@ -13,7 +13,6 @@ abstract class ClassDeclaration {
   int get nameOffset;
   int get startOffset;
   int get endOffset;
-  List<SourceNominalParameterBuilder>? get typeParameters;
   bool get isMixinDeclaration;
 
   TypeBuilder? get supertype;
@@ -61,10 +60,6 @@ class RegularClassDeclaration implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<SourceNominalParameterBuilder>? get typeParameters =>
-      _fragment.typeParameters?.builders;
-
-  @override
   bool get isMixinDeclaration => false;
 
   @override
@@ -91,13 +86,6 @@ class RegularClassDeclaration implements ClassDeclaration {
         _fragment.fileUri,
         _fragment.enclosingScope,
         createFileUriExpression: createFileUriExpression);
-
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(libraryBuilder,
-            bodyBuilderContext, classHierarchy, _fragment.typeParameterScope);
-      }
-    }
   }
 
   @override
@@ -143,10 +131,6 @@ class EnumDeclaration implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<SourceNominalParameterBuilder>? get typeParameters =>
-      _fragment.typeParameters?.builders;
-
-  @override
   bool get isMixinDeclaration => false;
 
   @override
@@ -170,13 +154,6 @@ class EnumDeclaration implements ClassDeclaration {
         _fragment.fileUri,
         _fragment.enclosingScope,
         createFileUriExpression: createFileUriExpression);
-
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(libraryBuilder,
-            bodyBuilderContext, classHierarchy, _fragment.typeParameterScope);
-      }
-    }
   }
 
   @override
@@ -223,10 +200,6 @@ class NamedMixinApplication implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<SourceNominalParameterBuilder>? get typeParameters =>
-      _fragment.typeParameters?.builders;
-
-  @override
   bool get isMixinDeclaration => false;
 
   @override
@@ -250,13 +223,6 @@ class NamedMixinApplication implements ClassDeclaration {
         _fragment.fileUri,
         _fragment.enclosingScope,
         createFileUriExpression: createFileUriExpression);
-
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(libraryBuilder,
-            bodyBuilderContext, classHierarchy, _fragment.typeParameterScope);
-      }
-    }
   }
 
   @override
@@ -285,9 +251,6 @@ class AnonymousMixinApplication implements ClassDeclaration {
   final Uri fileUri;
 
   @override
-  final List<SourceNominalParameterBuilder>? typeParameters;
-
-  @override
   final TypeBuilder? supertype;
 
   @override
@@ -306,7 +269,6 @@ class AnonymousMixinApplication implements ClassDeclaration {
       required this.nameOffset,
       required this.startOffset,
       required this.endOffset,
-      required this.typeParameters,
       required this.supertype,
       required this.interfaces});
 
@@ -364,10 +326,6 @@ class MixinDeclaration implements ClassDeclaration {
   int get startOffset => _fragment.startOffset;
 
   @override
-  List<SourceNominalParameterBuilder>? get typeParameters =>
-      _fragment.typeParameters?.builders;
-
-  @override
   bool get isMixinDeclaration => true;
 
   @override
@@ -394,13 +352,6 @@ class MixinDeclaration implements ClassDeclaration {
         _fragment.fileUri,
         _fragment.enclosingScope,
         createFileUriExpression: createFileUriExpression);
-
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(libraryBuilder,
-            bodyBuilderContext, classHierarchy, _fragment.typeParameterScope);
-      }
-    }
   }
 
   @override

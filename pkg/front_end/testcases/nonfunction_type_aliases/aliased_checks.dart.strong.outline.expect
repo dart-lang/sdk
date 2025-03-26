@@ -29,20 +29,20 @@ library;
 // typedef B<X extends A<X>> = A<X>;
 //           ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks.dart:26:22: Error: Type argument 'A<int>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'B'.
-//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   barBar13<X extends B<A<int>>>() => throw 42;
-//                      ^
-// pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks.dart:7:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef B<X extends A<X>> = A<X>;
-//           ^
-//
 // pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks.dart:29:24: Error: Type argument 'A<int>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // class Bar2<X extends A<B<A<int>>>> {
 //                        ^
+// pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks.dart:7:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef B<X extends A<X>> = A<X>;
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks.dart:26:22: Error: Type argument 'A<int>' doesn't conform to the bound 'A<X>' of the type variable 'X' on 'B'.
+//  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   barBar13<X extends B<A<int>>>() => throw 42;
+//                      ^
 // pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks.dart:7:11: Context: This is the type variable whose bound isn't conformed to.
 // typedef B<X extends A<X>> = A<X>;
 //           ^

@@ -291,7 +291,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         endOffset: _introductory.endOffset,
         subclassName: _introductory.name,
         isMixinDeclaration: _introductory.isMixinDeclaration,
-        typeParameters: _introductory.typeParameters,
+        typeParameters: typeParameters,
         modifiers: Modifiers.empty,
         onAnonymousMixin: (SourceClassBuilder anonymousMixinBuilder) {
           Reference? reference = anonymousMixinBuilder.indexedClass?.reference;
@@ -533,6 +533,12 @@ class SourceClassBuilder extends ClassBuilderImpl
           classHierarchy: classHierarchy,
           libraryBuilder: libraryBuilder,
           createFileUriExpression: true);
+    }
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(
+            libraryBuilder, bodyBuilderContext, classHierarchy);
+      }
     }
 
     nameSpace
@@ -2257,7 +2263,6 @@ TypeBuilder? _applyMixins(
         compilationUnitScope: compilationUnitScope,
         supertype: isMixinDeclaration ? null : supertype,
         interfaces: isMixinDeclaration ? [supertype!, mixin] : null,
-        typeParameters: applicationTypeParameters,
         fileUri: fileUri,
         startOffset: computedStartOffset,
         nameOffset: nameOffset,

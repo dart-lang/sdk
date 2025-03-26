@@ -228,7 +228,6 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
         classHierarchy,
         libraryBuilder,
         bodyBuilderContext,
-        _fragment.typeParameterScope,
         _fragment
             .declaredTypeParameters
             // Coverage-ignore(suite): Not run.
@@ -454,7 +453,6 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         classHierarchy,
         libraryBuilder,
         bodyBuilderContext,
-        _fragment.typeParameterScope,
         _fragment
             .declaredTypeParameters
             // Coverage-ignore(suite): Not run.
@@ -464,12 +462,8 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         scope: _fragment.typeParameterScope,
         isClassInstanceMember: isClassInstanceMember);
 
-    buildTypeParametersForOutlineExpressions(
-        classHierarchy,
-        libraryBuilder,
-        bodyBuilderContext,
-        _fragment.typeParameterScope,
-        _clonedDeclarationTypeParameters);
+    buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
+        bodyBuilderContext, _clonedDeclarationTypeParameters);
     buildFormalForOutlineExpressions(
         libraryBuilder, declarationBuilder, _thisFormal,
         scope: _fragment.typeParameterScope,

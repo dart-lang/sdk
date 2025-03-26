@@ -14,7 +14,7 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/method_builder.dart';
 import '../builder/type_builder.dart';
-import '../fragment/fragment.dart';
+import '../fragment/method/declaration.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
@@ -52,8 +52,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   /// The declarations that introduces this method. Subsequent methods of the
   /// same name must be augmentations.
-  final MethodFragment _introductory;
-  final List<MethodFragment> _augmentations;
+  final MethodDeclaration _introductory;
+  final List<MethodDeclaration> _augmentations;
 
   final Modifiers _modifiers;
 
@@ -74,8 +74,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
       required this.isStatic,
       required Modifiers modifiers,
       required NameScheme nameScheme,
-      required MethodFragment introductory,
-      required List<MethodFragment> augmentations,
+      required MethodDeclaration introductory,
+      required List<MethodDeclaration> augmentations,
       required Reference? reference,
       required Reference? tearOffReference})
       : _nameScheme = nameScheme,
@@ -127,19 +127,19 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
-    List<MethodFragment> augmentedFragments = [
+    List<MethodDeclaration> augmentedFragments = [
       _introductory,
       ..._augmentations
     ];
     // TODO(johnniwinther): Support augmenting a concrete method with an
     //  abstract method.
-    MethodFragment lastFragment = augmentedFragments.removeLast();
+    MethodDeclaration lastFragment = augmentedFragments.removeLast();
     lastFragment.buildOutlineNode(libraryBuilder, _nameScheme, f,
         reference: _reference,
         tearOffReference: _tearOffReference,
         classTypeParameters: classBuilder?.cls.typeParameters);
 
-    for (MethodFragment augmented in augmentedFragments) {
+    for (MethodDeclaration augmented in augmentedFragments) {
       augmented.buildOutlineNode(
           libraryBuilder, _nameScheme, noAddBuildNodesCallback,
           reference: new Reference(),
@@ -156,14 +156,14 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!hasBuiltOutlineExpressions) {
-      _introductory.buildOutlineExpressions(
-          classHierarchy, libraryBuilder, declarationBuilder, _invokeTarget,
+      _introductory.buildOutlineExpressions(classHierarchy, libraryBuilder,
+          declarationBuilder, this, _invokeTarget,
           isClassInstanceMember: isClassInstanceMember,
           createFileUriExpression:
               _invokeTarget.fileUri != _introductory.fileUri);
-      for (MethodFragment augmentation in _augmentations) {
-        augmentation.buildOutlineExpressions(
-            classHierarchy, libraryBuilder, declarationBuilder, _invokeTarget,
+      for (MethodDeclaration augmentation in _augmentations) {
+        augmentation.buildOutlineExpressions(classHierarchy, libraryBuilder,
+            declarationBuilder, this, _invokeTarget,
             isClassInstanceMember: isClassInstanceMember,
             createFileUriExpression:
                 _invokeTarget.fileUri != augmentation.fileUri);
@@ -179,7 +179,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     // default values declared on the introductory method and omitted on the
     // augmenting method.
     _introductory.checkTypes(library, typeEnvironment);
-    for (MethodFragment augmentation in _augmentations) {
+    for (MethodDeclaration augmentation in _augmentations) {
       augmentation.checkTypes(library, typeEnvironment);
     }
   }
@@ -189,7 +189,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     if (!isClassInstanceMember) return;
     _introductory.checkVariance(sourceClassBuilder, typeEnvironment);
-    for (MethodFragment augmentation in _augmentations) {
+    for (MethodDeclaration augmentation in _augmentations) {
       augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
     }
   }
@@ -241,7 +241,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
     int count = _introductory.computeDefaultTypes(context);
-    for (MethodFragment augmentation in _augmentations) {
+    for (MethodDeclaration augmentation in _augmentations) {
       count += augmentation.computeDefaultTypes(context);
     }
     return count;

@@ -6,7 +6,6 @@ import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
@@ -16,27 +15,20 @@ import '../kernel/body_builder_context.dart';
 class SourceNominalParameterBuilder extends NominalParameterBuilder {
   final NominalParameterDeclaration _declaration;
 
+  List<NominalParameterDeclaration>? _augmentations;
+
   @override
   TypeBuilder? bound;
 
   @override
   TypeBuilder? defaultType;
 
-  final List<MetadataBuilder>? metadata;
-
-  SourceNominalParameterBuilder? actualOrigin;
-
-  final TypeParameter actualParameter;
-
-  /// [NominalParameterBuilder] overrides ==/hashCode in terms of
-  /// [actualParameter] making it vulnerable to use in sets and maps. This
-  /// fields tracks the first access to [hashCode] when asserts are enabled, to
-  /// signal if the [hashCode] is used before updates to [actualParameter].
-  StackTrace? _hasHashCode;
+  @override
+  final TypeParameter parameter;
 
   SourceNominalParameterBuilder(this._declaration,
-      {this.bound, super.variableVariance, this.metadata})
-      : actualParameter = new TypeParameter(
+      {this.bound, super.variableVariance})
+      : parameter = new TypeParameter(
             _declaration.name == NominalParameterBuilder.noNameSentinel
                 ? null
                 : _declaration.name,
@@ -59,50 +51,29 @@ class SourceNominalParameterBuilder extends NominalParameterBuilder {
   @override
   Uri? get fileUri => _declaration.fileUri;
 
-  void buildOutlineExpressions(
-      SourceLibraryBuilder libraryBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      ClassHierarchy classHierarchy,
-      LookupScope scope) {
-    MetadataBuilder.buildAnnotations(parameter, metadata, bodyBuilderContext,
-        libraryBuilder, fileUri!, scope);
+  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
+      BodyBuilderContext bodyBuilderContext, ClassHierarchy classHierarchy) {
+    _declaration.buildOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        classHierarchy: classHierarchy,
+        parameter: parameter,
+        annotatableFileUri: fileUri);
+    List<NominalParameterDeclaration>? augmentations = _augmentations;
+    if (augmentations != null) {
+      for (NominalParameterDeclaration augmentation in augmentations) {
+        augmentation.buildOutlineExpressions(
+            libraryBuilder: libraryBuilder,
+            bodyBuilderContext: bodyBuilderContext,
+            classHierarchy: classHierarchy,
+            parameter: parameter,
+            annotatableFileUri: fileUri);
+      }
+    }
   }
 
-  SourceNominalParameterBuilder get origin => actualOrigin ?? this;
-
-  @override
-  TypeParameter get parameter => origin.actualParameter;
-
-  void setAugmentation(covariant SourceNominalParameterBuilder augmentation) {
-    assert(
-        _hasHashCode == null,
-        "Cannot apply augmentation since to $this since hashCode has already "
-        "been computed from $actualParameter @\n$_hasHashCode");
-    augmentation.actualOrigin = this;
-  }
-
-  @override
-  void addAugmentation(covariant SourceNominalParameterBuilder augmentation) {
-    setAugmentation(augmentation);
-  }
-
-  @override
-  void applyAugmentation(covariant SourceNominalParameterBuilder augmentation) {
-    setAugmentation(augmentation);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is NominalParameterBuilder && parameter == other.parameter;
-  }
-
-  @override
-  int get hashCode {
-    assert(() {
-      _hasHashCode ??= StackTrace.current;
-      return true;
-    }());
-    return parameter.hashCode;
+  void addAugmentingDeclaration(NominalParameterDeclaration augmentation) {
+    (_augmentations ??= []).add(augmentation);
   }
 
   static List<TypeParameter>? typeParametersFromBuilders(
@@ -124,6 +95,13 @@ abstract class NominalParameterDeclaration {
   int get fileOffset;
 
   Uri? get fileUri;
+
+  void buildOutlineExpressions(
+      {required SourceLibraryBuilder libraryBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required ClassHierarchy classHierarchy,
+      required TypeParameter parameter,
+      required Uri? annotatableFileUri});
 }
 
 class RegularNominalParameterDeclaration
@@ -146,6 +124,23 @@ class RegularNominalParameterDeclaration
 
   @override
   String get name => _fragment.variableName;
+
+  @override
+  void buildOutlineExpressions(
+      {required SourceLibraryBuilder libraryBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required ClassHierarchy classHierarchy,
+      required TypeParameter parameter,
+      required Uri? annotatableFileUri}) {
+    MetadataBuilder.buildAnnotations(
+        parameter,
+        _fragment.metadata,
+        bodyBuilderContext,
+        libraryBuilder,
+        _fragment.fileUri,
+        _fragment.typeParameterScope,
+        createFileUriExpression: _fragment.fileUri != annotatableFileUri);
+  }
 }
 
 class DirectNominalParameterDeclaration implements NominalParameterDeclaration {
@@ -170,6 +165,15 @@ class DirectNominalParameterDeclaration implements NominalParameterDeclaration {
       required this.isWildcard,
       required this.fileOffset,
       required this.fileUri});
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void buildOutlineExpressions(
+      {required SourceLibraryBuilder libraryBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required ClassHierarchy classHierarchy,
+      required TypeParameter parameter,
+      required Uri? annotatableFileUri}) {}
 }
 
 class SyntheticNominalParameterDeclaration
@@ -193,6 +197,14 @@ class SyntheticNominalParameterDeclaration
 
   @override
   String get name => _builder.name;
+
+  @override
+  void buildOutlineExpressions(
+      {required SourceLibraryBuilder libraryBuilder,
+      required BodyBuilderContext bodyBuilderContext,
+      required ClassHierarchy classHierarchy,
+      required TypeParameter parameter,
+      required Uri? annotatableFileUri}) {}
 }
 
 class SourceStructuralParameterBuilder extends StructuralParameterBuilder {
@@ -211,7 +223,7 @@ class SourceStructuralParameterBuilder extends StructuralParameterBuilder {
   final StructuralParameter parameter;
 
   SourceStructuralParameterBuilder(this._declaration,
-      {this.bound, Variance? parameterVariance, this.metadata})
+      {Variance? parameterVariance, this.metadata})
       : parameter = new StructuralParameter(
             _declaration.name == StructuralParameterBuilder.noNameSentinel
                 ? null
@@ -221,6 +233,7 @@ class SourceStructuralParameterBuilder extends StructuralParameterBuilder {
           ..variance = parameterVariance;
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeParameterKind get kind => TypeParameterKind.function;
 
   @override
@@ -253,8 +266,6 @@ class RegularStructuralParameterDeclaration
   @override
   final String name;
 
-  final TypeBuilder? bound;
-
   @override
   final int fileOffset;
 
@@ -267,7 +278,6 @@ class RegularStructuralParameterDeclaration
   RegularStructuralParameterDeclaration(
       {required this.metadata,
       required this.name,
-      required this.bound,
       required this.fileOffset,
       required this.fileUri,
       required this.isWildcard});
@@ -286,6 +296,7 @@ class SyntheticStructuralParameterDeclaration
   Uri? get fileUri => _builder.fileUri;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isWildcard => _builder.isWildcard;
 
   @override

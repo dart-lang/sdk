@@ -46,9 +46,11 @@ class DillNominalParameterBuilder extends NominalParameterBuilder {
   String get name => parameter.name ?? "";
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri? get fileUri => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fileOffset => parameter.fileOffset;
 
   @override
@@ -86,11 +88,14 @@ class DillStructuralParameterBuilder extends StructuralParameterBuilder {
   String get name => parameter.name ?? "";
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri? get fileUri => null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fileOffset => parameter.fileOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   TypeParameterKind get kind => TypeParameterKind.fromKernel;
 }
