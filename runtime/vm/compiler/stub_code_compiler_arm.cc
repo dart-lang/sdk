@@ -442,15 +442,16 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Exit the temporary isolate.
   {
-    __ EnterFrame(1 << FP, 0);
-    __ ReserveAlignedFrameSpace(0);
-
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitTemporaryIsolate, R4);
+        FfiCallbackMetadata::kExitTemporaryIsolate, R0);
 
-    __ blx(R4);
+    CLOBBERS_LR(__ PopList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5)));
 
-    __ LeaveFrame(1 << FP);
+    // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
+    // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
+    // enough for VM shutdown.
+    __ bx(R0);
+    __ Breakpoint();
   }
 
   __ Bind(&done);
