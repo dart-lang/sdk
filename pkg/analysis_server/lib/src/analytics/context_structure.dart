@@ -23,22 +23,6 @@ class ContextStructure {
   /// The number of analysis contexts being analyzed.
   final int numberOfContexts;
 
-  /// The number of contexts that were created that have neither a packages nor
-  /// an options file.
-  final int contextsWithoutFiles;
-
-  /// The number of contexts that were created that have a unique packages file
-  /// and either no options file or an inherited options file.
-  final int contextsFromPackagesFiles;
-
-  /// The number of contexts that were created that have a unique options file
-  /// and either no packages file or an inherited packages file.
-  final int contextsFromOptionsFiles;
-
-  /// The number of contexts that were created that have both a unique packages
-  /// file and a unique options file.
-  final int contextsFromBothFiles;
-
   /// The number of immediate files that were analyzed.
   final int immediateFileCount;
 
@@ -64,10 +48,6 @@ class ContextStructure {
   /// Initialize a newly created data holder.
   ContextStructure({
     required this.numberOfContexts,
-    required this.contextsWithoutFiles,
-    required this.contextsFromPackagesFiles,
-    required this.contextsFromOptionsFiles,
-    required this.contextsFromBothFiles,
     required this.immediateFileCount,
     required this.immediateFileLineCount,
     required this.transitiveFileCount,

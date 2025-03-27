@@ -943,27 +943,9 @@ abstract class AnalysisServer {
 
     var rootPaths = packagesFileMap.keys.toList();
     rootPaths.sort((first, second) => first.length.compareTo(second.length));
-    var styleCounts = [
-      0, // neither
-      0, // only packages
-      0, // only options -- (No longer incremented. Options files do not imply unique contexts.)
-      0, // both -- (No longer incremented. Options files do not imply unique contexts.)
-    ];
-    var packagesFiles = <File>{};
-    for (var rootPath in rootPaths) {
-      var packagesFile = packagesFileMap[rootPath];
-      var hasUniquePackageFile =
-          packagesFile != null && packagesFiles.add(packagesFile);
-      var style = hasUniquePackageFile ? 1 : 0;
-      styleCounts[style]++;
-    }
 
     analyticsManager.analysisComplete(
       numberOfContexts: driverMap.length,
-      contextsWithoutFiles: styleCounts[0],
-      contextsFromPackagesFiles: styleCounts[1],
-      contextsFromOptionsFiles: styleCounts[2],
-      contextsFromBothFiles: styleCounts[3],
       immediateFileCount: immediateFileCount,
       immediateFileLineCount: immediateFileLineCount,
       transitiveFileCount: transitiveFileCount,
