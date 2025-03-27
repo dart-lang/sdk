@@ -29,7 +29,7 @@ enum E {
 ListLiteral
   leftBracket: [
   rightBracket: ]
-  parameter: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
+  correspondingParameter: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
   staticType: List<int>
 ''');
   }
@@ -47,7 +47,6 @@ enum E {
 GenericFunctionType
   returnType: NamedType
     name: void
-    element: <null>
     element2: <null>
     type: void
   functionKeyword: Function
@@ -56,10 +55,9 @@ GenericFunctionType
     parameter: SimpleFormalParameter
       type: NamedType
         name: double
-        element: dart:core::<fragment>::@class::double
         element2: dart:core::@class::double
         type: double
-      declaredElement: @-1
+      declaredElement: null@null
         type: double
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
@@ -90,7 +88,6 @@ EnumConstantDeclaration
       period: .
       name: SimpleIdentifier
         token: named
-        staticElement: <null>
         element: <null>
         staticType: null
     argumentList: ArgumentList
@@ -98,15 +95,14 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a#element
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
-  constructorElement: ConstructorMember
-    base: <testLibraryFragment>::@enum::E::@constructor::named
+  constructorElement2: ConstructorMember
+    baseElement: <testLibraryFragment>::@enum::E::@constructor::named#element
     substitution: {T: int}
-  constructorElement2: <testLibraryFragment>::@enum::E::@constructor::named#element
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
@@ -129,15 +125,14 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
-  constructorElement: ConstructorMember
-    base: <testLibraryFragment>::@enum::E::@constructor::new
+  constructorElement2: ConstructorMember
+    baseElement: <testLibraryFragment>::@enum::E::@constructor::new#element
     substitution: {T: int}
-  constructorElement2: <testLibraryFragment>::@enum::E::@constructor::new#element
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
@@ -160,7 +155,6 @@ EnumConstantDeclaration
       arguments
         NamedType
           name: double
-          element: dart:core::<fragment>::@class::double
           element2: dart:core::@class::double
           type: double
       rightBracket: >
@@ -168,7 +162,6 @@ EnumConstantDeclaration
       period: .
       name: SimpleIdentifier
         token: named
-        staticElement: <null>
         element: <null>
         staticType: null
     argumentList: ArgumentList
@@ -176,15 +169,14 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a#element
             substitution: {T: double}
           staticType: double
       rightParenthesis: )
-  constructorElement: ConstructorMember
-    base: <testLibraryFragment>::@enum::E::@constructor::named
+  constructorElement2: ConstructorMember
+    baseElement: <testLibraryFragment>::@enum::E::@constructor::named#element
     substitution: {T: double}
-  constructorElement2: <testLibraryFragment>::@enum::E::@constructor::named#element
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
   }
@@ -206,7 +198,6 @@ EnumConstantDeclaration
       period: .
       name: SimpleIdentifier
         token: named
-        staticElement: <null>
         element: <null>
         staticType: null
     argumentList: ArgumentList
@@ -214,10 +205,9 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          parameter: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a
+          correspondingParameter: <testLibraryFragment>::@enum::E::@constructor::named::@parameter::a#element
           staticType: int
       rightParenthesis: )
-  constructorElement: <testLibraryFragment>::@enum::E::@constructor::named
   constructorElement2: <testLibraryFragment>::@enum::E::@constructor::named#element
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
@@ -241,10 +231,9 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          parameter: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a
+          correspondingParameter: <testLibraryFragment>::@enum::E::@constructor::new::@parameter::a#element
           staticType: int
       rightParenthesis: )
-  constructorElement: <testLibraryFragment>::@enum::E::@constructor::new
   constructorElement2: <testLibraryFragment>::@enum::E::@constructor::new#element
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
@@ -261,7 +250,6 @@ enum E {
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
-  constructorElement: <testLibraryFragment>::@enum::E::@constructor::new
   constructorElement2: <testLibraryFragment>::@enum::E::@constructor::new#element
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
@@ -286,7 +274,6 @@ EnumConstantDeclaration
       period: .
       name: SimpleIdentifier
         token: named
-        staticElement: <null>
         element: <null>
         staticType: null
     argumentList: ArgumentList
@@ -294,10 +281,9 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          parameter: <null>
+          correspondingParameter: <null>
           staticType: int
       rightParenthesis: )
-  constructorElement: <null>
   constructorElement2: <null>
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
@@ -323,10 +309,9 @@ EnumConstantDeclaration
       arguments
         IntegerLiteral
           literal: 42
-          parameter: <null>
+          correspondingParameter: <null>
           staticType: int
       rightParenthesis: )
-  constructorElement: <null>
   constructorElement2: <null>
   declaredElement: <testLibraryFragment>::@enum::E::@field::v
 ''');
@@ -371,7 +356,6 @@ enum E<T> {
 MethodDeclaration
   returnType: NamedType
     name: T
-    element: T@7
     element2: T@7
     type: T
   propertyKeyword: get
@@ -417,7 +401,6 @@ ImplementsClause
   interfaces
     NamedType
       name: I
-      element: <testLibraryFragment>::@class::I
       element2: <testLibrary>::@class::I
       type: I
 ''');
@@ -449,7 +432,6 @@ enum E<T> {
 MethodDeclaration
   returnType: NamedType
     name: int
-    element: dart:core::<fragment>::@class::int
     element2: dart:core::@class::int
     type: int
   name: foo
@@ -465,20 +447,18 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element: T@7
         element2: T@7
         type: T
       name: t
-      declaredElement: <testLibraryFragment>::@enum::E::@method::foo::@parameter::t
+      declaredElement: <testLibraryFragment>::@enum::E::@method::foo::@formalParameter::t
         type: T
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element: U@27
         element2: U@27
         type: U
       name: u
-      declaredElement: <testLibraryFragment>::@enum::E::@method::foo::@parameter::u
+      declaredElement: <testLibraryFragment>::@enum::E::@method::foo::@formalParameter::u
         type: U
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -505,7 +485,6 @@ enum E {
 MethodDeclaration
   returnType: NamedType
     name: String
-    element: dart:core::<fragment>::@class::String
     element2: dart:core::@class::String
     type: String
   name: toString
@@ -537,7 +516,6 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element: <testLibraryFragment>::@mixin::M
       element2: <testLibrary>::@mixin::M
       type: M
 ''');
@@ -564,16 +542,13 @@ WithClause
         arguments
           NamedType
             name: int
-            element: dart:core::<fragment>::@class::int
             element2: dart:core::@class::int
             type: int
         rightBracket: >
-      element: <testLibraryFragment>::@mixin::M1
       element2: <testLibrary>::@mixin::M1
       type: M1<int>
     NamedType
       name: M2
-      element: <testLibraryFragment>::@mixin::M2
       element2: <testLibrary>::@mixin::M2
       type: M2<int>
 ''');
@@ -597,11 +572,10 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element: T@7
         element2: T@7
         type: T
       name: a
-      declaredElement: <testLibraryFragment>::@enum::E::@setter::foo::@parameter::a
+      declaredElement: <testLibraryFragment>::@enum::E::@setter::foo::@formalParameter::a
         type: T
     rightParenthesis: )
   body: BlockFunctionBody
@@ -628,22 +602,18 @@ PropertyAccess
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
-      staticElement: <testLibraryFragment>::@enum::E
       element: <testLibrary>::@enum::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
       token: _
-      staticElement: <testLibraryFragment>::@enum::E::@getter::_
       element: <testLibraryFragment>::@enum::E::@getter::_#element
       staticType: E
-    staticElement: <testLibraryFragment>::@enum::E::@getter::_
     element: <testLibraryFragment>::@enum::E::@getter::_#element
     staticType: E
   operator: .
   propertyName: SimpleIdentifier
     token: index
-    staticElement: dart:core::<fragment>::@class::Enum::@getter::index
     element: dart:core::<fragment>::@class::Enum::@getter::index#element
     staticType: int
   staticType: int

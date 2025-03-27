@@ -171,10 +171,8 @@ library
                   atSign: @ @33
                   name: SimpleIdentifier
                     token: foo @34
-                    staticElement: <testLibraryFragment>::@getter::foo
                     element: <testLibraryFragment>::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           fields
             hasInitializer foo @65
@@ -198,10 +196,8 @@ library
                   atSign: @ @76
                   name: SimpleIdentifier
                     token: foo @77
-                    staticElement: <testLibraryFragment>::@extension::E::@getter::foo
                     element: <testLibraryFragment>::@extension::E::@getter::foo#element
                     staticType: null
-                  element: <testLibraryFragment>::@extension::E::@getter::foo
                   element2: <testLibraryFragment>::@extension::E::@getter::foo#element
       topLevelVariables
         hasInitializer foo @6
@@ -227,10 +223,8 @@ library
               atSign: @ @33
               name: SimpleIdentifier
                 token: foo @34
-                staticElement: <testLibraryFragment>::@getter::foo
                 element: <testLibraryFragment>::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       fields
         static const hasInitializer foo
@@ -251,10 +245,8 @@ library
               atSign: @ @76
               name: SimpleIdentifier
                 token: foo @77
-                staticElement: <testLibraryFragment>::@extension::E::@getter::foo
                 element: <testLibraryFragment>::@extension::E::@getter::foo#element
                 staticType: null
-              element: <testLibraryFragment>::@extension::E::@getter::foo
               element2: <testLibraryFragment>::@extension::E::@getter::foo#element
   topLevelVariables
     const hasInitializer foo

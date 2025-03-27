@@ -30,7 +30,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  staticElement: <testLibraryFragment>::@prefix::p
   element: <testLibraryFragment>::@prefix2::p
   staticType: InvalidType
 ''');
@@ -62,7 +61,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: p
-      staticElement: <testLibraryFragment>::@prefix::p
       element: <testLibraryFragment>::@prefix2::p
       staticType: InvalidType
   rightParenthesis: )
@@ -95,22 +93,19 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: C
-      element: <testLibraryFragment>::@class::C
       element2: <testLibrary>::@class::C
       type: C<dynamic>
-    staticElement: ConstructorMember
-      base: <testLibraryFragment>::@class::C::@constructor::new
+    element: ConstructorMember
+      baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
       substitution: {T: dynamic}
-    element: <testLibraryFragment>::@class::C::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       SimpleIdentifier
         token: p
-        parameter: ParameterMember
-          base: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
+        correspondingParameter: ParameterMember
+          baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
           substitution: {T: dynamic}
-        staticElement: <testLibraryFragment>::@prefix::p
         element: <testLibraryFragment>::@prefix2::p
         staticType: InvalidType
     rightParenthesis: )
@@ -131,7 +126,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  staticElement: <testLibraryFragment>::@prefix::p
   element: <testLibraryFragment>::@prefix2::p
   staticType: null
 ''');
@@ -150,7 +144,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  staticElement: <testLibraryFragment>::@prefix::p
   element: <testLibraryFragment>::@prefix2::p
   staticType: null
 ''');
@@ -222,7 +215,6 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: package:test/a.dart::<fragment>::@getter::a
   element: package:test/a.dart::<fragment>::@getter::a#element
   staticType: int
 ''');

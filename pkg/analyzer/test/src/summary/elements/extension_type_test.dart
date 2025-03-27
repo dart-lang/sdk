@@ -434,13 +434,11 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: it @52
-                staticElement: <testLibraryFragment>::@extensionType::A::@field::it
                 element: <testLibraryFragment>::@extensionType::A::@field::it#element
                 staticType: null
               equals: = @55
               expression: SimpleIdentifier
                 token: a @57
-                staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
                 element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
                 staticType: int
       getters

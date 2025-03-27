@@ -210,10 +210,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -228,10 +226,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -247,12 +243,10 @@ library
                   elements
                     SimpleIdentifier
                       token: a @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::a
                       element: <testLibraryFragment>::@enum::E::@getter::a#element
                       staticType: E
                     SimpleIdentifier
                       token: b @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::b
                       element: <testLibraryFragment>::@enum::E::@getter::b#element
                       staticType: E
                   rightBracket: ] @0

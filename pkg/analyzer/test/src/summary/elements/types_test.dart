@@ -149,7 +149,6 @@ library
           initializer: expression_0
             SimpleIdentifier
               token: FutureOr @31
-              staticElement: dart:async::<fragment>::@class::FutureOr
               element: dart:async::@class::FutureOr
               staticType: Type
           getter2: <testLibraryFragment>::@getter::x
@@ -416,7 +415,6 @@ library
               period: . @61
               constructorName: SimpleIdentifier
                 token: named @62
-                staticElement: <testLibraryFragment>::@class::D::@constructor::named
                 element: <testLibraryFragment>::@class::D::@constructor::named#element
                 staticType: null
               argumentList: ArgumentList
@@ -425,14 +423,11 @@ library
                   ImplicitCallReference
                     expression: SimpleIdentifier
                       token: c @68
-                      staticElement: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c
                       element: <testLibraryFragment>::@class::D::@constructor::new::@parameter::c#element
                       staticType: C
-                    staticElement: <testLibraryFragment>::@class::C::@method::call
                     element: <testLibraryFragment>::@class::C::@method::call#element
                     staticType: void Function()
                 rightParenthesis: ) @69
-              staticElement: <testLibraryFragment>::@class::D::@constructor::named
               element: <testLibraryFragment>::@class::D::@constructor::named#element
           redirectedConstructor: <testLibraryFragment>::@class::D::@constructor::named#element
         const named
@@ -1700,7 +1695,6 @@ library
               initializer: expression_0
                 SimpleIdentifier
                   token: V @43
-                  staticElement: <null>
                   element: multiplyDefinedElement
                     package:test/a.dart::@function::V
                     package:test/b.dart::@function::V
@@ -1747,7 +1741,6 @@ library
               initializer: expression_0
                 SimpleIdentifier
                   token: V @26
-                  staticElement: package:test/a.dart::<fragment>::@function::V
                   element: package:test/a.dart::@function::V
                   staticType: dynamic Function()
   functions
@@ -1802,7 +1795,6 @@ library
               initializer: expression_0
                 SimpleIdentifier
                   token: V @9
-                  staticElement: <testLibraryFragment>::@getter::V
                   element: <testLibraryFragment>::@getter::V#element
                   staticType: dynamic
         V @16

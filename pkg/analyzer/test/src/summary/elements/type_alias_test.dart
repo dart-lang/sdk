@@ -68,13 +68,11 @@ library
               atSign: @ @72
               name: SimpleIdentifier
                 token: Object @73
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @79
                 rightParenthesis: ) @80
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         AnnotationThenComment @156
           reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
@@ -85,13 +83,11 @@ library
               atSign: @ @108
               name: SimpleIdentifier
                 token: Object @109
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @115
                 rightParenthesis: ) @116
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentThenAnnotation @230
           reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
@@ -102,13 +98,11 @@ library
               atSign: @ @212
               name: SimpleIdentifier
                 token: Object @213
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @219
                 rightParenthesis: ) @220
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentAroundAnnotation @304
           reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
@@ -119,13 +113,11 @@ library
               atSign: @ @271
               name: SimpleIdentifier
                 token: Object @272
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @278
                 rightParenthesis: ) @279
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
   typeAliases
     Raw
@@ -142,13 +134,11 @@ library
           atSign: @ @72
           name: SimpleIdentifier
             token: Object @73
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @79
             rightParenthesis: ) @80
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     AnnotationThenComment
@@ -159,13 +149,11 @@ library
           atSign: @ @108
           name: SimpleIdentifier
             token: Object @109
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @115
             rightParenthesis: ) @116
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     CommentThenAnnotation
@@ -176,13 +164,11 @@ library
           atSign: @ @212
           name: SimpleIdentifier
             token: Object @213
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @219
             rightParenthesis: ) @220
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     CommentAroundAnnotation
@@ -193,13 +179,11 @@ library
           atSign: @ @271
           name: SimpleIdentifier
             token: Object @272
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @278
             rightParenthesis: ) @279
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
 ''');
@@ -254,13 +238,11 @@ library
               atSign: @ @94
               name: SimpleIdentifier
                 token: Object @95
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @101
                 rightParenthesis: ) @102
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         AnnotationThenComment @189
           reference: <testLibraryFragment>::@typeAlias::AnnotationThenComment
@@ -271,13 +253,11 @@ library
               atSign: @ @141
               name: SimpleIdentifier
                 token: Object @142
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @148
                 rightParenthesis: ) @149
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentThenAnnotation @274
           reference: <testLibraryFragment>::@typeAlias::CommentThenAnnotation
@@ -288,13 +268,11 @@ library
               atSign: @ @256
               name: SimpleIdentifier
                 token: Object @257
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @263
                 rightParenthesis: ) @264
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         CommentAroundAnnotation @359
           reference: <testLibraryFragment>::@typeAlias::CommentAroundAnnotation
@@ -305,13 +283,11 @@ library
               atSign: @ @326
               name: SimpleIdentifier
                 token: Object @327
-                staticElement: dart:core::<fragment>::@class::Object
                 element: dart:core::@class::Object
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @333
                 rightParenthesis: ) @334
-              element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
   typeAliases
     Raw
@@ -328,13 +304,11 @@ library
           atSign: @ @94
           name: SimpleIdentifier
             token: Object @95
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @101
             rightParenthesis: ) @102
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     AnnotationThenComment
@@ -345,13 +319,11 @@ library
           atSign: @ @141
           name: SimpleIdentifier
             token: Object @142
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @148
             rightParenthesis: ) @149
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     CommentThenAnnotation
@@ -362,13 +334,11 @@ library
           atSign: @ @256
           name: SimpleIdentifier
             token: Object @257
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @263
             rightParenthesis: ) @264
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
     CommentAroundAnnotation
@@ -379,13 +349,11 @@ library
           atSign: @ @326
           name: SimpleIdentifier
             token: Object @327
-            staticElement: dart:core::<fragment>::@class::Object
             element: dart:core::@class::Object
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @333
             rightParenthesis: ) @334
-          element: dart:core::<fragment>::@class::Object::@constructor::new
           element2: dart:core::<fragment>::@class::Object::@constructor::new#element
       aliasedType: dynamic Function()
 ''');

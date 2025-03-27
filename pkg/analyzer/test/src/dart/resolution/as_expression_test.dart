@@ -29,13 +29,11 @@ const int b = a as int;
 AsExpression
   expression: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@getter::a
     element: <testLibraryFragment>::@getter::a#element
     staticType: num
   asOperator: as
   type: NamedType
     name: int
-    element: dart:core::<fragment>::@class::int
     element2: dart:core::@class::int
     type: int
   staticType: int
@@ -55,13 +53,11 @@ void f() {
 AsExpression
   expression: SimpleIdentifier
     token: v
-    staticElement: v@17
     element: v@17
     staticType: num
   asOperator: as
   type: NamedType
     name: int
-    element: dart:core::<fragment>::@class::int
     element2: dart:core::@class::int
     type: int
   staticType: int
@@ -88,7 +84,6 @@ AsExpression
   asOperator: as
   type: NamedType
     name: T
-    element: T@8
     element2: T@8
     type: T
   staticType: T
@@ -112,7 +107,6 @@ AsExpression
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object?
     rightParenthesis: )
@@ -132,7 +126,6 @@ AsExpression
   asOperator: as
   type: NamedType
     name: double
-    element: dart:core::<fragment>::@class::double
     element2: dart:core::@class::double
     type: double
   staticType: double

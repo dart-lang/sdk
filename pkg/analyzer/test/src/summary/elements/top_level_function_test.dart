@@ -983,7 +983,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::C::@constructor::new#element
     class C

@@ -34,7 +34,6 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element: dart:core::<fragment>::@class::num
           element2: dart:core::@class::num
           type: num
         name: a
@@ -111,10 +110,8 @@ PatternVariableDeclarationStatement
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element: <testLibraryFragment>::@class::A
           element2: <testLibrary>::@class::A
           type: A
-        staticElement: <testLibraryFragment>::@class::A::@constructor::new
         element: <testLibraryFragment>::@class::A::@constructor::new#element
       argumentList: ArgumentList
         leftParenthesis: (
@@ -142,7 +139,6 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element: dart:core::<fragment>::@class::num
           element2: dart:core::@class::num
           type: num
         name: a
@@ -180,7 +176,6 @@ PatternVariableDeclarationStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         name: a
@@ -193,7 +188,6 @@ PatternVariableDeclarationStatement
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -261,7 +255,6 @@ PatternVariableDeclarationStatement
             declaredElement: hasImplicitType a@33
               type: int
             matchedValueType: int
-          element: <null>
           element2: <null>
         PatternField
           pattern: DeclaredVariablePattern
@@ -269,14 +262,12 @@ PatternVariableDeclarationStatement
             declaredElement: hasImplicitType b@36
               type: String
             matchedValueType: String
-          element: <null>
           element2: <null>
       rightParenthesis: )
       matchedValueType: (int, String)
     equals: =
     expression: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: (int, String)
     patternTypeSchema: (_, _)
@@ -308,7 +299,6 @@ PatternVariableDeclarationStatement
             declaredElement: hasImplicitType a@18
               type: int
             matchedValueType: int
-          element: <null>
           element2: <null>
       rightParenthesis: )
       matchedValueType: (int,)
@@ -316,7 +306,6 @@ PatternVariableDeclarationStatement
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>(T)
       argumentList: ArgumentList

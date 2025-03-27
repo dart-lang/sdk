@@ -387,10 +387,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: dart:foo::<fragment>::@enum::E
                       element2: dart:foo::@enum::E
                       type: E
-                    staticElement: dart:foo::<fragment>::@enum::E::@constructor::new
                     element: dart:foo::<fragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -405,10 +403,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: dart:foo::<fragment>::@enum::E
                       element2: dart:foo::@enum::E
                       type: E
-                    staticElement: dart:foo::<fragment>::@enum::E::@constructor::new
                     element: dart:foo::<fragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -424,12 +420,10 @@ library
                   elements
                     SimpleIdentifier
                       token: v1 @-1
-                      staticElement: dart:foo::<fragment>::@enum::E::@getter::v1
                       element: dart:foo::<fragment>::@enum::E::@getter::v1#element
                       staticType: E
                     SimpleIdentifier
                       token: v2 @-1
-                      staticElement: dart:foo::<fragment>::@enum::E::@getter::v2
                       element: dart:foo::<fragment>::@enum::E::@getter::v2#element
                       staticType: E
                   rightBracket: ] @0
@@ -514,10 +508,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: dart:foo::<fragment>::@enum::E
                       element2: dart:foo::@enum::E
                       type: E
-                    staticElement: dart:foo::<fragment>::@enum::E::@constructor::new
                     element: dart:foo::<fragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -533,7 +525,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: dart:foo::<fragment>::@enum::E::@getter::v
                       element: dart:foo::<fragment>::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0

@@ -35,7 +35,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@class::A::@method::==
   element2: <testLibraryFragment>::@class::A::@method::==#element
   matchedValueType: A
 ''');
@@ -59,7 +58,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: dart:core::<fragment>::@class::Object::@method::==
   element2: dart:core::<fragment>::@class::Object::@method::==#element
   matchedValueType: A
 ''');
@@ -85,7 +83,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@class::A::@method::>
   element2: <testLibraryFragment>::@class::A::@method::>#element
   matchedValueType: A
 ''');
@@ -113,7 +110,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@method::>
   element2: <testLibraryFragment>::@extension::E::@method::>#element
   matchedValueType: A
 ''');
@@ -139,7 +135,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <null>
   element2: <null>
   matchedValueType: A
 ''');
@@ -165,7 +160,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@class::A::@method::>=
   element2: <testLibraryFragment>::@class::A::@method::>=#element
   matchedValueType: A
 ''');
@@ -193,7 +187,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@method::>=
   element2: <testLibraryFragment>::@extension::E::@method::>=#element
   matchedValueType: A
 ''');
@@ -219,7 +212,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <null>
   element2: <null>
   matchedValueType: A
 ''');
@@ -242,7 +234,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@class::A::@method::==
   element2: <testLibraryFragment>::@class::A::@method::==#element
   matchedValueType: A
 ''');
@@ -268,7 +259,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@class::A::@method::<
   element2: <testLibraryFragment>::@class::A::@method::<#element
   matchedValueType: A
 ''');
@@ -296,7 +286,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@method::<
   element2: <testLibraryFragment>::@extension::E::@method::<#element
   matchedValueType: A
 ''');
@@ -322,7 +311,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <null>
   element2: <null>
   matchedValueType: A
 ''');
@@ -348,7 +336,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@class::A::@method::<=
   element2: <testLibraryFragment>::@class::A::@method::<=#element
   matchedValueType: A
 ''');
@@ -376,7 +363,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@extension::E::@method::<=
   element2: <testLibraryFragment>::@extension::E::@method::<=#element
   matchedValueType: A
 ''');
@@ -402,7 +388,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <null>
   element2: <null>
   matchedValueType: A
 ''');
@@ -428,7 +413,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@class::A::@method::==
   element2: <testLibraryFragment>::@class::A::@method::==#element
   matchedValueType: A
 ''');
@@ -452,7 +436,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: dart:core::<fragment>::@class::Object::@method::==
   element2: dart:core::<fragment>::@class::Object::@method::==#element
   matchedValueType: A
 ''');
@@ -477,17 +460,14 @@ RelationalPattern
   operand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@function::f::@parameter::a
       element: <testLibraryFragment>::@function::f::@parameter::a#element
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticElement: <null>
     element: <null>
     staticInvokeType: int Function()
     staticType: int
-  element: dart:core::<fragment>::@class::Object::@method::==
   element2: dart:core::<fragment>::@class::Object::@method::==#element
   matchedValueType: dynamic
 ''');
@@ -513,7 +493,6 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element: <testLibraryFragment>::@class::A::@method::==
   element2: <testLibraryFragment>::@class::A::@method::==#element
   matchedValueType: A
 ''');

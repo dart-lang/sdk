@@ -32,20 +32,17 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: PropertyAccess
         target: SimpleIdentifier
           token: r
-          staticElement: <testLibraryFragment>::@function::f::@parameter::r
           element: <testLibraryFragment>::@function::f::@parameter::r#element
           staticType: (int, String)
         operator: .
         propertyName: SimpleIdentifier
           token: $1
-          staticElement: <null>
           element: <null>
           staticType: int
         staticType: int
@@ -69,13 +66,11 @@ RecordLiteral
     PropertyAccess
       target: SimpleIdentifier
         token: r
-        staticElement: <testLibraryFragment>::@function::f::@parameter::r
         element: <testLibraryFragment>::@function::f::@parameter::r#element
         staticType: (int, String)
       operator: .
       propertyName: SimpleIdentifier
         token: $1
-        staticElement: <null>
         element: <null>
         staticType: int
       staticType: int
@@ -98,12 +93,10 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: d
-      staticElement: <testLibraryFragment>::@function::test::@parameter::d
       element: <testLibraryFragment>::@function::test::@parameter::d#element
       staticType: dynamic
     SimpleIdentifier
       token: d
-      staticElement: <testLibraryFragment>::@function::test::@parameter::d
       element: <testLibraryFragment>::@function::test::@parameter::d#element
       staticType: dynamic
   rightParenthesis: )
@@ -130,17 +123,14 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: ImplicitCallReference
         expression: SimpleIdentifier
           token: a
-          staticElement: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
           staticType: A
-        staticElement: <testLibraryFragment>::@class::A::@method::call
         element: <testLibraryFragment>::@class::A::@method::call#element
         staticType: void Function()
   rightParenthesis: )
@@ -166,10 +156,8 @@ RecordLiteral
     ImplicitCallReference
       expression: SimpleIdentifier
         token: a
-        staticElement: <testLibraryFragment>::@getter::a
         element: <testLibraryFragment>::@getter::a#element
         staticType: A
-      staticElement: <testLibraryFragment>::@class::A::@method::call
       element: <testLibraryFragment>::@class::A::@method::call#element
       staticType: void Function()
   rightParenthesis: )
@@ -192,13 +180,11 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: SimpleIdentifier
         token: a
-        staticElement: <testLibraryFragment>::@getter::a
         element: <testLibraryFragment>::@getter::a#element
         staticType: dynamic
   rightParenthesis: )
@@ -219,7 +205,6 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@getter::a
       element: <testLibraryFragment>::@getter::a#element
       staticType: dynamic
   rightParenthesis: )
@@ -269,7 +254,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -283,14 +267,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -303,7 +285,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -317,14 +298,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f2
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -337,7 +316,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -372,14 +350,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -413,7 +389,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -427,14 +402,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f2
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -468,7 +441,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -499,14 +471,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -520,14 +490,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f2
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -558,14 +526,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f2
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -579,14 +545,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -621,14 +585,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -663,14 +625,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -684,14 +644,12 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f2
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
-          staticElement: <testLibraryFragment>::@function::g
           element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
@@ -721,13 +679,11 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
       expression: SimpleIdentifier
         token: a
-        staticElement: <testLibraryFragment>::@getter::a
         element: <testLibraryFragment>::@getter::a#element
         staticType: dynamic
   rightParenthesis: )
@@ -748,7 +704,6 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: a
-      staticElement: <testLibraryFragment>::@getter::a
       element: <testLibraryFragment>::@getter::a#element
       staticType: dynamic
   rightParenthesis: )
@@ -771,7 +726,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -784,7 +738,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -814,7 +767,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -827,7 +779,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -861,7 +812,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -895,7 +845,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -908,7 +857,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -937,12 +885,10 @@ RecordLiteral
   fields
     SimpleIdentifier
       token: d
-      staticElement: <testLibraryFragment>::@function::test::@parameter::d
       element: <testLibraryFragment>::@function::test::@parameter::d#element
       staticType: dynamic
     SimpleIdentifier
       token: d
-      staticElement: <testLibraryFragment>::@function::test::@parameter::d
       element: <testLibraryFragment>::@function::test::@parameter::d#element
       staticType: dynamic
   rightParenthesis: )
@@ -1063,7 +1009,6 @@ VariableDeclaration
     leftParenthesis: (
     expression: SimpleIdentifier
       token: <empty> <synthetic>
-      staticElement: <null>
       element: <null>
       staticType: InvalidType
     rightParenthesis: )
@@ -1103,7 +1048,6 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
@@ -1117,7 +1061,6 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f2
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
@@ -1146,7 +1089,6 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f1
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
@@ -1157,7 +1099,6 @@ RecordLiteral
       name: Label
         label: SimpleIdentifier
           token: f2
-          staticElement: <null>
           element: <null>
           staticType: null
         colon: :
@@ -1207,7 +1148,6 @@ RecordLiteral
     MethodInvocation
       methodName: SimpleIdentifier
         token: f
-        staticElement: <testLibraryFragment>::@function::f
         element: <testLibrary>::@function::f
         staticType: void Function()
       argumentList: ArgumentList

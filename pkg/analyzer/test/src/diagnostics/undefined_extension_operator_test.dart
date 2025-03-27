@@ -47,16 +47,14 @@ BinaryExpression
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
-    element: <testLibraryFragment>::@extension::E
     element2: <testLibrary>::@extension::E
     extendedType: String
     staticType: null
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
-    parameter: <null>
+    correspondingParameter: <null>
     staticType: int
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: InvalidType

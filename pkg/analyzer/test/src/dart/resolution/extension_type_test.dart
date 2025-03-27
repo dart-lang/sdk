@@ -32,13 +32,12 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldElement: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorElement: <testLibraryFragment>::@extensionType::A::@constructor::named
+    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
+    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::named
   leftBracket: {
   rightBracket: }
   declaredElement: <testLibraryFragment>::@extensionType::A
@@ -62,19 +61,17 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldElement: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorElement: <testLibraryFragment>::@extensionType::A::@constructor::new
+    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
+    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
   leftBracket: {
   members
     ConstructorDeclaration
       returnType: SimpleIdentifier
         token: A
-        staticElement: <testLibraryFragment>::@extensionType::A
         element: <testLibrary>::@extensionType::A
         staticType: null
       period: .
@@ -85,7 +82,7 @@ ExtensionTypeDeclaration
           thisKeyword: this
           period: .
           name: it
-          declaredElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::it
+          declaredElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@formalParameter::it
             type: int
         rightParenthesis: )
       body: EmptyFunctionBody
@@ -114,20 +111,18 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: num
-      element: dart:core::<fragment>::@class::num
       element2: dart:core::@class::num
       type: num
     fieldName: it
     rightParenthesis: )
-    fieldElement: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorElement: <testLibraryFragment>::@extensionType::A::@constructor::new
+    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
+    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
   leftBracket: {
   members
     ConstructorDeclaration
       constKeyword: const
       returnType: SimpleIdentifier
         token: A
-        staticElement: <testLibraryFragment>::@extensionType::A
         element: <testLibrary>::@extensionType::A
         staticType: null
       period: .
@@ -137,11 +132,10 @@ ExtensionTypeDeclaration
         parameter: SimpleFormalParameter
           type: NamedType
             name: int
-            element: dart:core::<fragment>::@class::int
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
+          declaredElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@formalParameter::a
             type: int
         rightParenthesis: )
       separator: :
@@ -149,13 +143,11 @@ ExtensionTypeDeclaration
         ConstructorFieldInitializer
           fieldName: SimpleIdentifier
             token: it
-            staticElement: <testLibraryFragment>::@extensionType::A::@field::it
             element: <testLibraryFragment>::@extensionType::A::@field::it#element
             staticType: null
           equals: =
           expression: SimpleIdentifier
             token: a
-            staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
             element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
             staticType: int
       body: EmptyFunctionBody
@@ -182,13 +174,12 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldElement: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorElement: <testLibraryFragment>::@extensionType::A::@constructor::new
+    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
+    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
   leftBracket: {
   rightBracket: }
   declaredElement: <testLibraryFragment>::@extensionType::A
@@ -210,19 +201,17 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
-    fieldElement: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorElement: <testLibraryFragment>::@extensionType::A::@constructor::new
+    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
+    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
   implementsClause: ImplementsClause
     implementsKeyword: implements
     interfaces
       NamedType
         name: num
-        element: dart:core::<fragment>::@class::num
         element2: dart:core::@class::num
         type: num
   leftBracket: {
@@ -246,7 +235,6 @@ extension type A<T>(int it) {
 MethodDeclaration
   returnType: NamedType
     name: void
-    element: <null>
     element2: <null>
     type: void
   name: foo
@@ -262,20 +250,18 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element: T@17
         element2: T@17
         type: T
       name: t
-      declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::t
+      declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo::@formalParameter::t
         type: T
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element: U@41
         element2: U@41
         type: U
       name: u
-      declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::u
+      declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo::@formalParameter::u
         type: U
     rightParenthesis: )
   body: BlockFunctionBody
@@ -285,14 +271,12 @@ MethodDeclaration
         ExpressionStatement
           expression: SimpleIdentifier
             token: T
-            staticElement: T@17
             element: T@17
             staticType: Type
           semicolon: ;
         ExpressionStatement
           expression: SimpleIdentifier
             token: U
-            staticElement: U@41
             element: U@41
             staticType: Type
           semicolon: ;
@@ -332,22 +316,19 @@ ExtensionTypeDeclaration
         arguments
           NamedType
             name: T
-            element: T@17
             element2: T@17
             type: T
           NamedType
             name: U
-            element: U@20
             element2: U@20
             type: U
         rightBracket: >
-      element: dart:core::<fragment>::@class::Map
       element2: dart:core::@class::Map
       type: Map<T, U>
     fieldName: it
     rightParenthesis: )
-    fieldElement: <testLibraryFragment>::@extensionType::A::@field::it
-    constructorElement: <testLibraryFragment>::@extensionType::A::@constructor::new
+    fieldFragment: <testLibraryFragment>::@extensionType::A::@field::it
+    constructorFragment: <testLibraryFragment>::@extensionType::A::@constructor::new
   leftBracket: {
   rightBracket: }
   declaredElement: <testLibraryFragment>::@extensionType::A
@@ -379,7 +360,6 @@ ExtensionTypeDeclaration
         extendsKeyword: extends
         bound: NamedType
           name: num
-          element: dart:core::<fragment>::@class::num
           element2: dart:core::@class::num
           type: num
         declaredElement: _@24
@@ -388,13 +368,12 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     fieldName: _
     rightParenthesis: )
-    fieldElement: <testLibraryFragment>::@extensionType::ET::@field::_
-    constructorElement: <testLibraryFragment>::@extensionType::ET::@constructor::new
+    fieldFragment: <testLibraryFragment>::@extensionType::ET::@field::_
+    constructorFragment: <testLibraryFragment>::@extensionType::ET::@constructor::new
   leftBracket: {
   rightBracket: }
   declaredElement: <testLibraryFragment>::@extensionType::ET

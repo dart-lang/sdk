@@ -839,7 +839,6 @@ var B = 0;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::<fragment>::@getter::B
       element: package:test/b.dart::<fragment>::@getter::B#element
       staticType: int
 [status] idle
@@ -866,7 +865,6 @@ var B = 1.2;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::<fragment>::@getter::B
       element: package:test/b.dart::<fragment>::@getter::B#element
       staticType: double
 [status] idle

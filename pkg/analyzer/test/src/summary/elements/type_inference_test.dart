@@ -205,19 +205,16 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @128
-                  element: <testLibraryFragment>::@class::C
                   element2: <testLibrary>::@class::C
                   type: C<int>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::C::@constructor::new
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
                   substitution: {V: int}
-                element: <testLibraryFragment>::@class::C::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @129
                 arguments
                   SimpleIdentifier
                     token: f @130
-                    staticElement: <testLibraryFragment>::@function::f
                     element: <testLibrary>::@function::f
                     staticType: D<int, U> Function<U>()
                 rightParenthesis: ) @131
@@ -340,17 +337,14 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @111
-                  element: <testLibraryFragment>::@class::C
                   element2: <testLibrary>::@class::C
                   type: C
-                staticElement: <testLibraryFragment>::@class::C::@constructor::new
                 element: <testLibraryFragment>::@class::C::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @112
                 arguments
                   SimpleIdentifier
                     token: f @113
-                    staticElement: <testLibraryFragment>::@function::f
                     element: <testLibrary>::@function::f
                     staticType: D<T> Function<T>()
                 rightParenthesis: ) @114
@@ -4047,11 +4041,9 @@ library
                 arguments
                   SimpleIdentifier
                     token: value @-1
-                    staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value
                     element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value#element
                     staticType: T
                 rightParenthesis: ) @0
-              staticElement: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
     class C
@@ -5405,10 +5397,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -5424,7 +5414,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::v
                       element: <testLibraryFragment>::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -5661,10 +5650,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
                     element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -5680,7 +5667,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
                       element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -5822,10 +5808,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -5841,7 +5825,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::v
                       element: <testLibraryFragment>::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -6039,10 +6022,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
                     element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -6058,7 +6039,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
                       element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -6253,10 +6233,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
                     element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -6272,7 +6250,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
                       element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -6642,10 +6619,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -6661,7 +6636,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::v
                       element: <testLibraryFragment>::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0

@@ -163,7 +163,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@15
   element: v@15
   staticType: int
 ''');
@@ -180,7 +179,6 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@12
   element: v@12
   staticType: int
 ''');
@@ -197,7 +195,6 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@18
   element: v@18
   staticType: List<int>
 ''');
@@ -214,7 +211,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: v
-  staticElement: v@15
   element: v@15
   staticType: int
 ''');
@@ -235,7 +231,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: max
-  staticElement: package:test/a.dart::<fragment>::@function::max
   element: package:test/a.dart::@function::max
   staticType: int Function(int, int)
 ''');
@@ -259,13 +254,11 @@ A f(A p) {
 MethodInvocation
   target: SimpleIdentifier
     token: p
-    staticElement: <testLibraryFragment>::@function::f::@parameter::p
     element: <testLibraryFragment>::@function::f::@parameter::p#element
     staticType: B
   operator: .
   methodName: SimpleIdentifier
     token: m
-    staticElement: <testLibraryFragment>::@class::B::@method::m
     element: <testLibraryFragment>::@class::B::@method::m#element
     staticType: B Function()
   argumentList: ArgumentList
@@ -352,7 +345,6 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: toString
-  staticElement: toString@19
   element: toString@19
   staticType: dynamic
 ''');

@@ -40,17 +40,15 @@ FunctionExpressionInvocation
       arguments
         IntegerLiteral
           literal: 0
-          parameter: <null>
+          correspondingParameter: <null>
           staticType: int
       rightParenthesis: )
-    element: <testLibraryFragment>::@extension::E
     element2: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticElement: <testLibraryFragment>::@extension::E::@method::call
   element: <testLibraryFragment>::@extension::E::@method::call#element
   staticInvokeType: void Function()
   staticType: void
@@ -110,14 +108,12 @@ MethodInvocation
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
-    element: <testLibraryFragment>::@extension::E
     element2: <testLibrary>::@extension::E
     extendedType: String
     staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: empty
-    staticElement: <testLibraryFragment>::@extension::E::@method::empty
     element: <testLibraryFragment>::@extension::E::@method::empty#element
     staticType: String Function()
   argumentList: ArgumentList

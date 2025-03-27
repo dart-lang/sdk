@@ -60,7 +60,6 @@ LabeledStatement
     Label
       label: SimpleIdentifier
         token: L
-        staticElement: L@13
         element: L@13
         staticType: null
       colon: :
@@ -78,7 +77,6 @@ LabeledStatement
           breakKeyword: break
           label: SimpleIdentifier
             token: L
-            staticElement: L@13
             element: L@13
             staticType: null
           semicolon: ;
@@ -113,7 +111,6 @@ WhileStatement
         breakKeyword: break
         label: SimpleIdentifier
           token: L
-          staticElement: <null>
           element: <null>
           staticType: null
         semicolon: ;
@@ -192,7 +189,6 @@ LabeledStatement
     Label
       label: SimpleIdentifier
         token: L
-        staticElement: L@13
         element: L@13
         staticType: null
       colon: :
@@ -210,7 +206,6 @@ LabeledStatement
           continueKeyword: continue
           label: SimpleIdentifier
             token: L
-            staticElement: L@13
             element: L@13
             staticType: null
           semicolon: ;
@@ -245,7 +240,6 @@ WhileStatement
         continueKeyword: continue
         label: SimpleIdentifier
           token: L
-          staticElement: <null>
           element: <null>
           staticType: null
         semicolon: ;

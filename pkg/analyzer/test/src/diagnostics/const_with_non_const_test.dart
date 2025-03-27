@@ -102,17 +102,15 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A
-    staticElement: <testLibraryFragment>::@class::A::@constructor::new
     element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
+        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -139,17 +137,15 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element: <testLibraryFragment>::@class::A
       element2: <testLibrary>::@class::A
       type: A
-    staticElement: <testLibraryFragment>::@class::A::@constructor::new
     element: <testLibraryFragment>::@class::A::@constructor::new#element
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
+        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         staticType: int
     rightParenthesis: )
   staticType: A

@@ -32,7 +32,6 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: dynamic
-      element: dynamic@-1
       element2: dynamic
       type: dynamic
 ''');
@@ -54,7 +53,6 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: E
-      element: <testLibraryFragment>::@enum::E
       element2: <testLibrary>::@enum::E
       type: E
 ''');
@@ -76,7 +74,6 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: A
-      element: <testLibraryFragment>::@extensionType::A
       element2: <testLibrary>::@extensionType::A
       type: A
 ''');
@@ -97,7 +94,6 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: Never
-      element: Never@-1
       element2: Never
       type: Never
 ''');
@@ -119,7 +115,6 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
 ''');

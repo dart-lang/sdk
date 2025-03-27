@@ -2220,13 +2220,11 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: A @45
-                  element: <testLibraryFragment>::@class::A
                   element2: <testLibrary>::@class::A
                   type: A<int>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::A::@constructor::new
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
                   substitution: {T: int}
-                element: <testLibraryFragment>::@class::A::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @46
                 rightParenthesis: ) @47

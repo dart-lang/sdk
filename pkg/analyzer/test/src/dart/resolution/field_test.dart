@@ -33,7 +33,6 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: Object
-      element: dart:core::<fragment>::@class::Object
       element2: dart:core::@class::Object
       type: Object
     variables
@@ -63,7 +62,6 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: Object
-      element: dart:core::<fragment>::@class::Object
       element2: dart:core::@class::Object
       type: Object
     variables
@@ -96,7 +94,6 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     variables
@@ -105,7 +102,6 @@ FieldDeclaration
         equals: =
         initializer: SimpleIdentifier
           token: a
-          staticElement: <testLibraryFragment>::@class::A::@getter::a
           element: <testLibraryFragment>::@class::A::@getter::a#element
           staticType: int
         declaredElement: <testLibraryFragment>::@class::A::@field::b
@@ -131,7 +127,6 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     variables
@@ -140,7 +135,6 @@ FieldDeclaration
         equals: =
         initializer: SimpleIdentifier
           token: a
-          staticElement: <testLibraryFragment>::@class::A::@getter::a
           element: <testLibraryFragment>::@class::A::@getter::a#element
           staticType: int
         declaredElement: <testLibraryFragment>::@class::A::@field::b
@@ -166,7 +160,6 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     variables
@@ -176,7 +169,6 @@ FieldDeclaration
         initializer: MethodInvocation
           methodName: SimpleIdentifier
             token: a
-            staticElement: <testLibraryFragment>::@class::A::@method::a
             element: <testLibraryFragment>::@class::A::@method::a#element
             staticType: int Function()
           argumentList: ArgumentList
@@ -288,7 +280,6 @@ FieldDeclaration
             arguments
               NamedType
                 name: T
-                element: T@8
                 element2: T@8
                 type: T
             rightBracket: >

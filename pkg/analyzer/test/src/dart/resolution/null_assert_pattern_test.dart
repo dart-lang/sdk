@@ -89,7 +89,6 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: int?
   patternTypeSchema: _

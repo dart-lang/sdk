@@ -41,7 +41,6 @@ ClassTypeAlias
   equals: =
   superclass: NamedType
     name: A
-    element: <testLibraryFragment>::@class::A
     element2: <testLibrary>::@class::A
     type: A
   withClause: WithClause
@@ -49,7 +48,6 @@ ClassTypeAlias
     mixinTypes
       NamedType
         name: B
-        element: <testLibraryFragment>::@class::B
         element2: <testLibrary>::@class::B
         type: B
   implementsClause: ImplementsClause
@@ -57,7 +55,6 @@ ClassTypeAlias
     interfaces
       NamedType
         name: C
-        element: <testLibraryFragment>::@class::C
         element2: <testLibrary>::@class::C
         type: C
   semicolon: ;

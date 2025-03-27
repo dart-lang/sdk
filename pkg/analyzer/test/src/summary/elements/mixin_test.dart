@@ -574,7 +574,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
               element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class alias C
       reference: <testLibrary>::@class::C
@@ -591,7 +590,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
@@ -701,7 +699,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
               element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class Base
       reference: <testLibrary>::@class::Base
@@ -726,7 +723,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: <testLibraryFragment>::@class::Base::@constructor::new
               element: <testLibraryFragment>::@class::Base::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::Base::@constructor::new#element
 ''');
@@ -945,7 +941,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: <testLibraryFragment>::@class::I::@constructor::new
               element: <testLibraryFragment>::@class::I::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::I::@constructor::new#element
   mixins

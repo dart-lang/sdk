@@ -66,7 +66,6 @@ FunctionExpression
           expression: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
-              staticElement: <testLibraryFragment>::@function::foo
               element: <testLibrary>::@function::foo
               staticType: T Function<T>()
             argumentList: ArgumentList
@@ -78,7 +77,7 @@ FunctionExpression
               FutureOr<Object?>
           semicolon: ;
       rightBracket: }
-  declaredElement: @47
+  declaredElement: null@null
     type: Future<Object?> Function()
   staticType: Future<Object?> Function()
 ''');
@@ -121,7 +120,6 @@ FunctionExpression
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
-        staticElement: <testLibraryFragment>::@function::foo
         element: <testLibrary>::@function::foo
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -131,7 +129,7 @@ FunctionExpression
       staticType: FutureOr<int>
       typeArgumentTypes
         FutureOr<int>
-  declaredElement: @51
+  declaredElement: null@null
     type: Future<int> Function()
   staticType: Future<int> Function()
 ''');
@@ -163,7 +161,6 @@ FunctionExpression
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
-        staticElement: <testLibraryFragment>::@function::foo
         element: <testLibrary>::@function::foo
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -173,7 +170,7 @@ FunctionExpression
       staticType: FutureOr<Object?>
       typeArgumentTypes
         FutureOr<Object?>
-  declaredElement: @46
+  declaredElement: null@null
     type: Future<Object?> Function()
   staticType: Future<Object?> Function()
 ''');
@@ -198,7 +195,6 @@ FunctionExpression
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
-        staticElement: <testLibraryFragment>::@function::foo
         element: <testLibrary>::@function::foo
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -208,7 +204,7 @@ FunctionExpression
       staticType: FutureOr<Object?>
       typeArgumentTypes
         FutureOr<Object?>
-  declaredElement: @47
+  declaredElement: null@null
     type: Future<Object?> Function()
   staticType: Future<Object?> Function()
 ''');
@@ -249,7 +245,6 @@ FunctionExpression
           expression: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
-              staticElement: <testLibraryFragment>::@function::foo
               element: <testLibrary>::@function::foo
               staticType: T Function<T>()
             argumentList: ArgumentList
@@ -261,7 +256,7 @@ FunctionExpression
               int
           semicolon: ;
       rightBracket: }
-  declaredElement: @51
+  declaredElement: null@null
     type: Stream<int> Function()
   staticType: Stream<int> Function()
 ''');
@@ -300,7 +295,6 @@ FunctionExpression
           expression: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
-              staticElement: <testLibraryFragment>::@function::foo
               element: <testLibrary>::@function::foo
               staticType: T Function<T>()
             argumentList: ArgumentList
@@ -312,7 +306,7 @@ FunctionExpression
               int
           semicolon: ;
       rightBracket: }
-  declaredElement: @43
+  declaredElement: null@null
     type: int Function()
   staticType: int Function()
 ''');
@@ -354,7 +348,6 @@ FunctionExpression
     expression: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
-        staticElement: <testLibraryFragment>::@function::foo
         element: <testLibrary>::@function::foo
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -364,7 +357,7 @@ FunctionExpression
       staticType: int
       typeArgumentTypes
         int
-  declaredElement: @43
+  declaredElement: null@null
     type: int Function()
   staticType: int Function()
 ''');
@@ -405,7 +398,6 @@ FunctionExpression
           expression: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
-              staticElement: <testLibraryFragment>::@function::foo
               element: <testLibrary>::@function::foo
               staticType: T Function<T>()
             argumentList: ArgumentList
@@ -417,7 +409,7 @@ FunctionExpression
               int
           semicolon: ;
       rightBracket: }
-  declaredElement: @53
+  declaredElement: null@null
     type: Iterable<int> Function()
   staticType: Iterable<int> Function()
 ''');
@@ -439,7 +431,7 @@ FunctionExpression
     leftParenthesis: (
     parameter: SimpleFormalParameter
       name: item
-      declaredElement: @42::@parameter::item
+      declaredElement: null@null::@formalParameter::item
         type: int
     rightParenthesis: )
   body: BlockFunctionBody
@@ -449,14 +441,13 @@ FunctionExpression
         ExpressionStatement
           expression: SimpleIdentifier
             token: item
-            staticElement: @42::@parameter::item
             element: @42::@parameter::item#element
             staticType: int
           semicolon: ;
       rightBracket: }
-  declaredElement: @42
+  declaredElement: null@null
     type: void Function(int)
-  parameter: root::@parameter::f
+  correspondingParameter: root::@parameter::f#element
   staticType: void Function(int)
 ''');
   }
@@ -477,16 +468,16 @@ FunctionExpression
     leftParenthesis: (
     parameter: SimpleFormalParameter
       name: x
-      declaredElement: @52::@parameter::x
+      declaredElement: null@null::@formalParameter::x
         type: Object?
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: @52
+  declaredElement: null@null
     type: void Function(Object?)
-  parameter: <testLibraryFragment>::@function::foo::@parameter::a
+  correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
   staticType: void Function(Object?)
 ''');
   }
@@ -507,16 +498,16 @@ FunctionExpression
     leftParenthesis: (
     parameter: SimpleFormalParameter
       name: x
-      declaredElement: @51::@parameter::x
+      declaredElement: null@null::@formalParameter::x
         type: Object?
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: @51
+  declaredElement: null@null
     type: void Function(Object?)
-  parameter: <testLibraryFragment>::@function::foo::@parameter::a
+  correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
   staticType: void Function(Object?)
 ''');
   }
@@ -545,11 +536,10 @@ FunctionExpression
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element: T@24
         element2: T@24
         type: T
       name: a
-      declaredElement: @23::@parameter::a
+      declaredElement: null@null::@formalParameter::a
         type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -560,7 +550,6 @@ FunctionExpression
         arguments
           NamedType
             name: T
-            element: T@24
             element2: T@24
             type: T
         rightBracket: >
@@ -568,12 +557,11 @@ FunctionExpression
       elements
         SimpleIdentifier
           token: a
-          staticElement: @23::@parameter::a
           element: @23::@parameter::a#element
           staticType: T
       rightBracket: ]
       staticType: List<T>
-  declaredElement: @23
+  declaredElement: null@null
     type: List<T> Function<T>(T)
   staticType: List<T> Function<T>(T)
 ''');
@@ -597,7 +585,7 @@ FunctionExpression
     expression: IntegerLiteral
       literal: 42
       staticType: int
-  declaredElement: @22
+  declaredElement: null@null
     type: int Function()
   staticType: int Function()
 ''');
@@ -619,7 +607,7 @@ FunctionExpression
     expression: IntegerLiteral
       literal: 42
       staticType: int
-  declaredElement: @10
+  declaredElement: null@null
     type: int Function()
   staticType: int Function()
 ''');
@@ -878,13 +866,11 @@ int test<T extends int Function(int)>(T Function() createT) {
   function: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: createT
-      staticElement: <testLibraryFragment>::@function::test::@parameter::createT
       element: <testLibraryFragment>::@function::test::@parameter::createT#element
       staticType: T Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticElement: <null>
     element: <null>
     staticInvokeType: T Function()
     staticType: T
@@ -894,7 +880,6 @@ int test<T extends int Function(int)>(T Function() createT) {
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
-  staticElement: <null>
   element: <null>
   staticInvokeType: int Function(int)
   staticType: int
@@ -913,13 +898,11 @@ int test<T extends int Function(int)>(T Function() createT) {
   function: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: createT
-      staticElement: <testLibraryFragment>::@function::test::@parameter::createT
       element: <testLibraryFragment>::@function::test::@parameter::createT#element
       staticType: T Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticElement: <null>
     element: <null>
     staticInvokeType: T Function()
     staticType: T
@@ -928,10 +911,9 @@ int test<T extends int Function(int)>(T Function() createT) {
     arguments
       IntegerLiteral
         literal: 0
-        parameter: root::@parameter::
+        correspondingParameter: root::@parameter::#element
         staticType: int
     rightParenthesis: )
-  staticElement: <null>
   element: <null>
   staticInvokeType: int Function(int)
   staticType: int

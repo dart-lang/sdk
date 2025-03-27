@@ -26,7 +26,6 @@ LogicalOrPattern
   leftOperand: WildcardPattern
     type: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     name: _
@@ -35,7 +34,6 @@ LogicalOrPattern
   rightOperand: WildcardPattern
     type: NamedType
       name: double
-      element: dart:core::<fragment>::@class::double
       element2: dart:core::@class::double
       type: double
     name: _
@@ -59,7 +57,6 @@ LogicalOrPattern
   leftOperand: WildcardPattern
     type: NamedType
       name: int
-      element: dart:core::<fragment>::@class::int
       element2: dart:core::@class::int
       type: int
     name: _
@@ -68,7 +65,6 @@ LogicalOrPattern
   rightOperand: WildcardPattern
     type: NamedType
       name: double
-      element: dart:core::<fragment>::@class::double
       element2: dart:core::@class::double
       type: double
     name: _
