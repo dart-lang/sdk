@@ -697,6 +697,7 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   ///
   /// In invalid code this element can be `null`, or a reference to any
   /// other element.
+  @Deprecated('Use element2 instead')
   Element? get element;
 
   /// Returns the element referenced by this annotation.

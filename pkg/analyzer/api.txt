@@ -3136,7 +3136,7 @@ package:analyzer/dart/element/element.dart:
   ElementAnnotation (class extends Object implements ConstantEvaluationTarget):
     new (constructor: ElementAnnotation Function())
     constantEvaluationErrors (getter: List<AnalysisError>?)
-    element (getter: Element?)
+    element (getter: Element?, deprecated)
     element2 (getter: Element2?)
     isAlwaysThrows (getter: bool)
     isDeprecated (getter: bool)

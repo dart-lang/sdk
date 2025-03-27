@@ -2270,7 +2270,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
       'visibleOutsideTemplate';
 
   @override
-  Element? element;
+  Element2? element2;
 
   /// The compilation unit in which this annotation appears.
   CompilationUnitElementImpl compilationUnit;
@@ -2321,13 +2321,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   AnalysisContext get context => compilationUnit.library.context;
 
+  @Deprecated('Use element2 instead')
   @override
-  Element2? get element2 {
-    return element?.asElement2;
-  }
-
-  set element2(Element2? value) {
-    element = value?.asElement;
+  Element? get element {
+    return element2?.asElement;
   }
 
   @override
@@ -2337,23 +2334,23 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isConstantEvaluated => evaluationResult != null;
 
   bool get isDartInternalSince {
-    var element = this.element;
-    if (element is ConstructorElement) {
-      return element.enclosingElement3.name == 'Since' &&
-          element.library.source.uri.toString() == 'dart:_internal';
+    var element2 = this.element2;
+    if (element2 is ConstructorElement2) {
+      return element2.enclosingElement2.name3 == 'Since' &&
+          element2.library2.uri.toString() == 'dart:_internal';
     }
     return false;
   }
 
   @override
   bool get isDeprecated {
-    var element = this.element;
-    if (element is ConstructorElement) {
-      return element.library.isDartCore &&
-          element.enclosingElement3.name == _deprecatedClassName;
-    } else if (element is PropertyAccessorElement) {
-      return element.library.isDartCore &&
-          element.name == _deprecatedVariableName;
+    var element2 = this.element2;
+    if (element2 is ConstructorElement2) {
+      return element2.library2.isDartCore &&
+          element2.enclosingElement2.name3 == _deprecatedClassName;
+    } else if (element2 is PropertyAccessorElement2) {
+      return element2.library2.isDartCore &&
+          element2.name3 == _deprecatedVariableName;
     }
     return false;
   }
@@ -2502,16 +2499,16 @@ class ElementAnnotationImpl implements ElementAnnotation {
   String toSource() => annotationAst.toSource();
 
   @override
-  String toString() => '@$element';
+  String toString() => '@$element2';
 
   bool _isConstructor({
     required String libraryName,
     required String className,
   }) {
-    var element = this.element;
-    return element is ConstructorElement &&
-        element.enclosingElement3.name == className &&
-        element.library.name == libraryName;
+    var element2 = this.element2;
+    return element2 is ConstructorElement2 &&
+        element2.enclosingElement2.name3 == className &&
+        element2.library2.name3 == libraryName;
   }
 
   bool _isDartCoreGetter(String name) {
@@ -2535,11 +2532,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }) {
     assert((libraryName != null) != (libraryUri != null),
         'Exactly one of libraryName/libraryUri should be provided');
-    var element = this.element;
-    return element is PropertyAccessorElement &&
-        element.name == name &&
-        (libraryName == null || element.library.name == libraryName) &&
-        (libraryUri == null || element.library.source.uri == libraryUri);
+    var element2 = this.element2;
+    return element2 is PropertyAccessorElement2 &&
+        element2.name3 == name &&
+        (libraryName == null || element2.library2.name3 == libraryName) &&
+        (libraryUri == null || element2.library2.uri == libraryUri);
   }
 }
 
