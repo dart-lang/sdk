@@ -5292,7 +5292,7 @@ package:analyzer/src/lint/config.dart:
 package:analyzer/src/lint/linter.dart:
   LintRule (non-public)
 package:analyzer/src/task/api/model.dart:
-  AnalysisTarget (class extends Object):
+  AnalysisTarget (class extends Object, deprecated):
     new (constructor: AnalysisTarget Function())
     librarySource (getter: Source?)
     source (getter: Source?)

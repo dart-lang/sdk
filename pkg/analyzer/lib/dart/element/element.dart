@@ -55,6 +55,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' show Namespace;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+// ignore: deprecated_member_use_from_same_package
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -390,6 +391,7 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
 /// represent the semantic structure of the program.
 ///
 /// Clients may not extend, implement or mix-in this class.
+// ignore: deprecated_member_use_from_same_package
 abstract class Element implements AnalysisTarget {
   /// A list of this element's children.
   ///
