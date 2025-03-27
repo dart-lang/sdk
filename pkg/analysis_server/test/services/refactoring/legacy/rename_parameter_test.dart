@@ -282,6 +282,94 @@ class B extends A {
 
 @reflectiveTest
 class RenamePositionalParameterTest extends RenameRefactoringTest {
+  Future<void> test_catchError() async {
+    await indexTestUnit('''
+void f() {
+  try {
+  } catch (e) {
+    e;
+  }
+}
+''');
+    createRenameRefactoringAtString('e) {');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+void f() {
+  try {
+  } catch (newName) {
+    newName;
+  }
+}
+''');
+  }
+
+  Future<void> test_catchError2() async {
+    await indexTestUnit('''
+void f() {
+  try {
+  } on Exception catch (e) {
+    e;
+  }
+}
+''');
+    createRenameRefactoringAtString('e) {');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+void f() {
+  try {
+  } on Exception catch (newName) {
+    newName;
+  }
+}
+''');
+  }
+
+  Future<void> test_catchStackTrace() async {
+    await indexTestUnit('''
+void f() {
+  try {
+  } catch (e, s) {
+    e;
+    s;
+  }
+}
+''');
+    createRenameRefactoringAtString('s) {');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+void f() {
+  try {
+  } catch (e, newName) {
+    e;
+    newName;
+  }
+}
+''');
+  }
+
+  Future<void> test_catchStackTrace2() async {
+    await indexTestUnit('''
+void f() {
+  try {
+  } on Exception catch (e, s) {
+    e;
+    s;
+  }
+}
+''');
+    createRenameRefactoringAtString('s) {');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+void f() {
+  try {
+  } on Exception catch (e, newName) {
+    e;
+    newName;
+  }
+}
+''');
+  }
+
   Future<void> test_checkNewName() async {
     await indexTestUnit('''
 void f(test) {

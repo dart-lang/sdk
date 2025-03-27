@@ -58,6 +58,24 @@ dart:core::<fragment>::@class::num::@method::+#element
 ''');
   }
 
+  test_locate_CatchClauseParameter() async {
+    await resolveTestCode(r'''
+void f() {
+  try {} catch (e, s) {}
+}
+''');
+    var node = findNode.catchClauseParameter('e');
+    var element = ElementLocator.locate2(node);
+    _assertElement(element, r'''
+e@27
+''');
+    node = findNode.catchClauseParameter('s');
+    element = ElementLocator.locate2(node);
+    _assertElement(element, r'''
+s@30
+''');
+  }
+
   test_locate_ClassDeclaration() async {
     await resolveTestCode('class A {}');
     var node = findNode.classDeclaration('class');
