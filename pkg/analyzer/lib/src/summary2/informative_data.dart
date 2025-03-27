@@ -2208,6 +2208,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     var identifier = node.name;
     if (fragment is ParameterElementImpl && identifier != null) {
       fragment.nameOffset = identifier.offset;
+      fragment.nameOffset2 = identifier.offsetIfNotEmpty;
     }
   }
 
