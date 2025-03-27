@@ -963,6 +963,14 @@ abstract interface class Socket implements Stream<Uint8List>, IOSink {
   /// been destroyed or upgraded to a secure socket.
   void setRawOption(RawSocketOption option);
 
+  /// Unsupported operation on sockets.
+  ///
+  /// This method, which is inherited from [IOSink], is not supported on
+  /// sockets, and **must not** be called.
+  /// Sockets have no way to report errors, so any error passed in to
+  /// a socket using [addError] would be lost.
+  void addError(Object error, [StackTrace? stackTrace]);
+
   /// The port used by this socket.
   ///
   /// Throws a [SocketException] if the socket is closed.
