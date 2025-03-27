@@ -57,18 +57,20 @@ final class JSNumber extends Interceptor implements double {
   bool get isNegative => (this == 0) ? (1 / this) < 0 : this < 0;
 
   bool get isNaN => JS(
-      'returns:bool;effects:none;depends:none;throws:never;gvn:true',
-      r'isNaN(#)',
-      this);
+    'returns:bool;effects:none;depends:none;throws:never;gvn:true',
+    r'isNaN(#)',
+    this,
+  );
 
   bool get isInfinite {
     return JS('bool', r'# == (1/0)', this) || JS('bool', r'# == (-1/0)', this);
   }
 
   bool get isFinite => JS(
-      'returns:bool;effects:none;depends:none;throws:never;gvn:true',
-      r'isFinite(#)',
-      this);
+    'returns:bool;effects:none;depends:none;throws:never;gvn:true',
+    r'isFinite(#)',
+    this,
+  );
 
   JSNumber remainder(num b) {
     if (b is! num) throw argumentErrorValue(b);
@@ -78,15 +80,18 @@ final class JSNumber extends Interceptor implements double {
   // Use invoke_dynamic_specializer instead of inlining.
   @pragma('dart2js:noInline')
   JSNumber abs() => JS(
-      'returns:num;effects:none;depends:none;throws:never;gvn:true',
-      r'Math.abs(#)',
-      this);
+    'returns:num;effects:none;depends:none;throws:never;gvn:true',
+    r'Math.abs(#)',
+    this,
+  );
 
-  JSNumber get sign => (this > 0
-      ? 1
-      : this < 0
-          ? -1
-          : this) as JSNumber;
+  JSNumber get sign =>
+      (this > 0
+              ? 1
+              : this < 0
+              ? -1
+              : this)
+          as JSNumber;
 
   static const int _MIN_INT32 = -0x80000000;
   static const int _MAX_INT32 = 0x7FFFFFFF;
@@ -242,8 +247,11 @@ final class JSNumber extends Interceptor implements double {
   static String _handleIEtoString(String result) {
     // Result is probably IE's untraditional format for large numbers,
     // e.g., "8.0000000000008(e+15)" for 0x8000000000000800.toString(16).
-    List? match = JS('JSArray|Null',
-        r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)', result);
+    List? match = JS(
+      'JSArray|Null',
+      r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)',
+      result,
+    );
     if (match == null) {
       // Then we don't know how to handle it at all.
       throw UnsupportedError('Unexpected toString result: $result');
@@ -375,7 +383,8 @@ final class JSNumber extends Interceptor implements double {
 
     // [quotient] is either NaN, Infinity or -Infinity.
     throw UnsupportedError(
-        'Result of truncating division is $quotient: $this ~/ $other');
+      'Result of truncating division is $quotient: $this ~/ $other',
+    );
   }
 
   // TODO(ngeoffray): Move the bit operations below to [JSInt] and
@@ -494,16 +503,19 @@ final class JSInt extends JSNumber implements int, TrustedGetRuntimeType {
   // Use invoke_dynamic_specializer instead of inlining.
   @pragma('dart2js:noInline')
   JSInt abs() => JS(
-      'returns:int;effects:none;depends:none;throws:never;gvn:true',
-      r'Math.abs(#)',
-      this);
+    'returns:int;effects:none;depends:none;throws:never;gvn:true',
+    r'Math.abs(#)',
+    this,
+  );
 
   @override
-  JSInt get sign => (this > 0
-      ? 1
-      : this < 0
-          ? -1
-          : this) as JSInt;
+  JSInt get sign =>
+      (this > 0
+              ? 1
+              : this < 0
+              ? -1
+              : this)
+          as JSInt;
 
   @override
   JSInt operator -() => JS('int', r'-#', this);
@@ -553,7 +565,11 @@ final class JSInt extends JSNumber implements int, TrustedGetRuntimeType {
     // represented precisely as a Number (double).
     if (this < -maxPreciseInteger || this > maxPreciseInteger) {
       throw RangeError.range(
-          this, -maxPreciseInteger, maxPreciseInteger, 'receiver');
+        this,
+        -maxPreciseInteger,
+        maxPreciseInteger,
+        'receiver',
+      );
     }
     if (e > maxPreciseInteger) {
       throw RangeError.range(e, 0, maxPreciseInteger, 'exponent');

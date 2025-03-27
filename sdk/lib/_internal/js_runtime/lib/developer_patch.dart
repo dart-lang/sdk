@@ -42,7 +42,10 @@ extension type _JSPerformance(JSObject performance) {
   external JSAny? get _clearMarksMethod;
 
   external void measure(
-      JSString measureName, JSString startMark, JSString endMark);
+    JSString measureName,
+    JSString startMark,
+    JSString endMark,
+  );
 
   external void mark(JSString markName, JSObject markOptions);
 
@@ -55,27 +58,29 @@ extension type _JSJSON(JSObject performance) {
   external JSObject parse(JSString string);
 }
 
-_JSPerformance? _performance = (() {
-  final value = _jsPerformance;
-  if (value.isA<JSObject>()) {
-    final performance = _JSPerformance(value as JSObject);
-    if (performance._measureMethod != null &&
-        performance._markMethod != null &&
-        performance._clearMeasuresMethod != null &&
-        performance._clearMarksMethod != null) {
-      return performance;
-    }
-  }
-  return null;
-})();
+_JSPerformance? _performance =
+    (() {
+      final value = _jsPerformance;
+      if (value.isA<JSObject>()) {
+        final performance = _JSPerformance(value as JSObject);
+        if (performance._measureMethod != null &&
+            performance._markMethod != null &&
+            performance._clearMeasuresMethod != null &&
+            performance._clearMarksMethod != null) {
+          return performance;
+        }
+      }
+      return null;
+    })();
 
-_JSJSON _json = (() {
-  final value = _jsJSON;
-  if (value.isA<JSObject>()) {
-    return value as _JSJSON;
-  }
-  throw UnsupportedError('Missing JSON.parse() support');
-})();
+_JSJSON _json =
+    (() {
+      final value = _jsJSON;
+      if (value.isA<JSObject>()) {
+        return value as _JSJSON;
+      }
+      throw UnsupportedError('Missing JSON.parse() support');
+    })();
 
 @patch
 @pragma('dart2js:tryInline')
@@ -90,14 +95,16 @@ Object? inspect(Object? object) {
 }
 
 @patch
-void log(String message,
-    {DateTime? time,
-    int? sequenceNumber,
-    int level = 0,
-    String name = '',
-    Zone? zone,
-    Object? error,
-    StackTrace? stackTrace}) {
+void log(
+  String message, {
+  DateTime? time,
+  int? sequenceNumber,
+  int level = 0,
+  String name = '',
+  Zone? zone,
+  Object? error,
+  StackTrace? stackTrace,
+}) {
   // TODO.
 }
 
@@ -202,7 +209,12 @@ bool get _areAllBeginEventsPaired => _eventNameToCount.isEmpty;
 
 @patch
 void _reportTaskEvent(
-    int taskId, int flowId, int type, String name, String argumentsAsJson) {
+  int taskId,
+  int flowId,
+  int type,
+  String name,
+  String argumentsAsJson,
+) {
   // Ignore any unsupported events.
   if (_isUnsupportedEvent(type)) return;
 
@@ -248,9 +260,16 @@ void _reportTaskEvent(
   // event with the same name.
   if (isEndEvent) {
     final beginEventName = _createEventName(
-        taskId: taskId, name: name, isBeginEvent: true, isEndEvent: false);
-    _performance!.measure(name.toJS, _postfixWithCount(beginEventName).toJS,
-        currentEventName.toJS);
+      taskId: taskId,
+      name: name,
+      isBeginEvent: true,
+      isEndEvent: false,
+    );
+    _performance!.measure(
+      name.toJS,
+      _postfixWithCount(beginEventName).toJS,
+      currentEventName.toJS,
+    );
     _markAndMeasureEntryCount++;
     _decrementEventCount(beginEventName);
   }
@@ -310,7 +329,8 @@ final class _FakeUserTag implements UserTag {
     // Throw an exception if we've reached the maximum number of user tags.
     if (_instances.length == UserTag.maxUserTags) {
       throw UnsupportedError(
-          'UserTag instance limit (${UserTag.maxUserTags}) reached.');
+        'UserTag instance limit (${UserTag.maxUserTags}) reached.',
+      );
     }
     return _instances[label] = _FakeUserTag.real(label);
   }
@@ -339,5 +359,6 @@ abstract final class NativeRuntime {
   @patch
   static void writeHeapSnapshotToFile(String filepath) =>
       throw UnsupportedError(
-          "Generating heap snapshots is not supported on the web.");
+        "Generating heap snapshots is not supported on the web.",
+      );
 }
