@@ -112,8 +112,8 @@ class MethodDeclarationImpl implements MethodDeclaration {
   // TODO: implement formals
   List<FormalParameterBuilder>? get formals => _encoding.formals;
 
-  // Coverage-ignore(suite): Not run.
   @override
+  // Coverage-ignore(suite): Not run.
   List<FormalParameterBuilder>? get formalsForTesting =>
       _encoding.formalsForTesting;
 
@@ -127,6 +127,7 @@ class MethodDeclarationImpl implements MethodDeclaration {
   bool get isOperator => _fragment.isOperator;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
@@ -141,8 +142,8 @@ class MethodDeclarationImpl implements MethodDeclaration {
   @override
   VariableDeclaration? get thisVariable => _encoding.thisVariable;
 
-  // Coverage-ignore(suite): Not run.
   @override
+  // Coverage-ignore(suite): Not run.
   List<NominalParameterBuilder>? get typeParametersForTesting =>
       _encoding.clonedAndDeclaredTypeParameters;
 
