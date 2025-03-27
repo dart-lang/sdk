@@ -1,10 +1,14 @@
 // Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// VMOptions=
+// VMOptions=--intern_strings_when_writing_perfetto_timeline
 
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io' show Platform;
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide Timeline;
@@ -35,12 +39,108 @@ void primeTimeline() {
   Timeline.finishSync();
 }
 
-Iterable<TrackEvent> extractTrackEventsFromTracePackets(
+class Deinterner {
+  final bool stringsShouldBeInterned = Platform.executableArguments
+      .contains('--intern_strings_when_writing_perfetto_timeline');
+
+  final Map<int, String> debugAnnotationNames = {};
+  final Map<int, String> debugAnnotationStringValues = {};
+  final Map<int, String> eventNames = {};
+  final Map<int, String> eventCategories = {};
+
+  /// Update the state of the interning dictionaries using [InternedData]
+  /// from the given packet.
+  void update(TracePacket packet) {
+    // Clear the state if [TracePacket.sequenceFlags] instructs us to do so.
+    if (packet.sequenceFlags &
+            TracePacket_SequenceFlags.SEQ_INCREMENTAL_STATE_CLEARED.value !=
+        0) {
+      debugAnnotationNames.clear();
+      debugAnnotationStringValues.clear();
+      eventNames.clear();
+      eventCategories.clear();
+    }
+
+    if (!packet.hasInternedData()) {
+      return;
+    }
+
+    final internedData = packet.internedData;
+    for (var e in internedData.debugAnnotationNames) {
+      debugAnnotationNames[e.iid.toInt()] = e.name;
+    }
+    for (var e in internedData.debugAnnotationStringValues) {
+      debugAnnotationStringValues[e.iid.toInt()] = utf8.decode(e.str);
+    }
+    for (var e in internedData.eventNames) {
+      eventNames[e.iid.toInt()] = e.name;
+    }
+    for (var e in internedData.eventCategories) {
+      eventCategories[e.iid.toInt()] = e.name;
+    }
+  }
+
+  /// Deintern contents of the given [TrackEvent].
+  void deintern(TrackEvent event) {
+    if (event.hasName()) {
+      expect(stringsShouldBeInterned, isFalse);
+    }
+    if (event.hasNameIid()) {
+      expect(stringsShouldBeInterned, isTrue);
+      expect(event.hasName(), isFalse);
+      event.name = eventNames[event.nameIid.toInt()]!;
+      event.clearNameIid();
+    }
+
+    if (event.categories.isNotEmpty) {
+      expect(stringsShouldBeInterned, isFalse);
+    }
+    if (event.categoryIids.isNotEmpty) {
+      expect(stringsShouldBeInterned, isTrue);
+      expect(event.categories.isEmpty, isTrue);
+      for (var iid in event.categoryIids) {
+        event.categories.add(eventCategories[iid.toInt()]!);
+      }
+      event.categoryIids.clear();
+    }
+    for (var annotation in event.debugAnnotations) {
+      if (annotation.hasStringValue()) {
+        expect(stringsShouldBeInterned, isFalse);
+      }
+      if (annotation.hasStringValueIid()) {
+        expect(stringsShouldBeInterned, isTrue);
+        expect(annotation.hasStringValue(), isFalse);
+        annotation.stringValue =
+            debugAnnotationStringValues[annotation.stringValueIid.toInt()]!;
+        annotation.clearStringValueIid();
+      }
+
+      if (annotation.hasName()) {
+        expect(stringsShouldBeInterned, isFalse);
+      }
+      if (annotation.hasNameIid()) {
+        expect(stringsShouldBeInterned, isTrue);
+        expect(annotation.hasName(), isFalse);
+        annotation.name = debugAnnotationNames[annotation.nameIid.toInt()]!;
+        annotation.clearNameIid();
+      }
+    }
+  }
+}
+
+List<TrackEvent> extractTrackEventsFromTracePackets(
   List<TracePacket> packets,
 ) {
-  return packets
-      .where((packet) => packet.hasTrackEvent())
-      .map((packet) => packet.trackEvent);
+  final result = <TrackEvent>[];
+  final deinterner = Deinterner();
+  for (var packet in packets) {
+    deinterner.update(packet);
+    if (packet.hasTrackEvent()) {
+      deinterner.deintern(packet.trackEvent);
+      result.add(packet.trackEvent);
+    }
+  }
+  return result;
 }
 
 Map<String, String> mapFromListOfDebugAnnotations(
@@ -60,7 +160,7 @@ Map<String, String> mapFromListOfDebugAnnotations(
 }
 
 void checkThatAllEventsHaveIsolateNumbers(Iterable<TrackEvent> events) {
-  for (TrackEvent event in events) {
+  for (final event in events) {
     final debugAnnotations =
         mapFromListOfDebugAnnotations(event.debugAnnotations);
     expect(debugAnnotations['isolateGroupId'], isNotNull);
