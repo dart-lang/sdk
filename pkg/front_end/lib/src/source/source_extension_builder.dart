@@ -97,11 +97,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     extensionName.attachExtension(_extension);
   }
 
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): Avoid exposing this. Annotations for macros and
-  //  patches should be computing from within the builder.
-  Iterable<MetadataBuilder>? get metadata => _introductory.metadata;
-
   @override
   int get fileOffset => _nameOffset;
 
@@ -153,9 +148,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     return new ExtensionBodyBuilderContext(this);
   }
 
-  @override
-  Annotatable get annotatable => extension;
-
   /// Builds the [Extension] for this extension build and inserts the members
   /// into the [Library] of [libraryBuilder].
   ///
@@ -175,7 +167,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   void _buildOutlineExpressionsForFragment(ExtensionFragment fragment,
       ClassHierarchy classHierarchy, BodyBuilderContext bodyBuilderContext) {
     MetadataBuilder.buildAnnotations(
-        annotatable,
+        extension,
         fragment.metadata,
         bodyBuilderContext,
         libraryBuilder,

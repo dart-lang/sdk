@@ -38,10 +38,6 @@ mixin SourceDeclarationBuilderMixin
   @override
   Uri get fileUri;
 
-  /// Returns the [Annotatable] node that holds the annotations declared on
-  /// this declaration or its augmentations.
-  Annotatable get annotatable;
-
   /// Builds the [Extension] for this extension build and inserts the members
   /// into the [Library] of [libraryBuilder].
   ///

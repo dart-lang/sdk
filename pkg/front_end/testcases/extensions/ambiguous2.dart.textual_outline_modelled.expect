@@ -1,0 +1,4 @@
+import 'ambiguous_lib1.dart';
+import 'ambiguous_lib2.dart';
+
+test() {}

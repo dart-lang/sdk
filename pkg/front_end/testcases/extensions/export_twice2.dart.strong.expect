@@ -1,0 +1,50 @@
+library;
+import self as self;
+import "export_twice2_lib1.dart" as exp;
+
+import "org-dartlang-testcase:///export_twice2_lib1.dart";
+import "org-dartlang-testcase:///export_twice2_lib2.dart";
+
+static method main() → dynamic {
+  exp::E|foo(new exp::A::•());
+}
+
+library;
+import self as exp;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → exp::A
+    : super core::Object::•()
+    ;
+}
+extension E on exp::A {
+  method foo = exp::E|foo;
+  method tearoff foo = exp::E|get#foo;
+}
+static extension-member method E|foo(lowered final exp::A #this) → dynamic {}
+static extension-member method E|get#foo(lowered final exp::A #this) → () → dynamic
+  return () → dynamic => exp::E|foo(#this);
+
+library;
+import self as self2;
+
+export "org-dartlang-testcase:///export_twice_lib1.dart" show E;
+
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self3::Class
+    : super core::Object::•()
+    ;
+}
+extension Extension on self3::Class {
+  method method = self3::Extension|method;
+  method tearoff method = self3::Extension|get#method;
+}
+static extension-member method Extension|method(lowered final self3::Class #this) → dynamic {}
+static extension-member method Extension|get#method(lowered final self3::Class #this) → () → dynamic
+  return () → dynamic => self3::Extension|method(#this);

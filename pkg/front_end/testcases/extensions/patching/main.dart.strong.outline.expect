@@ -1,0 +1,119 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@_in::patch
+extension Extension on core::String {
+  method instanceMethod = self2::Extension|instanceMethod;
+  method tearoff instanceMethod = self2::Extension|get#instanceMethod;
+  method genericInstanceMethod = self2::Extension|genericInstanceMethod;
+  method tearoff genericInstanceMethod = self2::Extension|get#genericInstanceMethod;
+  static method staticMethod = self2::Extension|staticMethod;
+  static method genericStaticMethod = self2::Extension|genericStaticMethod;
+  get instanceProperty = self2::Extension|get#instanceProperty;
+  static get staticProperty = get self2::Extension|staticProperty;
+  set instanceProperty = self2::Extension|set#instanceProperty;
+  static set staticProperty = set self2::Extension|staticProperty;
+}
+@_in::patch
+extension GenericExtension<T extends core::Object? = dynamic> on T% {
+  method instanceMethod = self2::GenericExtension|instanceMethod;
+  method tearoff instanceMethod = self2::GenericExtension|get#instanceMethod;
+  method genericInstanceMethod = self2::GenericExtension|genericInstanceMethod;
+  method tearoff genericInstanceMethod = self2::GenericExtension|get#genericInstanceMethod;
+  static method staticMethod = self2::GenericExtension|staticMethod;
+  static method genericStaticMethod = self2::GenericExtension|genericStaticMethod;
+  get instanceProperty = self2::GenericExtension|get#instanceProperty;
+  static get staticProperty = get self2::GenericExtension|staticProperty;
+  set instanceProperty = self2::GenericExtension|set#instanceProperty;
+  static set staticProperty = set self2::GenericExtension|staticProperty;
+}
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|instanceMethod(lowered final core::String #this) → core::int
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#instanceMethod(lowered final core::String #this) → () → core::int
+  return () → core::int => self2::Extension|instanceMethod(#this);
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|genericInstanceMethod<T extends core::Object? = dynamic>(lowered final core::String #this, self2::Extension|genericInstanceMethod::T% t) → self2::Extension|genericInstanceMethod::T%
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#genericInstanceMethod(lowered final core::String #this) → <T extends core::Object? = dynamic>(T%) → T%
+  return <T extends core::Object? = dynamic>(T% t) → T% => self2::Extension|genericInstanceMethod<T%>(#this, t);
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|staticMethod() → core::int
+  ;
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|genericStaticMethod<T extends core::Object? = dynamic>(self2::Extension|genericStaticMethod::T% t) → self2::Extension|genericStaticMethod::T%
+  ;
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|get#instanceProperty(lowered final core::String #this) → core::int
+  ;
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ Extension|set#instanceProperty(lowered final core::String #this, core::int value) → void
+  ;
+@_in::patch
+static extension-member get /* from org-dartlang-testcase:///patch_lib.dart */ Extension|staticProperty() → core::int
+  ;
+@_in::patch
+static extension-member set /* from org-dartlang-testcase:///patch_lib.dart */ Extension|staticProperty(core::int value) → void
+  ;
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|instanceMethod<T extends core::Object? = dynamic>(lowered final self2::GenericExtension|instanceMethod::T% #this) → core::int
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self2::GenericExtension|get#instanceMethod::T% #this) → () → core::int
+  return () → core::int => self2::GenericExtension|instanceMethod<self2::GenericExtension|get#instanceMethod::T%>(#this);
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|genericInstanceMethod<#T extends core::Object? = dynamic, T extends core::Object? = dynamic>(lowered final self2::GenericExtension|genericInstanceMethod::#T% #this, self2::GenericExtension|genericInstanceMethod::T% t) → self2::GenericExtension|genericInstanceMethod::T%
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|get#genericInstanceMethod<#T extends core::Object? = dynamic>(lowered final self2::GenericExtension|get#genericInstanceMethod::#T% #this) → <T extends core::Object? = dynamic>(T%) → T%
+  return <T extends core::Object? = dynamic>(T% t) → T% => self2::GenericExtension|genericInstanceMethod<self2::GenericExtension|get#genericInstanceMethod::#T%, T%>(#this, t);
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|staticMethod() → core::int
+  ;
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|genericStaticMethod<T extends core::Object? = dynamic>(self2::GenericExtension|genericStaticMethod::T% t) → self2::GenericExtension|genericStaticMethod::T%
+  ;
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|get#instanceProperty<T extends core::Object? = dynamic>(lowered final self2::GenericExtension|get#instanceProperty::T% #this) → core::int
+  ;
+@_in::patch
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|set#instanceProperty<T extends core::Object? = dynamic>(lowered final self2::GenericExtension|set#instanceProperty::T% #this, core::int value) → void
+  ;
+@_in::patch
+static extension-member get /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|staticProperty() → core::int
+  ;
+@_in::patch
+static extension-member set /* from org-dartlang-testcase:///patch_lib.dart */ GenericExtension|staticProperty(core::int value) → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:6:31 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:26:39 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:10:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:13:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:19:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:22:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:25:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:28:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:31:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:37:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:40:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:43:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:46:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:49:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:52:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:55:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:58:4 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 32, effectively constant: 18

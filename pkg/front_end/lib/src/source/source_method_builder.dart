@@ -10,10 +10,8 @@ import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/method_builder.dart';
-import '../builder/type_builder.dart';
 import '../fragment/method/declaration.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
@@ -250,19 +248,6 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<MetadataBuilder>? get metadataForTesting => _introductory.metadata;
-
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): Remove these (or reinterpret them). These are used
-  // for testing and macros by rely on old assumptions of the builder model.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
-      _introductory.typeParametersForTesting;
-
-  // Coverage-ignore(suite): Not run.
-  List<FormalParameterBuilder>? get formalsForTesting =>
-      _introductory.formalsForTesting;
-
-  // Coverage-ignore(suite): Not run.
-  TypeBuilder? get returnTypeForTesting => _introductory.returnType;
 
   @override
   bool get isProperty => false;

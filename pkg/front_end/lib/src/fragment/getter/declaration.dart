@@ -54,8 +54,6 @@ abstract class GetterDeclaration {
 
   VariableDeclaration? get thisVariable;
 
-  List<NominalParameterBuilder>? get typeParametersForTesting;
-
   void becomeNative(SourceLoader loader);
 
   void buildOutlineExpressions(
@@ -151,11 +149,6 @@ class GetterDeclarationImpl implements GetterDeclaration {
 
   @override
   VariableDeclaration? get thisVariable => _encoding.thisVariable;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
-      _encoding.clonedAndDeclaredTypeParameters;
 
   @override
   void becomeNative(SourceLoader loader) {

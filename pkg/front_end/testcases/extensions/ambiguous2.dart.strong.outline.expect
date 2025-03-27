@@ -1,0 +1,48 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///ambiguous_lib1.dart";
+import "org-dartlang-testcase:///ambiguous_lib2.dart";
+
+static method test() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+extension AmbiguousExtension1 on core::String {
+  static method ambiguousStaticMethod1 = self2::AmbiguousExtension1|ambiguousStaticMethod1;
+}
+extension AmbiguousExtension2 on core::String {
+  static method unambiguousStaticMethod1 = self2::AmbiguousExtension2|unambiguousStaticMethod1;
+}
+extension UnambiguousExtension1 on core::String {
+  static method ambiguousStaticMethod2 = self2::UnambiguousExtension1|ambiguousStaticMethod2;
+}
+static extension-member method AmbiguousExtension1|ambiguousStaticMethod1() → void
+  ;
+static extension-member method AmbiguousExtension2|unambiguousStaticMethod1() → void
+  ;
+static extension-member method UnambiguousExtension1|ambiguousStaticMethod2() → void
+  ;
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+extension AmbiguousExtension1 on core::String {
+  static method ambiguousStaticMethod1 = self3::AmbiguousExtension1|ambiguousStaticMethod1;
+}
+extension AmbiguousExtension2 on core::String {
+  static method unambiguousStaticMethod2 = self3::AmbiguousExtension2|unambiguousStaticMethod2;
+}
+extension UnambiguousExtension2 on core::String {
+  static method ambiguousStaticMethod2 = self3::UnambiguousExtension2|ambiguousStaticMethod2;
+}
+static extension-member method AmbiguousExtension1|ambiguousStaticMethod1() → void
+  ;
+static extension-member method AmbiguousExtension2|unambiguousStaticMethod2() → void
+  ;
+static extension-member method UnambiguousExtension2|ambiguousStaticMethod2() → void
+  ;

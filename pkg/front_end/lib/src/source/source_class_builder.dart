@@ -31,7 +31,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
@@ -246,9 +245,6 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   DeclarationNameSpace get nameSpace => _nameSpace;
-
-  // Coverage-ignore(suite): Not run.
-  List<MetadataBuilder>? get metadata => _introductory.metadata;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {

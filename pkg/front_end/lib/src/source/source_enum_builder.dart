@@ -586,10 +586,6 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<FormalParameterBuilder>? get formalsForTesting => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   FunctionNode get function => _procedure.function;
 
   @override
@@ -627,10 +623,6 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   @override
   // Coverage-ignore(suite): Not run.
   VariableDeclaration? get thisVariable => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParametersForTesting => null;
 }
 
 class _EnumValuesFieldDeclaration implements FieldDeclaration {

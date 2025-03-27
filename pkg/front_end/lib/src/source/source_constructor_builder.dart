@@ -23,7 +23,6 @@ import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
@@ -174,13 +173,6 @@ class SourceConstructorBuilderImpl extends SourceMemberBuilderImpl
   Builder get parent => declarationBuilder;
 
   bool get hasParameters => _introductory.formals != null;
-
-  // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
-      _introductory.typeParameters;
-
-  // Coverage-ignore(suite): Not run.
-  List<FormalParameterBuilder>? get formalsForTesting => _introductory.formals;
 
   @override
   // Coverage-ignore(suite): Not run.

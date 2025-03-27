@@ -690,6 +690,7 @@ redirections
 rediscover
 reducer
 reenable
+reexport
 referential
 refname
 refusing

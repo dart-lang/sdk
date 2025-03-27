@@ -1,0 +1,22 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///export_unnamed_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+extension NamedExtension on core::String {
+  static method staticMethod = self2::NamedExtension|staticMethod;
+}
+extension /* unnamed */ _extension#1 on core::String {
+  static method staticMethod = self2::_extension#1|staticMethod;
+}
+static extension-member method _extension#1|staticMethod() → void
+  ;
+static extension-member method NamedExtension|staticMethod() → void
+  ;

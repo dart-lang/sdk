@@ -32,8 +32,6 @@ abstract class MethodDeclaration {
 
   List<FormalParameterBuilder>? get formals;
 
-  List<FormalParameterBuilder>? get formalsForTesting;
-
   FunctionNode get function;
 
   Procedure get invokeTarget;
@@ -49,8 +47,6 @@ abstract class MethodDeclaration {
   List<TypeParameter>? get thisTypeParameters;
 
   VariableDeclaration? get thisVariable;
-
-  List<NominalParameterBuilder>? get typeParametersForTesting;
 
   void becomeNative(SourceLoader loader);
 
@@ -113,11 +109,6 @@ class MethodDeclarationImpl implements MethodDeclaration {
   List<FormalParameterBuilder>? get formals => _encoding.formals;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  List<FormalParameterBuilder>? get formalsForTesting =>
-      _encoding.formalsForTesting;
-
-  @override
   FunctionNode get function => _encoding.function;
 
   @override
@@ -141,11 +132,6 @@ class MethodDeclarationImpl implements MethodDeclaration {
 
   @override
   VariableDeclaration? get thisVariable => _encoding.thisVariable;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
-      _encoding.clonedAndDeclaredTypeParameters;
 
   @override
   void becomeNative(SourceLoader loader) {

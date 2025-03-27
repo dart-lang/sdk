@@ -1,0 +1,5 @@
+import 'export_twice2_lib1.dart';
+
+import 'export_twice2_lib2.dart';
+
+main() {}

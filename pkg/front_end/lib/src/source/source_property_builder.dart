@@ -13,10 +13,8 @@ import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/property_builder.dart';
-import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import '../fragment/getter/declaration.dart';
 import '../fragment/setter/declaration.dart';
@@ -424,24 +422,6 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   Iterable<MetadataBuilder>? get metadataForTesting =>
       _introductoryGetable?.metadata ?? _introductorySetable?.metadata;
-
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): Remove these (or reinterpret them). These are used
-  // for testing and macros by rely on old assumptions of the builder model.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
-      _introductoryGetable?.typeParametersForTesting ??
-      _introductorySetable?.typeParametersForTesting;
-
-  // Coverage-ignore(suite): Not run.
-  List<FormalParameterBuilder>? get formalsForTesting =>
-      _introductoryGetable?.formals ?? _introductorySetable?.formals;
-
-  // Coverage-ignore(suite): Not run.
-  TypeBuilder? get returnTypeForTesting =>
-      _introductoryGetable?.returnType ?? _introductorySetable?.returnType;
-
-  // Coverage-ignore(suite): Not run.
-  TypeBuilder? get typeForTesting => _introductoryField?.type;
 
   @override
   bool get isProperty => true;

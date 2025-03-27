@@ -33,8 +33,6 @@ abstract class FactoryDeclaration {
 
   FunctionNode get function;
 
-  List<SourceNominalParameterBuilder>? get typeParameters;
-
   TypeBuilder get returnType;
 
   void createNode({
@@ -120,7 +118,6 @@ abstract class FactoryDeclaration {
 
 class FactoryDeclarationImpl implements FactoryDeclaration {
   final FactoryFragment _fragment;
-  @override
   final List<SourceNominalParameterBuilder>? typeParameters;
   @override
   final TypeBuilder returnType;
