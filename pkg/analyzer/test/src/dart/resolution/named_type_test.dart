@@ -274,7 +274,7 @@ NamedType
         type: int
     rightBracket: >
   element: T@8
-  element2: <not-implemented>
+  element2: T@8
   type: T
 ''');
   }
@@ -743,7 +743,7 @@ NamedType
     name: T
     period: .
     element: T@7
-    element2: <not-implemented>
+    element2: T@7
   name: name
   typeArguments: TypeArgumentList
     leftBracket: <

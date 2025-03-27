@@ -2499,7 +2499,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: T
       staticElement: T@4
-      element: <not-implemented>
+      element: T@4
       staticType: Type
     period: .
     identifier: SimpleIdentifier
@@ -4246,7 +4246,7 @@ FunctionReference
           type: NamedType
             name: T
             element: T@89
-            element2: <not-implemented>
+            element2: T@89
             type: T
           declaredElement: @-1
             type: T
@@ -4481,7 +4481,7 @@ FunctionReference
         type: NamedType
           name: T
           element: T@37
-          element2: <not-implemented>
+          element2: T@37
           type: T
         name: a
         declaredElement: @36::@parameter::a

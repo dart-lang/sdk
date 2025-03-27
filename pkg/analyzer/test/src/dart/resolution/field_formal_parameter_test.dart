@@ -66,7 +66,7 @@ FieldFormalParameter
   type: NamedType
     name: U
     element: U@45
-    element2: <not-implemented>
+    element2: U@45
     type: U
   thisKeyword: this
   period: .
@@ -84,7 +84,7 @@ FieldFormalParameter
       type: NamedType
         name: U
         element: U@45
-        element2: <not-implemented>
+        element2: U@45
         type: U
       name: a
       declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::a
@@ -109,7 +109,7 @@ FieldFormalParameter
   type: NamedType
     name: T
     element: T@54
-    element2: <not-implemented>
+    element2: T@54
     type: T
   thisKeyword: this
   period: .
@@ -130,7 +130,7 @@ FieldFormalParameter
       type: NamedType
         name: U
         element: U@57
-        element2: <not-implemented>
+        element2: U@57
         type: U
       name: a
       declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::a
@@ -139,7 +139,7 @@ FieldFormalParameter
       type: NamedType
         name: V
         element: V@8
-        element2: <not-implemented>
+        element2: V@8
         type: V
       name: b
       declaredElement: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f::@parameter::b

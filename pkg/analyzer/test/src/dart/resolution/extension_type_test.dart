@@ -263,7 +263,7 @@ MethodDeclaration
       type: NamedType
         name: T
         element: T@17
-        element2: <not-implemented>
+        element2: T@17
         type: T
       name: t
       declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::t
@@ -272,7 +272,7 @@ MethodDeclaration
       type: NamedType
         name: U
         element: U@41
-        element2: <not-implemented>
+        element2: U@41
         type: U
       name: u
       declaredElement: <testLibraryFragment>::@extensionType::A::@method::foo::@parameter::u
@@ -286,14 +286,14 @@ MethodDeclaration
           expression: SimpleIdentifier
             token: T
             staticElement: T@17
-            element: <not-implemented>
+            element: T@17
             staticType: Type
           semicolon: ;
         ExpressionStatement
           expression: SimpleIdentifier
             token: U
             staticElement: U@41
-            element: <not-implemented>
+            element: U@41
             staticType: Type
           semicolon: ;
       rightBracket: }
@@ -333,12 +333,12 @@ ExtensionTypeDeclaration
           NamedType
             name: T
             element: T@17
-            element2: <not-implemented>
+            element2: T@17
             type: T
           NamedType
             name: U
             element: U@20
-            element2: <not-implemented>
+            element2: U@20
             type: U
         rightBracket: >
       element: dart:core::<fragment>::@class::Map

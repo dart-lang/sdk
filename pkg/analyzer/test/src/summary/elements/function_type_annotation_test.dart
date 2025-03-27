@@ -315,7 +315,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -369,7 +369,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -533,7 +533,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -646,7 +646,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -759,7 +759,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -872,7 +872,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -975,7 +975,7 @@ library
           element: <testLibrary>::@mixin::B
           typeParameters
             X @8
-              element: <not-implemented>
+              element: X@8
   mixins
     mixin B
       reference: <testLibrary>::@mixin::B
@@ -1006,7 +1006,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1080,7 +1080,7 @@ library
           element: <testLibrary>::@typeAlias::F2
           typeParameters
             V2 @46
-              element: <not-implemented>
+              element: V2@46
   typeAliases
     F1
       firstFragment: <testLibraryFragment>::@typeAlias::F1

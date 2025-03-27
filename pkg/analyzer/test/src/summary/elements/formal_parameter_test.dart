@@ -197,7 +197,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -215,7 +215,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @50
-              element: <not-implemented>
+              element: T@50
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -401,9 +401,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             A @8
-              element: <not-implemented>
+              element: A@8
             B @11
-              element: <not-implemented>
+              element: B@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new

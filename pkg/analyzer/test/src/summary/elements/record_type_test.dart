@@ -210,7 +210,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -372,7 +372,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @11
-              element: <not-implemented>
+              element: T@11
   functions
     f
       reference: <testLibrary>::@function::f

@@ -202,7 +202,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           fields
             hasInitializer int @14
               reference: <testLibraryFragment>::@enum::E::@field::int
@@ -448,7 +448,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           fields
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -1904,7 +1904,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           fields
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -2010,7 +2010,7 @@ library
                 type: NamedType
                   name: T @62
                   element: T@7
-                  element2: <not-implemented>
+                  element2: T@7
                   type: T
                 staticType: bool
               rightParenthesis: ) @63
@@ -2643,7 +2643,7 @@ library
           element: <testLibrary>::@class::I
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
@@ -2655,7 +2655,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             U @21
-              element: <not-implemented>
+              element: U@21
           fields
             hasInitializer v @44
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -2895,7 +2895,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           fields
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -2950,7 +2950,7 @@ library
               element: <testLibraryFragment>::@enum::E::@method::foo#element
               typeParameters
                 U @27
-                  element: <not-implemented>
+                  element: U@27
               formalParameters
                 t @32
                   element: <testLibraryFragment>::@enum::E::@method::foo::@parameter::t#element
@@ -3501,13 +3501,13 @@ library
           element: <testLibrary>::@mixin::M1
           typeParameters
             T @9
-              element: <not-implemented>
+              element: T@9
         mixin M2 @21
           reference: <testLibraryFragment>::@mixin::M2
           element: <testLibrary>::@mixin::M2
           typeParameters
             T @24
-              element: <not-implemented>
+              element: T@24
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -3690,7 +3690,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           fields
             hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -3790,9 +3790,9 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @22
-              element: <not-implemented>
+              element: U@22
           fields
             hasInitializer v @39
               reference: <testLibraryFragment>::@enum::E::@field::v
@@ -3893,7 +3893,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -3954,11 +3954,11 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @20
-              element: <not-implemented>
+              element: U@20
             V @35
-              element: <not-implemented>
+              element: V@35
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -4023,7 +4023,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -4084,7 +4084,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -4144,7 +4144,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @11
-              element: <not-implemented>
+              element: T@11
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -4204,7 +4204,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @13
-              element: <not-implemented>
+              element: T@13
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -4264,11 +4264,11 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @13
-              element: <not-implemented>
+              element: T@13
             U @19
-              element: <not-implemented>
+              element: U@19
             V @26
-              element: <not-implemented>
+              element: V@26
           fields
             synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
@@ -6041,7 +6041,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @33
-              element: <not-implemented>
+              element: T@33
               metadata
                 Annotation
                   atSign: @ @28
@@ -6234,7 +6234,7 @@ library
           element: <testLibrary>::@enum::E
           typeParameters
             T @24
-              element: <not-implemented>
+              element: T@24
               metadata
                 Annotation
                   atSign: @ @21

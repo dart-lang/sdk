@@ -321,7 +321,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @34
-              element: <not-implemented>
+              element: T@34
               metadata
                 Annotation
                   atSign: @ @29
@@ -682,7 +682,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
@@ -743,7 +743,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
@@ -798,7 +798,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
@@ -990,7 +990,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @52
-              element: <not-implemented>
+              element: T@52
           constructors
             synthetic const named
               reference: <testLibraryFragment>::@class::C::@constructor::named
@@ -1131,7 +1131,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1191,7 +1191,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1374,7 +1374,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @46
-              element: <not-implemented>
+              element: T@46
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3261,7 +3261,7 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @34
-              element: <not-implemented>
+              element: T@34
               metadata
                 Annotation
                   atSign: @ @29
@@ -3460,7 +3460,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @34
-              element: <not-implemented>
+              element: T@34
               metadata
                 Annotation
                   atSign: @ @29
@@ -3765,7 +3765,7 @@ library
                   element2: <testLibraryFragment>::@getter::foo#element
               typeParameters
                 T @52
-                  element: <not-implemented>
+                  element: T@52
                   metadata
                     Annotation
                       atSign: @ @47
@@ -4014,7 +4014,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @57
-              element: <not-implemented>
+              element: T@57
               metadata
                 Annotation
                   atSign: @ @52
@@ -4317,7 +4317,7 @@ library
           element: <testLibrary>::@extension::E
           typeParameters
             T @38
-              element: <not-implemented>
+              element: T@38
               metadata
                 Annotation
                   atSign: @ @33
@@ -4588,7 +4588,7 @@ library
           element: <testLibrary>::@mixin::A
           typeParameters
             T @34
-              element: <not-implemented>
+              element: T@34
               metadata
                 Annotation
                   atSign: @ @29
@@ -4674,7 +4674,7 @@ library
               element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T @41
-              element: <not-implemented>
+              element: T@41
               metadata
                 Annotation
                   atSign: @ @36
@@ -4768,7 +4768,7 @@ library
               element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T @36
-              element: <not-implemented>
+              element: T@36
               metadata
                 Annotation
                   atSign: @ @31
@@ -4940,7 +4940,7 @@ library
               element2: <testLibraryFragment>::@getter::foo#element
           typeParameters
             T @33
-              element: <not-implemented>
+              element: T@33
               metadata
                 Annotation
                   atSign: @ @28
@@ -6100,7 +6100,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @27
-              element: <not-implemented>
+              element: T@27
               metadata
                 Annotation
                   atSign: @ @24
@@ -6181,7 +6181,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @27
-              element: <not-implemented>
+              element: T@27
               metadata
                 Annotation
                   atSign: @ @24
@@ -6311,7 +6311,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @21
-              element: <not-implemented>
+              element: T@21
               metadata
                 Annotation
                   atSign: @ @18
@@ -6368,7 +6368,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @29
-              element: <not-implemented>
+              element: T@29
               metadata
                 Annotation
                   atSign: @ @26

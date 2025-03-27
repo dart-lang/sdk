@@ -91,8 +91,7 @@ class ElementPrinter {
       case TopLevelVariableElementImpl2 element:
         writelnReference(element.reference);
       case TypeParameterElementImpl2():
-        // TODO(scheglov): update when implemented
-        _sink.writeln('<not-implemented>');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case ConstructorElement2 element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;

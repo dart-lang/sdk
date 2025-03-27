@@ -202,7 +202,7 @@ ConstructorDeclaration
           NamedType
             name: U
             element: U@53
-            element2: <not-implemented>
+            element2: U@53
             type: U
         rightBracket: >
       element: <testLibraryFragment>::@class::A
@@ -350,7 +350,7 @@ ConstructorDeclaration
           NamedType
             name: U
             element: U@47
-            element2: <not-implemented>
+            element2: U@47
             type: U
         rightBracket: >
       element: <testLibraryFragment>::@class::A

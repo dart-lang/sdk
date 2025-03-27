@@ -1692,7 +1692,7 @@ CommentReference
   expression: SimpleIdentifier
     token: T
     staticElement: T@47
-    element: <not-implemented>
+    element: T@47
     staticType: null
 ''');
 
@@ -1701,7 +1701,7 @@ CommentReference
   expression: SimpleIdentifier
     token: S
     staticElement: S@61
-    element: <not-implemented>
+    element: S@61
     staticType: null
 ''');
 

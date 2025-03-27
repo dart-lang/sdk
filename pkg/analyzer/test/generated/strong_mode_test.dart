@@ -3352,7 +3352,7 @@ FunctionDeclaration
   returnType: NamedType
     name: T
     element: T@4
-    element2: <not-implemented>
+    element2: T@4
     type: T
   name: f
   functionExpression: FunctionExpression
@@ -3369,7 +3369,7 @@ FunctionDeclaration
         type: NamedType
           name: T
           element: T@4
-          element2: <not-implemented>
+          element2: T@4
           type: T
         name: x
         declaredElement: <testLibraryFragment>::@function::f::@parameter::x
@@ -3400,7 +3400,7 @@ FunctionDeclaration
   returnType: NamedType
     name: T
     element: T@4
-    element2: <not-implemented>
+    element2: T@4
     type: T
   name: f
   functionExpression: FunctionExpression
@@ -3423,7 +3423,7 @@ FunctionDeclaration
         type: NamedType
           name: T
           element: T@4
-          element2: <not-implemented>
+          element2: T@4
           type: T
         name: x
         declaredElement: <testLibraryFragment>::@function::f::@parameter::x
@@ -3469,7 +3469,7 @@ MethodDeclaration
   returnType: NamedType
     name: T
     element: T@26
-    element2: <not-implemented>
+    element2: T@26
     type: T
   name: f
   typeParameters: TypeParameterList
@@ -3485,7 +3485,7 @@ MethodDeclaration
       type: NamedType
         name: T
         element: T@26
-        element2: <not-implemented>
+        element2: T@26
         type: T
       name: x
       declaredElement: <testLibraryFragment>::@class::C::@method::f::@parameter::x
@@ -4117,7 +4117,7 @@ MethodInvocation
             NamedType
               name: S
               element: S@19
-              element2: <not-implemented>
+              element2: S@19
               type: S
           rightBracket: >
         element: <testLibraryFragment>::@class::C
@@ -4193,7 +4193,7 @@ MethodInvocation
             NamedType
               name: S
               element: S@19
-              element2: <not-implemented>
+              element2: S@19
               type: S
           rightBracket: >
         element: <testLibraryFragment>::@class::C
@@ -4286,7 +4286,7 @@ MethodDeclaration
   returnType: NamedType
     name: T
     element: T@61
-    element2: <not-implemented>
+    element2: T@61
     type: T
   name: f
   typeParameters: TypeParameterList
@@ -4302,7 +4302,7 @@ MethodDeclaration
       type: NamedType
         name: T
         element: T@61
-        element2: <not-implemented>
+        element2: T@61
         type: T
       name: y
       declaredElement: <testLibraryFragment>::@class::D::@method::f::@parameter::y

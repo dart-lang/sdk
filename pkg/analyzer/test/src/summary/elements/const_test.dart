@@ -372,7 +372,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             t @23
               reference: <testLibraryFragment>::@class::C::@field::t
@@ -693,7 +693,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           formalParameters
             a @12
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -767,7 +767,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           formalParameters
             a @12
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -929,7 +929,7 @@ library
           element: <testLibrary>::@class::P
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::P::@constructor::new
@@ -941,7 +941,7 @@ library
           element: <testLibrary>::@class::P1
           typeParameters
             T @38
-              element: <not-implemented>
+              element: T@38
           constructors
             const new
               reference: <testLibraryFragment>::@class::P1::@constructor::new
@@ -953,7 +953,7 @@ library
           element: <testLibrary>::@class::P2
           typeParameters
             T @82
-              element: <not-implemented>
+              element: T@82
           constructors
             const new
               reference: <testLibraryFragment>::@class::P2::@constructor::new
@@ -1877,9 +1877,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             const named @26
               reference: <testLibraryFragment>::@class::C::@constructor::named
@@ -2177,9 +2177,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2257,7 +2257,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             t @23
               reference: <testLibraryFragment>::@class::A::@field::t
@@ -2360,9 +2360,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -3195,7 +3195,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -4896,7 +4896,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @4
-              element: <not-implemented>
+              element: T@4
           formalParameters
             a @9
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -6414,9 +6414,9 @@ library
           element: <testLibrary>::@function::foo
           typeParameters
             P @6
-              element: <not-implemented>
+              element: P@6
             R @9
-              element: <not-implemented>
+              element: R@9
           formalParameters
             p @14
               element: <testLibraryFragment>::@function::foo::@parameter::p#element
@@ -6779,7 +6779,7 @@ library
           element: <testLibrary>::@class::D
           typeParameters
             T @19
-              element: <not-implemented>
+              element: T@19
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -7424,7 +7424,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             hasInitializer f @21
               reference: <testLibraryFragment>::@class::C::@field::f

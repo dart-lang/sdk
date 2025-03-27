@@ -1248,7 +1248,7 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1683,7 +1683,7 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           fields
             it @34
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2056,7 +2056,7 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2243,9 +2243,9 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
             U @32
-              element: <not-implemented>
+              element: U@32
           fields
             it @45
               reference: <testLibraryFragment>::@extensionType::A::@field::it

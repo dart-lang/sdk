@@ -2204,7 +2204,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new

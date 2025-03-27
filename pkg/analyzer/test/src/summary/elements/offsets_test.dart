@@ -2679,7 +2679,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -2691,7 +2691,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             U @21
-              element: <not-implemented>
+              element: U@21
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -2929,7 +2929,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
               typeParameters
                 T @21
-                  element: <not-implemented>
+                  element: T@21
               formalParameters
                 a @28
                   element: <testLibraryFragment>::@class::A::@method::foo::@parameter::a#element
@@ -3021,7 +3021,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -3055,7 +3055,7 @@ library
           element: <testLibrary>::@extension::E
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -3145,7 +3145,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
   functions
     f
       reference: <testLibrary>::@function::f
@@ -3172,7 +3172,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
-              element: <not-implemented>
+              element: T@15
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3198,7 +3198,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -3224,7 +3224,7 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M

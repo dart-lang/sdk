@@ -293,9 +293,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -307,9 +307,9 @@ library
               element: <testLibraryFragment>::@class::C::@method::m#element
               typeParameters
                 V @32
-                  element: <not-implemented>
+                  element: V@32
                 W @35
-                  element: <not-implemented>
+                  element: W@35
               formalParameters
                 v @40
                   element: <testLibraryFragment>::@class::C::@method::m::@parameter::v#element
@@ -908,9 +908,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             S @8
-              element: <not-implemented>
+              element: S@8
             T @23
-              element: <not-implemented>
+              element: T@23
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -985,7 +985,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1127,9 +1127,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @27
-              element: <not-implemented>
+              element: U@27
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1248,7 +1248,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
       topLevelVariables
         f @33
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -1316,7 +1316,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -1327,9 +1327,9 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @22
-              element: <not-implemented>
+              element: T@22
             U @48
-              element: <not-implemented>
+              element: U@48
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -1408,7 +1408,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
       topLevelVariables
         f @49
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -1477,7 +1477,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             R @8
-              element: <not-implemented>
+              element: R@8
           fields
             hasInitializer values @31
               reference: <testLibraryFragment>::@class::A::@field::values
@@ -1497,7 +1497,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @57
-              element: <not-implemented>
+              element: T@57
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -1550,7 +1550,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2030,9 +2030,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2044,9 +2044,9 @@ library
               element: <testLibraryFragment>::@class::C::@method::g#element
               typeParameters
                 V @25
-                  element: <not-implemented>
+                  element: V@25
                 W @28
-                  element: <not-implemented>
+                  element: W@28
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2093,9 +2093,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2107,9 +2107,9 @@ library
               element: <testLibraryFragment>::@class::C::@method::g#element
               typeParameters
                 V @25
-                  element: <not-implemented>
+                  element: V@25
                 W @28
-                  element: <not-implemented>
+                  element: W@28
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2150,9 +2150,9 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @10
-              element: <not-implemented>
+              element: U@10
   functions
     f
       reference: <testLibrary>::@function::f
@@ -2191,9 +2191,9 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @10
-              element: <not-implemented>
+              element: U@10
   functions
     f
       reference: <testLibrary>::@function::f
@@ -2289,9 +2289,9 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @10
-              element: <not-implemented>
+              element: U@10
           formalParameters
             b @18
               element: <testLibraryFragment>::@function::f::@parameter::b#element
@@ -2328,9 +2328,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           fields
             hasInitializer v @22
               reference: <testLibraryFragment>::@class::C::@field::v
@@ -2408,9 +2408,9 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @10
-              element: <not-implemented>
+              element: U@10
           formalParameters
             b @18
               element: <testLibraryFragment>::@function::f::@parameter::b#element

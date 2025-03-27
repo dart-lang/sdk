@@ -428,10 +428,10 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: T@7
-  readElement2: <not-implemented>
+  readElement2: T@7
   readType: InvalidType
   writeElement: T@7
-  writeElement2: <not-implemented>
+  writeElement2: T@7
   writeType: InvalidType
   staticElement: <null>
   element: <null>

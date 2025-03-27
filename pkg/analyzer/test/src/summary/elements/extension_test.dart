@@ -105,7 +105,7 @@ library
           element: <testLibrary>::@extension::E
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -132,7 +132,7 @@ library
           element: <testLibrary>::@extension::E
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -165,7 +165,7 @@ library
           element: <testLibrary>::@extension::E
           typeParameters
             T @38
-              element: <not-implemented>
+              element: T@38
               metadata
                 Annotation
                   atSign: @ @33

@@ -242,7 +242,7 @@ enum E<T> {
 SimpleIdentifier
   token: T
   staticElement: T@7
-  element: <not-implemented>
+  element: T@7
   staticType: Type
 ''');
   }

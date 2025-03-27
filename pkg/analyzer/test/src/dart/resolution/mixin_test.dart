@@ -87,7 +87,7 @@ FieldDeclaration
     type: NamedType
       name: T
       element: T@8
-      element2: <not-implemented>
+      element2: T@8
       type: T
     variables
       VariableDeclaration

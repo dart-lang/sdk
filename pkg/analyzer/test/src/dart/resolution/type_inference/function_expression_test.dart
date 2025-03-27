@@ -546,7 +546,7 @@ FunctionExpression
       type: NamedType
         name: T
         element: T@24
-        element2: <not-implemented>
+        element2: T@24
         type: T
       name: a
       declaredElement: @23::@parameter::a
@@ -561,7 +561,7 @@ FunctionExpression
           NamedType
             name: T
             element: T@24
-            element2: <not-implemented>
+            element2: T@24
             type: T
         rightBracket: >
       leftBracket: [

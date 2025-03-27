@@ -26,7 +26,7 @@ FunctionTypedFormalParameter
   returnType: NamedType
     name: T
     element: T@14
-    element2: <not-implemented>
+    element2: T@14
     type: T
   name: p
   parameters: FormalParameterList
@@ -35,7 +35,7 @@ FunctionTypedFormalParameter
       type: NamedType
         name: U
         element: U@17
-        element2: <not-implemented>
+        element2: U@17
         type: U
       name: a
       declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::a
@@ -44,7 +44,7 @@ FunctionTypedFormalParameter
       type: NamedType
         name: V
         element: V@7
-        element2: <not-implemented>
+        element2: V@7
         type: V
       name: b
       declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::b

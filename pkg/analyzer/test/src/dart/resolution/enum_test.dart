@@ -372,7 +372,7 @@ MethodDeclaration
   returnType: NamedType
     name: T
     element: T@7
-    element2: <not-implemented>
+    element2: T@7
     type: T
   propertyKeyword: get
   name: foo
@@ -466,7 +466,7 @@ MethodDeclaration
       type: NamedType
         name: T
         element: T@7
-        element2: <not-implemented>
+        element2: T@7
         type: T
       name: t
       declaredElement: <testLibraryFragment>::@enum::E::@method::foo::@parameter::t
@@ -475,7 +475,7 @@ MethodDeclaration
       type: NamedType
         name: U
         element: U@27
-        element2: <not-implemented>
+        element2: U@27
         type: U
       name: u
       declaredElement: <testLibraryFragment>::@enum::E::@method::foo::@parameter::u
@@ -598,7 +598,7 @@ MethodDeclaration
       type: NamedType
         name: T
         element: T@7
-        element2: <not-implemented>
+        element2: T@7
         type: T
       name: a
       declaredElement: <testLibraryFragment>::@enum::E::@setter::foo::@parameter::a

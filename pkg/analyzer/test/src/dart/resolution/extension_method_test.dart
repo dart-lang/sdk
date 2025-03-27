@@ -436,7 +436,7 @@ NamedType
       NamedType
         name: S
         element: S@26
-        element2: <not-implemented>
+        element2: S@26
         type: S
     rightBracket: >
   element: <testLibraryFragment>::@class::C
@@ -555,7 +555,7 @@ NamedType
       NamedType
         name: S
         element: S@24
-        element2: <not-implemented>
+        element2: S@24
         type: S
     rightBracket: >
   element: <testLibraryFragment>::@class::C

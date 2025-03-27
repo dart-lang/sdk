@@ -77,7 +77,7 @@ SuperFormalParameter
   type: NamedType
     name: T
     element: T@62
-    element2: <not-implemented>
+    element2: T@62
     type: T
   superKeyword: super
   period: .

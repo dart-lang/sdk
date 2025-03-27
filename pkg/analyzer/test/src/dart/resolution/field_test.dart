@@ -289,7 +289,7 @@ FieldDeclaration
               NamedType
                 name: T
                 element: T@8
-                element2: <not-implemented>
+                element2: T@8
                 type: T
             rightBracket: >
           leftBracket: [
