@@ -1748,12 +1748,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
   }
 
   @override
-  HInstruction visitBoolConversion(HBoolConversion node) {
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
-    return node;
-  }
-
-  @override
   HInstruction visitNullCheck(HNullCheck node) {
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
     return node;

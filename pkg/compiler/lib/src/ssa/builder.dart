@@ -716,16 +716,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     return _elementMap.getDartType(type);
   }
 
-  /// Pops the most recent instruction from the stack and ensures that it is a
-  /// non-null bool.
-  HInstruction popBoolified() {
-    HInstruction value = pop();
-    return _typeBuilder.potentiallyCheckOrTrustTypeOfCondition(
-      _currentFrame!.member,
-      value,
-    );
-  }
-
   /// Extend current method parameters with parameters for the class type
   /// parameters.  If the class has type parameters but does not need them, bind
   /// to `dynamic` (represented as `null`) so the bindings are available for
@@ -2633,7 +2623,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         return graph.addConstantBool(true, closedWorld);
       }
       node.condition!.accept(this);
-      return popBoolified();
+      return pop();
     }
 
     void buildUpdate() {
@@ -2895,7 +2885,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         const <DartType>[],
         _sourceInformationBuilder.buildForInMoveNext(node),
       );
-      return popBoolified();
+      return pop();
     }
 
     void buildBody() {
@@ -2991,7 +2981,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       );
       HInstruction future = pop();
       push(HAwait(future, _abstractValueDomain.dynamicType));
-      return popBoolified();
+      return pop();
     }
 
     void buildBody() {
@@ -3089,7 +3079,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     assert(_isReachable);
     HInstruction buildCondition() {
       node.condition.accept(this);
-      return popBoolified();
+      return pop();
     }
 
     _loopHandler.handleLoop(
@@ -3192,7 +3182,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
       node.condition.accept(this);
       assert(!isAborted());
-      HInstruction conditionInstruction = popBoolified();
+      HInstruction conditionInstruction = pop();
       HBasicBlock conditionEndBlock = close(HLoopBranch(conditionInstruction));
 
       HBasicBlock avoidCriticalEdge = addNewBlock();
@@ -7839,7 +7829,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void visitNot(ir.Not node) {
     node.operand.accept(this);
     push(
-      HNot(popBoolified(), _abstractValueDomain.boolType)
+      HNot(pop(), _abstractValueDomain.boolType)
         ..sourceInformation = _sourceInformationBuilder.buildUnary(node),
     );
   }

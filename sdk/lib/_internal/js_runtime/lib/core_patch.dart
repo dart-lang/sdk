@@ -9,7 +9,6 @@ import 'dart:_interceptors';
 import 'dart:_js_helper'
     show
         assertUnreachable,
-        boolConversionCheck,
         checkInt,
         Closure,
         ConstantMap,
@@ -361,15 +360,8 @@ class List<E> {
   }
 
   @patch
-  factory List.of(Iterable<E> elements, {bool growable = true}) {
-    if (growable == true) return List._of(elements);
-    if (growable == false) return List._fixedOf(elements);
-
-    // [growable] may be `null` in legacy mode. Fail with the same error as if
-    // [growable] was used in a condition position in spec mode.
-    boolConversionCheck(growable);
-    assertUnreachable();
-  }
+  factory List.of(Iterable<E> elements, {bool growable = true}) =>
+      growable ? List._of(elements) : List._fixedOf(elements);
 
   factory List._ofArray(Iterable<E> elements) {
     return JSArray<E>.markGrowable(

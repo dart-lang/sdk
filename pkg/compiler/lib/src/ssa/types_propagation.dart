@@ -553,14 +553,6 @@ class SsaTypePropagator extends HBaseVisitor<AbstractValue>
   }
 
   @override
-  AbstractValue visitBoolConversion(HBoolConversion node) {
-    return abstractValueDomain.intersection(
-      abstractValueDomain.boolType,
-      node.checkedInput.instructionType,
-    );
-  }
-
-  @override
   AbstractValue visitArrayFlagsCheck(HArrayFlagsCheck node) {
     node.array.replaceAllUsersDominatedBy(node.next!, node);
     AbstractValue inputType = node.array.instructionType;

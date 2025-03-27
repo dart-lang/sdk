@@ -3097,15 +3097,6 @@ class JSName {
   const JSName(this.name);
 }
 
-/// The following methods are called by the runtime to implement checked mode
-/// and casts. We specialize each primitive type (eg int, bool), and use the
-/// compiler's convention to do is-checks on regular objects.
-bool boolConversionCheck(value) {
-  // The value from kernel should always be true, false, or null.
-  if (value == null) assertThrow('boolean expression must not be null');
-  return JS('bool', '#', value);
-}
-
 @pragma('dart2js:noInline')
 void checkDeferredIsLoaded(String loadId) {
   if (!_loadedLibraries.contains(loadId)) {

@@ -857,9 +857,6 @@ abstract class CommonElements {
   FunctionEntity get loadDeferredLibrary =>
       _findHelperFunction("loadDeferredLibrary");
 
-  FunctionEntity get boolConversionCheck =>
-      _findHelperFunction('boolConversionCheck');
-
   FunctionEntity get traceHelper => _findHelperFunction('traceHelper');
 
   FunctionEntity get closureFromTearOff =>

@@ -113,7 +113,6 @@ abstract class HVisitor<R> {
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitPrimitiveCheck(HPrimitiveCheck node);
-  R visitBoolConversion(HBoolConversion node);
   R visitNullCheck(HNullCheck node);
   R visitLateReadCheck(HLateReadCheck node);
   R visitLateWriteOnceCheck(HLateWriteOnceCheck node);
@@ -631,8 +630,6 @@ class HBaseVisitor<R> extends HGraphVisitor implements HVisitor<R> {
   @override
   R visitLateValue(HLateValue node) => visitInstruction(node);
   @override
-  R visitBoolConversion(HBoolConversion node) => visitCheck(node);
-  @override
   R visitNullCheck(HNullCheck node) => visitCheck(node);
   R visitLateCheck(HLateCheck node) => visitCheck(node);
   @override
@@ -1121,7 +1118,6 @@ enum _GvnType {
   remainder,
   getLength,
   abs,
-  boolConversion,
   nullCheck,
   primitiveCheck,
   isTest,
@@ -3858,44 +3854,6 @@ class HPrimitiveCheck extends HCheck {
   String toString() =>
       'HPrimitiveCheck(checkedType=$checkedType, kind=$kind, '
       'checkedInput=$checkedInput)';
-}
-
-/// A check that the input to a condition (if, ?:, while, etc) is non-null. The
-/// front-end generates 'as bool' checks, but until the transition to null
-/// safety is complete, this allows `null` to be passed to the condition.
-///
-// TODO(sra): Once NNDB is far enough along that the front-end can generate `as
-// bool!` checks and the backend checks them correctly, this instruction will
-// become unnecessary and should be removed.
-class HBoolConversion extends HCheck {
-  HBoolConversion(super.input, super.type) : super._oneInput();
-
-  @override
-  bool isJsStatement() => false;
-
-  @override
-  bool isCodeMotionInvariant() => false;
-
-  @override
-  R accept<R>(HVisitor<R> visitor) => visitor.visitBoolConversion(this);
-
-  @override
-  _GvnType get _gvnType => _GvnType.boolConversion;
-  @override
-  bool typeEquals(HInstruction other) => other is HBoolConversion;
-  @override
-  bool dataEquals(HBoolConversion other) => true;
-
-  bool isRedundant(JClosedWorld closedWorld) {
-    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain
-        .isIn(inputType, instructionType)
-        .isDefinitelyTrue;
-  }
-
-  @override
-  String toString() => 'HBoolConversion($checkedInput)';
 }
 
 /// A check that the input is not null. This corresponds to the postfix
