@@ -21,7 +21,9 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import '../profiling/profile_common.pb.dart' as $2;
+import '../profiling/profile_common.pb.dart' as $3;
+import '../track_event/debug_annotation.pb.dart' as $1;
+import '../track_event/track_event.pb.dart' as $2;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
@@ -36,13 +38,26 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 ///  Next id: 29.
 class InternedData extends $pb.GeneratedMessage {
   factory InternedData({
-    $core.Iterable<$2.InternedString>? functionNames,
-    $core.Iterable<$2.Frame>? frames,
-    $core.Iterable<$2.Callstack>? callstacks,
-    $core.Iterable<$2.InternedString>? mappingPaths,
-    $core.Iterable<$2.Mapping>? mappings,
+    $core.Iterable<$2.EventCategory>? eventCategories,
+    $core.Iterable<$2.EventName>? eventNames,
+    $core.Iterable<$1.DebugAnnotationName>? debugAnnotationNames,
+    $core.Iterable<$3.InternedString>? functionNames,
+    $core.Iterable<$3.Frame>? frames,
+    $core.Iterable<$3.Callstack>? callstacks,
+    $core.Iterable<$3.InternedString>? mappingPaths,
+    $core.Iterable<$3.Mapping>? mappings,
+    $core.Iterable<$3.InternedString>? debugAnnotationStringValues,
   }) {
     final $result = create();
+    if (eventCategories != null) {
+      $result.eventCategories.addAll(eventCategories);
+    }
+    if (eventNames != null) {
+      $result.eventNames.addAll(eventNames);
+    }
+    if (debugAnnotationNames != null) {
+      $result.debugAnnotationNames.addAll(debugAnnotationNames);
+    }
     if (functionNames != null) {
       $result.functionNames.addAll(functionNames);
     }
@@ -57,6 +72,9 @@ class InternedData extends $pb.GeneratedMessage {
     }
     if (mappings != null) {
       $result.mappings.addAll(mappings);
+    }
+    if (debugAnnotationStringValues != null) {
+      $result.debugAnnotationStringValues.addAll(debugAnnotationStringValues);
     }
     return $result;
   }
@@ -73,19 +91,33 @@ class InternedData extends $pb.GeneratedMessage {
       package:
           const $pb.PackageName(_omitMessageNames ? '' : 'perfetto.protos'),
       createEmptyInstance: create)
-    ..pc<$2.InternedString>(
+    ..pc<$2.EventCategory>(
+        1, _omitFieldNames ? '' : 'eventCategories', $pb.PbFieldType.PM,
+        subBuilder: $2.EventCategory.create)
+    ..pc<$2.EventName>(
+        2, _omitFieldNames ? '' : 'eventNames', $pb.PbFieldType.PM,
+        subBuilder: $2.EventName.create)
+    ..pc<$1.DebugAnnotationName>(
+        3, _omitFieldNames ? '' : 'debugAnnotationNames', $pb.PbFieldType.PM,
+        subBuilder: $1.DebugAnnotationName.create)
+    ..pc<$3.InternedString>(
         5, _omitFieldNames ? '' : 'functionNames', $pb.PbFieldType.PM,
-        subBuilder: $2.InternedString.create)
-    ..pc<$2.Frame>(6, _omitFieldNames ? '' : 'frames', $pb.PbFieldType.PM,
-        subBuilder: $2.Frame.create)
-    ..pc<$2.Callstack>(
+        subBuilder: $3.InternedString.create)
+    ..pc<$3.Frame>(6, _omitFieldNames ? '' : 'frames', $pb.PbFieldType.PM,
+        subBuilder: $3.Frame.create)
+    ..pc<$3.Callstack>(
         7, _omitFieldNames ? '' : 'callstacks', $pb.PbFieldType.PM,
-        subBuilder: $2.Callstack.create)
-    ..pc<$2.InternedString>(
+        subBuilder: $3.Callstack.create)
+    ..pc<$3.InternedString>(
         17, _omitFieldNames ? '' : 'mappingPaths', $pb.PbFieldType.PM,
-        subBuilder: $2.InternedString.create)
-    ..pc<$2.Mapping>(19, _omitFieldNames ? '' : 'mappings', $pb.PbFieldType.PM,
-        subBuilder: $2.Mapping.create)
+        subBuilder: $3.InternedString.create)
+    ..pc<$3.Mapping>(19, _omitFieldNames ? '' : 'mappings', $pb.PbFieldType.PM,
+        subBuilder: $3.Mapping.create)
+    ..pc<$3.InternedString>(
+        29,
+        _omitFieldNames ? '' : 'debugAnnotationStringValues',
+        $pb.PbFieldType.PM,
+        subBuilder: $3.InternedString.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -111,25 +143,38 @@ class InternedData extends $pb.GeneratedMessage {
       $pb.GeneratedMessage.$_defaultFor<InternedData>(create);
   static InternedData? _defaultInstance;
 
+  @$pb.TagNumber(1)
+  $pb.PbList<$2.EventCategory> get eventCategories => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$2.EventName> get eventNames => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $pb.PbList<$1.DebugAnnotationName> get debugAnnotationNames => $_getList(2);
+
   /// Names of functions used in frames below.
   @$pb.TagNumber(5)
-  $pb.PbList<$2.InternedString> get functionNames => $_getList(0);
+  $pb.PbList<$3.InternedString> get functionNames => $_getList(3);
 
   /// Frames of callstacks of a program.
   @$pb.TagNumber(6)
-  $pb.PbList<$2.Frame> get frames => $_getList(1);
+  $pb.PbList<$3.Frame> get frames => $_getList(4);
 
   /// A callstack of a program.
   @$pb.TagNumber(7)
-  $pb.PbList<$2.Callstack> get callstacks => $_getList(2);
+  $pb.PbList<$3.Callstack> get callstacks => $_getList(5);
 
   /// Paths to executable files.
   @$pb.TagNumber(17)
-  $pb.PbList<$2.InternedString> get mappingPaths => $_getList(3);
+  $pb.PbList<$3.InternedString> get mappingPaths => $_getList(6);
 
   /// Executable files mapped into processes.
   @$pb.TagNumber(19)
-  $pb.PbList<$2.Mapping> get mappings => $_getList(4);
+  $pb.PbList<$3.Mapping> get mappings => $_getList(7);
+
+  /// Interned string values in the DebugAnnotation proto.
+  @$pb.TagNumber(29)
+  $pb.PbList<$3.InternedString> get debugAnnotationStringValues => $_getList(8);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

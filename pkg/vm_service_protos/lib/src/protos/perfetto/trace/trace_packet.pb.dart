@@ -22,11 +22,11 @@ import 'dart:core' as $core;
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'clock_snapshot.pb.dart' as $5;
+import 'clock_snapshot.pb.dart' as $6;
 import 'interned_data/interned_data.pb.dart' as $7;
 import 'profiling/profile_packet.pb.dart' as $9;
 import 'track_event/track_descriptor.pb.dart' as $8;
-import 'track_event/track_event.pb.dart' as $6;
+import 'track_event/track_event.pb.dart' as $2;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
@@ -68,10 +68,10 @@ enum TracePacket_OptionalTrustedPacketSequenceId {
 ///  Next id: 88.
 class TracePacket extends $pb.GeneratedMessage {
   factory TracePacket({
-    $5.ClockSnapshot? clockSnapshot,
+    $6.ClockSnapshot? clockSnapshot,
     $fixnum.Int64? timestamp,
     $core.int? trustedPacketSequenceId,
-    $6.TrackEvent? trackEvent,
+    $2.TrackEvent? trackEvent,
     $7.InternedData? internedData,
     $core.int? sequenceFlags,
     $core.int? timestampClockId,
@@ -135,15 +135,15 @@ class TracePacket extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..oo(0, [6, 11, 60, 66])
     ..oo(1, [10])
-    ..aOM<$5.ClockSnapshot>(6, _omitFieldNames ? '' : 'clockSnapshot',
-        subBuilder: $5.ClockSnapshot.create)
+    ..aOM<$6.ClockSnapshot>(6, _omitFieldNames ? '' : 'clockSnapshot',
+        subBuilder: $6.ClockSnapshot.create)
     ..a<$fixnum.Int64>(
         8, _omitFieldNames ? '' : 'timestamp', $pb.PbFieldType.OU6,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.int>(10, _omitFieldNames ? '' : 'trustedPacketSequenceId',
         $pb.PbFieldType.OU3)
-    ..aOM<$6.TrackEvent>(11, _omitFieldNames ? '' : 'trackEvent',
-        subBuilder: $6.TrackEvent.create)
+    ..aOM<$2.TrackEvent>(11, _omitFieldNames ? '' : 'trackEvent',
+        subBuilder: $2.TrackEvent.create)
     ..aOM<$7.InternedData>(12, _omitFieldNames ? '' : 'internedData',
         subBuilder: $7.InternedData.create)
     ..a<$core.int>(
@@ -187,9 +187,9 @@ class TracePacket extends $pb.GeneratedMessage {
   void clearOptionalTrustedPacketSequenceId() => $_clearField($_whichOneof(1));
 
   @$pb.TagNumber(6)
-  $5.ClockSnapshot get clockSnapshot => $_getN(0);
+  $6.ClockSnapshot get clockSnapshot => $_getN(0);
   @$pb.TagNumber(6)
-  set clockSnapshot($5.ClockSnapshot v) {
+  set clockSnapshot($6.ClockSnapshot v) {
     $_setField(6, v);
   }
 
@@ -198,7 +198,7 @@ class TracePacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   void clearClockSnapshot() => $_clearField(6);
   @$pb.TagNumber(6)
-  $5.ClockSnapshot ensureClockSnapshot() => $_ensure(0);
+  $6.ClockSnapshot ensureClockSnapshot() => $_ensure(0);
 
   /// The timestamp of the TracePacket.
   /// By default this timestamps refers to the trace clock (CLOCK_BOOTTIME on
@@ -231,9 +231,9 @@ class TracePacket extends $pb.GeneratedMessage {
   void clearTrustedPacketSequenceId() => $_clearField(10);
 
   @$pb.TagNumber(11)
-  $6.TrackEvent get trackEvent => $_getN(3);
+  $2.TrackEvent get trackEvent => $_getN(3);
   @$pb.TagNumber(11)
-  set trackEvent($6.TrackEvent v) {
+  set trackEvent($2.TrackEvent v) {
     $_setField(11, v);
   }
 
@@ -242,7 +242,7 @@ class TracePacket extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   void clearTrackEvent() => $_clearField(11);
   @$pb.TagNumber(11)
-  $6.TrackEvent ensureTrackEvent() => $_ensure(3);
+  $2.TrackEvent ensureTrackEvent() => $_ensure(3);
 
   /// Incrementally emitted interned data, valid only on the packet's sequence
   /// (packets with the same |trusted_packet_sequence_id|). The writer will

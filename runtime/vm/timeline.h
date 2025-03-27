@@ -456,8 +456,6 @@ class TimelineEvent {
 
   bool HasIsolateId() const;
   bool HasIsolateGroupId() const;
-  std::unique_ptr<const char[]> GetFormattedIsolateId() const;
-  std::unique_ptr<const char[]> GetFormattedIsolateGroupId() const;
 
   // The lowest time value stored in this event.
   int64_t LowTime() const;
