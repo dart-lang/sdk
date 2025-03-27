@@ -12146,14 +12146,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // a constructor of that name instead.
       Member? constructor =
           findConstructor(cachedContext, node.name, node.fileOffset);
+
+      // Dot shorthand constructor invocations with type parameters
+      // `.id<type>()` are not allowed.
+      if (constructor != null && node.arguments.types.isNotEmpty) {
+        return new ExpressionInferenceResult(
+            const DynamicType(),
+            helper.buildProblem(
+                messageDotShorthandsConstructorInvocationWithTypeArguments,
+                node.nameOffset,
+                node.name.text.length));
+      }
+
       if (constructor is Constructor) {
         if (!constructor.isConst && node.isConst) {
-          Expression replacement = helper.buildProblem(
-              messageNonConstConstructor,
-              node.nameOffset,
-              node.name.text.length);
           return new ExpressionInferenceResult(
-              const DynamicType(), replacement);
+              const DynamicType(),
+              helper.buildProblem(messageNonConstConstructor, node.nameOffset,
+                  node.name.text.length));
         }
 
         expr = new ConstructorInvocation(constructor, node.arguments,
@@ -12164,12 +12174,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // constructor or a redirecting factory constructor.
         if (!constructor.isConst && node.isConst) {
           // Coverage-ignore-block(suite): Not run.
-          Expression replacement = helper.buildProblem(
-              messageNonConstConstructor,
-              node.nameOffset,
-              node.name.text.length);
           return new ExpressionInferenceResult(
-              const DynamicType(), replacement);
+              const DynamicType(),
+              helper.buildProblem(messageNonConstConstructor, node.nameOffset,
+                  node.name.text.length));
         }
 
         if (constructor.isRedirectingFactory) {

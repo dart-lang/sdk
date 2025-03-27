@@ -7421,6 +7421,18 @@ ImplicitSuperInitializerMissingArguments:
   script: |
     class A { A(int foo); } class B extends A { B(); }
 
+DotShorthandsConstructorInvocationWithTypeArguments:
+  problemMessage: "A dot shorthand constructor invocation can't have type arguments."
+  correctionMessage: "Try adding the class name and type arguments explicitly before the constructor name."
+  experiments: dot-shorthands
+  script: >
+    class C<X> {
+      C.foo();
+    }
+    void main() {
+      C c = .foo<int>();
+    }
+
 DotShorthandsInvalidContext:
   problemMessage: "No type was provided to find the dot shorthand '#name'."
   experiments: dot-shorthands
