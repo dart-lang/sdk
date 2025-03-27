@@ -124,6 +124,9 @@ class DocumentationValidator {
     'LintCode.package_prefixed_library_names',
     // Need a way to specify the existance of files whose content is irrelevant.
     'LintCode.prefer_relative_imports',
+    // The test file is in a basic workspace, so it can't have public API. I
+    // think we'd need to add a `pubspec.yaml` file to the example.
+    'LintCode.public_member_api_docs',
     // Missing support for YAML files.
     'LintCode.secure_pubspec_urls',
     // The test framework doesn't yet support lints in non-dart files.
