@@ -299,6 +299,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 0),
       experimentReleasedVersion: const Version(2, 0));
 
+  static const ExperimentalFlag soundFlowAnalysis = const ExperimentalFlag(
+      name: 'sound-flow-analysis',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag spreadCollections = const ExperimentalFlag(
       name: 'spread-collections',
       isEnabledByDefault: true,
@@ -534,6 +542,10 @@ class GlobalFeatures {
   GlobalFeature get setLiterals =>
       _setLiterals ??= _computeGlobalFeature(ExperimentalFlag.setLiterals);
 
+  GlobalFeature? _soundFlowAnalysis;
+  GlobalFeature get soundFlowAnalysis => _soundFlowAnalysis ??=
+      _computeGlobalFeature(ExperimentalFlag.soundFlowAnalysis);
+
   GlobalFeature? _spreadCollections;
   GlobalFeature get spreadCollections => _spreadCollections ??=
       _computeGlobalFeature(ExperimentalFlag.spreadCollections);
@@ -740,6 +752,11 @@ class LibraryFeatures {
       _setLiterals ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.setLiterals, canonicalUri, libraryVersion);
 
+  LibraryFeature? _soundFlowAnalysis;
+  LibraryFeature get soundFlowAnalysis =>
+      _soundFlowAnalysis ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.soundFlowAnalysis, canonicalUri, libraryVersion);
+
   LibraryFeature? _spreadCollections;
   LibraryFeature get spreadCollections =>
       _spreadCollections ??= globalFeatures._computeLibraryFeature(
@@ -844,6 +861,8 @@ class LibraryFeatures {
         return sealedClass;
       case shared.ExperimentalFlag.setLiterals:
         return setLiterals;
+      case shared.ExperimentalFlag.soundFlowAnalysis:
+        return soundFlowAnalysis;
       case shared.ExperimentalFlag.spreadCollections:
         return spreadCollections;
       case shared.ExperimentalFlag.superParameters:
@@ -928,6 +947,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.sealedClass;
     case "set-literals":
       return ExperimentalFlag.setLiterals;
+    case "sound-flow-analysis":
+      return ExperimentalFlag.soundFlowAnalysis;
     case "spread-collections":
       return ExperimentalFlag.spreadCollections;
     case "super-parameters":
@@ -1003,6 +1024,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
+  ExperimentalFlag.soundFlowAnalysis:
+      ExperimentalFlag.soundFlowAnalysis.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
       ExperimentalFlag.spreadCollections.isEnabledByDefault,
   ExperimentalFlag.superParameters:
@@ -1065,6 +1088,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.records: ExperimentalFlag.records,
   shared.ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass,
   shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
+  shared.ExperimentalFlag.soundFlowAnalysis: ExperimentalFlag.soundFlowAnalysis,
   shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,
   shared.ExperimentalFlag.superParameters: ExperimentalFlag.superParameters,
   shared.ExperimentalFlag.testExperiment: ExperimentalFlag.testExperiment,
