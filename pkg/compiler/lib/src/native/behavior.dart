@@ -654,6 +654,10 @@ class NativeBehavior {
       behavior.sideEffects.setTo(newEffects);
     }
 
+    void setUseGvn(bool useGvn) {
+      behavior.useGvn = useGvn;
+    }
+
     processSpecString(
       commonElements.dartTypes,
       reporter,
@@ -662,6 +666,7 @@ class NativeBehavior {
       validTags: validTags,
       lookupType: lookupType,
       setSideEffects: setSideEffects,
+      setUseGvn: setUseGvn,
       typesReturned: behavior.typesReturned,
       typesInstantiated: behavior.typesInstantiated,
       objectType: commonElements.objectType,
@@ -709,7 +714,7 @@ class NativeBehavior {
       lookupType,
       reporter,
       commonElements,
-      validTags: ['returns', 'creates'],
+      validTags: ['returns', 'creates', 'depends', 'effects', 'gvn'],
     );
     return behavior;
   }

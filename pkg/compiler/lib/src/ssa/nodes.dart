@@ -2723,8 +2723,13 @@ class HForeignCode extends HForeign {
   bool typeEquals(other) => other is HForeignCode;
   @override
   bool dataEquals(HForeignCode other) {
-    return codeTemplate.source != null &&
-        codeTemplate.source == other.codeTemplate.source;
+    if (codeTemplate.source == null) {
+      return other.codeTemplate.source == null &&
+          // The ASTs will be equal if identical, and in some limited other
+          // cases, like a ModularExpression.
+          codeTemplate.ast == other.codeTemplate.ast;
+    }
+    return codeTemplate.source == other.codeTemplate.source;
   }
 
   @override
