@@ -100,7 +100,11 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    _addOccurrence(node.declaredElement2!, node.name);
+    if (node.declaredElement2 case BindPatternVariableElement2(:var join2?)) {
+      _addOccurrence(join2.baseElement, node.name);
+    } else {
+      _addOccurrence(node.declaredElement2!, node.name);
+    }
 
     super.visitDeclaredVariablePattern(node);
   }

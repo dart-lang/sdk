@@ -576,6 +576,18 @@ String f(int char) {
       ''');
   }
 
+  Future<void> test_patternVariable_ifCase_logicalOr() async {
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
+void f(Object? x) {
+  if (x case int /*[0*/test/*0]*/ || [int /*[1*/test/*1]*/] when /*[2*/test/*2]*/ > 0) {
+    /*[3*/test/*3]*/;
+    /*[4*/test/*4]*/ = 1;
+    /*[5*/test/*5]*/ += 2;
+  }
+}
+''');
+  }
+
   Future<void> test_prefix() async {
     await assertOccurrences(kind: ElementKind.PREFIX, '''
 import '' as /*[0*/p/*0]*/;
