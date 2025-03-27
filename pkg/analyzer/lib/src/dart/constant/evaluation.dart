@@ -519,11 +519,13 @@ class ConstantEvaluationEngine {
   }
 }
 
+// ignore: deprecated_member_use_from_same_package
 /// Interface for [AnalysisTarget]s for which constant evaluation can be
 /// performed.
 @AnalyzerPublicApi(
     message: 'exposed because it is implemented by various elements')
 // TODO(scheglov): consider implementing only in Impl or removing
+// ignore: deprecated_member_use_from_same_package
 abstract class ConstantEvaluationTarget extends AnalysisTarget {
   /// Return the [AnalysisContext] which should be used to evaluate this
   /// constant.

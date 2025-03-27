@@ -31,7 +31,7 @@ void main() {
   // [cfe] No type was provided to find the dot shorthand 'one'.
 
   Integer i = .one();
-  //           ^^^
+  //          ^
   // [analyzer] unspecified
-  // [cfe] The static method or constructor 'one' isn't defined for the type 'Integer'.
+  // [cfe] The method 'call' isn't defined for the class 'Integer'.
 }

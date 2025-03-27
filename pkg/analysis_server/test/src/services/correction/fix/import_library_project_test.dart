@@ -142,7 +142,6 @@ void f() {
 
   Future<void> test_withEnum_value() async {
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 enum E { one, two }
 ''');
     await resolveTestCode('''
@@ -275,7 +274,6 @@ void f() {
 
   Future<void> test_withEnum_value() async {
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 enum E { one, two }
 ''');
     await resolveTestCode('''
@@ -957,7 +955,6 @@ void f() { new Foo(); }
 
   Future<void> test_withClass_annotation() async {
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 class Test {
   const Test(int p);
 }
@@ -1005,7 +1002,6 @@ void f() {
   Future<void> test_withClass_commentReference() async {
     createAnalysisOptionsFile(lints: [LintNames.comment_references]);
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 class Test {
   const Test(int p);
 }
@@ -1026,11 +1022,9 @@ void f() {
 
   Future<void> test_withClass_hasOtherLibraryWithPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
-library a;
 class One {}
 ''');
     newFile('$testPackageLibPath/b.dart', '''
-library b;
 class One {}
 class Two {}
 ''');
@@ -1054,7 +1048,6 @@ main () {
   Future<void> test_withClass_inParentFolder() async {
     testFilePath = convertPath('/home/test/bin/aaa/test.dart');
     newFile('/home/test/bin/lib.dart', '''
-library lib;
 class Test {}
 ''');
     await resolveTestCode('''
@@ -1076,7 +1069,6 @@ void f() {
   Future<void> test_withClass_inRelativeFolder() async {
     testFilePath = convertPath('/home/test/bin/test.dart');
     newFile('/home/test/tool/sub/folder/lib.dart', '''
-library lib;
 class Test {}
 ''');
     await resolveTestCode('''
@@ -1098,7 +1090,6 @@ void f() {
   Future<void> test_withClass_inSameFolder() async {
     testFilePath = convertPath('/home/test/bin/test.dart');
     newFile('/home/test/bin/lib.dart', '''
-library lib;
 class Test {}
 ''');
     await resolveTestCode('''
@@ -1396,7 +1387,6 @@ void f() {
 
   Future<void> test_withClass_static_getter_annotation() async {
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 class Test {
   const Test();
   static const instance = Test();
@@ -1418,7 +1408,6 @@ void f() {
 
   Future<void> test_withEnum_value() async {
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 enum E { one, two }
 ''');
     await resolveTestCode('''
@@ -1463,7 +1452,6 @@ void f() {
 
   Future<void> test_withFunction() async {
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 myFunction() {}
 ''');
     await resolveTestCode('''
@@ -1518,7 +1506,6 @@ void f() {
 
   Future<void> test_withFunction_identifier() async {
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 myFunction() {}
 ''');
     await resolveTestCode('''
@@ -1550,7 +1537,6 @@ void f() {
 
   Future<void> test_withFunction_unresolvedMethod() async {
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 myFunction() {}
 ''');
     await resolveTestCode('''
@@ -1573,7 +1559,6 @@ class A {
 
   Future<void> test_withFunctionTypeAlias() async {
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 typedef MyFunction();
 ''');
     await resolveTestCode('''
@@ -1879,7 +1864,6 @@ void f() {
 
   Future<void> test_withEnum_value() async {
     newFile('$testPackageLibPath/lib.dart', '''
-library lib;
 enum E { one, two }
 ''');
     await resolveTestCode('''

@@ -1,0 +1,7 @@
+class C {
+  const C();
+  static C get id1 => const C();
+  static C id2 = const C();
+}
+
+void test() {}
