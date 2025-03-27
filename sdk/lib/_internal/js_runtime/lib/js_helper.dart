@@ -3137,31 +3137,6 @@ void assertHelper(condition) {
   if (assertTest(condition)) throw AssertionError();
 }
 
-/// Called by generated code when a static field's initializer references the
-/// field that is currently being initialized.
-void throwCyclicInit(String staticName) {
-  throw _CyclicInitializationError(staticName);
-}
-
-/// Error thrown when a lazily initialized variable cannot be initialized.
-///
-/// Cyclic dependencies are no longer detected at runtime in null safe code.
-/// Such code will fail in other ways instead,
-/// possibly with a [StackOverflowError].
-///
-/// Will be removed when support for non-null-safe code is discontinued.
-@Deprecated("Remove when no longer supporting non-null-safe code.")
-class _CyclicInitializationError extends Error {
-  final String? variableName;
-  _CyclicInitializationError([this.variableName]);
-  String toString() {
-    var variableName = this.variableName;
-    return variableName == null
-        ? "Reading static variable during its initialization"
-        : "Reading static variable '$variableName' during its initialization";
-  }
-}
-
 /// Error thrown when a runtime error occurs.
 class RuntimeError extends Error {
   final message;

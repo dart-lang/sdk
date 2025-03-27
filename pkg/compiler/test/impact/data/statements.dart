@@ -103,7 +103,6 @@ main() {
   _isTop(1),
   findType(1),
   instanceType(1),
-  throwCyclicInit(1),
   throwLateFieldADI(1)],
  type=[
   inst:Closure,

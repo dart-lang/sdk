@@ -502,14 +502,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
                 return null;
               }
             } else if (fieldData.isLazy) {
-              // The generated initializer needs be wrapped in the cyclic-error
-              // helper.
-              registry.registerStaticUse(
-                StaticUse.staticInvoke(
-                  closedWorld.commonElements.cyclicThrowHelper,
-                  CallStructure.oneArg,
-                ),
-              );
               registry.registerStaticUse(
                 StaticUse.staticInvoke(
                   closedWorld.commonElements.throwLateFieldADI,

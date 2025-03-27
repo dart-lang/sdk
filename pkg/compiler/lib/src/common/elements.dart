@@ -921,9 +921,6 @@ abstract class CommonElements {
   FunctionEntity get createUnmangledInvocationMirror =>
       _findHelperFunction('createUnmangledInvocationMirror');
 
-  FunctionEntity get cyclicThrowHelper =>
-      _findHelperFunction("throwCyclicInit");
-
   FunctionEntity get throwUnsupportedOperation =>
       _findHelperFunction('throwUnsupportedOperation');
 

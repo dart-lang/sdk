@@ -548,7 +548,6 @@ testTopLevelField() => topLevelField;
 
 /*member: topLevelFieldLazy:
  static=[
-  throwCyclicInit(1),
   throwLateFieldADI(1),
   topLevelFunction1(1)],
  type=[inst:JSNull]
@@ -565,7 +564,6 @@ testTopLevelFieldConst() => topLevelFieldConst;
 
 /*member: topLevelFieldFinal:
  static=[
-  throwCyclicInit(1),
   throwLateFieldADI(1),
   topLevelFunction1(1)],
  type=[inst:JSNull]

@@ -142,7 +142,6 @@ class Class1<T> {
 }],
    holding=[
     {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.field"},
-    {"id":"function/dart:_js_helper::throwCyclicInit"},
     {"id":"function/dart:_late_helper::throwLateFieldADI"},
     {"id":"function/dart:_rti::Rti._bind"},
     {"id":"function/dart:_rti::Rti._eval"},
@@ -191,7 +190,6 @@ class Class1<T> {
 }],
    holding=[
     {"id":"field/memory:sdk/tests/web/native/main.dart::Class1.funcField"},
-    {"id":"function/dart:_js_helper::throwCyclicInit"},
     {"id":"function/dart:_late_helper::throwLateFieldADI"}]
   */
   var funcField;
