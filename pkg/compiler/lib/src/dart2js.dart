@@ -1121,8 +1121,7 @@ Usage: dart compile js [arguments] <dart entry point>
 
   --native-null-assertions
     Add assertions to web library APIs to ensure that non-nullable APIs do not
-    return null. This is by default set to true in sound null-safety, unless
-    -O3 or higher is passed.
+    return null. This is set to true by default unless -O3 or higher is passed.
 
   -O<0,1,2,3,4>
     Controls optimizations that can help reduce code-size and improve

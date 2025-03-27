@@ -283,28 +283,6 @@ Future<_LoadFromSourceResult> _loadFromSource(
 
   List<Uri> sources = [options.compilationTarget];
 
-  fe.CompilerOptions feOptions =
-      fe.CompilerOptions()
-        ..target = target
-        ..librariesSpecificationUri = options.librariesSpecificationUri
-        ..packagesFileUri = options.packageConfig
-        ..explicitExperimentalFlags = options.explicitExperimentalFlags
-        ..environmentDefines = environment
-        ..verbose = verbose
-        ..fileSystem = fileSystem
-        ..onDiagnostic = onDiagnostic
-        ..verbosity = verbosity;
-  Uri resolvedUri = options.compilationTarget;
-  bool isLegacy = await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
-  if (isLegacy) {
-    reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
-      'text':
-          "Starting with Dart 3.0, `dart compile js` expects programs to "
-          "be null-safe by default. Some libraries reached from $resolvedUri "
-          "are opted out of null safety.",
-    });
-  }
-
   List<Uri> dependencies = [];
   if (options.platformBinaries != null) {
     dependencies.add(

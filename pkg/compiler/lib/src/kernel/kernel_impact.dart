@@ -548,7 +548,7 @@ class KernelImpactConverter implements ImpactRegistry {
     );
 
     if (typeArguments.length != 1) return;
-    DartType matchedType = dartTypes.eraseLegacy(typeArguments.first);
+    DartType matchedType = typeArguments.single;
 
     if (matchedType is! InterfaceType) return;
     InterfaceType interfaceType = matchedType;

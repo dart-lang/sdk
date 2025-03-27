@@ -511,7 +511,7 @@ class NativeDataBuilder {
         final memberType = environment.getFunctionType(member);
         final functionType =
             callthrough ? memberType.returnType as FunctionType : memberType;
-        return dartTypes.isNonNullableIfSound(functionType.returnType);
+        return dartTypes.isNonNullable(functionType.returnType);
       }
 
       // Intercepted methods keyed by selector.

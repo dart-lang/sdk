@@ -1210,7 +1210,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       FunctionType type = _closedWorld.elementEnvironment.getFunctionType(
         method,
       );
-      if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+      if (_closedWorld.dartTypes.isNonNullable(type.returnType)) {
         node.block!.addBefore(node, invocation);
         replacement = HNullCheck(
           invocation,
@@ -1233,7 +1233,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         FunctionType type = _closedWorld.elementEnvironment.getFunctionType(
           method,
         );
-        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+        if (_closedWorld.dartTypes.isNonNullable(type.returnType)) {
           node.block!.addBefore(node, invocation);
           replacement = HInvokeStatic(
             commonElements.interopNullAssertion,
