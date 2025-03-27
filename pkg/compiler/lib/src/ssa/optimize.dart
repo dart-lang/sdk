@@ -1375,27 +1375,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     return maybeAddNativeReturnNullCheck(node, result, method);
   }
 
-  @override
-  HInstruction visitBoundsCheck(HBoundsCheck node) {
-    // TODO(sra): Remove all this code. It marks a bounds check where the index
-    // is a non-integer as always failing. We can still get a non-integer index
-    // with non-sound null safety (1) with legacy code where the index is `null`
-    // (2) when we lower `[]` from a dynamic call and omit the argument type
-    // check (e.g. under -O3).
-    HInstruction index = node.index;
-    if (index.isInteger(_abstractValueDomain).isDefinitelyTrue) {
-      return node;
-    }
-    if (index is HConstant) {
-      assert(index.constant is! IntConstantValue);
-      if (!constant_system.isInt(index.constant)) {
-        // -0.0 is a double but will pass the runtime integer check.
-        node.staticChecks = StaticBoundsChecks.alwaysFalse;
-      }
-    }
-    return node;
-  }
-
   HConstant? foldBinary(
     constant_system.BinaryOperation operation,
     HInstruction left,
