@@ -15,6 +15,7 @@ For GSoC related discussions please use the [dart-gsoc group](https://groups.goo
  * Huan Lin  ([hellohuanlin](https://github.com/hellohuanlin)) `huanlin@google.com`
  * Justin McCandless ([justinmc](https://github.com/justinmc)) `jmccandless@google.com`
  * Mudit Somani ([TheComputerM](https://github.com/TheComputerM)) `mudit.somani00@gmail.com`
+ * Hamdaan Ali ([HamdaanAliQuatil](https://github.com/HamdaanAliQuatil)) `hamdaan.quatil@gmail.com`
  * More to come!
 
 ## Project Application Process
@@ -35,7 +36,7 @@ Applications can be submitted through the [summerofcode.withgoogle.com](https://
 
 ## **Idea:** Exception testing for `package:webcrypto`
 
- - **Possible Mentor(s)**: `jonasfj@google.com`,
+ - **Possible Mentor(s)**: `jonasfj@google.com`, `hamdaan.quatil@gmail.com`
  - **Difficulty**: Hard
  - **Project size**: Large (350 hours)
  - **Skills**: Dart, FFI, JS

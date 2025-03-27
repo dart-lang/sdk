@@ -151,7 +151,7 @@ class TrackEvent extends $pb.GeneratedMessage {
         4, _omitFieldNames ? '' : 'debugAnnotations', $pb.PbFieldType.PM,
         subBuilder: $1.DebugAnnotation.create)
     ..e<TrackEvent_Type>(9, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE,
-        defaultOrMaker: TrackEvent_Type.TYPE_SLICE_BEGIN,
+        defaultOrMaker: TrackEvent_Type.TYPE_UNSPECIFIED,
         valueOf: TrackEvent_Type.valueOf,
         enumValues: TrackEvent_Type.values)
     ..a<$fixnum.Int64>(

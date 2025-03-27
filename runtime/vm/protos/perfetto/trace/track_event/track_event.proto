@@ -112,6 +112,8 @@ message TrackEvent {
 
   // Type of the TrackEvent (required if |phase| in LegacyEvent is not set).
   enum Type {
+    TYPE_UNSPECIFIED = 0;
+
     // Slice events are events that have a begin and end timestamp, i.e. a
     // duration. They can be nested similar to a callstack: If, on the same
     // track, event B begins after event A, but before A ends, B is a child
