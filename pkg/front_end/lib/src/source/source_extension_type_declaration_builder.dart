@@ -142,11 +142,6 @@ class SourceExtensionTypeDeclarationBuilder
     return count;
   }
 
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): Avoid exposing this. Annotations for macros and
-  //  patches should be computing from within the builder.
-  List<MetadataBuilder>? get metadata => _introductory.metadata;
-
   @override
   DeclarationNameSpace get nameSpace => _nameSpace;
 
@@ -188,9 +183,6 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   ExtensionTypeDeclaration get extensionTypeDeclaration =>
       _extensionTypeDeclaration;
-
-  @override
-  Annotatable get annotatable => extensionTypeDeclaration;
 
   @override
   int compareTo(SourceExtensionTypeDeclarationBuilder other) {
@@ -719,7 +711,7 @@ class SourceExtensionTypeDeclarationBuilder
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     MetadataBuilder.buildAnnotations(
-        annotatable,
+        extensionTypeDeclaration,
         _introductory.metadata,
         createBodyBuilderContext(),
         libraryBuilder,

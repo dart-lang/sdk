@@ -32,6 +32,7 @@ extensions/internal_resolution: semiFuzzFailureOnForceRebuildBodies # unnamed ex
 extensions/issue40816: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 extensions/nullable_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
 extensions/on_function_type: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+extensions/part_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 extensions/unnamed_extensions: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 general/bug33099: semiFuzzFailureOnForceRebuildBodies # private class
 general/closure: semiFuzzFailureOnForceRebuildBodies # private field
@@ -92,6 +93,8 @@ inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForce
 dart2js/tear_off_patch/main: SemiFuzzFailure
 dartdevc/factory_patch/main: SemiFuzzFailure
 extensions/patch/main: SemiFuzzFailure
+extensions/as_show/main: SemiFuzzFailure
+extensions/patching/main: SemiFuzzFailure
 general/constructor_patch/main: SemiFuzzFailure
 general/export_dart_conflict/main: SemiFuzzFailure
 general/factory_patch/main: SemiFuzzFailure

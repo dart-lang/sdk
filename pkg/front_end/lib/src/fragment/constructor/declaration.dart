@@ -47,8 +47,6 @@ abstract class ConstructorDeclaration {
 
   OmittedTypeBuilder get returnType;
 
-  List<SourceNominalParameterBuilder>? get typeParameters;
-
   List<FormalParameterBuilder>? get formals;
 
   FunctionNode get function;
@@ -161,6 +159,8 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
   LookupScope get _typeParameterScope;
 
   abstract Token? _beginInitializers;
+
+  List<SourceNominalParameterBuilder>? get _typeParameters;
 
   @override
   FormalParameterBuilder? getFormal(Identifier identifier) {
@@ -615,7 +615,7 @@ mixin ConstructorDeclarationMixin implements ConstructorDeclaration {
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
-    int count = context.computeDefaultTypesForVariables(typeParameters,
+    int count = context.computeDefaultTypesForVariables(_typeParameters,
         // Type parameters are inherited from the enclosing declaration, so if
         // it has issues, so do the constructors.
         inErrorRecovery: inErrorRecovery);
@@ -734,9 +734,9 @@ mixin RegularConstructorDeclarationMixin
     required ClassHierarchy classHierarchy,
     required LookupScope typeParameterScope,
   }) {
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(
+    if (_typeParameters != null) {
+      for (int i = 0; i < _typeParameters!.length; i++) {
+        _typeParameters![i].buildOutlineExpressions(
             libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
@@ -787,18 +787,19 @@ class RegularConstructorDeclaration
   final RegularConstructorEncoding _encoding;
 
   @override
-  final List<SourceNominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? _typeParameters;
 
   @override
   Token? _beginInitializers;
 
   RegularConstructorDeclaration(this._fragment,
       {required List<FormalParameterBuilder>? syntheticFormals,
-      required this.typeParameters,
+      required List<SourceNominalParameterBuilder>? typeParameters,
       // TODO(johnniwinther): Create a separate [ConstructorDeclaration] for
       // enum constructors.
       required bool isEnumConstructor})
-      : _syntheticFormals = syntheticFormals,
+      : _typeParameters = typeParameters,
+        _syntheticFormals = syntheticFormals,
         _beginInitializers = _fragment.beginInitializers,
         _encoding = new RegularConstructorEncoding(
             isExternal: _fragment.modifiers.isExternal,
@@ -863,7 +864,7 @@ class RegularConstructorDeclaration
         formalsOffset: _fragment.formalsOffset,
         isConst: _fragment.modifiers.isConst,
         returnType: returnType,
-        typeParameters: typeParameters,
+        typeParameters: _typeParameters,
         formals: formals,
         delayedDefaultValueCloners: delayedDefaultValueCloners);
   }
@@ -943,7 +944,7 @@ class PrimaryConstructorDeclaration
   List<FormalParameterBuilder>? get formals => _fragment.formals;
 
   @override
-  List<SourceNominalParameterBuilder>? get typeParameters => null;
+  List<SourceNominalParameterBuilder>? get _typeParameters => null;
 
   @override
   bool get isConst => _fragment.modifiers.isConst;
@@ -988,7 +989,7 @@ class PrimaryConstructorDeclaration
         formalsOffset: _fragment.formalsOffset,
         isConst: _fragment.modifiers.isConst,
         returnType: returnType,
-        typeParameters: typeParameters,
+        typeParameters: _typeParameters,
         formals: formals,
         delayedDefaultValueCloners: delayedDefaultValueCloners);
   }
@@ -1073,7 +1074,7 @@ class DefaultEnumConstructorDeclaration
   List<MetadataBuilder>? get metadata => null;
 
   @override
-  List<SourceNominalParameterBuilder>? get typeParameters => null;
+  List<SourceNominalParameterBuilder>? get _typeParameters => null;
 
   @override
   bool get isConst => true;
@@ -1117,7 +1118,7 @@ class DefaultEnumConstructorDeclaration
         formalsOffset: fileOffset,
         isConst: true,
         returnType: returnType,
-        typeParameters: typeParameters,
+        typeParameters: _typeParameters,
         formals: formals,
         delayedDefaultValueCloners: delayedDefaultValueCloners);
   }
@@ -1215,9 +1216,9 @@ mixin ExtensionTypeConstructorDeclarationMixin
   @override
   Substitution computeFieldTypeSubstitution(
       DeclarationBuilder declarationBuilder) {
-    if (typeParameters != null) {
+    if (_typeParameters != null) {
       assert(
-          declarationBuilder.typeParameters!.length == typeParameters?.length);
+          declarationBuilder.typeParameters!.length == _typeParameters?.length);
       return Substitution.fromPairs(
           (declarationBuilder as SourceExtensionTypeDeclarationBuilder)
               .extensionTypeDeclaration
@@ -1268,9 +1269,9 @@ mixin ExtensionTypeConstructorDeclarationMixin
     required ClassHierarchy classHierarchy,
     required LookupScope typeParameterScope,
   }) {
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(
+    if (_typeParameters != null) {
+      for (int i = 0; i < _typeParameters!.length; i++) {
+        _typeParameters![i].buildOutlineExpressions(
             libraryBuilder, bodyBuilderContext, classHierarchy);
       }
     }
@@ -1317,7 +1318,7 @@ class ExtensionTypeConstructorDeclaration
   final ConstructorFragment _fragment;
 
   @override
-  final List<SourceNominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? _typeParameters;
 
   @override
   final ExtensionTypeConstructorEncoding _encoding;
@@ -1326,8 +1327,9 @@ class ExtensionTypeConstructorDeclaration
   Token? _beginInitializers;
 
   ExtensionTypeConstructorDeclaration(this._fragment,
-      {required this.typeParameters})
-      : _beginInitializers = _fragment.beginInitializers,
+      {required List<SourceNominalParameterBuilder>? typeParameters})
+      : _typeParameters = typeParameters,
+        _beginInitializers = _fragment.beginInitializers,
         _encoding = new ExtensionTypeConstructorEncoding(
             isExternal: _fragment.modifiers.isExternal) {
     _fragment.declaration = this;
@@ -1387,7 +1389,7 @@ class ExtensionTypeConstructorDeclaration
         formalsOffset: _fragment.formalsOffset,
         isConst: _fragment.modifiers.isConst,
         returnType: returnType,
-        typeParameters: typeParameters,
+        typeParameters: _typeParameters,
         formals: formals,
         delayedDefaultValueCloners: delayedDefaultValueCloners);
   }
@@ -1440,7 +1442,7 @@ class ExtensionTypePrimaryConstructorDeclaration
   final PrimaryConstructorFragment _fragment;
 
   @override
-  final List<SourceNominalParameterBuilder>? typeParameters;
+  final List<SourceNominalParameterBuilder>? _typeParameters;
 
   @override
   final ExtensionTypeConstructorEncoding _encoding;
@@ -1449,8 +1451,9 @@ class ExtensionTypePrimaryConstructorDeclaration
   Token? _beginInitializers;
 
   ExtensionTypePrimaryConstructorDeclaration(this._fragment,
-      {required this.typeParameters})
-      : _beginInitializers = _fragment.beginInitializers,
+      {required List<SourceNominalParameterBuilder>? typeParameters})
+      : _typeParameters = typeParameters,
+        _beginInitializers = _fragment.beginInitializers,
         _encoding = new ExtensionTypeConstructorEncoding(
             isExternal: _fragment.modifiers.isExternal) {
     _fragment.declaration = this;
@@ -1511,7 +1514,7 @@ class ExtensionTypePrimaryConstructorDeclaration
         formalsOffset: _fragment.formalsOffset,
         isConst: _fragment.modifiers.isConst,
         returnType: returnType,
-        typeParameters: typeParameters,
+        typeParameters: _typeParameters,
         formals: formals,
         delayedDefaultValueCloners: delayedDefaultValueCloners);
   }

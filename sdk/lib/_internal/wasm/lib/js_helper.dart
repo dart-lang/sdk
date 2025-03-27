@@ -130,10 +130,6 @@ class JSArrayIterableAdapter<T> extends EfficientLengthIterable<T>
   int get length => array.length;
 }
 
-// Convert to double to avoid converting to [BigInt] in the case of int64.
-WasmExternRef? getConstructorString(String constructor) =>
-    getPropertyRaw(globalThisRaw(), constructor.toExternRef);
-
 Object jsObjectToDartObject(WasmExternRef? ref) =>
     unsafeCastOpaque<Object>(ref.internalize());
 
@@ -142,54 +138,8 @@ WasmExternRef jsObjectFromDartObject(Object object) =>
 
 bool isJSUndefined(WasmExternRef? o) => JS<bool>('o => o === undefined', o);
 
-bool isJSBoolean(WasmExternRef? o) =>
-    JS<bool>("o => typeof o === 'boolean'", o);
-
-bool isJSNumber(WasmExternRef? o) => JS<bool>("o => typeof o === 'number'", o);
-
-bool isJSBigInt(WasmExternRef? o) => JS<bool>("o => typeof o === 'bigint'", o);
-
-bool isJSString(WasmExternRef? o) => JS<bool>("o => typeof o === 'string'", o);
-
-bool isJSSymbol(WasmExternRef? o) => JS<bool>("o => typeof o === 'symbol'", o);
-
 bool isJSFunction(WasmExternRef? o) =>
     JS<bool>("o => typeof o === 'function'", o);
-
-bool isJSInt8Array(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof Int8Array", o);
-
-bool isJSUint8Array(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof Uint8Array", o);
-
-bool isJSUint8ClampedArray(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof Uint8ClampedArray", o);
-
-bool isJSInt16Array(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof Int16Array", o);
-
-bool isJSUint16Array(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof Uint16Array", o);
-
-bool isJSInt32Array(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof Int32Array", o);
-
-bool isJSUint32Array(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof Uint32Array", o);
-
-bool isJSFloat32Array(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof Float32Array", o);
-
-bool isJSFloat64Array(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof Float64Array", o);
-
-bool isJSArrayBuffer(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof ArrayBuffer", o);
-
-bool isJSDataView(WasmExternRef? o) =>
-    JS<bool>("o => o instanceof DataView", o);
-
-bool isJSArray(WasmExternRef? o) => JS<bool>("o => o instanceof Array", o);
 
 bool isJSWrappedDartFunction(WasmExternRef? o) => JS<bool>(
   "o => typeof o === 'function' && o[jsWrappedDartFunctionSymbol] === true",
@@ -224,9 +174,6 @@ int objectLength(WasmExternRef? o) =>
 
 int byteLength(WasmExternRef? o) =>
     JS<WasmI32>("o => o.byteLength", o).toIntSigned();
-
-int dataViewGetUint8(WasmExternRef? o, int i) =>
-    JS<WasmI32>("(o, i) => o.getUint8(i)", o, i.toWasmI32()).toIntSigned();
 
 WasmExternRef? objectReadIndex(WasmExternRef? o, int index) =>
     JS<WasmExternRef?>("(o, i) => o[i]", o, index.toWasmI32());
@@ -557,59 +504,6 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
   };
 }
 
-Int8List toDartInt8List(WasmExternRef? ref) =>
-    jsIntTypedArrayToDartIntTypedData(ref, (size) => Int8List(size))
-        as Int8List;
-
-Uint8List toDartUint8List(WasmExternRef? ref) =>
-    jsIntTypedArrayToDartIntTypedData(ref, (size) => Uint8List(size))
-        as Uint8List;
-
-Uint8ClampedList toDartUint8ClampedList(WasmExternRef? ref) =>
-    jsIntTypedArrayToDartIntTypedData(ref, (size) => Uint8ClampedList(size))
-        as Uint8ClampedList;
-
-Int16List toDartInt16List(WasmExternRef? ref) =>
-    jsIntTypedArrayToDartIntTypedData(ref, (size) => Int16List(size))
-        as Int16List;
-
-Uint16List toDartUint16List(WasmExternRef? ref) =>
-    jsIntTypedArrayToDartIntTypedData(ref, (size) => Uint16List(size))
-        as Uint16List;
-
-Int32List toDartInt32List(WasmExternRef? ref) =>
-    jsIntTypedArrayToDartIntTypedData(ref, (size) => Int32List(size))
-        as Int32List;
-
-Uint32List toDartUint32List(WasmExternRef? ref) =>
-    jsIntTypedArrayToDartIntTypedData(ref, (size) => Uint32List(size))
-        as Uint32List;
-
-Float32List toDartFloat32List(WasmExternRef? ref) =>
-    jsFloatTypedArrayToDartFloatTypedData(ref, (size) => Float32List(size))
-        as Float32List;
-
-Float64List toDartFloat64List(WasmExternRef? ref) =>
-    jsFloatTypedArrayToDartFloatTypedData(ref, (size) => Float64List(size))
-        as Float64List;
-
-ByteBuffer toDartByteBuffer(WasmExternRef? ref) =>
-    toDartByteData(
-      callConstructorVarArgsRaw(
-        getConstructorString('DataView'),
-        [JSValue(ref) as JSAny].toJS.toExternRef,
-      ),
-    ).buffer;
-
-ByteData toDartByteData(WasmExternRef? ref) {
-  int length = byteLength(ref).toInt();
-  ByteData data = ByteData(length);
-  for (int i = 0; i < length; i++) {
-    data.setUint8(i, dataViewGetUint8(ref, i));
-  }
-  return data;
-}
-
 List<double> jsFloatTypedArrayToDartFloatTypedData(
   WasmExternRef? ref,
   List<double> makeTypedData(int size),
@@ -684,11 +578,6 @@ JSArray<T> toJSArray<T extends JSAny?>(List<T> list) {
   return result;
 }
 
-List<JSAny?> toDartListJSAny(WasmExternRef? ref) => List<JSAny?>.generate(
-  objectLength(ref),
-  (int n) => JSValue(objectReadIndex(ref, n)) as JSAny?,
-);
-
 List<Object?> toDartList(WasmExternRef? ref) => List<Object?>.generate(
   objectLength(ref),
   (int n) => dartifyRaw(objectReadIndex(ref, n)),
@@ -703,10 +592,6 @@ F _wrapDartFunction<F extends Function>(F f, WasmExternRef ref) {
   functionToJSWrapper[f] = JSValue(ref);
   return f;
 }
-
-/// Returns the JS constructor object for a given [String].
-WasmExternRef? getConstructorRaw(String name) =>
-    getPropertyRaw(globalThisRaw(), name.toExternRef);
 
 /// Takes a [codeTemplate] string which must represent a valid JS function, and
 /// a list of optional arguments. The [codeTemplate] will be inserted into the

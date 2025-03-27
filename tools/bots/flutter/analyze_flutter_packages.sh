@@ -41,4 +41,5 @@ cd packages
 dart run script/tool/bin/flutter_plugin_tools.dart analyze \
   --downgrade \
   --analysis-sdk $sdk \
-  --custom-analysis=script/configs/custom_analysis.yaml
+  --custom-analysis=script/configs/custom_analysis.yaml \
+  --base-branch=main

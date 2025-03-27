@@ -3450,7 +3450,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               offsetForToken(send.token), send.typeArguments, arguments,
               isTypeArgumentsInForest: send.isTypeArgumentsInForest);
     } else {
-      // Coverage-ignore-block(suite): Not run.
       // `SomeType?.toString` is the same as `SomeType.toString`, not
       // `(SomeType).toString`.
       return super.buildSelectorAccess(send, operatorOffset, isNullAware);

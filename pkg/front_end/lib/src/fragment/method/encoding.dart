@@ -30,7 +30,6 @@ import '../fragment.dart';
 sealed class MethodEncoding implements InferredTypeListener {
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
   List<FormalParameterBuilder>? get formals;
-  List<FormalParameterBuilder>? get formalsForTesting;
   FunctionNode get function;
   Procedure get invokeTarget;
 
@@ -113,11 +112,6 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
 
   @override
   List<FormalParameterBuilder>? get formals => _fragment.declaredFormals;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<FormalParameterBuilder>? get formalsForTesting =>
-      _fragment.declaredFormals;
 
   @override
   FunctionNode get function => _procedure!.function;
@@ -356,11 +350,6 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 
   @override
   List<FormalParameterBuilder>? get formals =>
-      [_thisFormal, ...?_fragment.declaredFormals];
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<FormalParameterBuilder>? get formalsForTesting =>
       [_thisFormal, ...?_fragment.declaredFormals];
 
   @override

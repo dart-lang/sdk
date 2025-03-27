@@ -11,7 +11,6 @@ import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../codes/cfe_codes.dart';
@@ -96,13 +95,6 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
         procedureReference: procedureReference,
         tearOffReference: tearOffReference);
   }
-
-  // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
-      _introductory.typeParameters;
-
-  // Coverage-ignore(suite): Not run.
-  List<FormalParameterBuilder>? get formalsForTesting => _introductory.formals;
 
   @override
   // Coverage-ignore(suite): Not run.

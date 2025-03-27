@@ -6,7 +6,6 @@ part of '../fragment.dart';
 
 abstract class ClassDeclaration {
   String get name;
-  List<MetadataBuilder>? get metadata;
   LookupScope get compilationUnitScope;
   LookupScope get bodyScope;
   Uri get fileUri;
@@ -33,10 +32,6 @@ class RegularClassDeclaration implements ClassDeclaration {
   final ClassFragment _fragment;
 
   RegularClassDeclaration(this._fragment);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
@@ -106,10 +101,6 @@ class EnumDeclaration implements ClassDeclaration {
   EnumDeclaration(this._fragment, this.supertype);
 
   @override
-  // Coverage-ignore(suite): Not run.
-  List<MetadataBuilder>? get metadata => _fragment.metadata;
-
-  @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
 
   @override
@@ -172,10 +163,6 @@ class NamedMixinApplication implements ClassDeclaration {
   final List<TypeBuilder> mixedInTypes;
 
   NamedMixinApplication(this._fragment, this.mixedInTypes);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
@@ -277,10 +264,6 @@ class AnonymousMixinApplication implements ClassDeclaration {
   LookupScope get bodyScope => compilationUnitScope;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  List<MetadataBuilder>? get metadata => null;
-
-  @override
   void buildOutlineExpressions(
       {required Annotatable annotatable,
       required SourceLibraryBuilder libraryBuilder,
@@ -298,10 +281,6 @@ class MixinDeclaration implements ClassDeclaration {
   final MixinFragment _fragment;
 
   MixinDeclaration(this._fragment);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;

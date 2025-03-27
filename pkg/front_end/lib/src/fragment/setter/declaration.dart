@@ -52,8 +52,6 @@ abstract class SetterDeclaration {
 
   VariableDeclaration? get thisVariable;
 
-  List<NominalParameterBuilder>? get typeParametersForTesting;
-
   Procedure get writeTarget;
 
   void becomeNative(SourceLoader loader);
@@ -149,11 +147,6 @@ class SetterDeclarationImpl implements SetterDeclaration {
 
   @override
   VariableDeclaration? get thisVariable => _encoding.thisVariable;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<NominalParameterBuilder>? get typeParametersForTesting =>
-      _encoding.clonedAndDeclaredTypeParameters;
 
   @override
   Procedure get writeTarget => _encoding.writeTarget;
