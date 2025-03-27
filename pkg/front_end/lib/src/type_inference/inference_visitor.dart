@@ -12184,6 +12184,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
+    if (member != null &&
+        (member is Field || (member is Procedure && member.isGetter))) {
+      // Try to find a `.call()`.
+      DartType receiverType = member.getterType;
+      Expression receiver = new StaticGet(member)..fileOffset = node.fileOffset;
+      return inferMethodInvocation(this, node.fileOffset, receiver,
+          receiverType, callName, node.arguments as ArgumentsImpl, typeContext,
+          isExpressionInvocation: true, isImplicitCall: true);
+    }
+
     if (expr == null) {
       Expression replacement;
       if (isKnown(cachedContext)) {

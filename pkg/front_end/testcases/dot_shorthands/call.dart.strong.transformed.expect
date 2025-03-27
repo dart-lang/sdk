@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  static field self::C id2 = #C1;
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static get id1() → self::C
+    return #C1;
+  method call() → self::C
+    return #C1;
+}
+static method main() → void {
+  self::C c1 = self::C::id1.{self::C::call}(){() → self::C};
+  self::C c2 = self::C::id2.{self::C::call}(){() → self::C};
+}
+
+constants  {
+  #C1 = self::C {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///call.dart:
+- C. (from org-dartlang-testcase:///call.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
