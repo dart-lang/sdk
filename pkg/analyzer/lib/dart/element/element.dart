@@ -357,7 +357,7 @@ abstract class DirectiveUriWithSource extends DirectiveUriWithRelativeUri {
   Source get source;
 }
 
-/// [DirectiveUriWithSource] that references a [CompilationUnitElement].
+/// [DirectiveUriWithSource] that references a [LibraryFragment].
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
@@ -366,6 +366,7 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
   LibraryFragment get libraryFragment;
 
   /// The unit referenced by the [source].
+  @Deprecated('Use libraryFragment instead')
   CompilationUnitElement get unit;
 }
 
@@ -430,6 +431,8 @@ abstract class Element implements AnalysisTarget {
   /// For [CompilationUnitElement] returns the [CompilationUnitElement] that
   /// uses `part` directive to include this element, or `null` if this element
   /// is the defining unit of the library.
+  @Deprecated('Use Element2.enclosingElement2 instead or '
+      'Fragment.enclosingFragment instead')
   Element? get enclosingElement3;
 
   /// Whether the element has an annotation of the form `@alwaysThrows`.
@@ -653,6 +656,7 @@ abstract class Element implements AnalysisTarget {
   /// Returns either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`, or `null` if there is no such
   /// element.
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
   );
@@ -660,16 +664,19 @@ abstract class Element implements AnalysisTarget {
   /// Returns either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`, or `null` if there is no such
   /// element.
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   E? thisOrAncestorMatching3<E extends Element>(
     bool Function(Element) predicate,
   );
 
   /// Returns either this element or the most immediate ancestor of this element
   /// that has the given type, or `null` if there is no such element.
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   E? thisOrAncestorOfType<E extends Element>();
 
   /// Returns either this element or the most immediate ancestor of this element
   /// that has the given type, or `null` if there is no such element.
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   E? thisOrAncestorOfType3<E extends Element>();
 
   /// Uses the given [visitor] to visit all of the children of this element.

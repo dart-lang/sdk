@@ -3073,7 +3073,7 @@ package:analyzer/dart/element/element.dart:
   DirectiveUriWithUnit (class extends DirectiveUriWithSource):
     new (constructor: DirectiveUriWithUnit Function())
     libraryFragment (getter: LibraryFragment, experimental)
-    unit (getter: CompilationUnitElement)
+    unit (getter: CompilationUnitElement, deprecated)
   Element (class extends Object implements AnalysisTarget):
     new (constructor: Element Function())
     children (getter: List<Element>)
@@ -3081,7 +3081,7 @@ package:analyzer/dart/element/element.dart:
     declaration (getter: Element?)
     displayName (getter: String)
     documentationComment (getter: String?)
-    enclosingElement3 (getter: Element?)
+    enclosingElement3 (getter: Element?, deprecated)
     hasAlwaysThrows (getter: bool)
     hasDeprecated (getter: bool)
     hasDoNotStore (getter: bool)
@@ -3128,10 +3128,10 @@ package:analyzer/dart/element/element.dart:
     getDisplayString (method: String Function({bool multiline, bool withNullability}))
     getExtendedDisplayName (method: String Function(String?))
     isAccessibleIn (method: bool Function(LibraryElement))
-    thisOrAncestorMatching (method: E? Function<E extends Element>(bool Function(Element)))
-    thisOrAncestorMatching3 (method: E? Function<E extends Element>(bool Function(Element)))
-    thisOrAncestorOfType (method: E? Function<E extends Element>())
-    thisOrAncestorOfType3 (method: E? Function<E extends Element>())
+    thisOrAncestorMatching (method: E? Function<E extends Element>(bool Function(Element)), deprecated)
+    thisOrAncestorMatching3 (method: E? Function<E extends Element>(bool Function(Element)), deprecated)
+    thisOrAncestorOfType (method: E? Function<E extends Element>(), deprecated)
+    thisOrAncestorOfType3 (method: E? Function<E extends Element>(), deprecated)
     visitChildren (method: void Function(ElementVisitor<dynamic>), deprecated)
   ElementAnnotation (class extends Object implements ConstantEvaluationTarget):
     new (constructor: ElementAnnotation Function())

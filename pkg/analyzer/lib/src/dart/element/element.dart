@@ -2994,7 +2994,10 @@ abstract class ElementImpl implements Element, ElementOrMember {
   }
 
   @override
-  LibraryElementImpl? get library => thisOrAncestorOfType();
+  LibraryElementImpl? get library {
+    // ignore:deprecated_member_use_from_same_package
+    return thisOrAncestorOfType();
+  }
 
   @override
   Source? get librarySource => library?.source;
@@ -3131,6 +3134,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
     _modifiers = _modifiers.updated(modifier, value);
   }
 
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   @override
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
@@ -3142,6 +3146,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
     return element as E?;
   }
 
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   @override
   E? thisOrAncestorMatching3<E extends Element>(
     bool Function(Element) predicate,
@@ -3153,6 +3158,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
     return element as E?;
   }
 
+  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
   @override
   E? thisOrAncestorOfType<E extends Element>() {
     if (E == LibraryElement || E == LibraryElementImpl) {
@@ -3171,6 +3177,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
     return element;
   }
 
+  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
   @override
   E? thisOrAncestorOfType3<E extends Element>() {
     Element element = this;
@@ -4236,7 +4243,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldElementImpl? get nextFragment => super.nextFragment as FieldElementImpl?;
 
   @override
-  int get offset => isSynthetic ? enclosingFragment!.offset : _nameOffset;
+  int get offset => isSynthetic ? enclosingFragment.offset : _nameOffset;
 
   @override
   FieldElementImpl? get previousFragment =>
@@ -7489,7 +7496,12 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   ElementKind get kind => ElementKind.EXPORT;
 
   @override
-  LibraryFragment get libraryFragment => enclosingElement3;
+  LibraryElementImpl get library {
+    return libraryFragment.library;
+  }
+
+  @override
+  CompilationUnitElementImpl get libraryFragment => enclosingElement3;
 
   @Deprecated('Use Element2 and accept2() instead')
   @override
@@ -7552,6 +7564,11 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
+
+  @override
+  LibraryElementImpl get library {
+    return libraryFragment.library;
+  }
 
   @override
   CompilationUnitElementImpl get libraryFragment => enclosingElement3;
@@ -9366,8 +9383,9 @@ class ParameterElementImpl extends VariableElementImpl
   LibraryElementImpl? get library2 => library;
 
   @override
-  LibraryFragment? get libraryFragment =>
-      thisOrAncestorOfType<CompilationUnitElementImpl>();
+  LibraryFragment? get libraryFragment {
+    return enclosingFragment?.libraryFragment;
+  }
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
@@ -10235,7 +10253,7 @@ abstract class PropertyInducingElementImpl
   PropertyInducingElementImpl2 get element;
 
   @override
-  Fragment? get enclosingFragment => enclosingElement3 as Fragment;
+  Fragment get enclosingFragment => enclosingElement3 as Fragment;
 
   @override
   GetterFragment? get getter2 => getter as GetterFragment?;
@@ -10262,8 +10280,9 @@ abstract class PropertyInducingElementImpl
   }
 
   @override
-  LibraryFragment get libraryFragment =>
-      thisOrAncestorOfType<CompilationUnitElementImpl>()!;
+  LibraryFragment get libraryFragment {
+    return enclosingFragment.libraryFragment!;
+  }
 
   @override
   ElementImpl get nonSynthetic {
@@ -11362,8 +11381,9 @@ class TypeParameterElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
-  LibraryFragment? get libraryFragment =>
-      thisOrAncestorOfType<CompilationUnitElementImpl>();
+  LibraryFragment? get libraryFragment {
+    return enclosingFragment?.libraryFragment;
+  }
 
   @override
   String get name {
@@ -11844,7 +11864,13 @@ abstract class _Fragmented<E extends Fragment> {
 
 mixin _HasLibraryMixin on ElementImpl {
   @override
-  LibraryElementImpl get library => thisOrAncestorOfType()!;
+  LibraryElementImpl get library {
+    var thisFragment = this as Fragment;
+    var enclosingFragment = thisFragment.enclosingFragment!;
+    var libraryFragment = enclosingFragment.libraryFragment;
+    libraryFragment as CompilationUnitElementImpl;
+    return libraryFragment.element;
+  }
 
   @override
   Source get librarySource => library.source;

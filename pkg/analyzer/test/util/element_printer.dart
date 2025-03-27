@@ -38,7 +38,7 @@ class ElementPrinter {
     } else if (uri is DirectiveUriWithUnit) {
       _sink.writeln('DirectiveUriWithUnit');
       _sink.withIndent(() {
-        var uriStr = _stringOfSource(uri.unit.source);
+        var uriStr = _stringOfSource(uri.libraryFragment.source);
         _sink.writelnWithIndent('uri: $uriStr');
       });
     } else if (uri is DirectiveUriWithSource) {
@@ -273,6 +273,7 @@ class ElementPrinter {
   }
 
   String _elementToReferenceString(Element element) {
+    // ignore:deprecated_member_use_from_same_package
     var enclosingElement = element.enclosingElement3;
     var reference = (element as ElementImpl).reference;
     if (reference != null) {
