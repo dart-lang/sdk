@@ -18,8 +18,6 @@ void main() {
 
 @reflectiveTest
 class PostfixCompletionTest extends PubPackageAnalysisServerTest {
-  late TestCode testCode;
-
   late SourceChange change;
 
   @override
@@ -29,13 +27,13 @@ class PostfixCompletionTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_for() async {
-    _newFileForCompletion('''
+    addTestFile('''
 void f() {
   []^
 }
 ''');
 
-    await _prepareCompletionAt(testCode.position.offset, '.for');
+    await _prepareCompletionAt(parsedTestCode.position.offset, '.for');
     _assertHasChange('Expand .for', '''
 void f() {
   for (var value in []) {
@@ -74,7 +72,7 @@ void f() {
   }
 
   Future<void> test_notApplicable_inComment_try() async {
-    _newFileForCompletion('''
+    addTestFile('''
 void f() {
   () {
     // comment^
@@ -83,7 +81,7 @@ void f() {
 ''');
 
     var result = await _isApplicable(
-      offset: testCode.position.offset,
+      offset: parsedTestCode.position.offset,
       key: '.try',
     );
     expect(result, isFalse);
@@ -117,12 +115,6 @@ void f() {
       clientUriConverter: server.uriConverter,
     );
     return result.value;
-  }
-
-  void _newFileForCompletion(String content) {
-    testCode = TestCode.parse(content);
-
-    modifyFile2(testFile, testCode.code);
   }
 
   Future<void> _prepareCompletionAt(int offset, String key) async {

@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_utilities/test/experiments/experiments.dart';
 import 'package:analyzer_utilities/test/mock_packages/mock_packages.dart';
@@ -241,6 +242,8 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     '$testPackageLibPath/test.dart',
   );
 
+  late TestCode parsedTestCode;
+
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => experimentsForTests;
@@ -286,7 +289,8 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   // TODO(scheglov): rename
   void addTestFile(String content) {
-    newFile(testFilePath, content);
+    parsedTestCode = TestCode.parse(content);
+    newFile(testFilePath, parsedTestCode.code);
   }
 
   @override

@@ -639,11 +639,11 @@ class ExtractMethodTest extends _AbstractGetRefactoring_Test {
   Future<void> test_expression() {
     addTestFile('''
 void f() {
-  print(1 + 2);
+  print([!1 + 2!]);
   print(1 + 2);
 }
 ''');
-    _setOffsetLengthForString('1 + 2');
+    _setOffsetLengthFromMarkdown();
     return assertSuccessfulRefactoring(_computeChange, '''
 void f() {
   print(res());
@@ -659,11 +659,11 @@ int res() => 1 + 2;
 void f() {
   int a = 1;
   int b = 2;
-  print(a + b);
+  print([!a + b!]);
   print(a +  b);
 }
 ''');
-    _setOffsetLengthForString('a + b');
+    _setOffsetLengthFromMarkdown();
     return assertSuccessfulRefactoring(_computeChange, '''
 void f() {
   int a = 1;
@@ -681,11 +681,11 @@ int res(int a, int b) => a + b;
 void f() {
   int a = 1;
   int b = 2;
-  print(a + b);
+  print([!a + b!]);
   print(a + b);
 }
 ''');
-    _setOffsetLengthForString('a + b');
+    _setOffsetLengthFromMarkdown();
     var result = await getRefactoringResult(_computeChange);
     var feedback = result.feedback as ExtractMethodFeedback;
     var parameters = feedback.parameters;
@@ -709,15 +709,13 @@ int res(num bbb, int aaa) => aaa + bbb;
   Future<void> test_init_fatalError_invalidStatement() {
     addTestFile('''
 void f(bool b) {
-// start
-  if (b) {
-    print(1);
-// end
+  [!if (b) {
+    print(1);!]
     print(2);
   }
 }
 ''');
-    _setOffsetLengthForStartEnd();
+    _setOffsetLengthFromMarkdown();
     return waitForTasksFinished()
         .then((_) {
           return _sendExtractRequest();
@@ -736,11 +734,11 @@ void f(bool b) {
   Future<void> test_long_expression() {
     addTestFile('''
 void f() {
-  print(1 +
-    2);
+  print([!1 +
+    2!]);
 }
 ''');
-    _setOffsetLengthForString('1 +\n    2');
+    _setOffsetLengthFromMarkdown();
     return assertSuccessfulRefactoring(_computeChange, '''
 void f() {
   print(res());
@@ -758,10 +756,10 @@ int res() {
 class TreeItem {}
 TreeItem getSelectedItem() => null;
 void f() {
-  var a = getSelectedItem( );
+  var a = [!getSelectedItem()!];
 }
 ''');
-    _setOffsetLengthForString('getSelectedItem( )');
+    _setOffsetLengthFromMarkdown();
     return _computeInitialFeedback().then((feedback) {
       expect(
         feedback.names,
@@ -776,11 +774,11 @@ void f() {
 class TreeItem {}
 TreeItem getSelectedItem() => null;
 void f() {
-  var a = 1 + 2;
+  var a = [!1 + 2!];
   var b = 1 +  2;
 }
 ''');
-    _setOffsetLengthForString('1 + 2');
+    _setOffsetLengthFromMarkdown();
     return _computeInitialFeedback().then((feedback) {
       expect(feedback.offsets, [findOffset('1 + 2'), findOffset('1 +  2')]);
       expect(feedback.lengths, [5, 6]);
@@ -792,20 +790,16 @@ void f() {
 void f() {
   int a = 1;
   int b = 2;
-// start
-  print(a + b);
-// end
+  [!print(a + b);!]
   print(a + b);
 }
 ''');
-    _setOffsetLengthForStartEnd();
+    _setOffsetLengthFromMarkdown();
     return assertSuccessfulRefactoring(_computeChange, '''
 void f() {
   int a = 1;
   int b = 2;
-// start
   res(a, b);
-// end
   res(a, b);
 }
 
@@ -818,24 +812,20 @@ void res(int a, int b) {
   Future<void> test_statements_nullableReturnType() {
     addTestFile('''
 void foo(int b) {
-// start
-  int? x;
+  [!int? x;
   if (b < 2) {
     x = 42;
   }
   if (b >= 2) {
     x = 43;
-  }
-// end
+  }!]
   print(x!);
 }
 ''');
-    _setOffsetLengthForStartEnd();
+    _setOffsetLengthFromMarkdown();
     return assertSuccessfulRefactoring(_computeChange, '''
 void foo(int b) {
-// start
   int? x = res(b);
-// end
   print(x!);
 }
 
@@ -893,14 +883,17 @@ int? res(int b) {
     return sendRequest(kind, offset, length, options);
   }
 
-  void _setOffsetLengthForStartEnd() {
-    offset = findOffset('// start') + '// start\n'.length;
-    length = findOffset('// end') - offset;
-  }
-
-  void _setOffsetLengthForString(String search) {
-    offset = findOffset(search);
-    length = search.length;
+  void _setOffsetLengthFromMarkdown() {
+    if (parsedTestCode.ranges.isNotEmpty) {
+      if (parsedTestCode.positions.isNotEmpty) {
+        fail('Expected a single range.');
+      }
+      var range = parsedTestCode.range.sourceRange;
+      offset = range.offset;
+      length = range.length;
+    } else {
+      fail('Expected a single range.');
+    }
   }
 }
 
