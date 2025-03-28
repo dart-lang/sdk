@@ -105,15 +105,14 @@ class LibraryManifestBuilder {
     required ClassElementImpl2 element,
     required LookupName lookupName,
   }) {
-    var item = itemMap[element];
-    if (item is! ClassItem) {
-      item = ClassItem.fromElement(
+    var item = _getOrBuildElementItem(element, () {
+      return ClassItem.fromElement(
         name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
       );
-    }
+    });
     newItems[lookupName] = item;
 
     var classItem = item;
@@ -190,16 +189,14 @@ class LibraryManifestBuilder {
     required GetterElement2OrMember element,
     required LookupName lookupName,
   }) {
-    var item = itemMap[element];
-    if (item is! InstanceGetterItem) {
-      item = InstanceGetterItem.fromElement(
+    var item = _getOrBuildElementItem(element, () {
+      return InstanceGetterItem.fromElement(
         name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
       );
-      itemMap[element] = item;
-    }
+    });
     instanceItem.members[lookupName] = item;
   }
 
@@ -209,16 +206,14 @@ class LibraryManifestBuilder {
     required MethodElement2OrMember element,
     required LookupName lookupName,
   }) {
-    var item = itemMap[element];
-    if (item is! InstanceMethodItem) {
-      item = InstanceMethodItem.fromElement(
+    var item = _getOrBuildElementItem(element, () {
+      return InstanceMethodItem.fromElement(
         name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
       );
-      itemMap[element] = item;
-    }
+    });
     instanceItem.members[lookupName] = item;
   }
 
@@ -232,17 +227,14 @@ class LibraryManifestBuilder {
     // So, we include all of them, including private.
     // This is a general rule for "static" elements.
 
-    var item = itemMap[element];
-    // TODO(scheglov): rewrite checks with != null
-    if (item is! InterfaceConstructorItem) {
-      item = InterfaceConstructorItem.fromElement(
+    var item = _getOrBuildElementItem(element, () {
+      return InterfaceConstructorItem.fromElement(
         name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
       );
-      itemMap[element] = item;
-    }
+    });
     interfaceItem.members[lookupName] = item;
   }
 
@@ -305,15 +297,14 @@ class LibraryManifestBuilder {
     required TopLevelFunctionElementImpl element,
     required LookupName lookupName,
   }) {
-    var item = itemMap[element];
-    if (item is! TopLevelFunctionItem) {
-      item = TopLevelFunctionItem.fromElement(
+    var item = _getOrBuildElementItem(element, () {
+      return TopLevelFunctionItem.fromElement(
         name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
       );
-    }
+    });
     newItems[lookupName] = item;
   }
 
@@ -323,15 +314,14 @@ class LibraryManifestBuilder {
     required GetterElementImpl element,
     required LookupName lookupName,
   }) {
-    var item = itemMap[element];
-    if (item is! TopLevelGetterItem) {
-      item = TopLevelGetterItem.fromElement(
+    var item = _getOrBuildElementItem(element, () {
+      return TopLevelGetterItem.fromElement(
         name: lookupName,
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
       );
-    }
+    });
     newItems[lookupName] = item;
   }
 
@@ -456,6 +446,24 @@ class LibraryManifestBuilder {
   /// Returns the manifest from [inputManifests], empty if absent.
   LibraryManifest _getInputManifest(Uri uri) {
     return inputManifests[uri] ?? LibraryManifest(uri: uri, items: {});
+  }
+
+  /// Returns either the existing item from [itemMap], or builds a new one.
+  Item _getOrBuildElementItem<Element extends Element2,
+      Item extends ManifestItem>(
+    Element element,
+    Item Function() build,
+  ) {
+    // We assume that when matching elements against the structure of
+    // the item, we put into [itemMap] only the type of the item that
+    // corresponds the type of the element.
+    var item = itemMap[element] as Item?;
+    if (item == null) {
+      item = build();
+      // To reuse items for inherited members.
+      itemMap[element] = item;
+    }
+    return item;
   }
 }
 
