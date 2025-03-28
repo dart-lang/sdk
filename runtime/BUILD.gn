@@ -243,6 +243,7 @@ config("dart_config") {
     }
   } else {
     cflags = [
+      "-Wnewline-eof",  # Flutter compiles with this (to match Fuchsia).
       "-Wno-unused-parameter",
       "-Wno-unused-private-field",
       "-Wnon-virtual-dtor",
