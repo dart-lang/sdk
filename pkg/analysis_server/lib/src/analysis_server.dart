@@ -173,6 +173,10 @@ abstract class AnalysisServer {
   /// server.
   final DiagnosticServer? diagnosticServer;
 
+  /// Additional diagnostic info from the client editor to include in diagnostic
+  /// reports.
+  Object? clientDiagnosticInformation;
+
   /// A [RecentBuffer] of the most recent exceptions encountered by the analysis
   /// server.
   final RecentBuffer<ServerException> exceptions = RecentBuffer(10);

@@ -491,6 +491,17 @@ class ByteStoreTimingPage extends DiagnosticPageWithNav
   }
 }
 
+class ClientPage extends DiagnosticPageWithNav {
+  ClientPage(super.site, [super.id = 'client', super.title = 'Client'])
+    : super(description: 'Information about the client.');
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    h3('Client Diagnostic Information');
+    prettyJson(server.clientDiagnosticInformation);
+  }
+}
+
 class CollectReportPage extends DiagnosticPage {
   CollectReportPage(DiagnosticsSite site)
     : super(
@@ -553,6 +564,9 @@ class CollectReportPage extends DiagnosticPage {
     if (server is LegacyAnalysisServer) {
       collectedData['serverServices'] =
           server.serverServices.map((e) => e.toString()).toList();
+    } else if (server is LspAnalysisServer) {
+      collectedData['clientDiagnosticInformation'] =
+          server.clientDiagnosticInformation;
     }
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
@@ -1394,9 +1408,10 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
       pages.add(PluginsPage(this, server));
     }
     if (server is LegacyAnalysisServer) {
+      pages.add(ClientPage(this));
       pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
-      pages.add(LspPage(this, server));
+      pages.add(LspClientPage(this, server));
       pages.add(LspCapabilitiesPage(this, server));
       pages.add(LspRegistrationsPage(this, server));
     }
@@ -1716,17 +1731,12 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
   }
 }
 
-class LspPage extends DiagnosticPageWithNav {
+/// Overrides [ClientPage] including LSP-specific data.
+class LspClientPage extends ClientPage {
   @override
   LspAnalysisServer server;
 
-  LspPage(DiagnosticsSite site, this.server)
-    : super(
-        site,
-        'lsp',
-        'LSP',
-        description: 'Information about an LSP client.',
-      );
+  LspClientPage(DiagnosticsSite site, this.server) : super(site, 'lsp', 'LSP');
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
@@ -1740,6 +1750,8 @@ class LspPage extends DiagnosticPageWithNav {
 
     h3('Initialization Options');
     prettyJson(server.initializationOptions?.raw);
+
+    await super.generateContent(params);
   }
 }
 
