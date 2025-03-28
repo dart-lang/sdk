@@ -3858,7 +3858,7 @@ class SsaNode<Type extends Object> {
   /// If a new SSA node is created, it is allocated a fresh promotion key using
   /// [promotionKeyStore], so that type promotions for it can be tracked
   /// separately from other type promotions.
-  _PropertySsaNode<Type> getProperty(
+  _PropertySsaNode<Type> getOrCreatePropertyNode(
       String propertyName, PromotionKeyStore<Object> promotionKeyStore,
       {required bool isPromotable}) {
     if (isPromotable) {
@@ -6034,9 +6034,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     bool isPromotable = propertyMember != null &&
         fieldPromotionEnabled &&
         operations.isPropertyPromotable(propertyMember);
-    _PropertySsaNode<Type> propertySsaNode = targetSsaNode.getProperty(
-        propertyName, promotionKeyStore,
-        isPromotable: isPromotable);
+    _PropertySsaNode<Type> propertySsaNode =
+        targetSsaNode.getOrCreatePropertyNode(propertyName, promotionKeyStore,
+            isPromotable: isPromotable);
     Type? promotedType;
     if (isPromotable) {
       PromotionModel<Type>? promotionInfo =
