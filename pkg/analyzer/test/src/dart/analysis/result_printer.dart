@@ -573,7 +573,12 @@ class DriverEventsPrinterConfiguration {
     'noSuchMethod',
     'runtimeType',
     'toString',
+    'new',
   };
+
+  void includeDefaultConstructors() {
+    ignoredManifestInstanceMemberNames.remove('new');
+  }
 }
 
 class ErrorsResultPrinterConfiguration {
@@ -778,6 +783,8 @@ class LibraryManifestPrinter {
           case InstanceGetterItem():
             _writeNamedType('returnType', item.returnType);
           case InstanceMethodItem():
+            _writeNamedType('functionType', item.functionType);
+          case InterfaceConstructorItem():
             _writeNamedType('functionType', item.functionType);
         }
       });

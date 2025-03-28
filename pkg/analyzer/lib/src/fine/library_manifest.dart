@@ -121,13 +121,67 @@ class LibraryManifestBuilder {
       element.typeParameters2,
       (typeParameters) {
         classItem.members.clear();
-        _addInterfaceExecutables(
+        _addInterfaceConstructors(
+          encodingContext: encodingContext,
+          interfaceElement: element,
+          interfaceItem: classItem,
+        );
+        _addInstanceExecutables(
           encodingContext: encodingContext,
           element: element,
           classItem: classItem,
         );
       },
     );
+  }
+
+  void _addInstanceExecutable({
+    required EncodeContext encodingContext,
+    required ClassItem instanceItem,
+    required Name nameObj,
+    required ExecutableElement2OrMember element,
+  }) {
+    // Skip private names, cannot be used outside this library.
+    // TODO(scheglov): reconsider for static that can be reference from const
+    if (!nameObj.isPublic) {
+      return;
+    }
+
+    var lookupName = nameObj.name.asLookupName;
+
+    switch (element) {
+      case GetterElement2OrMember():
+        _addInstanceGetter(
+          encodingContext: encodingContext,
+          instanceItem: instanceItem,
+          element: element,
+          lookupName: lookupName,
+        );
+      case MethodElement2OrMember():
+        _addInstanceMethod(
+          encodingContext: encodingContext,
+          instanceItem: instanceItem,
+          element: element,
+          lookupName: lookupName,
+        );
+      // TODO(scheglov): add setters support
+    }
+  }
+
+  void _addInstanceExecutables({
+    required EncodeContext encodingContext,
+    required ClassElementImpl2 element,
+    required ClassItem classItem,
+  }) {
+    var map = element.inheritanceManager.getInterface2(element).map2;
+    for (var entry in map.entries) {
+      _addInstanceExecutable(
+        encodingContext: encodingContext,
+        instanceItem: classItem,
+        nameObj: entry.key,
+        element: entry.value,
+      );
+    }
   }
 
   void _addInstanceGetter({
@@ -168,50 +222,45 @@ class LibraryManifestBuilder {
     instanceItem.members[lookupName] = item;
   }
 
-  void _addInterfaceExecutable({
+  void _addInterfaceConstructor({
     required EncodeContext encodingContext,
-    required ClassItem instanceItem,
-    required Name nameObj,
-    required ExecutableElement2OrMember element,
+    required ClassItem interfaceItem,
+    required ConstructorElementImpl2 element,
+    required LookupName lookupName,
   }) {
-    // Skip private names, cannot be used outside this library.
-    if (!nameObj.isPublic) {
-      return;
-    }
+    // Constructors can be referenced by constants.
+    // So, we include all of them, including private.
+    // This is a general rule for "static" elements.
 
-    var lookupName = nameObj.name.asLookupName;
-
-    switch (element) {
-      case GetterElement2OrMember():
-        _addInstanceGetter(
-          encodingContext: encodingContext,
-          instanceItem: instanceItem,
-          element: element,
-          lookupName: lookupName,
-        );
-      case MethodElement2OrMember():
-        _addInstanceMethod(
-          encodingContext: encodingContext,
-          instanceItem: instanceItem,
-          element: element,
-          lookupName: lookupName,
-        );
+    var item = itemMap[element];
+    // TODO(scheglov): rewrite checks with != null
+    if (item is! InterfaceConstructorItem) {
+      item = InterfaceConstructorItem.fromElement(
+        name: lookupName,
+        id: ManifestItemId.generate(),
+        context: encodingContext,
+        element: element,
+      );
+      itemMap[element] = item;
     }
+    interfaceItem.members[lookupName] = item;
   }
 
-  void _addInterfaceExecutables({
+  void _addInterfaceConstructors({
     required EncodeContext encodingContext,
-    required ClassElementImpl2 element,
-    required ClassItem classItem,
+    required InterfaceElementImpl2 interfaceElement,
+    required ClassItem interfaceItem,
   }) {
-    var map = element.inheritanceManager.getInterface2(element).map2;
-    for (var entry in map.entries) {
-      _addInterfaceExecutable(
-        encodingContext: encodingContext,
-        instanceItem: classItem,
-        nameObj: entry.key,
-        element: entry.value,
-      );
+    for (var constructor in interfaceElement.constructors2) {
+      var lookupName = constructor.name3?.asLookupName;
+      if (lookupName != null) {
+        _addInterfaceConstructor(
+          encodingContext: encodingContext,
+          interfaceItem: interfaceItem,
+          element: constructor,
+          lookupName: lookupName,
+        );
+      }
     }
   }
 
@@ -493,7 +542,13 @@ class _LibraryMatch {
     refElementsMap[element] = matchContext.elementList;
     refExternalIds.addAll(matchContext.externalIds);
 
-    _matchInterfaceExecutables(
+    _matchInterfaceConstructors(
+      matchContext: matchContext,
+      interfaceElement: element,
+      item: item,
+    );
+
+    _matchInstanceExecutables(
       matchContext: matchContext,
       element: element,
       item: item,
@@ -502,7 +557,7 @@ class _LibraryMatch {
     return true;
   }
 
-  bool _matchInterfaceExecutable({
+  bool _matchInstanceExecutable({
     required MatchContext interfaceMatchContext,
     required Map<LookupName, InstanceMemberItem> members,
     required Name nameObj,
@@ -537,7 +592,6 @@ class _LibraryMatch {
 
         var matchContext = item.match(interfaceMatchContext, executable);
         if (matchContext == null) {
-          item.match(interfaceMatchContext, executable);
           return false;
         }
 
@@ -554,7 +608,7 @@ class _LibraryMatch {
     throw UnimplementedError('(${executable.runtimeType}) $executable');
   }
 
-  void _matchInterfaceExecutables({
+  void _matchInstanceExecutables({
     required MatchContext matchContext,
     required ClassElementImpl2 element,
     required ClassItem item,
@@ -563,13 +617,55 @@ class _LibraryMatch {
     for (var entry in map.entries) {
       var nameObj = entry.key;
       var executable = entry.value;
-      if (!_matchInterfaceExecutable(
+      if (!_matchInstanceExecutable(
         interfaceMatchContext: matchContext,
         members: item.members,
         nameObj: nameObj,
         executable: executable,
       )) {
         structureMismatched.add(executable);
+      }
+    }
+  }
+
+  bool _matchInterfaceConstructor({
+    required MatchContext interfaceMatchContext,
+    required Map<LookupName, InstanceMemberItem> members,
+    required ConstructorElementImpl2 element,
+  }) {
+    var lookupName = element.name3?.asLookupName;
+    if (lookupName == null) {
+      return false;
+    }
+
+    var item = members[lookupName];
+    if (item is! InterfaceConstructorItem) {
+      return false;
+    }
+
+    var matchContext = item.match(interfaceMatchContext, element);
+    if (matchContext == null) {
+      return false;
+    }
+
+    itemMap[element] = item;
+    refElementsMap[element] = matchContext.elementList;
+    refExternalIds.addAll(matchContext.externalIds);
+    return true;
+  }
+
+  void _matchInterfaceConstructors({
+    required MatchContext matchContext,
+    required ClassElementImpl2 interfaceElement,
+    required ClassItem item,
+  }) {
+    for (var constructor in interfaceElement.constructors2) {
+      if (!_matchInterfaceConstructor(
+        interfaceMatchContext: matchContext,
+        members: item.members,
+        element: constructor,
+      )) {
+        structureMismatched.add(constructor);
       }
     }
   }
