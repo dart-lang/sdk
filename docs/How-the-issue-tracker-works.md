@@ -239,7 +239,7 @@ waiting to be triaged.
 
 Subteams often have their own labels that are only meaningful for a certain
 product or system. Those labels start with the name of the team's area. For
-example, "analyzer-", "vm-", etc. Area-specific labels are owned by the
+example, "devexp-", "vm-", etc. Area-specific labels are owned by the
 respective team and it's up to that team to manage how the labels are used, what
 they mean, and when they can be removed.
 
@@ -316,7 +316,7 @@ There are a few other miscellaneous labels you might run into:
 
 ## Queries
 
-* [Issues with no area](https://github.com/dart-lang/sdk/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+-label%3Aarea-analyzer-cfe+-label%3Aarea-analyzer+-label%3Aarea-build+-label%3Aarea-dart2js+-label%3Aarea-dev-compiler+-label%3Aarea-documentation+-label%3Aarea-front-end+-label%3Aarea-html+-label%3Aarea-infrastructure+-label%3Aarea-intellij+-label%3Aarea-js-interop+-label%3Aarea-kernel+-label%3Aarea-language+-label%3Aarea-library+-label%3Aarea-meta+-label%3Aarea-observatory+-label%3Aarea-pkg+-label%3Aarea-samples+-label%3Aarea-sdk+-label%3Aarea-spec-parser+-label%3Aarea-specification+-label%3Aarea-test+-label%3Aarea-vm)
+* [Issues with no area](https://github.com/dart-lang/sdk/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+-label%3Aarea-build+-label%3Aarea-dart2js+-label%3Aarea-dart-model+-label%3Aarea-devexp+-label%3Aarea-dev-compiler+-label%3Aarea-documentation+-label%3Aarea-front-end+-label%3Aarea-html+-label%3Aarea-infrastructure+-label%3Aarea-intellij+-label%3Aarea-js-interop+-label%3Aarea-kernel+-label%3Aarea-language+-label%3Aarea-library+-label%3Aarea-meta+-label%3Aarea-observatory+-label%3Aarea-pkg+-label%3Aarea-samples+-label%3Aarea-sdk+-label%3Aarea-spec-parser+-label%3Aarea-specification+-label%3Aarea-test+-label%3Aarea-vm)
 * [Issues with no priority](https://github.com/dart-lang/sdk/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+-label%3Ap0-critical+-label%3Ap1-high+-label%3Ap2-medium+-label%3Ap3-low+)
 * [Issues with no type](https://github.com/dart-lang/sdk/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+-label%3Atype-bug+-label%3Atype-code-health+-label%3Atype-documentation+-label%3Atype-enhancement+-label%3Atype-performance+-label%3Atype-security+-label%3Atype-task)
 * [Meta-issues with no assignee](https://github.com/dart-lang/sdk/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aarea-meta+no%3Aassignee)
