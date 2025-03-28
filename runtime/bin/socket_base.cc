@@ -113,6 +113,7 @@ void SocketAddress::GetSockAddr(Dart_Handle obj, RawAddr* addr) {
   }
   if ((data_type != Dart_TypedData_kUint8) ||
       ((len != sizeof(in_addr)) && (len != sizeof(in6_addr)))) {
+    Dart_TypedDataReleaseData(obj);
     Dart_PropagateError(Dart_NewApiError("Unexpected type for socket address"));
   }
   memset(reinterpret_cast<void*>(addr), 0, sizeof(RawAddr));
