@@ -74,7 +74,7 @@ class AnalyticsManager {
   /// that have been handled.
   final Map<String, NotificationData> _completedNotifications = {};
 
-  /// A map from the name of a lint to the number of contexts in which the lint
+  /// A map from the name of a lint to the number of options files in which the lint
   /// was enabled.
   final Map<String, int> _lintUsageCounts = {};
 
