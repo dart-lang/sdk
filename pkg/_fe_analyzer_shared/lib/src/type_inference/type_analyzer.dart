@@ -567,7 +567,7 @@ mixin TypeAnalyzer<
     }
     ExpressionTypeAnalysisResult result = dispatchExpression(node, schema);
     // Stack: (Expression)
-    if (operations.isNever(result.type)) {
+    if (operations.isBottomType(result.type)) {
       flow.handleExit();
     }
     SharedTypeView type = result.type;
@@ -1295,7 +1295,7 @@ mixin TypeAnalyzer<
     (Object?, SharedTypeView)? overridePropertyGetType;
     if (requiredType is SharedDynamicType ||
         requiredType is SharedInvalidType ||
-        operations.isNever(requiredType)) {
+        operations.isBottomType(requiredType)) {
       overridePropertyGetType = (null, requiredType);
     }
 
@@ -1328,7 +1328,7 @@ mixin TypeAnalyzer<
       SharedTypeView promotedPropertyType = flow.pushPropertySubpattern(
               propertyName, propertyMember, unpromotedPropertyType) ??
           unpromotedPropertyType;
-      if (operations.isNever(promotedPropertyType)) {
+      if (operations.isBottomType(promotedPropertyType)) {
         flow.handleExit();
       }
       dispatchPattern(

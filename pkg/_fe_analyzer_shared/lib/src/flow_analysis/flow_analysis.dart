@@ -2624,7 +2624,7 @@ class FlowModel<Type extends Object> {
 
     Type factoredType = helper.typeOperations.factor(previousType, type);
     Type? typeIfFalse;
-    if (helper.typeOperations.isNever(factoredType)) {
+    if (helper.typeOperations.isBottomType(factoredType)) {
       // Promoting to `Never` would mark the code as unreachable.  But it might
       // be reachable due to mixed mode unsoundness.  So don't promote.
       typeIfFalse = null;
@@ -4978,7 +4978,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void isExpression_end(Expression isExpression, Expression subExpression,
       bool isNot, Type type) {
-    if (operations.isNever(type)) {
+    if (operations.isBottomType(type)) {
       booleanLiteral(isExpression, isNot);
     } else {
       _Reference<Type>? subExpressionReference =

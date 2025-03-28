@@ -2869,6 +2869,12 @@ class MiniAstOperations
   }
 
   @override
+  bool isBottomType(SharedTypeView type) {
+    Type unwrappedType = type.unwrapTypeView();
+    return unwrappedType is NeverType && !unwrappedType.isQuestionType;
+  }
+
+  @override
   bool isDartCoreFunctionInternal(Type type) {
     return type is PrimaryType &&
         !type.isQuestionType &&
@@ -2899,12 +2905,6 @@ class MiniAstOperations
   @override
   bool isInterfaceTypeInternal(Type type) {
     return type is PrimaryType && type.isInterfaceType;
-  }
-
-  @override
-  bool isNever(SharedTypeView type) {
-    Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is NeverType && !unwrappedType.isQuestionType;
   }
 
   @override

@@ -594,7 +594,7 @@ class OperationsCfe
   }
 
   @override
-  bool isNever(SharedTypeView type) {
+  bool isBottomType(SharedTypeView type) {
     return typeEnvironment.coreTypes.isBottom(type.unwrapTypeView());
   }
 

@@ -182,6 +182,9 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// Returns `true` if [fromType] is assignable to [toType].
   bool isAssignableTo(SharedTypeView fromType, SharedTypeView toType);
 
+  @override
+  bool isBottomType(SharedTypeView type);
+
   /// Returns `true` if [type] is `Function` from `dart:core`. The method
   /// returns `false` for `Function?` and `Function*`.
   bool isDartCoreFunctionInternal(covariant SharedType type);
@@ -201,9 +204,6 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// extension type, a type alias, `Null`, `Never`, or `FutureOr<X>` for any
   /// type `X`.
   bool isInterfaceTypeInternal(covariant SharedType type);
-
-  @override
-  bool isNever(SharedTypeView type);
 
   /// Returns `true` if `Null` is not a subtype of all types matching [type].
   ///
@@ -1465,7 +1465,7 @@ abstract class TypeConstraintGenerator<
     }
 
     // If `P` is `Never` then the match holds under no constraints.
-    if (typeAnalyzerOperations.isNever(new SharedTypeView(p))) {
+    if (typeAnalyzerOperations.isBottomType(new SharedTypeView(p))) {
       return true;
     }
 
