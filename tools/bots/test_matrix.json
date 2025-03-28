@@ -346,12 +346,6 @@
         "use-sdk": true
       }
     },
-    "dart2js-win-ie11": {
-      "options": {
-        "babel": "{\"presets\":[\"es2015\"]}",
-        "use-sdk": true
-      }
-    },
     "dart2js-win-edge": {
       "options": {
         "use-sdk": true

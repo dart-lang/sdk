@@ -577,12 +577,6 @@ class CommandExecutorImpl implements CommandExecutor {
           adbDevicePool!.releaseDevice(device);
         }
       });
-    } else if (command is CompilationCommand &&
-        command.displayName == 'babel') {
-      return RunningProcess(command, timeout,
-              configuration: globalConfiguration,
-              outputFile: io.File(command.outputFile))
-          .run();
     } else if (command is ProcessCommand) {
       return RunningProcess(command, timeout,
               configuration: globalConfiguration)

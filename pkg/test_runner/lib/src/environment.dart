@@ -23,7 +23,6 @@ final _variables = {
   "host_asserts": _Variable.bool((c) => c.enableHostAsserts),
   "hot_reload": _Variable.bool((c) => c.hotReload),
   "hot_reload_rollback": _Variable.bool((c) => c.hotReloadRollback),
-  "ie": _Variable.bool((c) => c.runtime.isIE),
   "jscl": _Variable.bool((c) => c.runtime.isJSCommandLine),
   "minified": _Variable.bool((c) => c.isMinified),
   "mode": _Variable((c) => c.mode.name, Mode.names),
