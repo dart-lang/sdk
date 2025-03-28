@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
+import 'package:analysis_server_plugin/edit/assist/assist.dart';
+import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/plugin.dart';
-import 'package:analysis_server_plugin/src/correction/assist_core.dart';
-import 'package:analysis_server_plugin/src/correction/assist_dart.dart';
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
