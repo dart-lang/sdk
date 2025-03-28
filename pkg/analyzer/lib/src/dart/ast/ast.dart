@@ -1283,6 +1283,10 @@ abstract class AstVisitor<R> {
 
   R? visitDoStatement(DoStatement node);
 
+  R? visitDotShorthandInvocation(DotShorthandInvocation node);
+
+  R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node);
+
   R? visitDottedName(DottedName node);
 
   R? visitDoubleLiteral(DoubleLiteral node);
@@ -5390,6 +5394,140 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
     _body.accept(visitor);
     _condition.accept(visitor);
   }
+}
+
+/// A node that represents a dot shorthand static method or constructor
+/// invocation.
+///
+/// For example, `.parse('42')`.
+///
+///    dotShorthandHead ::=
+///        '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DotShorthandInvocation extends InvocationExpression {
+  /// The name of the constructor or static method invocation.
+  SimpleIdentifier get memberName;
+
+  /// The token representing the period.
+  Token get period;
+}
+
+final class DotShorthandInvocationImpl extends InvocationExpressionImpl
+    implements DotShorthandInvocation {
+  @override
+  final Token period;
+
+  SimpleIdentifierImpl _memberName;
+
+  /// Initializes a newly created dot shorthand invocation.
+  DotShorthandInvocationImpl({
+    required this.period,
+    required SimpleIdentifierImpl memberName,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _memberName = memberName {
+    _becomeParentOf(_memberName);
+  }
+
+  @override
+  Token get beginToken => period;
+
+  @override
+  Token get endToken => argumentList.endToken;
+
+  @override
+  ExpressionImpl get function => memberName;
+
+  @override
+  SimpleIdentifierImpl get memberName => _memberName;
+
+  set memberName(SimpleIdentifierImpl identifier) {
+    _memberName = _becomeParentOf(identifier);
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addNode('memberName', memberName)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDotShorthandInvocation(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitDotShorthandInvocation(this, contextType: contextType);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    memberName.accept(visitor);
+    typeArguments?.accept(visitor);
+    argumentList.accept(visitor);
+  }
+}
+
+/// A node that represents a dot shorthand property access of a field or a
+/// static getter.
+///
+/// For example, `.zero`.
+///
+///    dotShorthandHead ::= '.' [SimpleIdentifier]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DotShorthandPropertyAccess extends Expression {
+  /// The token representing the period.
+  Token get period;
+
+  /// The name of the property being accessed.
+  Token get propertyName;
+}
+
+final class DotShorthandPropertyAccessImpl extends ExpressionImpl
+    implements DotShorthandPropertyAccess {
+  @override
+  final Token period;
+
+  @override
+  final Token propertyName;
+
+  /// Initializes a newly created dot shorthand property access.
+  DotShorthandPropertyAccessImpl({
+    required this.period,
+    required this.propertyName,
+  });
+
+  @override
+  Token get beginToken => period;
+
+  @override
+  Token get endToken => propertyName;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addToken('propertyName', propertyName);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDotShorthandPropertyAccess(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitDotShorthandPropertyAccess(this, contextType: contextType);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {}
 }
 
 /// A dotted name, used in a configuration within an import or export directive.
@@ -10838,8 +10976,8 @@ final class InterpolationStringImpl extends InterpolationElementImpl
 
 /// The invocation of a function or method.
 ///
-/// This will either be a [FunctionExpressionInvocation] or a
-/// [MethodInvocation].
+/// This will either be a [FunctionExpressionInvocation], [MethodInvocation],
+/// or a [DotShorthandInvocation].
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvocationExpression implements Expression {
   /// The list of arguments to the method.
