@@ -243,7 +243,6 @@ config("dart_config") {
     }
   } else {
     cflags = [
-      "-Wnewline-eof",  # Flutter compiles with this (to match Fuchsia).
       "-Wno-unused-parameter",
       "-Wno-unused-private-field",
       "-Wnon-virtual-dtor",
@@ -257,6 +256,7 @@ config("dart_config") {
     ]
     if (is_clang) {
       cflags += [
+        "-Wnewline-eof",  # Flutter compiles with this (to match Fuchsia).
         "-Wimplicit-fallthrough",
         "-fno-strict-vtable-pointers",  # Handle assignment updates vtable
                                         # pointers.
