@@ -47,6 +47,17 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     _createAnalysisOptionsFile(
       lints: ['avoid_dynamic_calls', 'await_only_futures', 'unawaited_futures'],
     );
+    // Add a second set of options so we can validate usage counts for multiple
+    // options files.
+    _createAnalysisOptionsFile(
+      path: '$testPackageRootPath/sub/analysis_options.yaml',
+      lints: [
+        // A duplicate.
+        'avoid_dynamic_calls',
+        // And a new lint.
+        'void_checks',
+      ],
+    );
     var collection = _createContexts();
     _defaultStartup();
     manager.createdAnalysisContexts(collection.contexts);
@@ -54,7 +65,10 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     analytics.assertEvents([
       _ExpectedEvent.session(),
       _ExpectedEvent.lintUsageCount(
-        eventData: {'count': 1, 'name': 'avoid_dynamic_calls'},
+        eventData: {'count': 2, 'name': 'avoid_dynamic_calls'},
+      ),
+      _ExpectedEvent.lintUsageCount(
+        eventData: {'count': 1, 'name': 'void_checks'},
       ),
       _ExpectedEvent.lintUsageCount(
         eventData: {'count': 1, 'name': 'await_only_futures'},
