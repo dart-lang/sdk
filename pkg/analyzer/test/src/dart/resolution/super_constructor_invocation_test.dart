@@ -34,7 +34,6 @@ SuperConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    staticElement: <testLibraryFragment>::@class::A::@constructor::named
     element: <testLibraryFragment>::@class::A::@constructor::named#element
     staticType: null
   argumentList: ArgumentList
@@ -42,10 +41,9 @@ SuperConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <testLibraryFragment>::@class::A::@constructor::named::@parameter::a
+        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::named::@parameter::a#element
         staticType: int
     rightParenthesis: )
-  staticElement: <testLibraryFragment>::@class::A::@constructor::named
   element: <testLibraryFragment>::@class::A::@constructor::named#element
 ''');
   }
@@ -70,7 +68,6 @@ SuperConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    staticElement: <null>
     element: <null>
     staticType: null
   argumentList: ArgumentList
@@ -78,10 +75,9 @@ SuperConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <null>
+        correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  staticElement: <null>
   element: <null>
 ''');
   }
@@ -109,10 +105,9 @@ SuperConstructorInvocation
     arguments
       IntegerLiteral
         literal: 5
-        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
+        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         staticType: int
     rightParenthesis: )
-  staticElement: <testLibraryFragment>::@class::A::@constructor::new
   element: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
   }
@@ -137,10 +132,9 @@ SuperConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a
+        correspondingParameter: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
         staticType: int
     rightParenthesis: )
-  staticElement: <testLibraryFragment>::@class::A::@constructor::new
   element: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
   }
@@ -168,10 +162,9 @@ SuperConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <null>
+        correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  staticElement: <null>
   element: <null>
 ''');
   }

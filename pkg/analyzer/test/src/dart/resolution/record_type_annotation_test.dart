@@ -30,13 +30,11 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
   rightParenthesis: )
@@ -59,13 +57,11 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
   rightParenthesis: )
@@ -88,11 +84,10 @@ FormalParameterList
   parameter: SimpleFormalParameter
     type: NamedType
       name: <empty> <synthetic>
-      element: <null>
       element2: <null>
       type: InvalidType
     name: x
-    declaredElement: <testLibraryFragment>::@function::f::@parameter::x
+    declaredElement: <testLibraryFragment>::@function::f::@formalParameter::x
       type: InvalidType
   rightParenthesis: )
 ''');
@@ -113,11 +108,10 @@ FormalParameterList
   parameter: SimpleFormalParameter
     type: NamedType
       name: <empty> <synthetic>
-      element: <null>
       element2: <null>
       type: InvalidType
     name: x
-    declaredElement: <testLibraryFragment>::@function::f::@parameter::x
+    declaredElement: <testLibraryFragment>::@function::f::@formalParameter::x
       type: InvalidType
   rightParenthesis: )
 ''');
@@ -139,13 +133,11 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
   rightParenthesis: )
@@ -169,13 +161,11 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
   rightParenthesis: )
@@ -199,13 +189,11 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
   namedFields: RecordTypeAnnotationNamedFields
@@ -214,7 +202,6 @@ RecordTypeAnnotation
       RecordTypeAnnotationNamedField
         type: NamedType
           name: bool
-          element: dart:core::<fragment>::@class::bool
           element2: dart:core::@class::bool
           type: bool
         name: f3
@@ -242,14 +229,12 @@ RecordTypeAnnotation
       RecordTypeAnnotationNamedField
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         name: f1
       RecordTypeAnnotationNamedField
         type: NamedType
           name: String
-          element: dart:core::<fragment>::@class::String
           element2: dart:core::@class::String
           type: String
         name: f2
@@ -275,13 +260,11 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
   rightParenthesis: )
@@ -302,13 +285,11 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
   rightParenthesis: )
@@ -329,13 +310,11 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
   rightParenthesis: )
@@ -357,13 +336,11 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
   rightParenthesis: )
@@ -387,13 +364,11 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element: dart:core::<fragment>::@class::String
         element2: dart:core::@class::String
         type: String
   rightParenthesis: )

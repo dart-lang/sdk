@@ -10,6 +10,7 @@ import 'package:js_runtime/synced/array_flags.dart' show ArrayFlags;
 
 import 'package:js_runtime/synced/embedded_names.dart'
     show
+        CACHED_GLOBAL_THIS,
         DEFERRED_INITIALIZED,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,

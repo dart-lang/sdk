@@ -108,7 +108,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             hasInitializer f @21
               reference: <testLibraryFragment>::@class::C::@field::f
@@ -165,7 +165,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             V @45
-              element: <not-implemented>
+              element: V@45
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -180,9 +180,9 @@ library
           element: <testLibrary>::@class::D
           typeParameters
             T @79
-              element: <not-implemented>
+              element: T@79
             U @81
-              element: <not-implemented>
+              element: U@81
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -194,7 +194,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
       topLevelVariables
         hasInitializer x @118
           reference: <testLibraryFragment>::@topLevelVariable::x
@@ -205,19 +205,16 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @128
-                  element: <testLibraryFragment>::@class::C
                   element2: <testLibrary>::@class::C
                   type: C<int>
-                staticElement: ConstructorMember
-                  base: <testLibraryFragment>::@class::C::@constructor::new
+                element: ConstructorMember
+                  baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
                   substitution: {V: int}
-                element: <testLibraryFragment>::@class::C::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @129
                 arguments
                   SimpleIdentifier
                     token: f @130
-                    staticElement: <testLibraryFragment>::@function::f
                     element: <testLibrary>::@function::f
                     staticType: D<int, U> Function<U>()
                 rightParenthesis: ) @131
@@ -233,7 +230,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             U @98
-              element: <not-implemented>
+              element: U@98
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -320,7 +317,7 @@ library
           element: <testLibrary>::@class::D
           typeParameters
             T @68
-              element: <not-implemented>
+              element: T@68
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -340,17 +337,14 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @111
-                  element: <testLibraryFragment>::@class::C
                   element2: <testLibrary>::@class::C
                   type: C
-                staticElement: <testLibraryFragment>::@class::C::@constructor::new
                 element: <testLibraryFragment>::@class::C::@constructor::new#element
               argumentList: ArgumentList
                 leftParenthesis: ( @112
                 arguments
                   SimpleIdentifier
                     token: f @113
-                    staticElement: <testLibraryFragment>::@function::f
                     element: <testLibrary>::@function::f
                     staticType: D<T> Function<T>()
                 rightParenthesis: ) @114
@@ -366,7 +360,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @81
-              element: <not-implemented>
+              element: T@81
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -452,7 +446,7 @@ library
           element: <testLibrary>::@class::S
           typeParameters
             T @42
-              element: <not-implemented>
+              element: T@42
           constructors
             new
               reference: <testLibraryFragment>::@class::S::@constructor::new
@@ -980,9 +974,9 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             U @2
-              element: <not-implemented>
+              element: U@2
             V @5
-              element: <not-implemented>
+              element: V@5
   functions
     f
       reference: <testLibrary>::@function::f
@@ -1015,9 +1009,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             U @8
-              element: <not-implemented>
+              element: U@8
             V @11
-              element: <not-implemented>
+              element: V@11
           fields
             x @24
               reference: <testLibraryFragment>::@class::C::@field::x
@@ -1074,9 +1068,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             U @8
-              element: <not-implemented>
+              element: U@8
             V @11
-              element: <not-implemented>
+              element: V@11
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
@@ -1135,7 +1129,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1147,9 +1141,9 @@ library
               element: <testLibraryFragment>::@class::C::@method::f#element
               typeParameters
                 U @17
-                  element: <not-implemented>
+                  element: U@17
                 V @20
-                  element: <not-implemented>
+                  element: V@20
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1190,9 +1184,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             U @8
-              element: <not-implemented>
+              element: U@8
             V @11
-              element: <not-implemented>
+              element: V@11
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
@@ -1254,7 +1248,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @2
-              element: <not-implemented>
+              element: T@2
   functions
     f
       reference: <testLibrary>::@function::f
@@ -1285,7 +1279,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @2
-              element: <not-implemented>
+              element: T@2
   functions
     f
       reference: <testLibrary>::@function::f
@@ -1317,7 +1311,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             P @8
-              element: <not-implemented>
+              element: P@8
           constructors
             factory new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1492,7 +1486,7 @@ library
           element: <testLibrary>::@function::m
           typeParameters
             T @6
-              element: <not-implemented>
+              element: T@6
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2132,7 +2126,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             v @37
               reference: <testLibraryFragment>::@class::C::@field::v
@@ -2160,9 +2154,9 @@ library
           element: <testLibrary>::@class::D
           typeParameters
             U @59
-              element: <not-implemented>
+              element: U@59
             V @62
-              element: <not-implemented>
+              element: V@62
           fields
             synthetic v
               reference: <testLibraryFragment>::@class::D::@field::v
@@ -2315,9 +2309,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -2337,9 +2331,9 @@ library
           element: <testLibrary>::@class::D
           typeParameters
             V @75
-              element: <not-implemented>
+              element: V@75
             W @78
-              element: <not-implemented>
+              element: W@78
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
@@ -3797,7 +3791,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             value @17
               reference: <testLibraryFragment>::@class::A::@field::value
@@ -3928,7 +3922,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             value @17
               reference: <testLibraryFragment>::@class::A::@field::value
@@ -3960,7 +3954,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @53
-              element: <not-implemented>
+              element: T@53
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -4047,11 +4041,9 @@ library
                 arguments
                   SimpleIdentifier
                     token: value @-1
-                    staticElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value
                     element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::value#element
                     staticType: T
                 rightParenthesis: ) @0
-              staticElement: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
     class C
@@ -4103,7 +4095,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             hasInitializer f @19
               reference: <testLibraryFragment>::@class::A::@field::f
@@ -4735,7 +4727,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @42
-              element: <not-implemented>
+              element: T@42
           fields
             f @67
               reference: <testLibraryFragment>::@class::C::@field::f
@@ -4918,7 +4910,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -5112,7 +5104,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -5251,7 +5243,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             t @17
               reference: <testLibraryFragment>::@class::C::@field::t
@@ -5319,7 +5311,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           fields
             t @18
               reference: <testLibraryFragment>::@class::C::@field::t
@@ -5405,10 +5397,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -5424,7 +5414,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::v
                       element: <testLibraryFragment>::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -5661,10 +5650,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
                     element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -5680,7 +5667,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
                       element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -5822,10 +5808,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -5841,7 +5825,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::v
                       element: <testLibraryFragment>::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -6039,10 +6022,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
                     element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -6058,7 +6039,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
                       element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -6253,10 +6233,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibrary>::@fragment::package:test/a.dart::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new
                     element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -6272,7 +6250,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
                       element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -6499,9 +6476,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -6567,9 +6544,9 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -6642,10 +6619,8 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element: <testLibraryFragment>::@enum::E
                       element2: <testLibrary>::@enum::E
                       type: E
-                    staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
@@ -6661,7 +6636,6 @@ library
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      staticElement: <testLibraryFragment>::@enum::E::@getter::v
                       element: <testLibraryFragment>::@enum::E::@getter::v#element
                       staticType: E
                   rightBracket: ] @0
@@ -7729,9 +7703,9 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
             U @15
-              element: <not-implemented>
+              element: U@15
       topLevelVariables
         f @39
           reference: <testLibraryFragment>::@topLevelVariable::f
@@ -7797,9 +7771,9 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
             U @15
-              element: <not-implemented>
+              element: U@15
       topLevelVariables
         f @26
           reference: <testLibraryFragment>::@topLevelVariable::f

@@ -30,7 +30,6 @@ ListLiteral
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
     rightBracket: >
@@ -57,12 +56,10 @@ ListLiteral
     arguments
       NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       NamedType
         name: double
-        element: dart:core::<fragment>::@class::double
         element2: dart:core::@class::double
         type: double
     rightBracket: >

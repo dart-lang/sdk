@@ -79,9 +79,9 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @53
-              element: <not-implemented>
+              element: T@53
             U @68
-              element: <not-implemented>
+              element: U@68
           fields
             f @101
               reference: <testLibraryFragment>::@mixin::M::@field::f
@@ -450,7 +450,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -470,7 +470,7 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             U @22
-              element: <not-implemented>
+              element: U@22
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -523,7 +523,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -534,7 +534,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @22
-              element: <not-implemented>
+              element: T@22
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -574,7 +574,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
               element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class alias C
       reference: <testLibrary>::@class::C
@@ -591,7 +590,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
 ''');
@@ -622,7 +620,7 @@ library
           element: <testLibrary>::@class::A1
           typeParameters
             T @9
-              element: <not-implemented>
+              element: T@9
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A1::@constructor::new
@@ -633,7 +631,7 @@ library
           element: <testLibrary>::@class::A2
           typeParameters
             T @24
-              element: <not-implemented>
+              element: T@24
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A2::@constructor::new
@@ -644,7 +642,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @38
-              element: <not-implemented>
+              element: T@38
           constructors
             synthetic const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -701,7 +699,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: dart:core::<fragment>::@class::Object::@constructor::new
               element: dart:core::<fragment>::@class::Object::@constructor::new#element
     class Base
       reference: <testLibrary>::@class::Base
@@ -726,7 +723,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: <testLibraryFragment>::@class::Base::@constructor::new
               element: <testLibraryFragment>::@class::Base::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::Base::@constructor::new#element
 ''');
@@ -750,7 +746,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -770,9 +766,9 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @22
-              element: <not-implemented>
+              element: T@22
             U @25
-              element: <not-implemented>
+              element: U@25
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -822,7 +818,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -842,7 +838,7 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @31
-              element: <not-implemented>
+              element: T@31
   classes
     abstract class A
       reference: <testLibrary>::@class::A
@@ -893,7 +889,7 @@ library
           element: <testLibrary>::@class::I
           typeParameters
             X @8
-              element: <not-implemented>
+              element: X@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::I::@constructor::new
@@ -913,13 +909,13 @@ library
           element: <testLibrary>::@mixin::M1
           typeParameters
             T @23
-              element: <not-implemented>
+              element: T@23
         mixin M2 @43
           reference: <testLibraryFragment>::@mixin::M2
           element: <testLibrary>::@mixin::M2
           typeParameters
             T @46
-              element: <not-implemented>
+              element: T@46
   classes
     class I
       reference: <testLibrary>::@class::I
@@ -945,7 +941,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: <testLibraryFragment>::@class::I::@constructor::new
               element: <testLibraryFragment>::@class::I::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::I::@constructor::new#element
   mixins
@@ -988,7 +983,7 @@ library
           element: <testLibrary>::@class::S
           typeParameters
             T3 @64
-              element: <not-implemented>
+              element: T3@64
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::S::@constructor::new
@@ -1008,16 +1003,16 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
       typeAliases
         M2 @34
           reference: <testLibraryFragment>::@typeAlias::M2
           element: <testLibrary>::@typeAlias::M2
           typeParameters
             T2 @37
-              element: <not-implemented>
+              element: T2@37
   classes
     class S
       reference: <testLibrary>::@class::S
@@ -1082,7 +1077,7 @@ library
           element: <testLibrary>::@class::S
           typeParameters
             T4 @90
-              element: <not-implemented>
+              element: T4@90
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::S::@constructor::new
@@ -1102,22 +1097,22 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
             U @11
-              element: <not-implemented>
+              element: U@11
       typeAliases
         M2 @34
           reference: <testLibraryFragment>::@typeAlias::M2
           element: <testLibrary>::@typeAlias::M2
           typeParameters
             T2 @37
-              element: <not-implemented>
+              element: T2@37
         M3 @64
           reference: <testLibraryFragment>::@typeAlias::M3
           element: <testLibrary>::@typeAlias::M3
           typeParameters
             T3 @67
-              element: <not-implemented>
+              element: T3@67
   classes
     class S
       reference: <testLibrary>::@class::S
@@ -1528,7 +1523,7 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @11
-              element: <not-implemented>
+              element: T@11
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1554,7 +1549,7 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @12
-              element: <not-implemented>
+              element: T@12
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1580,7 +1575,7 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @14
-              element: <not-implemented>
+              element: T@14
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -1606,11 +1601,11 @@ library
           element: <testLibrary>::@mixin::M
           typeParameters
             T @14
-              element: <not-implemented>
+              element: T@14
             U @20
-              element: <not-implemented>
+              element: U@20
             V @27
-              element: <not-implemented>
+              element: V@27
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M

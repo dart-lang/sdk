@@ -35,9 +35,8 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 0
-    parameter: <null>
+    correspondingParameter: <null>
     staticType: int
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: InvalidType
@@ -64,7 +63,6 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
   argumentList: ArgumentList
@@ -95,7 +93,6 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
   staticType: InvalidType

@@ -42,7 +42,6 @@ AssertInitializer
   condition: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
@@ -50,8 +49,8 @@ AssertInitializer
       arguments
         IntegerLiteral
           literal: 0
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::foo::@parameter::_
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
             substitution: {T: bool}
           staticType: int
       rightParenthesis: )
@@ -63,7 +62,6 @@ AssertInitializer
   message: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
@@ -71,8 +69,8 @@ AssertInitializer
       arguments
         IntegerLiteral
           literal: 1
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::foo::@parameter::_
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
             substitution: {T: dynamic}
           staticType: int
       rightParenthesis: )
@@ -101,7 +99,6 @@ AssertStatement
   condition: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
@@ -109,8 +106,8 @@ AssertStatement
       arguments
         IntegerLiteral
           literal: 0
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::foo::@parameter::_
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
             substitution: {T: bool}
           staticType: int
       rightParenthesis: )
@@ -122,7 +119,6 @@ AssertStatement
   message: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
@@ -130,8 +126,8 @@ AssertStatement
       arguments
         IntegerLiteral
           literal: 1
-          parameter: ParameterMember
-            base: <testLibraryFragment>::@function::foo::@parameter::_
+          correspondingParameter: ParameterMember
+            baseElement: <testLibraryFragment>::@function::foo::@parameter::_#element
             substitution: {T: dynamic}
           staticType: int
       rightParenthesis: )
@@ -343,7 +339,6 @@ BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
@@ -357,18 +352,16 @@ BinaryExpression
   rightOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    parameter: <null>
+    correspondingParameter: <null>
     staticInvokeType: bool Function()
     staticType: bool
     typeArgumentTypes
       bool
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: bool
@@ -390,7 +383,6 @@ BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
@@ -404,18 +396,16 @@ BinaryExpression
   rightOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
-      staticElement: <testLibraryFragment>::@function::foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    parameter: <null>
+    correspondingParameter: <null>
     staticInvokeType: bool Function()
     staticType: bool
     typeArgumentTypes
       bool
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: bool

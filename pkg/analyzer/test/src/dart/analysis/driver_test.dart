@@ -839,7 +839,6 @@ var B = 0;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::<fragment>::@getter::B
       element: package:test/b.dart::<fragment>::@getter::B#element
       staticType: int
 [status] idle
@@ -866,7 +865,6 @@ var B = 1.2;
     flags: exists isLibrary
     selectedNode: SimpleIdentifier
       token: B
-      staticElement: package:test/b.dart::<fragment>::@getter::B
       element: package:test/b.dart::<fragment>::@getter::B#element
       staticType: double
 [status] idle
@@ -8018,6 +8016,286 @@ class B {}
     manifest
       A: #M0
       B: #M1
+''',
+    );
+  }
+
+  test_manifest_class_constructor_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+  A.bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M2
+        foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_requiredPositional() async {
+    configuration.includeDefaultConstructors();
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo(int a);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.foo(int a);
+  A.bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        bar: #M2
+        foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_requiredPositional_add() async {
+    configuration.includeDefaultConstructors();
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A(int a);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        new: #M1
+''',
+      updatedCode: r'''
+class A {
+  A(int a, int b);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        new: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_isConst_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  const A.foo();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_isConst_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_isFactory_falseToTrue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  factory A.foo();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_isFactory_trueToFalse() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  factory A.foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  A.foo();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        foo: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_private() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A._foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  A._foo();
+  A.bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+        bar: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_private_const() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  const A._foo();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  const A._foo();
+  A.bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    manifest
+      A: #M0
+        _foo: #M1
+        bar: #M2
 ''',
     );
   }

@@ -34,11 +34,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@class::C
     element2: <testLibrary>::@class::C
     type: C<int>
   staticType: Type
@@ -61,7 +59,6 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix::a
       element2: <testLibraryFragment>::@prefix2::a
     name: C
     typeArguments: TypeArgumentList
@@ -69,11 +66,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::<fragment>::@class::C
     element2: package:test/a.dart::@class::C
     type: C<int>
   staticType: Type
@@ -98,11 +93,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@class::C
     element2: <testLibrary>::@class::C
     type: C<dynamic, dynamic>
   staticType: Type
@@ -127,16 +120,13 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@class::C
     element2: <testLibrary>::@class::C
     type: C<dynamic>
   staticType: Type
@@ -162,11 +152,9 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::<fragment>::@class::String
           element2: dart:core::@class::String
           type: String
       rightBracket: >
-    element: <testLibraryFragment>::@class::C
     element2: <testLibrary>::@class::C
     type: C<String>
   staticType: Type
@@ -190,11 +178,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::CA
     element2: <testLibrary>::@typeAlias::CA
     type: C<int>
       alias: <testLibrary>::@typeAlias::CA
@@ -221,11 +207,9 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::<fragment>::@class::String
           element2: dart:core::@class::String
           type: String
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::CA
     element2: <testLibrary>::@typeAlias::CA
     type: C<String, int>
       alias: <testLibrary>::@typeAlias::CA
@@ -253,7 +237,6 @@ TypeLiteral
         GenericFunctionType
           returnType: NamedType
             name: void
-            element: <null>
             element2: <null>
             type: void
           functionKeyword: Function
@@ -266,7 +249,6 @@ TypeLiteral
             type: void Function()
           type: void Function()
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::CA
     element2: <testLibrary>::@typeAlias::CA
     type: C<void Function()>
       alias: <testLibrary>::@typeAlias::CA
@@ -293,7 +275,6 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix::a
       element2: <testLibraryFragment>::@prefix2::a
     name: CA
     typeArguments: TypeArgumentList
@@ -301,11 +282,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::<fragment>::@typeAlias::CA
     element2: package:test/a.dart::@typeAlias::CA
     type: C<int>
       alias: package:test/a.dart::@typeAlias::CA
@@ -335,11 +314,9 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::<fragment>::@class::String
           element2: dart:core::@class::String
           type: String
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::CA
     element2: <testLibrary>::@typeAlias::CA
     type: C<String>
       alias: <testLibrary>::@typeAlias::CA
@@ -365,11 +342,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@extensionType::A
     element2: <testLibrary>::@extensionType::A
     type: A<int>
   staticType: Type
@@ -393,7 +368,6 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix::a
       element2: <testLibraryFragment>::@prefix2::a
     name: A
     typeArguments: TypeArgumentList
@@ -401,11 +375,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::<fragment>::@extensionType::A
     element2: package:test/a.dart::@extensionType::A
     type: A<int>
   staticType: Type
@@ -428,11 +400,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibrary>::@typeAlias::Fn
@@ -458,7 +428,6 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix::a
       element2: <testLibraryFragment>::@prefix2::a
     name: Fn
     typeArguments: TypeArgumentList
@@ -466,11 +435,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::<fragment>::@typeAlias::Fn
     element2: package:test/a.dart::@typeAlias::Fn
     type: void Function(int)
       alias: package:test/a.dart::@typeAlias::Fn
@@ -505,11 +472,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibrary>::@typeAlias::Fn
@@ -544,7 +509,6 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix::a
       element2: <testLibraryFragment>::@prefix2::a
     name: Fn
     typeArguments: TypeArgumentList
@@ -552,11 +516,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: package:test/a.dart::<fragment>::@typeAlias::Fn
     element2: package:test/a.dart::@typeAlias::Fn
     type: void Function(int)
       alias: package:test/a.dart::@typeAlias::Fn
@@ -589,11 +551,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibrary>::@typeAlias::Fn
@@ -628,11 +588,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibrary>::@typeAlias::Fn
@@ -665,11 +623,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibrary>::@typeAlias::Fn
@@ -704,11 +660,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibrary>::@typeAlias::Fn
@@ -741,11 +695,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibrary>::@typeAlias::Fn
@@ -773,11 +725,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(dynamic, dynamic)
       alias: <testLibrary>::@typeAlias::Fn
@@ -806,16 +756,13 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         NamedType
           name: String
-          element: dart:core::<fragment>::@class::String
           element2: dart:core::@class::String
           type: String
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(dynamic)
       alias: <testLibrary>::@typeAlias::Fn
@@ -844,11 +791,9 @@ TypeLiteral
       arguments
         NamedType
           name: String
-          element: dart:core::<fragment>::@class::String
           element2: dart:core::@class::String
           type: String
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::Fn
     element2: <testLibrary>::@typeAlias::Fn
     type: void Function(String)
       alias: <testLibrary>::@typeAlias::Fn
@@ -874,11 +819,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@mixin::M
     element2: <testLibrary>::@mixin::M
     type: M<int>
   staticType: Type
@@ -901,11 +844,9 @@ TypeLiteral
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::T
     element2: <testLibrary>::@typeAlias::T
     type: int
       alias: <testLibrary>::@typeAlias::T
@@ -932,7 +873,6 @@ TypeLiteral
         GenericFunctionType
           returnType: NamedType
             name: void
-            element: <null>
             element2: <null>
             type: void
           functionKeyword: Function
@@ -945,7 +885,6 @@ TypeLiteral
             type: void Function()
           type: void Function()
       rightBracket: >
-    element: <testLibraryFragment>::@typeAlias::T
     element2: <testLibrary>::@typeAlias::T
     type: void Function()
       alias: <testLibrary>::@typeAlias::T

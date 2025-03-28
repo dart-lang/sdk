@@ -190,6 +190,8 @@ sealed class InstanceMemberItem extends ManifestItem {
         return InstanceGetterItem.read(reader);
       case _ManifestItemKind2.instanceMethod:
         return InstanceMethodItem.read(reader);
+      case _ManifestItemKind2.interfaceConstructor:
+        return InterfaceConstructorItem.read(reader);
     }
   }
 }
@@ -240,6 +242,73 @@ class InstanceMethodItem extends InstanceMemberItem {
     sink.writeEnum(_ManifestItemKind2.instanceMethod);
     name.write(sink);
     id.write(sink);
+    functionType.write(sink);
+  }
+}
+
+class InterfaceConstructorItem extends InstanceMemberItem {
+  final bool isConst;
+  final bool isFactory;
+  final ManifestFunctionType functionType;
+
+  InterfaceConstructorItem({
+    required super.name,
+    required super.id,
+    required this.isConst,
+    required this.isFactory,
+    required this.functionType,
+  });
+
+  factory InterfaceConstructorItem.fromElement({
+    required LookupName name,
+    required ManifestItemId id,
+    required EncodeContext context,
+    required ConstructorElementImpl2 element,
+  }) {
+    // TODO(scheglov): initializers
+    return InterfaceConstructorItem(
+      name: name,
+      id: id,
+      isConst: element.isConst,
+      isFactory: element.isFactory,
+      functionType: element.type.encode(context),
+    );
+  }
+
+  factory InterfaceConstructorItem.read(SummaryDataReader reader) {
+    return InterfaceConstructorItem(
+      name: LookupName.read(reader),
+      id: ManifestItemId.read(reader),
+      isConst: reader.readBool(),
+      isFactory: reader.readBool(),
+      functionType: ManifestFunctionType.read(reader),
+    );
+  }
+
+  MatchContext? match(
+    MatchContext instanceContext,
+    ConstructorElementImpl2 element,
+  ) {
+    var context = MatchContext(parent: instanceContext);
+    if (isConst != element.isConst) {
+      return null;
+    }
+    if (isFactory != element.isFactory) {
+      return null;
+    }
+    if (!functionType.match(context, element.type)) {
+      return null;
+    }
+    return context;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    sink.writeEnum(_ManifestItemKind2.interfaceConstructor);
+    name.write(sink);
+    id.write(sink);
+    sink.writeBool(isConst);
+    sink.writeBool(isFactory);
     functionType.write(sink);
   }
 }
@@ -443,4 +512,5 @@ enum _ManifestItemKind {
 enum _ManifestItemKind2 {
   instanceGetter,
   instanceMethod,
+  interfaceConstructor,
 }

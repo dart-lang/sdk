@@ -32,7 +32,6 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::a
     element: <testLibrary>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList
@@ -61,7 +60,6 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::a
     element: <testLibrary>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList
@@ -92,7 +90,6 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::a
     element: <testLibrary>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList
@@ -120,7 +117,6 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::a
     element: <testLibrary>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList
@@ -157,7 +153,6 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::a
     element: <testLibrary>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList
@@ -185,7 +180,6 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::a
     element: <testLibrary>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList
@@ -213,7 +207,6 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::a
     element: <testLibrary>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList
@@ -253,7 +246,6 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::a
     element: <testLibrary>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList
@@ -282,7 +274,6 @@ T a<T>() => throw '';
 MethodInvocation
   methodName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@function::a
     element: <testLibrary>::@function::a
     staticType: T Function<T>()
   argumentList: ArgumentList

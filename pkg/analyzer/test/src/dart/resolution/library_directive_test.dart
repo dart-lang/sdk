@@ -27,19 +27,15 @@ LibraryDirective
     components
       SimpleIdentifier
         token: foo
-        staticElement: <null>
         element: <null>
         staticType: null
       SimpleIdentifier
         token: bar
-        staticElement: <null>
         element: <null>
         staticType: null
-    staticElement: <null>
     element: <null>
     staticType: null
   semicolon: ;
-  element: <testLibrary>
   element2: <testLibrary>
 ''');
   }
@@ -54,7 +50,6 @@ library;
 LibraryDirective
   libraryKeyword: library
   semicolon: ;
-  element: <testLibrary>
   element2: <testLibrary>
 ''');
   }

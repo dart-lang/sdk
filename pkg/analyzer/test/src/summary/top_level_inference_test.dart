@@ -3938,7 +3938,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @4
-              element: <not-implemented>
+              element: T@4
   topLevelVariables
     hasInitializer vHasTypeArgument
       reference: <testLibrary>::@topLevelVariable::vHasTypeArgument
@@ -8307,7 +8307,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             E @17
-              element: <not-implemented>
+              element: E@17
           fields
             x @26
               reference: <testLibraryFragment>::@class::A::@field::x
@@ -8363,7 +8363,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @53
-              element: <not-implemented>
+              element: T@53
           fields
             x @80
               reference: <testLibraryFragment>::@class::B::@field::x
@@ -8908,7 +8908,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             E @17
-              element: <not-implemented>
+              element: E@17
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
@@ -8942,7 +8942,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @65
-              element: <not-implemented>
+              element: T@65
           fields
             x @92
               reference: <testLibraryFragment>::@class::B::@field::x
@@ -9319,7 +9319,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
@@ -9339,7 +9339,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @52
-              element: <not-implemented>
+              element: T@52
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::B::@field::x
@@ -10851,7 +10851,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @25
-              element: <not-implemented>
+              element: T@25
           fields
             synthetic x
               reference: <testLibraryFragment>::@class::A::@field::x
@@ -10903,7 +10903,7 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
-              element: <not-implemented>
+              element: T@10
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -11716,7 +11716,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -11734,7 +11734,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             E @40
-              element: <not-implemented>
+              element: E@40
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -11834,9 +11834,9 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -11854,7 +11854,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @40
-              element: <not-implemented>
+              element: T@40
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -12362,9 +12362,9 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -12382,7 +12382,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @40
-              element: <not-implemented>
+              element: T@40
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -12792,9 +12792,9 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -13133,9 +13133,9 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -13153,7 +13153,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @40
-              element: <not-implemented>
+              element: T@40
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -13238,9 +13238,9 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             K @17
-              element: <not-implemented>
+              element: K@17
             V @20
-              element: <not-implemented>
+              element: V@20
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -13399,9 +13399,9 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             K @17
-              element: <not-implemented>
+              element: K@17
             V @20
-              element: <not-implemented>
+              element: V@20
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -13419,9 +13419,9 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T1 @56
-              element: <not-implemented>
+              element: T1@56
             T2 @60
-              element: <not-implemented>
+              element: T2@60
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -13658,9 +13658,9 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             K @8
-              element: <not-implemented>
+              element: K@8
             V @11
-              element: <not-implemented>
+              element: V@11
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -13678,7 +13678,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @40
-              element: <not-implemented>
+              element: T@40
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new

@@ -434,13 +434,11 @@ library
             ConstructorFieldInitializer
               fieldName: SimpleIdentifier
                 token: it @52
-                staticElement: <testLibraryFragment>::@extensionType::A::@field::it
                 element: <testLibraryFragment>::@extensionType::A::@field::it#element
                 staticType: null
               equals: = @55
               expression: SimpleIdentifier
                 token: a @57
-                staticElement: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a
                 element: <testLibraryFragment>::@extensionType::A::@constructor::named::@parameter::a#element
                 staticType: int
       getters
@@ -1248,7 +1246,7 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -1683,7 +1681,7 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           fields
             it @34
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2056,7 +2054,7 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           fields
             it @22
               reference: <testLibraryFragment>::@extensionType::A::@field::it
@@ -2243,9 +2241,9 @@ library
           element: <testLibrary>::@extensionType::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
             U @32
-              element: <not-implemented>
+              element: U@32
           fields
             it @45
               reference: <testLibraryFragment>::@extensionType::A::@field::it

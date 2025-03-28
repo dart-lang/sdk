@@ -6,6 +6,7 @@ library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
+        CACHED_GLOBAL_THIS,
         CURRENT_SCRIPT,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
@@ -3953,8 +3954,17 @@ abstract class TrustedGetRuntimeType {}
 /// `pkg/_js_interop_checks/lib/src/js_util_optimizer.dart`.
 ///
 /// This should match the global context that non-static interop members use.
+@pragma('dart2js:prefer-inline')
+// Unlike `JS<T>(...)`, `JS_EMBEDDED_GLOBAL` is not generic. So we need to cast
+// the dynamic result to the desired type. We know the result is some kind of
+// non-null, non-Dart object.
+@pragma('dart2js:as:trust')
 Object get staticInteropGlobalContext =>
-    JS('creates:;returns:Object;depends:none;effects:none;gvn:true', 'self');
+    JS_EMBEDDED_GLOBAL(
+          'creates:;returns:JSObject;depends:none;effects:none;gvn:true',
+          CACHED_GLOBAL_THIS,
+        )
+        as Object;
 
 /// Return a fresh object literal.
 T createObjectLiteral<T>() => JS('PlainJavaScriptObject', '{}');

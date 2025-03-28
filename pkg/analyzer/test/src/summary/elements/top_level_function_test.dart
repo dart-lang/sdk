@@ -572,7 +572,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
           formalParameters
             a @12
               element: <testLibraryFragment>::@function::f::@parameter::a#element
@@ -747,7 +747,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @4
-              element: <not-implemented>
+              element: T@4
   functions
     f
       reference: <testLibrary>::@function::f
@@ -772,9 +772,9 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
             U @10
-              element: <not-implemented>
+              element: U@10
           formalParameters
             x @15
               element: <testLibraryFragment>::@function::f::@parameter::x#element
@@ -818,7 +818,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
   functions
     f
       reference: <testLibrary>::@function::f
@@ -846,7 +846,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @7
-              element: <not-implemented>
+              element: T@7
   functions
     f
       reference: <testLibrary>::@function::f
@@ -983,7 +983,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
-              staticElement: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
           superConstructor: <testLibraryFragment>::@class::C::@constructor::new#element
     class C

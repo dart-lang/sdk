@@ -413,10 +413,8 @@ library
       atSign: @ @0
       name: SimpleIdentifier
         token: foo @1
-        staticElement: <null>
         element: <null>
         staticType: null
-      element: <null>
       element2: <null>
   fragments
     <testLibraryFragment>
@@ -428,10 +426,8 @@ library
               atSign: @ @0
               name: SimpleIdentifier
                 token: foo @1
-                staticElement: <null>
                 element: <null>
                 staticType: null
-              element: <null>
               element2: <null>
 ''');
   }
@@ -949,10 +945,8 @@ library
       atSign: @ @0
       name: SimpleIdentifier
         token: a @1
-        staticElement: <testLibraryFragment>::@getter::a
         element: <testLibraryFragment>::@getter::a#element
         staticType: null
-      element: <testLibraryFragment>::@getter::a
       element2: <testLibraryFragment>::@getter::a#element
   fragments
     <testLibraryFragment>
@@ -964,10 +958,8 @@ library
               atSign: @ @0
               name: SimpleIdentifier
                 token: a @1
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         hasInitializer a @29
@@ -1012,10 +1004,8 @@ library
       atSign: @ @0
       name: SimpleIdentifier
         token: a @1
-        staticElement: <testLibraryFragment>::@getter::a
         element: <testLibraryFragment>::@getter::a#element
         staticType: null
-      element: <testLibraryFragment>::@getter::a
       element2: <testLibraryFragment>::@getter::a#element
   fragments
     <testLibraryFragment>
@@ -1027,10 +1017,8 @@ library
               atSign: @ @0
               name: SimpleIdentifier
                 token: a @1
-                staticElement: <testLibraryFragment>::@getter::a
                 element: <testLibraryFragment>::@getter::a#element
                 staticType: null
-              element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
         hasInitializer a @42

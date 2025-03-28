@@ -3708,15 +3708,21 @@ extension type C(B it) implements A<int> {}
     var element = library.extensionType('C');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@class::A::@method::foo#element
+  foo: MethodMember
+    baseElement: <testLibraryFragment>::@class::A::@method::foo#element
+    substitution: {T: int}
   it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 declared
   it: <testLibraryFragment>::@extensionType::C::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@class::A::@method::foo#element
+    MethodMember
+      baseElement: <testLibraryFragment>::@class::A::@method::foo#element
+      substitution: {T: int}
 inheritedMap
-  foo: <testLibraryFragment>::@class::A::@method::foo#element
+  foo: MethodMember
+    baseElement: <testLibraryFragment>::@class::A::@method::foo#element
+    substitution: {T: int}
 ''');
   }
 
@@ -4017,18 +4023,28 @@ extension type B(int it) implements A<int> {}
     var element = library.extensionType('B');
     assertInterfaceText(element, r'''
 map
-  foo: <testLibraryFragment>::@extensionType::A::@method::foo#element
+  foo: MethodMember
+    baseElement: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    substitution: {T: int}
   it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 declared
   it: <testLibraryFragment>::@extensionType::B::@getter::it#element
 redeclared
   foo
-    <testLibraryFragment>::@extensionType::A::@method::foo#element
+    MethodMember
+      baseElement: <testLibraryFragment>::@extensionType::A::@method::foo#element
+      substitution: {T: int}
   it
-    <testLibraryFragment>::@extensionType::A::@getter::it#element
+    GetterMember
+      baseElement: <testLibraryFragment>::@extensionType::A::@getter::it#element
+      substitution: {T: int}
 inheritedMap
-  foo: <testLibraryFragment>::@extensionType::A::@method::foo#element
-  it: <testLibraryFragment>::@extensionType::A::@getter::it#element
+  foo: MethodMember
+    baseElement: <testLibraryFragment>::@extensionType::A::@method::foo#element
+    substitution: {T: int}
+  it: GetterMember
+    baseElement: <testLibraryFragment>::@extensionType::A::@getter::it#element
+    substitution: {T: int}
 ''');
   }
 

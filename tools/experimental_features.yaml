@@ -151,6 +151,10 @@ features:
   getter-setter-error:
     help: "Stop reporting errors about mismatching types in a getter/setter pair."
 
+  sound-flow-analysis:
+    # See https://github.com/dart-lang/language/issues/3100
+    help: "Assume sound null safety when computing type promotion, reachability, and definite assignment."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

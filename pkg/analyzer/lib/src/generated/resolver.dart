@@ -255,14 +255,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   final FlowAnalysisHelper flowAnalysis;
 
-  /// A comment before a function should be resolved in the context of the
-  /// function. But when we incrementally resolve a comment, we don't want to
-  /// resolve the whole function.
-  ///
-  /// So, this flag is set to `true`, when just context of the function should
-  /// be built and the comment resolved.
-  bool resolveOnlyCommentInFunctionBody = false;
-
   /// Stack of expressions which we have not yet finished visiting, that should
   /// terminate a null-shorting expression.
   ///
@@ -2300,10 +2292,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   TypeImpl visitEmptyFunctionBody(EmptyFunctionBody node,
       {TypeImpl? imposedType}) {
-    if (!resolveOnlyCommentInFunctionBody) {
-      checkUnreachableNode(node);
-      node.visitChildren(this);
-    }
+    checkUnreachableNode(node);
+    node.visitChildren(this);
     return imposedType ?? typeProvider.dynamicType;
   }
 
@@ -2434,10 +2424,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   TypeImpl visitExpressionFunctionBody(
       covariant ExpressionFunctionBodyImpl node,
       {TypeImpl? imposedType}) {
-    if (resolveOnlyCommentInFunctionBody) {
-      return imposedType ?? typeProvider.dynamicType;
-    }
-
     var oldBodyContext = _bodyContext;
     try {
       var bodyContext = _bodyContext = BodyInferenceContext(

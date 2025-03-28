@@ -31,7 +31,6 @@ RedirectingConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    staticElement: <testLibraryFragment>::@class::C::@constructor::named
     element: <testLibraryFragment>::@class::C::@constructor::named#element
     staticType: null
   argumentList: ArgumentList
@@ -39,10 +38,9 @@ RedirectingConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::a
+        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::a#element
         staticType: int
     rightParenthesis: )
-  staticElement: <testLibraryFragment>::@class::C::@constructor::named
   element: <testLibraryFragment>::@class::C::@constructor::named#element
 ''');
   }
@@ -64,7 +62,6 @@ RedirectingConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    staticElement: <null>
     element: <null>
     staticType: null
   argumentList: ArgumentList
@@ -72,10 +69,9 @@ RedirectingConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <null>
+        correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  staticElement: <null>
   element: <null>
 ''');
   }
@@ -97,10 +93,9 @@ RedirectingConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a
+        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
         staticType: int
     rightParenthesis: )
-  staticElement: <testLibraryFragment>::@class::C::@constructor::new
   element: <testLibraryFragment>::@class::C::@constructor::new#element
 ''');
   }
@@ -125,10 +120,9 @@ RedirectingConstructorInvocation
     arguments
       IntegerLiteral
         literal: 0
-        parameter: <null>
+        correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  staticElement: <null>
   element: <null>
 ''');
   }

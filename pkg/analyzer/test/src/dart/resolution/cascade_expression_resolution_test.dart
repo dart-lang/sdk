@@ -40,7 +40,6 @@ test(C c) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _d
-  staticElement: <testLibraryFragment>::@class::C::@getter::_d
   element: <testLibraryFragment>::@class::C::@getter::_d#element
   staticType: D?
 ''');
@@ -70,7 +69,6 @@ test(C c, int? i) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
-  staticElement: <testLibraryFragment>::@function::test::@parameter::i
   element: <testLibraryFragment>::@function::test::@parameter::i#element
   staticType: int?
 ''');
@@ -99,7 +97,6 @@ test(C c, int? i) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
-  staticElement: <testLibraryFragment>::@function::test::@parameter::i
   element: <testLibraryFragment>::@function::test::@parameter::i#element
   staticType: int?
 ''');
@@ -128,7 +125,6 @@ test(C c) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _d
-  staticElement: <testLibraryFragment>::@class::C::@getter::_d
   element: <testLibraryFragment>::@class::C::@getter::_d#element
   staticType: D?
 ''');
@@ -156,7 +152,6 @@ test(C c, int? i) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
-  staticElement: <testLibraryFragment>::@function::test::@parameter::i
   element: <testLibraryFragment>::@function::test::@parameter::i#element
   staticType: int?
 ''');
@@ -186,7 +181,6 @@ test(C c) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: _d
-  staticElement: <testLibraryFragment>::@class::C::@getter::_d
   element: <testLibraryFragment>::@class::C::@getter::_d#element
   staticType: D?
 ''');
@@ -216,7 +210,6 @@ test(C c, int? i) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
-  staticElement: <testLibraryFragment>::@function::test::@parameter::i
   element: <testLibraryFragment>::@function::test::@parameter::i#element
   staticType: int?
 ''');
@@ -240,7 +233,6 @@ test(C c, int? i) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: i
-  staticElement: <testLibraryFragment>::@function::test::@parameter::i
   element: <testLibraryFragment>::@function::test::@parameter::i#element
   staticType: int?
 ''');

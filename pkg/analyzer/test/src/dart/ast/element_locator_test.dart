@@ -317,7 +317,9 @@ void main() {
     var node = findNode.index('[0]');
     var element = ElementLocator.locate2(node);
     _assertElement(element, r'''
-dart:core::<fragment>::@class::List::@method::[]#element
+MethodMember
+  baseElement: dart:core::<fragment>::@class::List::@method::[]#element
+  substitution: {E: int}
 ''');
   }
 

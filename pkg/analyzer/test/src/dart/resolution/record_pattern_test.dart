@@ -59,7 +59,6 @@ RecordPattern
         declaredElement: hasImplicitType y@46
           type: dynamic
         matchedValueType: dynamic
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -89,7 +88,6 @@ RecordPattern
         declaredElement: hasImplicitType y@41
           type: dynamic
         matchedValueType: dynamic
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: dynamic
@@ -137,7 +135,6 @@ RecordPattern
           literal: 0
           staticType: int
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -167,14 +164,12 @@ RecordPattern
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         name: y
         declaredElement: y@54
           type: int
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -207,7 +202,6 @@ RecordPattern
         declaredElement: hasImplicitType y@54
           type: Object?
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -234,7 +228,6 @@ RecordPattern
           literal: 0
           staticType: int
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -261,14 +254,12 @@ RecordPattern
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         name: y
         declaredElement: y@49
           type: int
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -298,7 +289,6 @@ RecordPattern
         declaredElement: hasImplicitType y@49
           type: Object?
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: Object?
@@ -333,7 +323,6 @@ RecordPattern
         declaredElement: hasImplicitType b@47
           type: Object?
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ()
@@ -367,7 +356,6 @@ RecordPattern
         declaredElement: hasImplicitType a@46
           type: Object?
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ()
@@ -400,7 +388,6 @@ RecordPattern
         declaredElement: hasImplicitType a@53
           type: Object?
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ({int b})
@@ -433,7 +420,6 @@ RecordPattern
         declaredElement: hasImplicitType a@60
           type: Object?
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ({int a, int b})
@@ -465,7 +451,6 @@ RecordPattern
         declaredElement: hasImplicitType a@44
           type: Object?
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ()
@@ -496,7 +481,6 @@ RecordPattern
         declaredElement: hasImplicitType a@55
           type: Object?
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: (int, String)
@@ -550,7 +534,6 @@ RecordPattern
         declaredElement: hasImplicitType a@69
           type: int
         matchedValueType: int
-      element: <null>
       element2: <null>
     PatternField
       name: PatternFieldName
@@ -562,7 +545,6 @@ RecordPattern
         declaredElement: hasImplicitType b@81
           type: String
         matchedValueType: String
-      element: <null>
       element2: <null>
     PatternField
       pattern: DeclaredVariablePattern
@@ -571,7 +553,6 @@ RecordPattern
         declaredElement: hasImplicitType c@88
           type: double
         matchedValueType: double
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: (int, double, {String foo})
@@ -605,7 +586,6 @@ RecordPattern
         declaredElement: hasImplicitType a@58
           type: Object?
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
@@ -638,7 +618,6 @@ RecordPattern
         declaredElement: hasImplicitType y@58
           type: int
         matchedValueType: int
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
@@ -670,7 +649,6 @@ RecordPattern
           literal: 0
           staticType: int
         matchedValueType: Object?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
@@ -702,7 +680,6 @@ RecordPattern
         declaredElement: hasImplicitType foo@55
           type: int
         matchedValueType: int
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ({int foo})
@@ -738,11 +715,9 @@ RecordPattern
         asToken: as
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         matchedValueType: int?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
@@ -777,7 +752,6 @@ RecordPattern
           matchedValueType: int
         operator: !
         matchedValueType: int?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
@@ -812,7 +786,6 @@ RecordPattern
           matchedValueType: int
         operator: ?
         matchedValueType: int?
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: ({int? foo})
@@ -842,7 +815,6 @@ RecordPattern
         declaredElement: hasImplicitType a@48
           type: int
         matchedValueType: int
-      element: <null>
       element2: <null>
   rightParenthesis: )
   matchedValueType: (int,)
@@ -871,7 +843,6 @@ PatternVariableDeclaration
           declaredElement: hasImplicitType a@33
             type: int
           matchedValueType: int
-        element: <null>
         element2: <null>
       PatternField
         pattern: DeclaredVariablePattern
@@ -879,14 +850,12 @@ PatternVariableDeclaration
           declaredElement: hasImplicitType b@36
             type: String
           matchedValueType: String
-        element: <null>
         element2: <null>
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =
   expression: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: (int, String)
   patternTypeSchema: (_, _)
@@ -915,27 +884,23 @@ PatternVariableDeclaration
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element: dart:core::<fragment>::@class::int
             element2: dart:core::@class::int
             type: int
           name: a
           declaredElement: a@22
             type: int
           matchedValueType: int
-        element: <null>
         element2: <null>
       PatternField
         pattern: DeclaredVariablePattern
           type: NamedType
             name: String
-            element: dart:core::<fragment>::@class::String
             element2: dart:core::@class::String
             type: String
           name: b
           declaredElement: b@32
             type: String
           matchedValueType: String
-        element: <null>
         element2: <null>
     rightParenthesis: )
     matchedValueType: (int, String)
@@ -943,7 +908,6 @@ PatternVariableDeclaration
   expression: MethodInvocation
     methodName: SimpleIdentifier
       token: g
-      staticElement: <testLibraryFragment>::@function::g
       element: <testLibrary>::@function::g
       staticType: (T, U) Function<T, U>()
     argumentList: ArgumentList

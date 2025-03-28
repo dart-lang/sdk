@@ -210,7 +210,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -372,7 +372,7 @@ library
           element: <testLibrary>::@function::f
           typeParameters
             T @11
-              element: <not-implemented>
+              element: T@11
   functions
     f
       reference: <testLibrary>::@function::f
@@ -606,14 +606,12 @@ library
                           RecordTypeAnnotationNamedField
                             type: NamedType
                               name: int @17
-                              element: dart:core::<fragment>::@class::int
                               element2: dart:core::@class::int
                               type: int
                             name: f1 @21
                           RecordTypeAnnotationNamedField
                             type: NamedType
                               name: String @25
-                              element: dart:core::<fragment>::@class::String
                               element2: dart:core::@class::String
                               type: String
                             name: f2 @32
@@ -621,7 +619,6 @@ library
                       rightParenthesis: ) @35
                       type: ({int f1, String f2})
                   rightBracket: > @36
-                element: dart:core::<fragment>::@class::List
                 element2: dart:core::@class::List
                 type: List<({int f1, String f2})>
               staticType: Type
@@ -672,20 +669,17 @@ library
                         RecordTypeAnnotationPositionalField
                           type: NamedType
                             name: int @16
-                            element: dart:core::<fragment>::@class::int
                             element2: dart:core::@class::int
                             type: int
                         RecordTypeAnnotationPositionalField
                           type: NamedType
                             name: String @21
-                            element: dart:core::<fragment>::@class::String
                             element2: dart:core::@class::String
                             type: String
                           name: f2 @28
                       rightParenthesis: ) @30
                       type: (int, String)
                   rightBracket: > @31
-                element: dart:core::<fragment>::@class::List
                 element2: dart:core::@class::List
                 type: List<(int, String)>
               staticType: Type

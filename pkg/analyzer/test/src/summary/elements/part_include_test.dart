@@ -71,7 +71,6 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
-        element: <testLibrary>::@fragment::package:test/foo.dart::@class::A
         element: <testLibrary>::@class::A
     class A
       reference: <testLibrary>::@class::A
@@ -135,7 +134,6 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
-        element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
         element: <testLibrary>::@class::A
     class A
       reference: <testLibrary>::@class::A
@@ -199,7 +197,6 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
-        element: <testLibrary>::@fragment::package:test/foo_io.dart::@class::A
         element: <testLibrary>::@class::A
     class A
       reference: <testLibrary>::@class::A
@@ -263,7 +260,6 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
-        element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
         element: <testLibrary>::@class::A
     class A
       reference: <testLibrary>::@class::A
@@ -327,7 +323,6 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
-        element: <testLibrary>::@fragment::package:test/foo_html.dart::@class::A
         element: <testLibrary>::@class::A
     class A
       reference: <testLibrary>::@class::A

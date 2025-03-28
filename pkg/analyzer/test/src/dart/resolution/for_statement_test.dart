@@ -45,7 +45,6 @@ ForStatement
     loopVariable: DeclaredIdentifier
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       name: v
@@ -55,7 +54,6 @@ ForStatement
     iterable: MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -95,7 +93,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      staticElement: <testLibraryFragment>::@function::f::@parameter::values
       element: <testLibraryFragment>::@function::f::@parameter::values#element
       staticType: dynamic
   rightParenthesis: )
@@ -130,7 +127,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: <empty> <synthetic>
-      staticElement: <null>
       element: <null>
       staticType: InvalidType
   rightParenthesis: )
@@ -140,7 +136,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: v
-          staticElement: v@22
           element: v@22
           staticType: InvalidType
         semicolon: ;
@@ -198,7 +193,6 @@ ForStatement
     loopVariable: DeclaredIdentifier
       type: NamedType
         name: dynamic
-        element: dynamic@-1
         element2: dynamic
         type: dynamic
       name: v
@@ -207,7 +201,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      staticElement: <testLibraryFragment>::@function::f::@parameter::values
       element: <testLibraryFragment>::@function::f::@parameter::values#element
       staticType: List<int>
   rightParenthesis: )
@@ -217,7 +210,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: v
-          staticElement: v@42
           element: v@42
           staticType: dynamic
         semicolon: ;
@@ -250,7 +242,6 @@ ForStatement
     iterable: MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -289,7 +280,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      staticElement: <testLibraryFragment>::@function::f::@parameter::values
       element: <testLibraryFragment>::@function::f::@parameter::values#element
       staticType: Iterable<int>
   rightParenthesis: )
@@ -299,7 +289,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: v
-          staticElement: v@42
           element: v@42
           staticType: int
         semicolon: ;
@@ -329,7 +318,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      staticElement: <testLibraryFragment>::@function::f::@parameter::values
       element: <testLibraryFragment>::@function::f::@parameter::values#element
       staticType: List<int>
   rightParenthesis: )
@@ -339,7 +327,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: v
-          staticElement: v@38
           element: v@38
           staticType: int
         semicolon: ;
@@ -369,7 +356,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      staticElement: <testLibraryFragment>::@function::f::@parameter::values
       element: <testLibraryFragment>::@function::f::@parameter::values#element
       staticType: Stream<int>
   rightParenthesis: )
@@ -379,7 +365,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: v
-          staticElement: v@52
           element: v@52
           staticType: int
         semicolon: ;
@@ -412,21 +397,18 @@ ForStatement
     iterable: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: x
-        staticElement: <testLibraryFragment>::@function::f::@parameter::x
         element: <testLibraryFragment>::@function::f::@parameter::x#element
         staticType: List<List<int>>
       period: .
       identifier: SimpleIdentifier
         token: first
-        staticElement: GetterMember
-          base: dart:core::<fragment>::@class::Iterable::@getter::first
+        element: GetterMember
+          baseElement: dart:core::<fragment>::@class::Iterable::@getter::first#element
           substitution: {E: List<int>}
-        element: dart:core::<fragment>::@class::Iterable::@getter::first#element
         staticType: List<int>
-      staticElement: GetterMember
-        base: dart:core::<fragment>::@class::Iterable::@getter::first
+      element: GetterMember
+        baseElement: dart:core::<fragment>::@class::Iterable::@getter::first#element
         substitution: {E: List<int>}
-      element: dart:core::<fragment>::@class::Iterable::@getter::first#element
       staticType: List<int>
   rightParenthesis: )
   body: Block
@@ -435,7 +417,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: x
-          staticElement: x@39
           element: x@39
           staticType: int
         semicolon: ;
@@ -473,13 +454,11 @@ ForStatement
   forLoopParts: ForEachPartsWithIdentifier
     identifier: SimpleIdentifier
       token: v
-      staticElement: <testLibraryFragment>::@function::f::@parameter::v
       element: <testLibraryFragment>::@function::f::@parameter::v#element
       staticType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      staticElement: <testLibraryFragment>::@function::f::@parameter::values
       element: <testLibraryFragment>::@function::f::@parameter::values#element
       staticType: List<int>
   rightParenthesis: )
@@ -489,7 +468,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: v
-          staticElement: <testLibraryFragment>::@function::f::@parameter::v
           element: <testLibraryFragment>::@function::f::@parameter::v#element
           staticType: dynamic
         semicolon: ;
@@ -515,7 +493,6 @@ ForStatement
   forLoopParts: ForEachPartsWithIdentifier
     identifier: SimpleIdentifier
       token: v
-      staticElement: <testLibraryFragment>::@class::A::@method::f::@parameter::v
       element: <testLibraryFragment>::@class::A::@method::f::@parameter::v#element
       staticType: dynamic
     inKeyword: in
@@ -560,7 +537,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: dynamic
   rightParenthesis: )
@@ -570,7 +546,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@24
           element: a@24
           staticType: dynamic
         semicolon: ;
@@ -605,7 +580,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: List<int>
   rightParenthesis: )
@@ -615,7 +589,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@34
           element: a@34
           staticType: int
         semicolon: ;
@@ -652,7 +625,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object
   rightParenthesis: )
@@ -662,7 +634,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@31
           element: a@31
           staticType: InvalidType
         semicolon: ;
@@ -730,7 +701,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         name: a
@@ -743,7 +713,6 @@ ForStatement
     iterable: MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -790,7 +759,6 @@ ForStatement
     iterable: MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -834,7 +802,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: List<int>
   rightParenthesis: )
@@ -844,7 +811,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@36
           element: a@36
           staticType: int
         semicolon: ;
@@ -872,7 +838,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element: dart:core::<fragment>::@class::num
           element2: dart:core::@class::num
           type: num
         name: a
@@ -884,7 +849,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: List<int>
   rightParenthesis: )
@@ -894,7 +858,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@38
           element: a@38
           staticType: num
         semicolon: ;
@@ -934,7 +897,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: dynamic
   rightParenthesis: )
@@ -944,7 +906,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@36
           element: a@36
           staticType: dynamic
         semicolon: ;
@@ -982,7 +943,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Object
   rightParenthesis: )
@@ -992,7 +952,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@43
           element: a@43
           staticType: InvalidType
         semicolon: ;
@@ -1028,7 +987,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Stream<int>
   rightParenthesis: )
@@ -1038,7 +996,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@48
           element: a@48
           staticType: int
         semicolon: ;
@@ -1069,7 +1026,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
         name: a
@@ -1082,7 +1038,6 @@ ForStatement
     iterable: MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -1099,7 +1054,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@39
           element: a@39
           staticType: int
         semicolon: ;
@@ -1138,7 +1092,6 @@ ForStatement
     iterable: MethodInvocation
       methodName: SimpleIdentifier
         token: g
-        staticElement: <testLibraryFragment>::@function::g
         element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
@@ -1155,7 +1108,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@35
           element: a@35
           staticType: Object?
         semicolon: ;
@@ -1191,7 +1143,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Stream<int>
   rightParenthesis: )
@@ -1201,7 +1152,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@50
           element: a@50
           staticType: int
         semicolon: ;
@@ -1230,7 +1180,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element: dart:core::<fragment>::@class::num
           element2: dart:core::@class::num
           type: num
         name: a
@@ -1242,7 +1191,6 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Stream<int>
   rightParenthesis: )
@@ -1252,7 +1200,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@52
           element: a@52
           staticType: num
         semicolon: ;
@@ -1281,13 +1228,11 @@ ForStatement
     condition: FunctionExpressionInvocation
       function: SimpleIdentifier
         token: b
-        staticElement: <testLibraryFragment>::@function::f::@parameter::b
         element: <testLibraryFragment>::@function::f::@parameter::b#element
         staticType: bool Function()
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
-      staticElement: <null>
       element: <null>
       staticInvokeType: bool Function()
       staticType: bool
@@ -1320,7 +1265,6 @@ ForStatement
         leftParenthesis: (
         pattern: AssignedVariablePattern
           name: a
-          element: a@17
           element2: a@17
           matchedValueType: int
         rightParenthesis: )
@@ -1340,7 +1284,6 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@17
           element: a@17
           staticType: int
         semicolon: ;
@@ -1409,7 +1352,6 @@ ForStatement
               declaredElement: hasImplicitType a@36
                 type: int
               matchedValueType: int
-            element: <null>
             element2: <null>
           PatternField
             pattern: DeclaredVariablePattern
@@ -1417,21 +1359,18 @@ ForStatement
               declaredElement: hasImplicitType b@39
                 type: bool
               matchedValueType: bool
-            element: <null>
             element2: <null>
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
       expression: SimpleIdentifier
         token: x
-        staticElement: <testLibraryFragment>::@function::f::@parameter::x
         element: <testLibraryFragment>::@function::f::@parameter::x#element
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
     condition: SimpleIdentifier
       token: b
-      staticElement: b@39
       element: b@39
       staticType: bool
     rightSeparator: ;
@@ -1439,17 +1378,13 @@ ForStatement
       PostfixExpression
         operand: SimpleIdentifier
           token: a
-          staticElement: a@36
           element: a@36
           staticType: null
         operator: --
-        readElement: a@36
         readElement2: a@36
         readType: int
-        writeElement: a@36
         writeElement2: a@36
         writeType: int
-        staticElement: dart:core::<fragment>::@class::num::@method::-
         element: dart:core::<fragment>::@class::num::@method::-#element
         staticType: int
   rightParenthesis: )
@@ -1459,14 +1394,12 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: a
-          staticElement: a@36
           element: a@36
           staticType: int
         semicolon: ;
       ExpressionStatement
         expression: SimpleIdentifier
           token: b
-          staticElement: b@39
           element: b@39
           staticType: bool
         semicolon: ;

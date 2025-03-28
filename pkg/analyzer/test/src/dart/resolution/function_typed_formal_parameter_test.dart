@@ -25,8 +25,7 @@ void f<V>(T p<T, U>(U a, V b)) {}
 FunctionTypedFormalParameter
   returnType: NamedType
     name: T
-    element: T@14
-    element2: <not-implemented>
+    element2: T@14
     type: T
   name: p
   parameters: FormalParameterList
@@ -34,23 +33,21 @@ FunctionTypedFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element: U@17
-        element2: <not-implemented>
+        element2: U@17
         type: U
       name: a
-      declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::a
+      declaredElement: <testLibraryFragment>::@function::f::@formalParameter::p::@formalParameter::a
         type: U
     parameter: SimpleFormalParameter
       type: NamedType
         name: V
-        element: V@7
-        element2: <not-implemented>
+        element2: V@7
         type: V
       name: b
-      declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::b
+      declaredElement: <testLibraryFragment>::@function::f::@formalParameter::p::@formalParameter::b
         type: V
     rightParenthesis: )
-  declaredElement: <testLibraryFragment>::@function::f::@parameter::p
+  declaredElement: <testLibraryFragment>::@function::f::@formalParameter::p
     type: T Function<T, U>(U, V)
 ''');
   }
@@ -65,7 +62,6 @@ void f(void p(int a)) {}
 FunctionTypedFormalParameter
   returnType: NamedType
     name: void
-    element: <null>
     element2: <null>
     type: void
   name: p
@@ -74,14 +70,13 @@ FunctionTypedFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element: dart:core::<fragment>::@class::int
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::a
+      declaredElement: <testLibraryFragment>::@function::f::@formalParameter::p::@formalParameter::a
         type: int
     rightParenthesis: )
-  declaredElement: <testLibraryFragment>::@function::f::@parameter::p
+  declaredElement: <testLibraryFragment>::@function::f::@formalParameter::p
     type: void Function(int)
 ''');
   }

@@ -34,7 +34,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -116,7 +116,6 @@ library
                     FunctionReference
                       function: SimpleIdentifier
                         token: defaultF @93
-                        staticElement: <testLibraryFragment>::@function::defaultF
                         element: <testLibrary>::@function::defaultF
                         staticType: void Function<T>(T)
                       staticType: void Function(dynamic)
@@ -132,14 +131,14 @@ library
           element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
-              element: <not-implemented>
+              element: T@15
       functions
         defaultF @30
           reference: <testLibraryFragment>::@function::defaultF
           element: <testLibrary>::@function::defaultF
           typeParameters
             T @39
-              element: <not-implemented>
+              element: T@39
           formalParameters
             v @44
               element: <testLibraryFragment>::@function::defaultF::@parameter::v#element
@@ -211,7 +210,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -254,13 +253,11 @@ library
                                   type: dynamic Function()
                                 type: dynamic Function()
                             rightBracket: > @71
-                          element: <testLibraryFragment>::@class::A
                           element2: <testLibrary>::@class::A
                           type: A<dynamic Function()>
-                        staticElement: ConstructorMember
-                          base: <testLibraryFragment>::@class::A::@constructor::new
+                        element: ConstructorMember
+                          baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
                           substitution: {T: dynamic Function()}
-                        element: <testLibraryFragment>::@class::A::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @72
                         rightParenthesis: ) @73
@@ -345,16 +342,13 @@ library
                 PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: Comparable @32
-                    staticElement: dart:core::<fragment>::@class::Comparable
                     element: dart:core::@class::Comparable
                     staticType: null
                   period: . @42
                   identifier: SimpleIdentifier
                     token: compare @43
-                    staticElement: dart:core::<fragment>::@class::Comparable::@method::compare
                     element: dart:core::<fragment>::@class::Comparable::@method::compare#element
                     staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
-                  staticElement: dart:core::<fragment>::@class::Comparable::@method::compare
                   element: dart:core::<fragment>::@class::Comparable::@method::compare#element
                   staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
   functions
@@ -399,7 +393,6 @@ library
                       name: Label
                         label: SimpleIdentifier
                           token: f1 @33
-                          staticElement: <null>
                           element: <null>
                           staticType: null
                         colon: : @35
@@ -410,7 +403,6 @@ library
                       name: Label
                         label: SimpleIdentifier
                           token: f2 @40
-                          staticElement: <null>
                           element: <null>
                           staticType: null
                         colon: : @42
@@ -461,7 +453,6 @@ library
                       name: Label
                         label: SimpleIdentifier
                           token: f1 @39
-                          staticElement: <null>
                           element: <null>
                           staticType: null
                         colon: : @41
@@ -472,7 +463,6 @@ library
                       name: Label
                         label: SimpleIdentifier
                           token: f2 @46
-                          staticElement: <null>
                           element: <null>
                           staticType: null
                         colon: : @48
@@ -627,7 +617,6 @@ library
                   initializer: expression_0
                     SimpleIdentifier
                       token: f @79
-                      staticElement: <testLibraryFragment>::@extension::E::@method::f
                       element: <testLibraryFragment>::@extension::E::@method::f#element
                       staticType: void Function()
   classes
@@ -675,9 +664,9 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T1 @8
-              element: <not-implemented>
+              element: T1@8
             T2 @12
-              element: <not-implemented>
+              element: T2@12
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -705,13 +694,11 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @80
-                          element: <testLibraryFragment>::@class::B
                           element2: <testLibrary>::@class::B
                           type: B<int, double>
-                        staticElement: ConstructorMember
-                          base: <testLibraryFragment>::@class::B::@constructor::new
+                        element: ConstructorMember
+                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
                           substitution: {T1: int, T2: double}
-                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @81
                         rightParenthesis: ) @82
@@ -764,7 +751,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -776,7 +763,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @36
-              element: <not-implemented>
+              element: T@36
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -792,13 +779,11 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @67
-                          element: <testLibraryFragment>::@class::B
                           element2: <testLibrary>::@class::B
                           type: B<Never>
-                        staticElement: ConstructorMember
-                          base: <testLibraryFragment>::@class::B::@constructor::new
+                        element: ConstructorMember
+                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
                           substitution: {T: Never}
-                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @68
                         rightParenthesis: ) @69
@@ -850,7 +835,7 @@ library
           element: <testLibrary>::@class::A
           typeParameters
             T @17
-              element: <not-implemented>
+              element: T@17
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
@@ -861,7 +846,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @31
-              element: <not-implemented>
+              element: T@31
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -873,7 +858,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @75
-              element: <not-implemented>
+              element: T@75
           constructors
             const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -889,13 +874,11 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @132
-                          element: <testLibraryFragment>::@class::B
                           element2: <testLibrary>::@class::B
                           type: B<Never>
-                        staticElement: ConstructorMember
-                          base: <testLibraryFragment>::@class::B::@constructor::new
+                        element: ConstructorMember
+                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
                           substitution: {T: Never}
-                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @133
                         rightParenthesis: ) @134
@@ -956,7 +939,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -969,7 +952,7 @@ library
           element: <testLibrary>::@function::foo
           typeParameters
             T @37
-              element: <not-implemented>
+              element: T@37
           formalParameters
             default b @46
               element: <testLibraryFragment>::@function::foo::@parameter::b#element
@@ -979,13 +962,11 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: B @56
-                      element: <testLibraryFragment>::@class::B
                       element2: <testLibrary>::@class::B
                       type: B<Never>
-                    staticElement: ConstructorMember
-                      base: <testLibraryFragment>::@class::B::@constructor::new
+                    element: ConstructorMember
+                      baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
                       substitution: {T: Never}
-                    element: <testLibraryFragment>::@class::B::@constructor::new#element
                   argumentList: ArgumentList
                     leftParenthesis: ( @57
                     rightParenthesis: ) @58
@@ -1035,7 +1016,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -1056,7 +1037,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::foo#element
               typeParameters
                 T @49
-                  element: <not-implemented>
+                  element: T@49
               formalParameters
                 default b @58
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
@@ -1066,13 +1047,11 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @68
-                          element: <testLibraryFragment>::@class::B
                           element2: <testLibrary>::@class::B
                           type: B<Never>
-                        staticElement: ConstructorMember
-                          base: <testLibraryFragment>::@class::B::@constructor::new
+                        element: ConstructorMember
+                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
                           substitution: {T: Never}
-                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @69
                         rightParenthesis: ) @70
@@ -1126,9 +1105,9 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T1 @8
-              element: <not-implemented>
+              element: T1@8
             T2 @12
-              element: <not-implemented>
+              element: T2@12
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -1140,7 +1119,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             E1 @41
-              element: <not-implemented>
+              element: E1@41
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1152,7 +1131,7 @@ library
               element: <testLibraryFragment>::@class::C::@method::foo#element
               typeParameters
                 E2 @58
-                  element: <not-implemented>
+                  element: E2@58
               formalParameters
                 default b @73
                   element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
@@ -1162,13 +1141,11 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @83
-                          element: <testLibraryFragment>::@class::B
                           element2: <testLibrary>::@class::B
                           type: B<Never, Never>
-                        staticElement: ConstructorMember
-                          base: <testLibraryFragment>::@class::B::@constructor::new
+                        element: ConstructorMember
+                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
                           substitution: {T1: Never, T2: Never}
-                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @84
                         rightParenthesis: ) @85
@@ -1225,7 +1202,7 @@ library
           element: <testLibrary>::@class::B
           typeParameters
             T @8
-              element: <not-implemented>
+              element: T@8
           constructors
             const new
               reference: <testLibraryFragment>::@class::B::@constructor::new
@@ -1237,7 +1214,7 @@ library
           element: <testLibrary>::@class::C
           typeParameters
             T @36
-              element: <not-implemented>
+              element: T@36
           constructors
             synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -1256,13 +1233,11 @@ library
                       constructorName: ConstructorName
                         type: NamedType
                           name: B @68
-                          element: <testLibraryFragment>::@class::B
                           element2: <testLibrary>::@class::B
                           type: B<Never>
-                        staticElement: ConstructorMember
-                          base: <testLibraryFragment>::@class::B::@constructor::new
+                        element: ConstructorMember
+                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
                           substitution: {T: Never}
-                        element: <testLibraryFragment>::@class::B::@constructor::new#element
                       argumentList: ArgumentList
                         leftParenthesis: ( @69
                         rightParenthesis: ) @70

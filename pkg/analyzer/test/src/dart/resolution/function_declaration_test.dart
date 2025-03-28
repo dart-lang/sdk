@@ -37,11 +37,9 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: dart:async::@fragment::dart:async/stream.dart::@class::Stream
     element2: dart:async::@class::Stream
     type: Stream<int>
   name: f
@@ -89,11 +87,9 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: dart:async::@fragment::dart:async/stream.dart::@class::Stream
     element2: dart:async::@class::Stream
     type: Stream<int>
   name: f
@@ -129,7 +125,6 @@ void bar([int foo = foo + 1]) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: <testLibraryFragment>::@getter::foo
   element: <testLibraryFragment>::@getter::foo#element
   staticType: int
 ''');
@@ -148,7 +143,6 @@ void bar(a a) {
     assertResolvedNodeText(node_1, r'''
 NamedType
   name: a
-  element: <testLibraryFragment>::@class::a
   element2: <testLibrary>::@class::a
   type: a
 ''');
@@ -157,7 +151,6 @@ NamedType
     assertResolvedNodeText(node_2, r'''
 SimpleIdentifier
   token: a
-  staticElement: <testLibraryFragment>::@function::bar::@parameter::a
   element: <testLibraryFragment>::@function::bar::@parameter::a#element
   staticType: a
 ''');
@@ -175,7 +168,6 @@ int get foo(double a) => 0;
 FunctionDeclaration
   returnType: NamedType
     name: int
-    element: dart:core::<fragment>::@class::int
     element2: dart:core::@class::int
     type: int
   propertyKeyword: get
@@ -186,11 +178,10 @@ FunctionDeclaration
       parameter: SimpleFormalParameter
         type: NamedType
           name: double
-          element: dart:core::<fragment>::@class::double
           element2: dart:core::@class::double
           type: double
         name: a
-        declaredElement: <testLibraryFragment>::@getter::foo::@parameter::a
+        declaredElement: <testLibraryFragment>::@getter::foo::@formalParameter::a
           type: double
       rightParenthesis: )
     body: ExpressionFunctionBody
@@ -226,11 +217,9 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: dart:core::<fragment>::@class::Iterable
     element2: dart:core::@class::Iterable
     type: Iterable<int>
   name: f
@@ -276,11 +265,9 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element: dart:core::<fragment>::@class::int
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element: dart:core::<fragment>::@class::Iterable
     element2: dart:core::@class::Iterable
     type: Iterable<int>
   name: f
@@ -380,7 +367,6 @@ TypeParameter
   bound: GenericFunctionType
     returnType: NamedType
       name: void
-      element: <null>
       element2: <null>
       type: void
     functionKeyword: Function
@@ -396,18 +382,16 @@ TypeParameter
       parameter: SimpleFormalParameter
         type: NamedType
           name: _
-          element: <null>
           element2: <null>
           type: InvalidType
-        declaredElement: @-1
+        declaredElement: null@null
           type: InvalidType
       parameter: SimpleFormalParameter
         type: NamedType
           name: _
-          element: <null>
           element2: <null>
           type: InvalidType
-        declaredElement: @-1
+        declaredElement: null@null
           type: InvalidType
       rightParenthesis: )
     declaredElement: GenericFunctionTypeElement

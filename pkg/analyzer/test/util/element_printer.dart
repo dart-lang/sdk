@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
@@ -86,13 +85,14 @@ class ElementPrinter {
     switch (element) {
       case null:
         _sink.writeln('<null>');
+      case Member member:
+        _writeMember(member);
       case TypeAliasElementImpl2 element:
         writelnReference(element.reference);
       case TopLevelVariableElementImpl2 element:
         writelnReference(element.reference);
       case TypeParameterElementImpl2():
-        // TODO(scheglov): update when implemented
-        _sink.writeln('<not-implemented>');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case ConstructorElement2 element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
@@ -118,7 +118,7 @@ class ElementPrinter {
         writeReference(reference!);
         _sink.writeln('#element');
       case LabelElementImpl():
-        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
       case LabelElementImpl2():
         // TODO(scheglov): nameOffset2 can be `null`
         _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
@@ -160,11 +160,6 @@ class ElementPrinter {
         });
       case NeverElementImpl():
         _sink.writeln('Never@-1');
-      case ParameterMember():
-        var firstFragment = element.firstFragment;
-        var referenceStr = _elementToReferenceString(firstFragment as Element);
-        _sink.write(referenceStr);
-        _sink.writeln('#element');
       case PrefixElementImpl2 element:
         writelnReference(element.reference);
       case SetterElement element:
@@ -191,6 +186,30 @@ class ElementPrinter {
     });
   }
 
+  void writeLibraryExport(String name, LibraryExport? element) {
+    if (element != null) {
+      _sink.writelnWithIndent('$name: LibraryExport');
+      _sink.withIndent(() {
+        _sink.writeWithIndent('uri: ');
+        writeDirectiveUri(element.uri);
+      });
+    } else {
+      _sink.writelnWithIndent('$name: <null>');
+    }
+  }
+
+  void writeLibraryImport(String name, LibraryImport? element) {
+    if (element != null) {
+      _sink.writelnWithIndent('$name: LibraryImport');
+      _sink.withIndent(() {
+        _sink.writeWithIndent('uri: ');
+        writeDirectiveUri(element.uri);
+      });
+    } else {
+      _sink.writelnWithIndent('$name: <null>');
+    }
+  }
+
   void writelnFragmentReference(Fragment fragment) {
     var referenceStr = _fragmentToReferenceString(fragment);
     _sink.write(referenceStr);
@@ -200,11 +219,6 @@ class ElementPrinter {
   void writelnReference(Reference reference) {
     writeReference(reference);
     _sink.writeln();
-  }
-
-  void writeNamedElement(String name, Element? element) {
-    _sink.writeWithIndent('$name: ');
-    writeElement(element);
   }
 
   void writeNamedElement2(String name, Element2? element) {
@@ -227,6 +241,18 @@ class ElementPrinter {
     writeType(type);
   }
 
+  void writePartInclude(String name, PartInclude? element) {
+    if (element != null) {
+      _sink.writelnWithIndent('$name: PartInclude');
+      _sink.withIndent(() {
+        _sink.writeWithIndent('uri: ');
+        writeDirectiveUri(element.uri);
+      });
+    } else {
+      _sink.writelnWithIndent('$name: <null>');
+    }
+  }
+
   void writeReference(Reference reference) {
     var str = _referenceToString(reference);
     _sink.write(str);
@@ -240,7 +266,6 @@ class ElementPrinter {
       if (type is InterfaceType) {
         if (_configuration.withInterfaceTypeElements) {
           _sink.withIndent(() {
-            writeNamedElement('element', type.element3.asElement);
             writeNamedElement2('element', type.element3);
           });
         }
@@ -400,7 +425,7 @@ class ElementPrinter {
   void _writeMember(Member element) {
     _sink.writeln(_nameOfMemberClass(element));
     _sink.withIndent(() {
-      writeNamedElement('base', element.declaration);
+      writeNamedElement2('baseElement', element.baseElement);
 
       void writeSubstitution(String name, MapSubstitution substitution) {
         var map = substitution.map;
@@ -414,15 +439,15 @@ class ElementPrinter {
 
       if (element is ConstructorMember) {
         if (_configuration.withRedirectedConstructors) {
-          writeNamedElement(
+          writeNamedElement2(
             'redirectedConstructor',
-            element.redirectedConstructor,
+            element.redirectedConstructor2,
           );
         }
         if (_configuration.withSuperConstructors) {
-          writeNamedElement(
+          writeNamedElement2(
             'superConstructor',
-            element.superConstructor,
+            element.superConstructor2,
           );
         }
       }

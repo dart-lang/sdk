@@ -44,14 +44,12 @@ BinaryExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
-      parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+      correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
       staticType: int
-    parameter: <null>
-    staticElement: dart:core::<fragment>::@class::num::@method::+
+    correspondingParameter: <null>
     element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: Never
@@ -72,7 +70,6 @@ void f(Never x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: ==
@@ -83,14 +80,12 @@ BinaryExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
-      parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+      correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
       staticType: int
-    parameter: <null>
-    staticElement: dart:core::<fragment>::@class::num::@method::+
+    correspondingParameter: <null>
     element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: Never
@@ -111,7 +106,6 @@ void f(Never x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: +
@@ -124,16 +118,14 @@ BinaryExpression
       operator: +
       rightOperand: IntegerLiteral
         literal: 2
-        parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+        correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
         staticType: int
-      staticElement: dart:core::<fragment>::@class::num::@method::+
       element: dart:core::<fragment>::@class::num::@method::+#element
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
-    parameter: <null>
+    correspondingParameter: <null>
     staticType: int
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: Never
@@ -151,7 +143,6 @@ void f(Never? x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   operator: ==
@@ -162,14 +153,12 @@ BinaryExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
-      parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+      correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
       staticType: int
-    parameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other
-    staticElement: dart:core::<fragment>::@class::num::@method::+
+    correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
     element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
-  staticElement: dart:core::<fragment>::@class::Object::@method::==
   element: dart:core::<fragment>::@class::Object::@method::==#element
   staticInvokeType: bool Function(Object)
   staticType: bool
@@ -192,7 +181,6 @@ void f(Never? x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   operator: +
@@ -205,16 +193,14 @@ BinaryExpression
       operator: +
       rightOperand: IntegerLiteral
         literal: 2
-        parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+        correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
         staticType: int
-      staticElement: dart:core::<fragment>::@class::num::@method::+
       element: dart:core::<fragment>::@class::num::@method::+#element
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
-    parameter: <null>
+    correspondingParameter: <null>
     staticType: int
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: InvalidType
@@ -252,16 +238,14 @@ BinaryExpression
       operator: +
       rightOperand: IntegerLiteral
         literal: 2
-        parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+        correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
         staticType: int
-      staticElement: dart:core::<fragment>::@class::num::@method::+
       element: dart:core::<fragment>::@class::num::@method::+#element
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
-    parameter: <null>
+    correspondingParameter: <null>
     staticType: int
-  staticElement: <null>
   element: <null>
   staticInvokeType: null
   staticType: Never
@@ -321,16 +305,14 @@ void f(Never x) {
 IndexExpression
   target: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    parameter: <null>
+    correspondingParameter: <null>
     staticType: int
   rightBracket: ]
-  staticElement: <null>
   element: <null>
   staticType: Never
 ''');
@@ -352,16 +334,14 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: <null>
+      correspondingParameter: <null>
       staticType: int
     rightBracket: ]
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: +=
@@ -372,20 +352,16 @@ AssignmentExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
-      parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+      correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
       staticType: int
-    parameter: <null>
-    staticElement: dart:core::<fragment>::@class::num::@method::+
+    correspondingParameter: <null>
     element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: InvalidType
-  writeElement: <null>
   writeElement2: <null>
   writeType: InvalidType
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -406,16 +382,14 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: <null>
+      correspondingParameter: <null>
       staticType: int
     rightBracket: ]
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: =
@@ -426,20 +400,16 @@ AssignmentExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
-      parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+      correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
       staticType: int
-    parameter: <null>
-    staticElement: dart:core::<fragment>::@class::num::@method::+
+    correspondingParameter: <null>
     element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: <null>
   writeElement2: <null>
   writeType: InvalidType
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
@@ -459,16 +429,14 @@ void f(Never? x) {
 IndexExpression
   target: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    parameter: <null>
+    correspondingParameter: <null>
     staticType: int
   rightBracket: ]
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -490,16 +458,14 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: <null>
+      correspondingParameter: <null>
       staticType: int
     rightBracket: ]
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: +=
@@ -510,20 +476,16 @@ AssignmentExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
-      parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+      correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
       staticType: int
-    parameter: <null>
-    staticElement: dart:core::<fragment>::@class::num::@method::+
+    correspondingParameter: <null>
     element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: InvalidType
-  writeElement: <null>
   writeElement2: <null>
   writeType: InvalidType
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -544,16 +506,14 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      parameter: <null>
+      correspondingParameter: <null>
       staticType: int
     rightBracket: ]
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: =
@@ -564,20 +524,16 @@ AssignmentExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
-      parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+      correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
       staticType: int
-    parameter: <null>
-    staticElement: dart:core::<fragment>::@class::num::@method::+
+    correspondingParameter: <null>
     element: dart:core::<fragment>::@class::num::@method::+#element
     staticInvokeType: num Function(num)
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: <null>
   writeElement2: <null>
   writeType: InvalidType
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
@@ -606,13 +562,11 @@ void f(Never x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
     token: foo
-    staticElement: <null>
     element: <null>
     staticType: dynamic
   argumentList: ArgumentList
@@ -625,10 +579,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+          correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
           staticType: int
-        parameter: <null>
-        staticElement: dart:core::<fragment>::@class::num::@method::+
+        correspondingParameter: <null>
         element: dart:core::<fragment>::@class::num::@method::+#element
         staticInvokeType: num Function(num)
         staticType: int
@@ -653,13 +606,11 @@ void f(Never x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: <null>
     element: <null>
     staticType: dynamic
   argumentList: ArgumentList
@@ -672,10 +623,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+          correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
           staticType: int
-        parameter: <null>
-        staticElement: dart:core::<fragment>::@class::num::@method::+
+        correspondingParameter: <null>
         element: dart:core::<fragment>::@class::num::@method::+#element
         staticInvokeType: num Function(num)
         staticType: int
@@ -699,13 +649,11 @@ void f(Never? x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::<fragment>::@class::Object::@method::toString
     element: dart:core::<fragment>::@class::Object::@method::toString#element
     staticType: String Function()
   argumentList: ArgumentList
@@ -718,10 +666,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
-          parameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other
+          correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
           staticType: int
-        parameter: <null>
-        staticElement: dart:core::<fragment>::@class::num::@method::+
+        correspondingParameter: <null>
         element: dart:core::<fragment>::@class::num::@method::+#element
         staticInvokeType: num Function(num)
         staticType: int
@@ -756,7 +703,6 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: toString
-    staticElement: <null>
     element: <null>
     staticType: dynamic
   argumentList: ArgumentList
@@ -780,17 +726,13 @@ void f(Never x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   operator: ++
-  readElement: <testLibraryFragment>::@function::f::@parameter::x
   readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never
-  writeElement: <testLibraryFragment>::@function::f::@parameter::x
   writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never
-  staticElement: <null>
   element: <null>
   staticType: Never
 ''');
@@ -810,17 +752,13 @@ void f(Never? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
   operator: ++
-  readElement: <testLibraryFragment>::@function::f::@parameter::x
   readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never?
-  writeElement: <testLibraryFragment>::@function::f::@parameter::x
   writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never?
-  staticElement: <null>
   element: <null>
   staticType: Never?
 ''');
@@ -841,16 +779,12 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
-  readElement: <testLibraryFragment>::@function::f::@parameter::x
   readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never
-  writeElement: <testLibraryFragment>::@function::f::@parameter::x
   writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never
-  staticElement: <null>
   element: <null>
   staticType: Never
 ''');
@@ -871,16 +805,12 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: null
-  readElement: <testLibraryFragment>::@function::f::@parameter::x
   readElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   readType: Never?
-  writeElement: <testLibraryFragment>::@function::f::@parameter::x
   writeElement2: <testLibraryFragment>::@function::f::@parameter::x#element
   writeType: Never?
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -900,16 +830,13 @@ void f(Never x) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <null>
     element: <null>
     staticType: Never
-  staticElement: <null>
   element: <null>
   staticType: Never
 ''');
@@ -929,16 +856,13 @@ void f(Never x) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   period: .
   identifier: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
     element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: Never
-  staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
   element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
   staticType: Never
 ''');
@@ -959,30 +883,24 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: <null>
       element: <null>
       staticType: null
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <null>
+    correspondingParameter: <null>
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: InvalidType
-  writeElement: <null>
   writeElement2: <null>
   writeType: InvalidType
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -1002,16 +920,13 @@ void f(Never x) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never
   period: .
   identifier: SimpleIdentifier
     token: toString
-    staticElement: dart:core::<fragment>::@class::Object::@method::toString
     element: dart:core::<fragment>::@class::Object::@method::toString#element
     staticType: Never
-  staticElement: dart:core::<fragment>::@class::Object::@method::toString
   element: dart:core::<fragment>::@class::Object::@method::toString#element
   staticType: Never
 ''');
@@ -1032,30 +947,24 @@ AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
-      staticElement: <testLibraryFragment>::@function::f::@parameter::x
       element: <testLibraryFragment>::@function::f::@parameter::x#element
       staticType: Never
     period: .
     identifier: SimpleIdentifier
       token: foo
-      staticElement: <null>
       element: <null>
       staticType: null
-    staticElement: <null>
     element: <null>
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: <null>
+    correspondingParameter: <null>
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: <null>
   writeElement2: <null>
   writeType: InvalidType
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');
@@ -1076,16 +985,13 @@ void f(Never? x) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
-  staticElement: <null>
   element: <null>
   staticType: InvalidType
 ''');
@@ -1103,16 +1009,13 @@ void f(Never? x) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   period: .
   identifier: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
     element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: int
-  staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
   element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
   staticType: int
 ''');
@@ -1130,16 +1033,13 @@ void f(Never? x) {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
-    staticElement: <testLibraryFragment>::@function::f::@parameter::x
     element: <testLibraryFragment>::@function::f::@parameter::x#element
     staticType: Never?
   period: .
   identifier: SimpleIdentifier
     token: toString
-    staticElement: dart:core::<fragment>::@class::Object::@method::toString
     element: dart:core::<fragment>::@class::Object::@method::toString#element
     staticType: String Function()
-  staticElement: dart:core::<fragment>::@class::Object::@method::toString
   element: dart:core::<fragment>::@class::Object::@method::toString#element
   staticType: String Function()
 ''');
@@ -1169,7 +1069,6 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: toString
-    staticElement: dart:core::<fragment>::@class::Object::@method::toString
     element: dart:core::<fragment>::@class::Object::@method::toString#element
     staticType: String Function()
   staticType: String Function()
@@ -1200,7 +1099,6 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    staticElement: dart:core::<fragment>::@class::Object::@getter::hashCode
     element: dart:core::<fragment>::@class::Object::@getter::hashCode#element
     staticType: int
   staticType: int

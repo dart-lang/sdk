@@ -59,7 +59,6 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
   staticType: InvalidType
@@ -90,7 +89,6 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    staticElement: <testLibraryFragment>::@extension::E1::@getter::a
     element: <testLibraryFragment>::@extension::E1::@getter::a#element
     staticType: void
   staticType: void
@@ -123,7 +121,6 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
   staticType: InvalidType
@@ -156,7 +153,6 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
   staticType: InvalidType
@@ -297,7 +293,6 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: a
-    staticElement: <null>
     element: <null>
     staticType: InvalidType
   argumentList: ArgumentList
@@ -498,22 +493,18 @@ AssignmentExpression
     operator: .
     propertyName: SimpleIdentifier
       token: a
-      staticElement: <null>
       element: <null>
       staticType: null
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
     literal: 3
-    parameter: <null>
+    correspondingParameter: <null>
     staticType: int
-  readElement: <null>
   readElement2: <null>
   readType: null
-  writeElement: <null>
   writeElement2: <null>
   writeType: InvalidType
-  staticElement: <null>
   element: <null>
   staticType: int
 ''');

@@ -50,6 +50,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.records: ExperimentalFeatures.records,
   EnableString.sealed_class: ExperimentalFeatures.sealed_class,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
+  EnableString.sound_flow_analysis: ExperimentalFeatures.sound_flow_analysis,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.super_parameters: ExperimentalFeatures.super_parameters,
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
@@ -152,6 +153,9 @@ class EnableString {
 
   /// String to enable the experiment "set-literals"
   static const String set_literals = 'set-literals';
+
+  /// String to enable the experiment "sound-flow-analysis"
+  static const String sound_flow_analysis = 'sound-flow-analysis';
 
   /// String to enable the experiment "spread-collections"
   static const String spread_collections = 'spread-collections';
@@ -516,8 +520,20 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
-  static final spread_collections = ExperimentalFeature(
+  static final sound_flow_analysis = ExperimentalFeature(
     index: 30,
+    enableString: EnableString.sound_flow_analysis,
+    isEnabledByDefault: IsEnabledByDefault.sound_flow_analysis,
+    isExpired: IsExpired.sound_flow_analysis,
+    documentation:
+        'Assume sound null safety when computing type promotion, reachability, and definite assignment.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final spread_collections = ExperimentalFeature(
+    index: 31,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -528,7 +544,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 31,
+    index: 32,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -539,7 +555,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 32,
+    index: 33,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -551,7 +567,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 33,
+    index: 34,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -562,7 +578,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 34,
+    index: 35,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -573,7 +589,7 @@ class ExperimentalFeatures {
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 35,
+    index: 36,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
@@ -584,7 +600,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 36,
+    index: 37,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -595,7 +611,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 37,
+    index: 38,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -699,6 +715,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "set-literals"
   static const bool set_literals = true;
+
+  /// Default state of the experiment "sound-flow-analysis"
+  static const bool sound_flow_analysis = false;
 
   /// Default state of the experiment "spread-collections"
   static const bool spread_collections = true;
@@ -818,6 +837,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = true;
+
+  /// Expiration status of the experiment "sound-flow-analysis"
+  static const bool sound_flow_analysis = false;
 
   /// Expiration status of the experiment "spread-collections"
   static const bool spread_collections = true;
@@ -947,6 +969,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "set-literals"
   bool get set_literals => isEnabled(ExperimentalFeatures.set_literals);
+
+  /// Current state for the flag "sound-flow-analysis"
+  bool get sound_flow_analysis =>
+      isEnabled(ExperimentalFeatures.sound_flow_analysis);
 
   /// Current state for the flag "spread-collections"
   bool get spread_collections =>
