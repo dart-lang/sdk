@@ -53,12 +53,19 @@ class InlineValueHandler
       }
       var lineInfo = unitResult.lineInfo;
 
-      // We will provide values from the start of the visible range up to
-      // the end of the line the debugger is stopped on (which will do by just
-      // jumping to position 0 of the next line).
+      // Compute the ranges for which we will provide values. We produce two
+      // ranges here because for some kinds of variables (simple values) it's
+      // convenient to see them on an `if` statement on the same line that
+      // hasn't executed yet. However, we should avoid evaluating getters which
+      // may have side effects if they haven't executed previously, because this
+      // may change state in a way that's less obvious.
       var visibleRange = params.range;
       var stoppedLocation = params.context.stoppedLocation;
-      var applicableRange = Range(
+      var rangeAlreadyExecuted = Range(
+        start: visibleRange.start,
+        end: stoppedLocation.end,
+      );
+      var rangeIncludingCurrentLine = Range(
         start: visibleRange.start,
         end: Position(line: stoppedLocation.end.line + 1, character: 0),
       );
@@ -75,7 +82,11 @@ class InlineValueHandler
           return success(null);
         }
 
-        var collector = _InlineValueCollector(lineInfo, applicableRange);
+        var collector = _InlineValueCollector(
+          lineInfo,
+          rangeAlreadyExecuted: rangeAlreadyExecuted,
+          rangeIncludingCurrentLine: rangeIncludingCurrentLine,
+        );
         var visitor = _InlineValueVisitor(
           server.lspClientConfiguration,
           collector,
@@ -113,17 +124,28 @@ class _InlineValueCollector {
   /// A map of elements and their inline value.
   final Map<Element2, InlineValue> values = {};
 
-  /// The range for which inline values should be retained.
+  /// The range for which simple inline values should be returned.
+  ///
+  /// This should be approximately the range of the visible code on screen up to
+  /// the point of execution and including the current line.
+  final Range rangeIncludingCurrentLine;
+
+  /// The range for which complex inline values (such as getters) should be
+  /// returned.
   ///
   /// This should be approximately the range of the visible code on screen up to
   /// the point of execution.
-  final Range applicableRange;
+  final Range rangeAlreadyExecuted;
 
   /// A [LineInfo] used to convert offsets to lines/columns for comparing to
   /// [applicableRange].
   final LineInfo lineInfo;
 
-  _InlineValueCollector(this.lineInfo, this.applicableRange);
+  _InlineValueCollector(
+    this.lineInfo, {
+    required this.rangeAlreadyExecuted,
+    required this.rangeIncludingCurrentLine,
+  });
 
   /// Records an expression inline value for [element] with [offset]/[length].
   ///
@@ -135,6 +157,11 @@ class _InlineValueCollector {
     if (element == null) return;
 
     var range = toRange(lineInfo, offset, length);
+
+    // Don't record anything outside of the visible range (excluding next line).
+    if (!range.intersects(rangeAlreadyExecuted)) {
+      return;
+    }
 
     var value = InlineValue.t1(
       InlineValueEvaluatableExpression(
@@ -157,6 +184,11 @@ class _InlineValueCollector {
     if (element == null || element.isWildcardVariable) return;
 
     var range = toRange(lineInfo, offset, length);
+
+    // Don't record anything outside of the visible range (including next line).
+    if (!range.intersects(rangeIncludingCurrentLine)) {
+      return;
+    }
 
     var value = InlineValue.t3(
       InlineValueVariableLookup(
@@ -182,11 +214,6 @@ class _InlineValueCollector {
   /// the latest one in the source for that element.
   void _record(InlineValue value, Element2 element) {
     var range = _getRange(value);
-
-    // Never record anything outside of the visible range.
-    if (!range.intersects(applicableRange)) {
-      return;
-    }
 
     // We only want to show each variable once, so keep only the one furthest
     // into the source (closest to the execution pointer).

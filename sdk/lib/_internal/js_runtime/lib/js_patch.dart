@@ -24,8 +24,8 @@ final JsObject _context = _castToJsObject(_wrapToDart(JS('', 'self')));
 
 _convertDartFunction(Function f, {bool captureThis = false}) {
   return JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f, captureThis) {
           return function() {
             return _call(f, captureThis, this,
@@ -33,9 +33,10 @@ _convertDartFunction(Function f, {bool captureThis = false}) {
           }
         }(#, #, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunction),
-      f,
-      captureThis);
+    DART_CLOSURE_TO_JS(_callDartFunction),
+    f,
+    captureThis,
+  );
 }
 
 _callDartFunction(callback, bool captureThis, self, List arguments) {
@@ -77,22 +78,27 @@ class JsObject {
           var arg0 = _convertToJS(JS('', '#[0]', arguments));
           var arg1 = _convertToJS(JS('', '#[1]', arguments));
           return _castToJsObject(
-              _wrapToDart(JS('', 'new #(#, #)', ctor, arg0, arg1)));
+            _wrapToDart(JS('', 'new #(#, #)', ctor, arg0, arg1)),
+          );
 
         case 3:
           var arg0 = _convertToJS(JS('', '#[0]', arguments));
           var arg1 = _convertToJS(JS('', '#[1]', arguments));
           var arg2 = _convertToJS(JS('', '#[2]', arguments));
           return _castToJsObject(
-              _wrapToDart(JS('', 'new #(#, #, #)', ctor, arg0, arg1, arg2)));
+            _wrapToDart(JS('', 'new #(#, #, #)', ctor, arg0, arg1, arg2)),
+          );
 
         case 4:
           var arg0 = _convertToJS(JS('', '#[0]', arguments));
           var arg1 = _convertToJS(JS('', '#[1]', arguments));
           var arg2 = _convertToJS(JS('', '#[2]', arguments));
           var arg3 = _convertToJS(JS('', '#[3]', arguments));
-          return _castToJsObject(_wrapToDart(
-              JS('', 'new #(#, #, #, #)', ctor, arg0, arg1, arg2, arg3)));
+          return _castToJsObject(
+            _wrapToDart(
+              JS('', 'new #(#, #, #, #)', ctor, arg0, arg1, arg2, arg3),
+            ),
+          );
       }
     }
 
@@ -219,8 +225,16 @@ class JsObject {
     if (method is! String && method is! num) {
       throw ArgumentError("method is not a String or num");
     }
-    return _convertToDart(JS('', '#[#].apply(#, #)', _jsObject, method,
-        _jsObject, args == null ? null : List.from(args.map(_convertToJS))));
+    return _convertToDart(
+      JS(
+        '',
+        '#[#].apply(#, #)',
+        _jsObject,
+        method,
+        _jsObject,
+        args == null ? null : List.from(args.map(_convertToJS)),
+      ),
+    );
   }
 }
 
@@ -235,12 +249,15 @@ class JsFunction extends JsObject {
   JsFunction._fromJs(Object jsObject) : super._fromJs(jsObject);
 
   @patch
-  dynamic apply(List args, {thisArg}) => _convertToDart(JS(
+  dynamic apply(List args, {thisArg}) => _convertToDart(
+    JS(
       '',
       '#.apply(#, #)',
       _jsObject,
       _convertToJS(thisArg),
-      args == null ? null : List.from(args.map(_convertToJS))));
+      args == null ? null : List.from(args.map(_convertToJS)),
+    ),
+  );
 }
 
 @patch
@@ -319,9 +336,10 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
 
   @patch
   void addAll(Iterable<E> iterable) {
-    var list = (JS('bool', '# instanceof Array', iterable))
-        ? JS<List>('JSArray', '#', iterable)
-        : List.from(iterable);
+    var list =
+        (JS('bool', '# instanceof Array', iterable))
+            ? JS<List>('JSArray', '#', iterable)
+            : List.from(iterable);
     callMethod('push', list);
   }
 
@@ -371,8 +389,9 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
 }
 
 // property added to a Dart object referencing its JS-side DartObject proxy
-final String _DART_OBJECT_PROPERTY_NAME =
-    getIsolateAffinityTag(r'_$dart_dartObject');
+final String _DART_OBJECT_PROPERTY_NAME = getIsolateAffinityTag(
+  r'_$dart_dartObject',
+);
 
 // property added to a JS object referencing its Dart-side JsObject proxy
 const _JS_OBJECT_PROPERTY_NAME = r'_$dart_jsObject';
@@ -444,7 +463,10 @@ Object? _convertToJS(Object? o) {
   }
   var ctor = _dartProxyCtor;
   return _getJsProxy(
-      o, _JS_OBJECT_PROPERTY_NAME, (o) => JS('', 'new #(#)', ctor, o));
+    o,
+    _JS_OBJECT_PROPERTY_NAME,
+    (o) => JS('', 'new #(#)', ctor, o),
+  );
 }
 
 Object? _getJsProxy(o, String propertyName, createProxy(o)) {
@@ -481,14 +503,23 @@ Object? _convertToDart(o) {
 Object _wrapToDart(o) {
   if (JS('bool', 'typeof # == "function"', o)) {
     return _getDartProxy(
-        o, DART_CLOSURE_PROPERTY_NAME, (o) => JsFunction._fromJs(o));
+      o,
+      DART_CLOSURE_PROPERTY_NAME,
+      (o) => JsFunction._fromJs(o),
+    );
   }
   if (JS('bool', '# instanceof Array', o)) {
     return _getDartProxy(
-        o, _DART_OBJECT_PROPERTY_NAME, (o) => JsArray._fromJs(o));
+      o,
+      _DART_OBJECT_PROPERTY_NAME,
+      (o) => JsArray._fromJs(o),
+    );
   }
   return _getDartProxy(
-      o, _DART_OBJECT_PROPERTY_NAME, (o) => JsObject._fromJs(o));
+    o,
+    _DART_OBJECT_PROPERTY_NAME,
+    (o) => JsObject._fromJs(o),
+  );
 }
 
 Object _getDartProxy(o, String propertyName, JsObject createProxy(o)) {

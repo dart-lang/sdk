@@ -7,7 +7,7 @@ import 'package:js_shared/variance.dart';
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart';
 import '../serialization/serialization.dart';
-import '../util/util.dart' show equalElements, equalSets, identicalElements;
+import '../util/util.dart' show equalElements, equalSets;
 import '../universe/record_shape.dart';
 import 'entities.dart';
 
@@ -1052,130 +1052,6 @@ abstract class DartTypeVisitor<R, A> {
   R visitFutureOrType(covariant FutureOrType type, A argument);
 }
 
-class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
-  final DartTypes _dartTypes;
-
-  _LegacyErasureVisitor(this._dartTypes);
-
-  DartType erase(DartType type) => visit(type, null);
-
-  List<DartType> eraseList(List<DartType> types) {
-    List<DartType> erasedTypes = types.map(erase).toList();
-    return identicalElements(erasedTypes, types) ? types : erasedTypes;
-  }
-
-  @override
-  DartType visit(DartType type, Null _) => type.accept(this, null);
-
-  @override
-  DartType visitNullableType(NullableType type, Null _) {
-    var baseType = erase(type.baseType);
-    if (identical(baseType, type.baseType)) return type;
-    return _dartTypes.nullableType(baseType);
-  }
-
-  @override
-  NeverType visitNeverType(NeverType type, Null _) => type;
-
-  @override
-  VoidType visitVoidType(VoidType type, Null _) => type;
-
-  @override
-  TypeVariableType visitTypeVariableType(TypeVariableType type, Null _) => type;
-
-  @override
-  FunctionTypeVariable visitFunctionTypeVariable(
-    FunctionTypeVariable type,
-    Null _,
-  ) => type;
-
-  @override
-  FunctionType visitFunctionType(FunctionType type, Null _) {
-    var returnType = erase(type.returnType);
-    var parameterTypes = eraseList(type.parameterTypes);
-    var optionalParameterTypes = eraseList(type.optionalParameterTypes);
-    var namedParameterTypes = eraseList(type.namedParameterTypes);
-
-    var oldTypeVariables = type.typeVariables;
-    var length = oldTypeVariables.length;
-
-    // Use the old type variables as placeholders that are overwritten.
-    List<FunctionTypeVariable> typeVariables = List<FunctionTypeVariable>.of(
-      oldTypeVariables,
-      growable: false,
-    );
-    List<FunctionTypeVariable> erasableTypeVariables = [];
-    List<FunctionTypeVariable> erasedTypeVariables = [];
-    for (int i = 0; i < length; i++) {
-      var oldTypeVariable = oldTypeVariables[i];
-      var oldBound = oldTypeVariable.bound;
-      var bound = erase(oldBound);
-      if (identical(bound, oldBound)) {
-        typeVariables[i] = oldTypeVariable;
-      } else {
-        var typeVariable = _dartTypes.functionTypeVariable(i)..bound = bound;
-        typeVariables[i] = typeVariable;
-        erasableTypeVariables.add(oldTypeVariable);
-        erasedTypeVariables.add(typeVariable);
-      }
-    }
-
-    if (identical(returnType, type.returnType) &&
-        identical(parameterTypes, type.parameterTypes) &&
-        identical(optionalParameterTypes, type.optionalParameterTypes) &&
-        identical(namedParameterTypes, type.namedParameterTypes) &&
-        erasableTypeVariables.isEmpty) {
-      return type;
-    }
-
-    // TODO(48820): Can we avoid the cast?
-    return _dartTypes.subst(
-          erasedTypeVariables,
-          erasableTypeVariables,
-          _dartTypes.functionType(
-            returnType,
-            parameterTypes,
-            optionalParameterTypes,
-            type.namedParameters,
-            type.requiredNamedParameters,
-            namedParameterTypes,
-            typeVariables,
-          ),
-        )
-        as FunctionType;
-  }
-
-  @override
-  InterfaceType visitInterfaceType(InterfaceType type, Null _) {
-    var typeArguments = eraseList(type.typeArguments);
-    if (identical(typeArguments, type.typeArguments)) return type;
-    return _dartTypes.interfaceType(type.element, typeArguments);
-  }
-
-  @override
-  RecordType visitRecordType(RecordType type, Null _) {
-    final fields = eraseList(type.fields);
-    if (identical(fields, type.fields)) return type;
-    return _dartTypes.recordType(type.shape, fields);
-  }
-
-  @override
-  DynamicType visitDynamicType(DynamicType type, Null _) => type;
-
-  @override
-  ErasedType visitErasedType(ErasedType type, Null _) => type;
-
-  @override
-  AnyType visitAnyType(AnyType type, Null _) => type;
-
-  @override
-  DartType visitFutureOrType(FutureOrType type, Null _) {
-    var typeArgument = erase(type.typeArgument);
-    if (identical(typeArgument, type.typeArgument)) return type;
-    return _dartTypes.futureOrType(typeArgument);
-  }
-}
-
 abstract class DartTypeSubstitutionVisitor<A>
     extends DartTypeVisitor<DartType, A> {
   DartTypes get dartTypes;
@@ -1887,7 +1763,6 @@ abstract class DartTypes {
 
   DartType nullableType(DartType baseType) {
     bool isNullable(DartType t) =>
-        // Note that we can assume null safety is enabled here.
         t.isNull ||
         t is NullableType ||
         t is FutureOrType && isNullable(t.typeArgument) ||
@@ -1981,9 +1856,6 @@ abstract class DartTypes {
     }
     return result;
   }
-
-  DartType eraseLegacy(DartType type) =>
-      _LegacyErasureVisitor(this).erase(type);
 
   /// Performs the substitution `[arguments[i]/parameters[i]]t`.
   ///
@@ -2453,9 +2325,7 @@ abstract class DartTypes {
         type is FunctionTypeVariable && canAssignGenericFunctionTo(type.bound);
   }
 
-  /// Returns `true` if [type] occurring in a program with no sound null safety
-  /// cannot accept `null` under sound rules.
-  bool isNonNullableIfSound(DartType type) {
+  bool isNonNullable(DartType type) {
     if (type is DynamicType ||
         type is VoidType ||
         type is AnyType ||
@@ -2471,10 +2341,10 @@ abstract class DartTypes {
     if (type is RecordType) return true;
     if (type is NeverType) return true;
     if (type is TypeVariableType) {
-      return isNonNullableIfSound(getTypeVariableBound(type.element));
+      return isNonNullable(getTypeVariableBound(type.element));
     }
     if (type is FutureOrType) {
-      return isNonNullableIfSound(type.typeArgument);
+      return isNonNullable(type.typeArgument);
     }
     throw UnimplementedError('isNonNullableIfSound $type');
   }

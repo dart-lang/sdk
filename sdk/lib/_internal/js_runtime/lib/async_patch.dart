@@ -55,8 +55,11 @@ class _AsyncRun {
         f!();
       }
 
-      var observer = JS('', 'new self.MutationObserver(#)',
-          convertDartClosureToJS(internalCallback, 1));
+      var observer = JS(
+        '',
+        'new self.MutationObserver(#)',
+        convertDartClosureToJS(internalCallback, 1),
+      );
       JS('', '#.observe(#, { childList: true })', observer, div);
 
       return (void callback()) {
@@ -64,8 +67,15 @@ class _AsyncRun {
         storedCallback = callback;
         // Because of a broken shadow-dom polyfill we have to change the
         // children instead a cheap property.
-        JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)', div, div,
-            span, div, span);
+        JS(
+          '',
+          '#.firstChild ? #.removeChild(#): #.appendChild(#)',
+          div,
+          div,
+          span,
+          div,
+          span,
+        );
       };
     } else if (JS('', 'self.setImmediate') != null) {
       return _scheduleImmediateWithSetImmediate;
@@ -79,8 +89,11 @@ class _AsyncRun {
       callback();
     }
 
-    JS('void', 'self.scheduleImmediate(#)',
-        convertDartClosureToJS(internalCallback, 0));
+    JS(
+      'void',
+      'self.scheduleImmediate(#)',
+      convertDartClosureToJS(internalCallback, 0),
+    );
   }
 
   static void _scheduleImmediateWithSetImmediate(void callback()) {
@@ -88,8 +101,11 @@ class _AsyncRun {
       callback();
     }
 
-    JS('void', 'self.setImmediate(#)',
-        convertDartClosureToJS(internalCallback, 0));
+    JS(
+      'void',
+      'self.setImmediate(#)',
+      convertDartClosureToJS(internalCallback, 0),
+    );
   }
 
   static void _scheduleImmediateWithTimer(void callback()) {
@@ -108,7 +124,9 @@ class Timer {
 
   @patch
   static Timer _createPeriodicTimer(
-      Duration duration, void callback(Timer timer)) {
+    Duration duration,
+    void callback(Timer timer),
+  ) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
     return _TimerImpl.periodic(milliseconds, callback);
@@ -128,33 +146,38 @@ class _TimerImpl implements Timer {
         callback();
       }
 
-      _handle = JS('int', 'self.setTimeout(#, #)',
-          convertDartClosureToJS(internalCallback, 0), milliseconds);
+      _handle = JS(
+        'int',
+        'self.setTimeout(#, #)',
+        convertDartClosureToJS(internalCallback, 0),
+        milliseconds,
+      );
     } else {
       throw UnsupportedError('`setTimeout()` not found.');
     }
   }
 
   _TimerImpl.periodic(int milliseconds, void callback(Timer timer))
-      : _once = false {
+    : _once = false {
     if (_hasTimer()) {
       int start = JS('int', 'Date.now()');
       _handle = JS(
-          'int',
-          'self.setInterval(#, #)',
-          convertDartClosureToJS(() {
-            int tick = this._tick + 1;
-            if (milliseconds > 0) {
-              int end = JS('int', 'Date.now()');
-              int duration = end - start;
-              if (duration > (tick + 1) * milliseconds) {
-                tick = duration ~/ milliseconds;
-              }
+        'int',
+        'self.setInterval(#, #)',
+        convertDartClosureToJS(() {
+          int tick = this._tick + 1;
+          if (milliseconds > 0) {
+            int end = JS('int', 'Date.now()');
+            int duration = end - start;
+            if (duration > (tick + 1) * milliseconds) {
+              tick = duration ~/ milliseconds;
             }
-            this._tick = tick;
-            callback(this);
-          }, 0),
-          milliseconds);
+          }
+          this._tick = tick;
+          callback(this);
+        }, 0),
+        milliseconds,
+      );
     } else {
       throw UnsupportedError('Periodic timer.');
     }
@@ -236,7 +259,9 @@ Completer<T> _makeAsyncAwaitCompleter<T>() {
 /// Independently, it takes the [completer] and returns the future of the
 /// completer for convenience of the transformed code.
 dynamic _asyncStartSync(
-    _WrappedAsyncBody bodyFunction, _AsyncAwaitCompleter completer) {
+  _WrappedAsyncBody bodyFunction,
+  _AsyncAwaitCompleter completer,
+) {
   bodyFunction(async_status_codes.SUCCESS, null);
   completer.isSync = true;
   return completer.future;
@@ -271,7 +296,9 @@ dynamic _asyncReturn(dynamic object, Completer completer) {
 dynamic _asyncRethrow(dynamic object, Completer completer) {
   // The error is a js-error.
   completer.completeError(
-      unwrapException(object), getTraceFromException(object));
+    unwrapException(object),
+    getTraceFromException(object),
+  );
 }
 
 /// Awaits on the given [object].
@@ -286,8 +313,10 @@ void _awaitOnObject(object, _WrappedAsyncBody bodyFunction) {
       (result) => bodyFunction(async_status_codes.SUCCESS, result);
 
   Function errorCallback = (dynamic error, StackTrace stackTrace) {
-    ExceptionAndStackTrace wrappedException =
-        ExceptionAndStackTrace(error, stackTrace);
+    ExceptionAndStackTrace wrappedException = ExceptionAndStackTrace(
+      error,
+      stackTrace,
+    );
     bodyFunction(async_status_codes.ERROR, wrappedException);
   };
 
@@ -309,8 +338,8 @@ typedef _WrappedAsyncBody = void Function(int errorCode, dynamic result);
 
 _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
   var protected = JS(
-      '',
-      """
+    '',
+    """
         (function (fn, ERROR) {
           // Invokes [function] with [errorCode] and [result].
           //
@@ -328,8 +357,9 @@ _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
             }
           }
         })(#, #)""",
-      function,
-      async_status_codes.ERROR);
+    function,
+    async_status_codes.ERROR,
+  );
 
   return Zone.current.registerBinaryCallback((int errorCode, dynamic result) {
     JS('', '#(#, #)', protected, errorCode, result);
@@ -373,9 +403,10 @@ _WrappedAsyncBody _wrapJsFunctionForAsync(dynamic /* js function */ function) {
 /// If [object] is not a [Future], it is wrapped in a `Future.value`.
 /// The [asyncBody] is called on completion of the future (see [asyncHelper].
 void _asyncStarHelper(
-    dynamic object,
-    dynamic /* int | _WrappedAsyncBody */ bodyFunctionOrErrorCode,
-    _AsyncStarStreamController controller) {
+  dynamic object,
+  dynamic /* int | _WrappedAsyncBody */ bodyFunctionOrErrorCode,
+  _AsyncStarStreamController controller,
+) {
   if (identical(bodyFunctionOrErrorCode, async_status_codes.SUCCESS)) {
     // This happens on return from the async* function.
     if (controller.isCanceled) {
@@ -388,10 +419,14 @@ void _asyncStarHelper(
     // The error is a js-error.
     if (controller.isCanceled) {
       controller.cancelationFuture!._completeError(
-          unwrapException(object), getTraceFromException(object));
+        unwrapException(object),
+        getTraceFromException(object),
+      );
     } else {
       controller.addError(
-          unwrapException(object), getTraceFromException(object));
+        unwrapException(object),
+        getTraceFromException(object),
+      );
       controller.close();
     }
     return;
@@ -415,10 +450,11 @@ void _asyncStarHelper(
           return;
         }
         bodyFunction(
-            controller.isCanceled
-                ? async_status_codes.STREAM_WAS_CANCELED
-                : async_status_codes.SUCCESS,
-            null);
+          controller.isCanceled
+              ? async_status_codes.STREAM_WAS_CANCELED
+              : async_status_codes.SUCCESS,
+          null,
+        );
       });
       return;
     } else if (object.state == _IterationMarker.YIELD_STAR) {
@@ -429,9 +465,10 @@ void _asyncStarHelper(
         // No need to check for pause because to get here the stream either
         // completed normally or was cancelled. The stream cannot be paused
         // after either of these states.
-        int errorCode = controller.isCanceled
-            ? async_status_codes.STREAM_WAS_CANCELED
-            : async_status_codes.SUCCESS;
+        int errorCode =
+            controller.isCanceled
+                ? async_status_codes.STREAM_WAS_CANCELED
+                : async_status_codes.SUCCESS;
         bodyFunction(errorCode, null);
       });
       return;
@@ -491,30 +528,34 @@ class _AsyncStarStreamController<T> {
       });
     }
 
-    controller = StreamController<T>(onListen: () {
-      _resumeBody();
-    }, onResume: () {
-      // Only schedule again if the async* function actually is suspended.
-      // Resume directly instead of scheduling, so that the sequence
-      // `pause-resume-pause` will result in one extra event produced.
-      if (isSuspended) {
-        isSuspended = false;
+    controller = StreamController<T>(
+      onListen: () {
         _resumeBody();
-      }
-    }, onCancel: () {
-      // If the async* is finished we ignore cancel events.
-      if (!controller.isClosed) {
-        cancelationFuture = _Future();
+      },
+      onResume: () {
+        // Only schedule again if the async* function actually is suspended.
+        // Resume directly instead of scheduling, so that the sequence
+        // `pause-resume-pause` will result in one extra event produced.
         if (isSuspended) {
-          // Resume the suspended async* function to run finalizers.
           isSuspended = false;
-          scheduleMicrotask(() {
-            body(async_status_codes.STREAM_WAS_CANCELED, null);
-          });
+          _resumeBody();
         }
-        return cancelationFuture;
-      }
-    });
+      },
+      onCancel: () {
+        // If the async* is finished we ignore cancel events.
+        if (!controller.isClosed) {
+          cancelationFuture = _Future();
+          if (isSuspended) {
+            // Resume the suspended async* function to run finalizers.
+            isSuspended = false;
+            scheduleMicrotask(() {
+              body(async_status_codes.STREAM_WAS_CANCELED, null);
+            });
+          }
+          return cancelationFuture;
+        }
+      },
+    );
   }
 }
 

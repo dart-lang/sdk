@@ -2270,7 +2270,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
       'visibleOutsideTemplate';
 
   @override
-  Element? element;
+  Element2? element2;
 
   /// The compilation unit in which this annotation appears.
   CompilationUnitElementImpl compilationUnit;
@@ -2321,13 +2321,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   AnalysisContext get context => compilationUnit.library.context;
 
+  @Deprecated('Use element2 instead')
   @override
-  Element2? get element2 {
-    return element?.asElement2;
-  }
-
-  set element2(Element2? value) {
-    element = value?.asElement;
+  Element? get element {
+    return element2?.asElement;
   }
 
   @override
@@ -2337,23 +2334,23 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isConstantEvaluated => evaluationResult != null;
 
   bool get isDartInternalSince {
-    var element = this.element;
-    if (element is ConstructorElement) {
-      return element.enclosingElement3.name == 'Since' &&
-          element.library.source.uri.toString() == 'dart:_internal';
+    var element2 = this.element2;
+    if (element2 is ConstructorElement2) {
+      return element2.enclosingElement2.name3 == 'Since' &&
+          element2.library2.uri.toString() == 'dart:_internal';
     }
     return false;
   }
 
   @override
   bool get isDeprecated {
-    var element = this.element;
-    if (element is ConstructorElement) {
-      return element.library.isDartCore &&
-          element.enclosingElement3.name == _deprecatedClassName;
-    } else if (element is PropertyAccessorElement) {
-      return element.library.isDartCore &&
-          element.name == _deprecatedVariableName;
+    var element2 = this.element2;
+    if (element2 is ConstructorElement2) {
+      return element2.library2.isDartCore &&
+          element2.enclosingElement2.name3 == _deprecatedClassName;
+    } else if (element2 is PropertyAccessorElement2) {
+      return element2.library2.isDartCore &&
+          element2.name3 == _deprecatedVariableName;
     }
     return false;
   }
@@ -2502,16 +2499,16 @@ class ElementAnnotationImpl implements ElementAnnotation {
   String toSource() => annotationAst.toSource();
 
   @override
-  String toString() => '@$element';
+  String toString() => '@$element2';
 
   bool _isConstructor({
     required String libraryName,
     required String className,
   }) {
-    var element = this.element;
-    return element is ConstructorElement &&
-        element.enclosingElement3.name == className &&
-        element.library.name == libraryName;
+    var element2 = this.element2;
+    return element2 is ConstructorElement2 &&
+        element2.enclosingElement2.name3 == className &&
+        element2.library2.name3 == libraryName;
   }
 
   bool _isDartCoreGetter(String name) {
@@ -2535,11 +2532,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }) {
     assert((libraryName != null) != (libraryUri != null),
         'Exactly one of libraryName/libraryUri should be provided');
-    var element = this.element;
-    return element is PropertyAccessorElement &&
-        element.name == name &&
-        (libraryName == null || element.library.name == libraryName) &&
-        (libraryUri == null || element.library.source.uri == libraryUri);
+    var element2 = this.element2;
+    return element2 is PropertyAccessorElement2 &&
+        element2.name3 == name &&
+        (libraryName == null || element2.library2.name3 == libraryName) &&
+        (libraryUri == null || element2.library2.uri == libraryUri);
   }
 }
 
@@ -2997,7 +2994,10 @@ abstract class ElementImpl implements Element, ElementOrMember {
   }
 
   @override
-  LibraryElementImpl? get library => thisOrAncestorOfType();
+  LibraryElementImpl? get library {
+    // ignore:deprecated_member_use_from_same_package
+    return thisOrAncestorOfType();
+  }
 
   @override
   Source? get librarySource => library?.source;
@@ -3134,6 +3134,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
     _modifiers = _modifiers.updated(modifier, value);
   }
 
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   @override
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
@@ -3145,6 +3146,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
     return element as E?;
   }
 
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   @override
   E? thisOrAncestorMatching3<E extends Element>(
     bool Function(Element) predicate,
@@ -3156,6 +3158,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
     return element as E?;
   }
 
+  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
   @override
   E? thisOrAncestorOfType<E extends Element>() {
     if (E == LibraryElement || E == LibraryElementImpl) {
@@ -3174,6 +3177,7 @@ abstract class ElementImpl implements Element, ElementOrMember {
     return element;
   }
 
+  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
   @override
   E? thisOrAncestorOfType3<E extends Element>() {
     Element element = this;
@@ -4239,7 +4243,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldElementImpl? get nextFragment => super.nextFragment as FieldElementImpl?;
 
   @override
-  int get offset => isSynthetic ? enclosingFragment!.offset : _nameOffset;
+  int get offset => isSynthetic ? enclosingFragment.offset : _nameOffset;
 
   @override
   FieldElementImpl? get previousFragment =>
@@ -7492,7 +7496,12 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   ElementKind get kind => ElementKind.EXPORT;
 
   @override
-  LibraryFragment get libraryFragment => enclosingElement3;
+  LibraryElementImpl get library {
+    return libraryFragment.library;
+  }
+
+  @override
+  CompilationUnitElementImpl get libraryFragment => enclosingElement3;
 
   @Deprecated('Use Element2 and accept2() instead')
   @override
@@ -7555,6 +7564,11 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
   @override
   ElementKind get kind => ElementKind.IMPORT;
+
+  @override
+  LibraryElementImpl get library {
+    return libraryFragment.library;
+  }
 
   @override
   CompilationUnitElementImpl get libraryFragment => enclosingElement3;
@@ -9369,8 +9383,9 @@ class ParameterElementImpl extends VariableElementImpl
   LibraryElementImpl? get library2 => library;
 
   @override
-  LibraryFragment? get libraryFragment =>
-      thisOrAncestorOfType<CompilationUnitElementImpl>();
+  LibraryFragment? get libraryFragment {
+    return enclosingFragment?.libraryFragment;
+  }
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
@@ -10238,7 +10253,7 @@ abstract class PropertyInducingElementImpl
   PropertyInducingElementImpl2 get element;
 
   @override
-  Fragment? get enclosingFragment => enclosingElement3 as Fragment;
+  Fragment get enclosingFragment => enclosingElement3 as Fragment;
 
   @override
   GetterFragment? get getter2 => getter as GetterFragment?;
@@ -10265,8 +10280,9 @@ abstract class PropertyInducingElementImpl
   }
 
   @override
-  LibraryFragment get libraryFragment =>
-      thisOrAncestorOfType<CompilationUnitElementImpl>()!;
+  LibraryFragment get libraryFragment {
+    return enclosingFragment.libraryFragment!;
+  }
 
   @override
   ElementImpl get nonSynthetic {
@@ -11365,8 +11381,9 @@ class TypeParameterElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
-  LibraryFragment? get libraryFragment =>
-      thisOrAncestorOfType<CompilationUnitElementImpl>();
+  LibraryFragment? get libraryFragment {
+    return enclosingFragment?.libraryFragment;
+  }
 
   @override
   String get name {
@@ -11847,7 +11864,13 @@ abstract class _Fragmented<E extends Fragment> {
 
 mixin _HasLibraryMixin on ElementImpl {
   @override
-  LibraryElementImpl get library => thisOrAncestorOfType()!;
+  LibraryElementImpl get library {
+    var thisFragment = this as Fragment;
+    var enclosingFragment = thisFragment.enclosingFragment!;
+    var libraryFragment = enclosingFragment.libraryFragment;
+    libraryFragment as CompilationUnitElementImpl;
+    return libraryFragment.element;
+  }
 
   @override
   Source get librarySource => library.source;

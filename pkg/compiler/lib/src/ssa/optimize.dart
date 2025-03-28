@@ -1210,7 +1210,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       FunctionType type = _closedWorld.elementEnvironment.getFunctionType(
         method,
       );
-      if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+      if (_closedWorld.dartTypes.isNonNullable(type.returnType)) {
         node.block!.addBefore(node, invocation);
         replacement = HNullCheck(
           invocation,
@@ -1233,7 +1233,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         FunctionType type = _closedWorld.elementEnvironment.getFunctionType(
           method,
         );
-        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+        if (_closedWorld.dartTypes.isNonNullable(type.returnType)) {
           node.block!.addBefore(node, invocation);
           replacement = HInvokeStatic(
             commonElements.interopNullAssertion,
@@ -1373,27 +1373,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
 
     return maybeAddNativeReturnNullCheck(node, result, method);
-  }
-
-  @override
-  HInstruction visitBoundsCheck(HBoundsCheck node) {
-    // TODO(sra): Remove all this code. It marks a bounds check where the index
-    // is a non-integer as always failing. We can still get a non-integer index
-    // with non-sound null safety (1) with legacy code where the index is `null`
-    // (2) when we lower `[]` from a dynamic call and omit the argument type
-    // check (e.g. under -O3).
-    HInstruction index = node.index;
-    if (index.isInteger(_abstractValueDomain).isDefinitelyTrue) {
-      return node;
-    }
-    if (index is HConstant) {
-      assert(index.constant is! IntConstantValue);
-      if (!constant_system.isInt(index.constant)) {
-        // -0.0 is a double but will pass the runtime integer check.
-        node.staticChecks = StaticBoundsChecks.alwaysFalse;
-      }
-    }
-    return node;
   }
 
   HConstant? foldBinary(
@@ -1764,12 +1743,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
 
   @override
   HInstruction visitPrimitiveCheck(HPrimitiveCheck node) {
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
-    return node;
-  }
-
-  @override
-  HInstruction visitBoolConversion(HBoolConversion node) {
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
     return node;
   }

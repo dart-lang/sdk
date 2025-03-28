@@ -975,6 +975,7 @@ abstract class Member implements Element, ElementOrMember {
   bool isAccessibleIn(LibraryElement library) =>
       _declaration.isAccessibleIn(library);
 
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   @override
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
@@ -982,6 +983,7 @@ abstract class Member implements Element, ElementOrMember {
     return declaration.thisOrAncestorMatching(predicate);
   }
 
+  @Deprecated('Use Element2.thisOrAncestorMatching2() instead')
   @override
   E? thisOrAncestorMatching3<E extends Element>(
     bool Function(Element) predicate,
@@ -989,10 +991,12 @@ abstract class Member implements Element, ElementOrMember {
     return declaration.thisOrAncestorMatching3(predicate);
   }
 
+  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
   @override
   E? thisOrAncestorOfType<E extends Element>() =>
       declaration.thisOrAncestorOfType<E>();
 
+  @Deprecated('Use Element2.thisOrAncestorOfType2() instead')
   @override
   E? thisOrAncestorOfType3<E extends Element>() =>
       declaration.thisOrAncestorOfType3<E>();

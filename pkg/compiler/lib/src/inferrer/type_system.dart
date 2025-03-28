@@ -306,8 +306,7 @@ class TypeSystem {
   /// Returns the intersection between [type] and [annotation].
   ///
   /// [isCast] indicates whether narrowing comes from a cast or parameter check
-  /// rather than an 'is' test. (In legacy semantics these differ on whether
-  /// `null` is accepted).
+  /// rather than an 'is' test.
   ///
   /// If [excludeNull] is true, the intersection excludes `null` even if the
   /// Dart type implies `null`.

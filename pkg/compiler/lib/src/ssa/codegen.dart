@@ -23,7 +23,6 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
-import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types_codegen.dart';
@@ -759,7 +758,6 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       if (instruction is HPrimitiveCheck ||
           instruction is HAsCheck ||
           instruction is HAsCheckSimple ||
-          instruction is HBoolConversion ||
           instruction is HNullCheck ||
           instruction is HLateReadCheck ||
           instruction is HArrayFlagsSet) {
@@ -3453,22 +3451,6 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       return pop();
     }
     throw failedAt(input, 'Unexpected check: $type.');
-  }
-
-  @override
-  void visitBoolConversion(HBoolConversion node) {
-    _registry.registerTypeUse(TypeUse.isCheck(_commonElements.boolType));
-    CheckedModeHelper helper = const CheckedModeHelper('boolConversionCheck');
-    StaticUse staticUse = helper.getStaticUse(_commonElements);
-    _registry.registerStaticUse(staticUse);
-    use(node.checkedInput);
-    List<js.Expression> arguments = [pop()];
-    push(
-      js.Call(
-        _emitter.staticFunctionAccess(staticUse.element as FunctionEntity),
-        arguments,
-      ).withSourceInformation(node.sourceInformation),
-    );
   }
 
   @override

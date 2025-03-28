@@ -23,18 +23,18 @@ class AnalysisNotificationClosingLabelsTest
     extends PubPackageAnalysisServerTest {
   static const sampleCode = '''
 Widget build(BuildContext context) {
-  return /*1*/new Row(
-    children: /*2*/<Widget>[
+  return new Row(
+    children: <Widget>[
       Text('a'),
       Text('b'),
-    ]/*/2*/,
-  )/*/1*/;
+    ],
+  );
 }
 ''';
 
   static final expectedResults = [
-    ClosingLabel(51, 88, 'Row'),
-    ClosingLabel(79, 49, '<Widget>[]'),
+    ClosingLabel(46, 77, 'Row'),
+    ClosingLabel(69, 49, '<Widget>[]'),
   ];
 
   List<ClosingLabel>? lastLabels;

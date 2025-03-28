@@ -155,16 +155,6 @@ class SpecializedChecks {
   /// type.
   ///
   /// [nullable]: Find specialization for `element?`.
-  /// [legacy]: Find specialization for non-nullable `element?` but with legacy
-  /// semantics (accepting null).
-  ///
-  ///     element   options                           reported  accepts
-  ///                                                 type      null
-  ///
-  ///     String    nullable: true   legacy: ---      String?   yes
-  ///     String    nullable: false  legacy: true     String    yes
-  ///     String    nullable: false  legacy: false    String    no
-  ///
   static FunctionEntity? _findAsCheck(
     ClassEntity element,
     JCommonElements commonElements, {

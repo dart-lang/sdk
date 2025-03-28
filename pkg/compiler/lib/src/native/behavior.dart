@@ -886,7 +886,6 @@ class BehaviorBuilder {
     _behavior.typesReturned.add(type.withoutNullability);
 
     // Breakdown nullable type into TypeWithoutNullability|Null.
-    // Unsound declared types are nullable, so we also add null in that case.
     if (type is NullableType) {
       _behavior.typesReturned.add(commonElements.nullType);
     }

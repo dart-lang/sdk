@@ -83,8 +83,7 @@ class ArrayFlags {
       ';setUint16'
       ';setUint32'
       ';setFloat32'
-      ';setFloat64'
-      //
+      ';setFloat64' //
       ;
 
   /// A list of 'verbs' for HArrayFlagsCheck, encoded as a string of phrases
@@ -102,8 +101,7 @@ class ArrayFlags {
   static const verbs = //
       'modify' // This is the verb for '[]=' so it comes first.
       ';remove from'
-      ';add to'
-      //
+      ';add to' //
       ;
 
   /// A view of [operationNames] as a map from the name to the index of the name

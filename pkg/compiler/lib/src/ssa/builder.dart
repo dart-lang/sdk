@@ -502,14 +502,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
                 return null;
               }
             } else if (fieldData.isLazy) {
-              // The generated initializer needs be wrapped in the cyclic-error
-              // helper.
-              registry.registerStaticUse(
-                StaticUse.staticInvoke(
-                  closedWorld.commonElements.cyclicThrowHelper,
-                  CallStructure.oneArg,
-                ),
-              );
               registry.registerStaticUse(
                 StaticUse.staticInvoke(
                   closedWorld.commonElements.throwLateFieldADI,
@@ -714,16 +706,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   DartType _getDartTypeIfValid(ir.DartType type) {
     if (type is ir.InvalidType) return dartTypes.dynamicType();
     return _elementMap.getDartType(type);
-  }
-
-  /// Pops the most recent instruction from the stack and ensures that it is a
-  /// non-null bool.
-  HInstruction popBoolified() {
-    HInstruction value = pop();
-    return _typeBuilder.potentiallyCheckOrTrustTypeOfCondition(
-      _currentFrame!.member,
-      value,
-    );
   }
 
   /// Extend current method parameters with parameters for the class type
@@ -2065,7 +2047,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     HInstruction value,
     DartType type,
   ) {
-    if (!dartTypes.isNonNullableIfSound(type)) return value;
+    if (!dartTypes.isNonNullable(type)) return value;
 
     // `operator==` is usually augmented to handle a `null`-argument before this
     // test would be inserted.  There are a few exceptions (Object,
@@ -2256,7 +2238,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     if (options.nativeNullAssertions && nodeIsInWebLibrary(functionNode)) {
       value = pop();
       DartType type = _getDartTypeIfValid(functionNode.returnType);
-      if (dartTypes.isNonNullableIfSound(type)) {
+      if (dartTypes.isNonNullable(type)) {
         push(
           HNullCheck(
             value,
@@ -2633,7 +2615,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         return graph.addConstantBool(true, closedWorld);
       }
       node.condition!.accept(this);
-      return popBoolified();
+      return pop();
     }
 
     void buildUpdate() {
@@ -2895,7 +2877,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         const <DartType>[],
         _sourceInformationBuilder.buildForInMoveNext(node),
       );
-      return popBoolified();
+      return pop();
     }
 
     void buildBody() {
@@ -2991,7 +2973,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       );
       HInstruction future = pop();
       push(HAwait(future, _abstractValueDomain.dynamicType));
-      return popBoolified();
+      return pop();
     }
 
     void buildBody() {
@@ -3089,7 +3071,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     assert(_isReachable);
     HInstruction buildCondition() {
       node.condition.accept(this);
-      return popBoolified();
+      return pop();
     }
 
     _loopHandler.handleLoop(
@@ -3192,7 +3174,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
       node.condition.accept(this);
       assert(!isAborted());
-      HInstruction conditionInstruction = popBoolified();
+      HInstruction conditionInstruction = pop();
       HBasicBlock conditionEndBlock = close(HLoopBranch(conditionInstruction));
 
       HBasicBlock avoidCriticalEdge = addNewBlock();
@@ -5435,8 +5417,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     // The type should be a single type name.
     ir.DartType type = types.first;
-    DartType typeValue = dartTypes.eraseLegacy(
-      localsHandler.substInContext(_elementMap.getDartType(type)),
+    DartType typeValue = localsHandler.substInContext(
+      _elementMap.getDartType(type),
     );
     if (typeValue is! InterfaceType) return false;
     InterfaceType interfaceType = typeValue;
@@ -6405,9 +6387,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void _maybeAddNullCheckOnJS(ir.StaticInvocation invocation) {
     if (options.nativeNullAssertions &&
         nodeIsInWebLibrary(invocation) &&
-        closedWorld.dartTypes.isNonNullableIfSound(
-          _getStaticType(invocation),
-        )) {
+        closedWorld.dartTypes.isNonNullable(_getStaticType(invocation))) {
       HInstruction code = pop();
       push(
         HNullCheck(
@@ -6426,7 +6406,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   }) {
     if (options.interopNullAssertions) {
       final functionType = _elementEnvironment.getFunctionType(member);
-      if (dartTypes.isNonNullableIfSound(functionType.returnType)) {
+      if (dartTypes.isNonNullable(functionType.returnType)) {
         final name = PublicName(
           _nativeData.computeUnescapedJSInteropName(member.name!),
         );
@@ -6464,7 +6444,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     SourceInformation? sourceInformation,
   }) {
     if (options.interopNullAssertions &&
-        closedWorld.dartTypes.isNonNullableIfSound(returnType)) {
+        closedWorld.dartTypes.isNonNullable(returnType)) {
       _addInteropNullAssertion(sourceInformation: sourceInformation);
     }
   }
@@ -7841,7 +7821,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   void visitNot(ir.Not node) {
     node.operand.accept(this);
     push(
-      HNot(popBoolified(), _abstractValueDomain.boolType)
+      HNot(pop(), _abstractValueDomain.boolType)
         ..sourceInformation = _sourceInformationBuilder.buildUnary(node),
     );
   }

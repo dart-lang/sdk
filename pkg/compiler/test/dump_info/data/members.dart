@@ -107,9 +107,7 @@ class C {
   "code": "",
   "type": "dynamic"
 }],
-   holding=[
-    {"id":"function/dart:_js_helper::throwCyclicInit"},
-    {"id":"function/dart:_late_helper::throwLateFieldADI"}]
+   holding=[{"id":"function/dart:_late_helper::throwLateFieldADI"}]
   */
   final value;
   /*member: C.counter:function=[{
@@ -141,7 +139,6 @@ class C {
    holding=[
     {"id":"field/memory:sdk/tests/web/native/main.dart::C.counter"},
     {"id":"field/memory:sdk/tests/web/native/main.dart::C.counter"},
-    {"id":"function/dart:_js_helper::throwCyclicInit"},
     {"id":"function/dart:_late_helper::throwLateFieldADI"},
     {"id":"function/memory:sdk/tests/web/native/main.dart::C.compute","mask":"inlined"},
     {"id":"function/memory:sdk/tests/web/native/main.dart::C.compute"}]

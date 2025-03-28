@@ -874,6 +874,45 @@ void otherUnrelatedFunction() {}
     expect(loc.targetSelectionRange, equals(rangeOfString(partCode, 'add')));
   }
 
+  Future<void> test_patternVariable_ifCase_logicalOr() async {
+    setLocationLinkSupport();
+
+    var code = TestCode.parse('''
+void f(Object? x) {
+  if (x case int /*[0*//*0*/test/*0]*/ || [int /*[1*/test/*1]*/] when test > 0) {
+    /*[2*//*1*/test/*2]*/ = 1;
+  }
+}
+''', positionShorthand: false);
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+
+    // Selecting on the first declaration of `test`
+    var res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.positions.first.position,
+    );
+    expect(res, hasLength(2));
+    for (var (index, loc) in res.indexed) {
+      expect(loc.originSelectionRange, equals(code.ranges.first.range));
+      expect(loc.targetRange, equals(code.ranges[index].range));
+      expect(loc.targetSelectionRange, equals(code.ranges[index].range));
+    }
+
+    // Selecting on the assignment of `test = 1`
+    res = await getDefinitionAsLocationLinks(
+      mainFileUri,
+      code.positions.last.position,
+    );
+    expect(res, hasLength(2));
+    for (var (index, loc) in res.indexed) {
+      expect(loc.originSelectionRange, equals(code.ranges.last.range));
+      expect(loc.targetRange, equals(code.ranges[index].range));
+      expect(loc.targetSelectionRange, equals(code.ranges[index].range));
+    }
+  }
+
   Future<void> test_sameLine() async {
     var contents = '''
 int plusOne(int [!value!]) => 1 + val^ue;

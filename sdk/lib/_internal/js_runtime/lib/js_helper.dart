@@ -3097,15 +3097,6 @@ class JSName {
   const JSName(this.name);
 }
 
-/// The following methods are called by the runtime to implement checked mode
-/// and casts. We specialize each primitive type (eg int, bool), and use the
-/// compiler's convention to do is-checks on regular objects.
-bool boolConversionCheck(value) {
-  // The value from kernel should always be true, false, or null.
-  if (value == null) assertThrow('boolean expression must not be null');
-  return JS('bool', '#', value);
-}
-
 @pragma('dart2js:noInline')
 void checkDeferredIsLoaded(String loadId) {
   if (!_loadedLibraries.contains(loadId)) {
@@ -3144,31 +3135,6 @@ void assertThrow(Object message) {
 @pragma('dart2js:noInline')
 void assertHelper(condition) {
   if (assertTest(condition)) throw AssertionError();
-}
-
-/// Called by generated code when a static field's initializer references the
-/// field that is currently being initialized.
-void throwCyclicInit(String staticName) {
-  throw _CyclicInitializationError(staticName);
-}
-
-/// Error thrown when a lazily initialized variable cannot be initialized.
-///
-/// Cyclic dependencies are no longer detected at runtime in null safe code.
-/// Such code will fail in other ways instead,
-/// possibly with a [StackOverflowError].
-///
-/// Will be removed when support for non-null-safe code is discontinued.
-@Deprecated("Remove when no longer supporting non-null-safe code.")
-class _CyclicInitializationError extends Error {
-  final String? variableName;
-  _CyclicInitializationError([this.variableName]);
-  String toString() {
-    var variableName = this.variableName;
-    return variableName == null
-        ? "Reading static variable during its initialization"
-        : "Reading static variable '$variableName' during its initialization";
-  }
 }
 
 /// Error thrown when a runtime error occurs.

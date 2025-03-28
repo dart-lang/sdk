@@ -284,10 +284,7 @@ class BackendImpacts {
   );
 
   late final BackendImpact lazyField = BackendImpact(
-    staticUses: [
-      _commonElements.cyclicThrowHelper,
-      _commonElements.throwLateFieldADI,
-    ],
+    staticUses: [_commonElements.throwLateFieldADI],
   );
 
   late final BackendImpact typeLiteral = BackendImpact(

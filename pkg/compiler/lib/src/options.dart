@@ -669,8 +669,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Arguments passed to the front end about how it is invoked.
   ///
   /// This is used to selectively emit certain messages depending on how the
-  /// CFE is invoked. For instance to emit a message about the null safety
-  /// compilation mode when compiling an executable.
+  /// CFE is invoked.
   ///
   /// See `InvocationMode` in
   /// `pkg/front_end/lib/src/api_prototype/compiler_options.dart` for all

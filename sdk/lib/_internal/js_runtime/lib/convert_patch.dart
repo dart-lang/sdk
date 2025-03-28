@@ -30,8 +30,11 @@ _parseJson(String source, reviver(key, value)?) {
 
   var parsed;
   try {
-    parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
-        'JSON.parse(#)', source);
+    parsed = JS(
+      '=Object|JSExtendableArray|Null|bool|num|String',
+      'JSON.parse(#)',
+      source,
+    );
   } catch (e) {
     throw FormatException(JS<String>('String', 'String(#)', e));
   }
@@ -308,7 +311,11 @@ class _JsonMap extends MapBase<String, dynamic> {
   // ------------------------------------------
 
   static bool _hasProperty(object, String key) => JS<bool>(
-      'bool', 'Object.prototype.hasOwnProperty.call(#,#)', object, key);
+    'bool',
+    'Object.prototype.hasOwnProperty.call(#,#)',
+    object,
+    key,
+  );
   static _getProperty(object, String key) => JS('', '#[#]', object, key);
   static _setProperty(object, String key, value) =>
       JS('', '#[#]=#', object, key, value);

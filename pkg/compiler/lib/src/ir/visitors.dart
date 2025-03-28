@@ -254,8 +254,6 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   ConstantValuefier(this.elementMap);
 
-  DartTypes get _dartTypes => elementMap.commonElements.dartTypes;
-
   static Never _unexpectedConstant(ir.Constant node) {
     throw UnsupportedError("Unexpected constant $node (${node.runtimeType}).");
   }
@@ -267,7 +265,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   @override
   ConstantValue visitTypeLiteralConstant(ir.TypeLiteralConstant node) {
-    DartType type = _dartTypes.eraseLegacy(elementMap.getDartType(node.type));
+    DartType type = elementMap.getDartType(node.type);
     return constant_system.createType(elementMap.commonElements, type);
   }
 

@@ -2046,15 +2046,15 @@ class A {
   A(Object aaa);
 }
 class B extends A {
-  B(@V1 /*0*/ int super.aaa<T>(double a /*1*/));
+  B(@V1 int super.aaa<T>(double a));
 }
 ''');
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1 /*0*/');
+    assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1 int');
     assertHasRegion(HighlightRegionType.CLASS, 'int');
     assertHasRegion(HighlightRegionType.CLASS, 'double');
     assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T>');
-    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a /*1*/');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a));');
   }
 
   Future<void> test_PARAMETER_super_requiredNamed() async {
@@ -2063,13 +2063,13 @@ class A {
   A({required int aaa});
 }
 class B extends A {
-  B({required super.aaa /*0*/});
+  B({required super.aaa });
 }
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.KEYWORD, 'required super.aaa');
     assertHasRegion(HighlightRegionType.KEYWORD, 'super.aaa');
-    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa /*0*/');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa ');
   }
 
   Future<void> test_PARAMETER_super_requiredPositional() async {
@@ -2078,12 +2078,12 @@ class A {
   A(int aaa);
 }
 class B extends A {
-  B(super.aaa /*0*/);
+  B(super.aaa );
 }
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.KEYWORD, 'super.aaa');
-    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa /*0*/');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa ');
   }
 
   Future<void> test_patternVariableDeclaration_final() async {

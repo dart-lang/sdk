@@ -17,16 +17,17 @@ _convertDartFunctionFast(Function f) {
   var existing = JS('', '#.#', f, JS_FUNCTION_PROPERTY_NAME);
   if (existing != null) return existing;
   var ret = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function() {
             return _call(f, Array.prototype.slice.apply(arguments));
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast),
+    f,
+  );
   JS('', '#.# = #', ret, DART_CLOSURE_PROPERTY_NAME, f);
   JS('', '#.# = #', f, JS_FUNCTION_PROPERTY_NAME, ret);
   return ret;
@@ -36,16 +37,17 @@ _convertDartFunctionFastCaptureThis(Function f) {
   var existing = JS('', '#.#', f, JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS);
   if (existing != null) return existing;
   var ret = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function() {
             return _call(f, this,Array.prototype.slice.apply(arguments));
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFastCaptureThis),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFastCaptureThis),
+    f,
+  );
   JS('', '#.# = #', ret, DART_CLOSURE_PROPERTY_NAME, f);
   JS('', '#.# = #', f, JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS, ret);
   return ret;
@@ -74,7 +76,8 @@ Function allowInteropCaptureThis(Function f) {
   if (isJSFunction(f)) {
     // Behavior when the function is already a JS function is unspecified.
     throw ArgumentError(
-        "Function is already a JS function so cannot capture this.");
+      "Function is already a JS function so cannot capture this.",
+    );
     return f;
   } else {
     return _convertDartFunctionFastCaptureThis(f);
@@ -89,16 +92,17 @@ JavaScriptFunction _functionToJS0(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function() {
             return _call(f);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast0),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast0),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -108,16 +112,17 @@ JavaScriptFunction _functionToJSCaptureThis0(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function() {
             return _call(f, this, 1);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast1),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast1),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -127,16 +132,17 @@ JavaScriptFunction _functionToJS1(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function(arg1) {
             return _call(f, arg1, arguments.length);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast1),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast1),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -146,16 +152,17 @@ JavaScriptFunction _functionToJSCaptureThis1(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function(arg1) {
             return _call(f, this, arg1, arguments.length + 1);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast2),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast2),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -165,16 +172,17 @@ JavaScriptFunction _functionToJS2(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function(arg1, arg2) {
             return _call(f, arg1, arg2, arguments.length);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast2),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast2),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -184,16 +192,17 @@ JavaScriptFunction _functionToJSCaptureThis2(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function(arg1, arg2) {
             return _call(f, this, arg1, arg2, arguments.length + 1);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast3),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast3),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -203,16 +212,17 @@ JavaScriptFunction _functionToJS3(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function(arg1, arg2, arg3) {
             return _call(f, arg1, arg2, arg3, arguments.length);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast3),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast3),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -222,16 +232,17 @@ JavaScriptFunction _functionToJSCaptureThis3(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function(arg1, arg2, arg3) {
             return _call(f, this, arg1, arg2, arg3, arguments.length + 1);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast4),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast4),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -241,16 +252,17 @@ JavaScriptFunction _functionToJS4(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function(arg1, arg2, arg3, arg4) {
             return _call(f, arg1, arg2, arg3, arg4, arguments.length);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast4),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast4),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -260,16 +272,17 @@ JavaScriptFunction _functionToJSCaptureThis4(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function(arg1, arg2, arg3, arg4) {
             return _call(f, this, arg1, arg2, arg3, arg4, arguments.length + 1);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast5),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast5),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -279,16 +292,17 @@ JavaScriptFunction _functionToJS5(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f) {
           return function(arg1, arg2, arg3, arg4, arg5) {
             return _call(f, arg1, arg2, arg3, arg4, arg5, arguments.length);
           }
         }(#, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFast5),
-      f);
+    DART_CLOSURE_TO_JS(_callDartFunctionFast5),
+    f,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -298,8 +312,8 @@ JavaScriptFunction _functionToJSN(Function f, int maxLength) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f, maxLength) {
           return function() {
               return _call(f, Array.prototype.slice.call(arguments, 0,
@@ -307,9 +321,10 @@ JavaScriptFunction _functionToJSN(Function f, int maxLength) {
           }
         }(#, #, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFastN),
-      f,
-      maxLength);
+    DART_CLOSURE_TO_JS(_callDartFunctionFastN),
+    f,
+    maxLength,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -323,8 +338,8 @@ JavaScriptFunction _functionToJSCaptureThisN(Function f, int maxLength) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final result = JS(
-      'JavaScriptFunction',
-      '''
+    'JavaScriptFunction',
+    '''
         function(_call, f, maxLength) {
           return function() {
               var args = [this];
@@ -334,9 +349,10 @@ JavaScriptFunction _functionToJSCaptureThisN(Function f, int maxLength) {
           }
         }(#, #, #)
       ''',
-      DART_CLOSURE_TO_JS(_callDartFunctionFastN),
-      f,
-      maxLength);
+    DART_CLOSURE_TO_JS(_callDartFunctionFastN),
+    f,
+    maxLength,
+  );
   JS('', '#.# = #', result, DART_CLOSURE_PROPERTY_NAME, f);
   return result;
 }
@@ -370,7 +386,14 @@ _callDartFunctionFast4(Function callback, arg1, arg2, arg3, arg4, int length) {
 }
 
 _callDartFunctionFast5(
-    Function callback, arg1, arg2, arg3, arg4, arg5, int length) {
+  Function callback,
+  arg1,
+  arg2,
+  arg3,
+  arg4,
+  arg5,
+  int length,
+) {
   if (length >= 5) return callback(arg1, arg2, arg3, arg4, arg5);
   if (length == 4) return callback(arg1, arg2, arg3, arg4);
   if (length == 3) return callback(arg1, arg2, arg3);

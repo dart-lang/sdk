@@ -677,12 +677,6 @@ class HInstructionStringifier implements HVisitor<String> {
   };
 
   @override
-  String visitBoolConversion(HBoolConversion node) {
-    String checkedInput = temporaryId(node.checkedInput);
-    return "BoolConversion: $checkedInput";
-  }
-
-  @override
   String visitNullCheck(HNullCheck node) {
     String checkedInput = temporaryId(node.checkedInput);
     var comments = [

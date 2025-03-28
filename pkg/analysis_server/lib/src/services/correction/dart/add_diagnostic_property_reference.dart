@@ -137,11 +137,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       builder.writeln("$constructorName('$name', $name));");
     }
 
-    var debugFillProperties =
-        classDeclaration.members
-            .whereType<MethodDeclaration>()
-            .where((e) => e.name.lexeme == 'debugFillProperties')
-            .singleOrNull;
+    var debugFillProperties = classDeclaration.debugFillPropertiesDeclaration;
     if (debugFillProperties == null) {
       await builder.addDartFileEdit(file, (builder) {
         builder.insertMethod(classDeclaration, (builder) {
@@ -168,51 +164,46 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
     var body = debugFillProperties.body;
     if (body is BlockFunctionBody) {
-      var functionBody = body;
-
-      int offset;
-      String prefix;
-      if (functionBody.block.statements.isEmpty) {
-        offset = functionBody.block.leftBracket.offset;
-        prefix = utils.getLinePrefix(offset) + utils.oneIndent;
-      } else {
-        offset = functionBody.block.statements.last.endToken.offset;
-        prefix = utils.getLinePrefix(offset);
-      }
-
-      var parameterList = debugFillProperties.parameters;
-      if (parameterList == null) {
-        return;
-      }
-
-      String? propertiesBuilderName;
-      for (var parameter in parameterList.parameters) {
-        if (parameter is SimpleFormalParameter) {
-          var type = parameter.type;
-          var identifier = parameter.name;
-          if (type is NamedType && identifier != null) {
-            if (type.name2.lexeme == 'DiagnosticPropertiesBuilder') {
-              propertiesBuilderName = identifier.lexeme;
-              break;
-            }
-          }
-        }
-      }
+      var propertiesBuilderName = _computeName(debugFillProperties);
       if (propertiesBuilderName == null) {
         return;
       }
 
-      var final_propertiesBuilderName = propertiesBuilderName;
+      var (:offset, :prefix) = _offsetAndPrefixOfBlock(body.block);
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(utils.getLineNext(offset), (builder) {
           writePropertyReference(
             builder,
             prefix: prefix,
-            builderName: final_propertiesBuilderName,
+            builderName: propertiesBuilderName,
           );
         });
       });
     }
+  }
+
+  /// Returns the name given to the first parameter of a declaration of the
+  /// `debugFillProperties` method which is typed as
+  /// `DiagnosticPropertiesBuilder`.
+  String? _computeName(MethodDeclaration debugFillProperties) {
+    var parameterList = debugFillProperties.parameters;
+    if (parameterList == null) {
+      return null;
+    }
+
+    for (var parameter in parameterList.parameters) {
+      if (parameter is SimpleFormalParameter) {
+        var type = parameter.type;
+        var identifier = parameter.name;
+        if (type is NamedType &&
+            identifier != null &&
+            type.name2.lexeme == 'DiagnosticPropertiesBuilder') {
+          return identifier.lexeme;
+        }
+      }
+    }
+
+    return null;
   }
 
   /// Fixes all instances of the [LintNames.diagnostic_describe_all_properties]
@@ -279,12 +270,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       return;
     }
 
-    var debugFillProperties =
-        declaration.members
-            .whereType<MethodDeclaration>()
-            .where((e) => e.name.lexeme == 'debugFillProperties')
-            .singleOrNull;
-
+    var debugFillProperties = declaration.debugFillPropertiesDeclaration;
     if (debugFillProperties == null) {
       await builder.addDartFileEdit(file, (builder) {
         builder.insertMethod(declaration, (builder) {
@@ -315,48 +301,19 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
     var body = debugFillProperties.body;
     if (body is BlockFunctionBody) {
-      var functionBody = body;
-
-      int offset;
-      String prefix;
-      if (functionBody.block.statements.isEmpty) {
-        offset = functionBody.block.leftBracket.offset;
-        prefix = utils.getLinePrefix(offset) + utils.oneIndent;
-      } else {
-        offset = functionBody.block.statements.last.endToken.offset;
-        prefix = utils.getLinePrefix(offset);
-      }
-
-      var parameterList = debugFillProperties.parameters;
-      if (parameterList == null) {
-        return;
-      }
-
-      String? propertiesBuilderName;
-      for (var parameter in parameterList.parameters) {
-        if (parameter is SimpleFormalParameter) {
-          var type = parameter.type;
-          var identifier = parameter.name;
-          if (type is NamedType && identifier != null) {
-            if (type.name2.lexeme == 'DiagnosticPropertiesBuilder') {
-              propertiesBuilderName = identifier.lexeme;
-              break;
-            }
-          }
-        }
-      }
+      var propertiesBuilderName = _computeName(debugFillProperties);
       if (propertiesBuilderName == null) {
         return;
       }
 
-      var final_propertiesBuilderName = propertiesBuilderName;
+      var (:offset, :prefix) = _offsetAndPrefixOfBlock(body.block);
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(utils.getLineNext(offset), (builder) {
           for (var property in properties) {
             writePropertyReference(
               builder,
               prefix: prefix,
-              builderName: final_propertiesBuilderName,
+              builderName: propertiesBuilderName,
               property: property,
             );
           }
@@ -474,6 +431,19 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   bool _isIterable(DartType type) {
     return type.asInstanceOf2(typeProvider.iterableElement2) != null;
   }
+
+  ({int offset, String prefix}) _offsetAndPrefixOfBlock(Block block) {
+    if (block.statements.isEmpty) {
+      var offset = block.leftBracket.offset;
+      return (
+        offset: offset,
+        prefix: utils.getLinePrefix(offset) + utils.oneIndent,
+      );
+    } else {
+      var offset = block.statements.last.endToken.offset;
+      return (offset: offset, prefix: utils.getLinePrefix(offset));
+    }
+  }
 }
 
 class _PropertyInfo {
@@ -492,4 +462,12 @@ class _PropertyInfo {
     this.constructorName,
     this.declType,
   );
+}
+
+extension on ClassDeclaration {
+  MethodDeclaration? get debugFillPropertiesDeclaration =>
+      members
+          .whereType<MethodDeclaration>()
+          .where((e) => e.name.lexeme == 'debugFillProperties')
+          .singleOrNull;
 }

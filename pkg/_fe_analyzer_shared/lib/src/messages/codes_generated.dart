@@ -3237,6 +3237,20 @@ const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDotShorthandsConstructorInvocationWithTypeArguments =
+    messageDotShorthandsConstructorInvocationWithTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDotShorthandsConstructorInvocationWithTypeArguments =
+    const MessageCode(
+  "DotShorthandsConstructorInvocationWithTypeArguments",
+  problemMessage:
+      r"""A dot shorthand constructor invocation can't have type arguments.""",
+  correctionMessage:
+      r"""Try adding the class name and type arguments explicitly before the constructor name.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateDotShorthandsInvalidContext =
     const Template<Message Function(String name)>(

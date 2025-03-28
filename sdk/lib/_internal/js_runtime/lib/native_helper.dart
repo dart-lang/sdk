@@ -59,9 +59,10 @@ String toStringForNativeObject(var obj) {
   // TODO(sra): Is this code dead?
   // [getTagFunction] might be uninitialized, but in usual usage, toString has
   // been called via an interceptor and initialized it.
-  String name = getTagFunction == null
-      ? '<Unknown>'
-      : JS('String', '#', getTagFunction!(obj));
+  String name =
+      getTagFunction == null
+          ? '<Unknown>'
+          : JS('String', '#', getTagFunction!(obj));
   return 'Instance of $name';
 }
 
@@ -70,23 +71,24 @@ int hashCodeForNativeObject(object) => Primitives.objectHashCode(object);
 /// Sets a JavaScript property on an object.
 void defineProperty(var obj, String property, var value) {
   JS(
-      'void',
-      'Object.defineProperty(#, #, '
-          '{value: #, enumerable: false, writable: true, configurable: true})',
-      obj,
-      property,
-      value);
+    'void',
+    'Object.defineProperty(#, #, '
+        '{value: #, enumerable: false, writable: true, configurable: true})',
+    obj,
+    property,
+    value,
+  );
 }
 
 // Is [obj] an instance of a Dart-defined class?
 bool isDartObject(obj) {
   // Some of the extra parens here are necessary.
   return JS(
-      'bool',
-      '((#) instanceof (#))',
-      obj,
-      JS_BUILTIN(
-          'depends:none;effects:none;', JsBuiltin.dartObjectConstructor));
+    'bool',
+    '((#) instanceof (#))',
+    obj,
+    JS_BUILTIN('depends:none;effects:none;', JsBuiltin.dartObjectConstructor),
+  );
 }
 
 /// A JavaScript object mapping tags to the constructors of interceptors.
@@ -103,7 +105,11 @@ get leafTags => JS_EMBEDDED_GLOBAL('=Object', LEAF_TAGS);
 
 String findDispatchTagForInterceptorClass(interceptorClassConstructor) {
   return JS(
-      '', r'#.#', interceptorClassConstructor, NATIVE_SUPERCLASS_TAG_NAME);
+    '',
+    r'#.#',
+    interceptorClassConstructor,
+    NATIVE_SUPERCLASS_TAG_NAME,
+  );
 }
 
 /// Cache of dispatch records for instances.  This is a JavaScript object used
@@ -260,8 +266,12 @@ setNativeSubclassDispatchRecord(proto, interceptor) {
 }
 
 String constructorNameFallback(object) {
-  return JS('returns:String;effects:none;depends:none', '#(#)',
-      _constructorNameFallback, object);
+  return JS(
+    'returns:String;effects:none;depends:none',
+    '#(#)',
+    _constructorNameFallback,
+    object,
+  );
 }
 
 var initNativeDispatchFlag; // null or true
@@ -358,8 +368,12 @@ void initHooks() {
   var hooks = JS('', '#()', _baseHooks);
 
   // Customize for browsers where `object.constructor.name` fails:
-  var _fallbackConstructorHooksTransformer = JS('', '#(#)',
-      _fallbackConstructorHooksTransformerGenerator, _constructorNameFallback);
+  var _fallbackConstructorHooksTransformer = JS(
+    '',
+    '#(#)',
+    _fallbackConstructorHooksTransformerGenerator,
+    _constructorNameFallback,
+  );
   hooks = applyHooksTransformer(_fallbackConstructorHooksTransformer, hooks);
 
   // Customize for browsers:
@@ -373,7 +387,9 @@ void initHooks() {
   // TODO(sra): Update ShadowDOM polyfil to use
   // [dartNativeDispatchHooksTransformer] and remove this hook.
   hooks = applyHooksTransformer(
-      _dartExperimentalFixupGetTagHooksTransformer, hooks);
+    _dartExperimentalFixupGetTagHooksTransformer,
+    hooks,
+  );
 
   // Apply global hooks.
   //

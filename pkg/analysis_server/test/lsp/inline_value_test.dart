@@ -193,6 +193,23 @@ void f(A /*[0*/a/*0]*/, int b) {
     await verify_values(code, ofType: InlineValueVariableLookup);
   }
 
+  /// Unlike variables, which we include for the line of the execution pointer
+  /// (to aid with reviewing conditional statements), getters are only evaluated
+  /// if they are before the execution pointer to reduce the chance of
+  /// triggering side-effects before the code would have.
+  Future<void> test_property_range_onlyBeforePointer() async {
+    experimentalInlineValuesProperties = true;
+
+    code = TestCode.parse(r'''
+void f(String /*[0*/s/*0]*/) {
+  ^if (s.isNotEmpty) {
+  }
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
   Future<void> test_property_setter() async {
     experimentalInlineValuesProperties = true;
 

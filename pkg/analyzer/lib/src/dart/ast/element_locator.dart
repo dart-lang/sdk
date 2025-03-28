@@ -42,6 +42,11 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element2> {
   }
 
   @override
+  Element2? visitCatchClauseParameter(CatchClauseParameter node) {
+    return node.declaredElement2;
+  }
+
+  @override
   Element2? visitClassDeclaration(ClassDeclaration node) {
     return node.declaredFragment?.element;
   }

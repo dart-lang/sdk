@@ -20,7 +20,6 @@ import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'backend_impact.dart';
 import 'backend_usage.dart';
-import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'field_analysis.dart';
 import 'interceptor_data.dart';
@@ -533,11 +532,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // We register all the _commonElements in the resolution queue.
     // TODO(13155): Find a way to register fewer _commonElements.
     List<FunctionEntity> staticUses = [];
-    for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {
-      staticUses.add(
-        helper.getStaticUse(_commonElements).element as FunctionEntity,
-      );
-    }
     _registerBackendImpact(
       impactBuilder,
       BackendImpact(globalUses: staticUses),
