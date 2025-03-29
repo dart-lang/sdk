@@ -1,6 +1,6 @@
-## 1.1.0
+## 2.0.0
 
-- Widen the dependency constraint on `package:protobuf`.
+- Bump dependency constraint on `package:protobuf` to `>= 4.0.0`.
 - Introduce `EventCategory`, `EventName`, and `DebugAnnotationName` classes.
 - Add `eventCategories`, `eventNames`, `debugAnnotationNames` and
   `debugAnnotationStringValues` getters to `InternedData`.
