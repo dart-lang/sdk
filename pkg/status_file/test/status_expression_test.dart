@@ -108,14 +108,15 @@ void testNotBoolean() {
 
 void testNotEqual() {
   // Test the != operator.
-  var expression = Expression.parse(r"$compiler == dart2js && $runtime != ie9");
+  var expression =
+      Expression.parse(r"$compiler == dart2js && $runtime != safari");
   Expect.equals(
-      r"$compiler == dart2js && $runtime != ie9", expression.toString());
+      r"$compiler == dart2js && $runtime != safari", expression.toString());
 
   // Test BooleanExpression.evaluate().
   var environment = TestEnvironment({
     "compiler": "none",
-    "runtime": "ie9",
+    "runtime": "safari",
   });
 
   Expect.isFalse(expression.evaluate(environment));
@@ -123,7 +124,7 @@ void testNotEqual() {
   Expect.isFalse(expression.evaluate(environment));
 
   environment["compiler"] = "dart2js";
-  environment["runtime"] = "ie9";
+  environment["runtime"] = "safari";
   Expect.isFalse(expression.evaluate(environment));
   environment["runtime"] = "chrome";
   Expect.isTrue(expression.evaluate(environment));

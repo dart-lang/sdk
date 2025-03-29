@@ -106,15 +106,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       }
     }
 
-    if (configuration.runtime.isIE) {
-      // NOTE: We've experienced random timeouts of tests on ie9/ie10. The
-      // underlying issue has not been determined yet. Our current hypothesis
-      // is that windows does not handle the IE processes independently.
-      // If we have more than one browser and kill a browser we are seeing
-      // issues with starting up a new browser just after killing the hanging
-      // browser.
-      maxBrowserProcesses = 1;
-    } else if (configuration.runtime.isSafari) {
+    if (configuration.runtime.isSafari) {
       // Safari does not allow us to run from a fresh profile, so we can only
       // use one browser. Additionally, you can not start two simulators
       // for mobile safari simultaneously.

@@ -11,5 +11,5 @@
 # custom elements are not supported on old browsers, we don't
 # intend for observatory to work on old browser versions, so
 # skipping.
-[ $runtime == ff || $runtime == ie10 || $runtime == ie11 || $runtime == safari ]
+[ $runtime == ff || $runtime == safari ]
 *: SkipByDesign

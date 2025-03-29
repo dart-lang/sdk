@@ -40,7 +40,7 @@ final _combinations = {
       'compiler': 'none'
     },
     {
-      'runtimes': ['chrome', 'ff', 'ie11', 'ie10'],
+      'runtimes': ['chrome', 'ff'],
       'modes': ['release'],
       'archs': ['ia32'],
       'compiler': 'dart2js'

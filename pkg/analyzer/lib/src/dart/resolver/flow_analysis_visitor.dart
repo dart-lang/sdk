@@ -576,6 +576,11 @@ class TypeSystemOperations
   }
 
   @override
+  bool isBottomType(SharedTypeView type) {
+    return type.unwrapTypeView<TypeImpl>().isBottom;
+  }
+
+  @override
   bool isDartCoreFunctionInternal(TypeImpl type) {
     return type.nullabilitySuffix == NullabilitySuffix.none &&
         type.isDartCoreFunction;
@@ -603,11 +608,6 @@ class TypeSystemOperations
         !type.isDartCoreNull &&
         !type.isDartAsyncFutureOr &&
         type.element3 is! ExtensionTypeElement2;
-  }
-
-  @override
-  bool isNever(SharedTypeView type) {
-    return type.unwrapTypeView<TypeImpl>().isBottom;
   }
 
   @override

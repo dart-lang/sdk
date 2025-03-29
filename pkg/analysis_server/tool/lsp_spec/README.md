@@ -168,6 +168,14 @@ Returns: `{ port: number }`
 
 Starts the analyzer diagnostics server (if not already running) and returns the port number it's listening on.
 
+### dart/updateDiagnosticInformation Method
+
+Direction: Client -> Server
+Params: `Map<String, Object?>`
+Returns: None
+
+Provides a map of diagnostic information to the server that will be included in diagnostic reports exported with the "Collect Report" function of the analyzer diagnostics site. Values here should be simple values like whether format-on-save is enabled or a set of commands that are enabled for running on save, and should not include personal or otherwise sensitive information.
+
 ### dart/reanalyze Method
 
 Direction: Client -> Server

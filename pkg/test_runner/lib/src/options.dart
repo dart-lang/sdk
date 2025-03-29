@@ -95,9 +95,6 @@ jsshell:          Run JavaScript from the command line using Firefox's js-shell.
 firefox:
 chrome:
 safari:
-ie9:
-ie10:
-ie11:
 chromeOnAndroid:  Run JavaScript in the specified browser.
 
 none:             No runtime, compile only.''')
@@ -348,10 +345,6 @@ options. Used to be able to make sane updates to the status files.''',
     ..addMultiOption('enable-experiment',
         aliases: ['experiments', 'enable_experiment'],
         help: 'Experiment flags to enable.')
-    ..addOption('babel',
-        help: '''Transforms dart2js output with Babel. The value must be
-Babel options JSON.''',
-        hide: true)
     ..addFlag('default-suites',
         hide: true,
         help: 'Include the default suites in addition to the requested suites.')
@@ -434,7 +427,6 @@ has been specified on the command line.''')
     'vm-options',
     'dart2js-options',
     'enable-experiment',
-    'babel',
     'builder-tag',
     'use-qemu'
   };
@@ -808,7 +800,6 @@ has been specified on the command line.''')
                   dart2jsOptions: dart2jsOptions,
                   ddcOptions: ddcOptions,
                   experiments: experiments,
-                  babel: data['babel'] as String?,
                   builderTag: data["builder-tag"] as String?,
                   useQemu: data["use-qemu"] as bool);
               addConfiguration(configuration);

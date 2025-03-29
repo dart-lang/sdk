@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 class ConvertToFieldParameter extends ResolvedCorrectionProducer {
   ConvertToFieldParameter({required super.context});
@@ -44,48 +45,38 @@ class ConvertToFieldParameter extends ResolvedCorrectionProducer {
     if (visitor.count != 1) {
       return;
     }
-    // find the field initializer
-    ConstructorFieldInitializer? parameterInitializer;
-    for (var initializer in initializers) {
-      if (initializer is ConstructorFieldInitializer) {
-        var expression = initializer.expression;
-        if (expression is SimpleIdentifier &&
-            expression.name == parameterName) {
-          parameterInitializer = initializer;
-        }
-      }
-    }
+    // Find the field initializer.
+    var parameterInitializer = initializers
+        .whereType<ConstructorFieldInitializer>()
+        .firstWhereOrNull((i) {
+          var expression = i.expression;
+          return expression is SimpleIdentifier &&
+              expression.name == parameterName;
+        });
     if (parameterInitializer == null) {
       return;
     }
     var fieldName = parameterInitializer.fieldName.name;
 
-    var context_final = context;
-    var parameterInitializer_final = parameterInitializer;
     await builder.addDartFileEdit(file, (builder) {
-      // replace parameter
+      // Replace the parameter.
       builder.addSimpleReplacement(
-        range.node(context_final.parameter),
+        range.node(context.parameter),
         'this.$fieldName',
       );
-      // remove initializer
-      var initializerIndex = initializers.indexOf(parameterInitializer_final);
+      // Remove the initializer.
+      var initializerIndex = initializers.indexOf(parameterInitializer);
       if (initializers.length == 1) {
         builder.addDeletion(
-          range.endEnd(
-            context_final.constructor.parameters,
-            parameterInitializer_final,
-          ),
+          range.endEnd(context.constructor.parameters, parameterInitializer),
         );
       } else {
         if (initializerIndex == 0) {
           var next = initializers[initializerIndex + 1];
-          builder.addDeletion(
-            range.startStart(parameterInitializer_final, next),
-          );
+          builder.addDeletion(range.startStart(parameterInitializer, next));
         } else {
           var prev = initializers[initializerIndex - 1];
-          builder.addDeletion(range.endEnd(prev, parameterInitializer_final));
+          builder.addDeletion(range.endEnd(prev, parameterInitializer));
         }
       }
     });

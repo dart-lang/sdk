@@ -341,8 +341,6 @@ class TestingServers {
         // Allow loading from http://*:$allowedPort in browsers.
         allowedOrigin = '${origin.scheme}://${origin.host}:$allowedPort';
       } else {
-        // IE10 appears to be bugged and is not sending the Origin header
-        // when making CORS requests to the same domain but different port.
         allowedOrigin = '*';
       }
 
@@ -355,8 +353,8 @@ class TestingServers {
     }
     if (useContentSecurityPolicy) {
       // Chrome respects the standardized Content-Security-Policy header,
-      // whereas Firefox and IE10 use X-Content-Security-Policy. Safari
-      // still uses the WebKit- prefixed version.
+      // whereas Firefox uses X-Content-Security-Policy. Safari still uses the
+      // WebKit- prefixed version.
       var contentHeaderValue = [
         "script-src 'self'",
         "object-src 'self'",

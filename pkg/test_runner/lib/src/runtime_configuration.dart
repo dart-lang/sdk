@@ -24,9 +24,6 @@ abstract class RuntimeConfiguration {
       case Runtime.chrome:
       case Runtime.chromeOnAndroid:
       case Runtime.firefox:
-      case Runtime.ie11:
-      case Runtime.ie10:
-      case Runtime.ie9:
       case Runtime.safari:
         // TODO(ahe): Replace this with one or more browser runtimes.
         return DummyRuntimeConfiguration();

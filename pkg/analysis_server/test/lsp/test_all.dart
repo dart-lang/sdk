@@ -62,6 +62,8 @@ import 'super_test.dart' as get_super;
 import 'temporary_overlay_operation_test.dart' as temporary_overlay_operation;
 import 'type_definition_test.dart' as type_definition;
 import 'type_hierarchy_test.dart' as type_hierarchy;
+import 'update_diagnostic_information_test.dart'
+    as update_diagnostic_information;
 import 'will_rename_files_test.dart' as will_rename_files;
 import 'workspace_apply_edit_test.dart' as workspace_apply_edit;
 import 'workspace_symbols_test.dart' as workspace_symbols;
@@ -125,6 +127,7 @@ void main() {
     temporary_overlay_operation.main();
     type_definition.main();
     type_hierarchy.main();
+    update_diagnostic_information.main();
     will_rename_files.main();
     workspace_apply_edit.main();
     workspace_symbols.main();
