@@ -92,6 +92,8 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         DefaultFormalParameter,
         Directive,
         DoStatement,
+        DotShorthandInvocation,
+        DotShorthandPropertyAccess,
         DottedName,
         DoubleLiteral,
         EmptyFunctionBody,

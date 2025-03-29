@@ -450,6 +450,22 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool? visitDotShorthandInvocation(DotShorthandInvocation node) {
+    DotShorthandInvocation other = _other as DotShorthandInvocation;
+    return isEqualTokens(node.period, other.period) &&
+        isEqualNodes(node.memberName, other.memberName) &&
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualNodes(node.argumentList, other.argumentList);
+  }
+
+  @override
+  bool? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    DotShorthandPropertyAccess other = _other as DotShorthandPropertyAccess;
+    return isEqualTokens(node.period, other.period) &&
+        isEqualTokens(node.propertyName, other.propertyName);
+  }
+
+  @override
   bool visitDottedName(DottedName node) {
     DottedName other = _other as DottedName;
     return _isEqualNodeLists(node.components, other.components);
@@ -2369,6 +2385,26 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
     }
     return visitNode(node);
   }
+
+  @override
+  bool? visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
+    if (identical(node.memberName, _oldNode)) {
+      node.memberName = _newNode as SimpleIdentifierImpl;
+      return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      node.typeArguments = _newNode as TypeArgumentListImpl;
+      return true;
+    } else if (identical(node.argumentList, _oldNode)) {
+      node.argumentList = _newNode as ArgumentListImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool? visitDotShorthandPropertyAccess(
+          covariant DotShorthandPropertyAccessImpl node) =>
+      visitNode(node);
 
   @override
   bool visitDottedName(covariant DottedNameImpl node) {

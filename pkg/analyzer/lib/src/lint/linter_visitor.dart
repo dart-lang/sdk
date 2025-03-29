@@ -259,6 +259,18 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _runSubscriptions(node, _registry._forDotShorthandInvocation);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    _runSubscriptions(node, _registry._forDotShorthandPropertyAccess);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitDottedName(DottedName node) {
     _runSubscriptions(node, _registry._forDottedName);
     node.visitChildren(this);
@@ -1159,6 +1171,10 @@ class NodeLintRegistry {
   final List<_Subscription<DefaultFormalParameter>> _forDefaultFormalParameter =
       [];
   final List<_Subscription<DoStatement>> _forDoStatement = [];
+  final List<_Subscription<DotShorthandInvocation>> _forDotShorthandInvocation =
+      [];
+  final List<_Subscription<DotShorthandPropertyAccess>>
+      _forDotShorthandPropertyAccess = [];
   final List<_Subscription<DottedName>> _forDottedName = [];
   final List<_Subscription<DoubleLiteral>> _forDoubleLiteral = [];
   final List<_Subscription<EmptyFunctionBody>> _forEmptyFunctionBody = [];
@@ -1485,6 +1501,16 @@ class NodeLintRegistry {
 
   void addDoStatement(AnalysisRule rule, AstVisitor visitor) {
     _forDoStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  void addDotShorthandInvocation(AnalysisRule rule, AstVisitor visitor) {
+    _forDotShorthandInvocation
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  void addDotShorthandPropertyAccess(AnalysisRule rule, AstVisitor visitor) {
+    _forDotShorthandInvocation
+        .add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   void addDottedName(AnalysisRule rule, AstVisitor visitor) {

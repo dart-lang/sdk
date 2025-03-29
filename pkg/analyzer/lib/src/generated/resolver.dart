@@ -2280,6 +2280,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node,
+      {TypeImpl contextType = UnknownInferredType.instance}) {
+    throw UnimplementedError('TODO(kallentu)');
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node,
+      {TypeImpl contextType = UnknownInferredType.instance}) {
+    throw UnimplementedError('TODO(kallentu)');
+  }
+
+  @override
   void visitDoubleLiteral(DoubleLiteral node,
       {TypeImpl contextType = UnknownInferredType.instance}) {
     inferenceLogWriter?.enterExpression(node, contextType);
