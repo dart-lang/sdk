@@ -61,26 +61,6 @@ class ElementPrinter {
     }
   }
 
-  void writeElement(Element? element) {
-    switch (element) {
-      case null:
-        _sink.writeln('<null>');
-      case Member():
-        _writeMember(element);
-      case MultiplyDefinedElement():
-        _sink.writeln('<null>');
-      case LibraryExportElement():
-        _writeLibraryExportElement(element);
-      case LibraryImportElement():
-        _writeLibraryImportElement(element);
-      case PartElement():
-        _writePartElement(element);
-      default:
-        var referenceStr = _elementToReferenceString(element);
-        _sink.writeln(referenceStr);
-    }
-  }
-
   void writeElement2(Element2? element) {
     switch (element) {
       case null:
@@ -170,13 +150,6 @@ class ElementPrinter {
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
-  }
-
-  void writeElementList(String name, List<Element> elements) {
-    _sink.writeElements(name, elements, (element) {
-      _sink.writeIndent();
-      writeElement(element);
-    });
   }
 
   void writeElementList2(String name, List<Element2> elements) {
@@ -406,22 +379,6 @@ class ElementPrinter {
     return type.getDisplayString();
   }
 
-  void _writeLibraryExportElement(LibraryExportElement element) {
-    _sink.writeln('LibraryExportElement');
-    _sink.withIndent(() {
-      _sink.writeWithIndent('uri: ');
-      writeDirectiveUri(element.uri);
-    });
-  }
-
-  void _writeLibraryImportElement(LibraryImportElement element) {
-    _sink.writeln('LibraryImportElement');
-    _sink.withIndent(() {
-      _sink.writeWithIndent('uri: ');
-      writeDirectiveUri(element.uri);
-    });
-  }
-
   void _writeMember(Member element) {
     _sink.writeln(_nameOfMemberClass(element));
     _sink.withIndent(() {
@@ -452,10 +409,6 @@ class ElementPrinter {
         }
       }
     });
-  }
-
-  void _writePartElement(PartElement element) {
-    writeDirectiveUri(element.uri);
   }
 
   static String _nameOfMemberClass(Member member) {
