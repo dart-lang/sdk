@@ -1187,7 +1187,7 @@ abstract class ExtensionElement implements InstanceElement {
 /// An element that represents an extension type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@experimental
+@Deprecated('Use ExtensionTypeElement2 instead')
 abstract class ExtensionTypeElement implements InterfaceElement {
   /// The primary constructor of this extension.
   @Deprecated(elementModelDeprecationMsg)

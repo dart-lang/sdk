@@ -4026,7 +4026,10 @@ class ExtensionElementImpl2 extends InstanceElementImpl2
 }
 
 class ExtensionTypeElementImpl extends InterfaceElementImpl
-    implements ExtensionTypeElement, ExtensionTypeFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ExtensionTypeElement,
+        ExtensionTypeFragment {
   late ExtensionTypeElementImpl2 augmentedInternal;
 
   @override

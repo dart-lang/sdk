@@ -387,12 +387,6 @@ extension ExtensionElementImplExtension on ExtensionElementImpl {
   }
 }
 
-extension ExtensionTypeElement2Extension on ExtensionTypeElement2 {
-  ExtensionTypeElement get asElement {
-    return firstFragment as ExtensionTypeElement;
-  }
-}
-
 extension ExtensionTypeElementImpl2Extension on ExtensionTypeElementImpl2 {
   ExtensionTypeElementImpl get asElement {
     return firstFragment;

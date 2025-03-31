@@ -3291,7 +3291,7 @@ package:analyzer/dart/element/element.dart:
     getGetter (method: PropertyAccessorElement? Function(String))
     getMethod (method: MethodElement? Function(String))
     getSetter (method: PropertyAccessorElement? Function(String))
-  ExtensionTypeElement (class extends Object implements InterfaceElement, experimental):
+  ExtensionTypeElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: ExtensionTypeElement Function())
     primaryConstructor (getter: ConstructorElement, deprecated)
     representation (getter: FieldElement)
