@@ -39,8 +39,8 @@ class AddAsync extends ResolvedCorrectionProducer {
     switch (_type) {
       case _Type.missingReturn:
         var node = this.node;
-        FunctionBody? body;
-        DartType? returnType;
+        FunctionBody body;
+        DartType returnType;
         switch (node) {
           case FunctionDeclaration():
             body = node.functionExpression.body;
@@ -48,18 +48,18 @@ class AddAsync extends ResolvedCorrectionProducer {
               returnType = declaredElement.returnType;
             } else if (node.declaredFragment case var declaredFragment?) {
               returnType = declaredFragment.element.returnType;
+            } else {
+              return;
             }
           case MethodDeclaration():
             body = node.body;
             returnType = node.declaredFragment!.element.returnType;
-        }
-        if (body == null || returnType == null) {
-          return;
+          default:
+            return;
         }
         if (_isFutureVoid(returnType) && _hasNoReturns(body)) {
-          var final_body = body;
           await builder.addDartFileEdit(file, (builder) {
-            builder.addSimpleInsertion(final_body.offset, 'async ');
+            builder.addSimpleInsertion(body.offset, 'async ');
           });
         }
       case _Type.wrongReturnType:

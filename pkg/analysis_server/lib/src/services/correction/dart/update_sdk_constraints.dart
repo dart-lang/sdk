@@ -49,7 +49,7 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
       length = spaceOffset;
     }
 
-    String? newText;
+    String newText;
     if (text == 'any') {
       newText = '^$_minimumVersion';
     } else if (text.startsWith('^')) {
@@ -58,14 +58,12 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
       newText = '>=$_minimumVersion';
     } else if (text.startsWith('>')) {
       newText = '>=$_minimumVersion';
-    }
-    if (newText == null) {
+    } else {
       return;
     }
 
-    var newText_final = newText;
     await builder.addYamlFileEdit(pubspecFile.path, (builder) {
-      builder.addSimpleReplacement(SourceRange(offset, length), newText_final);
+      builder.addSimpleReplacement(SourceRange(offset, length), newText);
     });
   }
 

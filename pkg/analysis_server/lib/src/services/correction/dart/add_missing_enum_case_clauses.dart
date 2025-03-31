@@ -83,7 +83,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
     var singleIndent = utils.oneIndent;
 
     var prefixString = prefix.isNotEmpty ? '$prefix.' : '';
-    var enumName_final = '$prefixString$enumName';
+    var prefixedEnumName = '$prefixString$enumName';
     await builder.addDartFileEdit(file, (builder) {
       builder.insertCaseClauseAtEnd(
         switchKeyword: statement.switchKeyword,
@@ -110,7 +110,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
           // TODO(brianwilkerson): Consider inserting the names in order into the
           //  switch statement.
           for (var constantName in unhandledEnumCases) {
-            addMissingCase('$enumName_final.$constantName');
+            addMissingCase('$prefixedEnumName.$constantName');
           }
           if (unhandledNullValue) {
             addMissingCase('null');
