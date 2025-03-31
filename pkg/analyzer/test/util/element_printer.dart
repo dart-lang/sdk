@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: analyzer_use_new_elements
-
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
@@ -31,7 +28,7 @@ class ElementPrinter {
     } else if (uri is DirectiveUriWithLibrary) {
       _sink.writeln('DirectiveUriWithLibrary');
       _sink.withIndent(() {
-        var uriStr = _stringOfSource(uri.library.source);
+        var uriStr = uri.library2.uri;
         _sink.writelnWithIndent('uri: $uriStr');
       });
     } else if (uri is DirectiveUriWithUnit) {
@@ -82,7 +79,7 @@ class ElementPrinter {
         _sink.writeln('dynamic');
       case FormalParameterElementImpl():
         var firstFragment = element.firstFragment;
-        var referenceStr = _elementToReferenceString(firstFragment as Element);
+        var referenceStr = _elementToReferenceString(firstFragment);
         _sink.write(referenceStr);
         _sink.writeln('#element');
       case TopLevelFunctionElementImpl element:
@@ -270,14 +267,13 @@ class ElementPrinter {
     }
   }
 
-  String _elementToReferenceString(Element element) {
-    // ignore:deprecated_member_use_from_same_package
+  String _elementToReferenceString(ElementImpl element) {
     var enclosingElement = element.enclosingElement3;
-    var reference = (element as ElementImpl).reference;
+    var reference = element.reference;
     if (reference != null) {
       return _referenceToString(reference);
-    } else if (element is ParameterElement &&
-        enclosingElement is! GenericFunctionTypeElement) {
+    } else if (element is ParameterElementImpl &&
+        enclosingElement is! GenericFunctionTypeElementImpl) {
       // Positional parameters don't have actual references.
       // But we fabricate one to make the output better.
       var enclosingStr = enclosingElement != null
