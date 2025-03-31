@@ -8287,7 +8287,6 @@ final class MetadataImpl implements Metadata {
 abstract class MethodElement2OrMember
     implements MethodElement2, ExecutableElement2OrMember {}
 
-/// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl
     implements MethodElementOrMember, MethodFragment {
   @override
@@ -8444,7 +8443,10 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `MethodElement`.
 abstract class MethodElementOrMember
-    implements MethodElement, ExecutableElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        MethodElement,
+        ExecutableElementOrMember {
   @override
   TypeImpl get returnType;
 

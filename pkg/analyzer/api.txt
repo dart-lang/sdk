@@ -3420,7 +3420,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: LocalVariableElement Function())
     hasInitializer (getter: bool)
     name (getter: String)
-  MethodElement (class extends Object implements ClassMemberElement, ExecutableElement):
+  MethodElement (class extends Object implements ClassMemberElement, ExecutableElement, deprecated):
     new (constructor: MethodElement Function())
     declaration (getter: MethodElement)
   MixinElement (class extends Object implements InterfaceElement, deprecated):

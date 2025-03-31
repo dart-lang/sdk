@@ -553,6 +553,7 @@ extension LocalVariableElementImplExtension on LocalVariableElementImpl {
 }
 
 extension MethodElement2Extension on MethodElement2 {
+  @Deprecated('Use MethodElement2 instead')
   MethodElement get asElement {
     if (this case MethodMember member) {
       return member;
@@ -567,16 +568,6 @@ extension MethodElement2OrMemberExtension on MethodElement2OrMember {
       return member;
     }
     return (this as MethodElementImpl2).lastFragment;
-  }
-}
-
-extension MethodElementExtension on MethodElement {
-  MethodElement2 get asElement2 {
-    return switch (this) {
-      MethodFragment(:var element) => element,
-      MethodMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
   }
 }
 
