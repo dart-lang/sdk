@@ -3015,7 +3015,7 @@ package:analyzer/dart/element/element.dart:
   elementModelDeprecationMsg (static getter: String)
   BindPatternVariableElement (class extends Object implements PatternVariableElement, deprecated):
     new (constructor: BindPatternVariableElement Function())
-  ClassElement (class extends Object implements InterfaceElement):
+  ClassElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: ClassElement Function())
     hasNonFinalField (getter: bool)
     isAbstract (getter: bool)
@@ -3033,7 +3033,7 @@ package:analyzer/dart/element/element.dart:
     isExtendableIn (method: bool Function(LibraryElement))
     isImplementableIn (method: bool Function(LibraryElement))
     isMixableIn (method: bool Function(LibraryElement))
-  ClassMemberElement (class extends Object implements Element):
+  ClassMemberElement (class extends Object implements Element, deprecated):
     new (constructor: ClassMemberElement Function())
     enclosingElement3 (getter: Element)
     isStatic (getter: bool)
@@ -3342,9 +3342,9 @@ package:analyzer/dart/element/element.dart:
     allSupertypes (getter: List<InterfaceType>)
     constructors (getter: List<ConstructorElement>, deprecated)
     interfaces (getter: List<InterfaceType>)
-    mixins (getter: List<InterfaceType>)
+    mixins (getter: List<InterfaceType>, deprecated)
     name (getter: String)
-    supertype (getter: InterfaceType?)
+    supertype (getter: InterfaceType?, deprecated)
     thisType (getter: InterfaceType)
     unnamedConstructor (getter: ConstructorElement?, deprecated)
     getField (method: FieldElement? Function(String))
@@ -3392,7 +3392,7 @@ package:analyzer/dart/element/element.dart:
     typeProvider (getter: TypeProvider)
     typeSystem (getter: TypeSystem)
     units (getter: List<CompilationUnitElement>, deprecated)
-    getClass (method: ClassElement? Function(String))
+    getClass (method: ClassElement? Function(String), deprecated)
   LibraryExportElement (class extends Object implements _ExistingElement):
     new (constructor: LibraryExportElement Function())
     combinators (getter: List<NamespaceCombinator>)

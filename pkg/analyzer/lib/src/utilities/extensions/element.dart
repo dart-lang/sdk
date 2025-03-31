@@ -53,18 +53,6 @@ extension BindPatternVariableElementImplExtension
   }
 }
 
-extension ClassElement2Extension on ClassElement2 {
-  ClassElement get asElement {
-    return firstFragment as ClassElement;
-  }
-}
-
-extension ClassElementExtension on ClassElement {
-  ClassElement2 get asElement2 {
-    return (this as ClassElementImpl).element;
-  }
-}
-
 extension ClassElementImpl2Extension on ClassElementImpl2 {
   ClassElementImpl get asElement {
     return firstFragment;

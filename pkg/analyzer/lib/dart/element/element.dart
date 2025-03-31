@@ -78,6 +78,7 @@ abstract class BindPatternVariableElement implements PatternVariableElement {}
 /// a class body), a mixin declaration, or an enum declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ClassElement2 instead')
 abstract class ClassElement implements InterfaceElement {
   /// Whether the class or its superclass declares a non-final instance field.
   bool get hasNonFinalField;
@@ -170,6 +171,13 @@ abstract class ClassElement implements InterfaceElement {
 /// An element that is contained within a [ClassElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('''
+There is no common interface for class members in the new analyzer element
+model. If you are using this class in an `is` test or a pattern match, replace
+it with checks for the specific element types you are interested in (e.g.,
+`ConstructorElement2`, `MethodElement2`, etc.). If you are using this class as
+a type annotation for a variable that could hold any kind of class member, use
+`Element2` instead.''')
 abstract class ClassMemberElement implements Element {
   // TODO(brianwilkerson): Either remove this class or rename it to something
   //  more correct.
@@ -1196,7 +1204,10 @@ abstract class ExtensionTypeElement implements InterfaceElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldElement
-    implements ClassMemberElement, PropertyInducingElement {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ClassMemberElement,
+        PropertyInducingElement {
   @override
   FieldElement get declaration;
 
@@ -1369,6 +1380,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// safe to assume that the inheritance structure of a class does not contain
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
+  @Deprecated(elementModelDeprecationMsg)
   List<InterfaceType> get mixins;
 
   @override
@@ -1389,6 +1401,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// safe to assume that the inheritance structure of a class does not contain
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
+  @Deprecated(elementModelDeprecationMsg)
   InterfaceType? get supertype;
 
   @override
@@ -1713,6 +1726,7 @@ abstract class LibraryElement implements _ExistingElement {
 
   /// The class defined in this library that has the given [name], or
   /// `null` if this library does not define a class with the given name.
+  @Deprecated(elementModelDeprecationMsg)
   ClassElement? getClass(String name);
 }
 
@@ -1806,7 +1820,11 @@ abstract class LocalVariableElement implements PromotableElement {
 /// An element that represents a method defined within a class.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodElement implements ClassMemberElement, ExecutableElement {
+abstract class MethodElement
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ClassMemberElement,
+        ExecutableElement {
   @override
   MethodElement get declaration;
 }
