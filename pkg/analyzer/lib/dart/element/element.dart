@@ -1349,6 +1349,7 @@ abstract class InstanceElement
 /// An element that defines an [InterfaceType].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use InterfaceElement2 instead')
 abstract class InterfaceElement implements InstanceElement {
   /// All the supertypes defined for this element and its supertypes.
   ///

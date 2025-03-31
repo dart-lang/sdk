@@ -593,7 +593,8 @@ class TypeProviderImpl extends TypeProviderBase {
   @Deprecated('Use isNonSubtypableClass2() instead')
   @override
   bool isNonSubtypableClass(InterfaceElement element) {
-    return isNonSubtypableClass2(element.asElement2);
+    element as InterfaceElementImpl;
+    return isNonSubtypableClass2(element.element);
   }
 
   @override

@@ -3337,7 +3337,7 @@ package:analyzer/dart/element/element.dart:
     isAugmentation (getter: bool)
     methods (getter: List<MethodElement>)
     thisType (getter: DartType)
-  InterfaceElement (class extends Object implements InstanceElement):
+  InterfaceElement (class extends Object implements InstanceElement, deprecated):
     new (constructor: InterfaceElement Function())
     allSupertypes (getter: List<InterfaceType>)
     constructors (getter: List<ConstructorElement>, deprecated)

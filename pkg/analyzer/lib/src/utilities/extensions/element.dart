@@ -483,18 +483,6 @@ extension InstanceElementImplExtension on InstanceElementImpl {
   }
 }
 
-extension InterfaceElement2Extension on InterfaceElement2 {
-  InterfaceElement get asElement {
-    return firstFragment as InterfaceElement;
-  }
-}
-
-extension InterfaceElementExtension on InterfaceElement {
-  InterfaceElement2 get asElement2 {
-    return (this as InterfaceElementImpl).element;
-  }
-}
-
 extension InterfaceElementImpl2Extension on InterfaceElementImpl2 {
   InterfaceElementImpl get asElement {
     return firstFragment;

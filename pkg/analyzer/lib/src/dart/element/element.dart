@@ -218,16 +218,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return false;
   }
 
-  /// Return `true` if the class has a concrete `noSuchMethod()` method distinct
-  /// from the one declared in class `Object`, as per the Dart Language
-  /// Specification (section 10.4).
-  bool get hasNoSuchMethod {
-    MethodElement? method = lookUpConcreteMethod(
-        FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
-    var definingClass = method?.enclosingElement3 as ClassElementImpl?;
-    return definingClass != null && !definingClass.isDartCoreObject;
-  }
-
   @override
   bool get isAbstract {
     return hasModifier(Modifier.ABSTRACT);
@@ -5939,7 +5929,10 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
-    implements InterfaceElement, InterfaceFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        InterfaceElement,
+        InterfaceFragment {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
   List<InterfaceTypeImpl> _mixins = const [];
@@ -6152,6 +6145,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     );
   }
 
+  @Deprecated('Use InterfaceElementImpl2 instead')
   @override
   MethodElement? lookUpConcreteMethod(
       String methodName, LibraryElement library) {
@@ -6167,6 +6161,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         .firstWhereOrNull((getter) => getter.isAccessibleIn(library));
   }
 
+  @Deprecated('Use InterfaceElementImpl2 instead')
   @override
   PropertyAccessorElement? lookUpInheritedConcreteGetter(
       String getterName, LibraryElement library) {
@@ -6188,6 +6183,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     }
   }
 
+  @Deprecated('Use InterfaceElementImpl2 instead')
   @override
   MethodElement? lookUpInheritedConcreteMethod(
       String methodName, LibraryElement library) {
@@ -6209,6 +6205,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         setter.enclosingElement3 != this);
   }
 
+  @Deprecated('Use InterfaceElementImpl2 instead')
   @override
   MethodElement? lookUpInheritedMethod(
       String methodName, LibraryElement library) {
@@ -6238,6 +6235,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
+  @Deprecated('Use InterfaceElementImpl2 instead')
   PropertyAccessorElementOrMember? lookupStaticGetter(
       String name, LibraryElement library) {
     return _implementationsOfGetter(name).firstWhereOrNull(
@@ -6249,6 +6247,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
+  @Deprecated('Use InterfaceElementImpl2 instead')
   MethodElementOrMember? lookupStaticMethod(
       String name, LibraryElement library) {
     return _implementationsOfMethod(name).firstWhereOrNull(
@@ -6285,6 +6284,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// The getters are returned based on the depth of their defining class; if
   /// this class contains a definition of the getter it will occur first, if
   /// Object contains a definition of the getter it will occur last.
+  @Deprecated('Use InterfaceElementImpl2 instead')
   Iterable<PropertyAccessorElementOrMember> _implementationsOfGetter(
       String getterName) sync* {
     var visitedClasses = <InterfaceElement>{};
@@ -6315,6 +6315,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// The methods are returned based on the depth of their defining class; if
   /// this class contains a definition of the method it will occur first, if
   /// Object contains a definition of the method it will occur last.
+  @Deprecated('Use InterfaceElementImpl2 instead')
   Iterable<MethodElementOrMember> _implementationsOfMethod(
       String methodName) sync* {
     var visitedClasses = <InterfaceElement>{};
