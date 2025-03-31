@@ -60,8 +60,10 @@ class SnippetTester {
   }
 
   Future<void> verifyFile(File file) async {
-    if (file.path.endsWith('/pkg/analyzer/doc/migration_guide.md') ||
-        file.path.endsWith(r'\pkg\analyzer\doc\migration_guide.md')) {
+    if (file.path
+            .endsWith('/pkg/analyzer/doc/element_model_migration_guide.md') ||
+        file.path
+            .endsWith(r'\pkg\analyzer\doc\element_model_migration_guide.md')) {
       return;
     }
     String content = file.readAsStringSync();
