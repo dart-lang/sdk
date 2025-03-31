@@ -180,7 +180,7 @@ class BuildCommand extends DartdevCommand {
       final allAssets = linkResult.encodedAssets;
 
       final staticAssets = allAssets
-          .where((e) => e.type == CodeAsset.type)
+          .where((e) => e.isCodeAsset)
           .map(CodeAsset.fromEncoded)
           .where((e) => e.linkMode == StaticLinking());
       if (staticAssets.isNotEmpty) {
