@@ -77,12 +77,6 @@ extension ClassElementImplExtension on ClassElementImpl {
   }
 }
 
-extension CompilationUnitElementExtension on CompilationUnitElement {
-  LibraryFragment get asElement2 {
-    return this as LibraryFragment;
-  }
-}
-
 extension CompilationUnitElementImplExtension on CompilationUnitElementImpl {
   /// Returns this library fragment, and all its enclosing fragments.
   List<CompilationUnitElementImpl> get withEnclosing {
@@ -298,7 +292,7 @@ extension ElementOrNullExtension on Element? {
     } else if (self is FieldElementImpl) {
       return (self as FieldFragment).element;
     } else if (self is FunctionElementImpl) {
-      if (self.enclosingElement3 is! CompilationUnitElement) {
+      if (self.enclosingElement3 is! CompilationUnitElementImpl) {
         // TODO(scheglov): update `FunctionElementImpl.element` return type?
         return self.element;
       } else {
@@ -599,13 +593,6 @@ extension LibraryElementOrNullExtension on LibraryElement? {
   }
 }
 
-extension LibraryExportElementExtension on LibraryExportElement {
-  LibraryExport get asElement2 {
-    var index = enclosingElement3.libraryExports.indexOf(this);
-    return enclosingElement3.asElement2.libraryExports2[index];
-  }
-}
-
 extension LibraryFragmentExtension on LibraryFragment {
   /// Returns a list containing this library fragment and all of its enclosing
   /// fragments.
@@ -621,13 +608,6 @@ extension LibraryFragmentExtension on LibraryFragment {
       }
     }
     return result;
-  }
-}
-
-extension LibraryImportElementExtension on LibraryImportElement {
-  LibraryImport get asElement2 {
-    var index = enclosingElement3.libraryImports.indexOf(this);
-    return enclosingElement3.asElement2.libraryImports2[index];
   }
 }
 

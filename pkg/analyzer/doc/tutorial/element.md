@@ -66,31 +66,36 @@ There are two ways to traverse the structure of an AST: getters and visitors.
 Every element defines getters for accessing the parent and the children of that
 element. Those getters can be used to traverse the structure, and are often the
 most efficient way of doing so. For example, if you wanted to write a utility to
-print the names of all of the members of each class in a given compilation unit,
+print the names of all of the members of each class in a given library,
 it might look something like this:
 
 ```dart
-void printMembers(CompilationUnitElement unitElement) {
-  for (ClassElement classElement in unitElement.classes) {
-    print(classElement.name);
-    for (ConstructorElement constructorElement in classElement.constructors) {
+void printMembers(LibraryElement2 libraryElement) {
+  for (ClassElement2 classElement in libraryElement.classes) {
+    print(classElement.name3);
+    for (ConstructorElement2 constructorElement in classElement.constructors2) {
       if (!constructorElement.isSynthetic) {
         print('  ${constructorElement.displayName}');
       }
     }
-    for (FieldElement fieldElement in classElement.fields) {
+    for (FieldElement2 fieldElement in classElement.fields2) {
       if (!fieldElement.isSynthetic) {
-        print('  ${fieldElement.name}');
+        print('  ${fieldElement.name3}');
       }
     }
-    for (PropertyAccessorElement accessorElement in classElement.accessors) {
-      if (!accessorElement.isSynthetic) {
-        print('  ${accessorElement.name}');
+    for (GetterElement getterElement in classElement.getters2) {
+      if (!getterElement.isSynthetic) {
+        print('  ${getterElement.name3}');
       }
     }
-    for (MethodElement methodElement in classElement.methods) {
+    for (SetterElement setterElement in classElement.setters2) {
+      if (!setterElement.isSynthetic) {
+        print('  ${setterElement.name3}');
+      }
+    }
+    for (MethodElement2 methodElement in classElement.methods2) {
       if (!methodElement.isSynthetic) {
-        print('  ${methodElement.name}');
+        print('  ${methodElement.name3}');
       }
     }
   }

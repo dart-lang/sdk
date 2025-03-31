@@ -737,10 +737,12 @@ abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
   }
 }
 
-/// A concrete implementation of a [CompilationUnitElement] or
-/// [LibraryFragment].
+/// A concrete implementation of [LibraryFragment].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
-    implements CompilationUnitElement, LibraryFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        CompilationUnitElement,
+        LibraryFragment {
   /// The source that corresponds to this compilation unit.
   @override
   final Source source;

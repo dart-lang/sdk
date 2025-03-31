@@ -25,7 +25,7 @@
 /// [LibraryElement]. A library element represents a single Dart library. Every
 /// library is defined by one or more compilation units (the library and all of
 /// its parts). The compilation units are represented by the class
-/// [CompilationUnitElement] and are children of the library that is defined by
+/// `CompilationUnitElement` and are children of the library that is defined by
 /// them. Each compilation unit can contain zero or more top-level declarations,
 /// such as classes, functions, and variables. Each of these is in turn
 /// represented as an element that is a child of the compilation unit. Classes
@@ -59,6 +59,12 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
+
+@internal
+const String elementModelDeprecationMsg = '''
+This is part of the old analyzer element model. Please see
+https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/element_model_migration_guide.md
+for information about how to migrate to the new element model.''';
 
 /// A pattern variable that is explicitly declared.
 ///
@@ -181,6 +187,7 @@ abstract class ClassMemberElement implements Element {
 /// An element representing a compilation unit.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated(elementModelDeprecationMsg)
 abstract class CompilationUnitElement implements UriReferencedElement {
   /// The extension elements accessible within this unit.
   List<ExtensionElement> get accessibleExtensions;
@@ -1303,6 +1310,7 @@ abstract class InstanceElement
   /// The declared accessors (getters and setters).
   List<PropertyAccessorElement> get accessors;
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -1612,6 +1620,7 @@ abstract class LabelElement implements Element {
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryElement implements _ExistingElement {
   /// The compilation unit that defines this library.
+  @Deprecated(elementModelDeprecationMsg)
   CompilationUnitElement get definingCompilationUnit;
 
   /// Returns `null`, because libraries are the top-level elements in the model.
@@ -1694,6 +1703,7 @@ abstract class LibraryElement implements _ExistingElement {
   ///
   /// This includes the defining compilation unit and units included using the
   /// `part` directive.
+  @Deprecated(elementModelDeprecationMsg)
   List<CompilationUnitElement> get units;
 
   /// The class defined in this library that has the given [name], or
@@ -1709,6 +1719,7 @@ abstract class LibraryExportElement implements _ExistingElement {
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -1730,6 +1741,7 @@ abstract class LibraryImportElement implements _ExistingElement {
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -1972,6 +1984,7 @@ abstract class PatternVariableElement implements LocalVariableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement implements _ExistingElement {
+  @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -2150,6 +2163,7 @@ abstract class TypeAliasElement
   /// a [FunctionType].
   DartType get aliasedType;
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   CompilationUnitElement get enclosingElement3;
 
