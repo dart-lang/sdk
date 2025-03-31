@@ -136,6 +136,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   Future<void> addDartFileEdit(
     String path,
     FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit, {
+    @Deprecated('No longer supported')
     ImportPrefixGenerator? importPrefixGenerator,
     bool createEditsForImports = true,
   }) async {
