@@ -4338,6 +4338,23 @@ class SwitchInfo {
                     translator.classForType(codeGen.dartTypeOf(e)),
                     switchExprClass))));
 
+    // Type objects should be compared using `==` rather than identity even
+    // though the specification is not very clear about it. In language versions
+    // >=3.0 CFE would desugar such switches to a sequence of `if` statements
+    // using `==`, but for language versions <3.0 it would simply emit
+    // `SwitchStatement` and expect back-end to handle types specially if
+    // required. See #60375 for more details.
+    bool canInvokeTypeEquality() =>
+        translator.typeEnvironment.isSubtypeOf(
+            switchExprType,
+            translator.coreTypes.typeNullableRawType,
+            SubtypeCheckMode.withNullabilities) ||
+        node.cases.expand((c) => c.expressions).any((e) =>
+            translator.typeEnvironment.isSubtypeOf(
+                codeGen.dartTypeOf(e),
+                translator.coreTypes.typeNonNullableRawType,
+                SubtypeCheckMode.withNullabilities));
+
     if (node.cases.every((c) =>
         c.expressions.isEmpty && c.isDefault ||
         c.expressions.every((e) =>
@@ -4348,6 +4365,21 @@ class SwitchInfo {
       nullableType = w.RefType.eq(nullable: true);
       compare = (switchExprLocal, pushCaseExpr) =>
           throw "Comparison in default-only switch";
+    } else if (canInvokeTypeEquality()) {
+      nonNullableType = translator
+          .classInfo[translator.coreTypes.typeClass]!.repr.nonNullableType;
+      nullableType = translator
+          .classInfo[translator.coreTypes.typeClass]!.repr.nullableType;
+      compare = (switchExprLocal, pushCaseExpr) {
+        // Virtual call to `Object.==`.
+        codeGen._virtualCall(
+            node, translator.coreTypes.objectEquals, _VirtualCallKind.Call,
+            (functionType) {
+          codeGen.b.local_get(switchExprLocal);
+        }, (functionType, paramInfo) {
+          pushCaseExpr();
+        }, useUncheckedEntry: false);
+      };
     } else if (switchExprType is DynamicType) {
       // Object equality switch
       nonNullableType = translator.topInfo.nonNullableType;
