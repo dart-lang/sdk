@@ -5546,8 +5546,13 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with AugmentableFragment, TypeParameterizedElementMixin
-    implements InstanceElement, InstanceFragment {
+    with
+        AugmentableFragment,
+        TypeParameterizedElementMixin
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        InstanceElement,
+        InstanceFragment {
   @override
   ElementLinkedData? linkedData;
 

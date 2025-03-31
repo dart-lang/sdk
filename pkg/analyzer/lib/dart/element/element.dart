@@ -1320,6 +1320,7 @@ abstract class ImportElementPrefix {
 /// An element that has `this`.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use InstanceElement2 instead')
 abstract class InstanceElement
     implements TypeDefiningElement, TypeParameterizedElement {
   /// The declared accessors (getters and setters).

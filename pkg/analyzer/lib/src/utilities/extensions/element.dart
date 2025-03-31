@@ -459,18 +459,6 @@ extension GetterElementImplExtension on GetterElementImpl {
   }
 }
 
-extension InstanceElement2Extension on InstanceElement2 {
-  InstanceElement get asElement {
-    return firstFragment as InstanceElement;
-  }
-}
-
-extension InstanceElementExtension on InstanceElement {
-  InstanceElement2 get asElement2 {
-    return (this as InstanceElementImpl).element;
-  }
-}
-
 extension InstanceElementImpl2Extension on InstanceElementImpl2 {
   InstanceElementImpl get asElement {
     return firstFragment;
