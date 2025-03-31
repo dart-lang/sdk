@@ -814,9 +814,12 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     required this.lineInfo,
   }) : super(null, -1);
 
+  @Deprecated('Use accessibleExtensions2 instead')
   @override
   List<ExtensionElement> get accessibleExtensions {
-    return scope.accessibleExtensions.map((e) => e.asElement).toList();
+    return scope.accessibleExtensions
+        .map((e) => e.firstFragment as ExtensionElement)
+        .toList();
   }
 
   @override
@@ -3870,9 +3873,11 @@ abstract class ExecutableElementOrMember
   List<TypeParameterElementImpl> get typeParameters;
 }
 
-/// A concrete implementation of an [ExtensionElement].
 class ExtensionElementImpl extends InstanceElementImpl
-    implements ExtensionElement, ExtensionFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ExtensionElement,
+        ExtensionFragment {
   late ExtensionElementImpl2 augmentedInternal;
 
   /// Initialize a newly created extension element to have the given [name] at

@@ -375,18 +375,6 @@ extension ExecutableElementOrNullExtension on ExecutableElement? {
   }
 }
 
-extension ExtensionElement2Extension on ExtensionElement2 {
-  ExtensionElement get asElement {
-    return firstFragment as ExtensionElement;
-  }
-}
-
-extension ExtensionElementExtension on ExtensionElement {
-  ExtensionElementImpl2 get asElement2 {
-    return (this as ExtensionElementImpl).element;
-  }
-}
-
 extension ExtensionElementImpl2Extension on ExtensionElementImpl2 {
   ExtensionElementImpl get asElement {
     return firstFragment;

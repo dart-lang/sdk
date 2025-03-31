@@ -1158,6 +1158,7 @@ abstract class ExecutableElement implements FunctionTypedElement {
 /// An element that represents an extension.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ExtensionElement2 instead')
 abstract class ExtensionElement implements InstanceElement {
   /// The type that is extended by this extension.
   DartType get extendedType;

@@ -3284,7 +3284,7 @@ package:analyzer/dart/element/element.dart:
     isStatic (getter: bool)
     isSynchronous (getter: bool)
     name (getter: String)
-  ExtensionElement (class extends Object implements InstanceElement):
+  ExtensionElement (class extends Object implements InstanceElement, deprecated):
     new (constructor: ExtensionElement Function())
     extendedType (getter: DartType)
     getField (method: FieldElement? Function(String))
