@@ -656,18 +656,6 @@ extension MethodElementOrMemberExtension on MethodElementOrMember {
   }
 }
 
-extension MixinElement2Extension on MixinElement2 {
-  MixinElement get asElement {
-    return firstFragment as MixinElement;
-  }
-}
-
-extension MixinElementExtension on MixinElement {
-  MixinElement2 get asElement2 {
-    return (this as MixinElementImpl).element;
-  }
-}
-
 extension MixinElementImplExtension on MixinElementImpl {
   MixinElementImpl2 get asElement2 {
     return element;

@@ -3423,7 +3423,7 @@ package:analyzer/dart/element/element.dart:
   MethodElement (class extends Object implements ClassMemberElement, ExecutableElement):
     new (constructor: MethodElement Function())
     declaration (getter: MethodElement)
-  MixinElement (class extends Object implements InterfaceElement):
+  MixinElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: MixinElement Function())
     isBase (getter: bool)
     superclassConstraints (getter: List<InterfaceType>)

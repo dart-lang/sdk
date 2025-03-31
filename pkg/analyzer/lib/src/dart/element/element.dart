@@ -1199,6 +1199,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// Returns the mixin defined in this compilation unit that has the given
   /// [name], or `null` if this compilation unit does not define a mixin with
   /// the given name.
+  @Deprecated(elementModelDeprecationMsg)
   MixinElement? getMixin(String name) {
     for (var mixin in mixins) {
       if (mixin.name == name) {
@@ -7370,6 +7371,7 @@ class LibraryElementImpl extends ElementImpl
     return _getElementByName(getters, name);
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   MixinElement? getMixin(String name) {
     for (var unitElement in units) {
       var element = unitElement.getMixin(name);
@@ -8436,7 +8438,10 @@ abstract class MethodElementOrMember
 
 /// A [ClassElementImpl] representing a mixin declaration.
 class MixinElementImpl extends ClassOrMixinElementImpl
-    implements MixinElement, MixinFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        MixinElement,
+        MixinFragment {
   List<InterfaceTypeImpl> _superclassConstraints = const [];
 
   /// Names of methods, getters, setters, and operators that this mixin

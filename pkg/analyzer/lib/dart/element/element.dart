@@ -1832,6 +1832,7 @@ abstract class MethodElement
 /// An element that represents a mixin.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use MixinElement2 instead')
 abstract class MixinElement implements InterfaceElement {
   /// Whether the mixin is a base mixin.
   ///
