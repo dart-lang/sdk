@@ -1089,6 +1089,7 @@ abstract class ElementVisitor<R> {
 /// An element that represents an enum.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use EnumElement2 instead')
 abstract class EnumElement implements InterfaceElement {}
 
 /// An element representing an executable object, including functions, methods,

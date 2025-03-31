@@ -3266,7 +3266,7 @@ package:analyzer/dart/element/element.dart:
     visitTopLevelVariableElement (method: R? Function(TopLevelVariableElement))
     visitTypeAliasElement (method: R? Function(TypeAliasElement))
     visitTypeParameterElement (method: R? Function(TypeParameterElement))
-  EnumElement (class extends Object implements InterfaceElement):
+  EnumElement (class extends Object implements InterfaceElement, deprecated):
     new (constructor: EnumElement Function())
   ExecutableElement (class extends Object implements FunctionTypedElement):
     new (constructor: ExecutableElement Function())

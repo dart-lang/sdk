@@ -308,18 +308,6 @@ extension ElementOrNullExtension on Element? {
   }
 }
 
-extension EnumElement2Extension on EnumElement2 {
-  EnumElement get asElement {
-    return firstFragment as EnumElement;
-  }
-}
-
-extension EnumElementExtension on EnumElement {
-  EnumElement2 get asElement2 {
-    return (this as EnumElementImpl).element;
-  }
-}
-
 extension EnumElementImplExtension on EnumElementImpl {
   EnumElementImpl2 get asElement2 {
     return element;

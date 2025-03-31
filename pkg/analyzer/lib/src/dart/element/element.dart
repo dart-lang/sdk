@@ -1186,6 +1186,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return null;
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   EnumElement? getEnum(String name) {
     for (var element in enums) {
@@ -3513,7 +3514,10 @@ abstract class ElementOrMember {}
 
 /// An [InterfaceElementImpl] which is an enum.
 class EnumElementImpl extends InterfaceElementImpl
-    implements EnumElement, EnumFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        EnumElement,
+        EnumFragment {
   late EnumElementImpl2 augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -7334,6 +7338,7 @@ class LibraryElementImpl extends ElementImpl
     return _getElementByName(classes, name);
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   EnumElement? getEnum(String name) {
     for (var unitElement in units) {
       var element = unitElement.getEnum(name);
