@@ -3059,7 +3059,7 @@ package:analyzer/dart/element/element.dart:
     typeAliases (getter: List<TypeAliasElement>)
     getClass (method: ClassElement? Function(String))
     getEnum (method: EnumElement? Function(String))
-  ConstructorElement (class extends Object implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget):
+  ConstructorElement (class extends Object implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget, deprecated):
     new (constructor: ConstructorElement Function())
     declaration (getter: ConstructorElement)
     displayName (getter: String)
@@ -3293,7 +3293,7 @@ package:analyzer/dart/element/element.dart:
     getSetter (method: PropertyAccessorElement? Function(String))
   ExtensionTypeElement (class extends Object implements InterfaceElement, experimental):
     new (constructor: ExtensionTypeElement Function())
-    primaryConstructor (getter: ConstructorElement)
+    primaryConstructor (getter: ConstructorElement, deprecated)
     representation (getter: FieldElement)
     typeErasure (getter: DartType)
   FieldElement (class extends Object implements ClassMemberElement, PropertyInducingElement):
@@ -3340,17 +3340,17 @@ package:analyzer/dart/element/element.dart:
   InterfaceElement (class extends Object implements InstanceElement):
     new (constructor: InterfaceElement Function())
     allSupertypes (getter: List<InterfaceType>)
-    constructors (getter: List<ConstructorElement>)
+    constructors (getter: List<ConstructorElement>, deprecated)
     interfaces (getter: List<InterfaceType>)
     mixins (getter: List<InterfaceType>)
     name (getter: String)
     supertype (getter: InterfaceType?)
     thisType (getter: InterfaceType)
-    unnamedConstructor (getter: ConstructorElement?)
+    unnamedConstructor (getter: ConstructorElement?, deprecated)
     getField (method: FieldElement? Function(String))
     getGetter (method: PropertyAccessorElement? Function(String))
     getMethod (method: MethodElement? Function(String))
-    getNamedConstructor (method: ConstructorElement? Function(String))
+    getNamedConstructor (method: ConstructorElement? Function(String), deprecated)
     getSetter (method: PropertyAccessorElement? Function(String))
     instantiate (method: InterfaceType Function({required NullabilitySuffix nullabilitySuffix, required List<DartType> typeArguments}))
     lookUpConcreteMethod (method: MethodElement? Function(String, LibraryElement))

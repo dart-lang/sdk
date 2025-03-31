@@ -94,22 +94,13 @@ extension CompilationUnitElementImplExtension on CompilationUnitElementImpl {
   }
 }
 
+@Deprecated('Use ConstructorElement2 instead')
 extension ConstructorElement2Extension on ConstructorElement2 {
   ConstructorElement get asElement {
     if (this case ConstructorMember member) {
       return member;
     }
     return (this as ConstructorElementImpl2).lastFragment;
-  }
-}
-
-extension ConstructorElementExtension on ConstructorElement {
-  ConstructorElement2 get asElement2 {
-    return switch (this) {
-      ConstructorFragment(:var element) => element,
-      ConstructorMember member => member,
-      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-    };
   }
 }
 

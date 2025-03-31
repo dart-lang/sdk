@@ -267,6 +267,7 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 /// class.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ConstructorElement2 instead')
 abstract class ConstructorElement
     implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
   @override
@@ -718,7 +719,7 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   ///
   /// In valid code this element can be a [GetterElement] of a constant
   /// top-level variable, or a constant static field of a class; or a
-  /// constant [ConstructorElement].
+  /// constant [ConstructorElement2].
   ///
   /// In invalid code this element can be `null`, or a reference to any
   /// other element.
@@ -1179,6 +1180,7 @@ abstract class ExtensionElement implements InstanceElement {
 @experimental
 abstract class ExtensionTypeElement implements InterfaceElement {
   /// The primary constructor of this extension.
+  @Deprecated(elementModelDeprecationMsg)
   ConstructorElement get primaryConstructor;
 
   /// The representation of this extension.
@@ -1343,6 +1345,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// The declared constructors.
   ///
   /// The list is empty for [MixinElement].
+  @Deprecated(elementModelDeprecationMsg)
   List<ConstructorElement> get constructors;
 
   /// The interfaces that are implemented by this class.
@@ -1396,6 +1399,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// If the class does not declare any constructors, a synthetic default
   /// constructor will be returned.
   // TODO(scheglov): Deprecate and remove it.
+  @Deprecated(elementModelDeprecationMsg)
   ConstructorElement? get unnamedConstructor;
 
   /// The field (synthetic or explicit) defined directly in this class or
@@ -1416,6 +1420,7 @@ abstract class InterfaceElement implements InstanceElement {
   /// The constructor defined directly in this class or augmentation
   /// that has the given [name].
   // TODO(scheglov): Deprecate and remove it.
+  @Deprecated(elementModelDeprecationMsg)
   ConstructorElement? getNamedConstructor(String name);
 
   /// The setter (synthetic or explicit) defined directly in this class or

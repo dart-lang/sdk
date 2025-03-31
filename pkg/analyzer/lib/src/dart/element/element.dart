@@ -347,7 +347,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     if (supertype != null && !supertype.isDartCoreObject) {
       return false;
     }
-    for (ConstructorElement constructor in constructors) {
+    for (var constructor in constructors) {
       if (!constructor.isSynthetic && !constructor.isFactory) {
         return false;
       }
@@ -1361,10 +1361,14 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
   ConstLocalVariableElementImpl(super.name, super.offset);
 }
 
-/// A concrete implementation of a [ConstructorElement].
+/// A concrete implementation of a [ConstructorFragment].
 class ConstructorElementImpl extends ExecutableElementImpl
-    with ConstructorElementMixin
-    implements ConstructorElement, ConstructorFragment {
+    with
+        ConstructorElementMixin
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ConstructorElement,
+        ConstructorFragment {
   late final ConstructorElementImpl2 element =
       ConstructorElementImpl2(name.ifNotEmptyOrElse('new'), this);
 
@@ -1705,9 +1709,11 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   }
 }
 
-/// Common implementation for methods defined in [ConstructorElement].
 mixin ConstructorElementMixin
-    implements ConstructorElement, ExecutableElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ConstructorElement,
+        ExecutableElementOrMember {
   @override
   ConstructorElementImpl get declaration;
 
