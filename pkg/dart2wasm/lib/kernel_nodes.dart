@@ -147,6 +147,9 @@ mixin KernelNodes {
       index.getField("dart:async", "_Completer", "future");
   late final Procedure completerComplete =
       index.getProcedure("dart:async", "_AsyncCompleter", "complete");
+  late final Procedure completerCompleteErrorWithCurrentStack =
+      index.getProcedure(
+          "dart:async", "_AsyncCompleter", "_completeErrorWithCurrentStack");
   late final Procedure completerCompleteError =
       index.getProcedure("dart:async", "_Completer", "completeError");
   late final Procedure awaitHelper =
@@ -290,8 +293,8 @@ mixin KernelNodes {
           "_throwUnimplementedExternalMemberError");
   late final Procedure stackTraceCurrent =
       index.getProcedure("dart:core", "StackTrace", "get:current");
-  late final Procedure throwNullCheckError =
-      index.getProcedure("dart:core", "_TypeError", "_throwNullCheckError");
+  late final Procedure throwNullCheckErrorWithCurrentStack = index.getProcedure(
+      "dart:core", "_TypeError", "_throwNullCheckErrorWithCurrentStack");
   late final Procedure throwAsCheckError =
       index.getProcedure("dart:core", "_TypeError", "_throwAsCheckError");
   late final Procedure throwInterfaceTypeAsCheckError1 = index

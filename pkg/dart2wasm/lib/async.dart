@@ -274,6 +274,15 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
       b.return_();
     }
 
+    void callCompleteErrorWithCurrentStack() {
+      b.local_get(_suspendStateLocal);
+      b.struct_get(
+          asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
+      b.local_get(exceptionLocal);
+      call(translator.completerCompleteErrorWithCurrentStack.reference);
+      b.return_();
+    }
+
     // Handle Dart exceptions.
     b.catch_legacy(translator.getExceptionTag(b.module));
     b.local_set(stackTraceLocal);
@@ -289,10 +298,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
 
     // JS exceptions won't have a Dart stack trace, so we attach the current
     // Dart stack trace.
-    call(translator.stackTraceCurrent.reference);
-    b.local_set(stackTraceLocal);
-
-    callCompleteError();
+    callCompleteErrorWithCurrentStack();
 
     b.end(); // try
 

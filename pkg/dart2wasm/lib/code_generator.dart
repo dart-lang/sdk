@@ -2651,8 +2651,7 @@ abstract class AstCodeGenerator
     // We lower a null check to a br_on_non_null, throwing a [TypeError] in
     // the null case.
     b.br_on_non_null(nullCheckBlock);
-    call(translator.stackTraceCurrent.reference);
-    call(translator.throwNullCheckError.reference);
+    call(translator.throwNullCheckErrorWithCurrentStack.reference);
     b.unreachable();
     b.end();
     return nonNullOperandType;
