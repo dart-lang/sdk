@@ -14,7 +14,7 @@ permissions: read-all
 jobs:
   extract-deps:
     name: Extract Dependencies
-    runs-on: ubuntu-20.04
+    runs-on: 'ubuntu-24.04'
     if: ${{ (github.repository == 'dart-lang/sdk' && github.event_name == 'push') || github.event.label.name == 'vulnerability scan' }}
     permissions:
       # Needed to upload the SARIF results to code-scanning dashboard.

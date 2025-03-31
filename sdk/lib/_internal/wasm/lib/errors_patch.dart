@@ -73,7 +73,9 @@ class _TypeError extends _Error implements TypeError {
   }
 
   @pragma("wasm:entry-point")
-  static Never _throwNullCheckError(StackTrace stackTrace) {
+  @pragma("wasm:never-inline")
+  static Never _throwNullCheckErrorWithCurrentStack() {
+    final stackTrace = StackTrace.current;
     final typeError = _TypeError.fromMessageAndStackTrace(
       "Null check operator used on a null value",
       stackTrace,
