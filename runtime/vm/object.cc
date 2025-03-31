@@ -1262,6 +1262,8 @@ void Object::Init(IsolateGroup* isolate_group) {
       "released with Dart_TypedDataReleaseData, or a finalizer is running.",
       Heap::kOld);
   *no_callbacks_error_ = ApiError::New(error_str, Heap::kOld);
+  error_str = String::New("isolate is exiting", Heap::kOld);
+  *unwind_error_ = UnwindError::New(error_str, Heap::kOld);
   error_str = String::New(
       "No api calls are allowed while unwind is in progress", Heap::kOld);
   *unwind_in_progress_error_ = UnwindError::New(error_str, Heap::kOld);
@@ -1393,6 +1395,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(smi_zero_->IsSmi());
   ASSERT(!no_callbacks_error_->IsSmi());
   ASSERT(no_callbacks_error_->IsApiError());
+  ASSERT(!unwind_error_->IsSmi());
+  ASSERT(unwind_error_->IsUnwindError());
   ASSERT(!unwind_in_progress_error_->IsSmi());
   ASSERT(unwind_in_progress_error_->IsUnwindError());
   ASSERT(!snapshot_writer_error_->IsSmi());
@@ -2883,8 +2887,6 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       Report::LongJump(Object::out_of_memory_error());
       UNREACHABLE();
     } else if (thread->top_exit_frame_info() != 0) {
-      // Use the preallocated out of memory exception to avoid calling
-      // into dart code or allocating any code.
       Exceptions::ThrowOOM();
       UNREACHABLE();
     } else {
