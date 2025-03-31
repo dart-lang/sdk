@@ -43,6 +43,25 @@ part 'type_mask.dart';
 part 'union_type_mask.dart';
 part 'value_type_mask.dart';
 
+// TODO(60419): Go back to using a record as the key when it is no longer slower
+// than using a data class.
+final class _CanonicalizedTypeMaskKey {
+  final ClassEntity? base;
+  final Bitset flags;
+
+  const _CanonicalizedTypeMaskKey(this.base, this.flags);
+
+  @override
+  int get hashCode => Object.hash(base, flags);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _CanonicalizedTypeMaskKey &&
+          base == other.base &&
+          flags == other.flags;
+}
+
 class CommonMasks with AbstractValueDomain {
   // TODO(sigmund): once we split out the backend common elements, depend
   // directly on those instead.
@@ -56,7 +75,8 @@ class CommonMasks with AbstractValueDomain {
 
   final Map<TypeMask, Map<TypeMask, TypeMask>> _intersectionCache = {};
 
-  final Map<(ClassEntity?, Bitset), FlatTypeMask> _canonicalizedTypeMasks = {};
+  final Map<_CanonicalizedTypeMaskKey, FlatTypeMask> _canonicalizedTypeMasks =
+      {};
 
   /// Return the cached mask for [base] with the given special values, or
   /// calls [createMask] to create the mask and cache it.
@@ -64,7 +84,10 @@ class CommonMasks with AbstractValueDomain {
     ClassEntity? base,
     Bitset flags,
     FlatTypeMask Function() createMask,
-  ) => _canonicalizedTypeMasks.putIfAbsent((base, flags), createMask);
+  ) => _canonicalizedTypeMasks.putIfAbsent(
+    _CanonicalizedTypeMaskKey(base, flags),
+    createMask,
+  );
 
   @override
   late final TypeMask internalTopType = TypeMask.subclass(
