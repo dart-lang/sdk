@@ -802,6 +802,7 @@ abstract class DataType extends DefType {
 /// A custom `struct` type.
 class StructType extends DataType {
   final List<FieldType> fields = [];
+  final Map<int, String> fieldNames = {};
 
   StructType(super.name, {Iterable<FieldType>? fields, super.superType}) {
     if (fields != null) this.fields.addAll(fields);

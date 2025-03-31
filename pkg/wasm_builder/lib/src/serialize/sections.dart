@@ -392,17 +392,19 @@ abstract class CustomSection extends Section {
 class NameSection extends CustomSection {
   final String moduleName;
   final List<ir.BaseFunction> functions;
-  final List<ir.DefType> types;
+  final List<List<ir.DefType>> types;
   final List<ir.Global> globals;
   final int functionNameCount;
   final int typeNameCount;
   final int globalNameCount;
+  final int typesWithNamedFieldsCount;
 
   NameSection(this.moduleName, this.functions, this.types, this.globals,
       super.watchPoints,
       {required this.functionNameCount,
       required this.typeNameCount,
-      required this.globalNameCount});
+      required this.globalNameCount,
+      required this.typesWithNamedFieldsCount});
 
   @override
   bool get isNotEmpty => functionNameCount > 0 || typeNameCount > 0;
@@ -426,11 +428,16 @@ class NameSection extends CustomSection {
 
     final typeNameSubsection = Serializer();
     typeNameSubsection.writeUnsigned(typeNameCount);
-    for (int i = 0; i < types.length; i++) {
-      final ty = types[i];
-      if (ty is ir.DataType) {
-        typeNameSubsection.writeUnsigned(i);
-        typeNameSubsection.writeName(ty.name);
+    {
+      int typeIndex = 0;
+      for (final recursionGroup in types) {
+        for (final defType in recursionGroup) {
+          if (defType is ir.DataType) {
+            typeNameSubsection.writeUnsigned(typeIndex);
+            typeNameSubsection.writeName(defType.name);
+          }
+          typeIndex += 1;
+        }
       }
     }
 
@@ -441,6 +448,26 @@ class NameSection extends CustomSection {
       if (globalName != null) {
         globalNameSubsection.writeUnsigned(i);
         globalNameSubsection.writeName(globalName);
+      }
+    }
+
+    final fieldNameSubsection = Serializer();
+    fieldNameSubsection.writeUnsigned(typesWithNamedFieldsCount);
+
+    if (typesWithNamedFieldsCount != 0) {
+      int typeIndex = 0;
+      for (final recursionGroup in types) {
+        for (final defType in recursionGroup) {
+          if (defType is ir.StructType && defType.fieldNames.isNotEmpty) {
+            fieldNameSubsection.writeUnsigned(typeIndex);
+            fieldNameSubsection.writeUnsigned(defType.fieldNames.length);
+            for (final entry in defType.fieldNames.entries) {
+              fieldNameSubsection.writeUnsigned(entry.key);
+              fieldNameSubsection.writeName(entry.value);
+            }
+          }
+          typeIndex += 1;
+        }
       }
     }
 
@@ -459,6 +486,10 @@ class NameSection extends CustomSection {
     s.writeByte(7); // Global names subsection
     s.writeUnsigned(globalNameSubsection.data.length);
     s.writeData(globalNameSubsection);
+
+    s.writeByte(10); // Field names subsection
+    s.writeUnsigned(fieldNameSubsection.data.length);
+    s.writeData(fieldNameSubsection);
   }
 }
 
