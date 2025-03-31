@@ -7,7 +7,7 @@
 import 'dart:collection';
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
+import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart'; // ignore: implementation_imports
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -19,9 +19,9 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/error/codes.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/util/comment.dart'; // ignore: implementation_imports
 import 'package:path/path.dart' as path;
 
 final libDir = Directory(path.join('sdk', 'lib'));
@@ -35,8 +35,10 @@ void main(List<String> args) async {
   print('');
   print('To run this tool, run `dart tools/verify_docs/bin/verify_docs.dart`.');
   print('');
-  print('For documentation about how to author dart: code samples,'
-      ' see tools/verify_docs/README.md.');
+  print(
+    'For documentation about how to author dart: code samples,'
+    ' see tools/verify_docs/README.md.',
+  );
   print('');
 
   final coreLibraries = args.isEmpty
@@ -52,7 +54,7 @@ void main(List<String> args) async {
     'vmservice',
     'web_audio',
     'web_gl',
-    'web_sql'
+    'web_sql',
   };
   coreLibraries.removeWhere(
     (lib) => skipLibraries.contains(path.basename(lib.path)),
@@ -87,8 +89,9 @@ Future<bool> validateLibrary(Directory dir) async {
 }
 
 final Future<AllowedExperiments> allowedExperiments = () async {
-  final allowedExperimentsFile =
-      File('sdk/lib/_internal/allowed_experiments.json');
+  final allowedExperimentsFile = File(
+    'sdk/lib/_internal/allowed_experiments.json',
+  );
   final contents = await allowedExperimentsFile.readAsString();
   return parseAllowedExperiments(contents);
 }();
@@ -187,7 +190,10 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
     while (offset != -1) {
       // Collect template directives, like "```dart import:async".
       final codeFenceSuffix = text
-          .substring(offset + sampleStart.length, text.indexOf('\n', offset))
+          .substring(
+            offset + sampleStart.length,
+            text.indexOf('\n', offset),
+          )
           .trim();
 
       offset = text.indexOf('\n', offset) + 1;
@@ -236,11 +242,13 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   // 1/libdecl: Non-null if matching a `library` declaration.
   // 2: Internal use, quote around import URI.
   // 3/importuri: Import URI.
-  final _toplevelDeclarationRE = RegExp(r'^\s*(?:'
-      r'library\b(?<libdecl>)|'
-      r'''import (['"])(?<importuri>.*?)\2|'''
-      r'final class\b|class\b|mixin\b|enum\b|extension\b|typedef\b|.*\bmain\('
-      r')');
+  final _toplevelDeclarationRE = RegExp(
+    r'^\s*(?:'
+    r'library\b(?<libdecl>)|'
+    r'''import (['"])(?<importuri>.*?)\2|'''
+    r'final class\b|class\b|mixin\b|enum\b|extension\b|typedef\b|.*\bmain\('
+    r')',
+  );
 
   Future<void> validateCodeSample(CodeSample sample) async {
     final lines = sample.lines;
@@ -323,22 +331,17 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
     final result = await analysisHelper.resolveFile(text);
 
     if (result is ResolvedUnitResult) {
-      var errors = SplayTreeSet<AnalysisError>.from(
-        result.errors,
-        (a, b) {
-          var value = a.offset.compareTo(b.offset);
-          if (value == 0) {
-            value = a.message.compareTo(b.message);
-          }
-          return value;
-        },
-      );
+      var errors = SplayTreeSet<AnalysisError>.from(result.errors, (a, b) {
+        var value = a.offset.compareTo(b.offset);
+        if (value == 0) {
+          value = a.message.compareTo(b.message);
+        }
+        return value;
+      });
 
       // Filter out unused imports, since we speculatively add imports to some
       // samples.
-      errors.removeWhere(
-        (e) => e.errorCode == WarningCode.UNUSED_IMPORT,
-      );
+      errors.removeWhere((e) => e.errorCode == WarningCode.UNUSED_IMPORT);
 
       // Also, don't worry about 'unused_local_variable' and related; this may
       // be intentional in samples.
@@ -372,10 +375,14 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         print('');
 
         // Print out the code sample.
-        print(sample.lines
-            .map((line) =>
-                '  >${line.length >= 5 ? line.substring(5) : line.trimLeft()}')
-            .join('\n'));
+        print(
+          sample.lines
+              .map(
+                (line) =>
+                    '  >${line.length >= 5 ? line.substring(5) : line.trimLeft()}',
+              )
+              .join('\n'),
+        );
         print('');
       }
     } else {
@@ -437,7 +444,7 @@ class CodeSample {
         if (coreLibName != 'internal' && coreLibName != 'core') coreLibName,
         for (var directive in directives)
           if (directive.startsWith('import:'))
-            directive.substring('import:'.length)
+            directive.substring('import:'.length),
       };
 
   /// Creates a new code sample by appending [lines] to this sample.
@@ -448,10 +455,11 @@ class CodeSample {
   CodeSample append(List<String> lines, int lineStartOffset) {
     var gapSize = lineStartOffset - (this.lineStartOffset + this.lines.length);
     return CodeSample(
-        [...this.lines, for (var i = 0; i < gapSize; i++) "  //", ...lines],
-        coreLibName: coreLibName,
-        directives: directives,
-        lineStartOffset: this.lineStartOffset);
+      [...this.lines, for (var i = 0; i < gapSize; i++) "  //", ...lines],
+      coreLibName: coreLibName,
+      directives: directives,
+      lineStartOffset: this.lineStartOffset,
+    );
   }
 }
 
@@ -486,8 +494,9 @@ String _severity(Severity severity) {
 
 class AnalysisHelper {
   final String libraryName;
-  final resourceProvider =
-      OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+  final resourceProvider = OverlayResourceProvider(
+    PhysicalResourceProvider.INSTANCE,
+  );
   late final String separator = resourceProvider.pathContext.separator;
   late final pathRoot = Directory('sdk${separator}lib$separator').absolute.path;
   late AnalysisContextCollection collection;

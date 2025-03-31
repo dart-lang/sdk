@@ -5,7 +5,9 @@ description: A tool to validate the documentation comments for the `dart:` libra
 publish_to: none
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: ^3.5.0
+
+resolution: workspace
 
 dependencies:
   _fe_analyzer_shared: any

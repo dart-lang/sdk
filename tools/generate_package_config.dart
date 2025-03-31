@@ -12,7 +12,7 @@ import 'dart:io';
 
 final repoRoot = File(Platform.script.toFilePath()).parent.parent.uri;
 
-void main(List<String> args) {
+void main() {
   final fluteExists =
       Directory.fromUri(repoRoot.resolve('third_party/flute')).existsSync();
   final overridesFile = File.fromUri(
@@ -24,9 +24,9 @@ void main(List<String> args) {
     final pubspec =
         File.fromUri(repoRoot.resolve('pubspec.yaml')).readAsStringSync();
     final overrides = RegExp(
-      'dependency_overrides:\n([\\S\\s]*?)^\$',
+      r'^dependency_overrides:\n([^]*?)^$',
       multiLine: true,
-    ).firstMatch(pubspec)![1];
+    ).firstMatch(pubspec)![1]!;
     overridesFile.writeAsStringSync('''
 # Created by tools/generate_package_config.dart to support flute.
 
@@ -48,9 +48,7 @@ $overrides
   } else {
     // Delete the overrides file if it exists.
     if (overridesFile.existsSync()) {
-      File.fromUri(
-        repoRoot.resolve('pubspec_overrides.yaml'),
-      ).deleteSync(recursive: true);
+      overridesFile.deleteSync();
     }
   }
 
@@ -59,7 +57,7 @@ $overrides
     Platform.resolvedExecutable,
     ['pub', 'get'],
     workingDirectory: repoRoot.toFilePath(),
-    environment: {}, // Prevent overriding eg. PUB_CACHE
+    environment: {}, // Prevent overriding, e.g., PUB_CACHE
   );
   if (result.exitCode != 0) {
     print('`pub get` failed');
@@ -71,21 +69,22 @@ $overrides
     File.fromUri(
       repoRoot.resolve('.dart_tool/package_config.json'),
     ).readAsStringSync(),
-  );
+  ) as Map<String, Object?>;
 
   if (!fluteExists) {
-    for (final package in packageConfig['packages']) {
-      final rootUri = package['rootUri'];
+    final packages = packageConfig['packages'] as List<Object?>;
+    for (final (package as Map<String, Object?>) in packages) {
+      final rootUri = package['rootUri'] as String;
       if (!(rootUri.startsWith('../third_party/') || // Third-party package
               rootUri.startsWith('../pkg/') || // SDK package
               rootUri.startsWith('../samples/') || // sample package
               rootUri.startsWith('../runtime/') || // VM package
               rootUri.startsWith(
                 '../tools',
-              ) || // A tool package for developing the sdk.
+              ) || // A tool package for developing the SDK.
               rootUri == '../' // The main workspace package
           )) {
-        print('Package ${package['name']} is imported from outside the sdk.');
+        print('Package ${package['name']} is imported from outside the SDK.');
         print('It has rootUri $rootUri.');
         print(
           'See https://github.com/dart-lang/sdk/blob/main/docs/Adding-and-Updating-Dependencies.md',
