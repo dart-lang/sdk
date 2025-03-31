@@ -400,6 +400,24 @@ class DateTime implements Comparable<DateTime> {
       _maxMillisecondsSinceEpoch * Duration.microsecondsPerMillisecond;
 
   /// Constructs a new [DateTime] instance
+  /// with the given [secondsSinceEpoch].
+  ///
+  /// /// If [isUtc] is false then the date is in the local time zone.
+  ///
+  /// The constructed [DateTime] represents
+  /// 1970-01-01T00:00:00Z + [secondsSinceEpoch] seconds in the given
+  /// time zone (local or UTC).
+  /// ```dart
+  /// final newYearsDay =
+  ///     DateTime.fromSecondsSinceEpoch(1641031200, isUtc:true);
+  /// print(newYearsDay); // 2022-01-01 10:00:00.000Z
+  /// ```
+  external DateTime.fromSecondsSinceEpoch(
+    int secondsSinceEpoch, {
+    bool isUtc = false,
+  });
+
+  /// Constructs a new [DateTime] instance
   /// with the given [millisecondsSinceEpoch].
   ///
   /// If [isUtc] is false then the date is in the local time zone.
@@ -787,6 +805,16 @@ class DateTime implements Comparable<DateTime> {
     int microsecond,
     bool isUtc,
   );
+
+  /// The number of seconds since
+  /// the "Unix epoch" 1970-01-01T00:00:00Z (UTC).
+  ///
+  /// This value is independent of the time zone.
+  ///
+  /// This value is at most
+  /// 86,400,000,000s. (100,000,000 days) from the Unix epoch.
+  /// In other words: `secondsSinceEpoch.abs() <= 86400000000`.
+  external int get secondsSinceEpoch;
 
   /// The number of milliseconds since
   /// the "Unix epoch" 1970-01-01T00:00:00Z (UTC).
