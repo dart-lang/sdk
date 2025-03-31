@@ -3012,6 +3012,7 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
+  elementModelDeprecationMsg (static getter: String)
   BindPatternVariableElement (class extends Object implements PatternVariableElement, deprecated):
     new (constructor: BindPatternVariableElement Function())
   ClassElement (class extends Object implements InterfaceElement):
@@ -3036,7 +3037,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: ClassMemberElement Function())
     enclosingElement3 (getter: Element)
     isStatic (getter: bool)
-  CompilationUnitElement (class extends Object implements UriReferencedElement):
+  CompilationUnitElement (class extends Object implements UriReferencedElement, deprecated):
     new (constructor: CompilationUnitElement Function())
     accessibleExtensions (getter: List<ExtensionElement>)
     accessors (getter: List<PropertyAccessorElement>)
@@ -3058,7 +3059,7 @@ package:analyzer/dart/element/element.dart:
     typeAliases (getter: List<TypeAliasElement>)
     getClass (method: ClassElement? Function(String))
     getEnum (method: EnumElement? Function(String))
-  ConstructorElement (class extends Object implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget):
+  ConstructorElement (class extends Object implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget, deprecated):
     new (constructor: ConstructorElement Function())
     declaration (getter: ConstructorElement)
     displayName (getter: String)
@@ -3292,7 +3293,7 @@ package:analyzer/dart/element/element.dart:
     getSetter (method: PropertyAccessorElement? Function(String))
   ExtensionTypeElement (class extends Object implements InterfaceElement, experimental):
     new (constructor: ExtensionTypeElement Function())
-    primaryConstructor (getter: ConstructorElement)
+    primaryConstructor (getter: ConstructorElement, deprecated)
     representation (getter: FieldElement)
     typeErasure (getter: DartType)
   FieldElement (class extends Object implements ClassMemberElement, PropertyInducingElement):
@@ -3331,7 +3332,7 @@ package:analyzer/dart/element/element.dart:
   InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement):
     new (constructor: InstanceElement Function())
     accessors (getter: List<PropertyAccessorElement>)
-    enclosingElement3 (getter: CompilationUnitElement)
+    enclosingElement3 (getter: CompilationUnitElement, deprecated)
     fields (getter: List<FieldElement>)
     isAugmentation (getter: bool)
     methods (getter: List<MethodElement>)
@@ -3339,17 +3340,17 @@ package:analyzer/dart/element/element.dart:
   InterfaceElement (class extends Object implements InstanceElement):
     new (constructor: InterfaceElement Function())
     allSupertypes (getter: List<InterfaceType>)
-    constructors (getter: List<ConstructorElement>)
+    constructors (getter: List<ConstructorElement>, deprecated)
     interfaces (getter: List<InterfaceType>)
     mixins (getter: List<InterfaceType>)
     name (getter: String)
     supertype (getter: InterfaceType?)
     thisType (getter: InterfaceType)
-    unnamedConstructor (getter: ConstructorElement?)
+    unnamedConstructor (getter: ConstructorElement?, deprecated)
     getField (method: FieldElement? Function(String))
     getGetter (method: PropertyAccessorElement? Function(String))
     getMethod (method: MethodElement? Function(String))
-    getNamedConstructor (method: ConstructorElement? Function(String))
+    getNamedConstructor (method: ConstructorElement? Function(String), deprecated)
     getSetter (method: PropertyAccessorElement? Function(String))
     instantiate (method: InterfaceType Function({required NullabilitySuffix nullabilitySuffix, required List<DartType> typeArguments}))
     lookUpConcreteMethod (method: MethodElement? Function(String, LibraryElement))
@@ -3370,7 +3371,7 @@ package:analyzer/dart/element/element.dart:
     name (getter: String)
   LibraryElement (class extends Object implements _ExistingElement):
     new (constructor: LibraryElement Function())
-    definingCompilationUnit (getter: CompilationUnitElement)
+    definingCompilationUnit (getter: CompilationUnitElement, deprecated)
     enclosingElement3 (getter: Null)
     entryPoint (getter: FunctionElement?)
     exportNamespace (getter: Namespace)
@@ -3390,19 +3391,19 @@ package:analyzer/dart/element/element.dart:
     topLevelElements (getter: Iterable<Element>)
     typeProvider (getter: TypeProvider)
     typeSystem (getter: TypeSystem)
-    units (getter: List<CompilationUnitElement>)
+    units (getter: List<CompilationUnitElement>, deprecated)
     getClass (method: ClassElement? Function(String))
   LibraryExportElement (class extends Object implements _ExistingElement):
     new (constructor: LibraryExportElement Function())
     combinators (getter: List<NamespaceCombinator>)
-    enclosingElement3 (getter: CompilationUnitElement)
+    enclosingElement3 (getter: CompilationUnitElement, deprecated)
     exportKeywordOffset (getter: int)
     exportedLibrary (getter: LibraryElement?)
     uri (getter: DirectiveUri)
   LibraryImportElement (class extends Object implements _ExistingElement):
     new (constructor: LibraryImportElement Function())
     combinators (getter: List<NamespaceCombinator>)
-    enclosingElement3 (getter: CompilationUnitElement)
+    enclosingElement3 (getter: CompilationUnitElement, deprecated)
     importKeywordOffset (getter: int)
     importedLibrary (getter: LibraryElement?)
     namespace (getter: Namespace)
@@ -3463,7 +3464,7 @@ package:analyzer/dart/element/element.dart:
     join (getter: JoinPatternVariableElement?)
   PrefixElement (class extends Object implements _ExistingElement):
     new (constructor: PrefixElement Function())
-    enclosingElement3 (getter: CompilationUnitElement)
+    enclosingElement3 (getter: CompilationUnitElement, deprecated)
     imports (getter: List<LibraryImportElement>)
     name (getter: String)
     scope (getter: Scope)
@@ -3502,7 +3503,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: TypeAliasElement Function())
     aliasedElement (getter: Element?)
     aliasedType (getter: DartType)
-    enclosingElement3 (getter: CompilationUnitElement)
+    enclosingElement3 (getter: CompilationUnitElement, deprecated)
     isAugmentation (getter: bool)
     name (getter: String)
     instantiate (method: DartType Function({required NullabilitySuffix nullabilitySuffix, required List<DartType> typeArguments}))

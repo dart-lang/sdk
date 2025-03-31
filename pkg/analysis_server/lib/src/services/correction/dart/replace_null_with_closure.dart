@@ -26,7 +26,7 @@ class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    AstNode? nodeToFix;
+    AstNode nodeToFix;
     var parameters = const <FormalParameterElement>[];
 
     var coveringNode = this.coveringNode;
@@ -41,18 +41,17 @@ class ReplaceNullWithClosure extends ResolvedCorrectionProducer {
           }
         }
         nodeToFix = expression;
+      } else {
+        return;
       }
     } else if (coveringNode is NullLiteral) {
       nodeToFix = coveringNode;
-    }
-
-    if (nodeToFix == null) {
+    } else {
       return;
     }
 
-    var nodeToFix_final = nodeToFix;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addReplacement(range.node(nodeToFix_final), (builder) {
+      builder.addReplacement(range.node(nodeToFix), (builder) {
         builder.writeFormalParameters(parameters);
         builder.write(' => null');
       });

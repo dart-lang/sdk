@@ -23,8 +23,13 @@ import 'package:pub_semver/pub_semver.dart';
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
 class ConstructorMember extends ExecutableMember
-    with ConstructorElementMixin, ConstructorElementMixin2
-    implements ConstructorElement, ConstructorElement2 {
+    with
+        ConstructorElementMixin,
+        ConstructorElementMixin2
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ConstructorElement,
+        ConstructorElement2 {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
   ConstructorMember({

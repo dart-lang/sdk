@@ -6,7 +6,7 @@
 name: _
 publish_to: none
 environment:
-  # This constraint decides the langage-version for all dart code in the
+  # This constraint decides the language-version for all dart code in the
   # repository that doesn't have its own package. Mainly the code in `tests/`.
   #
   # It needs to be updated before testing language features introduced in the
@@ -77,12 +77,14 @@ workspace:
   - pkg/vm_service_protos
   - pkg/vm_snapshot_analysis
   - pkg/wasm_builder
+  - runtime/tools/profiling
   - samples/ffi/http
   # dap and language_server_protocol are checked in to and
-  # developed in the sdk repo, though they are located in `third_party/`.
+  # developed in the SDK repo, though they are located in `third_party/`.
   - third_party/pkg/dap
   - third_party/pkg/language_server_protocol
   - tools/package_deps
+  - tools/verify_docs
   - tools
 
 # All third_party packages here are retrieved via the DEPS-file and overridden

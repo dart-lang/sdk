@@ -3,7 +3,7 @@ name: Report an issue with Dart’s static analysis.
 about: >-
   Create a bug or file a feature request related to Dart's static analysis
   (including the command line analyzer, the analysis server, and the linter).
-labels: area-analyzer
+labels: area-devexp
 ---
 
 If this is a bug report, please help us by providing:

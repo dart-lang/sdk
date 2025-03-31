@@ -52,11 +52,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// If not `null`, [write] will copy everything into this buffer.
   StringBuffer? _carbonCopyBuffer;
 
-  DartEditBuilderImpl(DartFileEditBuilderImpl super.sourceFileEditBuilder,
-      super.offset, super.length,
+  DartEditBuilderImpl(super.sourceFileEditBuilder, super.offset, super.length,
       {super.description});
 
-  DartFileEditBuilderImpl get dartFileEditBuilder =>
+  DartFileEditBuilderImpl get _dartFileEditBuilder =>
       fileEditBuilder as DartFileEditBuilderImpl;
 
   @override
@@ -410,11 +409,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeImportedName(List<Uri> uris, String name) {
     assert(uris.isNotEmpty);
     var imports = [
-      for (var uri in uris) ...dartFileEditBuilder._getImportsForUri(uri),
+      for (var uri in uris) ..._dartFileEditBuilder._getImportsForUri(uri),
     ];
     var import = _getBestImportForName(imports, name);
     if (import == null) {
-      var library = dartFileEditBuilder._importLibrary(uris[0]);
+      var library = _dartFileEditBuilder._importLibrary(uris[0]);
       var prefix = library.prefix;
       if (prefix.isNotEmpty) {
         write(prefix);
@@ -866,10 +865,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
-  /// Adds [toAdd] items which are not excluded.
+  /// Adds [items] which are not excluded.
   void _addAll(
-      Set<String> excluded, Set<String> result, Iterable<String> toAdd) {
-    for (var item in toAdd) {
+      Set<String> excluded, Set<String> result, Iterable<String> items) {
+    for (var item in items) {
       // Add name based on "item", but not "excluded".
       for (var suffix = 1;; suffix++) {
         // Prepare name, just "item" or "item2", "item3", etc.
@@ -919,8 +918,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// written.
   ///
   /// See also [_writeType].
-  bool _canWriteType(DartType? type,
-      {ExecutableElement2? methodBeingCopied, bool required = false}) {
+  bool _canWriteType(DartType? type, {ExecutableElement2? methodBeingCopied}) {
     type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
 
     // If not a useful type, don't write it.
@@ -928,7 +926,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return false;
     }
     if (type is DynamicType || type is InvalidType) {
-      return required;
+      return false;
     }
     if (type.isBottom) {
       return true;
@@ -1160,7 +1158,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (type is InterfaceType) {
       var element = type.element3;
       if (element.isPrivate &&
-          !dartFileEditBuilder._isDefinedLocally(element)) {
+          !_dartFileEditBuilder._isDefinedLocally(element)) {
         return null;
       }
       return type;
@@ -1187,7 +1185,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void _initializeEnclosingElements() {
     if (!_hasEnclosingElementsInitialized) {
       var finder = _EnclosingElementFinder();
-      finder.find(dartFileEditBuilder.resolvedUnit.unit, offset);
+      finder.find(_dartFileEditBuilder.resolvedUnit.unit, offset);
       _enclosingClass = finder.enclosingClass;
       _enclosingExecutable = finder.enclosingExecutable;
       _hasEnclosingElementsInitialized = true;
@@ -1203,7 +1201,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// a prefix.
   void _writeLibraryReference(Element2 element) {
     // If the element is defined in the library, then no prefix needed.
-    if (dartFileEditBuilder._isDefinedLocally(element)) {
+    if (_dartFileEditBuilder._isDefinedLocally(element)) {
       return;
     }
 
@@ -1213,17 +1211,17 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return;
     }
 
-    var import = dartFileEditBuilder._getImportElement(element);
+    var import = _dartFileEditBuilder._getImportElement(element);
     if (import == null) {
       var library = element.library2?.uri;
       if (library != null) {
-        import = dartFileEditBuilder._importLibrary(library);
+        import = _dartFileEditBuilder._importLibrary(library);
       }
     }
     if (import == null) {
       return;
     }
-    import.ensureShown(element.name3!);
+    import._ensureShown(element.name3!);
     var prefix = import.prefix;
     if (prefix.isNotEmpty) {
       write('$prefix.');
@@ -1444,7 +1442,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   /// Whether to create edits that add imports for any written types that are
   /// not already imported.
-  final bool createEditsForImports;
+  final bool _createEditsForImports;
 
   /// The optional generator of prefixes for new imports.
   ImportPrefixGenerator? importPrefixGenerator;
@@ -1463,12 +1461,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// The file being edited has the given [resolvedUnit] and [timeStamp].
   DartFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, this.resolvedUnit,
       int timeStamp, this.libraryChangeBuilder,
-      {this.createEditsForImports = true})
-      : super(changeBuilder, resolvedUnit.path, timeStamp);
-
-  CodeStyleOptions get codeStyleOptions => resolvedUnit.session.analysisContext
-      .getAnalysisOptionsForFile(resolvedUnit.file)
-      .codeStyleOptions;
+      {bool createEditsForImports = true})
+      : _createEditsForImports = createEditsForImports,
+        super(changeBuilder, resolvedUnit.path, timeStamp);
 
   @override
   bool get hasEdits =>
@@ -1476,6 +1471,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   List<Uri> get requiredImports => librariesToImport.keys.toList();
+
+  CodeStyleOptions get _codeStyleOptions => resolvedUnit.session.analysisContext
+      .getAnalysisOptionsForFile(resolvedUnit.file)
+      .codeStyleOptions;
 
   @override
   void addInsertion(
@@ -1528,7 +1527,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           const {}}) {
     var copy = DartFileEditBuilderImpl(changeBuilder, resolvedUnit,
         fileEdit.fileStamp, editBuilderMap[libraryChangeBuilder],
-        createEditsForImports: createEditsForImports);
+        createEditsForImports: _createEditsForImports);
     copy.fileEdit.edits.addAll(fileEdit.edits);
     copy.importPrefixGenerator = importPrefixGenerator;
     for (var entry in librariesToImport.entries) {
@@ -1548,7 +1547,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void finalize() {
-    if (createEditsForImports && librariesToImport.isNotEmpty) {
+    if (_createEditsForImports && librariesToImport.isNotEmpty) {
       _addLibraryImports(librariesToImport.values);
     }
     var header = fileHeader;
@@ -1601,15 +1600,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   ///
   /// If [element] is already available in the current library, does nothing.
   ///
-  /// If the library [element] is declared in is inside the `src` folder, will
-  /// try to locate a public URI to import instead.
-  ///
-  /// If [useShow] is `true`, new imports will be added that `show` only the
-  /// requested element (or if there is a pending import for the library, added
-  /// to its `show` combinator).
+  /// If the library [element] is declared in is inside a package's 'lib/src'
+  /// directory, will try to locate a public URI to import instead.
   Future<void> importElementLibrary(Element2 element,
-      {Map<Element2, LibraryElement2?>? resultCache,
-      bool useShow = false}) async {
+      {Map<Element2, LibraryElement2?>? resultCache}) async {
     if (_isDefinedLocally(element)) {
       return;
     }
@@ -1617,7 +1611,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     var existingImport = _getImportElement(element);
     var name = element.name3;
     if (existingImport != null && name != null) {
-      existingImport.ensureShown(name, useShow: useShow);
+      existingImport._ensureShown(name);
       return;
     }
 
@@ -1635,7 +1629,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         uriToImport,
         isExplicitImport: false,
         showName: element.name3,
-        useShow: useShow,
       );
 
       // It's possible this new import can satisfy other pending element's
@@ -1925,7 +1918,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     var sortCombinators = resolvedUnit.session.analysisContext
         .getAnalysisOptionsForFile(resolvedUnit.file)
         .isLintEnabled('combinators_ordering');
-    var quote = codeStyleOptions.preferredQuoteForUris(importDirectives);
+    var quote = _codeStyleOptions.preferredQuoteForUris(importDirectives);
     void writeImport(EditBuilder builder, _LibraryImport import) {
       assert(import.prefixes.isNotEmpty);
       var isFirst = true;
@@ -2312,7 +2305,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       var whatPath = pathContext.fromUri(uri);
       return getRelativePath(whatPath);
     }
-    var preferRelative = codeStyleOptions.useRelativeUris;
+    var preferRelative = _codeStyleOptions.useRelativeUris;
     if (forceRelative || (preferRelative && !forceAbsolute)) {
       if (canBeRelativeImport(uri, resolvedUnit.uri)) {
         var whatPath = resolvedUnit.session.uriConverter.uriToPath(uri);
@@ -2393,7 +2386,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         import.prefixes.add(prefix);
       }
       if (showName != null) {
-        import.ensureShown(showName, useShow: useShow);
+        import._ensureShown(showName, useShow: useShow);
       }
       // If this was an explicit import request, ensure the existing import
       // is marked as such so it cannot be removed by other optimizations.
@@ -2439,7 +2432,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         hiddenNames: existingHiddenNames,
       );
       if (showName != null) {
-        import.ensureShown(showName, useShow: useShow);
+        import._ensureShown(showName, useShow: useShow);
       }
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
     }
@@ -2814,11 +2807,18 @@ class _LibraryImport implements Comparable<_LibraryImport> {
     return sortPriority.ordinal - other.sortPriority.ordinal;
   }
 
+  @override
+  String toString() {
+    return "import '$uriText'${prefix.isNotEmpty ? 'as $prefix' : ''}"
+        '${allShownNames.isNotEmpty ? 'show ${allShownNames.join(', ')}' : ''}'
+        '${allHiddenNames.isNotEmpty ? 'hide ${allHiddenNames.join(', ')}' : ''};';
+  }
+
   /// Ensures [name] is visible for this import.
   ///
   /// If the import already has a show combinator, this name will be added.
   /// If the import hides this name, it will be unhidden.
-  void ensureShown(String name, {bool useShow = false}) {
+  void _ensureShown(String name, {bool useShow = false}) {
     if (shownNames.isEmpty && useShow) {
       shownNames.add([name]);
     } else if (shownNames.isNotEmpty) {
@@ -2829,13 +2829,6 @@ class _LibraryImport implements Comparable<_LibraryImport> {
       hiddenList.remove(name);
     }
     hiddenNames.removeWhere((nameList) => nameList.isEmpty);
-  }
-
-  @override
-  String toString() {
-    return "import '$uriText'${prefix.isNotEmpty ? 'as $prefix' : ''}"
-        '${allShownNames.isNotEmpty ? 'show ${allShownNames.join(', ')}' : ''}'
-        '${allHiddenNames.isNotEmpty ? 'hide ${allHiddenNames.join(', ')}' : ''};';
   }
 }
 
