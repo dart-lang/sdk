@@ -85,20 +85,6 @@ build_libdart_builtin("libdart_builtin_product") {
   ]
 }
 
-build_libdart_builtin("libdart_builtin_fuchsia") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_os_fuchsia_config",
-  ]
-}
-
-build_libdart_builtin("libdart_builtin_product_fuchsia") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_os_fuchsia_config",
-  ]
-}
-
 build_libdart_builtin("libdart_builtin_host_targeting_host") {
   extra_configs = [ "..:dart_maybe_product_config" ]
 }
@@ -316,34 +302,6 @@ build_gen_snapshot("gen_snapshot_product") {
   ]
 }
 
-build_gen_snapshot("gen_snapshot_fuchsia") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_arch_config",
-    "..:dart_os_fuchsia_config",
-  ]
-  extra_deps = [
-    ":gen_snapshot_dart_io_fuchsia",
-    ":libdart_builtin_fuchsia",
-    "..:libdart_precompiler_fuchsia",
-    "../platform:libdart_platform_precompiler_fuchsia",
-  ]
-}
-
-build_gen_snapshot("gen_snapshot_product_fuchsia") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_arch_config",
-    "..:dart_os_fuchsia_config",
-  ]
-  extra_deps = [
-    ":gen_snapshot_dart_io_product_fuchsia",
-    ":libdart_builtin_product_fuchsia",
-    "..:libdart_precompiler_product_fuchsia",
-    "../platform:libdart_platform_precompiler_product_fuchsia",
-  ]
-}
-
 build_gen_snapshot("gen_snapshot_product_linux_x64") {
   extra_configs = [
     "..:dart_product_config",
@@ -455,22 +413,6 @@ build_gen_snapshot_dart_io("gen_snapshot_dart_io_host_targeting_host") {
 
 build_gen_snapshot_dart_io("gen_snapshot_dart_io_product_host_targeting_host") {
   extra_configs = [ "..:dart_product_config" ]
-}
-
-build_gen_snapshot_dart_io("gen_snapshot_dart_io_fuchsia") {
-  extra_configs = [
-    "..:dart_maybe_product_config",
-    "..:dart_arch_config",
-    "..:dart_os_fuchsia_config",
-  ]
-}
-
-build_gen_snapshot_dart_io("gen_snapshot_dart_io_product_fuchsia") {
-  extra_configs = [
-    "..:dart_product_config",
-    "..:dart_arch_config",
-    "..:dart_os_fuchsia_config",
-  ]
 }
 
 build_gen_snapshot_dart_io("gen_snapshot_dart_io_product_linux_x64") {
