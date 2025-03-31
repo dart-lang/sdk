@@ -11,6 +11,8 @@
 #### `dart:io`
 
 - Added support `HttpClientBearerCredentials`.
+- Update `Stdout.supportsAnsiEscapes` and `Stdin.supportsAnsiEscapes` to
+  return `true` for `TERM` containing `tmux` values.
 
 #### `dart:html`
 
