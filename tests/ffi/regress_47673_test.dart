@@ -4,13 +4,18 @@
 //
 // SharedObjects=ffi_test_functions
 
-import 'dart:ffi';
+// Formatting can break multitests, so don't format them.
+// dartfmt off
 
-typedef T = Int64;
+import 'dart:ffi';
 
 final class A extends Struct {
   @Array.multi([16])
-  external Array<T> b;
+  external Array<Int8> a;
+
+  // This should not crash the FFI transform.
+  @Array.multi([16])
+  external Array<Unknown> b;
 }
 
 main() {}
