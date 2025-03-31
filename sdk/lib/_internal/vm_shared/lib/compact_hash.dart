@@ -376,6 +376,7 @@ external List<Object?> get _uninitializedData;
 // VM-internalized implementation of a default-constructed LinkedHashMap. Map
 // literals also create instances of this class.
 @pragma("vm:entry-point")
+@pragma('dyn-module:language-impl:callable')
 base class _Map<K, V> extends _HashVMBase
     with
         MapMixin<K, V>,
@@ -383,6 +384,7 @@ base class _Map<K, V> extends _HashVMBase
         _OperatorEqualsAndHashCode,
         _LinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
+  @pragma('dyn-module:language-impl:callable')
   _Map() {
     _index = _uninitializedIndex;
     _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
@@ -854,7 +856,7 @@ class _CompactIterator<E> implements Iterator<E> {
   E? _current;
 
   _CompactIterator(this._table, this._data, this._len, this._offset, this._step)
-      : _checkSum = _table._checkSum;
+    : _checkSum = _table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
@@ -903,7 +905,7 @@ class _CompactEntriesIterator<K, V> implements Iterator<MapEntry<K, V>> {
   MapEntry<K, V>? _current;
 
   _CompactEntriesIterator(this._table, this._data, this._len)
-      : _checkSum = _table._checkSum;
+    : _checkSum = _table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
@@ -1162,6 +1164,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
 // Set implementation, analogous to _Map. Set literals create instances of this
 // class.
 @pragma("vm:entry-point")
+@pragma('dyn-module:language-impl:callable')
 base class _Set<E> extends _HashVMBase
     with
         SetMixin<E>,
@@ -1169,6 +1172,7 @@ base class _Set<E> extends _HashVMBase
         _OperatorEqualsAndHashCode,
         _LinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
+  @pragma('dyn-module:language-impl:callable')
   _Set() {
     _index = _uninitializedIndex;
     _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
@@ -1322,8 +1326,9 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
   ) : _validKey = validKey ?? TypeTest<E>().test;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
-  Set<E> toSet() => CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
-    ..addAll(this);
+  Set<E> toSet() =>
+      CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
+        ..addAll(this);
 }
 
 /// Expose [_Map] as [DefaultMap] and [_Set] as [DefaultSet] so that

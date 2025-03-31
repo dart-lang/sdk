@@ -34,6 +34,7 @@ runTestCase(Uri testCaseDir) async {
     dynamicInterface,
     component,
     coreTypes,
+    target,
   );
 
   for (final lib in component.libraries) {

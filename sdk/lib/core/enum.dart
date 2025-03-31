@@ -100,9 +100,14 @@ abstract interface class Enum {
 }
 
 /// Superclass of all enum class implementations.
+@pragma('dyn-module:language-impl:extendable')
 abstract class _Enum implements Enum {
   final int index;
+
+  @pragma('dyn-module:language-impl:callable')
   final String _name;
+
+  @pragma('dyn-module:language-impl:callable')
   const _Enum(this.index, this._name);
 
   /// The result of [toString].
@@ -110,6 +115,7 @@ abstract class _Enum implements Enum {
   /// Each enum class can override this method to provide the
   /// string returned by toString, rather than overriding toString itself.
   @Since("2.19")
+  @pragma('dyn-module:language-impl:can-be-overridden')
   String _enumToString();
 
   @override
