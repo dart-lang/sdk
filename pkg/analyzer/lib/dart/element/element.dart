@@ -429,6 +429,7 @@ abstract class Element implements AnalysisTarget {
   /// from the class, without any substitutions. If this element is already a
   /// declaration (or a synthetic element, e.g. a synthetic property accessor),
   /// return itself.
+  @Deprecated(elementModelDeprecationMsg)
   Element? get declaration;
 
   /// The display name of this element, possibly the empty string if the
@@ -603,6 +604,7 @@ abstract class Element implements AnalysisTarget {
   /// element is returned. For example, for a synthetic getter of a
   /// non-synthetic field the field is returned; for a synthetic constructor
   /// the enclosing class is returned.
+  @Deprecated(elementModelDeprecationMsg)
   Element get nonSynthetic;
 
   /// The analysis session in which this element is defined.
@@ -2386,6 +2388,7 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
 @AnalyzerPublicApi(
     message: 'Exposed because it is implemented by various elements')
 abstract class _ExistingElement implements Element {
+  @Deprecated(elementModelDeprecationMsg)
   @override
   Element get declaration;
 
