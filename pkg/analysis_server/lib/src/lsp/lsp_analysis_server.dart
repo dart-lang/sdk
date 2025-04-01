@@ -422,11 +422,14 @@ class LspAnalysisServer extends AnalysisServer {
   void handleClientConnection(
     ClientCapabilities capabilities,
     ClientInfo? clientInfo,
-    Object? initializationOptions,
+    Object? rawInitializationOptions,
   ) {
     _clientCapabilities = LspClientCapabilities(capabilities);
     _clientInfo = clientInfo;
-    _initializationOptions = LspInitializationOptions(initializationOptions);
+    var initializationOptions =
+        _initializationOptions = LspInitializationOptions(
+          rawInitializationOptions,
+        );
 
     /// Enable virtual file support.
     var supportsVirtualFiles =
@@ -435,6 +438,16 @@ class LspAnalysisServer extends AnalysisServer {
         false;
     if (supportsVirtualFiles) {
       uriConverter = ClientUriConverter.withVirtualFileSupport(pathContext);
+    }
+
+    // Set whether to allow interleaved requests.
+    if (initializationOptions.allowOverlappingHandlers
+        case var allowOverlappingHandlers?) {
+      MessageScheduler.allowOverlappingHandlers = allowOverlappingHandlers;
+      instrumentationService.logInfo(
+        'MessageScheduler.allowOverlappingHandlers set to '
+        '$allowOverlappingHandlers by LSP client initializationOptions',
+      );
     }
 
     performanceAfterStartup = ServerPerformance();
@@ -1278,6 +1291,12 @@ class LspInitializationOptions {
   final int? completionBudgetMilliseconds;
   final bool allowOpenUri;
 
+  /// Whether the client has expressed an explicit preference for
+  /// overlapping message handlers.
+  ///
+  /// If `null`, the server default will be used.
+  final bool? allowOverlappingHandlers;
+
   /// A temporary flag passed by Dart-Code to enable using in-editor fixes for
   /// the "dart fix" prompt.
   ///
@@ -1307,6 +1326,7 @@ class LspInitializationOptions {
       completionBudgetMilliseconds =
           options['completionBudgetMilliseconds'] as int?,
       allowOpenUri = options['allowOpenUri'] == true,
+      allowOverlappingHandlers = options['allowOverlappingHandlers'] as bool?,
       useInEditorDartFixPrompt = options['useInEditorDartFixPrompt'] == true;
 }
 
