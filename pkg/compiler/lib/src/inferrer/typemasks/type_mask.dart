@@ -398,7 +398,7 @@ abstract class TypeMask implements AbstractValue {
       }
       assert(mask.isSubtype);
       if (!closedWorld.classHierarchy.hasAnyStrictSubtype(mask.base!)) {
-        return 'Subtype ${mask.base} does not have any subclasses.';
+        return 'Subtype ${mask.base} does not have any subtypes.';
       }
       if (closedWorld.classHierarchy.hasOnlySubclasses(mask.base!)) {
         return 'Subtype ${mask.base} only has subclasses.';

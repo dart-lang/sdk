@@ -59,6 +59,7 @@ template("build_libdart_builtin") {
     public_configs = [ ":libdart_builtin_config" ]
     deps = []
     if (is_fuchsia) {
+      deps += [ "$fuchsia_sdk/fidl/fuchsia.io" ]
       public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
     if (is_win) {

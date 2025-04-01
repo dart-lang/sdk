@@ -225,12 +225,13 @@ group("compressed_observatory_archive") {
 if (is_fuchsia) {
   import("third_party/fuchsia/gn-sdk/src/component.gni")
   import("third_party/fuchsia/gn-sdk/src/package.gni")
+  import("utils/aot_snapshot.gni")
   import("utils/application_snapshot.gni")
+
+  # TODO(b/399714829): Test packages should be created at test-time, not build-time.
 
   # tests/ffi/**_test.dart except those with compile-time errors
   test_sources = [
-    "tests/ffi/abi_specific_int_incomplete_aot_test.dart",
-    "tests/ffi/abi_specific_int_incomplete_jit_test.dart",
     "tests/ffi/abi_specific_int_test.dart",
     "tests/ffi/abi_test.dart",
     "tests/ffi/address_of_array_generated_test.dart",
@@ -393,6 +394,7 @@ if (is_fuchsia) {
   test_resources = []
   foreach(test_source, test_sources) {
     label = string_replace(test_source, "/", "_")
+    aot_label = label + "_aot"
 
     application_snapshot(label) {
       dart_snapshot_kind = "kernel"
@@ -400,12 +402,23 @@ if (is_fuchsia) {
       training_args = []  # Not used
       output = "$target_gen_dir/$test_source.dill"
     }
+    aot_snapshot(aot_label) {
+      main_dart = test_source
+      output = "$target_gen_dir/$test_source.elf"
+    }
 
-    test_deps += [ ":$label" ]
+    test_deps += [
+      ":$aot_label",
+      ":$label",
+    ]
     test_resources += [
       {
         path = rebase_path("$target_gen_dir/$test_source.dill")
         dest = "data/$test_source"
+      },
+      {
+        path = rebase_path("$target_gen_dir/$test_source.elf")
+        dest = "data/$test_source.elf"
       },
     ]
   }

@@ -2037,7 +2037,10 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 
 /// The synthetic element representing the declaration of the type `dynamic`.
 class DynamicElementImpl extends ElementImpl
-    implements TypeDefiningElement, TypeDefiningFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        TypeDefiningElement,
+        TypeDefiningFragment {
   /// The unique instance of this class.
   static final DynamicElementImpl instance = DynamicElementImpl._();
 
@@ -3298,7 +3301,7 @@ abstract class ElementImpl2 implements Element2 {
   /// The reference of this element, used during reading summaries.
   ///
   /// Can be `null` if this element cannot be referenced from outside,
-  /// for example a [LocalFunctionElement], a [TypeParameterElement],
+  /// for example a [LocalFunctionElement], a [TypeParameterElement2],
   /// a positional [FormalParameterElement], etc.
   Reference? get reference => null;
 
@@ -9157,7 +9160,10 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
 
 /// The synthetic element representing the declaration of the type `Never`.
 class NeverElementImpl extends ElementImpl
-    implements TypeDefiningElement, TypeDefiningFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        TypeDefiningElement,
+        TypeDefiningFragment {
   /// The unique instance of this class.
   static final instance = NeverElementImpl._();
 
@@ -11343,9 +11349,11 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
 abstract class TypeDefiningElementImpl2 extends ElementImpl2
     implements TypeDefiningElement2 {}
 
-/// A concrete implementation of a [TypeParameterElement].
 class TypeParameterElementImpl extends ElementImpl
-    implements TypeParameterElement, TypeParameterFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        TypeParameterElement,
+        TypeParameterFragment {
   @override
   String? name2;
 

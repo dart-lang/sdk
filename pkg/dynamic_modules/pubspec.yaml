@@ -11,4 +11,7 @@ resolution: workspace
 dev_dependencies:
   args: any
   expect: any
+  front_end: any
+  kernel: any
   lints: any
+  vm: any

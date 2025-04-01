@@ -285,13 +285,30 @@ Params: `{ uri: Uri }`
 
 Notifies the client that the content in the virtual file with `uri` may have changed (for example because a macro executed and regenerated its content).
 
-### dart/connectToDtd Method (Experimental)
+### dart/connectToDtd Method
 
 Direction: Client -> Server
 Params: `{ uri: Uri }`
 Returns: `null`
 
-Provides the URI of a Dart Tooling Daemon server to allow the LSP server to connect and provide access to a subset of LSP functionality to DTD clients. This support is still a work in progress and should not be used outside of development (yet).
+Provides the URI of a Dart Tooling Daemon server to allow the LSP server to connect and provide access to a subset of LSP functionality to DTD clients. This method can only be called by the tool that owns the analysis server process (via stdin/stdout) and not through DTD.
+
+### dart/textDocument/editableArguments Method
+
+Direction: Client -> Server
+Params: `TextDocumentPositionParams`
+Returns: `EditableArguments`
+
+Returns the list of editable arguments at a position within the current document. This information can be used to update arguments in the document by using the `dart/textDocument/editArgument` request.
+
+### dart/textDocument/editArgument Method
+
+Direction: Client -> Server
+Params: `EditArgumentParams`
+Returns: `Null`
+
+Instructs the editor to edit the value of an argument (that was returned from a `dart/textDocument/editableArguments` request).
+
 
 ## Client Commands
 

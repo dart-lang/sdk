@@ -157,12 +157,12 @@ abstract final class CustomMethods {
   /// Method for requesting the set of editable arguments at a location in a
   /// document.
   static const dartTextDocumentEditableArguments = Method(
-    'experimental/dart/textDocument/editableArguments',
+    'dart/textDocument/editableArguments',
   );
 
   /// Method for adding/editing an argument at a location in a document.
   static const dartTextDocumentEditArgument = Method(
-    'experimental/dart/textDocument/editArgument',
+    'dart/textDocument/editArgument',
   );
 
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients

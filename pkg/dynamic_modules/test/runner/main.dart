@@ -61,7 +61,11 @@ void main(List<String> args) async {
 
     final results = <DynamicModuleTestResult>[];
     for (final t in tests) {
-      results.add(await _runSingleTest(t, executor));
+      final testResult = await _runSingleTest(t, executor);
+      if (testResult.status != Status.pass) {
+        logger.error(testResult.details);
+      }
+      results.add(testResult);
     }
     final result = _reportResults(results,
         writeLog: singleTest == null,

@@ -1984,6 +1984,7 @@ abstract class ParameterElement
   ///
   /// A parameter will only define type parameters if it is a function typed
   /// parameter.
+  @Deprecated(elementModelDeprecationMsg)
   List<TypeParameterElement> get typeParameters;
 
   /// Appends the type, name and possibly the default value of this parameter
@@ -2234,11 +2235,13 @@ abstract class TypeAliasElement
 /// An element that defines a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeDefiningElement2 instead')
 abstract class TypeDefiningElement implements Element {}
 
 /// A type parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeParameterElement2 instead')
 abstract class TypeParameterElement implements TypeDefiningElement {
   /// The type representing the bound associated with this parameter, or `null`
   /// if this parameter does not have an explicit bound. Being able to
@@ -2278,6 +2281,7 @@ abstract class TypeParameterizedElement implements _ExistingElement {
   ///
   /// This does not include type parameters that are declared by any enclosing
   /// elements.
+  @Deprecated(elementModelDeprecationMsg)
   List<TypeParameterElement> get typeParameters;
 }
 

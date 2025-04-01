@@ -223,11 +223,17 @@ class File : public ReferenceCounted<File> {
   // reading and writing. If mode contains kWrite and the file does
   // not exist the file is created. The file is truncated to length 0 if
   // mode contains kTruncate.
-  static File* Open(Namespace* namespc, const char* path, FileOpenMode mode);
+  static File* Open(Namespace* namespc,
+                    const char* path,
+                    FileOpenMode mode,
+                    bool executable = false);
 
   // Same as [File::Open], but attempts to convert uri to path before opening
   // the file. If conversion fails, uri is treated as a path.
-  static File* OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode);
+  static File* OpenUri(Namespace* namespc,
+                       const char* uri,
+                       FileOpenMode mode,
+                       bool executable = false);
 
   // Attempts to convert the given [uri] to a file path.
   static CStringUniquePtr UriToPath(const char* uri);

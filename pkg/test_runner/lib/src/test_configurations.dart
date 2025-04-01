@@ -190,7 +190,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     if (configurations.any((configuration) {
       return configuration.system == System.fuchsia;
     })) {
-      FuchsiaEmulator.instance().stop();
+      FuchsiaEmulator.instance().stop(firstConf.isVerbose);
     }
 
     DebugLogger.close();

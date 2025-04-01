@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart' hide MessageType;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/server/message_scheduler.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:language_server_protocol/json_parsing.dart';
@@ -27,6 +28,11 @@ void main() {
 
 @reflectiveTest
 class InitializationTest extends AbstractLspAnalysisServerTest {
+  /// The default value of [MessageScheduler.allowOverlappingHandlers] before
+  /// and test sets it (so that [tearDown] can revert it).
+  final allowOverlappingHandlersDefault =
+      MessageScheduler.allowOverlappingHandlers;
+
   /// Waits for any in-progress analysis context rebuild.
   ///
   /// Pumps the event queue before and after, to ensure any server code that
@@ -91,6 +97,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     return TextDocumentRegistrationOptions.fromJson(
       options as Map<String, Object?>,
     );
+  }
+
+  @override
+  Future<void> tearDown() async {
+    await super.tearDown();
+    MessageScheduler.allowOverlappingHandlers = allowOverlappingHandlersDefault;
   }
 
   Future<void> test_blazeWorkspace() async {
@@ -1049,6 +1061,30 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       workspaceFolders: [withTrailingSlashUri(projectFolderUri)],
     );
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
+  Future<void> test_interleavedRequests_default() async {
+    await initialize(rootUri: projectFolderUri, initializationOptions: {});
+    expect(
+      MessageScheduler.allowOverlappingHandlers,
+      allowOverlappingHandlersDefault,
+    );
+  }
+
+  Future<void> test_interleavedRequests_explicitFalse() async {
+    await initialize(
+      rootUri: projectFolderUri,
+      initializationOptions: {'allowOverlappingHandlers': false},
+    );
+    expect(MessageScheduler.allowOverlappingHandlers, isFalse);
+  }
+
+  Future<void> test_interleavedRequests_explicitTrue() async {
+    await initialize(
+      rootUri: projectFolderUri,
+      initializationOptions: {'allowOverlappingHandlers': true},
+    );
+    expect(MessageScheduler.allowOverlappingHandlers, isTrue);
   }
 
   Future<void> test_invalidExperimental_commands() async {

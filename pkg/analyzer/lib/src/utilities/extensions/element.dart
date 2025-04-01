@@ -702,10 +702,6 @@ extension TypeAliasElementImplExtension on TypeAliasElementImpl {
 }
 
 extension TypeParameterElement2Extension on TypeParameterElement2 {
-  TypeParameterElement get asElement {
-    return firstFragment as TypeParameterElement;
-  }
-
   TypeParameterElementImpl2 freshCopy() {
     var fragment = TypeParameterElementImpl(
       name3 ?? '',
@@ -716,12 +712,6 @@ extension TypeParameterElement2Extension on TypeParameterElement2 {
       firstFragment: fragment,
       name3: name3,
     );
-  }
-}
-
-extension TypeParameterElementExtension on TypeParameterElement {
-  TypeParameterElement2 get asElement2 {
-    return (this as TypeParameterElementImpl).asElement2;
   }
 }
 
