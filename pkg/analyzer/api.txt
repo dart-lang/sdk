@@ -3527,7 +3527,7 @@ package:analyzer/dart/element/element.dart:
     uri (getter: String?)
     uriEnd (getter: int)
     uriOffset (getter: int)
-  VariableElement (class extends Object implements Element, ConstantEvaluationTarget):
+  VariableElement (class extends Object implements Element, ConstantEvaluationTarget, deprecated):
     new (constructor: VariableElement Function())
     declaration (getter: VariableElement)
     hasImplicitType (getter: bool)

@@ -7783,7 +7783,7 @@ class LocalFunctionFragmentImpl extends FunctionElementImpl
   bool get _includeNameOffsetInIdentifier {
     return super._includeNameOffsetInIdentifier ||
         enclosingElement3 is ExecutableFragment ||
-        enclosingElement3 is VariableElement;
+        enclosingElement3 is VariableFragment;
   }
 }
 
@@ -11746,7 +11746,6 @@ abstract class VariableElement2OrMember implements VariableElement2 {
   TypeImpl get type;
 }
 
-/// A concrete implementation of a [VariableElement].
 abstract class VariableElementImpl extends ElementImpl
     implements VariableElementOrMember, VariableFragment {
   /// The type of this variable.
@@ -11905,7 +11904,10 @@ abstract class VariableElementImpl2 extends ElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `VariableElement`.
 abstract class VariableElementOrMember
-    implements ElementOrMember, VariableElement {
+    implements
+        ElementOrMember,
+        // ignore:deprecated_member_use_from_same_package
+        VariableElement {
   @override
   VariableElementImpl get declaration;
 

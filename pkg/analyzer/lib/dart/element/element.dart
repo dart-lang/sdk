@@ -2317,6 +2317,7 @@ abstract class UriReferencedElement implements _ExistingElement {
 /// variables.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use VariableElement2 instead')
 abstract class VariableElement implements Element, ConstantEvaluationTarget {
   @override
   VariableElement get declaration;
