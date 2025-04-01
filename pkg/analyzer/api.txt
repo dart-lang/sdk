@@ -3492,7 +3492,7 @@ package:analyzer/dart/element/element.dart:
   ShowElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: ShowElementCombinator Function())
     shownNames (getter: List<String>)
-  SuperFormalParameterElement (class extends Object implements ParameterElement):
+  SuperFormalParameterElement (class extends Object implements ParameterElement, deprecated):
     new (constructor: SuperFormalParameterElement Function())
     superConstructorParameter (getter: ParameterElement?)
   TopLevelVariableElement (class extends Object implements PropertyInducingElement, deprecated):

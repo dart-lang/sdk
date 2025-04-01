@@ -10761,7 +10761,10 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
 }
 
 abstract class SuperFormalParameterElementOrMember
-    implements ParameterElementMixin, SuperFormalParameterElement {}
+    implements
+        ParameterElementMixin,
+        // ignore:deprecated_member_use_from_same_package
+        SuperFormalParameterElement {}
 
 class TopLevelFunctionElementImpl extends ExecutableElementImpl2
     with

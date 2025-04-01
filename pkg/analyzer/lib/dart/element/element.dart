@@ -2164,6 +2164,7 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 /// A super formal parameter defined within a constructor element.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use SuperFormalParameterElement2 instead')
 abstract class SuperFormalParameterElement implements ParameterElement {
   /// The associated super-constructor parameter, from the super-constructor
   /// that is referenced by the implicit or explicit super-constructor
