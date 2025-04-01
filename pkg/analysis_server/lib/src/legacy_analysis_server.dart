@@ -1190,7 +1190,7 @@ class LegacyAnalysisServer extends AnalysisServer {
       // the fully resolved unit, and processed with sending analysis
       // notifications as it happens after content changes.
       if (file_paths.isDart(resourceProvider.pathContext, file)) {
-        getResolvedUnit(file, sendCachedToStream: true);
+        getResolvedUnit(file, sendCachedToStream: true, interactive: false);
       }
     }
   }

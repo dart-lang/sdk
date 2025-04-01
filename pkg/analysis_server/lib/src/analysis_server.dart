@@ -793,6 +793,7 @@ abstract class AnalysisServer {
   Future<ResolvedUnitResult?>? getResolvedUnit(
     String path, {
     bool sendCachedToStream = false,
+    bool interactive = true,
   }) {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
@@ -804,7 +805,11 @@ abstract class AnalysisServer {
     }
 
     return driver
-        .getResolvedUnit(path, sendCachedToStream: sendCachedToStream)
+        .getResolvedUnit(
+          path,
+          sendCachedToStream: sendCachedToStream,
+          interactive: interactive,
+        )
         .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((Object e, StackTrace st) {
           instrumentationService.logException(e, st);
