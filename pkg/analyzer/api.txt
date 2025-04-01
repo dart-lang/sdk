@@ -3480,7 +3480,7 @@ package:analyzer/dart/element/element.dart:
     isGetter (getter: bool)
     isSetter (getter: bool)
     variable2 (getter: PropertyInducingElement?)
-  PropertyInducingElement (class extends Object implements VariableElement):
+  PropertyInducingElement (class extends Object implements VariableElement, deprecated):
     new (constructor: PropertyInducingElement Function())
     displayName (getter: String)
     getter (getter: PropertyAccessorElement?, deprecated)

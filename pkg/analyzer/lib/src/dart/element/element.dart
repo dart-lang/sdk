@@ -10260,7 +10260,6 @@ abstract class PropertyInducingElement2OrMember
   SetterElement2OrMember? get setter2;
 }
 
-/// A concrete implementation of a [PropertyInducingElement].
 abstract class PropertyInducingElementImpl
     extends NonParameterVariableElementImpl
     with AugmentableFragment
@@ -10483,7 +10482,10 @@ abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyInducingElement`.
 abstract class PropertyInducingElementOrMember
-    implements PropertyInducingElement, VariableElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        PropertyInducingElement,
+        VariableElementOrMember {
   @override
   TypeImpl get type;
 }

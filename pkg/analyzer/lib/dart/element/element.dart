@@ -2101,16 +2101,15 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 /// * Every explicit variable is represented by a non-synthetic
 ///   [PropertyInducingElement].
 /// * Every explicit variable induces a getter and possibly a setter, both of
-// ignore:deprecated_member_use_from_same_package
 ///   which are represented by synthetic [PropertyAccessorElement]s.
 /// * Every explicit getter or setter is represented by a non-synthetic
-// ignore:deprecated_member_use_from_same_package
 ///   [PropertyAccessorElement].
 /// * Every explicit getter or setter (or pair thereof if they have the same
 ///   name) induces a variable that is represented by a synthetic
 ///   [PropertyInducingElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PropertyInducingElement2 instead')
 abstract class PropertyInducingElement implements VariableElement {
   @override
   String get displayName;
