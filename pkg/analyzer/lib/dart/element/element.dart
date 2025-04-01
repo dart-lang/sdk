@@ -344,7 +344,7 @@ abstract class DirectiveUri {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
   /// The library referenced by the [source].
-  @Deprecated('Use library2 instead')
+  @Deprecated(elementModelDeprecationMsg)
   LibraryElement get library;
 
   /// The library referenced by the [source].
@@ -569,7 +569,7 @@ abstract class Element implements AnalysisTarget {
   /// This will be the element itself if it is a library element. This will be
   /// `null` if this element is [MultiplyDefinedElement2] that is not contained
   /// in a library.
-  @Deprecated('Use Element2 instead')
+  @Deprecated(elementModelDeprecationMsg)
   LibraryElement? get library;
 
   /// The location of this element in the element model.
@@ -672,7 +672,7 @@ abstract class Element implements AnalysisTarget {
   /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
-  @Deprecated('Use Element2 instead')
+  @Deprecated(elementModelDeprecationMsg)
   bool isAccessibleIn(LibraryElement library);
 
   /// Returns either this element or the most immediate ancestor of this element
@@ -2389,7 +2389,7 @@ abstract class _ExistingElement implements Element {
   @override
   Element get declaration;
 
-  @Deprecated('Use Element2 instead')
+  @Deprecated(elementModelDeprecationMsg)
   @override
   LibraryElement get library;
 
