@@ -3428,7 +3428,7 @@ package:analyzer/dart/element/element.dart:
     isBase (getter: bool)
     superclassConstraints (getter: List<InterfaceType>)
     isImplementableIn (method: bool Function(LibraryElement))
-  MultiplyDefinedElement (class extends Object implements Element):
+  MultiplyDefinedElement (class extends Object implements Element, deprecated):
     new (constructor: MultiplyDefinedElement Function())
     conflictingElements (getter: List<Element>)
   NamespaceCombinator (class extends Object):

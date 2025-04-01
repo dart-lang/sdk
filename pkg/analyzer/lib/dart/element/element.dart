@@ -564,7 +564,7 @@ abstract class Element implements AnalysisTarget {
   /// Library that contains this element.
   ///
   /// This will be the element itself if it is a library element. This will be
-  /// `null` if this element is [MultiplyDefinedElement] that is not contained
+  /// `null` if this element is [MultiplyDefinedElement2] that is not contained
   /// in a library.
   LibraryElement? get library;
 
@@ -1879,6 +1879,7 @@ abstract class MixinElement implements InterfaceElement {
 /// and will return useless results.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use MultiplyDefinedElement2 instead')
 abstract class MultiplyDefinedElement implements Element {
   /// The elements that were defined within the scope to have the same name.
   List<Element> get conflictingElements;

@@ -8737,8 +8737,10 @@ enum Modifier {
   SYNTHETIC
 }
 
-/// A concrete implementation of a [MultiplyDefinedElement].
-class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
+class MultiplyDefinedElementImpl
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        MultiplyDefinedElement {
   /// The unique integer identifier of this element.
   @override
   final int id = ElementImpl._NEXT_ID++;
