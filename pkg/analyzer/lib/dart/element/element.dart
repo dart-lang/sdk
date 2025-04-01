@@ -416,7 +416,7 @@ abstract class Element implements AnalysisTarget {
   /// A list of this element's children.
   ///
   /// There is no guarantee of the order in which the children will be included.
-  @Deprecated('Use Element2 instead')
+  @Deprecated(elementModelDeprecationMsg)
   List<Element> get children;
 
   /// The analysis context in which this element is defined.
