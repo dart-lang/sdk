@@ -132,9 +132,6 @@ class ResultComparator extends AstComparator {
       if (first.isSynthetic && second.name == '_s_') {
         return true;
       }
-      if (first.token.isKeyword && second.name == '_k_') {
-        return true;
-      }
     }
     return super.isEqualNodes(first, second);
   }
@@ -142,9 +139,13 @@ class ResultComparator extends AstComparator {
   /// Overridden to ignore the offsets of tokens because these can legitimately
   /// be different.
   @override
-  bool isEqualTokensNotNull(Token first, Token second) =>
-      (first.isSynthetic && first.type == second.type) ||
-      (first.length == second.length && first.lexeme == second.lexeme);
+  bool isEqualTokensNotNull(Token first, Token second) {
+    if (first.isKeyword && second.lexeme == '_k_') {
+      return true;
+    }
+    return (first.isSynthetic && first.type == second.type) ||
+        (first.length == second.length && first.lexeme == second.lexeme);
+  }
 
   void _safelyWriteNodePath(StringBuffer buffer, AstNode? node) {
     buffer.write('  path: ');
