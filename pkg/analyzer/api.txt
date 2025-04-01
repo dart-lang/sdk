@@ -3393,14 +3393,14 @@ package:analyzer/dart/element/element.dart:
     typeSystem (getter: TypeSystem)
     units (getter: List<CompilationUnitElement>, deprecated)
     getClass (method: ClassElement? Function(String), deprecated)
-  LibraryExportElement (class extends Object implements _ExistingElement):
+  LibraryExportElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: LibraryExportElement Function())
     combinators (getter: List<NamespaceCombinator>)
     enclosingElement3 (getter: CompilationUnitElement, deprecated)
     exportKeywordOffset (getter: int)
     exportedLibrary (getter: LibraryElement?)
     uri (getter: DirectiveUri)
-  LibraryImportElement (class extends Object implements _ExistingElement):
+  LibraryImportElement (class extends Object implements _ExistingElement, deprecated):
     new (constructor: LibraryImportElement Function())
     combinators (getter: List<NamespaceCombinator>)
     enclosingElement3 (getter: CompilationUnitElement, deprecated)

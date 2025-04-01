@@ -7511,7 +7511,10 @@ class LibraryElementImpl extends ElementImpl
 }
 
 class LibraryExportElementImpl extends _ExistingElementImpl
-    implements LibraryExportElement, LibraryExport {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        LibraryExportElement,
+        LibraryExport {
   @override
   final List<NamespaceCombinator> combinators;
 
@@ -7571,7 +7574,10 @@ class LibraryExportElementImpl extends _ExistingElementImpl
 }
 
 class LibraryImportElementImpl extends _ExistingElementImpl
-    implements LibraryImportElement, LibraryImport {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        LibraryImportElement,
+        LibraryImport {
   @override
   final List<NamespaceCombinator> combinators;
 

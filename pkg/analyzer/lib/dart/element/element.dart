@@ -1747,6 +1747,7 @@ abstract class LibraryElement implements _ExistingElement {
 /// A single export directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LibraryExport instead')
 abstract class LibraryExportElement implements _ExistingElement {
   /// The combinators that were specified as part of the `export` directive in
   /// the order in which they were specified.
@@ -1769,6 +1770,7 @@ abstract class LibraryExportElement implements _ExistingElement {
 /// A single import directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LibraryImport instead')
 abstract class LibraryImportElement implements _ExistingElement {
   /// The combinators that were specified as part of the `import` directive in
   /// the order in which they were specified.
