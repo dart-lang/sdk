@@ -20,6 +20,28 @@ class LspMessages {
     'params': {},
   };
 
+  static Map<String, dynamic> codeAction(
+    int id,
+    Uri uri, {
+    required int line,
+    required int character,
+  }) {
+    return {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': 'textDocument/codeAction',
+      'params': {
+        'textDocument': {'uri': '$uri'},
+        'range': {
+          'start': {'line': line, 'character': character},
+          'end': {'line': line, 'character': character},
+        },
+        'context': {'diagnostics': [], 'triggerKind': 2},
+      },
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
   static Map<String, dynamic> completion(
     Uri uri,
     int id, {
@@ -125,17 +147,36 @@ class LspMessages {
       name = rootUri.pathSegments[rootUri.pathSegments.length - 2];
     }
     return {
-      'id': 0,
       'jsonrpc': '2.0',
+      'id': 0,
       'method': 'initialize',
       'params': {
         'processId': processId,
-        'clientInfo': {'name': 'lspTestScript', 'version': '0.0.1'},
+        'clientInfo': {'name': 'lspTestScript', 'version': '0.0.2'},
         'locale': 'en',
         'rootPath': rootPath,
         'rootUri': '$rootUri',
-        'capabilities': {},
-        'initializationOptions': {},
+        'capabilities': {
+          'textDocument': {
+            'codeAction': {
+              // needed for the plugin to trigger on codeAction.
+              'codeActionLiteralSupport': {
+                'codeActionKind': {
+                  'valueSet': [
+                    '',
+                    'quickfix',
+                    'refactor',
+                    'refactor.extract',
+                    'refactor.inline',
+                    'refactor.rewrite',
+                    'source',
+                    'source.organizeImports',
+                  ],
+                },
+              },
+            },
+          },
+        },
         'workspaceFolders': [
           {'uri': '$rootUri', 'name': name},
           ...additionalWorkspaceUris.map((uri) {
@@ -147,6 +188,7 @@ class LspMessages {
           }),
         ],
       },
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
     };
   }
 

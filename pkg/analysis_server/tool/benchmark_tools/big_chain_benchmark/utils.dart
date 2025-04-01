@@ -5,17 +5,39 @@
 import 'dart:io';
 
 import '../language_server_benchmark.dart';
+import '../utils.dart';
 
-RunDetails copyData(Uri tmp, int numFiles, CodeType copyType) {
+RunDetails copyData(
+  Uri packageDirUri,
+  Uri outerDirForAdditionalData,
+  int numFiles,
+  CodeType copyType,
+  List<String> args, {
+  required bool includePlugin,
+}) {
   Uri filesUri = Platform.script.resolve('files/');
-  Uri libDirUri = tmp.resolve('lib/');
+  Uri libDirUri = packageDirUri.resolve('lib/');
   Directory.fromUri(libDirUri).createSync();
   Directory files = Directory.fromUri(filesUri);
   for (var file in files.listSync()) {
     if (file is! File) continue;
     String filename = file.uri.pathSegments.last;
+    if (filename == 'analysis_options.yaml') {
+      // Written below at the right place instead.
+      continue;
+    }
     file.copySync(libDirUri.resolve(filename).toFilePath());
   }
+
+  // Write analysis_options.
+  File.fromUri(
+    packageDirUri.resolve('analysis_options.yaml'),
+  ).writeAsStringSync('''
+analyzer:
+  errors:
+    todo: ignore
+''');
+
   File copyMe = File.fromUri(filesUri.resolve('copy_me/copy_me.dart'));
   String copyMeData = copyMe.readAsStringSync();
   Uri copyToDir = libDirUri.resolve('copies/');
@@ -98,6 +120,76 @@ $typing
 """;
   var typingAtOffset = mainFileTypingContent.indexOf(typing) + typing.length;
 
+  if (includePlugin) {
+    String executableToUse = extractDartParamOrDefault(args);
+    void pubGetIn(String dir) {
+      if (Process.runSync(executableToUse, [
+            'pub',
+            'get',
+          ], workingDirectory: dir).exitCode !=
+          0) {
+        print('WARNING: Got non 0 exit-code from dart pub get call.');
+      }
+    }
+
+    // Plugin package pubspec.yaml
+    var pluginDir = Directory.fromUri(
+      outerDirForAdditionalData.resolve('plugin/'),
+    )..createSync(recursive: true);
+    File.fromUri(pluginDir.uri.resolve('pubspec.yaml')).writeAsStringSync('''
+name: benchmark_helper_plugin
+environment:
+  sdk: '>=3.3.0 <5.0.0'
+''');
+    pubGetIn(pluginDir.path);
+
+    // Plugin package lib/<package_name>.dart
+    var pluginLibDir = Directory.fromUri(
+      outerDirForAdditionalData.resolve('plugin/lib/'),
+    )..createSync(recursive: true);
+    File.fromUri(
+      pluginLibDir.uri.resolve('benchmark_helper_plugin.dart'),
+    ).writeAsStringSync('');
+
+    // tools/analyzer_plugin/bin/plugin.dart
+    var dir = Directory.fromUri(
+      pluginDir.uri.resolve('tools/analyzer_plugin/bin/'),
+    )..createSync(recursive: true);
+    File copyMe = File.fromUri(filesUri.resolve('copy_me/plugin.dart'));
+    copyMe.copySync(dir.uri.resolve('plugin.dart').toFilePath());
+
+    // tools/analyzer_plugin/pubspec.yaml
+    dir = Directory.fromUri(pluginDir.uri.resolve('tools/analyzer_plugin/'));
+    File.fromUri(dir.uri.resolve('pubspec.yaml')).writeAsStringSync('''
+name: benchmark_helper_plugin_helper
+environment:
+  sdk: '>=3.3.0 <5.0.0'
+''');
+    pubGetIn(dir.path);
+
+    // pubspec.yaml in package that is analyzed, depending on the plugin
+    File.fromUri(packageDirUri.resolve('pubspec.yaml')).writeAsStringSync('''
+name: benchmark_project
+environment:
+  sdk: '>=3.3.0 <5.0.0'
+dependencies:
+  benchmark_helper_plugin:
+    path: ${pluginDir.path}
+''');
+    pubGetIn(packageDirUri.path);
+
+    // Write analysis_options enabling the plugin.
+    File.fromUri(
+      packageDirUri.resolve('analysis_options.yaml'),
+    ).writeAsStringSync('''
+analyzer:
+  errors:
+    todo: ignore
+  plugins:
+    - benchmark_helper_plugin
+''');
+  }
+
   return RunDetails(
     libDirUri: libDirUri,
     mainFile: FileContentPair(mainFileUri, mainFileContent),
@@ -138,6 +230,7 @@ Future<void> runHelper(
   required bool runAsLsp,
   List<int> numberOfFileOptions = const [16, 32, 64, 128, 256, 512, 1024],
   List<CodeType> codeTypes = CodeType.values,
+  bool includePlugin = false,
 }) async {
   int verbosity = 0;
   for (String arg in args) {
@@ -167,7 +260,14 @@ Future<void> runHelper(
           ..createSync(recursive: true);
         Directory dartDir = Directory.fromUri(tmpDir.uri.resolve('dart/'))
           ..createSync(recursive: true);
-        var runDetails = copyData(dartDir.uri, numFiles, codeType);
+        var runDetails = copyData(
+          dartDir.uri,
+          tmpDir.uri,
+          numFiles,
+          codeType,
+          args,
+          includePlugin: includePlugin,
+        );
         var benchmark = benchmarkCreator(
           args,
           dartDir.uri,

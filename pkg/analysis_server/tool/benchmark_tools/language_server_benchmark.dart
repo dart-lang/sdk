@@ -9,6 +9,7 @@ import 'dart:io';
 import 'io_utils.dart';
 import 'legacy_messages.dart';
 import 'lsp_messages.dart';
+import 'utils.dart';
 
 abstract class DartLanguageServerBenchmark {
   int verbosity = 0;
@@ -20,7 +21,7 @@ abstract class DartLanguageServerBenchmark {
   final _buffer = <int>[];
   int? _headerContentLength;
   bool _printedVmServiceStuff = false;
-  String executableToUse = Platform.resolvedExecutable;
+  final String executableToUse;
 
   /// There's something weird about getting (several) id 3's that wasn't
   /// requested...
@@ -36,12 +37,8 @@ abstract class DartLanguageServerBenchmark {
   final bool _lsp;
 
   DartLanguageServerBenchmark(List<String> args, {required bool useLspProtocol})
-    : _lsp = useLspProtocol {
-    for (String arg in args) {
-      if (arg.startsWith('--dart=')) {
-        executableToUse = arg.substring('--dart='.length);
-      }
-    }
+    : _lsp = useLspProtocol,
+      executableToUse = extractDartParamOrDefault(args) {
     _checkCorrectDart();
   }
 
