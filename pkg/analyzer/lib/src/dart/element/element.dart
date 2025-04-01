@@ -4458,7 +4458,10 @@ class FieldFormalParameterElementImpl2 extends FormalParameterElementImpl
 }
 
 abstract class FieldFormalParameterElementOrMember
-    implements ParameterElementMixin, FieldFormalParameterElement {
+    implements
+        ParameterElementMixin,
+        // ignore:deprecated_member_use_from_same_package
+        FieldFormalParameterElement {
   @override
   FieldElementOrMember? get field;
 }

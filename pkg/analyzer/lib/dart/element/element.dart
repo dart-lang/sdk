@@ -1241,6 +1241,7 @@ abstract class FieldElement
 /// A field formal parameter defined within a constructor element.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use FieldFormalParameterElement2 instead')
 abstract class FieldFormalParameterElement implements ParameterElement {
   /// The field element associated with this field formal parameter, or `null`
   /// if the parameter references a field that doesn't exist.
@@ -2101,8 +2102,10 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 /// * Every explicit variable is represented by a non-synthetic
 ///   [PropertyInducingElement].
 /// * Every explicit variable induces a getter and possibly a setter, both of
+// ignore:deprecated_member_use_from_same_package
 ///   which are represented by synthetic [PropertyAccessorElement]s.
 /// * Every explicit getter or setter is represented by a non-synthetic
+// ignore:deprecated_member_use_from_same_package
 ///   [PropertyAccessorElement].
 /// * Every explicit getter or setter (or pair thereof if they have the same
 ///   name) induces a variable that is represented by a synthetic

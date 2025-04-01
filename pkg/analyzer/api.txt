@@ -3305,7 +3305,7 @@ package:analyzer/dart/element/element.dart:
     isExternal (getter: bool)
     isPromotable (getter: bool)
     isStatic (getter: bool)
-  FieldFormalParameterElement (class extends Object implements ParameterElement):
+  FieldFormalParameterElement (class extends Object implements ParameterElement, deprecated):
     new (constructor: FieldFormalParameterElement Function())
     field (getter: FieldElement?, deprecated)
   FunctionElement (class extends Object implements ExecutableElement, LocalElement, deprecated):
