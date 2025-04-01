@@ -603,6 +603,10 @@ sealed class ManifestType {
     }
   }
 
+  static List<ManifestType> readList(SummaryDataReader reader) {
+    return reader.readTypedList(() => ManifestType.read(reader));
+  }
+
   static ManifestType? readOptional(SummaryDataReader reader) {
     return reader.readOptionalObject(() => ManifestType.read(reader));
   }
@@ -655,6 +659,10 @@ class ManifestTypeParameter {
     }
 
     return true;
+  }
+
+  static List<ManifestTypeParameter> readList(SummaryDataReader reader) {
+    return reader.readTypedList(() => ManifestTypeParameter.read(reader));
   }
 }
 
@@ -802,6 +810,16 @@ extension ListOfManifestTypeExtension on List<ManifestType> {
     }
     return true;
   }
+
+  void writeList(BufferedSink sink) {
+    sink.writeList(this, (x) => x.write(sink));
+  }
+}
+
+extension ListOfManifestTypeParameterExtension on List<ManifestTypeParameter> {
+  void writeList(BufferedSink sink) {
+    sink.writeList(this, (x) => x.write(sink));
+  }
 }
 
 extension ManifestTypeOrNullExtension on ManifestType? {
@@ -811,5 +829,9 @@ extension ManifestTypeOrNullExtension on ManifestType? {
       return self == null && type == null;
     }
     return self.match(context, type);
+  }
+
+  void writeOptional(BufferedSink sink) {
+    sink.writeOptionalObject(this, (x) => x.write(sink));
   }
 }
