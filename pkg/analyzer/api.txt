@@ -3365,7 +3365,7 @@ package:analyzer/dart/element/element.dart:
     new (constructor: JoinPatternVariableElement Function())
     isConsistent (getter: bool)
     variables (getter: List<PatternVariableElement>)
-  LabelElement (class extends Object implements Element):
+  LabelElement (class extends Object implements Element, deprecated):
     new (constructor: LabelElement Function())
     enclosingElement3 (getter: ExecutableElement, deprecated)
     name (getter: String)

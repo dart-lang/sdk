@@ -6817,9 +6817,11 @@ class JoinPatternVariableElementImpl2 extends PatternVariableElementImpl2
       super._wrappedElement as JoinPatternVariableElementImpl;
 }
 
-/// A concrete implementation of a [LabelElement].
 class LabelElementImpl extends ElementImpl
-    implements LabelElement, LabelFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        LabelElement,
+        LabelFragment {
   late final LabelElementImpl2 element2 = LabelElementImpl2(this);
 
   /// A flag indicating whether this label is associated with a `switch` member

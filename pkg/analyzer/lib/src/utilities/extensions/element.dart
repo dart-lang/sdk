@@ -462,12 +462,6 @@ extension JoinPatternVariableElementImplExtension
   }
 }
 
-extension LabelElement2Extension on LabelElement2 {
-  LabelElement get asElement {
-    return firstFragment as LabelElement;
-  }
-}
-
 extension LibraryElement2Extension on LibraryElement2 {
   LibraryElement get asElement {
     return this as LibraryElement;
