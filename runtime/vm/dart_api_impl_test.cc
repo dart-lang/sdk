@@ -2622,8 +2622,6 @@ TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
   EXPECT(byte_data_finalizer_run);
 }
 
-#ifndef PRODUCT
-
 static constexpr intptr_t kOptExtLength = 16;
 static int8_t opt_data[kOptExtLength] = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
@@ -2651,6 +2649,8 @@ static Dart_NativeFunction OptExternalByteDataNativeResolver(
 }
 
 TEST_CASE(DartAPI_OptimizedExternalByteDataAccess) {
+  NoBackgroundCompilerScope no_background_compiler(thread);
+
   const char* kScriptChars = R"(
 import 'dart:typed_data';
 class Expect {
@@ -2686,14 +2686,12 @@ ByteData main() {
   EXPECT_VALID(result);
 
   // Invoke 'main' function.
-  int old_oct = FLAG_optimization_counter_threshold;
-  FLAG_optimization_counter_threshold = 5;
-  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  {
+    SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
+    result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  }
   EXPECT_VALID(result);
-  FLAG_optimization_counter_threshold = old_oct;
 }
-
-#endif  // !PRODUCT
 
 static void TestTypedDataDirectAccess() {
   Dart_Handle str = Dart_NewStringFromCString("junk");
