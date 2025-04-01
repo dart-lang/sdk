@@ -159,6 +159,7 @@ class LinterLintCode extends LintCode {
     LintNames.avoid_dynamic_calls,
     "Method invocation or property access on a 'dynamic' target.",
     correctionMessage: "Try giving the target a type.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode avoid_empty_else = LinterLintCode(
@@ -568,6 +569,7 @@ class LinterLintCode extends LintCode {
     "The public property isn't described by either 'debugFillProperties' or "
     "'debugDescribeChildren'.",
     correctionMessage: "Try describing the property.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode directives_ordering_alphabetical = LinterLintCode(
@@ -872,6 +874,7 @@ class LinterLintCode extends LintCode {
         LintNames.missing_whitespace_between_adjacent_strings,
         "Missing whitespace between adjacent strings.",
         correctionMessage: "Try adding whitespace between the strings.",
+        hasPublishedDocs: true,
       );
 
   static const LintCode no_adjacent_strings_in_list = LinterLintCode(
@@ -1006,6 +1009,7 @@ class LinterLintCode extends LintCode {
     "Don't throw instances of classes that don't extend either 'Exception' or "
     "'Error'.",
     correctionMessage: "Try throwing a different class of object.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode overridden_fields = LinterLintCode(
@@ -1051,12 +1055,14 @@ class LinterLintCode extends LintCode {
     LintNames.prefer_asserts_in_initializer_lists,
     "Assert should be in the initializer list.",
     correctionMessage: "Try moving the assert to the initializer list.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode prefer_asserts_with_message = LinterLintCode(
     LintNames.prefer_asserts_with_message,
     "Missing a message in an assert.",
     correctionMessage: "Try adding a message to the assert.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode prefer_collection_literals = LinterLintCode(
@@ -1111,6 +1117,7 @@ class LinterLintCode extends LintCode {
         LintNames.prefer_constructors_over_static_methods,
         "Static method should be a constructor.",
         correctionMessage: "Try converting the method into a constructor.",
+        hasPublishedDocs: true,
       );
 
   static const LintCode prefer_contains_always_false = LinterLintCode(
@@ -1145,6 +1152,7 @@ class LinterLintCode extends LintCode {
     LintNames.prefer_expression_function_bodies,
     "Unnecessary use of a block function body.",
     correctionMessage: "Try using an expression function body.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode prefer_final_fields = LinterLintCode(
@@ -1158,6 +1166,7 @@ class LinterLintCode extends LintCode {
     LintNames.prefer_final_in_for_each,
     "The pattern should be final.",
     correctionMessage: "Try making the pattern final.",
+    hasPublishedDocs: true,
     uniqueName: 'prefer_final_in_for_each_pattern',
   );
 
@@ -1172,12 +1181,14 @@ class LinterLintCode extends LintCode {
     LintNames.prefer_final_locals,
     "Local variables should be final.",
     correctionMessage: "Try making the variable final.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode prefer_final_parameters = LinterLintCode(
     LintNames.prefer_final_parameters,
     "The parameter '{0}' should be final.",
     correctionMessage: "Try making the parameter final.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode prefer_for_elements_to_map_fromIterable =
@@ -1194,6 +1205,7 @@ class LinterLintCode extends LintCode {
     "Use 'forEach' rather than a 'for' loop to apply a function to every "
     "element.",
     correctionMessage: "Try using 'forEach' rather than a 'for' loop.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode
@@ -1402,6 +1414,7 @@ class LinterLintCode extends LintCode {
     LintNames.public_member_api_docs,
     "Missing documentation for a public member.",
     correctionMessage: "Try adding documentation for the member.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode recursive_getters = LinterLintCode(
@@ -1535,12 +1548,14 @@ class LinterLintCode extends LintCode {
     "Use a type annotation rather than 'assert' to enforce non-nullability.",
     correctionMessage:
         "Try adding a type annotation and removing the 'assert'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode type_annotate_public_apis = LinterLintCode(
     LintNames.type_annotate_public_apis,
     "Missing type annotation on a public API.",
     correctionMessage: "Try adding a type annotation.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode type_init_formals = LinterLintCode(
@@ -1716,12 +1731,14 @@ class LinterLintCode extends LintCode {
     "Unnecessary use of a null-aware operator to invoke an extension method on "
     "a nullable type.",
     correctionMessage: "Try removing the '?'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unnecessary_null_checks = LinterLintCode(
     LintNames.unnecessary_null_checks,
     "Unnecessary use of a null check ('!').",
     correctionMessage: "Try removing the null check.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unnecessary_null_in_if_null_operators = LinterLintCode(

@@ -27707,7 +27707,7 @@ WarningCode:
   MULTIPLE_COMBINATORS:
     problemMessage: "Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results."
     correctionMessage: "Try using a single combinator."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -27726,8 +27726,8 @@ WarningCode:
       var x = Future.value(1);
       ```
 
-      The following code produces this diagnostic because the second `hide` combinator
-      is redundant:
+      The following code produces this diagnostic because
+      the second `hide` combinator is redundant:
 
       ```dart
       import 'dart:math' [!hide Random, max, min hide min!];
@@ -27735,8 +27735,8 @@ WarningCode:
       var x = pi;
       ```
 
-      The following codes produce this diagnostic because the `hide` combinator
-      is redundant:
+      The following codes produce this diagnostic because
+      the `hide` combinator is redundant:
 
       ```dart
       import 'dart:math' [!show Random, max hide min!];
@@ -27745,8 +27745,9 @@ WarningCode:
       var r = Random();
       ```
 
-      The following code produces this diagnostic because the `show` combinator
-      already hides `Random` and `max`, so the `hide` combinator is redundant:
+      The following code produces this diagnostic because
+      the `show` combinator already hides `Random` and `max`,
+      so the `hide` combinator is redundant:
 
       ```dart
       import 'dart:math' [!hide Random, max show min!];
@@ -27756,7 +27757,8 @@ WarningCode:
 
       #### Common fixes
 
-      If you prefer to list the names that should be visible, then use a single `show` combinator:
+      If you prefer to list the names that should be visible,
+      then use a single `show` combinator:
 
       ```dart
       import 'dart:math' show min;
@@ -27764,7 +27766,8 @@ WarningCode:
       var x = min(0, 1);
       ```
 
-      If you prefer to list the names that should be hidden, then use a single `hide` combinator:
+      If you prefer to list the names that should be hidden,
+      then use a single `hide` combinator:
 
       ```dart
       import 'dart:math' hide Random, max, min;

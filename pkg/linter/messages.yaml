@@ -765,7 +765,7 @@ LintCode:
       experimental: "2.12"
       stable: "2.14"
     categories: [binarySize, errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -3870,7 +3870,7 @@ LintCode:
     state:
       stable: "2.3"
     categories: [errorProne, flutter]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -6199,7 +6199,7 @@ LintCode:
     state:
       stable: "2.8"
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -7365,7 +7365,7 @@ LintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -7830,7 +7830,7 @@ LintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -7884,7 +7884,7 @@ LintCode:
     state:
       stable: "2.3"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -8444,7 +8444,7 @@ LintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -8661,7 +8661,7 @@ LintCode:
     state:
       stable: "2.0"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -8840,7 +8840,7 @@ LintCode:
     state:
       stable: "2.1"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -8912,7 +8912,7 @@ LintCode:
     state:
       stable: "2.0"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -8980,7 +8980,7 @@ LintCode:
     state:
       stable: "2.14"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -9137,7 +9137,7 @@ LintCode:
       experimental: "2.0"
       stable: "2.2"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -10335,7 +10335,7 @@ LintCode:
     state:
       stable: "2.0"
     categories: [publicInterface, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11521,7 +11521,7 @@ LintCode:
     state:
       stable: "2.12"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11591,7 +11591,7 @@ LintCode:
     state:
       stable: "2.0"
     categories: [effectiveDart, publicInterface]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -12867,7 +12867,7 @@ LintCode:
     state:
       stable: "2.18"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -12926,7 +12926,7 @@ LintCode:
     state:
       experimental: "2.12"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
