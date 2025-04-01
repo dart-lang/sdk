@@ -223,6 +223,7 @@ Future<CompilationResult> compileToModule(
     moduleStrategy = DynamicMainModuleStrategy(
         component,
         coreTypes,
+        target,
         File.fromUri(dynamicInterfaceUri).readAsStringSync(),
         options.dynamicInterfaceUri!);
   } else if (isDynamicModule) {

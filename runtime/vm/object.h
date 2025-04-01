@@ -508,6 +508,7 @@ class Object {
   V(Smi, smi_illegal_cid)                                                      \
   V(Smi, smi_zero)                                                             \
   V(ApiError, no_callbacks_error)                                              \
+  V(UnwindError, unwind_error)                                                 \
   V(UnwindError, unwind_in_progress_error)                                     \
   V(LanguageError, snapshot_writer_error)                                      \
   V(LanguageError, branch_offset_error)                                        \

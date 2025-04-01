@@ -22,6 +22,7 @@ external _fatal(msg);
 external void _trySetStackTrace(Object error, StackTrace stackTrace);
 
 // This function is used when lowering `await for` statements.
+@pragma('dyn-module:language-impl:callable')
 void _asyncStarMoveNextHelper(var stream) {
   if (stream is! _StreamImpl) {
     return;
@@ -480,6 +481,7 @@ class _SuspendState {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma('dyn-module:language-impl:callable')
   external Object get _functionData;
 
   @pragma("vm:recognized", "other")

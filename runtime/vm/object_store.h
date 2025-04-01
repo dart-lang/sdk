@@ -393,9 +393,6 @@ class ObjectPointerVisitor;
   DO(instance_of_stub, InstanceOf)
 
 #define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \
-  RW(UnhandledException, preallocated_unhandled_exception)                     \
-  RW(StackTrace, preallocated_stack_trace)                                     \
-  RW(UnwindError, preallocated_unwind_error)                                   \
   R_(Array, dart_args_1)                                                       \
   R_(Array, dart_args_2)                                                       \
   R_(GrowableObjectArray, resume_capabilities)                                 \
@@ -427,7 +424,7 @@ class IsolateObjectStore {
   // Called to initialize objects required by the vm but which invoke
   // dart code.  If an error occurs the error object is returned otherwise
   // a null object is returned.
-  ErrorPtr PreallocateObjects(const Object& out_of_memory);
+  ErrorPtr PreallocateObjects();
 
   void Init();
   void PostLoad();
@@ -440,9 +437,7 @@ class IsolateObjectStore {
   // Finds a core library private method in Object.
   FunctionPtr PrivateObjectLookup(const String& name);
 
-  ObjectPtr* from() {
-    return reinterpret_cast<ObjectPtr*>(&preallocated_unhandled_exception_);
-  }
+  ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&dart_args_1_); }
 #define DECLARE_OBJECT_STORE_FIELD(type, name) type##Ptr name##_;
   ISOLATE_OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                                   DECLARE_OBJECT_STORE_FIELD)

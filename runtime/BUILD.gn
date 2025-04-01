@@ -121,13 +121,6 @@ config("dart_os_config") {
   }
 }
 
-# We need to build gen_snapshot targeting Fuchsia during a build of the SDK
-# targeting Mac and Linux. This configuration is used to unconditionally target
-# Fuchsia. It should not be combined with dart_os_config.
-config("dart_os_fuchsia_config") {
-  defines = [ "DART_TARGET_OS_FUCHSIA" ]
-}
-
 # We need to build gen_snapshot targeting Linux ARM64 during a build
 # of the SDK. This configuration is used to unconditionally target
 # Linux ARM64. It should not be combined with dart_os_config and dart_arch_config.

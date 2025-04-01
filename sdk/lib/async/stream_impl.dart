@@ -969,6 +969,7 @@ class _BroadcastSubscriptionWrapper<T> implements StreamSubscription<T> {
 /// Simple implementation of [StreamIterator].
 ///
 /// Pauses the stream between calls to [moveNext].
+@pragma('dyn-module:language-impl:callable')
 class _StreamIterator<T> implements StreamIterator<T> {
   // The stream iterator is always in one of five states.
   // The value of the [_stateData] field depends on the state.
@@ -1005,6 +1006,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
   /// Subscription being listened to.
   ///
   /// Set to `null` when the stream subscription is done or canceled.
+  @pragma('dyn-module:language-impl:callable')
   StreamSubscription<T>? _subscription;
 
   /// Data value depending on the current state.
@@ -1029,6 +1031,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
   @pragma("vm:entry-point")
   bool _hasValue = false;
 
+  @pragma('dyn-module:language-impl:callable')
   _StreamIterator(final Stream<T> stream)
     : _stateData = checkNotNullable(stream, "stream");
 

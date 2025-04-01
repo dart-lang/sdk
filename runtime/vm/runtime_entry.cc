@@ -4361,10 +4361,7 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
     TransitionToVM transition(thread);
     thread->SetUnwindErrorInProgress(false);
     NoSafepointScope no_safepoint;
-    Error unwind_error;
-    unwind_error ^=
-        thread->isolate()->isolate_object_store()->preallocated_unwind_error();
-    Exceptions::PropagateError(unwind_error);
+    Exceptions::PropagateError(Object::unwind_error());
   }
   if (thread->execution_state() == Thread::kThreadInNative) {
     thread->ExitSafepointFromNative();

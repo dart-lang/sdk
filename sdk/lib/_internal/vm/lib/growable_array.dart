@@ -93,7 +93,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList(int length) {
     var data = _allocateData(length);
     var result = new _GrowableList<T>._withData(data);
@@ -111,7 +111,7 @@ class _GrowableList<T> extends ListBase<T> {
   // Specialization of List.empty constructor for growable == true.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList.empty() {
     // Specialization of `return _GrowableList(0);`.
     return _GrowableList<T>._withData(_emptyList);
@@ -119,7 +119,7 @@ class _GrowableList<T> extends ListBase<T> {
 
   // Specialization of List.filled constructor for growable == true.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList.filled(int length, T fill) {
     final result = _GrowableList<T>(length);
     if (fill != null) {
@@ -133,7 +133,7 @@ class _GrowableList<T> extends ListBase<T> {
   // Specialization of List.generate constructor for growable == true.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList.generate(int length, T generator(int index)) {
     final result = _GrowableList<T>(length);
     for (int i = 0; i < result.length; ++i) {
@@ -563,7 +563,7 @@ class _GrowableList<T> extends ListBase<T> {
 
   // Specialized list literal constructors.
   // Used by pkg/vm/lib/transformations/list_literals_lowering.dart.
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal1(T e0) {
     _List elements = _List(1);
     elements[0] = e0;
@@ -572,7 +572,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal2(T e0, T e1) {
     _List elements = _List(2);
     elements[0] = e0;
@@ -582,7 +582,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal3(T e0, T e1, T e2) {
     _List elements = _List(3);
     elements[0] = e0;
@@ -593,7 +593,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal4(T e0, T e1, T e2, T e3) {
     _List elements = _List(4);
     elements[0] = e0;
@@ -605,7 +605,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal5(T e0, T e1, T e2, T e3, T e4) {
     _List elements = _List(5);
     elements[0] = e0;
@@ -618,7 +618,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal6(T e0, T e1, T e2, T e3, T e4, T e5) {
     _List elements = _List(6);
     elements[0] = e0;
@@ -632,7 +632,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal7(T e0, T e1, T e2, T e3, T e4, T e5, T e6) {
     _List elements = _List(7);
     elements[0] = e0;
@@ -647,7 +647,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  @pragma('dyn-module:callable')
+  @pragma('dyn-module:language-impl:callable')
   factory _GrowableList._literal8(
     T e0,
     T e1,

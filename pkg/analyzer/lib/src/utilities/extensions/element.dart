@@ -53,18 +53,6 @@ extension BindPatternVariableElementImplExtension
   }
 }
 
-extension ClassElement2Extension on ClassElement2 {
-  ClassElement get asElement {
-    return firstFragment as ClassElement;
-  }
-}
-
-extension ClassElementExtension on ClassElement {
-  ClassElement2 get asElement2 {
-    return (this as ClassElementImpl).element;
-  }
-}
-
 extension ClassElementImpl2Extension on ClassElementImpl2 {
   ClassElementImpl get asElement {
     return firstFragment;
@@ -317,18 +305,6 @@ extension ElementOrNullExtension on Element? {
     } else {
       return (self as Fragment?)?.element;
     }
-  }
-}
-
-extension EnumElement2Extension on EnumElement2 {
-  EnumElement get asElement {
-    return firstFragment as EnumElement;
-  }
-}
-
-extension EnumElementExtension on EnumElement {
-  EnumElement2 get asElement2 {
-    return (this as EnumElementImpl).element;
   }
 }
 
@@ -665,18 +641,6 @@ extension MethodElementOrMemberExtension on MethodElementOrMember {
       MethodMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
-  }
-}
-
-extension MixinElement2Extension on MixinElement2 {
-  MixinElement get asElement {
-    return firstFragment as MixinElement;
-  }
-}
-
-extension MixinElementExtension on MixinElement {
-  MixinElement2 get asElement2 {
-    return (this as MixinElementImpl).element;
   }
 }
 

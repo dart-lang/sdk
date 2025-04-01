@@ -15,7 +15,7 @@ namespace dart {
   V(AsyncLibrary, _FutureListener, handleValue, FutureListenerHandleValue,     \
     0xaa83f1d2)                                                                \
   V(AsyncLibrary, _SuspendState, get:_functionData,                            \
-    SuspendState_getFunctionData, 0x79c36a6d)                                  \
+    SuspendState_getFunctionData, 0x79c36e2e)                                  \
   V(AsyncLibrary, _SuspendState, set:_functionData,                            \
     SuspendState_setFunctionData, 0x3299d0aa)                                  \
   V(AsyncLibrary, _SuspendState, get:_thenCallback,                            \

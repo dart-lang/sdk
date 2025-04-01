@@ -140,7 +140,10 @@ class BindPatternVariableElementImpl2 extends PatternVariableElementImpl2
 
 /// An [InterfaceElementImpl] which is a class.
 class ClassElementImpl extends ClassOrMixinElementImpl
-    implements ClassElement, ClassFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ClassElement,
+        ClassFragment {
   late ClassElementImpl2 augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -221,7 +224,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   bool get hasNoSuchMethod {
     MethodElement? method = lookUpConcreteMethod(
         FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
-    var definingClass = method?.enclosingElement3 as ClassElement?;
+    var definingClass = method?.enclosingElement3 as ClassElementImpl?;
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
@@ -1183,6 +1186,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return null;
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   EnumElement? getEnum(String name) {
     for (var element in enums) {
@@ -1196,6 +1200,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// Returns the mixin defined in this compilation unit that has the given
   /// [name], or `null` if this compilation unit does not define a mixin with
   /// the given name.
+  @Deprecated(elementModelDeprecationMsg)
   MixinElement? getMixin(String name) {
     for (var mixin in mixins) {
       if (mixin.name == name) {
@@ -3509,7 +3514,10 @@ abstract class ElementOrMember {}
 
 /// An [InterfaceElementImpl] which is an enum.
 class EnumElementImpl extends InterfaceElementImpl
-    implements EnumElement, EnumFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        EnumElement,
+        EnumFragment {
   late EnumElementImpl2 augmentedInternal;
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -6161,6 +6169,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         getter.enclosingElement3 != this);
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   ExecutableElement? lookUpInheritedConcreteMember(
       String name, LibraryElement library) {
     if (name.endsWith('=')) {
@@ -6181,6 +6190,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         method.enclosingElement3 != this);
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   @override
   PropertyAccessorElement? lookUpInheritedConcreteSetter(
       String setterName, LibraryElement library) {
@@ -6242,6 +6252,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
+  @Deprecated(elementModelDeprecationMsg)
   PropertyAccessorElement? lookupStaticSetter(
       String name, LibraryElement library) {
     return _implementationsOfSetter(name).firstWhereOrNull(
@@ -6326,6 +6337,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// The setters are returned based on the depth of their defining class; if
   /// this class contains a definition of the setter it will occur first, if
   /// Object contains a definition of the setter it will occur last.
+  @Deprecated(elementModelDeprecationMsg)
   Iterable<PropertyAccessorElement> _implementationsOfSetter(
       String setterName) sync* {
     var visitedClasses = <InterfaceElement>{};
@@ -7326,6 +7338,7 @@ class LibraryElementImpl extends ElementImpl
     return _getElementByName(classes, name);
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   EnumElement? getEnum(String name) {
     for (var unitElement in units) {
       var element = unitElement.getEnum(name);
@@ -7363,6 +7376,7 @@ class LibraryElementImpl extends ElementImpl
     return _getElementByName(getters, name);
   }
 
+  @Deprecated(elementModelDeprecationMsg)
   MixinElement? getMixin(String name) {
     for (var unitElement in units) {
       var element = unitElement.getMixin(name);
@@ -8429,7 +8443,10 @@ abstract class MethodElementOrMember
 
 /// A [ClassElementImpl] representing a mixin declaration.
 class MixinElementImpl extends ClassOrMixinElementImpl
-    implements MixinElement, MixinFragment {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        MixinElement,
+        MixinFragment {
   List<InterfaceTypeImpl> _superclassConstraints = const [];
 
   /// Names of methods, getters, setters, and operators that this mixin

@@ -37,25 +37,13 @@ DEFINE_FLAG(bool,
 
 class StackTraceBuilder : public ValueObject {
  public:
-  StackTraceBuilder() {}
-  virtual ~StackTraceBuilder() {}
-
-  virtual void AddFrame(const Object& code, uword pc_offset) = 0;
-};
-
-class PreallocatedStackTraceBuilder : public StackTraceBuilder {
- public:
-  explicit PreallocatedStackTraceBuilder(const Instance& stacktrace)
+  explicit StackTraceBuilder(const Instance& stacktrace)
       : stacktrace_(StackTrace::Cast(stacktrace)),
         cur_index_(0),
-        dropped_frames_(0) {
-    ASSERT(
-        stacktrace_.ptr() ==
-        Isolate::Current()->isolate_object_store()->preallocated_stack_trace());
-  }
-  ~PreallocatedStackTraceBuilder() {}
+        dropped_frames_(0) {}
+  ~StackTraceBuilder() {}
 
-  void AddFrame(const Object& code, uword pc_offset) override;
+  void AddFrame(const Object& code, uword pc_offset);
 
  private:
   static constexpr int kNumTopframes = StackTrace::kPreallocatedStackdepth / 2;
@@ -64,11 +52,10 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
   intptr_t cur_index_;
   intptr_t dropped_frames_;
 
-  DISALLOW_COPY_AND_ASSIGN(PreallocatedStackTraceBuilder);
+  DISALLOW_COPY_AND_ASSIGN(StackTraceBuilder);
 };
 
-void PreallocatedStackTraceBuilder::AddFrame(const Object& code,
-                                             uword pc_offset) {
+void StackTraceBuilder::AddFrame(const Object& code, uword pc_offset) {
   if (cur_index_ >= StackTrace::kPreallocatedStackdepth) {
     // The number of frames is overflowing the preallocated stack trace object.
     Object& frame_code = Object::Handle();
@@ -721,6 +708,20 @@ StackTracePtr Exceptions::CurrentStackTrace() {
   return GetStackTraceForException();
 }
 
+static StackTracePtr CreateStackTrace(Zone* zone) {
+  const Array& code_array = Array::Handle(
+      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
+  const TypedData& pc_offset_array = TypedData::Handle(
+      zone, TypedData::New(kUintPtrCid, StackTrace::kPreallocatedStackdepth,
+                           Heap::kOld));
+  const StackTrace& stack_trace =
+      StackTrace::Handle(zone, StackTrace::New(code_array, pc_offset_array));
+  // Expansion of inlined functions requires additional memory at run time,
+  // avoid it.
+  stack_trace.set_expand_inlined(false);
+  return stack_trace.ptr();
+}
+
 DART_NORETURN
 static void ThrowExceptionHelper(Thread* thread,
                                  const Instance& incoming_exception,
@@ -733,7 +734,6 @@ static void ThrowExceptionHelper(Thread* thread,
   RELEASE_ASSERT(thread->long_jump_base() == nullptr);
   Zone* zone = thread->zone();
   auto object_store = thread->isolate_group()->object_store();
-  Isolate* isolate = thread->isolate();
 #if !defined(PRODUCT)
   if (!bypass_debugger) {
     // Do not notify debugger on stack overflow and out of memory exceptions.
@@ -741,7 +741,7 @@ static void ThrowExceptionHelper(Thread* thread,
     // get values of variables.
     if (incoming_exception.ptr() != object_store->out_of_memory() &&
         incoming_exception.ptr() != object_store->stack_overflow()) {
-      isolate->debugger()->PauseException(incoming_exception);
+      thread->isolate()->debugger()->PauseException(incoming_exception);
     }
   }
 #endif
@@ -770,17 +770,18 @@ static void ThrowExceptionHelper(Thread* thread,
   bool handler_needs_stacktrace = finder.needs_stacktrace;
   Instance& stacktrace = Instance::Handle(zone);
   if (use_preallocated_stacktrace) {
+    stacktrace = CreateStackTrace(zone);
     if (handler_pc == 0) {
       // No Dart frame.
       ASSERT(incoming_exception.ptr() == object_store->out_of_memory());
       const UnhandledException& error = UnhandledException::Handle(
-          zone,
-          isolate->isolate_object_store()->preallocated_unhandled_exception());
+          zone, UnhandledException::New(
+                    Instance::Handle(zone, object_store->out_of_memory()),
+                    stacktrace));
       thread->long_jump_base()->Jump(1, error);
       UNREACHABLE();
     }
-    stacktrace = isolate->isolate_object_store()->preallocated_stack_trace();
-    PreallocatedStackTraceBuilder frame_builder(stacktrace);
+    StackTraceBuilder frame_builder(stacktrace);
     ASSERT(existing_stacktrace.IsNull() ||
            (existing_stacktrace.ptr() == stacktrace.ptr()));
     ASSERT(existing_stacktrace.IsNull() || is_rethrow);
@@ -838,10 +839,7 @@ static void ThrowExceptionHelper(Thread* thread,
     // the isolate etc.). This can happen in the compiler, which is not
     // allowed to allocate in new space, so we pass the kOld argument.
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
-        zone, exception.ptr() == object_store->out_of_memory()
-                  ? isolate->isolate_object_store()
-                        ->preallocated_unhandled_exception()
-                  : UnhandledException::New(exception, stacktrace, Heap::kOld));
+        zone, UnhandledException::New(exception, stacktrace, Heap::kOld));
     stacktrace = StackTrace::null();
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp,
                            unhandled_exception, stacktrace);

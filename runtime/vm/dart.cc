@@ -968,10 +968,8 @@ ErrorPtr Dart::InitializeIsolate(Thread* T,
     I->field_table()->MarkReadyToUse();
   }
 
-  const auto& out_of_memory =
-      Object::Handle(IG->object_store()->out_of_memory());
-  const auto& error = Error::Handle(
-      Z, I->isolate_object_store()->PreallocateObjects(out_of_memory));
+  const auto& error =
+      Error::Handle(Z, I->isolate_object_store()->PreallocateObjects());
   if (!error.IsNull()) {
     return error.ptr();
   }
