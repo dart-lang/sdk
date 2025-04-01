@@ -15,6 +15,7 @@ import 'package:analyzer/src/utilities/extensions/flutter.dart';
 /// Information about the arguments and parameters for an invocation.
 typedef EditableInvocationInfo =
     ({
+      AstNode invocation,
       String? widgetName,
       String? widgetDocumentation,
       List<FormalParameterElement> parameters,
@@ -50,6 +51,10 @@ mixin EditableArgumentsMixin {
         _ => false,
       };
     });
+
+    if (invocation == null) {
+      return null;
+    }
 
     String? widgetName, widgetDocumentation;
     if (invocation is InstanceCreationExpression) {
@@ -106,6 +111,7 @@ mixin EditableArgumentsMixin {
     };
 
     return (
+      invocation: invocation,
       widgetName: widgetName,
       widgetDocumentation: widgetDocumentation,
       parameters: parameters,

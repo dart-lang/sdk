@@ -83,8 +83,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       }
 
       // Locate the invocation we're editing.
-      var invocation = getInvocationInfo(result, offset);
-      if (invocation == null) {
+      var invocationInfo = getInvocationInfo(result, offset);
+      if (invocationInfo == null) {
         return error(
           ServerErrorCodes.EditArgumentInvalidPosition,
           'No invocation was found at the provided position',
@@ -92,6 +92,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       }
 
       var (
+        invocation: _,
         :widgetName,
         :widgetDocumentation,
         :parameters,
@@ -100,7 +101,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         :argumentList,
         :numPositionals,
         :numSuppliedPositionals,
-      ) = invocation;
+      ) = invocationInfo;
 
       // Find the parameter we're editing the argument for.
       var parameterName = params.edit.name;

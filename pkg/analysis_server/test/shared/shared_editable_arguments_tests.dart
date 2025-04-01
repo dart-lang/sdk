@@ -1058,6 +1058,18 @@ class MyWidget extends StatelessWidget {
     );
   }
 
+  Future<void> test_range() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget({int? a = null});
+
+  @override
+  Widget build(BuildContext context) => [!MyW^idget(a: 1)!];
+}
+''');
+    expect(result!.range, code.range.range);
+  }
+
   Future<void> test_textDocument_unopenedFile() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {

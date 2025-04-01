@@ -1693,11 +1693,15 @@ class EditableArguments implements ToJsonable {
   final String? documentation;
 
   final String? name;
+
+  /// The range of the invocation.
+  final Range range;
   final TextDocumentIdentifier textDocument;
   EditableArguments({
     required this.arguments,
     this.documentation,
     this.name,
+    required this.range,
     required this.textDocument,
   });
   @override
@@ -1705,6 +1709,7 @@ class EditableArguments implements ToJsonable {
         lspHashCode(arguments),
         documentation,
         name,
+        range,
         textDocument,
       );
 
@@ -1715,6 +1720,7 @@ class EditableArguments implements ToJsonable {
         const DeepCollectionEquality().equals(arguments, other.arguments) &&
         documentation == other.documentation &&
         name == other.name &&
+        range == other.range &&
         textDocument == other.textDocument;
   }
 
@@ -1728,6 +1734,7 @@ class EditableArguments implements ToJsonable {
     if (name != null) {
       result['name'] = name;
     }
+    result['range'] = range.toJson();
     result['textDocument'] = textDocument.toJson();
     return result;
   }
@@ -1749,6 +1756,10 @@ class EditableArguments implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
+      if (!_canParseRange(obj, reporter, 'range',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
       return _canParseTextDocumentIdentifier(obj, reporter, 'textDocument',
           allowsUndefined: false, allowsNull: false);
     } else {
@@ -1766,6 +1777,8 @@ class EditableArguments implements ToJsonable {
     final documentation = documentationJson as String?;
     final nameJson = json['name'];
     final name = nameJson as String?;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
         textDocumentJson as Map<String, Object?>);
@@ -1773,6 +1786,7 @@ class EditableArguments implements ToJsonable {
       arguments: arguments,
       documentation: documentation,
       name: name,
+      range: range,
       textDocument: textDocument,
     );
   }
