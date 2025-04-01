@@ -453,7 +453,6 @@ f() {
     testUserDefinableOperatorWithSuper('*');
   }
 
-  @failingTest
   void test_stringInterpolation_unclosed() {
     // https://github.com/dart-lang/sdk/issues/946
     // TODO(brianwilkerson): Try to recover better. Ideally there would be a

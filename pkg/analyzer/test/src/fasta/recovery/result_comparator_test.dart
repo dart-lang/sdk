@@ -18,14 +18,19 @@ main() {
 
 @reflectiveTest
 class ResultComparatorTest extends FastaParserTestCase {
-  test_expectedIdentifier_anythingMatchesSynthetic() {
-    // Any identifier matches a synthetic identifier.
-    // TODO(paulberry): I don't think this behavior is intentional. Fix it.
-    _assertMatched(
+  test_expectedIdentifier_arbitraryIdentifierDoesNotMatchSynthetic() {
+    _assertMismatched(
         actual: parseExpression('f(+x)', errors: [
           error(ParserErrorCode.MISSING_IDENTIFIER, 2, 1),
         ]),
-        expected: parseExpression('f(foo+x)'));
+        expected: parseExpression('f(foo+x)'),
+        expectedFailureMessage: '''
+Expected token "foo"
+  type=IDENTIFIER, length=3
+But found synthetic token ""
+  type=IDENTIFIER, length=0
+  path: ((((root as MethodInvocation).argumentList as ArgumentList).arguments[0] as BinaryExpression).leftOperand as SimpleIdentifier).token
+''');
   }
 
   test_expectedIdentifier_s_doesNotMatchNonSynthetic() {
@@ -34,8 +39,11 @@ class ResultComparatorTest extends FastaParserTestCase {
         actual: parseExpression('f(a+x)'),
         expected: parseExpression('f(_s_+x)'),
         expectedFailureMessage: '''
-Expected: f(_s_ + x)
-   Found: f(a + x)''');
+Expected a synthetic identifier
+But found token "a"
+  type=IDENTIFIER, length=1
+  path: ((((root as MethodInvocation).argumentList as ArgumentList).arguments[0] as BinaryExpression).leftOperand as SimpleIdentifier).token
+''');
   }
 
   test_expectedIdentifier_s_matchesSynthetic() {
@@ -57,8 +65,9 @@ Expected: f(_s_ + x)
         actual: parseStatement('return 0;'),
         expected: parseStatement('return;'),
         expectedFailureMessage: '''
-Expected null; found a IntegerLiteralImpl
-  path: ReturnStatementImpl, IntegerLiteralImpl''');
+Unexpected IntegerLiteralImpl
+  path: (root as ReturnStatement).expression
+''');
   }
 
   test_expectedOptionalNode_missing() {
@@ -66,8 +75,9 @@ Expected null; found a IntegerLiteralImpl
         actual: parseStatement('return;'),
         expected: parseStatement('return 0;'),
         expectedFailureMessage: '''
-Expected a IntegerLiteralImpl; found null
-  path: ReturnStatementImpl, IntegerLiteralImpl''');
+Expected a IntegerLiteralImpl; found nothing
+  path: (root as ReturnStatement).expression
+''');
   }
 
   test_expectedOptionalNode_notMissing() {
@@ -81,7 +91,8 @@ Expected a IntegerLiteralImpl; found null
         actual: parseExpression('x is int'),
         expected: parseExpression('x is! int'),
         expectedFailureMessage: '''
-Expected a SimpleToken; found null
+Expected a SimpleToken; found nothing
+  path: (root as IsExpression).notOperator
 ''');
   }
 
@@ -97,8 +108,11 @@ Expected a SimpleToken; found null
         actual: parseCompilationUnit('class C {}'),
         expected: parseCompilationUnit('class _k_ {}'),
         expectedFailureMessage: '''
-Expected: class _k_ {}
-   Found: class C {}''');
+Expected a keyword
+But found token "C"
+  type=IDENTIFIER, length=1
+  path: ((root as CompilationUnit).declarations[0] as ClassDeclaration).name
+''');
   }
 
   test_expectedToken_k_matchesKeywordToken() {
@@ -117,8 +131,12 @@ Expected: class _k_ {}
         ]),
         expected: parseCompilationUnit('class C { C(foo); }'),
         expectedFailureMessage: '''
-Expected: class C {C(foo);}
-   Found: class C {C(this);}''');
+Expected token "foo"
+  type=IDENTIFIER, length=3
+But found token "this"
+  type=THIS, length=4
+  path: (((((root as CompilationUnit).declarations[0] as ClassDeclaration).members[0] as ConstructorDeclaration).parameters as FormalParameterList).parameters[0] as SimpleFormalParameter).name
+''');
   }
 
   test_formalParameterList_namedParameters_matched() {
@@ -133,7 +151,8 @@ Expected: class C {C(foo);}
         expected: parseFormalParameterList('(int? x, int? y, {int? z})'),
         expectedFailureMessage: '''
 Expected a SimpleFormalParameterImpl; found DefaultFormalParameterImpl
-  path: FormalParameterListImpl, DefaultFormalParameterImpl''');
+  path: (root as FormalParameterList).parameters[1]
+''');
   }
 
   test_formalParameterList_namedParameters_mismatchedParamKind() {
@@ -142,7 +161,8 @@ Expected a SimpleFormalParameterImpl; found DefaultFormalParameterImpl
         expected: parseFormalParameterList('(int? x, {int? y, int? z()})'),
         expectedFailureMessage: '''
 Expected a FunctionTypedFormalParameterImpl; found SimpleFormalParameterImpl
-  path: FormalParameterListImpl, DefaultFormalParameterImpl, SimpleFormalParameterImpl''');
+  path: ((root as FormalParameterList).parameters[2] as DefaultFormalParameter).parameter
+''');
   }
 
   test_formalParameterList_namedParameters_mismatchedParamName() {
@@ -150,8 +170,12 @@ Expected a FunctionTypedFormalParameterImpl; found SimpleFormalParameterImpl
         actual: parseFormalParameterList('(int? x, {int? y, int? z})'),
         expected: parseFormalParameterList('(int? x, {int? y, int? w})'),
         expectedFailureMessage: '''
-Expected: (int? x, {int? y, int? w})
-   Found: (int? x, {int? y, int? z})''');
+Expected token "w"
+  type=IDENTIFIER, length=1
+But found token "z"
+  type=IDENTIFIER, length=1
+  path: (((root as FormalParameterList).parameters[2] as DefaultFormalParameter).parameter as SimpleFormalParameter).name
+''');
   }
 
   test_formalParameterList_normalParameters_matched() {
@@ -166,7 +190,8 @@ Expected: (int? x, {int? y, int? w})
         expected: parseFormalParameterList('(int x, int y())'),
         expectedFailureMessage: '''
 Expected a FunctionTypedFormalParameterImpl; found SimpleFormalParameterImpl
-  path: FormalParameterListImpl, SimpleFormalParameterImpl''');
+  path: (root as FormalParameterList).parameters[1]
+''');
   }
 
   test_formalParameterList_normalParameters_mismatchedParamName() {
@@ -174,8 +199,12 @@ Expected a FunctionTypedFormalParameterImpl; found SimpleFormalParameterImpl
         actual: parseFormalParameterList('(int x, int y)'),
         expected: parseFormalParameterList('(int x, int z)'),
         expectedFailureMessage: '''
-Expected: (int x, int z)
-   Found: (int x, int y)''');
+Expected token "z"
+  type=IDENTIFIER, length=1
+But found token "y"
+  type=IDENTIFIER, length=1
+  path: ((root as FormalParameterList).parameters[1] as SimpleFormalParameter).name
+''');
   }
 
   test_formalParameterList_optionalParameters_matched() {
@@ -190,7 +219,8 @@ Expected: (int x, int z)
         expected: parseFormalParameterList('(int x, int y, [int z])'),
         expectedFailureMessage: '''
 Expected a SimpleFormalParameterImpl; found DefaultFormalParameterImpl
-  path: FormalParameterListImpl, DefaultFormalParameterImpl''');
+  path: (root as FormalParameterList).parameters[1]
+''');
   }
 
   test_formalParameterList_optionalParameters_mismatchedParamKind() {
@@ -199,7 +229,8 @@ Expected a SimpleFormalParameterImpl; found DefaultFormalParameterImpl
         expected: parseFormalParameterList('(int x, [int y, int z()])'),
         expectedFailureMessage: '''
 Expected a FunctionTypedFormalParameterImpl; found SimpleFormalParameterImpl
-  path: FormalParameterListImpl, DefaultFormalParameterImpl, SimpleFormalParameterImpl''');
+  path: ((root as FormalParameterList).parameters[2] as DefaultFormalParameter).parameter
+''');
   }
 
   test_formalParameterList_optionalParameters_mismatchedParamName() {
@@ -207,8 +238,12 @@ Expected a FunctionTypedFormalParameterImpl; found SimpleFormalParameterImpl
         actual: parseFormalParameterList('(int x, [int y, int z])'),
         expected: parseFormalParameterList('(int x, [int y, int w])'),
         expectedFailureMessage: '''
-Expected: (int x, [int y, int w])
-   Found: (int x, [int y, int z])''');
+Expected token "w"
+  type=IDENTIFIER, length=1
+But found token "z"
+  type=IDENTIFIER, length=1
+  path: (((root as FormalParameterList).parameters[2] as DefaultFormalParameter).parameter as SimpleFormalParameter).name
+''');
   }
 
   test_mismatchedDocumentationComment_reference() {
@@ -221,20 +256,29 @@ class C {}
 /// A [Bar]
 class C {}
 '''), expectedFailureMessage: '''
-Expected: class C {}
-   Found: class C {}''');
+Expected token "Bar"
+  type=IDENTIFIER, length=3
+But found token "Foo"
+  type=IDENTIFIER, length=3
+  path: (((((root as CompilationUnit).declarations[0] as ClassDeclaration).documentationComment as Comment).references[0] as CommentReference).expression as SimpleIdentifier).token
+''');
   }
 
   test_mismatchedDocumentationComment_text() {
-    // Text-only changes to documentation comments don't count as a mismatch.
-    // TODO(paulberry): consider changing this behavior.
-    _assertMatched(actual: parseCompilationUnit('''
+    // Text-only changes to documentation comments count as a mismatch.
+    _assertMismatched(actual: parseCompilationUnit('''
 /// A class
 class C {}
 '''), expected: parseCompilationUnit('''
 /// A clasx
 class C {}
-'''));
+'''), expectedFailureMessage: '''
+Expected token "/// A clasx"
+  type=SINGLE_LINE_COMMENT, length=11
+But found token "/// A class"
+  type=SINGLE_LINE_COMMENT, length=11
+  path: (((root as CompilationUnit).declarations[0] as ClassDeclaration).documentationComment as Comment).tokens[0]
+''');
   }
 
   test_mismatchedListLength_nodeList() {
@@ -246,7 +290,8 @@ Expected a list of length 4
   [x, y, z, w]
 But found a list of length 3
   [x, y, z]
-  path: MethodInvocationImpl, ArgumentListImpl''');
+  path: ((root as MethodInvocation).argumentList as ArgumentList).arguments
+''');
   }
 
   test_mismatchedListLength_nonNodeList() {
@@ -258,6 +303,7 @@ Expected a list of length 4
   [x, y, z, w]
 But found a list of length 3
   [x, y, z]
+  path: (root as SymbolLiteral).components
 ''');
   }
 
@@ -267,7 +313,8 @@ But found a list of length 3
         expected: parseExpression('f(0)'),
         expectedFailureMessage: '''
 Expected a IntegerLiteralImpl; found SimpleIdentifierImpl
-  path: MethodInvocationImpl, ArgumentListImpl, SimpleIdentifierImpl''');
+  path: ((root as MethodInvocation).argumentList as ArgumentList).arguments[0]
+''');
   }
 
   test_mismatchedToken() {
@@ -275,8 +322,12 @@ Expected a IntegerLiteralImpl; found SimpleIdentifierImpl
         actual: parseCompilationUnit('class C {}'),
         expected: parseCompilationUnit('class X {}'),
         expectedFailureMessage: '''
-Expected: class X {}
-   Found: class C {}''');
+Expected token "X"
+  type=IDENTIFIER, length=1
+But found token "C"
+  type=IDENTIFIER, length=1
+  path: ((root as CompilationUnit).declarations[0] as ClassDeclaration).name
+''');
   }
 
   test_mismatchedTokenOffsets() {
