@@ -1893,6 +1893,7 @@ sealed class NamespaceCombinator {
 /// A parameter defined within an executable element.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use FormalParameterElement instead')
 abstract class ParameterElement
     implements PromotableElement, ConstantEvaluationTarget {
   @override

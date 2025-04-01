@@ -385,13 +385,6 @@ extension FieldElementOrMemberExtension on FieldElementOrMember {
 }
 
 extension FormalParameterElementExtension on FormalParameterElement {
-  ParameterElement get asElement {
-    if (this case ParameterMember member) {
-      return member;
-    }
-    return firstFragment as ParameterElement;
-  }
-
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
     @Deprecated('Only non-nullable by default mode is supported')
@@ -574,23 +567,19 @@ extension MixinElementImplExtension on MixinElementImpl {
   }
 }
 
-extension ParameterElementExtension on ParameterElement {
+extension ParameterElementImplExtension on ParameterElementImpl {
+  FormalParameterElementImpl get asElement2 {
+    return element;
+  }
+}
+
+extension ParameterElementMixinExtension on ParameterElementMixin {
   FormalParameterElementMixin get asElement2 {
     return switch (this) {
       ParameterElementImpl(:var element) => element,
       ParameterMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
-  }
-
-  ParameterElementImpl get declarationImpl {
-    return declaration as ParameterElementImpl;
-  }
-}
-
-extension ParameterElementImplExtension on ParameterElementImpl {
-  FormalParameterElementImpl get asElement2 {
-    return element;
   }
 }
 

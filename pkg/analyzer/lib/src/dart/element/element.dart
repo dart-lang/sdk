@@ -475,7 +475,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
       if (count > 0) {
         var implicitParameters = <ParameterElementImpl>[];
         for (int i = 0; i < count; i++) {
-          ParameterElement superParameter = superParameters[i];
+          var superParameter = superParameters[i];
           ParameterElementImpl implicitParameter;
           if (superParameter is ConstVariableElement) {
             var constVariable = superParameter as ConstVariableElement;
@@ -484,7 +484,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
               nameOffset: -1,
               name2: superParameter.name.nullIfEmpty,
               nameOffset2: null,
-              // ignore: deprecated_member_use_from_same_package
               parameterKind: superParameter.parameterKind,
             )..constantInitializer = constVariable.constantInitializer;
             if (superParameter.isNamed) {
@@ -500,7 +499,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
               nameOffset: -1,
               name2: superParameter.name.nullIfEmpty,
               nameOffset2: null,
-              // ignore: deprecated_member_use_from_same_package
               parameterKind: superParameter.parameterKind,
             );
           }
@@ -1725,7 +1723,7 @@ mixin ConstructorElementMixin
       return false;
     }
     // no required parameters
-    for (ParameterElement parameter in parameters) {
+    for (var parameter in parameters) {
       if (parameter.isRequired) {
         return false;
       }
@@ -1854,7 +1852,7 @@ class DefaultFieldFormalParameterElementImpl
   }
 }
 
-/// A [ParameterElement] for parameters that have an initializer.
+/// A [ParameterElementImpl] for parameters that have an initializer.
 class DefaultParameterElementImpl extends ParameterElementImpl
     with ConstVariableElement {
   /// Initialize a newly created parameter element to have the given [name] and
@@ -9310,10 +9308,13 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
   }
 }
 
-/// A concrete implementation of a [ParameterElement].
 class ParameterElementImpl extends VariableElementImpl
-    with ParameterElementMixin
-    implements ParameterElement, FormalParameterFragment {
+    with
+        ParameterElementMixin
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ParameterElement,
+        FormalParameterFragment {
   @override
   String? name2;
 
@@ -9568,9 +9569,12 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 }
 
 /// A mixin that provides a common implementation for methods defined in
-/// [ParameterElement].
+/// `ParameterElement`.
 mixin ParameterElementMixin
-    implements ParameterElement, VariableElementOrMember {
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ParameterElement,
+        VariableElementOrMember {
   @override
   ParameterElementImpl get declaration;
 

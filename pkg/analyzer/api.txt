@@ -3434,7 +3434,7 @@ package:analyzer/dart/element/element.dart:
   NamespaceCombinator (class extends Object):
     end (getter: int)
     offset (getter: int)
-  ParameterElement (class extends Object implements PromotableElement, ConstantEvaluationTarget):
+  ParameterElement (class extends Object implements PromotableElement, ConstantEvaluationTarget, deprecated):
     new (constructor: ParameterElement Function())
     declaration (getter: ParameterElement)
     defaultValueCode (getter: String?)

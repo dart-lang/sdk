@@ -1116,8 +1116,12 @@ class MethodMember extends ExecutableMember
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class ParameterMember extends VariableMember
-    with ParameterElementMixin, FormalParameterElementMixin
-    implements ParameterElement {
+    with
+        ParameterElementMixin,
+        FormalParameterElementMixin
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        ParameterElement {
   @override
   final List<TypeParameterElementImpl> typeParameters;
 
@@ -1561,7 +1565,7 @@ class SuperFormalParameterMember extends ParameterMember
   bool get isCovariant => declaration.isCovariant;
 
   @override
-  ParameterElement? get superConstructorParameter {
+  ParameterElementMixin? get superConstructorParameter {
     var superConstructorParameter = declaration.superConstructorParameter;
     if (superConstructorParameter == null) {
       return null;
