@@ -453,7 +453,12 @@ class PluginServer {
         result = await _handleAnalysisUpdateContent(params);
 
       case protocol.COMPLETION_REQUEST_GET_SUGGESTIONS:
+        result = null;
+
       case protocol.EDIT_REQUEST_GET_ASSISTS:
+        var params = protocol.EditGetAssistsParams.fromRequest(request);
+        result = await handleEditGetAssists(params);
+
       case protocol.EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS:
         result = null;
 

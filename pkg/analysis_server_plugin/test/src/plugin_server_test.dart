@@ -105,6 +105,19 @@ bool b = false;
     expect(assist.change.edits, hasLength(1));
   }
 
+  Future<void> test_handleEditGetAssists_viaSendRequest() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+
+    var response = await channel.sendRequest(
+        protocol.EditGetAssistsParams(filePath, 'bool b = '.length, 1));
+    var result = protocol.EditGetAssistsResult.fromResponse(response);
+    expect(result.assists, hasLength(1));
+  }
+
   Future<void> test_handleEditGetFixes() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
@@ -116,6 +129,19 @@ bool b = false;
     var fixes = result.fixes.single;
     // The WrapInQuotes fix plus three "ignore diagnostic" fixes.
     expect(fixes.fixes, hasLength(4));
+  }
+
+  Future<void> test_handleEditGetFixes_viaSendRequest() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+
+    var response = await channel
+        .sendRequest(protocol.EditGetFixesParams(filePath, 'bool b = '.length));
+    var result = protocol.EditGetFixesResult.fromResponse(response);
+    expect(result.fixes.first.fixes, hasLength(4));
   }
 
   Future<void> test_lintDiagnosticsAreDisabledByDefault() async {
@@ -258,6 +284,30 @@ plugins:
   }
 }
 
+class _InvertBoolean extends ResolvedCorrectionProducer {
+  static const _invertBooleanKind =
+      AssistKind('dart.fix.invertBooelan', 50, 'Invert Boolean value');
+
+  _InvertBoolean({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.singleLocation;
+
+  @override
+  AssistKind get assistKind => _invertBooleanKind;
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    if (node case BooleanLiteral(:var value)) {
+      await builder.addDartFileEdit(file, (builder) {
+        var invertedValue = (!value).toString();
+        builder.addSimpleReplacement(range.node(node), invertedValue);
+      });
+    }
+  }
+}
+
 class _NoLiteralsPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
@@ -288,29 +338,5 @@ class _WrapInQuotes extends ResolvedCorrectionProducer {
       builder.addSimpleInsertion(literal.offset, "'");
       builder.addSimpleInsertion(literal.end, "'");
     });
-  }
-}
-
-class _InvertBoolean extends ResolvedCorrectionProducer {
-  static const _invertBooleanKind =
-      AssistKind('dart.fix.invertBooelan', 50, 'Invert Boolean value');
-
-  _InvertBoolean({required super.context});
-
-  @override
-  CorrectionApplicability get applicability =>
-      CorrectionApplicability.singleLocation;
-
-  @override
-  AssistKind get assistKind => _invertBooleanKind;
-
-  @override
-  Future<void> compute(ChangeBuilder builder) async {
-    if (node case BooleanLiteral(:var value)) {
-      await builder.addDartFileEdit(file, (builder) {
-        var invertedValue = (!value).toString();
-        builder.addSimpleReplacement(range.node(node), invertedValue);
-      });
-    }
   }
 }
