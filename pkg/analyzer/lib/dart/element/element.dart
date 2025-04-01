@@ -2041,6 +2041,7 @@ abstract class PrefixElement implements _ExistingElement {
 /// variable or a parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use PromotableElement2 instead')
 abstract class PromotableElement implements LocalElement, VariableElement {
   // Promotable elements are guaranteed to have a name.
   @override
@@ -2103,10 +2104,8 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 /// * Every explicit variable is represented by a non-synthetic
 ///   [PropertyInducingElement].
 /// * Every explicit variable induces a getter and possibly a setter, both of
-// ignore:deprecated_member_use_from_same_package
 ///   which are represented by synthetic [PropertyAccessorElement]s.
 /// * Every explicit getter or setter is represented by a non-synthetic
-// ignore:deprecated_member_use_from_same_package
 ///   [PropertyAccessorElement].
 /// * Every explicit getter or setter (or pair thereof if they have the same
 ///   name) induces a variable that is represented by a synthetic

@@ -3468,7 +3468,7 @@ package:analyzer/dart/element/element.dart:
     imports (getter: List<LibraryImportElement>)
     name (getter: String)
     scope (getter: Scope)
-  PromotableElement (class extends Object implements LocalElement, VariableElement):
+  PromotableElement (class extends Object implements LocalElement, VariableElement, deprecated):
     new (constructor: PromotableElement Function())
     name (getter: String)
   PropertyAccessorElement (class extends Object implements ExecutableElement, deprecated):
