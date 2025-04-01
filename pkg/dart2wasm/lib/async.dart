@@ -226,11 +226,16 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     // Switch on the target index.
     masterLoop = b.loop(const [], const []);
     labels = List.generate(targets.length, (_) => b.block()).reversed.toList();
-    w.Label defaultLabel = b.block();
+
+    // There should be at least two states: inner and after targets for the
+    // [FunctionNode].
+    assert(labels.length >= 2);
+
+    // Use the last target label as the default `br_table` target.
+    final brTableLabels = labels.sublist(0, labels.length - 1);
+    final brTableDefaultLabel = labels.last;
     b.local_get(targetIndexLocal);
-    b.br_table(labels, defaultLabel);
-    b.end(); // defaultLabel
-    b.unreachable();
+    b.br_table(brTableLabels, brTableDefaultLabel);
 
     // Initial state
     final StateTarget initialTarget = targets.first;

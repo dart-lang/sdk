@@ -1284,6 +1284,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 /// This also provides convenient access to the parameters and return type.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use FunctionTypedElement2 instead')
 abstract class FunctionTypedElement implements TypeParameterizedElement {
   /// The parameters defined by this executable element.
   List<ParameterElement> get parameters;
@@ -1298,6 +1299,7 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
 /// The pseudo-declaration that defines a generic function type.
 ///
 /// Clients may not extend, implement, or mix-in this class.
+@Deprecated('Use GenericFunctionTypeElement2 instead')
 abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 
 /// A combinator that causes some of the names in a namespace to be hidden when
@@ -2184,12 +2186,14 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
 /// A type alias (`typedef`).
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeAliasElement2 instead')
 abstract class TypeAliasElement
     implements TypeParameterizedElement, TypeDefiningElement {
   /// If the aliased type has structure, return the corresponding element.
   /// For example it could be [GenericFunctionTypeElement].
   ///
   /// If there is no structure, return `null`.
+  @Deprecated(elementModelDeprecationMsg)
   Element? get aliasedElement;
 
   /// The aliased type.

@@ -5179,7 +5179,10 @@ sealed class FunctionElementImpl extends ExecutableElementImpl
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypedElementImpl
-    implements _ExistingElementImpl, FunctionTypedElement {
+    implements
+        _ExistingElementImpl,
+        // ignore:deprecated_member_use_from_same_package
+        FunctionTypedElement {
   @override
   List<ParameterElementImpl> get parameters;
 
@@ -5206,8 +5209,10 @@ abstract class FunctionTypedElementImpl2 extends TypeParameterizedElementImpl2
 ///
 /// Clients may not extend, implement or mix-in this class.
 class GenericFunctionTypeElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with
+        TypeParameterizedElementMixin
     implements
+        // ignore:deprecated_member_use_from_same_package
         GenericFunctionTypeElement,
         FunctionTypedElementImpl,
         GenericFunctionTypeFragment {
@@ -10980,8 +10985,13 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with AugmentableFragment, TypeParameterizedElementMixin
-    implements TypeAliasElement, TypeAliasFragment {
+    with
+        AugmentableFragment,
+        TypeParameterizedElementMixin
+    implements
+        // ignore:deprecated_member_use_from_same_package
+        TypeAliasElement,
+        TypeAliasFragment {
   @override
   String? name2;
 

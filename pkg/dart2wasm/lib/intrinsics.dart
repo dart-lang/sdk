@@ -1994,6 +1994,7 @@ class Intrinsifier {
         final namedArgsListLocal =
             b.addLocal(translator.nullableObjectArrayTypeRef);
         b.local_get(namedArgsLocal);
+        b.local_get(closureLocal);
         codeGen.call(translator.namedParameterMapToArray.reference);
         b.local_set(namedArgsListLocal);
 
