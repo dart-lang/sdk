@@ -684,6 +684,8 @@ class Server {
     String serverPath;
 
     if (useSnapshot) {
+      // TODO(dantup): Consider changing this to "dart language_server" and
+      //  sharing this code with LSP integration tests.
       serverPath = path.normalize(
         path.join(
           dartSdkPath,
