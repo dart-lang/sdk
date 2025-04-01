@@ -3507,7 +3507,7 @@ package:analyzer/dart/element/element.dart:
     isAugmentation (getter: bool)
     name (getter: String)
     instantiate (method: DartType Function({required NullabilitySuffix nullabilitySuffix, required List<DartType> typeArguments}))
-  TypeDefiningElement (class extends Object implements Element):
+  TypeDefiningElement (class extends Object implements Element, deprecated):
     new (constructor: TypeDefiningElement Function())
   TypeParameterElement (class extends Object implements TypeDefiningElement, deprecated):
     new (constructor: TypeParameterElement Function())

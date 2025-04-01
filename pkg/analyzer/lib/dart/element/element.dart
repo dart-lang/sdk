@@ -2235,6 +2235,7 @@ abstract class TypeAliasElement
 /// An element that defines a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use TypeDefiningElement2 instead')
 abstract class TypeDefiningElement implements Element {}
 
 /// A type parameter.
