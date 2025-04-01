@@ -46,20 +46,20 @@ part 'value_type_mask.dart';
 // TODO(60419): Go back to using a record as the key when it is no longer slower
 // than using a data class.
 final class _CanonicalizedTypeMaskKey {
-  final ClassEntity? base;
-  final Bitset flags;
+  final ClassEntity? _base;
+  final _Flags _flags;
 
-  const _CanonicalizedTypeMaskKey(this.base, this.flags);
+  const _CanonicalizedTypeMaskKey(this._base, this._flags);
 
   @override
-  int get hashCode => Object.hash(base, flags);
+  int get hashCode => Object.hash(_base, _flags);
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is _CanonicalizedTypeMaskKey &&
-          base == other.base &&
-          flags == other.flags;
+          _base == other._base &&
+          _flags == other._flags;
 }
 
 class CommonMasks with AbstractValueDomain {
@@ -78,11 +78,11 @@ class CommonMasks with AbstractValueDomain {
   final Map<_CanonicalizedTypeMaskKey, FlatTypeMask> _canonicalizedTypeMasks =
       {};
 
-  /// Return the cached mask for [base] with the given special values, or
-  /// calls [createMask] to create the mask and cache it.
-  FlatTypeMask getCachedMask(
+  /// Return the cached mask for [base] with the given flags, or calls
+  /// [createMask] to create the mask and cache it.
+  FlatTypeMask _getCachedMask(
     ClassEntity? base,
-    Bitset flags,
+    _Flags flags,
     FlatTypeMask Function() createMask,
   ) => _canonicalizedTypeMasks.putIfAbsent(
     _CanonicalizedTypeMaskKey(base, flags),
